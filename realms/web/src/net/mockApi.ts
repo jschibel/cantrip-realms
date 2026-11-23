@@ -273,7 +273,7 @@ export class MockApi implements RealmApi {
       const gold = low + Math.floor(this.random() * (high - low + 1));
       const fits = CARDS.filter((k) => k.Gold <= encounter.cap);
       const offer = encounter.cap > 0 && fits.length > 0 ? [fits[Math.floor(this.random() * fits.length)]!, ...[0, 1].map(() => CARDS[Math.floor(this.random() * CARDS.length)]!)] : [];
-      encounter.result = { Outcome: "won", Gold: gold, Offer: offer.map((k) => ({ Name: k.Name, Gold: k.Gold })), Cap: encounter.cap, Gear: null, Detail: null };
+      encounter.result = { Outcome: "won", Gold: gold, Offer: offer.map((k) => ({ Name: k.Name, Gold: k.Gold })), Cap: encounter.cap, Gear: null, Relics: [], Detail: null };
       this.update({ Gold: c.Gold + gold });
     } else {
       // A random ante card is lost.
@@ -283,7 +283,7 @@ export class MockApi implements RealmApi {
         this.deck = { ...this.deck, Ante: this.deck.Ante.map((a) => (a.Name === lost ? { ...a, Count: a.Count - 1 } : a)).filter((a) => a.Count > 0) };
         this.cards[lost] = Math.max(0, (this.cards[lost] ?? 1) - 1);
       }
-      encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Detail: null };
+      encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Relics: [], Detail: null };
       this.update({});
     }
     return encounter.result;

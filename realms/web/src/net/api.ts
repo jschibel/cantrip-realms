@@ -114,6 +114,8 @@ export interface EncounterResult {
   readonly Cap: number;
   /** The gear item a win dropped, if one did. */
   readonly Gear: GearInstance | null;
+  /** The relics a boss win dropped (design.md A3a), already in the collection; empty for most wins and every loss. */
+  readonly Relics: readonly string[];
   /** Why a duel counted as lost without being played out. */
   readonly Detail: string | null;
 }

@@ -6,7 +6,8 @@ import { terrainColor } from "../scene/world";
 // The world map's travel screen, in the style of Fallout's (design.md, A6): Dominaria from above, drawn small and
 // scaled up as pixel art, its places marked and named. Click a place and your marker crawls there along the roads or
 // across country; every hex travelled off the hub may be interrupted by an encounter, more likely off the roads, which
-// drops you onto a small map with the mob.
+// drops you onto a small map with the mob. A place that requires colors the character lacks (the Phyrexian Portal, until
+// all five are unlocked) is drawn sealed and can't be entered; the server refuses it too.
 
 export type EncounterMode = "roll" | "always" | "never";
 
@@ -18,6 +19,8 @@ export interface PlaceInfo {
   readonly id: string;
   readonly name: string;
   readonly kind: MapKind | null;
+  /** The colors its map requires (schema.ts's `requires`), if any. */
+  readonly requires?: string;
 }
 
 /** What a step costs, by terrain: roads are quick, swamps and hills slow. */
@@ -50,6 +53,8 @@ export class TravelScreen {
     private readonly info: (id: string) => PlaceInfo,
     private readonly mode: EncounterMode,
     private readonly random: () => number = Math.random,
+    /** The character's identity, as letters, for the places sealed to them. */
+    private readonly identity: () => string = () => "WUBRG",
   ) {
     this.places = world.data.exits.map((e) => ({ id: e.to, hex: hex(e.q, e.r) }));
     this.root = document.createElement("div");
@@ -123,6 +128,13 @@ export class TravelScreen {
     const [x, y] = this.project(h);
     const rect = this.canvas.getBoundingClientRect();
     return { x: rect.left + x * this.scale, y: rect.top + y * this.scale };
+  }
+
+  /** Whether a place is sealed to the character: its map requires a color their identity lacks. */
+  locked(id: string): boolean {
+    const requires = this.info(id).requires ?? "";
+    const identity = this.identity();
+    return [...requires].some((color) => !identity.includes(color));
   }
 
   /** The place the marker stands on, if any. */
@@ -269,14 +281,15 @@ export class TravelScreen {
       const info = this.info(place.id);
       const size = info.kind === "town" ? 6 : info.kind === "dungeon" ? 5 : 4;
       const hot = this.hover === place.id;
+      const sealed = this.locked(place.id);
       g.fillStyle = "#0d0f14";
       g.fillRect(Math.round(x * s - size - 1), Math.round(y * s - size - 1), size * 2 + 2, size * 2 + 2);
-      g.fillStyle = hot ? "#f1b44c" : info.kind === "dungeon" ? "#7a1f24" : info.kind === "town" ? "#f2efe6" : info.kind === "village" ? "#d6ae7e" : "#8fb350";
+      g.fillStyle = sealed ? (hot ? "#8c909c" : "#4f5363") : hot ? "#f1b44c" : info.kind === "dungeon" ? "#7a1f24" : info.kind === "town" ? "#f2efe6" : info.kind === "village" ? "#d6ae7e" : "#8fb350";
       g.fillRect(Math.round(x * s - size), Math.round(y * s - size), size * 2, size * 2);
-      if (info.kind === "town" || info.kind === "village" || hot) {
+      if (info.kind === "town" || info.kind === "village" || info.requires || hot) {
         const label = document.createElement("div");
-        label.className = `travel-label${hot ? " hot" : ""}${info.kind === "town" ? " town" : ""}`;
-        label.textContent = info.name;
+        label.className = `travel-label${hot ? " hot" : ""}${info.kind === "town" ? " town" : ""}${sealed ? " sealed" : ""}`;
+        label.textContent = sealed ? `${info.name} (sealed)` : info.name;
         label.style.left = `${Math.round(x * s)}px`;
         label.style.top = `${Math.round(y * s + size + 2)}px`;
         this.labels.appendChild(label);
@@ -294,7 +307,7 @@ export class TravelScreen {
 
     const here = this.here;
     this.button.hidden = !here || this.moving;
-    if (here) this.button.textContent = `Enter ${this.info(here.id).name}`;
+    if (here) this.button.textContent = this.locked(here.id) ? `${this.info(here.id).name} is sealed` : `Enter ${this.info(here.id).name}`;
   }
 
   private cost = (_from: Hex, to: Hex): number => {
@@ -349,7 +362,15 @@ export class TravelScreen {
 
   private enterHere(): void {
     const here = this.here;
-    if (here) this.finish({ kind: "arrive", map: here.id, at: here.hex });
+    if (!here) return;
+    if (this.locked(here.id)) {
+      // Sealed: say so, and stay on the world map.
+      this.banner.textContent = `${this.info(here.id).name} is sealed. It opens to a mage who has unlocked all of ${this.info(here.id).requires}.`;
+      this.banner.hidden = false;
+      this.draw();
+      return;
+    }
+    this.finish({ kind: "arrive", map: here.id, at: here.hex });
   }
 
   private finish(end: TravelEnd): void {
@@ -359,7 +380,12 @@ export class TravelScreen {
   }
 
   /** Every place's screen position, for the test hooks. */
-  describe(): { id: string; name: string; kind: string | null; hex: string; x: number; y: number }[] {
-    return this.places.map((p) => ({ ...this.info(p.id), id: p.id, hex: key(p.hex), ...this.screenOf(p.hex) }));
+  describe(): { id: string; name: string; kind: string | null; hex: string; locked: boolean; x: number; y: number }[] {
+    return this.places.map((p) => ({ ...this.info(p.id), id: p.id, hex: key(p.hex), locked: this.locked(p.id), ...this.screenOf(p.hex) }));
+  }
+
+  /** What the banner says, when it shows: an encounter, or a sealed place. */
+  get notice(): string | null {
+    return this.banner.hidden ? null : this.banner.textContent;
   }
 }
