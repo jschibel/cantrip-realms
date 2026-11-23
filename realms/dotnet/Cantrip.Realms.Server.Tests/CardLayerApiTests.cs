@@ -58,6 +58,14 @@ public sealed class CardLayerApiTests
         Assert.Contains("You own 2 Serra Angel; the deck and the ante use 3.", wrong.Problems);
         Assert.Contains("Plains is a basic land, free to every deck: it can't be anted.", wrong.Problems);
 
+        // A basic land of another color is outside the identity, the snow-covered ones too, which the legality data misses.
+        DeckCheckView snow = await browser.Ok<DeckCheckView>(HttpMethod.Post, "/api/deck/check", new
+        {
+            Main = new[] { new CardCount("Plains", 38), new CardCount("Snow-Covered Island", 1), new CardCount("Snow-Covered Plains", 1) },
+            Ante = Array.Empty<CardCount>(),
+        });
+        Assert.Equal(["Snow-Covered Island is outside the color identity W."], snow.Problems);
+
         await browser.ToSpellTable();
         ApiError refused = await browser.Refused(HttpMethod.Put, "/api/deck", new
         {

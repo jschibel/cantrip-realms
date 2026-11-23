@@ -251,7 +251,15 @@ the API for what happens inside one (buying, selling, saving the deck and the lo
 framed as `<card layer>?realm&api=<server>`: `api` is the realm server the overworld talks to, absent when the card
 layer is served from the server's own origin. A card layer on an origin of its own is named to the server as
 `REALMS_CARDS`, the one origin beside the world client's (`REALMS_CLIENT`) that the API answers from a browser. A screen cut short closes
-`dismissed` or `replaced`, which the overworld treats as a loss for a duel.
+`dismissed` or `replaced`, which the overworld treats as a loss for a duel; a duel cut short still hands back its log so
+far (the server takes it as a loss, the game not being over), and a loot pick cut short no picks.
+
+- `duel`: the card layer deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
+  `?engine=`) through `Cantrip.Realms`' `DuelTable`, the table the server's replay deals on, with no clocks. It closes
+  `won` only when seat 1 alone won, after the player has seen the result; a concession closes `lost` at once.
+- `loot` takes any subset of the offer whose prices fit under `cap`; `spell-table` reads the collection, the deck and
+  `/api/catalog`, judges the deck by `/api/deck/check` and saves with `PUT /api/deck`; `vendor` and `gear` trade and
+  wear through their calls, saying a refusal's `Detail` (and `Problems`) in words.
 
 ## Presence (`/realm/ws`)
 

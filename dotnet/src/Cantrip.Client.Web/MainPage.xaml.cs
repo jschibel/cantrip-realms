@@ -409,6 +409,7 @@ public sealed partial class MainPage : Page
         (_choicePickedBoard, handle => _pickedLooks.GetValueOrDefault(handle)),
         .. _promptBoards.Select(board => (board, (Func<ViewHandle, CardLook?>)(_ => null))),
         .. EventBoards(),
+        .. RealmBoards(),
     ];
 
     private CardLook? LookOn(ViewHandle handle) => _looks.GetValueOrDefault(handle);

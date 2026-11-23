@@ -58,7 +58,7 @@ public static class DeckChecks
                     : $"{named.Key}: {copies} copies, more than the {most} a deck may have.");
             }
 
-            if (identity is not null && !DeckRules.Within(card, identity))
+            if (identity is not null && !CardPool.Within(card, identity))
             {
                 problems.Add($"{named.Key} is outside the color identity {CardPool.Letters(identity)}.");
             }

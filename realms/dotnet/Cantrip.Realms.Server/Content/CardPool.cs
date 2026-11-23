@@ -50,6 +50,34 @@ public sealed class CardPool
         return card.Card.Supertypes.Contains(SupertypeView.Basic) && card.Card.CardTypes.Contains(CardTypeView.Land);
     }
 
+    /// <summary>
+    /// The colors a basic land's land types give it mana of (CR 305.6): Plains white, Island blue and so on; none for Wastes.
+    /// What a basic land's color identity is (CR 903.4), whether or not the legality data lists the card (it misses the
+    /// snow-covered basics).
+    /// </summary>
+    public static HashSet<ColorView> BasicColors(CatalogCard card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        HashSet<ColorView> colors = [];
+        foreach (string type in card.Card.Subtypes)
+        {
+            if (type switch { "Plains" => ColorView.White, "Island" => ColorView.Blue, "Swamp" => ColorView.Black, "Mountain" => ColorView.Red, "Forest" => ColorView.Green, _ => (ColorView?)null } is { } color)
+            {
+                colors.Add(color);
+            }
+        }
+
+        return colors;
+    }
+
+    /// <summary>Whether a card's color identity is within a character's: as the deck editor judges it, a basic land by its land types too.</summary>
+    public static bool Within(CatalogCard card, IReadOnlySet<ColorView> identity)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        ArgumentNullException.ThrowIfNull(identity);
+        return DeckRules.Within(card, identity) && (!IsBasic(card) || BasicColors(card).IsSubsetOf(identity));
+    }
+
     /// <summary>Whether a card fits a filter: every part of it that is given holds.</summary>
     public bool Fits(string name, CardFilter filter)
     {

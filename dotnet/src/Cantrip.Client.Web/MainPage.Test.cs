@@ -80,7 +80,7 @@ public sealed partial class MainPage
             // Ready once the table is up, or the draft or the deck being built before it.
             // A table forming from a queue, and a seat given up, are pages of their own too.
             // So is an event over with no game to show it, which the lobby's place says (LobbyPanel.RenderOver).
-            bool ready = (client?.View is not null || EventShown || DeckEditorShown || PairingsShown || client?.Table is { Forming: true } || client?.Released is not null
+            bool ready = (client?.View is not null || EventShown || DeckEditorShown || RealmShown || PairingsShown || client?.Table is { Forming: true } || client?.Released is not null
                     || (client?.Table is { Phase: TablePhase.Finished } && _lobby.Visibility == Visibility.Visible))
                 && _deckLoading.Visibility != Visibility.Visible;
 
@@ -169,6 +169,7 @@ public sealed partial class MainPage
             json.WriteBoolean("over", client?.IsOver ?? false);
             json.WriteString("phase", DeckEditorShown ? "DeckEditor" : client?.Released is not null ? "Released" : client?.Table is { Forming: true } ? "Forming" : client?.Table?.Phase.ToString() ?? string.Empty);
             WriteDeckEditor(json);
+            WriteRealm(json);
             json.WriteString("prompt", client?.Prompt?.Prompt?.GetType().Name ?? string.Empty);
             json.WriteNumber("requestId", client?.Prompt?.RequestId ?? 0);
             json.WriteNumber("answeredRequest", client?.LastAnswered ?? 0);
@@ -322,7 +323,7 @@ public sealed partial class MainPage
                     GeneralTransform toPage = board.TransformToVisual(Root);
                     // An event's rows by name: a booster pack's cards are told from the pool's by it, not by where they are.
                     string row = board == _pileBoard ? "pack" : board == _gridBoard ? "grid" : board == _mainBoard ? "pool" : board == _sideBoard ? "sideboard"
-                        : board == _commandBoard ? "commander" : board == _companionBoard ? "companion" : board == _searchBoard ? "search" : string.Empty;
+                        : board == _commandBoard ? "commander" : board == _companionBoard ? "companion" : board == _searchBoard ? "search" : RealmRow(board);
                     // The table's rows by name, as a scenario's client checks read them (docs/scenarios-in-the-browser.md).
                     string place = board == _stackBoard ? "stack"
                         : board == _handBoard ? "hand"
@@ -778,14 +779,14 @@ public sealed partial class MainPage
             json.WriteEndObject();
         }
         json.WriteStartArray("problems");
-        foreach (string problem in _catalog is null ? [] : Snapshot(deck) == _checkJudged ? _checked : DeckRules.Problems(deck, _catalogByName))
+        foreach (string problem in _realmDeck ? _realmChecked : _catalog is null ? [] : Snapshot(deck) == _checkJudged ? _checked : DeckRules.Problems(deck, _catalogByName))
         {
             json.WriteStringValue(problem);
         }
 
         json.WriteEndArray();
         // Whether those are the server's check of the deck as it is now (/decks/api/check), and the deck's companion.
-        json.WriteBoolean("checked", Snapshot(deck) == _checkJudged);
+        json.WriteBoolean("checked", _realmDeck ? RealmJudged : Snapshot(deck) == _checkJudged);
         json.WriteString("companion", deck.Companion);
         foreach ((string zone, List<DeckEntry> entries) in (ReadOnlySpan<(string, List<DeckEntry>)>)[("commanders", deck.Commanders), ("main", deck.Main), ("side", deck.Side)])
         {

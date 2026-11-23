@@ -75,9 +75,11 @@
     <EmbeddedResource Include="..\..\..\decks\demo\4-red-black.txt" LogicalName="deck_4-red-black" />
   </ItemGroup>
 
-  <!-- Cantrip Realms (this fork): the bridge to the overworld that frames a ?realm page (RealmBridge.cs). -->
+  <!-- Cantrip Realms (this fork): the bridge to the overworld that frames a ?realm page (RealmBridge.cs), and what the
+       browser and the realm server must do alike - the duel's table, its log and the mob's bot (realms/dotnet/Cantrip.Realms). -->
   <ItemGroup>
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\Realm.js" />
+    <ProjectReference Include="..\..\..\realms\dotnet\Cantrip.Realms\Cantrip.Realms.csproj" />
   </ItemGroup>
 
   <!-- Card frames, icons, fonts and the frame template, from the tracked content files. -->
