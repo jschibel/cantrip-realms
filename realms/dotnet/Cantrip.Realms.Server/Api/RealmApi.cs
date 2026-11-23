@@ -1,5 +1,8 @@
+using Cantrip.Decks;
 using Cantrip.Realms.Server.Auth;
+using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Economy;
+using MessagePack;
 
 namespace Cantrip.Realms.Server;
 
@@ -41,11 +44,22 @@ public static class RealmApi
         api.MapPost("/character", async (HttpContext context, Characters characters, NewCharacter body) =>
             Results.Ok(await characters.Create(Player(context), body).ConfigureAwait(false)));
 
+        // Every card the engine plays as printed, with its legalities and color identity: the card layer's faces, as the deck
+        // site's catalog is the deck editor's (MessagePack, the protocol's own CardCatalogView). The same for everyone, so made once.
+        var catalog = new Lazy<byte[]>(() => MessagePackSerializer.Serialize(new CardCatalogView
+        {
+            Cards = [.. app.ServiceProvider.GetRequiredService<RealmContent>().Cards.Catalog.Values.OrderBy(card => card.Name, StringComparer.Ordinal)],
+        }));
+        api.MapGet("/catalog", () => Results.Bytes(catalog.Value, "application/x-msgpack"));
+
         api.MapGet("/collection", async (HttpContext context, Characters characters) =>
             Results.Ok(await characters.Collection(Player(context)).ConfigureAwait(false)));
 
         api.MapGet("/deck", async (HttpContext context, DecksAndGear decks) =>
             Results.Ok(await decks.View(Player(context)).ConfigureAwait(false)));
+
+        api.MapPost("/deck/check", async (HttpContext context, DecksAndGear decks, DeckChange body) =>
+            Results.Ok(await decks.Check(Player(context), body).ConfigureAwait(false)));
 
         api.MapPut("/deck", async (HttpContext context, DecksAndGear decks, DeckChange body) =>
             Results.Ok(await decks.Save(Player(context), body).ConfigureAwait(false)));

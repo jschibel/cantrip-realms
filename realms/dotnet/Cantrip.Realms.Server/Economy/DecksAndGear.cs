@@ -62,6 +62,16 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
         return View(main, ante);
     }
 
+    /// <summary>What saving a deck and an ante would find wrong with them, wherever the character stands, and what the ante is worth.</summary>
+    public async Task<DeckCheckView> Check(string player, DeckChange change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        await characters.Require(player).ConfigureAwait(false);
+        List<CardCount> main = Merge(change.Main);
+        List<CardCount> ante = Merge(change.Ante);
+        return new DeckCheckView(await Problems(player, main, ante).ConfigureAwait(false), AnteValue(ante.Where(card => card.Count > 0)));
+    }
+
     /// <summary>Everything wrong with a deck and an ante for a character, in the order they would fix it.</summary>
     public async Task<List<string>> Problems(string player, IReadOnlyList<CardCount> main, IReadOnlyList<CardCount> ante)
     {

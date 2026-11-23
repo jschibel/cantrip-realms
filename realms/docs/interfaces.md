@@ -166,10 +166,12 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/me` | | the `Character` (below), or 404 `NoCharacter` |
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
 | `GET /api/collection` | | `{Cards: {name: count}}` |
+| `GET /api/catalog` | | every card the engine plays, as printed: `Cantrip.Protocol`'s `CardCatalogView`, MessagePack (`application/x-msgpack`), as the deck site's `/decks/api/catalog` is: the card layer's faces |
 | `GET /api/deck` | | the `Deck` |
+| `POST /api/deck/check` | `{Main, Ante}` | `{Problems: [...], AnteValue}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands, and the ante's worth |
 | `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` |
 | `PUT /api/loadout` | `{Slots: {slot: gearInstanceId or null}}` | the `Character`; 422 `IllegalLoadout` with `Problems` |
-| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty}, Purse, Stock: [{Name, Gold, Count, Until}]}`; a visit is counted; 404 `NoVendor` |
+| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`; a visit is counted; 404 `NoVendor` |
 | `POST /api/vendor/{id}/buy` | `{Name}` | `{Gold, Collection}`; 409 `SoldOut`, `CannotAfford` |
 | `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
@@ -194,6 +196,9 @@ player with no character is 404 `NoCharacter`.
   are free (any number of a basic land of the character's identity, and Wastes) and never in the collection; the ante
   holds no basic land. Every other copy in the deck and the ante together is owned.
 - `PUT /api/loadout` changes only the slots it names; null empties one.
+- A vendor's `Gold` is the character's; `Buying` is every card of theirs it deals in, with what it pays for one (`Gold`, half
+  the list price rounded down), how many they own and how many of those are `Spare` (in neither the deck nor the ante):
+  what the `vendor` screen offers to sell.
 - A vendor or an armorer trades with a character on its town's map (`/api/travel`), else 409 `NotNear`. A vendor sells at
   list price, the copy that would leave its shelf soonest first, and buys at half the list price rounded down.
 - `POST /api/encounter/start` checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
@@ -242,7 +247,10 @@ The overworld asks the card layer (`?realm` in `Cantrip.Client.Web`, framed over
 | `gear` | `{name}`, or `{armorer: <town map id>, name}` at an armorer | `closed` |
 
 The overworld calls the API around the screens (start before a duel, finish and loot after it); the card layer calls
-the API for what happens inside one (buying, selling, saving the deck and the loadout). A screen cut short closes
+the API for what happens inside one (buying, selling, saving the deck and the loadout), on the signed-in cookie. It is
+framed as `<card layer>?realm&api=<server>`: `api` is the realm server the overworld talks to, absent when the card
+layer is served from the server's own origin. A card layer on an origin of its own is named to the server as
+`REALMS_CARDS`, the one origin beside the world client's (`REALMS_CLIENT`) that the API answers from a browser. A screen cut short closes
 `dismissed` or `replaced`, which the overworld treats as a loss for a duel.
 
 ## Presence (`/realm/ws`)

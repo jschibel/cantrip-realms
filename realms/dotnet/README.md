@@ -6,7 +6,7 @@ relay. Its API, its presence protocol and its content are `realms/docs/interface
 
 | Project | What it is |
 | --- | --- |
-| `Cantrip.Realms` | What the browser and the server must do alike: the `Duel`, the log codec and `RecordingTransport`, the mob's bot (`RealmBot`), the spawn table (`Spawns`). |
+| `Cantrip.Realms` | What the browser and the server must do alike: the `Duel` and the table it is dealt to (`DuelTable`), the log codec and `RecordingTransport`, the mob's bot (`RealmBot`), the spawn table (`Spawns`). |
 | `Cantrip.Realms.Server` | The ASP.NET Core server (`cantrip-realms-server`). |
 | `Cantrip.Realms.Server.Tests` | Its tests (xUnit). |
 
@@ -58,7 +58,8 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_SITE` | the server's public address, for Discord's redirect | `http://localhost:5080/` |
 | `REALMS_DISCORD_CLIENT_ID`, `REALMS_DISCORD_CLIENT_SECRET` | the game's Discord application | none: no Discord sign-in |
 | `REALMS_KEYS` | where the keys sealing the sign-in cookie are kept | in memory |
-| `REALMS_CLIENT` | the world client's address: where sign-in lands, and the one browser origin the API answers | none |
+| `REALMS_CLIENT` | the world client's address: where sign-in lands, and a browser origin the API answers | none |
+| `REALMS_CARDS` | the card layer's address (the web client's `?realm` page), when it has an origin of its own: the other browser origin the API answers | none |
 | `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin` - never in production | off |
 | `REALMS_START_MAP` | the map new characters start on, at its inn | `new-argive` |
 | `REALMS_WALKING_SPEED` | presence's fastest walk, hexes a second | `4` |

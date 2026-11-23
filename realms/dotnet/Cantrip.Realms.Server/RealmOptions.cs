@@ -13,8 +13,10 @@ namespace Cantrip.Realms.Server;
 /// REALMS_DISCORD_CLIENT_ID       the game's own Discord application, for signing in
 /// REALMS_DISCORD_CLIENT_SECRET
 /// REALMS_KEYS                    where the keys sealing the sign-in cookie are kept; in memory when unset
-/// REALMS_CLIENT                  the world client's address (the CDN): where signing in lands, and the one origin the API
+/// REALMS_CLIENT                  the world client's address (the CDN): where signing in lands, and an origin the API
 ///                                answers from a browser
+/// REALMS_CARDS                   the card layer's address (the web client's ?realm page, framed over the world): the other
+///                                origin the API answers from a browser, with the signed-in cookie
 /// REALMS_DEV_SIGNIN              1 lets anyone sign in as any id, with no Discord: development and tests only
 /// REALMS_MIGRATE                 0 leaves the database's schema alone at start; by default the migrations are applied
 /// REALMS_START_MAP               the map new characters start on, at its inn; new-argive by default
@@ -39,6 +41,12 @@ public sealed class RealmOptions
     public string? Keys { get; init; }
 
     public Uri? Client { get; init; }
+
+    /// <summary>The card layer's address, when it is served from another origin than the world client's (interfaces.md).</summary>
+    public Uri? Cards { get; init; }
+
+    /// <summary>The browser origins the API answers, with credentials: the world client's and the card layer's.</summary>
+    public IReadOnlyList<string> Origins => [.. new[] { Client, Cards }.OfType<Uri>().Select(uri => uri.GetLeftPart(UriPartial.Authority)).Distinct(StringComparer.OrdinalIgnoreCase)];
 
     public bool DevSignIn { get; init; }
 
@@ -68,6 +76,7 @@ public sealed class RealmOptions
             DiscordClientSecret = Setting("DISCORD_CLIENT_SECRET"),
             Keys = Setting("KEYS"),
             Client = Setting("CLIENT") is { } client ? new Uri(client) : null,
+            Cards = Setting("CARDS") is { } cards ? new Uri(cards) : null,
             DevSignIn = Setting("DEV_SIGNIN") is "1" or "true",
             Migrate = Setting("MIGRATE") is not ("0" or "false"),
             WalkingSpeed = Setting("WALKING_SPEED") is { } speed ? double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture) : 4.0,

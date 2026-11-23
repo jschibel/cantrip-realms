@@ -191,7 +191,14 @@ export class MockApi implements RealmApi {
     this.log("vendor", { id });
     const pick = mulberry32(id.length * 7919 + id.charCodeAt(0));
     const stock = CARDS.filter(() => pick() < 0.4).map((c) => ({ Name: c.Name, Gold: c.Gold, Count: 1 + Math.floor(pick() * 3), Until: null }));
-    return { Vendor: { Id: id, Name: id, Town: "", Specialty: {} }, Purse: 50000, Stock: stock };
+    const used = (name: string) => [...this.deck.Main, ...this.deck.Ante].filter((c) => c.Name === name).reduce((n, c) => n + c.Count, 0);
+    const buying = CARDS.filter((c) => (this.cards[c.Name] ?? 0) > 0).map((c) => ({
+      Name: c.Name,
+      Gold: Math.floor(c.Gold / 2),
+      Owned: this.cards[c.Name]!,
+      Spare: Math.max(0, this.cards[c.Name]! - used(c.Name)),
+    }));
+    return { Vendor: { Id: id, Name: id, Town: "", Specialty: {} }, Purse: 50000, Stock: stock, Gold: this.character?.Gold ?? 0, Buying: buying };
   }
 
   async buy(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }> {
