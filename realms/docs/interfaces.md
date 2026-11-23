@@ -16,6 +16,18 @@ draws). Ids are kebab-case and never reused.
 ### Planes and pools
 
 - `planes.json`, `prices.json`, `pools/<plane>.json`: `tools/realms/card-economy.py` (the card economy, design.md A5).
+  A relic is priced but in no pool.
+
+### Relics (`relics.json`)
+
+```json
+{ "relics": [{ "card": "Black Lotus", "bosses": ["phyrexian-praetor"], "chance": 0.02 }] }
+```
+
+The cards that drop only from bosses, at most once per account ever (design.md A3a). `card` is a card the engine
+plays. `bosses` are the mobs (each `"boss": true`) it drops from. `chance` is its chance on each win against one of
+them: more than 0, at most 1. A relic is in no pool, so no vendor stock, loot offer, starter deck or mob deck holds one.
+The server refuses to start if a pool lists one, a starter deck holds one, or an entry names no boss.
 
 ### Gear (`gear/*.json`, one file per item)
 
@@ -63,12 +75,15 @@ draws). Ids are kebab-case and never reused.
 - `prize` is the mob's prize value in gold; the prize cap of a duel is `min(ante value, prize)` (design.md A3).
 - `gear` names gear items the mob wears, whose stats and emblems it starts with as a player does.
 - `loot` filters the plane's pool for the three cards offered after a win.
-- A boss has `"boss": true` and `"unlocks": "W"`.
+- A boss has `"boss": true` and `"unlocks": "W"`. A plane's capstone boss (`phyrexian-praetor`) has no `unlocks`: it
+  ends the arc instead, and the relics drop from it.
 - `model.mesh` is a mob mesh of `realms/content/models` (below).
 - `tools/realms/sample-decks.py` writes every mob the maps name, and its deck, by tier (design.md A3, A6): its prize
   (tier 1 100 gold, 2 300, 3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can
   buy, and stats-only gear. Wilderness and encounter maps hold tiers 1-2, a dungeon's floors 2-4 (3-4 below the first),
-  each floor's `*-warden` keeper is a tier 4 mini-boss, and the last floor's `boss` spawn one of the five bosses.
+  each floor's `*-warden` keeper is a tier 4 mini-boss, and the last floor's `boss` spawn one of the five bosses. The
+  Phyrexian Portal's floors hold tier 4 mobs only, the `portal-warden`, and the capstone's praetor, whose deck the script
+  writes out card by card.
 
 ### Maps (`<plane>/maps/*.json`)
 
@@ -95,7 +110,11 @@ The whole contract is `realms/web/src/maps/schema.ts` (its types and `validateMa
   Terrains: `grass meadow dirt road cobble stone rock sand water deep-water swamp mud moss snow ice ash lava floor
   wood marble crystal`, and on the world map also `forest hills mountain`.
 - `kind` is `town`, `village`, `wilderness`, `dungeon` (with `"floor": n`, 1 at the entrance) or `world` (the travel
-  map, `world.json`). `region` is the map's color (`W` `U` `B` `R` `G`); the hub has none.
+  map, `world.json`). `region` is the map's color (`W` `U` `B` `R` `G`); the hub and the Phyrexian Portal have none.
+- `requires`, on a map beyond the towns, is the colors a character's identity must hold to set foot there, as letters in
+  WUBRG order. The Phyrexian Portal's floors (`phyrexian-portal-<n>`) require `"WUBRG"`. The server refuses a character
+  who lacks one (`/api/travel` and `/api/encounter/start`, 409 `Locked`); the travel screen draws the place sealed and
+  won't enter it. A map without it is open to everyone.
 - `props` are scenery only, one of `schema.ts`'s `PROP_KINDS` (trees, rocks, houses, walls, pillars, braziers, stairs...).
   Whether a hex can be walked is its tile's `blocked`, never its prop's.
 - `npcs` are the people and places a player uses: `kind` is `inn`, `spell-table`, `vendor` (with `"vendor": "<id>"`,
@@ -153,7 +172,8 @@ its town's map: a `vendor` NPC there names it.
 
 The server reads all of this at start and refuses to start on content that does not hold together: every mob, vendor and
 map a map names is there (spawns' mobs, vendor NPCs, exits, the world map's encounter maps, inns), every mob's deck, gear
-and model resolve, and every mob and vendor is met on some map (`ContentTests`).
+and model resolve, every mob and vendor is met on some map, every relic is a card from a boss and in no pool, and every
+`requires` is colors' letters (`ContentTests`).
 
 ## The realm server's API (`/api`)
 
@@ -167,18 +187,18 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
 | `GET /api/collection` | | `{Cards: {name: count}}` |
 | `GET /api/deck` | | the `Deck` |
-| `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` |
+| `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` (a relic in the ante is one) |
 | `PUT /api/loadout` | `{Slots: {slot: gearInstanceId or null}}` | the `Character`; 422 `IllegalLoadout` with `Problems` |
 | `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty}, Purse, Stock: [{Name, Gold, Count, Until}]}`; a visit is counted; 404 `NoVendor` |
 | `POST /api/vendor/{id}/buy` | `{Name}` | `{Gold, Collection}`; 409 `SoldOut`, `CannotAfford` |
-| `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
+| `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `Relic` (a relic is never sold, whatever the vendor), `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
-| `POST /api/encounter/start` | `{Map, Spawn, Mob}` | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Detail}`; 404 `NoDuel`, 409 `Finished` |
+| `POST /api/encounter/start` | `{Map, Spawn, Mob}` | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`, `Locked`; 404 `NotThere`; 422 `IllegalDeck` |
+| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
 | `POST /api/chest/open` | `{Map, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
-| `POST /api/travel` | `{Map, Q, R}` | `{}`: where the character is, for the inn and the checks above; 422 `NoSuchPlace` off the map or on a blocked hex |
+| `POST /api/travel` | `{Map, Q, R}` | `{}`: where the character is, for the inn and the checks above; 422 `NoSuchPlace` off the map or on a blocked hex; 409 `Locked` on a map whose `requires` the character's identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Map, Q, R, Stats: {Life, Hand, MaxHand},
   Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color]}`. `Id` is the player id (`discord-<id>`,
@@ -192,12 +212,14 @@ player with no character is 404 `NoCharacter`.
   item with no effects). `GearInstance` is one a character owns: `{InstanceId, Gear}`.
 - `Deck`: `{Main: [{Name, Count}], Ante: [{Name, Count}], AnteValue}`. The main deck holds the basic lands too, which
   are free (any number of a basic land of the character's identity, and Wastes) and never in the collection; the ante
-  holds no basic land. Every other copy in the deck and the ante together is owned.
+  holds no basic land and no relic, and the main deck at most one copy of a relic. Every other copy in the deck and the
+  ante together is owned.
 - `PUT /api/loadout` changes only the slots it names; null empties one.
 - A vendor or an armorer trades with a character on its town's map (`/api/travel`), else 409 `NotNear`. A vendor sells at
   list price, the copy that would leave its shelf soonest first, and buys at half the list price rounded down.
 - `POST /api/encounter/start` checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
-  the character at the inn - and the call is refused 409 `Unfinished`); the map and spawn (404 `NotThere`); that the mob
+  the character at the inn - and the call is refused 409 `Unfinished`); the map (404 `NotThere`), that it is open to the
+  character (409 `Locked`, its `requires`), and the spawn (404 `NotThere`); that the mob
   is one of the spawn's (409 `NotThere`); that the character is on the map within `radius + 8` hexes of the spawn point
   (its wander radius, the 6 it chases, and 2 for walking on since the last report; 409 `NotNear`); that the spawn holds
   that mob for the character this epoch or the one before (409 `NotThere`) and that it has not been fought in that epoch
@@ -207,7 +229,11 @@ player with no character is 404 `NoCharacter`.
   log not accepted are `lost`, with the reason in `Detail`. A win's `Gold` is rolled from the mob's gold range and paid at
   once; `Offer` is up to three different cards of the mob's loot, each with its list price (`Gold`) and within `Cap`
   (none with an empty ante): what the `loot` screen shows; `Gear` is the gear item a win dropped (`GearInstance`, or
-  null). A loss moves the character to the inn the duel's map names.
+  null). `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
+  other win and every loss. A win against a boss rolls, at its chance, each relic whose entry names that boss and that is
+  not in the account's relic ledger. The roll is apart from the offer and outside the cap. Each relic that comes up is
+  added to the collection and to the ledger in the same transaction as the win. A loss moves the character to the inn the
+  duel's map names.
 - `Duel`: everything the browser deals the game from - `{Seats: [the NewGame seat of docs/host-protocol.md, with
   StartingLife, StartingHandSize, MaximumHandSize, Emblems], MinimumDeckSize: 40, Seed, Mob: {Name, Tier, Prize},
   AnteValue, Cap}`. The player is seat 1, the mob seat 2. Each seat's setup values are always given: its stats with its

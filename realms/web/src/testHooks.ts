@@ -71,7 +71,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     },
     get travel() {
       const t = game()?.travelScreen;
-      return t?.isOpen ? { at: key(t.at), moving: t.moving, here: t.here?.id ?? null, places: t.describe() } : null;
+      return t?.isOpen ? { at: key(t.at), moving: t.moving, here: t.here?.id ?? null, notice: t.notice, places: t.describe() } : null;
     },
     get layer() {
       return { ready: layer.isReady, open: layer.openScreen, requests: layer.requests.map((r) => ({ screen: r.screen, args: JSON.parse(JSON.stringify(r.args)) as unknown })) };

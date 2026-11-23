@@ -18,8 +18,8 @@ namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
 /// The realm server in this process, as a browser reaches it: its own SQLite file, the development sign-in, a fake clock
-/// (<see cref="Time"/>), a fake duel verifier (<see cref="Verifier"/>) and seeded dice. The content is the repository's,
-/// read once for every test.
+/// (<see cref="Time"/>), a fake duel verifier (<see cref="Verifier"/>) and seeded dice (<see cref="Random"/>). The content
+/// is the repository's, read once for every test.
 /// </summary>
 public sealed class RealmApp : WebApplicationFactory<Program>
 {
@@ -38,6 +38,9 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     public FakeTimeProvider Time { get; } = new(Start);
 
     public FakeVerifier Verifier { get; } = new();
+
+    /// <summary>What the dice roll from: seeded, so a failure repeats; a <see cref="ForcedRolls"/> decides the relic rolls.</summary>
+    public Random Random { get; init; } = new Random(20261123);
 
     /// <summary>Whether the hourly clock (<see cref="RealmClock"/>) runs; off, a test brings the realm up to the hour by its calls.</summary>
     public bool Clock { get; init; }
@@ -67,7 +70,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
             services.RemoveAll<IDuelVerifier>();
             services.AddSingleton<IDuelVerifier>(NativeVerifier ? new NativeDuelVerifier() : Verifier);
             services.RemoveAll<RealmDice>();
-            services.AddSingleton(new RealmDice(new Random(20261123)));
+            services.AddSingleton(new RealmDice(Random));
             if (!Clock)
             {
                 ServiceDescriptor? clock = services.FirstOrDefault(service => service.ServiceType == typeof(IHostedService) && service.ImplementationType == typeof(RealmClock));
@@ -207,6 +210,17 @@ public sealed class Browser(RealmApp app, HttpClient client, string player, stri
 
     /// <summary>Walks to beside New Argive's spell table.</summary>
     public Task ToSpellTable() => Travel("new-argive", RealmApp.Beside("new-argive", RealmApp.Npc("new-argive", RealmMap.SpellTable)));
+}
+
+/// <summary>
+/// Dice whose relic rolls (<see cref="RealmDice.Roll"/>, the one roll that reads <see cref="Random.NextDouble"/>) come up as a
+/// test says - <see cref="Value"/>, 0 for every chance to come up and 1 for none - and whose every other roll is seeded.
+/// </summary>
+public sealed class ForcedRolls(double value) : Random(20261123)
+{
+    public double Value { get; set; } = value;
+
+    public override double NextDouble() => Value;
 }
 
 /// <summary>A duel verifier a test decides the answers of: by default, every log is a win for the player.</summary>

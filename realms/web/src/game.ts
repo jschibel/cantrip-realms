@@ -413,11 +413,17 @@ export class Overworld {
     this.screen = "travel";
     const worldMap = await loadMap("world");
     if (!this.travel) {
-      this.travel = new TravelScreen(worldMap, (id) => this.placeInfo.get(id) ?? { id, name: id, kind: null }, this.options.encounters);
-      // Names and kinds of places, as their maps load.
+      this.travel = new TravelScreen(
+        worldMap,
+        (id) => this.placeInfo.get(id) ?? { id, name: id, kind: null },
+        this.options.encounters,
+        Math.random,
+        () => this.data.Identity,
+      );
+      // Names and kinds of places, and the colors any of them requires, as their maps load.
       void Promise.all(worldMap.data.exits.map(async (e) => {
         const map = await loadMap(e.to);
-        this.placeInfo.set(e.to, { id: e.to, name: map.name, kind: map.kind });
+        this.placeInfo.set(e.to, { id: e.to, name: map.name, kind: map.kind, ...(map.data.requires ? { requires: map.data.requires } : {}) });
       }));
     }
     const end = await this.travel.open(at);
@@ -469,6 +475,8 @@ export class Overworld {
       mob.walker.character.dispose();
       this.mobs.splice(this.mobs.indexOf(mob), 1);
       this.say(`You defeated the ${mob.info.name}: ${gold(result.Gold)} gold.`);
+      // A relic (design.md A3a): already in the collection, once per account ever.
+      for (const relic of result.Relics ?? []) this.say(`A relic falls from the ${mob.info.name}: ${relic} is yours, and yours alone.`);
       if (result.Offer.length > 0) {
         const loot = await this.openCards("loot", { token: start.Token, offer: result.Offer, cap: result.Cap, mob: mob.info.name }, false);
         const picks = Array.isArray(loot.result?.picks) ? (loot.result.picks as string[]) : [];

@@ -1,0 +1,35 @@
+# Phyrexian Praetor (phyrexian-praetor), the capstone boss: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Sheoldred, the Apocalypse
+2 Birds of Paradise
+2 Baleful Strix
+2 Tarmogoyf
+2 Bloodbraid Elf
+1 True-Name Nemesis
+1 Lightning Angel
+1 Lyra Dawnbringer
+1 Fusion Elemental
+1 Teferi, Hero of Dominaria
+2 Lightning Bolt
+1 Vindicate
+1 Abrupt Decay
+1 Dismember
+1 Thoughtseize
+1 Mana Drain
+1 Demonic Tutor
+1 Underground Sea
+1 Tundra
+1 Volcanic Island
+1 Tropical Island
+1 Scrubland
+1 Badlands
+1 Bayou
+1 Plateau
+1 Savannah
+1 Taiga
+1 Polluted Delta
+1 Bloodstained Mire
+1 Flooded Strand
+1 Windswept Heath
+1 Wooded Foothills
+2 Swamp

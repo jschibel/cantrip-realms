@@ -6,7 +6,7 @@
 import type { Hex } from "../../src/hex";
 import type { MapData, NpcData, PropKind, Region, Terrain } from "../../src/maps/schema";
 import { MapBuilder, STEP, distance, hex, key, line, neighbors, noise, ring, spiral, toward } from "./builder";
-import { STYLES, type Style } from "./styles";
+import { STYLES, type Style, type StyleName } from "./styles";
 
 /** A way out of a map: where it leads, and which way it lies (radians, as `toward` takes them). */
 export interface Link {
@@ -291,7 +291,12 @@ export function settlement(spec: SettlementSpec): MapData {
 export interface DungeonSpec {
   readonly id: string;
   readonly name: string;
-  readonly region: Region;
+  /** The region's color; none for the Phyrexian Portal, which is no region's. */
+  readonly region?: Region;
+  /** How it looks, when not its region's. */
+  readonly style?: StyleName;
+  /** The colors a character must have to go in (schema.ts's `requires`). */
+  readonly requires?: string;
   readonly floor: number;
   readonly floors: number;
   /** Where the stairs up lead: the floor above, or "world" from the entrance. */
@@ -311,7 +316,7 @@ export interface DungeonSpec {
  */
 export function dungeon(spec: DungeonSpec): MapData {
   const b = new MapBuilder(spec.id, spec.name, "dungeon", 13, spec.region, spec.floor);
-  const style = styleOf(spec.region);
+  const style = spec.style ? STYLES[spec.style] : styleOf(spec.region);
   for (const cell of b.all) Object.assign(cell, { terrain: style.dungeonWall, height: 1, blocked: true });
 
   const enter = b.random() * Math.PI * 2;
@@ -389,12 +394,13 @@ export function dungeon(spec: DungeonSpec): MapData {
     const table = neighbors(upAt).find((n) => b.cell(n)?.blocked === false && !b.taken(n) && neighbors(n).filter((m) => b.cell(m)?.blocked === false).length >= 3);
     if (table) b.npc(table, { id: "spell-table", kind: "spell-table", name: "Spell table" });
     const brazier = toward(enter + 0.6, 1, upAt);
-    if (!b.taken(brazier) && b.cell(brazier)?.blocked === false) b.prop(brazier, "brazier");
+    if (!b.taken(brazier) && b.cell(brazier)?.blocked === false) b.prop(brazier, spec.requires ? "portal" : "brazier");
   }
   // Scenery against the walls of the rooms.
   b.scatter(style.dungeonProps, 0.08, (c) => !b.taken(c.hex) && !neighbors(c.hex).some((n) => b.taken(n)) && neighbors(c.hex).filter((n) => b.cell(n)?.blocked).length >= 2);
   b.scatter(["bones"], 0.03, (c) => !b.taken(c.hex) && !neighbors(c.hex).some((n) => b.taken(n)));
-  return b.build();
+  const built = b.build();
+  return spec.requires ? { ...built, requires: spec.requires } : built;
 }
 
 export interface EncounterSpec {

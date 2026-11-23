@@ -1,5 +1,6 @@
 // How each region of Dominaria looks on its maps (design.md, A6): Benalia's meadows and white stone, Tolaria's
-// shores, Urborg's swamps, Shiv's ash and lava, Llanowar's deep forest, and the hub's cobbled neutral ground.
+// shores, Urborg's swamps, Shiv's ash and lava, Llanowar's deep forest, the hub's cobbled neutral ground, and beyond the
+// Phyrexian Portal the invaders' plated halls.
 
 import type { PropKind, Region, Terrain } from "../../src/maps/schema";
 
@@ -28,7 +29,9 @@ export interface Style {
   readonly dungeonPool: Terrain | null;
 }
 
-export const STYLES: Record<Region | "hub", Style> = {
+export type StyleName = Region | "hub" | "phyrexia";
+
+export const STYLES: Record<StyleName, Style> = {
   W: {
     ground: ["meadow", "grass", "grass", "grass"],
     water: "water",
@@ -136,5 +139,23 @@ export const STYLES: Record<Region | "hub", Style> = {
     dungeonWall: "stone",
     dungeonProps: ["pillar"],
     dungeonPool: null,
+  },
+  phyrexia: {
+    ground: ["ash", "rock", "stone", "ash"],
+    water: "lava",
+    shore: "ash",
+    hills: 2,
+    trees: ["dead-tree"],
+    treeShare: 0.01,
+    rocks: ["rock", "boulder"],
+    rockShare: 0.04,
+    extras: ["bones"],
+    extraShare: 0.02,
+    road: "floor",
+    paving: "floor",
+    dungeonFloor: "floor",
+    dungeonWall: "rock",
+    dungeonProps: ["altar", "pillar", "bones", "brazier"],
+    dungeonPool: "lava",
   },
 };

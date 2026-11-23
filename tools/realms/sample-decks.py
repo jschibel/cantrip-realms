@@ -14,7 +14,9 @@ their color, as design.md A1 says. A deck is 23 spells and 17 basic lands: creat
 rest from the spells that answer or draw, each the best-scoring card of its slot by a plain reading of its cost, body
 and text, ties to the name. A mob leans to its creature types and its featured cards, and the higher its tier the
 rarer its cards and the more copies of its best ones: wilderness mobs are tiers 1-2, dungeon mobs 3-4, a floor's
-warden a tier 4 mini-boss, and the five bosses strong decks round their namesake card where the pool has it.
+warden a tier 4 mini-boss, and the five bosses strong decks round their namesake card where the pool has it. The
+Phyrexian Portal (design.md A6), open once all five colors are unlocked, holds tier 4 Phyrexians, its warden and the
+capstone boss, the five-color praetor, whose deck is written out here card by card: the strongest the pool allows.
 
 A mob's file follows its tier (design.md A3): its prize (T1 100 gold, T2 300, T3 800, T4 2,000, a boss 6,000), its gold
 range, its loot - its colors' cards of the rarities whose prices fit under its prize - its stats and stats-only gear,
@@ -59,7 +61,8 @@ MOST_COPIES = {1: 2, 2: 2, 3: 3, 4: 4, "boss": 4}
 # Every mob the maps name (realms/web/scripts/maps.ts): its id and name, its tier (1-4, "warden" for a floor's
 # mini-boss, "boss"), its colors, the creature types its deck leans to, its featured cards (as many copies as its best
 # cards get), whether its deck takes colorless artifacts, the stats-only gear it wears, its model (mesh, palette, size),
-# and for a boss the color it unlocks.
+# and for a boss the color it unlocks (none for the capstone). A mob with a `decklist` plays exactly that, and one with
+# `stats` starts from them rather than its tier's.
 MOBS = [
     # Benalia (W): Phyrexian stragglers and deserters in the meadows, Serra's angels in her fallen sanctum.
     dict(id="phyrexian-scout", name="Phyrexian Scout", tier=1, colors="B", lean=["Phyrexian", "Horror", "Zombie"], model=("phyrexian", ["#8c909c", "#7a1f24"], 1.0)),
@@ -106,6 +109,59 @@ MOBS = [
     dict(id="yavimaya-ancient", name="Yavimaya Ancient", tier=4, colors="G", lean=["Treefolk", "Elemental", "Wurm"], gear=["chain-hauberk", "elvish-striders"], model=("spirit", ["#2a4524", "#8f6340", "#3e9a4a"], 1.4)),
     dict(id="heart-warden", name="Heart Warden", tier="warden", colors="G", lean=["Elemental", "Wurm", "Beast"], gear=["benalish-plate", "silver-pendant"], model=("wurm", ["#2a4524", "#f1b44c", "#3e9a4a"], 1.45)),
     dict(id="multani", name="Multani", tier="boss", colors="G", unlocks="G", lean=["Elemental", "Wurm", "Treefolk", "Avatar"], featured=["Enormous Baloth", "Arrogant Wurm"], gear=["benalish-plate", "argivian-crown"], model=("spirit", ["#3e9a4a", "#8f6340", "#f1b44c"], 1.8)),
+    # The Phyrexian Portal (the capstone): the invasion's war-machines and priests, its warden, and the praetor.
+    dict(id="phyrexian-ravager", name="Phyrexian Ravager", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct"], gear=["mantle-of-the-ancients", "thran-amulet"], model=("phyrexian", ["#8c909c", "#c8432c", "#2a2b36"], 1.35)),
+    dict(id="phyrexian-negator", name="Phyrexian Negator", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Demon"], gear=["serran-vestments", "thran-amulet"], model=("phyrexian", ["#2a2b36", "#7a1f24", "#b3b5bc"], 1.4)),
+    dict(id="gitaxian-mindcutter", name="Gitaxian Mindcutter", tier=4, colors="UB", artifacts=True, lean=["Phyrexian", "Wizard", "Horror"], prefer="B", gear=["serran-vestments", "sages-circlet"], model=("phyrexian", ["#5b8fd6", "#b3b5bc", "#0d0f14"], 1.3)),
+    dict(id="phyrexian-gorger", name="Phyrexian Gorger", tier=4, colors="BG", lean=["Phyrexian", "Beast", "Horror"], prefer="B", gear=["mantle-of-the-ancients", "silver-pendant"], model=("phyrexian", ["#5d6646", "#7a1f24", "#2a4524"], 1.4)),
+    dict(id="portal-warden", name="Portal Warden", tier="warden", colors="UBR", artifacts=True, lean=["Phyrexian", "Construct", "Horror"], prefer="B", gear=["mantle-of-the-ancients", "thran-amulet", "sages-circlet"], model=("phyrexian", ["#b3b5bc", "#c8432c", "#0d0f14"], 1.5)),
+    dict(
+        id="phyrexian-praetor",
+        name="Phyrexian Praetor",
+        tier="boss",
+        colors="WUBRG",
+        lean=["Phyrexian", "Praetor"],
+        stats=(30, 7, 7),
+        gear=["mantle-of-the-ancients", "crown-of-the-ages", "thran-amulet"],
+        model=("phyrexian", ["#f2efe6", "#7a1f24", "#0d0f14"], 1.9),
+        # Five colors on the ten original duals and five fetches, round Sheoldred, the Apocalypse (the pool's one
+        # praetor): Fusion Elemental for the five colors, the best creatures, removal and card advantage of each.
+        decklist=[
+            (2, "Sheoldred, the Apocalypse"),
+            (2, "Birds of Paradise"),
+            (2, "Baleful Strix"),
+            (2, "Tarmogoyf"),
+            (2, "Bloodbraid Elf"),
+            (1, "True-Name Nemesis"),
+            (1, "Lightning Angel"),
+            (1, "Lyra Dawnbringer"),
+            (1, "Fusion Elemental"),
+            (1, "Teferi, Hero of Dominaria"),
+            (2, "Lightning Bolt"),
+            (1, "Vindicate"),
+            (1, "Abrupt Decay"),
+            (1, "Dismember"),
+            (1, "Thoughtseize"),
+            (1, "Mana Drain"),
+            (1, "Demonic Tutor"),
+            (1, "Underground Sea"),
+            (1, "Tundra"),
+            (1, "Volcanic Island"),
+            (1, "Tropical Island"),
+            (1, "Scrubland"),
+            (1, "Badlands"),
+            (1, "Bayou"),
+            (1, "Plateau"),
+            (1, "Savannah"),
+            (1, "Taiga"),
+            (1, "Polluted Delta"),
+            (1, "Bloodstained Mire"),
+            (1, "Flooded Strand"),
+            (1, "Windswept Heath"),
+            (1, "Wooded Foothills"),
+            (2, "Swamp"),
+        ],
+    ),
 ]
 
 # Mobs whose files and decks were tuned by hand: not overwritten.
@@ -151,7 +207,9 @@ def number(value):
 
 
 def subtypes_of(card):
-    return card["type"].split("—")[-1].split() if "—" in card["type"] else []
+    # A split card's halves have their own type lines (Life // Death's are sorceries): none of them has subtypes here.
+    kind = card.get("type", "")
+    return kind.split("—")[-1].split() if "—" in kind else []
 
 
 def creature_score(card, mv, leaning, rarity=None, lean_bonus=2):
@@ -197,7 +255,7 @@ def candidates_for(colors, rarities, pool, prices, legality, cards, exact, artif
         identity = info.get("identity")
         if (identity != colors) if exact else not within(identity, colors, artifacts):
             continue
-        if prices[name]["rarity"] not in rarities or "Land" in card["type"] or card.get("halves"):
+        if prices[name]["rarity"] not in rarities or card.get("halves") or "Land" in card["type"]:
             continue
         if not card.get("manaCost") or name in EXCLUDED:
             continue
@@ -338,7 +396,7 @@ def loot(mob, pool, prices, legality, cards):
 
 def mob_file(mob, deck_path, pool, prices, legality, cards):
     tier = tier_of(mob)
-    life, hand, max_hand = STATS[mob["tier"]]
+    life, hand, max_hand = mob.get("stats", STATS[mob["tier"]])
     mesh, palette, size = mob["model"]
     data = {
         "id": mob["id"],
@@ -353,7 +411,7 @@ def mob_file(mob, deck_path, pool, prices, legality, cards):
         "model": {"mesh": mesh, "palette": palette, "size": size},
         "boss": mob["tier"] == "boss",
     }
-    if mob["tier"] == "boss":
+    if mob.get("unlocks"):
         data["unlocks"] = mob["unlocks"]
     return data
 
@@ -373,14 +431,14 @@ def main():
         if mob["id"] in HAND_TUNED:
             continue
         tier = tier_of(mob)
-        missing = [n for n in mob.get("featured", []) if n not in pool]
+        missing = [n for n in mob.get("featured", []) + [n for _, n in mob.get("decklist", [])] if n not in pool and n not in BASICS.values()]
         if missing:
-            sys.exit(f"sample-decks: {mob['id']} features {', '.join(missing)}, which the {PLANE} pool does not have")
-        deck = build(mob["colors"], DECK_RARITIES[tier], mob["lean"], pool, prices, legality, cards,
+            sys.exit(f"sample-decks: {mob['id']} plays {', '.join(missing)}, which the {PLANE} pool does not have")
+        deck = mob.get("decklist") or build(mob["colors"], DECK_RARITIES[tier], mob["lean"], pool, prices, legality, cards,
                      artifacts=mob.get("artifacts", False), featured=mob.get("featured", []), most=MOST_COPIES[tier],
                      scored=tier in (3, 4, "boss"), prefer=mob.get("prefer", ""))
         deck_path = f"decks/realms/{PLANE}/{mob['id']}.txt"
-        kind = {"warden": "a dungeon floor's warden", "boss": "a boss"}.get(mob["tier"], f"a tier {mob['tier']} mob")
+        kind = {"warden": "a dungeon floor's warden", "boss": "a boss" if mob.get("unlocks") else "the capstone boss"}.get(mob["tier"], f"a tier {mob['tier']} mob")
         write(os.path.join(ROOT, *deck_path.split("/")),
               f"# {mob['name']} ({mob['id']}), {kind}: written by tools/realms/sample-decks.py; tune it by hand.\n\n", deck)
         path = os.path.join(ROOT, "realms", "content", PLANE, "mobs", f"{mob['id']}.json")

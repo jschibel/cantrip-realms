@@ -1,0 +1,41 @@
+{
+  "id": "phyrexian-gorger",
+  "name": "Phyrexian Gorger",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/phyrexian-gorger.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "mantle-of-the-ancients",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "BG",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "phyrexian",
+    "palette": [
+      "#5d6646",
+      "#7a1f24",
+      "#2a4524"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

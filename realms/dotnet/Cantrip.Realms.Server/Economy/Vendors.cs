@@ -225,6 +225,7 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         await Near(player, vendor).ConfigureAwait(false);
         await Advance(vendor).ConfigureAwait(false);
         string name = request.Name ?? throw Refusal.BadRequest("A sale names a card.");
+        if (content.Cards.IsRelic(name)) throw Refusal.Conflict(Codes.Relic, $"{name} is a relic: nobody buys one, and it is never sold.");
         if (!content.Cards.Fits(name, vendor.File.Specialty) || !content.Cards.Pool(vendor.Plane).Contains(name, StringComparer.Ordinal))
         {
             throw Refusal.Conflict(Codes.NotTheirTrade, $"{vendor.File.Name} doesn't deal in {name}.");

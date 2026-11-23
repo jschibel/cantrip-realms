@@ -225,6 +225,7 @@ button.primary:hover { filter: brightness(1.08); }
 }
 .travel-label.town { font-size: 14px; color: var(--accent); }
 .travel-label.hot { color: var(--accent); }
+.travel-label.sealed { color: var(--fg-soft); font-style: italic; }
 .travel-bar {
   top: 16px;
   left: 50%;

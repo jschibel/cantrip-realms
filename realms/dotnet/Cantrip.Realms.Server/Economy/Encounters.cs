@@ -12,8 +12,8 @@ namespace Cantrip.Realms.Server.Economy;
 /// that spawn for this player now (<see cref="Spawns"/>, this epoch or the one before), that the character stands near it,
 /// and that the spawn has not been fought this epoch; then commits the seed, the mob, both seats and the prize cap. The
 /// browser plays it; finishing it checks the log (<see cref="IDuelVerifier"/>) and pays out - gold, three cards offered
-/// under the cap, perhaps a gear item - or takes a random ante card and sends the character to the nearest inn. A duel never
-/// finished is lost when the next one starts, or after 24 hours.
+/// under the cap, perhaps a gear item, and from a boss perhaps a relic (design.md A3a) - or takes a random ante card and sends
+/// the character to the nearest inn. A duel never finished is lost when the next one starts, or after 24 hours.
 /// </summary>
 public sealed class Encounters(
     RealmDb db,
@@ -58,6 +58,7 @@ public sealed class Encounters(
         }
 
         if (request.Map is null || !content.Maps.TryGetValue(request.Map, out RealmMap? map)) throw Refusal.NotFound(Codes.NotThere, $"There is no map '{request.Map}'.");
+        await characters.RequireOpen(player, map).ConfigureAwait(false);
         MapSpawn spawn = map.Spawn(request.Spawn ?? string.Empty) ?? throw Refusal.NotFound(Codes.NotThere, $"{map.File.Name} has no spawn '{request.Spawn}'.");
         if (request.Mob is null || !content.Mobs.TryGetValue(request.Mob, out Mob? mob) || !spawn.Mobs.Contains(mob.Id, StringComparer.Ordinal))
         {
@@ -174,7 +175,7 @@ public sealed class Encounters(
         if (Now - duel.StartedAt > (long)Abandoned.TotalMilliseconds)
         {
             if (!await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, duel.Detail);
+            return new OutcomeView("lost", 0, [], duel.Cap, null, [], duel.Detail);
         }
 
         Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
@@ -184,7 +185,7 @@ public sealed class Encounters(
         {
             string detail = verdict.Accepted ? (verdict.Winners.Count == 0 ? "A draw." : "The mob won.") : $"The log was not a game of this duel: {verdict.Problem}";
             if (!await Lose(duel, detail).ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, detail);
+            return new OutcomeView("lost", 0, [], duel.Cap, null, [], detail);
         }
 
         Mob mob = content.Mobs[duel.Mob];
@@ -213,6 +214,8 @@ public sealed class Encounters(
             dropped = new GearInstance(owned.Id, drop);
         }
 
+        List<string> relics = await DropRelics(player, mob, duel.Token).ConfigureAwait(false);
+
         if (mob.File.Boss && mob.File.Unlocks is { } color && !await db.Unlocks.AnyAsync(unlock => unlock.PlayerId == player && unlock.Color == color).ConfigureAwait(false))
         {
             db.Unlocks.Add(new UnlockRow { PlayerId = player, Color = color, At = Now });
@@ -220,7 +223,29 @@ public sealed class Encounters(
         }
 
         await transaction.CommitAsync().ConfigureAwait(false);
-        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, null);
+        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, relics, null);
+    }
+
+    /// <summary>
+    /// The relics a win against a boss drops (design.md A3a), inside the win's transaction: each relic whose entry names the
+    /// boss, unless the account's ledger has it already, is rolled at its chance - apart from the offer and outside the cap -
+    /// and one that comes up goes to the collection and the ledger together. The ledger keeps it whatever becomes of the card,
+    /// so it never drops for this account again.
+    /// </summary>
+    private async Task<List<string>> DropRelics(string player, Mob mob, string token)
+    {
+        List<RelicEntry> entries = [.. content.RelicsOf(mob)];
+        if (entries.Count == 0) return [];
+        HashSet<string> had = [.. await db.Relics.Where(row => row.PlayerId == player).Select(row => row.Card).ToListAsync().ConfigureAwait(false)];
+        List<string> dropped = [.. entries.Where(relic => !had.Contains(relic.Card) && dice.Roll(relic.Chance)).Select(relic => relic.Card)];
+        foreach (string card in dropped)
+        {
+            db.Relics.Add(new RelicRow { PlayerId = player, Card = card, At = Now, Duel = token });
+            await characters.AddToCollection(player, card, 1).ConfigureAwait(false);
+        }
+
+        if (dropped.Count > 0) await db.SaveChangesAsync().ConfigureAwait(false);
+        return dropped;
     }
 
     /// <summary>
@@ -326,7 +351,8 @@ public sealed class Encounters(
         List<CardCount> ante = JsonSerializer.Deserialize<List<CardCount>>(duel.Ante, Json) ?? [];
         Dictionary<string, int> owned = await db.Collection.Where(row => row.PlayerId == player)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
-        List<string> tickets = [.. ante.SelectMany(card => Enumerable.Repeat(card.Name, Math.Min(card.Count, owned.GetValueOrDefault(card.Name))))];
+        List<string> tickets = [.. ante.Where(card => !content.Cards.IsRelic(card.Name))
+            .SelectMany(card => Enumerable.Repeat(card.Name, Math.Min(card.Count, owned.GetValueOrDefault(card.Name))))];
         if (tickets.Count > 0)
         {
             string lost = tickets[dice.Below(tickets.Count)];

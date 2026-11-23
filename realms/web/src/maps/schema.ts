@@ -153,6 +153,12 @@ export interface MapData {
   readonly region?: Region;
   /** A dungeon's floor, from 1 at the entrance. */
   readonly floor?: number;
+  /**
+   * The colors, as letters in WUBRG order, a character's identity must hold to set foot here; absent for a map open to
+   * everyone. The Phyrexian Portal's floors require all five (design.md A6): the server refuses the rest (`/api/travel`
+   * and encounters, 409 `Locked`), and the travel screen shows the place sealed.
+   */
+  readonly requires?: string;
   readonly radius: number;
   readonly tiles: readonly TileData[];
   readonly props: readonly PropData[];
@@ -192,6 +198,10 @@ export function validateMap(data: unknown, maps?: ReadonlySet<string>): string[]
   if (m.region !== undefined && !REGIONS.includes(m.region as Region)) fail(`region ${String(m.region)} is not a color`);
   if (m.kind === "dungeon" && !(isInt(m.floor) && m.floor >= 1)) fail("a dungeon floor needs floor >= 1");
   if (m.kind !== "dungeon" && m.floor !== undefined) fail("only a dungeon has a floor");
+  if (m.requires !== undefined && (typeof m.requires !== "string" || !/^W?U?B?R?G?$/.test(m.requires) || m.requires.length === 0)) {
+    fail(`requires ${String(m.requires)} is not colors' letters in WUBRG order`);
+  }
+  if (m.requires !== undefined && (m.kind === "world" || m.kind === "town" || m.kind === "village")) fail(`a ${String(m.kind)} is open to everyone: only a place beyond one is locked`);
   if (!isInt(m.radius) || m.radius < 2 || m.radius > 64) fail("radius is not a whole number from 2 to 64");
   for (const field of ["tiles", "props", "exits", "spawns", "chests", "npcs"] as const) {
     if (!Array.isArray(m[field])) fail(`${field} is not a list`);

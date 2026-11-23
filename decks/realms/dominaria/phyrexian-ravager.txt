@@ -1,0 +1,12 @@
+# Phyrexian Ravager (phyrexian-ravager), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Cut Down
+3 Lightning Bolt
+2 Monastery Swiftspear
+4 Dreadhorde Arcanist
+2 Blood Knight
+4 Phyrexian Dragon Engine
+2 Sheoldred, the Apocalypse
+2 Yargle, Glutton of Urborg
+7 Swamp
+10 Mountain

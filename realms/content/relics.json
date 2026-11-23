@@ -1,5 +1,5 @@
 {
-  "comment": "Relics (realms/docs/design.md, A3a): cards that drop only from the bosses named here, at most once per account ever, and are never in a pool, a vendor's stock, a loot offer, an ante or a sale. The capstone boss is milestone 8's content; until it exists no relic can drop.",
+  "comment": "Relics (realms/docs/design.md, A3a): cards that drop only from the bosses named here, at most once per account ever, and are never in a pool, a vendor's stock, a loot offer, an ante or a sale. Each entry names its card, the bosses (mob ids) it drops from and its chance on each win; the server checks every name.",
   "relics": [
     { "card": "Black Lotus", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
     { "card": "Mox Pearl", "bosses": ["phyrexian-praetor"], "chance": 0.02 },

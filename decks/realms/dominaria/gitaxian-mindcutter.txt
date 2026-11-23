@@ -1,0 +1,12 @@
+# Gitaxian Mindcutter (gitaxian-mindcutter), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Cut Down
+3 Bone Splinters
+2 Fugitive Wizard
+4 Naban, Dean of Iteration
+2 Knight of Dusk's Shadow
+4 Tolarian Scholar
+2 Sheoldred, the Apocalypse
+2 Yargle, Glutton of Urborg
+7 Island
+10 Swamp

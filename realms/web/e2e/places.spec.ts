@@ -30,6 +30,28 @@ test("the world map: travel along the roads to New Argive", async ({ page }) => 
   expect(await realm<string>(page, "map.kind")).toBe("town");
 });
 
+test("the Phyrexian Portal is sealed on the world map to a mage without all five colors", async ({ page }) => {
+  const argive = mapData("new-argive");
+  const exit = argive.exits.find((e) => e.to === "world")!;
+  await openRealm(page, { at: at(argive, openNear(argive, exit, 1)), extra: "&mobs=0" });
+  const way = await entity(page, (e) => e.kind === "exit" && e.to === "world", "the way to the world map");
+  await page.mouse.click(way.x, way.y);
+  await expect.poll(() => realm<string>(page, "screen")).toBe("travel");
+  type Place = { id: string; name: string; locked: boolean; x: number; y: number };
+  await expect.poll(async () => (await realm<Place[]>(page, "travel.places")).find((p) => p.id === "phyrexian-portal-1")?.name).toBe("The Phyrexian Portal, floor 1");
+  const places = await realm<Place[]>(page, "travel.places");
+  expect(places.find((p) => p.id === "phyrexian-portal-1")!.locked).toBe(true);
+  expect(places.filter((p) => p.locked).map((p) => p.id)).toEqual(["phyrexian-portal-1"]);
+
+  // The marker goes there, and stays on the world map: the way in is sealed.
+  const portal = places.find((p) => p.id === "phyrexian-portal-1")!;
+  await page.mouse.click(portal.x, portal.y);
+  await expect.poll(() => realm<string | null>(page, "travel.here"), { timeout: 20_000 }).toBe("phyrexian-portal-1");
+  await expect.poll(() => realm<string | null>(page, "travel.notice")).toMatch(/sealed/);
+  expect(await realm<string>(page, "screen")).toBe("travel");
+  expect(await realm<boolean>(page, "travel.moving")).toBe(false);
+});
+
 test("an encounter on the road drops you onto a small map with the mob", async ({ page }) => {
   const meadow = mapData("benalish-meadow");
   const exit = meadow.exits.find((e) => e.to === "world")!;

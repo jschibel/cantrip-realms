@@ -1,7 +1,8 @@
 // Dominaria's maps (design.md, A6): the world map, New Argive at the hub, the five regions round it in WUBRG wheel
-// order - each with its home town, a village, three wilderness maps and a dungeon of 3-5 floors - and the small maps
-// travel encounters are fought on. Run `npm run maps` to write realms/content/dominaria/maps/*.json; the same run
-// gives the same files. A map tuned by hand in the editor is listed in HAND_TUNED and left alone.
+// order - each with its home town, a village, three wilderness maps and a dungeon of 3-5 floors - the small maps
+// travel encounters are fought on, and the capstone: the Phyrexian Portal by the hub, sealed until a character has all
+// five colors, whose last floor is the praetor's hall. Run `npm run maps` to write realms/content/dominaria/maps/*.json;
+// the same run gives the same files. A map tuned by hand in the editor is listed in HAND_TUNED and left alone.
 
 import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -217,6 +218,24 @@ const HUB = {
   ],
 };
 
+/**
+ * The capstone (design.md A6): the Phyrexian Portal, open once all five colors are unlocked. Tier 4 Phyrexians on every
+ * floor, the portal's warden keeping each, and on the last floor the five-color praetor who ends the Dominaria arc.
+ */
+const PORTAL = {
+  id: "phyrexian-portal",
+  name: "The Phyrexian Portal",
+  floors: 4,
+  requires: "WUBRG",
+  first: ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger"],
+  deep: ["phyrexian-ravager", "gitaxian-mindcutter", "phyrexian-negator", "phyrexian-gorger"],
+  keeper: "portal-warden",
+  boss: "phyrexian-praetor",
+  /** Where it stands on the world map: south of the hub, between Urborg's and Shiv's roads. */
+  angle: Math.PI / 2,
+  steps: 5,
+};
+
 // Regions round the hub clockwise from the top of the map, in wheel order: ally colors are neighbours.
 const angleOf = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / 5;
 
@@ -231,6 +250,7 @@ REGIONS.forEach((plan, i) => {
   places.set(plan.wilds[2]!.id, toward(a + 0.3, 17));
   places.set(`${plan.dungeon.id}-1`, toward(a, 20));
 });
+places.set(`${PORTAL.id}-1`, toward(PORTAL.angle, PORTAL.steps));
 
 /** The direction from one place to another on the world map, for where a map's exit to it goes. */
 function bearing(from: string, to: string): number {
@@ -388,6 +408,25 @@ function plan(): MapData[] {
     maps.push(encounter({ id: p.encounter.id, name: p.encounter.name, region: p.region, mobs: mixed }));
   }
 
+  for (let floor = 1; floor <= PORTAL.floors; floor++) {
+    const last = floor === PORTAL.floors;
+    maps.push(
+      dungeon({
+        id: `${PORTAL.id}-${floor}`,
+        name: `${PORTAL.name}, floor ${floor}`,
+        style: "phyrexia",
+        requires: PORTAL.requires,
+        floor,
+        floors: PORTAL.floors,
+        up: floor === 1 ? "world" : `${PORTAL.id}-${floor - 1}`,
+        down: last ? undefined : `${PORTAL.id}-${floor + 1}`,
+        mobs: floor <= 1 ? PORTAL.first : PORTAL.deep,
+        keeper: PORTAL.keeper,
+        boss: last ? PORTAL.boss : undefined,
+      }),
+    );
+  }
+
   const roads: string[][] = [];
   REGIONS.forEach((p, i) => {
     const next = REGIONS[(i + 1) % REGIONS.length]!;
@@ -397,6 +436,7 @@ function plan(): MapData[] {
     roads.push([p.town.id, p.wilds[2]!.id]);
     roads.push([p.village.id, next.village.id]);
   });
+  roads.push([HUB.id, `${PORTAL.id}-1`]);
   maps.push(
     world({
       radius: 26,
