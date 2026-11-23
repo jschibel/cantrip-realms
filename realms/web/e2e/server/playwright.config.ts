@@ -5,11 +5,14 @@ import { defineConfig } from "@playwright/test";
 
 // The overworld against the real realm server (tech.md, B10): Cantrip.Realms.Server started with the development
 // sign-in on a SQLite file of its own, and the overworld's dev server, which the page reaches it from
-// across origins as a deployed world client does (?server=). The card layer is the stand-in (?cards=stub), which records
-// what it is asked: the duel screen itself is the card layer's to play. `npm run e2e:server`; the engine host is not
-// needed (nothing here finishes a duel).
+// across origins as a deployed world client does (?server=). Most of it frames the card layer's stand-in (?cards=stub),
+// which records what it is asked; card-layer.spec.ts frames the real one - the web client's built ?realm page, served
+// as static files on an origin of its own (cards.mjs) - and plays its duel, which the server checks on the native engine
+// host. `npm run e2e:server`, after building the realm server, the web client (with the rules engine for the page,
+// toolsuild-engine-wasm.cmd) and the engine host (cargo build --profile cards -p cantrip-host).
 const web = 5175;
 const realm = 5181;
+const cards = 5197;
 const here = dirname(fileURLToPath(import.meta.url));
 const server = resolve(here, "..", "..", "..", "dotnet", "Cantrip.Realms.Server");
 
@@ -23,6 +26,7 @@ if (!process.env.REALMS_E2E_DATABASE) {
   process.env.REALMS_E2E_DATABASE = join(data, "realms.db");
 }
 process.env.REALMS_E2E_SERVER = `http://localhost:${realm}/`;
+process.env.REALMS_E2E_CARDS = `http://localhost:${cards}/`;
 
 export default defineConfig({
   testDir: ".",
@@ -45,6 +49,13 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
+      command: `node cards.mjs ${cards}`,
+      cwd: here,
+      url: `http://localhost:${cards}/`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
       command: `dotnet run --project "${server}" --no-launch-profile --urls http://localhost:${realm}`,
       cwd: server,
       url: `http://localhost:${realm}/healthz`,
@@ -54,6 +65,7 @@ export default defineConfig({
         REALMS_DEV_SIGNIN: "1",
         REALMS_DATABASE: `sqlite:${process.env.REALMS_E2E_DATABASE}`,
         REALMS_CLIENT: `http://localhost:${web}/`,
+        REALMS_CARDS: `http://localhost:${cards}/`,
       },
     },
   ],

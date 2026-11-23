@@ -50,13 +50,23 @@ public sealed record DeckView(IReadOnlyList<CardCount> Main, IReadOnlyList<CardC
 
 public sealed record DeckChange(IReadOnlyList<CardCount>? Main, IReadOnlyList<CardCount>? Ante);
 
+/// <summary>What the realm finds wrong with a deck and an ante, as saving them would (empty for a legal pair), and the ante's worth.</summary>
+public sealed record DeckCheckView(IReadOnlyList<string> Problems, long AnteValue);
+
 public sealed record LoadoutChange(IReadOnlyDictionary<string, long?>? Slots);
 
 public sealed record VendorInfo(string Id, string Name, string Town, CardFilter Specialty);
 
 public sealed record StockView(string Name, long Gold, int Count, DateTimeOffset? Until);
 
-public sealed record VendorView(VendorInfo Vendor, long Purse, IReadOnlyList<StockView> Stock);
+/// <summary>
+/// A card of the character's that a vendor deals in: what it pays for one (half the list price, rounded down), how many the
+/// character owns, and how many of those are spare - in neither the deck nor the ante, so that one can be sold.
+/// </summary>
+public sealed record BuyingView(string Name, long Gold, int Owned, int Spare);
+
+/// <summary>A vendor as a visiting character sees it: its purse and its shelves, the character's gold, and what of theirs it would buy.</summary>
+public sealed record VendorView(VendorInfo Vendor, long Purse, IReadOnlyList<StockView> Stock, long Gold, IReadOnlyList<BuyingView> Buying);
 
 public sealed record CardTrade(string? Name);
 

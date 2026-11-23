@@ -88,6 +88,10 @@ export interface VendorView {
   readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty };
   readonly Purse: number;
   readonly Stock: readonly { readonly Name: string; readonly Gold: number; readonly Count: number; readonly Until: string | null }[];
+  /** The character's gold. */
+  readonly Gold: number;
+  /** The character's cards the vendor deals in: what it pays for one, how many they own, how many are in neither deck nor ante. */
+  readonly Buying: readonly { readonly Name: string; readonly Gold: number; readonly Owned: number; readonly Spare: number }[];
 }
 
 /** Everything the browser deals a duel from. */

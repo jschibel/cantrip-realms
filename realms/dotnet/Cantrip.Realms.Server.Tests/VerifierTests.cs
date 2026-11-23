@@ -104,6 +104,39 @@ public sealed class NativeVerifierTests
         return ([.. recording.Log], session.WinningSeats);
     }
 
+    /// <summary>
+    /// Plays a duel on the table the browser plays it on (<see cref="DuelTable"/>): seat 1 by <paramref name="player"/>,
+    /// the table settling the mob's seat before each of its messages, and the player's loop settling it between them as the
+    /// browser's ticks do.
+    /// </summary>
+    private static (IReadOnlyList<string> Log, IReadOnlyList<int> Winners) PlayOnTable(Duel duel, IAutoPlayer player)
+    {
+        using DuelTable table = DuelTable.Open(duel, NativeHostProcess.Shared);
+        var playerSeat = new AutoSeat(table.Player, player);
+        for (int idle = 0, steps = 0; !table.IsOver; steps++)
+        {
+            Assert.True(steps < 100_000, "The duel never ended.");
+            Assert.True(table.Settle());
+            GameClient client = playerSeat.Client;
+            idle = playerSeat.Step() || client.IsWaitingOnMe || client.IsSettling || client.IsChecking ? 0 : idle + 1;
+            Assert.True(idle < 4, "Neither seat has anything to do and the game is not over.");
+        }
+
+        Assert.True(table.Settle());
+        Assert.True(table.Settled);
+        return ([.. table.Log], table.Winners);
+    }
+
+    [Fact]
+    public void A_duel_played_on_the_browsers_table_verifies_with_its_result()
+    {
+        Duel duel = VerifierPartsTests.Sample(seed: 7);
+        (IReadOnlyList<string> log, IReadOnlyList<int> winners) = PlayOnTable(duel, new AutoPlayer());
+        DuelVerdict verdict = new NativeDuelVerifier().Verify(duel, log);
+        Assert.True(verdict.Accepted, verdict.Problem);
+        Assert.Equal(winners, verdict.Winners);
+    }
+
     [Fact]
     public async Task A_duels_starting_life_and_hand_from_gear_stats_reach_the_engine()
     {

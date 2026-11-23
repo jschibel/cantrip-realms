@@ -71,32 +71,11 @@ public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDue
             : DuelVerdict.Rejected("The game is not over at the end of the log.");
     }
 
-    /// <summary>
-    /// Deals a duel on a native engine host as the browser deals it: its seats, its seed, the realm's minimum deck size, and
-    /// each seat's setup values and emblems as its variant (docs/host-protocol.md, <c>NewGame</c>).
-    /// </summary>
-    public static IRulesHost Deal(Duel duel, IHostTransport host)
-    {
-        ArgumentNullException.ThrowIfNull(duel);
-        return new NativeRulesHostFactory(host).Create(
-            [.. duel.Seats.Select(Seat)],
-            unchecked((ulong)duel.Seed),
-            new RulesGameOptions { MinimumDeckSize = duel.MinimumDeckSize });
-    }
+    /// <summary>Deals a duel on a native engine host as the browser deals it (<see cref="DuelTable.Deal"/>, shared with it).</summary>
+    public static IRulesHost Deal(Duel duel, IHostTransport host) => DuelTable.Deal(duel, host);
 
-    /// <summary>
-    /// A duel seat as the rules host deals it, its setup values and emblems always said (interfaces.md, <c>Duel</c>), so the
-    /// engine never falls back on the format's.
-    /// </summary>
-    public static RulesSeat Seat(DuelSeat seat)
-    {
-        ArgumentNullException.ThrowIfNull(seat);
-        return new RulesSeat(seat.Name, seat.Deck, seat.Sideboard, seat.Companion)
-        {
-            Commanders = seat.Commanders,
-            Variant = new SeatVariant(seat.StartingLife, seat.StartingHandSize, seat.MaximumHandSize, seat.Emblems),
-        };
-    }
+    /// <summary>A duel seat as the rules host deals it (<see cref="DuelTable.Seat"/>).</summary>
+    public static RulesSeat Seat(DuelSeat seat) => DuelTable.Seat(seat);
 
     /// <summary>Has the mob's seat answer everything it has been asked (<see cref="RealmBot.Settle"/>); false if it never stops.</summary>
     private bool Settle(AutoSeat mob) => RealmBot.Settle(mob, MostBotAnswers);

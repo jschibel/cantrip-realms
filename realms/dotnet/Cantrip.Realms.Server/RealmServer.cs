@@ -32,10 +32,10 @@ public static class RealmServer
         services.AddRealmSignIn(options);
         services.AddHealthChecks();
         services.ConfigureHttpJsonOptions(json => json.SerializerOptions.PropertyNamingPolicy = null);
-        if (options.Client is { } client)
+        if (options.Origins.Count > 0)
         {
             services.AddCors(cors => cors.AddDefaultPolicy(policy => policy
-                .WithOrigins(client.GetLeftPart(UriPartial.Authority))
+                .WithOrigins([.. options.Origins])
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod()));
@@ -75,7 +75,7 @@ public static class RealmServer
         ArgumentNullException.ThrowIfNull(app);
         RealmOptions options = app.Services.GetRequiredService<RealmOptions>();
         app.UseWebSockets();
-        if (options.Client is not null) app.UseCors();
+        if (options.Origins.Count > 0) app.UseCors();
         app.UseRealmSignIn(options);
         app.MapHealthChecks("/healthz");
         app.MapRealmSignIn(options);

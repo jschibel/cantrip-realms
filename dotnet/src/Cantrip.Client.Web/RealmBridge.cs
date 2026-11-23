@@ -64,13 +64,22 @@ public static partial class RealmBridge
     /// <summary>Tells the overworld this page is up and listening.</summary>
     public static void Ready() => Post(writer => writer.WriteString("op", "ready"));
 
-    /// <summary>Tells the overworld the screen it opened with request <paramref name="id"/> has closed, and how.</summary>
-    public static void Closed(int id, string screen, string outcome) => Post(writer =>
+    /// <summary>
+    /// Tells the overworld the screen it opened with request <paramref name="id"/> has closed, and how; with what the screen
+    /// hands back as <c>result</c> when <paramref name="result"/> writes it (its properties, into the result's object).
+    /// </summary>
+    public static void Closed(int id, string screen, string outcome, Action<Utf8JsonWriter>? result = null) => Post(writer =>
     {
         writer.WriteString("op", "closed");
         writer.WriteNumber("id", id);
         writer.WriteString("screen", screen);
         writer.WriteString("outcome", outcome);
+        if (result is not null)
+        {
+            writer.WriteStartObject("result");
+            result(writer);
+            writer.WriteEndObject();
+        }
     });
 
     private static void Post(Action<Utf8JsonWriter> write)

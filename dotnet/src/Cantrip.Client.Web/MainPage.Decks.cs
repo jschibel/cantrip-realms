@@ -431,7 +431,7 @@ public sealed partial class MainPage
         _editorStatus.Text = "Loading the cards...";
         try
         {
-            using HttpResponseMessage response = await DeckHttp.GetAsync(DeckApi("catalog"));
+            using HttpResponseMessage response = await CatalogRequestAsync();
             response.EnsureSuccessStatusCode();
             byte[] bytes = await response.Content.ReadAsByteArrayAsync();
             CardCatalogView catalog = MessagePack.MessagePackSerializer.Deserialize<CardCatalogView>(bytes);
@@ -771,14 +771,19 @@ public sealed partial class MainPage
         }
 
         bool unsaved = DeckUnsaved();
-        DeckEditorJs.Unsaved(unsaved);
+        if (!_realmDeck)
+        {
+            DeckEditorJs.Unsaved(unsaved);
+        }
         _saveButton.Caption = unsaved || _editingId.Length == 0 ? "Save" : "Saved";
 
         SavedDeck deck = CurrentDeck();
         IReadOnlyList<string> problems = EditorProblems(deck);
+        string formatTitle = _realmDeck ? "the realm" : _editingFormat.Title;
         string state = _catalogFailure ?? (_catalog is null
             ? "Loading the cards..."
-            : problems.Count == 0 ? $"Legal in {_editingFormat.Title}" : $"Not legal in {_editingFormat.Title}: {problems.Count} problem{(problems.Count == 1 ? string.Empty : "s")}");
+            : _realmDeck && !RealmJudged ? "Checking the deck..."
+            : problems.Count == 0 ? $"Legal in {formatTitle}" : $"Not legal in {formatTitle}: {problems.Count} problem{(problems.Count == 1 ? string.Empty : "s")}");
         _editorStatus.Text = unsaved ? $"{state}  ·  unsaved changes" : state;
         _editorStatus.Foreground = Theme.Brush(_catalog is not null && problems.Count == 0 ? Theme.Ready : _catalog is null ? Theme.FgSoft : Theme.Accent);
         _editorProblems.Text = problems.Count == 0 ? string.Empty
@@ -819,6 +824,11 @@ public sealed partial class MainPage
     /// </summary>
     private IReadOnlyList<string> EditorProblems(SavedDeck deck)
     {
+        if (_realmDeck)
+        {
+            return RealmProblems(deck);
+        }
+
         if (_catalog is null)
         {
             return [];
@@ -863,6 +873,11 @@ public sealed partial class MainPage
 
     private async Task<bool> SaveDeckAsync()
     {
+        if (_realmDeck)
+        {
+            return await SaveRealmDeckAsync();
+        }
+
         if (_arrangement is null)
         {
             return false;
@@ -959,7 +974,7 @@ public sealed partial class MainPage
         IEnumerable<CatalogCard> found = _catalogCards.Where(card =>
         {
             ObjectView face = card.Card;
-            if (!DeckRules.Fits(card, _editingFormat, identity))
+            if (_realmDeck ? !RealmFits(card) : !DeckRules.Fits(card, _editingFormat, identity))
             {
                 return false;
             }
@@ -1086,7 +1101,7 @@ public sealed partial class MainPage
 
             int had = _searchInDeck.GetValueOrDefault(card.Name);
             cells.Add(new CardBoardElement.BoardCell(shown, (i % across) * (width + PoolGap), (float)grid.Top(i), Tapped: false,
-                Clickable: true, Annotation: had > 0 ? $"{had} in deck" : null));
+                Dimmed: _realmDeck && RealmDimmed(card), Clickable: true, Annotation: _realmDeck ? RealmNote(card) : had > 0 ? $"{had} in deck" : null));
         }
 
         _searchBoard.SetCellSize(width, height);
@@ -1124,7 +1139,7 @@ public sealed partial class MainPage
     /// <summary>A copy of a search result put in the deck, at a place in the list given; it flies there from where it was let go.</summary>
     private void AddFromSearch(ViewHandle handle, Func<PoolArrangement, List<int>> into, int row)
     {
-        if (!_searchCards.TryGetValue(handle.Value, out CatalogCard? card) || _arrangement is not { } arrangement)
+        if (!_searchCards.TryGetValue(handle.Value, out CatalogCard? card) || _arrangement is not { } arrangement || (_realmDeck && !RealmCanAdd(card)))
         {
             return;
         }
@@ -1228,7 +1243,7 @@ public sealed partial class MainPage
         int creatures = cards.Count(card => card.CardTypes.Contains(CardTypeView.Creature));
         int commanders = arrangement.Command.Count;
         int total = cards.Count + (EditingCommander ? commanders : 0);
-        string side = arrangement.Side.Count > 0 ? $"  ·  sideboard {arrangement.Side.Count}" : string.Empty;
+        string side = arrangement.Side.Count > 0 ? $"  ·  {(_realmDeck ? "ante" : "sideboard")} {arrangement.Side.Count}" : string.Empty;
         return $"Deck: {total} card{(total == 1 ? string.Empty : "s")} ({lands} Land, {cards.Count - lands} Non-land, {creatures} Creature{(creatures == 1 ? string.Empty : "s")}){side}";
     }
 }

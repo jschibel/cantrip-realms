@@ -550,8 +550,9 @@ public sealed partial class MainPage
         float sideWidth = _poolSideOpen ? width : SideClosedWidth - 14;
         _sideColumn.Width = sideWidth + 14;
         _sideToggle.Caption = _poolSideOpen ? "‹" : "›";
-        AutomationProperties.SetName(_sideToggle, _poolSideOpen ? "Hide sideboard" : "Show sideboard");
-        _sideLabel.Text = _poolSideOpen ? $"Sideboard  ·  {arrangement.Side.Count}" : arrangement.Side.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string sideName = _realmDeck ? "Ante" : "Sideboard";
+        AutomationProperties.SetName(_sideToggle, _poolSideOpen ? $"Hide {sideName.ToLowerInvariant()}" : $"Show {sideName.ToLowerInvariant()}");
+        _sideLabel.Text = _poolSideOpen ? $"{sideName}  ·  {arrangement.Side.Count}" : arrangement.Side.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _sideLabel.HorizontalAlignment = _poolSideOpen ? HorizontalAlignment.Left : HorizontalAlignment.Center;
         _sideBoard.Width = sideWidth;
         _sideBoard.Height = Math.Max(_poolSideOpen ? ((Math.Max(1, arrangement.Side.Count) - 1) * step) + height : 0, (float)_sideScroll.ActualHeight - 2);
@@ -586,7 +587,7 @@ public sealed partial class MainPage
     /// </summary>
     private void LayOutCompanionColumn(PoolArrangement arrangement, List<ObjectView> handled, float width, float height)
     {
-        bool shown = DeckEditorShown || (_poolIsDeck && (arrangement.Companion.Count > 0 || _poolCards.Any(DeckRules.HasCompanion)));
+        bool shown = !_realmDeck && (DeckEditorShown || (_poolIsDeck && (arrangement.Companion.Count > 0 || _poolCards.Any(DeckRules.HasCompanion))));
         _companionColumn.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
         if (!shown)
         {
@@ -617,7 +618,7 @@ public sealed partial class MainPage
 
     /// <summary>Whether a card held could be the deck's companion: a card with companion (CR 702.139a), of the pool or the search.</summary>
     private bool CanCompanion(ViewHandle handle) =>
-        (InPool(handle) || InSearch(handle)) && (DeckEditorShown || _poolIsDeck) && HeldCard(handle) is { } card && DeckRules.HasCompanion(card);
+        !_realmDeck && (InPool(handle) || InSearch(handle)) && (DeckEditorShown || _poolIsDeck) && HeldCard(handle) is { } card && DeckRules.HasCompanion(card);
 
     /// <summary>
     /// Makes a card the deck's companion: out of wherever it was, into the column; the companion it replaces goes to the

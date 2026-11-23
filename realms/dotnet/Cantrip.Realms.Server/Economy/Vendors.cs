@@ -157,10 +157,10 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
             }
         }
 
-        return await View(vendor, row).ConfigureAwait(false);
+        return await View(player, vendor, row).ConfigureAwait(false);
     }
 
-    private async Task<VendorView> View(Vendor vendor, VendorRow row)
+    private async Task<VendorView> View(string player, Vendor vendor, VendorRow row)
     {
         List<VendorStockRow> stock = await db.VendorStock.AsNoTracking().Where(item => item.VendorId == vendor.Id && item.Count > 0).ToListAsync().ConfigureAwait(false);
         List<StockView> shelf = [.. stock
@@ -172,7 +172,28 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
                 group.Key.Until is { } until ? DateTimeOffset.FromUnixTimeMilliseconds(until) : null))
             .OrderBy(item => item.Name, StringComparer.Ordinal)
             .ThenBy(item => item.Until ?? DateTimeOffset.MaxValue)];
-        return new VendorView(new VendorInfo(vendor.Id, vendor.File.Name, vendor.File.Town, vendor.File.Specialty), row.Purse, shelf);
+        PlayerRow character = await characters.Require(player).ConfigureAwait(false);
+        return new VendorView(new VendorInfo(vendor.Id, vendor.File.Name, vendor.File.Town, vendor.File.Specialty), row.Purse, shelf, character.Gold, await Buying(player, vendor).ConfigureAwait(false));
+    }
+
+    /// <summary>The character's cards a vendor deals in - those <see cref="Sell"/> would not refuse as <c>NotTheirTrade</c> - in name order.</summary>
+    private async Task<List<BuyingView>> Buying(string player, Vendor vendor)
+    {
+        Dictionary<string, int> owned = await db.Collection.AsNoTracking().Where(row => row.PlayerId == player && row.Count > 0)
+            .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
+        HashSet<string> pool = [.. content.Cards.Pool(vendor.Plane)];
+        List<string> traded = [.. owned.Keys.Where(name => pool.Contains(name) && content.Cards.Fits(name, vendor.File.Specialty)).Order(StringComparer.Ordinal)];
+        if (traded.Count == 0) return [];
+
+        Dictionary<string, int> used = new(StringComparer.Ordinal);
+        foreach ((string name, int count) in (await db.Deck.AsNoTracking().Where(row => row.PlayerId == player && traded.Contains(row.Name)).Select(row => new { row.Name, row.Count }).ToListAsync().ConfigureAwait(false))
+            .Concat(await db.Ante.AsNoTracking().Where(row => row.PlayerId == player && traded.Contains(row.Name)).Select(row => new { row.Name, row.Count }).ToListAsync().ConfigureAwait(false))
+            .Select(row => (row.Name, row.Count)))
+        {
+            used[name] = used.GetValueOrDefault(name) + count;
+        }
+
+        return [.. traded.Select(name => new BuyingView(name, Pricing.BuyPrice(content.Cards.Price(name)!.Value), owned[name], Math.Max(0, owned[name] - used.GetValueOrDefault(name))))];
     }
 
     /// <summary>Buys a copy of a card from a vendor at its list price.</summary>
