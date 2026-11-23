@@ -1069,10 +1069,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_3:1","q":354,"r":125,"mobs":["kiki-jiki-mirror-breaker","serra-paragon","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_3:2","q":362,"r":114,"mobs":["bloodbraid-elf","lady-orca","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_3:3","q":378,"r":115,"mobs":["enormous-baloth","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_3:4","q":383,"r":124,"mobs":["enormous-baloth","kiki-jiki-mirror-breaker","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_3:1","q":354,"r":125,"mobs":["mahamoti-djinn","serra-paragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_3:2","q":362,"r":114,"mobs":["fallen-angel","marhault-elsdragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_3:3","q":378,"r":115,"mobs":["karplusan-yeti","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_3:4","q":383,"r":124,"mobs":["karplusan-yeti","mahamoti-djinn","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"11_3:c1","q":356,"r":117,"gold":[300,500],"respawnSeconds":86400}

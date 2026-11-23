@@ -18,19 +18,19 @@
   "mobs": [
     [
       "air-elemental",
-      "fighting-drake",
+      "azure-drake",
       "lord-of-atlantis",
-      "phantom-monster",
-      "segovian-leviathan",
-      "serra-sphinx"
+      "merfolk-raiders",
+      "river-merfolk",
+      "sandbar-serpent"
     ],
     [
       "air-elemental",
-      "benthic-behemoth",
       "lord-of-atlantis",
       "mahamoti-djinn",
-      "serra-sphinx",
-      "true-name-nemesis"
+      "river-merfolk",
+      "sibilant-spirit",
+      "tempest-djinn"
     ]
   ],
   "warden": "rift-warden",

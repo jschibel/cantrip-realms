@@ -1199,11 +1199,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_4:1","q":512,"r":142,"mobs":["benalish-knight","moor-fiend","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_4:2","q":522,"r":149,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_4:3","q":526,"r":138,"mobs":["blood-knight","bog-wraith","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_4:4","q":529,"r":155,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_4:5","q":533,"r":143,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"16_4:1","q":512,"r":142,"mobs":["benalish-knight","moor-fiend","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_4:2","q":522,"r":149,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_4:3","q":526,"r":138,"mobs":["bog-wraith","cradle-guard","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_4:4","q":529,"r":155,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_4:5","q":533,"r":143,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"16_4:c1","q":517,"r":151,"gold":[100,250],"respawnSeconds":86400}

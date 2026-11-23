@@ -1067,8 +1067,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_1:1","q":618,"r":62,"mobs":["lady-orca","ramirez-depietro","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"19_1:2","q":629,"r":60,"mobs":["lady-orca","ramirez-depietro","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"19_1:1","q":618,"r":62,"mobs":["fallen-angel","sengir-vampire","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"19_1:2","q":629,"r":60,"mobs":["fallen-angel","sengir-vampire","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

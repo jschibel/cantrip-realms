@@ -1154,13 +1154,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_6:1","q":390,"r":199,"mobs":["torsten-founder-of-benalia","trained-orgg","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_6:2","q":391,"r":222,"mobs":["bloodbraid-elf","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_6:3","q":393,"r":207,"mobs":["benthic-behemoth","enormous-baloth","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_6:4","q":402,"r":195,"mobs":["benthic-behemoth","kiki-jiki-mirror-breaker","lady-orca"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_6:5","q":406,"r":210,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"12_6:6","q":410,"r":219,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"12_6:7","q":412,"r":198,"mobs":["bloodbraid-elf","kiki-jiki-mirror-breaker","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_6:1","q":390,"r":199,"mobs":["sibilant-spirit","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_6:2","q":391,"r":222,"mobs":["fallen-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_6:3","q":393,"r":207,"mobs":["enormous-baloth","karplusan-yeti","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_6:4","q":402,"r":195,"mobs":["enormous-baloth","mahamoti-djinn","marhault-elsdragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_6:5","q":406,"r":210,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"12_6:6","q":410,"r":219,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"12_6:7","q":412,"r":198,"mobs":["fallen-angel","mahamoti-djinn","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"12_6:c1","q":407,"r":200,"gold":[300,500],"respawnSeconds":86400},

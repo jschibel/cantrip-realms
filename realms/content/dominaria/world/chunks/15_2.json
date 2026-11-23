@@ -1080,9 +1080,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_2:1","q":496,"r":88,"mobs":["arrogant-wurm","commander-eesha","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_2:2","q":502,"r":93,"mobs":["elvish-archers","flametongue-kavu"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_2:3","q":507,"r":80,"mobs":["lord-of-atlantis","thunder-spirit","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"15_2:1","q":496,"r":88,"mobs":["air-elemental","birds-of-paradise","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_2:2","q":502,"r":93,"mobs":["commander-eesha","eater-of-the-dead"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_2:3","q":507,"r":80,"mobs":["guardian-of-new-benalia","river-merfolk","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": []

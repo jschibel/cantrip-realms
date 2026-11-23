@@ -1112,10 +1112,10 @@
     {"id":"benalia-4-spell-table","q":555,"r":426,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"17_13:1","q":546,"r":444,"mobs":["serra-angel","serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_13:2","q":547,"r":426,"mobs":["enormous-baloth","kiki-jiki-mirror-breaker"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_13:3","q":562,"r":434,"mobs":["enormous-baloth","true-name-nemesis","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_13:4","q":566,"r":422,"mobs":["volcanic-dragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_13:1","q":546,"r":444,"mobs":["serra-angel","serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_13:2","q":547,"r":426,"mobs":["karplusan-yeti","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_13:3","q":562,"r":434,"mobs":["karplusan-yeti","tempest-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_13:4","q":566,"r":422,"mobs":["tombstalker","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"17_13:c1","q":560,"r":431,"gold":[300,500],"respawnSeconds":86400}

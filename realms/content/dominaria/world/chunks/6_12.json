@@ -1106,12 +1106,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_12:1","q":192,"r":396,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_12:2","q":194,"r":407,"mobs":["mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_12:3","q":202,"r":410,"mobs":["fire-elemental","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_12:4","q":203,"r":386,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_12:5","q":209,"r":395,"mobs":["bog-wraith","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_12:6","q":214,"r":401,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_12:1","q":192,"r":396,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_12:2","q":194,"r":407,"mobs":["lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_12:3","q":202,"r":410,"mobs":["keldon-warlord","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_12:4","q":203,"r":386,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_12:5","q":209,"r":395,"mobs":["bog-wraith","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_12:6","q":214,"r":401,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_12:c1","q":199,"r":415,"gold":[100,250],"respawnSeconds":86400},

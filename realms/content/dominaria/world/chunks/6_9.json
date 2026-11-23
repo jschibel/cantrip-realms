@@ -1203,15 +1203,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_9:1","q":194,"r":317,"mobs":["eternal-witness","fire-elemental","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:2","q":196,"r":295,"mobs":["blood-knight","fire-elemental","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:3","q":197,"r":306,"mobs":["blood-knight","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:4","q":206,"r":319,"mobs":["hill-giant","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:5","q":207,"r":291,"mobs":["bog-wraith","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:6","q":209,"r":301,"mobs":["abbey-gargoyles","fire-elemental","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:7","q":217,"r":316,"mobs":["blood-knight","fighting-drake","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:8","q":219,"r":305,"mobs":["fighting-drake","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_9:9","q":220,"r":292,"mobs":["bog-wraith","eternal-witness","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_9:1","q":194,"r":317,"mobs":["craw-wurm","keldon-warlord","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:2","q":196,"r":295,"mobs":["bog-wraith","keldon-warlord","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:3","q":197,"r":306,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:4","q":206,"r":319,"mobs":["longbow-archer","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:5","q":207,"r":291,"mobs":["cradle-guard","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:6","q":209,"r":301,"mobs":["azure-drake","keldon-warlord","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:7","q":217,"r":316,"mobs":["bog-wraith","elven-riders","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:8","q":219,"r":305,"mobs":["elven-riders","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_9:9","q":220,"r":292,"mobs":["cradle-guard","craw-wurm","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_9:c1","q":213,"r":312,"gold":[100,250],"respawnSeconds":86400}

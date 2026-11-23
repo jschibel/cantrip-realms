@@ -1048,7 +1048,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_17:1","q":222,"r":573,"mobs":["storm-crow","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_17:1","q":222,"r":573,"mobs":["soaring-drake","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

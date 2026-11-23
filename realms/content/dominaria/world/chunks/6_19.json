@@ -1051,8 +1051,8 @@
     {"id":"orvada-2-spell-table","q":213,"r":611,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"6_19:1","q":196,"r":618,"mobs":["phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_19:2","q":210,"r":620,"mobs":["fighting-drake","phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_19:1","q":196,"r":618,"mobs":["merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_19:2","q":210,"r":620,"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_19:c1","q":202,"r":609,"gold":[100,250],"respawnSeconds":86400}

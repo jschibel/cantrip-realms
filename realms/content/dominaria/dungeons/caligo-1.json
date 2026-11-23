@@ -17,8 +17,8 @@
   ],
   "mobs": [
     "bog-imp",
-    "plague-beetle",
-    "scathe-zombies"
+    "bog-raiders",
+    "bog-rats"
   ],
   "warden": "warden-1",
   "boss": "mage-caligo-1",

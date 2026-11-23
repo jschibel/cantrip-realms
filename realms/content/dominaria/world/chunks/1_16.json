@@ -1111,12 +1111,12 @@
     {"id":"stahaan-caves-spell-table","q":47,"r":518,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"1_16:1","q":36,"r":543,"mobs":["benthic-behemoth","bloodbraid-elf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_16:2","q":38,"r":532,"mobs":["enormous-baloth","true-name-nemesis","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_16:3","q":40,"r":516,"mobs":["serra-paragon","tarmogoyf","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_16:4","q":48,"r":535,"mobs":["bloodbraid-elf","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_16:5","q":55,"r":521,"mobs":["enormous-baloth","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_16:6","q":59,"r":534,"mobs":["mahamoti-djinn","tarmogoyf","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"1_16:1","q":36,"r":543,"mobs":["enormous-baloth","fallen-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_16:2","q":38,"r":532,"mobs":["karplusan-yeti","tempest-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_16:3","q":40,"r":516,"mobs":["serra-paragon","shivan-dragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_16:4","q":48,"r":535,"mobs":["fallen-angel","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_16:5","q":55,"r":521,"mobs":["karplusan-yeti","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_16:6","q":59,"r":534,"mobs":["rorix-bladewing","shivan-dragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"1_16:c1","q":46,"r":528,"gold":[300,500],"respawnSeconds":86400},

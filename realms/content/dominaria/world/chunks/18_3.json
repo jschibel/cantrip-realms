@@ -1092,11 +1092,11 @@
     {"id":"llanowar-4-spell-table","q":606,"r":99,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"18_3:1","q":581,"r":105,"mobs":["bog-wraith","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"18_3:1","q":581,"r":105,"mobs":["bog-wraith","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"18_3:2","q":588,"r":120,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"18_3:3","q":592,"r":102,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"18_3:3","q":592,"r":102,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"18_3:4","q":597,"r":122,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"18_3:5","q":599,"r":110,"mobs":["bog-wraith","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"18_3:5","q":599,"r":110,"mobs":["bog-wraith","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"18_3:c1","q":588,"r":126,"gold":[100,250],"respawnSeconds":86400},

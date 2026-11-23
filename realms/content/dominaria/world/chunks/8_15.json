@@ -1077,12 +1077,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_15:1","q":257,"r":505,"mobs":["fire-elemental","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_15:2","q":261,"r":489,"mobs":["fire-elemental","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_15:3","q":269,"r":503,"mobs":["coral-merfolk","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_15:4","q":273,"r":486,"mobs":["giant-spider","llanowar-elves","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_15:5","q":279,"r":491,"mobs":["elvish-warrior","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_15:6","q":284,"r":501,"mobs":["bog-imp","giant-spider"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"8_15:1","q":257,"r":505,"mobs":["keldon-warlord","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_15:2","q":261,"r":489,"mobs":["keldon-warlord","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_15:3","q":269,"r":503,"mobs":["bog-raiders","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_15:4","q":273,"r":486,"mobs":["coral-merfolk","hurloon-minotaur","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_15:5","q":279,"r":491,"mobs":["bog-rats","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_15:6","q":284,"r":501,"mobs":["bog-imp","coral-merfolk"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"8_15:c1","q":265,"r":503,"gold":[50,150],"respawnSeconds":86400},

@@ -1091,12 +1091,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_4:1","q":295,"r":151,"mobs":["air-elemental","commander-eesha","flametongue-kavu"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_4:2","q":300,"r":139,"mobs":["bloodbraid-elf","kiki-jiki-mirror-breaker","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"9_4:3","q":309,"r":152,"mobs":["air-elemental","lord-of-atlantis","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_4:4","q":310,"r":128,"mobs":["true-name-nemesis","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"9_4:5","q":312,"r":138,"mobs":["enormous-baloth","serra-angel","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"9_4:6","q":317,"r":159,"mobs":["serra-angel","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"9_4:1","q":295,"r":151,"mobs":["abomination","birds-of-paradise","eater-of-the-dead"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_4:2","q":300,"r":139,"mobs":["fallen-angel","mahamoti-djinn","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"9_4:3","q":309,"r":152,"mobs":["abomination","guardian-of-new-benalia","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_4:4","q":310,"r":128,"mobs":["tempest-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"9_4:5","q":312,"r":138,"mobs":["karplusan-yeti","serra-angel","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"9_4:6","q":317,"r":159,"mobs":["serra-angel","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"9_4:c1","q":290,"r":141,"gold":[300,500],"respawnSeconds":86400},

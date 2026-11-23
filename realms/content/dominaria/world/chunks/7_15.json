@@ -1088,12 +1088,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_15:1","q":230,"r":483,"mobs":["llanowar-elves","scathe-zombies","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_15:2","q":230,"r":507,"mobs":["fire-elemental","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:3","q":232,"r":496,"mobs":["hill-giant","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:4","q":239,"r":510,"mobs":["abbey-gargoyles","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:5","q":244,"r":485,"mobs":["benalish-hero","goblin-hero","plague-beetle"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_15:6","q":250,"r":491,"mobs":["abbey-gargoyles","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_15:1","q":230,"r":483,"mobs":["hurloon-minotaur","llanowar-elves","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_15:2","q":230,"r":507,"mobs":["keldon-warlord","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:3","q":232,"r":496,"mobs":["longbow-archer","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:4","q":239,"r":510,"mobs":["azure-drake","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:5","q":244,"r":485,"mobs":["benalish-hero","davenant-archer","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_15:6","q":250,"r":491,"mobs":["azure-drake","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_15:c1","q":231,"r":480,"gold":[50,150],"respawnSeconds":86400},

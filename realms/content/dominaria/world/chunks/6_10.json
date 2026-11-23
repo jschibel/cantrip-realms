@@ -1217,10 +1217,10 @@
     {"id":"cabal-crossing-guard-1","kind":"guard","name":"Cabal Crossing guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":203,"r":350}
   ],
   "spawns": [
-    {"id":"6_10:1","q":202,"r":332,"mobs":["blood-knight","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_10:2","q":209,"r":336,"mobs":["abbey-gargoyles","mass-of-ghouls","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_10:3","q":215,"r":347,"mobs":["fighting-drake","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_10:4","q":223,"r":331,"mobs":["moor-fiend","segovian-leviathan","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_10:1","q":202,"r":332,"mobs":["bog-wraith","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_10:2","q":209,"r":336,"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_10:3","q":215,"r":347,"mobs":["elven-riders","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_10:4","q":223,"r":331,"mobs":["moor-fiend","pegasus-charger","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_10:c1","q":195,"r":328,"gold":[100,250],"respawnSeconds":86400},

@@ -19,21 +19,21 @@
     [
       "arrogant-wurm",
       "birds-of-paradise",
-      "elvish-archers",
-      "eternal-witness",
-      "magnigoth-sentry",
-      "yavimaya-wurm"
+      "cradle-guard",
+      "craw-wurm",
+      "elven-riders",
+      "elvish-archers"
     ],
     [
       "arrogant-wurm",
       "birds-of-paradise",
-      "bloodbraid-elf",
       "elvish-archers",
       "enormous-baloth",
+      "marhault-elsdragon",
       "tarmogoyf"
     ]
   ],
   "warden": "heart-warden",
-  "boss": "multani",
+  "boss": "rofellos",
   "region": "G"
 }

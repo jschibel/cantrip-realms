@@ -1131,11 +1131,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_11:1","q":225,"r":381,"mobs":["benalish-knight","blood-knight","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_11:2","q":233,"r":357,"mobs":["bog-wraith","fire-elemental","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_11:3","q":236,"r":371,"mobs":["eternal-witness","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_11:4","q":242,"r":360,"mobs":["fire-elemental","magnigoth-sentry","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_11:5","q":247,"r":367,"mobs":["blood-knight","eternal-witness","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_11:1","q":225,"r":381,"mobs":["benalish-knight","bog-wraith","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_11:2","q":233,"r":357,"mobs":["cradle-guard","keldon-warlord","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_11:3","q":236,"r":371,"mobs":["craw-wurm","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_11:4","q":242,"r":360,"mobs":["keldon-warlord","lost-soul","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_11:5","q":247,"r":367,"mobs":["bog-wraith","craw-wurm","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_11:c1","q":230,"r":379,"gold":[100,250],"respawnSeconds":86400},

@@ -1073,11 +1073,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_5:1","q":386,"r":177,"mobs":["mahamoti-djinn","serra-paragon","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_5:2","q":393,"r":186,"mobs":["kiki-jiki-mirror-breaker","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_5:3","q":394,"r":164,"mobs":["enormous-baloth","kiki-jiki-mirror-breaker","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_5:4","q":401,"r":170,"mobs":["benthic-behemoth","lady-orca","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_5:5","q":414,"r":184,"mobs":["lady-orca","mahamoti-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_5:1","q":386,"r":177,"mobs":["rorix-bladewing","serra-paragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_5:2","q":393,"r":186,"mobs":["mahamoti-djinn","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_5:3","q":394,"r":164,"mobs":["karplusan-yeti","mahamoti-djinn","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_5:4","q":401,"r":170,"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_5:5","q":414,"r":184,"mobs":["marhault-elsdragon","rorix-bladewing","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"12_5:c1","q":401,"r":165,"gold":[300,500],"respawnSeconds":86400}

@@ -1091,13 +1091,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_7:1","q":352,"r":228,"mobs":["mahamoti-djinn","serra-angel","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_7:2","q":359,"r":248,"mobs":["enormous-baloth","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_7:3","q":361,"r":237,"mobs":["serra-paragon","torsten-founder-of-benalia","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_7:4","q":372,"r":247,"mobs":["abbey-gargoyles","benalish-knight","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"11_7:5","q":373,"r":228,"mobs":["benthic-behemoth","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_7:6","q":382,"r":255,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_7:7","q":383,"r":233,"mobs":["mahamoti-djinn","ramirez-depietro","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_7:1","q":352,"r":228,"mobs":["rorix-bladewing","serra-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_7:2","q":359,"r":248,"mobs":["karplusan-yeti","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_7:3","q":361,"r":237,"mobs":["serra-paragon","sibilant-spirit","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_7:4","q":372,"r":247,"mobs":["azure-drake","benalish-knight","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"11_7:5","q":373,"r":228,"mobs":["enormous-baloth","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_7:6","q":382,"r":255,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_7:7","q":383,"r":233,"mobs":["rorix-bladewing","sengir-vampire","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"11_7:c1","q":365,"r":249,"gold":[300,500],"respawnSeconds":86400},

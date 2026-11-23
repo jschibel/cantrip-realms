@@ -1128,10 +1128,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_19:1","q":96,"r":617,"mobs":["coral-merfolk","storm-crow","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_19:2","q":104,"r":624,"mobs":["coral-merfolk","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_19:3","q":116,"r":626,"mobs":["storm-crow","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_19:4","q":124,"r":630,"mobs":["coral-merfolk","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"3_19:1","q":96,"r":617,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_19:2","q":104,"r":624,"mobs":["coral-merfolk","soaring-drake"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_19:3","q":116,"r":626,"mobs":["soaring-drake","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_19:4","q":124,"r":630,"mobs":["coral-merfolk","soaring-drake"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"3_19:c1","q":96,"r":611,"gold":[50,150],"respawnSeconds":86400},

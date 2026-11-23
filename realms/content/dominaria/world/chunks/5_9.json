@@ -1148,11 +1148,11 @@
     {"id":"caligo-3-waystone","q":162,"r":319,"kind":"waystone","tower":"caligo-3","name":"The waystone of the Caligo Tower of the Third Circle"}
   ],
   "spawns": [
-    {"id":"5_9:1","q":166,"r":303,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_9:1","q":166,"r":303,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"5_9:2","q":174,"r":312,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_9:3","q":175,"r":291,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_9:4","q":178,"r":300,"mobs":["abbey-gargoyles","hill-giant","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_9:5","q":186,"r":313,"mobs":["fire-elemental","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"5_9:3","q":175,"r":291,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_9:4","q":178,"r":300,"mobs":["azure-drake","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_9:5","q":186,"r":313,"mobs":["keldon-warlord","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"5_9:c1","q":166,"r":298,"gold":[50,150],"respawnSeconds":86400},

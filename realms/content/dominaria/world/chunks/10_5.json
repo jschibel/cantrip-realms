@@ -1093,11 +1093,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_5:1","q":325,"r":174,"mobs":["benthic-behemoth","mahamoti-djinn","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_5:2","q":329,"r":183,"mobs":["bloodbraid-elf","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_5:3","q":342,"r":164,"mobs":["tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_5:4","q":347,"r":187,"mobs":["enormous-baloth","lady-orca"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_5:5","q":348,"r":169,"mobs":["lady-orca","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"10_5:1","q":325,"r":174,"mobs":["enormous-baloth","rorix-bladewing","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_5:2","q":329,"r":183,"mobs":["fallen-angel","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_5:3","q":342,"r":164,"mobs":["shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_5:4","q":347,"r":187,"mobs":["karplusan-yeti","marhault-elsdragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_5:5","q":348,"r":169,"mobs":["marhault-elsdragon","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"10_5:c1","q":331,"r":191,"gold":[300,500],"respawnSeconds":86400},

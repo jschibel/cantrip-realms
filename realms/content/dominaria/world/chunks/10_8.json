@@ -1099,10 +1099,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_8:1","q":324,"r":265,"mobs":["magnigoth-sentry","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_8:2","q":341,"r":281,"mobs":["hill-giant","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_8:3","q":347,"r":286,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_8:4","q":351,"r":261,"mobs":["fire-elemental","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"10_8:1","q":324,"r":265,"mobs":["lost-soul","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_8:2","q":341,"r":281,"mobs":["longbow-archer","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_8:3","q":347,"r":286,"mobs":["benalish-knight","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_8:4","q":351,"r":261,"mobs":["keldon-warlord","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"10_8:c1","q":325,"r":270,"gold":[100,250],"respawnSeconds":86400}

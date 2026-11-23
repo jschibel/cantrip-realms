@@ -1203,12 +1203,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_5:1","q":451,"r":176,"mobs":["eternal-witness","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:2","q":464,"r":181,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:3","q":465,"r":165,"mobs":["abbey-gargoyles","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:4","q":473,"r":191,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:5","q":475,"r":177,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:6","q":476,"r":160,"mobs":["benalish-knight","fighting-drake","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"14_5:1","q":451,"r":176,"mobs":["cradle-guard","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:2","q":464,"r":181,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:3","q":465,"r":165,"mobs":["azure-drake","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:4","q":473,"r":191,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:5","q":475,"r":177,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:6","q":476,"r":160,"mobs":["benalish-knight","elven-riders","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"14_5:c1","q":468,"r":162,"gold":[100,250],"respawnSeconds":86400},

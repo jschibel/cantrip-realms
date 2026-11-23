@@ -1040,9 +1040,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_4:1","q":273,"r":158,"mobs":["elvish-archers","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_4:2","q":280,"r":145,"mobs":["commander-eesha","elvish-archers","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_4:3","q":284,"r":155,"mobs":["flametongue-kavu","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"8_4:1","q":273,"r":158,"mobs":["commander-eesha","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_4:2","q":280,"r":145,"mobs":["birds-of-paradise","commander-eesha","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_4:3","q":284,"r":155,"mobs":["eater-of-the-dead","frost-giant"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"8_4:c1","q":270,"r":156,"gold":[100,250],"respawnSeconds":86400}

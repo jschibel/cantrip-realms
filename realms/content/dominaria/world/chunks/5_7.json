@@ -1247,7 +1247,7 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"5_7:1","q":191,"r":245,"mobs":["bloodbraid-elf","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"5_7:1","q":191,"r":245,"mobs":["fallen-angel","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

@@ -1185,13 +1185,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_7:1","q":288,"r":227,"mobs":["hill-giant","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:2","q":289,"r":248,"mobs":["eternal-witness","magnigoth-sentry","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:3","q":295,"r":234,"mobs":["bog-wraith","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:4","q":303,"r":242,"mobs":["abbey-gargoyles","bog-wraith","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:5","q":307,"r":229,"mobs":["bog-wraith","mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:6","q":310,"r":248,"mobs":["eternal-witness","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_7:7","q":316,"r":237,"mobs":["hill-giant","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_7:1","q":288,"r":227,"mobs":["longbow-archer","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:2","q":289,"r":248,"mobs":["craw-wurm","lost-soul","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:3","q":295,"r":234,"mobs":["cradle-guard","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:4","q":303,"r":242,"mobs":["azure-drake","cradle-guard","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:5","q":307,"r":229,"mobs":["cradle-guard","merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:6","q":310,"r":248,"mobs":["craw-wurm","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_7:7","q":316,"r":237,"mobs":["longbow-archer","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"9_7:c1","q":290,"r":238,"gold":[100,250],"respawnSeconds":86400}

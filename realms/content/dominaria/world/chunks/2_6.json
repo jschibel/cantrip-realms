@@ -1079,13 +1079,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"2_6:1","q":67,"r":206,"mobs":["ramirez-depietro","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:2","q":74,"r":193,"mobs":["kiki-jiki-mirror-breaker","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:3","q":76,"r":210,"mobs":["serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:4","q":81,"r":199,"mobs":["bloodbraid-elf","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:5","q":82,"r":221,"mobs":["tarmogoyf","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:6","q":93,"r":203,"mobs":["benthic-behemoth","enormous-baloth"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_6:7","q":93,"r":215,"mobs":["lady-orca","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_6:1","q":67,"r":206,"mobs":["sengir-vampire","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:2","q":74,"r":193,"mobs":["mahamoti-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:3","q":76,"r":210,"mobs":["serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:4","q":81,"r":199,"mobs":["fallen-angel","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:5","q":82,"r":221,"mobs":["shivan-dragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:6","q":93,"r":203,"mobs":["enormous-baloth","karplusan-yeti"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_6:7","q":93,"r":215,"mobs":["marhault-elsdragon","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"2_6:c1","q":71,"r":204,"gold":[300,500],"respawnSeconds":86400},

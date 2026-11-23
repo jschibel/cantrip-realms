@@ -1228,8 +1228,8 @@
     {"id":"vess-estate-arena","q":146,"r":395,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."]}
   ],
   "spawns": [
-    {"id":"4_12:1","q":146,"r":415,"mobs":["bog-imp","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_12:2","q":156,"r":401,"mobs":["bog-imp","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_12:1","q":146,"r":415,"mobs":["bog-imp","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_12:2","q":156,"r":401,"mobs":["bog-imp","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"4_12:c1","q":156,"r":414,"gold":[50,150],"respawnSeconds":86400}

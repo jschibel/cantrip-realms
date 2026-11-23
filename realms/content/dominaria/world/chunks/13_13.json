@@ -1076,11 +1076,11 @@
     {"id":"benalish-keep-spell-table","q":441,"r":431,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"13_13:1","q":418,"r":424,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_13:2","q":418,"r":435,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_13:3","q":431,"r":441,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_13:4","q":435,"r":416,"mobs":["abbey-gargoyles","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_13:5","q":435,"r":429,"mobs":["abbey-gargoyles","benalish-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"13_13:1","q":418,"r":424,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_13:2","q":418,"r":435,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_13:3","q":431,"r":441,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_13:4","q":435,"r":416,"mobs":["benalish-knight","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_13:5","q":435,"r":429,"mobs":["benalish-knight","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"13_13:c1","q":435,"r":421,"gold":[100,250],"respawnSeconds":86400},

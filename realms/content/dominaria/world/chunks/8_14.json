@@ -1103,14 +1103,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_14:1","q":260,"r":477,"mobs":["blood-knight","bog-wraith","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_14:2","q":268,"r":459,"mobs":["eternal-witness","magnigoth-sentry","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_14:3","q":270,"r":478,"mobs":["benalish-hero","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_14:4","q":274,"r":465,"mobs":["plague-beetle","storm-crow","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_14:5","q":283,"r":449,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_14:6","q":283,"r":468,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_14:7","q":287,"r":457,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_14:8","q":287,"r":477,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"8_14:1","q":260,"r":477,"mobs":["bog-wraith","cradle-guard","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_14:2","q":268,"r":459,"mobs":["craw-wurm","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_14:3","q":270,"r":478,"mobs":["benalish-hero","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_14:4","q":274,"r":465,"mobs":["ironclaw-orcs","mesa-pegasus","soaring-drake"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_14:5","q":283,"r":449,"mobs":["longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_14:6","q":283,"r":468,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_14:7","q":287,"r":457,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_14:8","q":287,"r":477,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"8_14:c1","q":264,"r":456,"gold":[100,250],"respawnSeconds":86400},

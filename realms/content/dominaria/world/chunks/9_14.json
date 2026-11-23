@@ -1147,10 +1147,10 @@
     {"id":"capashen-hold-guard-2","kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":304,"r":479}
   ],
   "spawns": [
-    {"id":"9_14:1","q":295,"r":464,"mobs":["knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_14:2","q":298,"r":477,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_14:3","q":299,"r":453,"mobs":["knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_14:4","q":308,"r":456,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"9_14:1","q":295,"r":464,"mobs":["davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_14:2","q":298,"r":477,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_14:3","q":299,"r":453,"mobs":["davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_14:4","q":308,"r":456,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"9_14:c1","q":306,"r":449,"gold":[50,150],"respawnSeconds":86400},

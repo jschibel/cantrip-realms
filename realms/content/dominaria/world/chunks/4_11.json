@@ -1200,8 +1200,8 @@
     {"id":"caligo-barrow-spell-table","q":159,"r":367,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"4_11:1","q":143,"r":359,"mobs":["plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_11:2","q":154,"r":356,"mobs":["plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_11:1","q":143,"r":359,"mobs":["bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_11:2","q":154,"r":356,"mobs":["bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"4_11:c1","q":142,"r":357,"gold":[50,150],"respawnSeconds":86400}

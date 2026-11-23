@@ -1242,8 +1242,8 @@
     {"id":"avenant-guard-1","kind":"guard","name":"Avenant guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":219,"r":495}
   ],
   "spawns": [
-    {"id":"6_15:1","q":194,"r":482,"mobs":["blood-knight","bog-wraith"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_15:2","q":221,"r":501,"mobs":["abbey-gargoyles","eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_15:1","q":194,"r":482,"mobs":["bog-wraith","cradle-guard"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_15:2","q":221,"r":501,"mobs":["azure-drake","craw-wurm","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": []

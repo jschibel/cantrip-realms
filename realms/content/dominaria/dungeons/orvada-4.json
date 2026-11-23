@@ -16,9 +16,9 @@
     3
   ],
   "mobs": [
-    "benthic-behemoth",
     "mahamoti-djinn",
-    "true-name-nemesis"
+    "sibilant-spirit",
+    "tempest-djinn"
   ],
   "warden": "warden-4",
   "boss": "mage-orvada-4",

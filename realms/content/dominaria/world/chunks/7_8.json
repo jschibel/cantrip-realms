@@ -1183,13 +1183,13 @@
     {"id":"durkwood-hollow-spell-table","q":255,"r":259,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"7_8:1","q":225,"r":267,"mobs":["magnigoth-sentry","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_8:2","q":227,"r":256,"mobs":["eternal-witness","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_8:3","q":229,"r":274,"mobs":["benalish-knight","mass-of-ghouls","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_8:4","q":234,"r":280,"mobs":["birds-of-paradise","flametongue-kavu","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"7_8:5","q":240,"r":267,"mobs":["gurmag-angler","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"7_8:6","q":245,"r":273,"mobs":["birds-of-paradise","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"7_8:7","q":247,"r":284,"mobs":["air-elemental","arrogant-wurm","roc-of-kher-ridges"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"7_8:1","q":225,"r":267,"mobs":["lost-soul","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_8:2","q":227,"r":256,"mobs":["craw-wurm","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_8:3","q":229,"r":274,"mobs":["benalish-knight","merfolk-raiders","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_8:4","q":234,"r":280,"mobs":["arrogant-wurm","eater-of-the-dead","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"7_8:5","q":240,"r":267,"mobs":["elvish-archers","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"7_8:6","q":245,"r":273,"mobs":["arrogant-wurm","frost-giant"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"7_8:7","q":247,"r":284,"mobs":["abomination","air-elemental","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"7_8:c1","q":226,"r":272,"gold":[100,250],"respawnSeconds":86400},

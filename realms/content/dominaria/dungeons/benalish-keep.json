@@ -17,19 +17,19 @@
   ],
   "mobs": [
     [
-      "abbey-gargoyles",
       "benalish-knight",
       "commander-eesha",
-      "savannah-lions",
-      "thunder-spirit",
-      "white-knight"
+      "guardian-of-new-benalia",
+      "longbow-archer",
+      "northern-paladin",
+      "pegasus-charger"
     ],
     [
       "commander-eesha",
-      "savannah-lions",
+      "guardian-of-new-benalia",
+      "northern-paladin",
       "serra-angel",
       "serra-paragon",
-      "thunder-spirit",
       "torsten-founder-of-benalia"
     ]
   ],

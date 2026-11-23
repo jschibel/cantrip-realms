@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, type Character, HttpApi, identityOf } from "./api";
-import { DUNGEONS, WORLD, innOf } from "../world/content";
-import { MockApi } from "./mockApi";
+import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
+import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/content";
+import { MockApi, travelersAt } from "./mockApi";
 
 describe("HttpApi", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -136,5 +136,50 @@ describe("MockApi", () => {
     const { Place } = await api.waystone({ Tower: other.id });
     expect(Place.Space).toBe("world");
     expect(Math.max(Math.abs(Place.Q - other.entrance[0]), Math.abs(Place.R - other.entrance[1]))).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("the traveling traders' schedule", () => {
+  // 2025-11-23, a Unix day of 20415, at 07:00 and 12:00 UTC and 23:00.
+  const day = 20415;
+  const at = (hour: number) => (day * 24 + hour) * 3_600_000;
+
+  it("is every trader of the vendor files, in id order, by the date alone, as the server keeps it", () => {
+    const traders = [...VENDORS.values()].filter((v) => v.trader).map((v) => v.id).sort();
+    expect(traders).toHaveLength(15);
+    const seen = travelersAt(at(7));
+    expect(seen.map((t) => t.Id)).toEqual(traders);
+    for (const t of seen) {
+      const round = VENDORS.get(t.Id)!.trader!;
+      expect(t.Plane).toBe(round.plane);
+      expect(t.PlaneName).not.toBe("");
+      const town = round.towns[day % round.towns.length]!;
+      if (round.hour <= 7 && 7 < round.hour + round.hours) expect(t.Visit).toEqual({ Town: town, From: new Date(at(round.hour)).toISOString(), Until: new Date(at(round.hour + round.hours)).toISOString() });
+      else expect(t.Visit).toBeNull();
+      expect(Date.parse(t.Next.From)).toBeGreaterThan(at(7));
+    }
+    // Late in the evening every caravan has gone, and the next visits are tomorrow's, each in its round's next town.
+    for (const t of travelersAt(at(23))) {
+      const round = VENDORS.get(t.Id)!.trader!;
+      expect(t.Visit).toBeNull();
+      expect(t.Next.Town).toBe(round.towns[(day + 1) % round.towns.length]);
+    }
+  });
+
+  it("keeps one caravan at a time at each pitch's town, and only towns with a pitch", () => {
+    const pitches = new Set(WORLD.pitches.map((p) => p.town));
+    for (let hour = 0; hour < 48; hour++) {
+      const now = at(hour) + 1_800_000;
+      const visits = travelersAt(now).filter((t) => t.Visit).map((t) => t.Visit!.Town);
+      expect(new Set(visits).size, `at ${hour}:30`).toBe(visits.length);
+      for (const town of visits) expect(pitches.has(town), town).toBe(true);
+      for (const town of visits) expect(travelerIn(travelersAt(now), town, now)).toBeDefined();
+    }
+  });
+
+  it("is what the MockApi answers on its clock", async () => {
+    const api = new MockApi();
+    api.now = () => at(12) / 1000;
+    expect((await api.travelers()).Travelers).toEqual(travelersAt(at(12)));
   });
 });

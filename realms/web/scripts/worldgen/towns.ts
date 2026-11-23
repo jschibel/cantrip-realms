@@ -128,7 +128,7 @@ interface Site {
   readonly front: Front;
 }
 
-export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, index: number, centre: Hex, targets: readonly { id: string; at: Hex }[], seed: number, vendors: readonly { id: string; name: string }[]): BuiltTown {
+export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, index: number, centre: Hex, targets: readonly { id: string; at: Hex }[], seed: number, vendors: readonly { id: string; name: string }[], exotic: { id: string; name: string } | null = null): BuiltTown {
   const random = randomFor(seed, `town:${plan.id}`);
   const R = plan.radius;
   const ground = GROUNDS[plan.style];
@@ -412,10 +412,10 @@ export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, inde
     if (!b) throw new Error(`${plan.id}: no room for ${v.id}'s shop`);
     name(b, `${v.id}-shop`, v.name, "shop", { vendor: v });
   });
-  if (plan.exotic) {
+  if (exotic) {
     const b = site("shop", market ?? centre, 4);
     if (!b) throw new Error(`${plan.id}: no room for the exotic wares shop`);
-    name(b, `${plan.exotic}-shop`, "Wares from Beyond", "shop", { vendor: { id: plan.exotic, name: "Wares from Beyond" }, exotic: true });
+    name(b, `${exotic.id}-shop`, exotic.name, "shop", { vendor: { id: exotic.id, name: exotic.name }, exotic: true });
   }
   if (plan.kind !== "village") {
     const guild = site("guildhall", atAngleFrom(centre, 60, Math.round(R * 0.3)), 6);

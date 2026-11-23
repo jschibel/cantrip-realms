@@ -1090,14 +1090,14 @@
     {"id":"hurloon-caves-spell-table","q":273,"r":372,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"8_11:1","q":256,"r":355,"mobs":["abbey-gargoyles","benalish-knight","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_11:1","q":256,"r":355,"mobs":["azure-drake","benalish-knight","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"8_11:2","q":256,"r":379,"mobs":["benalish-knight","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_11:3","q":259,"r":363,"mobs":["hill-giant","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_11:4","q":265,"r":381,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_11:5","q":269,"r":366,"mobs":["abbey-gargoyles","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_11:6","q":278,"r":355,"mobs":["abbey-gargoyles","mass-of-ghouls","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_11:7","q":281,"r":381,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_11:8","q":283,"r":363,"mobs":["fire-elemental","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"8_11:3","q":259,"r":363,"mobs":["longbow-archer","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_11:4","q":265,"r":381,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_11:5","q":269,"r":366,"mobs":["azure-drake","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_11:6","q":278,"r":355,"mobs":["azure-drake","merfolk-raiders","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_11:7","q":281,"r":381,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_11:8","q":283,"r":363,"mobs":["keldon-warlord","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"8_11:c1","q":284,"r":358,"gold":[100,250],"respawnSeconds":86400}

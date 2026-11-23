@@ -1109,11 +1109,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_11:1","q":458,"r":357,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_11:2","q":460,"r":370,"mobs":["abbey-gargoyles","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_11:3","q":465,"r":381,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_11:4","q":468,"r":359,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_11:5","q":476,"r":363,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"14_11:1","q":458,"r":357,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_11:2","q":460,"r":370,"mobs":["benalish-knight","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_11:3","q":465,"r":381,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_11:4","q":468,"r":359,"mobs":["longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_11:5","q":476,"r":363,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"14_11:c1","q":452,"r":380,"gold":[100,250],"respawnSeconds":86400},

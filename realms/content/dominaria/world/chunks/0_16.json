@@ -1037,7 +1037,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"0_16:1","q":30,"r":527,"mobs":["bloodbraid-elf","mahamoti-djinn","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"0_16:1","q":30,"r":527,"mobs":["fallen-angel","rorix-bladewing","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

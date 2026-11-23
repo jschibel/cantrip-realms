@@ -49,9 +49,9 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const o = game();
       return o ? { loaded: [...o.world.chunks.keys()].sort(), built: o.worldScene.patchKeys.sort() } : null;
     },
-    /** The traveling vendors in town by the schedule. */
+    /** The traveling traders and their schedule (`GET /api/travelers`), as the overworld last heard it. */
     get travelers() {
-      return game()?.visits.map((v) => ({ ...v })) ?? [];
+      return game()?.travelers.map((t) => ({ ...t })) ?? [];
     },
     get run() {
       const o = game();

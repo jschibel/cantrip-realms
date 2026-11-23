@@ -1133,8 +1133,8 @@
     {"id":"steelleaf-glade-guard-2","kind":"guard","name":"Steelleaf Glade guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":605,"r":163}
   ],
   "spawns": [
-    {"id":"18_5:1","q":579,"r":182,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"18_5:2","q":583,"r":165,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"18_5:1","q":579,"r":182,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"18_5:2","q":583,"r":165,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"18_5:c1","q":580,"r":179,"gold":[50,150],"respawnSeconds":86400}

@@ -33,10 +33,13 @@ import { type BuiltTown, buildTown } from "./towns";
 import { type MobFile, type Site, connect, dress, placeDungeon, populate, resolveMobs } from "./wilds";
 import { makeZones } from "./zones";
 
+/** A vendor file (interfaces.md, "Vendors"): a shop's in its `town`, an exotic wares shop's `exotic`; a traveling
+ * trader has no town, and keeps no shop (its caravan stands at a town's pitch while it is in town). */
 export interface Vendor {
   readonly id: string;
   readonly name: string;
-  readonly town: string;
+  readonly town?: string;
+  readonly exotic?: boolean;
 }
 
 export interface Generated {
@@ -74,8 +77,13 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
       .filter((l) => l.a === plan.id || l.b === plan.id)
       .map((l) => (l.a === plan.id ? l.b : l.a))
       .map((id) => ({ id, at: centreOf.get(id) ?? dungeonAt.get(id)! }));
-    const sold = vendors.filter((v) => v.town === plan.id).sort((a, b) => a.id.localeCompare(b.id));
-    towns.push(buildTown(grid, plan, colorOf(plan.region), index, centreOf.get(plan.id)!, targets, seed, sold));
+    const sold = vendors.filter((v) => v.town === plan.id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
+    // The town's exotic wares shop is its exotic vendor's (layout.json's `exotic` names the vendor file).
+    const exotic = vendors.filter((v) => v.town === plan.id && v.exotic);
+    if (exotic.length !== (plan.exotic ? 1 : 0) || (plan.exotic && exotic[0]!.id !== plan.exotic)) {
+      throw new Error(`${plan.id}: layout.json's exotic shop is ${plan.exotic ?? "none"}, its exotic vendors ${exotic.map((v) => v.id).join(", ") || "none"}`);
+    }
+    towns.push(buildTown(grid, plan, colorOf(plan.region), index, centreOf.get(plan.id)!, targets, seed, sold, exotic[0] ?? null));
   });
   log("towns");
 

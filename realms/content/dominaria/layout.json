@@ -414,7 +414,7 @@
       "centrepiece": "statue",
       "temple": "The Cathedral of Serra",
       "guild": "The Order of the White Shield",
-      "exotic": "exotic-new-benalia",
+      "exotic": "new-benalia-exotic-wares",
       "caravan": true,
       "at": [368, 338],
       "radius": 66
@@ -443,7 +443,7 @@
       "centrepiece": "statue",
       "temple": "The Chapel of the Capashens",
       "guild": "The Hold's Mages' Hall",
-      "exotic": "exotic-capashen-hold",
+      "exotic": "capashen-hold-exotic-wares",
       "caravan": true,
       "at": [344, 475],
       "radius": 42
@@ -903,7 +903,7 @@
         ["@wanderers:3-4"]
       ],
       "warden": "heart-warden",
-      "boss": "multani",
+      "boss": "rofellos",
       "road": "llanowar",
       "at": [546, 172]
     },
@@ -920,7 +920,7 @@
         ["@wanderers:3-4"]
       ],
       "warden": "tomb-warden",
-      "boss": "sheoldred",
+      "boss": "liliana",
       "road": "vess-estate",
       "at": [43, 440]
     },
@@ -937,7 +937,7 @@
         ["@wanderers:3-4"]
       ],
       "warden": "foundry-warden",
-      "boss": "darigaaz",
+      "boss": "garna",
       "road": "keld",
       "at": [96, 257]
     },

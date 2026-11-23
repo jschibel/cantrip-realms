@@ -1094,12 +1094,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_4:1","q":321,"r":148,"mobs":["serra-angel","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_4:2","q":329,"r":132,"mobs":["enormous-baloth","torsten-founder-of-benalia","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_4:3","q":329,"r":153,"mobs":["lady-orca","torsten-founder-of-benalia","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_4:4","q":340,"r":141,"mobs":["lady-orca","trained-orgg","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_4:5","q":341,"r":129,"mobs":["bloodbraid-elf","lady-orca","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_4:6","q":349,"r":143,"mobs":["bloodbraid-elf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"10_4:1","q":321,"r":148,"mobs":["serra-angel","shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_4:2","q":329,"r":132,"mobs":["karplusan-yeti","sibilant-spirit","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_4:3","q":329,"r":153,"mobs":["marhault-elsdragon","sibilant-spirit","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_4:4","q":340,"r":141,"mobs":["marhault-elsdragon","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_4:5","q":341,"r":129,"mobs":["fallen-angel","marhault-elsdragon","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_4:6","q":349,"r":143,"mobs":["fallen-angel","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"10_4:c1","q":333,"r":139,"gold":[300,500],"respawnSeconds":86400}

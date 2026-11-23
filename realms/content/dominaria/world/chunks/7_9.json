@@ -1232,11 +1232,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_9:1","q":228,"r":317,"mobs":["mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_9:2","q":229,"r":294,"mobs":["abbey-gargoyles","phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_9:3","q":229,"r":306,"mobs":["hill-giant","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_9:4","q":246,"r":295,"mobs":["flametongue-kavu","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"7_9:5","q":248,"r":308,"mobs":["blood-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_9:1","q":228,"r":317,"mobs":["merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_9:2","q":229,"r":294,"mobs":["azure-drake","orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_9:3","q":229,"r":306,"mobs":["longbow-archer","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_9:4","q":246,"r":295,"mobs":["eater-of-the-dead","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"7_9:5","q":248,"r":308,"mobs":["bog-wraith","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_9:c1","q":240,"r":303,"gold":[180,380],"respawnSeconds":86400}

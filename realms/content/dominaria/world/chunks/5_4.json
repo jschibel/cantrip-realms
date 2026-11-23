@@ -1163,9 +1163,9 @@
     {"id":"keldon-watch-folk-1","kind":"townsfolk","name":"Lookout","text":["From up here you can see the waste smoking. The Portal is out there."],"q":184,"r":151}
   ],
   "spawns": [
-    {"id":"5_4:1","q":160,"r":159,"mobs":["bloodbraid-elf","serra-angel","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_4:2","q":169,"r":137,"mobs":["enormous-baloth","torsten-founder-of-benalia","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_4:3","q":180,"r":137,"mobs":["ramirez-depietro","serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"5_4:1","q":160,"r":159,"mobs":["fallen-angel","serra-angel","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_4:2","q":169,"r":137,"mobs":["karplusan-yeti","sibilant-spirit","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_4:3","q":180,"r":137,"mobs":["sengir-vampire","serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"5_4:c1","q":164,"r":130,"gold":[300,500],"respawnSeconds":86400}

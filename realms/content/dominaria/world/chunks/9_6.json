@@ -1115,12 +1115,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_6:1","q":295,"r":210,"mobs":["hill-giant","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:2","q":297,"r":199,"mobs":["air-elemental","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_6:3","q":299,"r":220,"mobs":["eternal-witness","mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:4","q":306,"r":207,"mobs":["flametongue-kavu","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_6:5","q":315,"r":213,"mobs":["birds-of-paradise","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_6:6","q":317,"r":195,"mobs":["enormous-baloth","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"9_6:1","q":295,"r":210,"mobs":["longbow-archer","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:2","q":297,"r":199,"mobs":["abomination","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_6:3","q":299,"r":220,"mobs":["craw-wurm","merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:4","q":306,"r":207,"mobs":["eater-of-the-dead","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_6:5","q":315,"r":213,"mobs":["arrogant-wurm","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_6:6","q":317,"r":195,"mobs":["karplusan-yeti","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"9_6:c1","q":294,"r":205,"gold":[100,250],"respawnSeconds":86400},

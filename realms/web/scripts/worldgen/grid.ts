@@ -83,7 +83,7 @@ export class Grid {
 
 // --- Geometry ------------------------------------------------------------------------------------------------------
 
-/** New Argive, at the middle of the world. */
+/** The middle of the world. */
 export const HUB: Hex = hex(SIZE / 2, SIZE / 2);
 
 const SQRT3 = Math.sqrt(3);

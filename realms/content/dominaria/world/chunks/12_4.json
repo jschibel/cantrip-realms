@@ -1088,9 +1088,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_4:1","q":391,"r":150,"mobs":["benthic-behemoth","ramirez-depietro","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_4:2","q":396,"r":130,"mobs":["enormous-baloth","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_4:3","q":407,"r":155,"mobs":["lady-orca","serra-angel","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_4:1","q":391,"r":150,"mobs":["enormous-baloth","sengir-vampire","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_4:2","q":396,"r":130,"mobs":["karplusan-yeti","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_4:3","q":407,"r":155,"mobs":["marhault-elsdragon","serra-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"12_4:c1","q":387,"r":135,"gold":[300,500],"respawnSeconds":86400}

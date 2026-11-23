@@ -1117,10 +1117,10 @@
     {"id":"verdura-hollow-spell-table","q":523,"r":453,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"16_14:1","q":514,"r":450,"mobs":["enormous-baloth","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_14:2","q":520,"r":466,"mobs":["bloodbraid-elf","tarmogoyf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_14:3","q":531,"r":465,"mobs":["enormous-baloth","lady-orca"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_14:4","q":533,"r":452,"mobs":["lady-orca","tarmogoyf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"16_14:1","q":514,"r":450,"mobs":["karplusan-yeti","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_14:2","q":520,"r":466,"mobs":["fallen-angel","shivan-dragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_14:3","q":531,"r":465,"mobs":["karplusan-yeti","marhault-elsdragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_14:4","q":533,"r":452,"mobs":["marhault-elsdragon","shivan-dragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"16_14:c1","q":534,"r":459,"gold":[300,500],"respawnSeconds":86400}

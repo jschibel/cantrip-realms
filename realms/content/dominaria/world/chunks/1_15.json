@@ -1055,8 +1055,8 @@
     {"id":"vess-crypts-spell-table","q":42,"r":505,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"1_15:1","q":55,"r":507,"mobs":["ramirez-depietro","serra-paragon","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_15:2","q":56,"r":496,"mobs":["ramirez-depietro","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"1_15:1","q":55,"r":507,"mobs":["sengir-vampire","serra-paragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_15:2","q":56,"r":496,"mobs":["sengir-vampire","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"1_15:c1","q":52,"r":501,"gold":[300,500],"respawnSeconds":86400}

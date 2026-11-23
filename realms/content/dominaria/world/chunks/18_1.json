@@ -1044,7 +1044,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_1:1","q":592,"r":63,"mobs":["lady-orca","ramirez-depietro","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"18_1:1","q":592,"r":63,"mobs":["fallen-angel","sengir-vampire","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"18_1:c1","q":600,"r":60,"gold":[300,500],"respawnSeconds":86400}

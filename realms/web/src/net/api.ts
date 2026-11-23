@@ -90,7 +90,8 @@ export interface Specialty {
 }
 
 export interface VendorView {
-  readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty };
+  /** `Kind` is `shop`, `exotic` or `trader`; `Plane` a trader's home plane (else null); `Town` a trader's caravan's town now. */
+  readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty; readonly Kind: "shop" | "exotic" | "trader"; readonly Plane: string | null };
   readonly Purse: number;
   readonly Stock: readonly { readonly Name: string; readonly Gold: number; readonly Count: number; readonly Until: string | null }[];
   /** The character's gold. */
@@ -154,15 +155,30 @@ export type EncounterAt =
   | { readonly Spawn: string; readonly Mob: string }
   | { readonly Run: string; readonly Floor: number; readonly Index: number; readonly Mob: string };
 
-/** A traveling vendor's visit to a town (design.md A5): who, from which plane, where, and until when. */
-export interface TravelerVisit {
-  readonly Vendor: string;
-  /** The planeswalker trader's name. */
+/** A caravan's visit to a town: which town, and from when until when (UTC ISO-8601). */
+export interface CaravanVisit {
+  readonly Town: string;
+  readonly From: string;
+  readonly Until: string;
+}
+
+/**
+ * A traveling trader from another plane (design.md A5) and its schedule, as `GET /api/travelers` gives it: its vendor
+ * id (its `vendor` screen), its name, its plane's id and name, the visit its caravan is on now (null between visits) and
+ * the next to begin.
+ */
+export interface Traveler {
+  readonly Id: string;
   readonly Name: string;
   readonly Plane: string;
-  readonly Town: string;
-  /** UTC ISO-8601: when the caravan leaves. */
-  readonly Until: string;
+  readonly PlaneName: string;
+  readonly Visit: CaravanVisit | null;
+  readonly Next: CaravanVisit;
+}
+
+/** The trader whose caravan is in a town at a moment (Unix milliseconds), if any. */
+export function travelerIn(travelers: readonly Traveler[], town: string, nowMs: number): Traveler | undefined {
+  return travelers.find((t) => t.Visit !== null && t.Visit.Town === town && Date.parse(t.Visit.From) <= nowMs && nowMs < Date.parse(t.Visit.Until));
 }
 
 /** A refused call: the server's error code and its words. */
@@ -205,7 +221,7 @@ export interface RealmApi {
   /** Travels from the attuned tower's waystone the character stands at to another attuned tower's. */
   waystone(body: { Tower: string }): Promise<{ Place: Place }>;
   /** The traveling vendors in town now, by the server's schedule. */
-  travelers(): Promise<{ Visits: readonly TravelerVisit[] }>;
+  travelers(): Promise<{ Travelers: readonly Traveler[] }>;
 }
 
 /** The realm server over HTTP: same-origin `/api`, or the server `base` names, on the signed-in cookie. */
@@ -263,5 +279,5 @@ export class HttpApi implements RealmApi {
     await this.call<unknown>("POST", "dungeon/leave", body);
   };
   waystone = (body: { Tower: string }) => this.call<{ Place: Place }>("POST", "waystone", body);
-  travelers = () => this.call<{ Visits: readonly TravelerVisit[] }>("GET", "travelers");
+  travelers = () => this.call<{ Travelers: readonly Traveler[] }>("GET", "travelers");
 }

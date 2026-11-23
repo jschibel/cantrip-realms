@@ -1173,11 +1173,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_6:1","q":450,"r":213,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_6:2","q":455,"r":199,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_6:3","q":456,"r":220,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_6:4","q":464,"r":205,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_6:5","q":473,"r":207,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"14_6:1","q":450,"r":213,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_6:2","q":455,"r":199,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_6:3","q":456,"r":220,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_6:4","q":464,"r":205,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_6:5","q":473,"r":207,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"14_6:c1","q":448,"r":208,"gold":[100,250],"respawnSeconds":86400},

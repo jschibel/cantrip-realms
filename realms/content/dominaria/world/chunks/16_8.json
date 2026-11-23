@@ -1238,11 +1238,11 @@
     {"id":"llanowar-1-spell-table","q":531,"r":268,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"16_8:1","q":515,"r":268,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_8:2","q":517,"r":283,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_8:3","q":525,"r":287,"mobs":["elvish-warrior","giant-spider"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_8:4","q":536,"r":283,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_8:5","q":543,"r":270,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"16_8:1","q":515,"r":268,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_8:2","q":517,"r":283,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_8:3","q":525,"r":287,"mobs":["durkwood-boars","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_8:4","q":536,"r":283,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_8:5","q":543,"r":270,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"16_8:c1","q":518,"r":267,"gold":[50,150],"respawnSeconds":86400}

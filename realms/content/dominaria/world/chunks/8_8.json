@@ -1165,12 +1165,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_8:1","q":259,"r":270,"mobs":["birds-of-paradise","roc-of-kher-ridges","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_8:2","q":259,"r":285,"mobs":["savannah-lions","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_8:3","q":270,"r":269,"mobs":["knight-of-malice","serra-sphinx","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_8:4","q":273,"r":278,"mobs":["knight-of-malice","serra-sphinx","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_8:5","q":276,"r":287,"mobs":["abbey-gargoyles","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_8:6","q":281,"r":263,"mobs":["bog-wraith","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"8_8:1","q":259,"r":270,"mobs":["arrogant-wurm","knight-of-malice","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_8:2","q":259,"r":285,"mobs":["lord-of-atlantis","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_8:3","q":270,"r":269,"mobs":["frost-giant","marton-stromgald","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_8:4","q":273,"r":278,"mobs":["frost-giant","marton-stromgald","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_8:5","q":276,"r":287,"mobs":["azure-drake","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_8:6","q":281,"r":263,"mobs":["cradle-guard","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"8_8:c1","q":269,"r":278,"gold":[180,380],"respawnSeconds":86400}

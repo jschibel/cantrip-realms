@@ -1106,12 +1106,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_6:1","q":356,"r":199,"mobs":["serra-paragon","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_6:2","q":360,"r":206,"mobs":["ramirez-depietro","serra-angel","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_6:3","q":363,"r":214,"mobs":["bloodbraid-elf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_6:4","q":375,"r":205,"mobs":["enormous-baloth","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_6:5","q":380,"r":214,"mobs":["bloodbraid-elf","torsten-founder-of-benalia","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_6:6","q":381,"r":194,"mobs":["bloodbraid-elf","enormous-baloth","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_6:1","q":356,"r":199,"mobs":["serra-paragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_6:2","q":360,"r":206,"mobs":["sengir-vampire","serra-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_6:3","q":363,"r":214,"mobs":["fallen-angel","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_6:4","q":375,"r":205,"mobs":["karplusan-yeti","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_6:5","q":380,"r":214,"mobs":["fallen-angel","sibilant-spirit","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_6:6","q":381,"r":194,"mobs":["fallen-angel","karplusan-yeti","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"11_6:c1","q":352,"r":201,"gold":[300,500],"respawnSeconds":86400},

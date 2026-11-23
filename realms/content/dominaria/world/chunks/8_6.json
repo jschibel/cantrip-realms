@@ -1164,12 +1164,12 @@
     {"id":"foriys-guard-1","kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":269,"r":204}
   ],
   "spawns": [
-    {"id":"8_6:1","q":256,"r":215,"mobs":["benalish-knight","hill-giant","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_6:2","q":271,"r":221,"mobs":["eternal-witness","phantom-monster","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_6:3","q":275,"r":210,"mobs":["coral-merfolk","plague-beetle"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_6:4","q":281,"r":193,"mobs":["blood-knight","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_6:5","q":282,"r":216,"mobs":["blood-knight","eternal-witness","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_6:6","q":287,"r":198,"mobs":["phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"8_6:1","q":256,"r":215,"mobs":["benalish-knight","longbow-archer","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_6:2","q":271,"r":221,"mobs":["craw-wurm","orcish-artillery","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_6:3","q":275,"r":210,"mobs":["bog-raiders","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_6:4","q":281,"r":193,"mobs":["bog-wraith","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_6:5","q":282,"r":216,"mobs":["bog-wraith","craw-wurm","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_6:6","q":287,"r":198,"mobs":["orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"8_6:c1","q":258,"r":216,"gold":[100,250],"respawnSeconds":86400}

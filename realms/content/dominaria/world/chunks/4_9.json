@@ -1082,10 +1082,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_9:1","q":137,"r":317,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_9:2","q":146,"r":304,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_9:3","q":154,"r":316,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_9:4","q":157,"r":293,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_9:1","q":137,"r":317,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_9:2","q":146,"r":304,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_9:3","q":154,"r":316,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_9:4","q":157,"r":293,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"4_9:c1","q":149,"r":310,"gold":[50,150],"respawnSeconds":86400},

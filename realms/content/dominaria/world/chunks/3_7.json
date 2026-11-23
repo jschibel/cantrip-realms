@@ -1212,7 +1212,7 @@
     {"id":"keld-guard-2","kind":"guard","name":"Keld guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":106,"r":251}
   ],
   "spawns": [
-    {"id":"3_7:1","q":103,"r":233,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"3_7:1","q":103,"r":233,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"3_7:c1","q":96,"r":224,"gold":[300,500],"respawnSeconds":86400},

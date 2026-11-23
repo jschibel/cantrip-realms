@@ -1048,10 +1048,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"2_5:1","q":72,"r":184,"mobs":["tarmogoyf","trained-orgg","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_5:2","q":81,"r":173,"mobs":["ramirez-depietro","torsten-founder-of-benalia","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_5:3","q":85,"r":181,"mobs":["serra-paragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_5:4","q":91,"r":187,"mobs":["ramirez-depietro","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_5:1","q":72,"r":184,"mobs":["shivan-dragon","tarmogoyf","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_5:2","q":81,"r":173,"mobs":["sengir-vampire","sibilant-spirit","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_5:3","q":85,"r":181,"mobs":["serra-paragon","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_5:4","q":91,"r":187,"mobs":["sengir-vampire","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"2_5:c1","q":75,"r":184,"gold":[300,500],"respawnSeconds":86400},

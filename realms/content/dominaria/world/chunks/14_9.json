@@ -1134,12 +1134,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_9:1","q":450,"r":289,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_9:2","q":456,"r":317,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_9:3","q":458,"r":301,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_9:4","q":469,"r":305,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_9:5","q":471,"r":288,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_9:6","q":475,"r":312,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"14_9:1","q":450,"r":289,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_9:2","q":456,"r":317,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_9:3","q":458,"r":301,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_9:4","q":469,"r":305,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_9:5","q":471,"r":288,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_9:6","q":475,"r":312,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"14_9:c1","q":452,"r":302,"gold":[50,150],"respawnSeconds":86400}

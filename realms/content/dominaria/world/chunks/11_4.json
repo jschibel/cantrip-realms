@@ -1077,10 +1077,10 @@
     {"id":"ironclaw-delvings-spell-table","q":356,"r":135,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"11_4:1","q":356,"r":155,"mobs":["tarmogoyf","torsten-founder-of-benalia","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_4:1","q":356,"r":155,"mobs":["shivan-dragon","sibilant-spirit","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"11_4:2","q":365,"r":132,"mobs":["serra-angel","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_4:3","q":371,"r":149,"mobs":["serra-paragon","torsten-founder-of-benalia","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_4:4","q":383,"r":139,"mobs":["benthic-behemoth","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_4:3","q":371,"r":149,"mobs":["serra-paragon","sibilant-spirit","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_4:4","q":383,"r":139,"mobs":["enormous-baloth","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"11_4:c1","q":362,"r":147,"gold":[300,500],"respawnSeconds":86400},

@@ -1063,8 +1063,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_9:1","q":544,"r":306,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_9:2","q":547,"r":293,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"17_9:1","q":544,"r":306,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_9:2","q":547,"r":293,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"17_9:c1","q":548,"r":315,"gold":[100,250],"respawnSeconds":86400}

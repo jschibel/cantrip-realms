@@ -1176,10 +1176,10 @@
     {"id":"oneah-quest-board","kind":"quest-board","name":"Notice board","text":["Do not go south into Amjad."],"q":508,"r":102}
   ],
   "spawns": [
-    {"id":"15_3:1","q":484,"r":116,"mobs":["birds-of-paradise","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_3:2","q":490,"r":121,"mobs":["gurmag-angler","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_3:3","q":491,"r":99,"mobs":["bloodbraid-elf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"15_3:4","q":502,"r":122,"mobs":["arrogant-wurm","commander-eesha","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"15_3:1","q":484,"r":116,"mobs":["arrogant-wurm","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_3:2","q":490,"r":121,"mobs":["elvish-archers","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_3:3","q":491,"r":99,"mobs":["fallen-angel","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_3:4","q":502,"r":122,"mobs":["air-elemental","birds-of-paradise","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"15_3:c1","q":492,"r":102,"gold":[300,500],"respawnSeconds":86400},

@@ -1070,10 +1070,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_13:1","q":448,"r":434,"mobs":["abbey-gargoyles","mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_13:2","q":449,"r":420,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_13:3","q":459,"r":424,"mobs":["fighting-drake","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_13:4","q":470,"r":420,"mobs":["birds-of-paradise","flametongue-kavu"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"14_13:1","q":448,"r":434,"mobs":["azure-drake","merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_13:2","q":449,"r":420,"mobs":["longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_13:3","q":459,"r":424,"mobs":["elven-riders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_13:4","q":470,"r":420,"mobs":["arrogant-wurm","eater-of-the-dead"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"14_13:c1","q":452,"r":433,"gold":[100,250],"respawnSeconds":86400},

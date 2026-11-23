@@ -1259,7 +1259,7 @@
     {"id":"llanowar-arena","q":497,"r":254,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."]}
   ],
   "spawns": [
-    {"id":"15_7:1","q":484,"r":237,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"15_7:1","q":484,"r":237,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

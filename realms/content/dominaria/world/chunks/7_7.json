@@ -1109,12 +1109,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_7:1","q":229,"r":245,"mobs":["benalish-knight","blood-knight","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_7:2","q":233,"r":230,"mobs":["fighting-drake","fire-elemental","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_7:3","q":240,"r":241,"mobs":["fire-elemental","hill-giant","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_7:4","q":242,"r":254,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_7:5","q":250,"r":226,"mobs":["blood-knight","moor-fiend","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_7:6","q":251,"r":241,"mobs":["fighting-drake","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_7:1","q":229,"r":245,"mobs":["benalish-knight","bog-wraith","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_7:2","q":233,"r":230,"mobs":["elven-riders","keldon-warlord","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_7:3","q":240,"r":241,"mobs":["keldon-warlord","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_7:4","q":242,"r":254,"mobs":["lost-soul","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_7:5","q":250,"r":226,"mobs":["bog-wraith","moor-fiend","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_7:6","q":251,"r":241,"mobs":["elven-riders","merfolk-raiders","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_7:c1","q":239,"r":228,"gold":[100,250],"respawnSeconds":86400},

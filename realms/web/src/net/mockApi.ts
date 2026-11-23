@@ -6,18 +6,37 @@ import type { Body, ManaColor, Slot } from "../character";
 import { distance, hex } from "../hex";
 import { mobInfo } from "../mobs";
 import { mulberry32 } from "../random";
-import { DUNGEONS, WORLD, besideEntrance, innOf, startTown } from "../world/content";
+import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown } from "../world/content";
 
 const INNS = WORLD.inns;
 
-/** The stand-in schedule's traders: planeswalkers from other planes, each with their own vendor id. */
-export const MOCK_TRADERS: readonly { readonly Vendor: string; readonly Name: string; readonly Plane: string }[] = [
-  { Vendor: "trader-ravnica", Name: "Ral Zarek", Plane: "Ravnica" },
-  { Vendor: "trader-zendikar", Name: "Nahiri", Plane: "Zendikar" },
-  { Vendor: "trader-innistrad", Name: "Sorin Markov", Plane: "Innistrad" },
-  { Vendor: "trader-kamigawa", Name: "Tamiyo", Plane: "Kamigawa" },
-  { Vendor: "trader-theros", Name: "Ajani Goldmane", Plane: "Theros" },
-];
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+
+/**
+ * The traveling traders' schedule as the server keeps it (design.md A5; interfaces.md, "Vendors"): on Unix day `d` (UTC) a
+ * trader's caravan is in `towns[d mod towns.length]` from `hour` o'clock for `hours` hours - the date alone decides it.
+ * Every trader of the vendor files, in id order, with the visit it is on at `nowMs` (null between visits) and the next.
+ */
+export function travelersAt(nowMs: number): Traveler[] {
+  const visitOn = (round: NonNullable<VendorFile["trader"]>, day: number) => {
+    const from = day * DAY_MS + round.hour * HOUR_MS;
+    const town = round.towns[((day % round.towns.length) + round.towns.length) % round.towns.length]!;
+    return { Town: town, From: from, Until: from + round.hours * HOUR_MS };
+  };
+  const iso = (v: { Town: string; From: number; Until: number }) => ({ Town: v.Town, From: new Date(v.From).toISOString(), Until: new Date(v.Until).toISOString() });
+  const today = Math.floor(nowMs / DAY_MS);
+  return [...VENDORS.values()]
+    .filter((v) => v.trader)
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .map((v) => {
+      const round = v.trader!;
+      const visit = visitOn(round, today);
+      const now = nowMs >= visit.From && nowMs < visit.Until ? iso(visit) : null;
+      const next = visit.From > nowMs ? visit : visitOn(round, today + 1);
+      return { Id: v.id, Name: v.name, Plane: round.plane, PlaneName: PLANE_NAMES.get(round.plane) ?? round.plane, Visit: now, Next: iso(next) };
+    });
+}
 import {
   ApiError,
   type Character,
@@ -31,7 +50,7 @@ import {
   type Place,
   type RealmApi,
   type Run,
-  type TravelerVisit,
+  type Traveler,
   type VendorView,
 } from "./api";
 
@@ -219,7 +238,11 @@ export class MockApi implements RealmApi {
       Owned: this.cards[c.Name]!,
       Spare: Math.max(0, this.cards[c.Name]! - used(c.Name)),
     }));
-    return { Vendor: { Id: id, Name: id, Town: "", Specialty: {} }, Purse: 50000, Stock: stock, Gold: this.character?.Gold ?? 0, Buying: buying };
+    const file = VENDORS.get(id);
+    if (!file) throw new ApiError(404, "NoVendor", `No vendor ${id}.`);
+    const kind = file.trader ? "trader" : file.exotic ? "exotic" : "shop";
+    const town = file.trader ? (travelersAt(this.now() * 1000).find((t) => t.Id === id)?.Visit?.Town ?? "") : (file.town ?? "");
+    return { Vendor: { Id: id, Name: file.name, Town: town, Specialty: {}, Kind: kind, Plane: file.trader?.plane ?? null }, Purse: 50000, Stock: stock, Gold: this.character?.Gold ?? 0, Buying: buying };
   }
 
   async buy(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }> {
@@ -380,20 +403,10 @@ export class MockApi implements RealmApi {
     return { Inn: room.id };
   }
 
-  /**
-   * The stand-in schedule (design.md A5): the day in six-hour turns; in each, every trader keeps a caravan for four hours
-   * in one of the towns with a pitch, the next town each turn.
-   */
-  async travelers(): Promise<{ Visits: readonly TravelerVisit[] }> {
+  /** The traders' schedule, the server's own (travelersAt), on the stand-in clock. */
+  async travelers(): Promise<{ Travelers: readonly Traveler[] }> {
     this.log("travelers");
-    const towns = WORLD.pitches.map((p) => p.town);
-    const seconds = this.now();
-    const turn = Math.floor(seconds / 21600);
-    const until = turn * 21600 + 4 * 3600;
-    if (seconds >= until || towns.length === 0) return { Visits: [] };
-    return {
-      Visits: MOCK_TRADERS.slice(0, towns.length).map((t, k) => ({ ...t, Town: towns[(k + turn) % towns.length]!, Until: new Date(until * 1000).toISOString() })),
-    };
+    return { Travelers: travelersAt(this.now() * 1000) };
   }
 
   async enterDungeon(body: { Dungeon: string }): Promise<Run> {

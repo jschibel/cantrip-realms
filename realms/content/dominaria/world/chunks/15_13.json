@@ -1117,12 +1117,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_13:1","q":489,"r":443,"mobs":["air-elemental","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_13:2","q":496,"r":424,"mobs":["knight-of-malice","lord-of-atlantis","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_13:3","q":500,"r":440,"mobs":["birds-of-paradise","serra-sphinx","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_13:4","q":505,"r":447,"mobs":["flametongue-kavu","gurmag-angler","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_13:5","q":506,"r":428,"mobs":["air-elemental","lord-of-atlantis","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_13:6","q":511,"r":417,"mobs":["air-elemental","arrogant-wurm","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"15_13:1","q":489,"r":443,"mobs":["abomination","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_13:2","q":496,"r":424,"mobs":["frost-giant","guardian-of-new-benalia","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_13:3","q":500,"r":440,"mobs":["arrogant-wurm","marton-stromgald","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_13:4","q":505,"r":447,"mobs":["eater-of-the-dead","elvish-archers","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_13:5","q":506,"r":428,"mobs":["abomination","guardian-of-new-benalia","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_13:6","q":511,"r":417,"mobs":["abomination","air-elemental","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"15_13:c1","q":494,"r":442,"gold":[180,380],"respawnSeconds":86400},

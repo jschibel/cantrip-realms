@@ -34,8 +34,12 @@ export interface Control {
 export const NOW = 1763856000;
 
 /** Opens the offline overworld with a made character, at a place. */
-export async function openRealm(page: Page, options: { at: string; name?: string; color?: string; extra?: string }): Promise<void> {
-  const query = `offline&test&name=${options.name ?? "Tester"}&color=${options.color ?? "W"}&now=${NOW}&wander=0&at=${options.at}${options.extra ?? ""}`;
+/** A morning hour of the same day, when the traveling traders' first caravans are in town (07:00 UTC: their 06:00 visits). */
+export const TRADERS_IN = NOW + 7 * 3600;
+
+/** Opens the offline overworld with a made character, at a place; `now` pins the clock elsewhere than NOW. */
+export async function openRealm(page: Page, options: { at: string; name?: string; color?: string; extra?: string; now?: number }): Promise<void> {
+  const query = `offline&test&name=${options.name ?? "Tester"}&color=${options.color ?? "W"}&now=${options.now ?? NOW}&wander=0&at=${options.at}${options.extra ?? ""}`;
   await page.goto(`/?${query}`);
   await waitReady(page);
 }

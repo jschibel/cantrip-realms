@@ -1075,9 +1075,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_3:1","q":324,"r":125,"mobs":["enormous-baloth","ramirez-depietro"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_3:2","q":336,"r":119,"mobs":["bloodbraid-elf","ramirez-depietro"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_3:3","q":347,"r":116,"mobs":["trained-orgg","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"10_3:1","q":324,"r":125,"mobs":["karplusan-yeti","sengir-vampire"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_3:2","q":336,"r":119,"mobs":["fallen-angel","sengir-vampire"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_3:3","q":347,"r":116,"mobs":["tarmogoyf","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"10_3:c1","q":331,"r":118,"gold":[300,500],"respawnSeconds":86400}

@@ -34,7 +34,7 @@ const world = JSON.parse(readFileSync(join(plane, "world", "world.json"), "utf8"
 const chunks = readDir<ChunkData>("world/chunks");
 const interiors = readDir<InteriorData>("interiors");
 const dungeons = readDir<DungeonData>("dungeons");
-const vendors = readDir<{ id: string; name: string; town: string }>("vendors");
+const vendors = readDir<{ id: string; name: string; town?: string; exotic?: boolean; trader?: { towns: string[] } }>("vendors");
 const roster = readDir<{ id: string; tier: number; boss?: boolean }>("mobs");
 
 function all<K extends "props" | "doors" | "npcs" | "spawns" | "chests" | "entrances">(field: K): ChunkData[K][number][] {
@@ -119,7 +119,6 @@ describe("the world's files", () => {
   });
 
   it("name only mobs the roster has, each spawn's of its tier and matching its zone, and dungeons' warden and boss", () => {
-    const missingMages = new Set<string>();
     const tierOf = new Map([...roster.values()].map((m) => [m.id, m.tier]));
     for (const spawn of all("spawns")) {
       expect(spawn.tier, `spawn ${spawn.id} is its zone's tier`).toBe(areaAt(world.zones, spawn)?.tier);
@@ -130,15 +129,13 @@ describe("the world's files", () => {
     }
     for (const d of dungeons.values()) {
       const lists = Array.isArray(d.mobs[0]) ? (d.mobs as string[][]) : [d.mobs as string[]];
-      // A tower's mage is the roster's `mage-<tower>`; while the roster is being renamed to the Domains' regions, a
-      // mage it lacks is listed, not failed.
-      for (const mob of [...lists.flat(), d.warden, d.boss]) {
-        if (mob.startsWith("mage-") && !roster.has(mob)) missingMages.add(mob);
-        else expect(roster.has(mob), `${d.id}: ${mob}`).toBe(true);
-      }
+      // A tower's mage is the roster's `mage-<tower>`.
+      for (const mob of [...lists.flat(), d.warden, d.boss]) expect(roster.has(mob), `${d.id}: ${mob}`).toBe(true);
       if (d.waystone) expect(d.boss).toBe(`mage-${d.id}`);
     }
-    if (missingMages.size > 0) console.warn(`mages the roster does not have yet: ${[...missingMages].sort().join(", ")}`);
+    // Every mob of the roster is met somewhere, as the server's content check asks.
+    const met = new Set([...all("spawns").flatMap((s) => s.mobs), ...[...dungeons.values()].flatMap((d) => [...(d.mobs as (string | string[])[]).flat(), d.warden, d.boss])]);
+    expect([...roster.keys()].filter((id) => !met.has(id)), "mobs nobody meets").toEqual([]);
   });
 
   it("grow harder with distance from the starting areas, and mark where the tier rises", () => {
@@ -172,9 +169,16 @@ describe("the world's files", () => {
     const people = [...interiors.values()].flatMap((room) => room.npcs.map((n) => ({ ...n, room })));
     for (const v of vendors.values()) {
       const at = people.find((n) => n.kind === "vendor" && n.vendor === v.id);
+      if (v.trader) {
+        // A traveling trader keeps no shop: its caravan stands at the pitch of each town it visits.
+        expect(at, `${v.id} keeps no shop`).toBeUndefined();
+        for (const town of v.trader.towns) expect(world.pitches.some((p) => p.town === town), `${v.id}'s pitch in ${town}`).toBe(true);
+        continue;
+      }
       expect(at, `${v.id}'s shop`).toBeDefined();
       expect(at!.room.town).toBe(v.town);
       expect(at!.room.kind).toBe("shop");
+      expect(interiors.get(`${v.id}-shop`), `${v.id}-shop`).toBe(at!.room);
     }
     for (const town of world.towns) {
       const inn = world.inns.find((i) => i.town === town.id)!;

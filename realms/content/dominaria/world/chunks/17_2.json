@@ -1187,14 +1187,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_2:1","q":546,"r":91,"mobs":["air-elemental","flametongue-kavu","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:2","q":547,"r":77,"mobs":["lord-of-atlantis","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:3","q":551,"r":65,"mobs":["arrogant-wurm","commander-eesha","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:4","q":553,"r":95,"mobs":["air-elemental","commander-eesha","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:5","q":559,"r":74,"mobs":["roc-of-kher-ridges","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:6","q":564,"r":80,"mobs":["birds-of-paradise","roc-of-kher-ridges"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:7","q":565,"r":90,"mobs":["knight-of-malice","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_2:8","q":570,"r":69,"mobs":["elvish-archers","roc-of-kher-ridges","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"17_2:1","q":546,"r":91,"mobs":["abomination","eater-of-the-dead","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:2","q":547,"r":77,"mobs":["guardian-of-new-benalia","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:3","q":551,"r":65,"mobs":["air-elemental","birds-of-paradise","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:4","q":553,"r":95,"mobs":["abomination","birds-of-paradise","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:5","q":559,"r":74,"mobs":["knight-of-malice","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:6","q":564,"r":80,"mobs":["arrogant-wurm","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:7","q":565,"r":90,"mobs":["eater-of-the-dead","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_2:8","q":570,"r":69,"mobs":["commander-eesha","knight-of-malice","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"17_2:c1","q":545,"r":66,"gold":[180,380],"respawnSeconds":86400},

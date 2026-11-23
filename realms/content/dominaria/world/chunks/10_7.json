@@ -1143,14 +1143,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_7:1","q":321,"r":255,"mobs":["benalish-knight","eternal-witness","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:2","q":327,"r":225,"mobs":["benalish-knight","blood-knight","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:3","q":327,"r":243,"mobs":["fire-elemental","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:4","q":333,"r":232,"mobs":["abbey-gargoyles","blood-knight","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:5","q":339,"r":238,"mobs":["magnigoth-sentry","mass-of-ghouls","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:6","q":339,"r":249,"mobs":["benalish-knight","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:7","q":347,"r":252,"mobs":["benalish-knight","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_7:8","q":350,"r":239,"mobs":["hill-giant","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"10_7:1","q":321,"r":255,"mobs":["benalish-knight","craw-wurm","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:2","q":327,"r":225,"mobs":["benalish-knight","bog-wraith","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:3","q":327,"r":243,"mobs":["keldon-warlord","lost-soul","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:4","q":333,"r":232,"mobs":["azure-drake","bog-wraith","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:5","q":339,"r":238,"mobs":["lost-soul","merfolk-raiders","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:6","q":339,"r":249,"mobs":["benalish-knight","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:7","q":347,"r":252,"mobs":["benalish-knight","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_7:8","q":350,"r":239,"mobs":["longbow-archer","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"10_7:c1","q":329,"r":235,"gold":[100,250],"respawnSeconds":86400},

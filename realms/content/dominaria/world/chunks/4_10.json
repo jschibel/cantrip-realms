@@ -1073,10 +1073,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_10:1","q":134,"r":328,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_10:2","q":142,"r":349,"mobs":["bog-imp","plague-beetle"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_10:3","q":153,"r":333,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_10:4","q":153,"r":345,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_10:1","q":134,"r":328,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_10:2","q":142,"r":349,"mobs":["bog-imp","bog-raiders"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_10:3","q":153,"r":333,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_10:4","q":153,"r":345,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"4_10:c1","q":149,"r":340,"gold":[50,150],"respawnSeconds":86400}

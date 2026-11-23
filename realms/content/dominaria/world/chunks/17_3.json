@@ -1112,11 +1112,11 @@
     {"id":"shanodin-ferry-ferryman-to","q":554,"r":113,"kind":"ferryman","ferry":"shanodin-ferry","name":"The ferryman of the Shanodin Ferry"}
   ],
   "spawns": [
-    {"id":"17_3:1","q":544,"r":111,"mobs":["hill-giant","magnigoth-sentry","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_3:2","q":559,"r":103,"mobs":["fighting-drake","fire-elemental","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_3:3","q":565,"r":109,"mobs":["mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_3:4","q":570,"r":127,"mobs":["mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_3:5","q":573,"r":116,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"17_3:1","q":544,"r":111,"mobs":["longbow-archer","lost-soul","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_3:2","q":559,"r":103,"mobs":["elven-riders","keldon-warlord","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_3:3","q":565,"r":109,"mobs":["lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_3:4","q":570,"r":127,"mobs":["lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_3:5","q":573,"r":116,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"17_3:c1","q":546,"r":117,"gold":[100,250],"respawnSeconds":86400},

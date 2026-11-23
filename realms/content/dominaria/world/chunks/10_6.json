@@ -1109,13 +1109,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_6:1","q":320,"r":219,"mobs":["knight-of-malice","serra-sphinx","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"10_6:2","q":329,"r":196,"mobs":["mahamoti-djinn","ramirez-depietro"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_6:3","q":334,"r":214,"mobs":["benthic-behemoth","enormous-baloth","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_6:4","q":335,"r":201,"mobs":["mahamoti-djinn","ramirez-depietro","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_6:5","q":339,"r":221,"mobs":["benthic-behemoth","lady-orca","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_6:6","q":345,"r":204,"mobs":["enormous-baloth","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"10_6:7","q":350,"r":217,"mobs":["bloodbraid-elf","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"10_6:1","q":320,"r":219,"mobs":["frost-giant","marton-stromgald","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"10_6:2","q":329,"r":196,"mobs":["rorix-bladewing","sengir-vampire"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_6:3","q":334,"r":214,"mobs":["enormous-baloth","karplusan-yeti","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_6:4","q":335,"r":201,"mobs":["rorix-bladewing","sengir-vampire","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_6:5","q":339,"r":221,"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_6:6","q":345,"r":204,"mobs":["karplusan-yeti","shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"10_6:7","q":350,"r":217,"mobs":["fallen-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"10_6:c1","q":332,"r":217,"gold":[300,500],"respawnSeconds":86400}

@@ -1050,7 +1050,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_4:1","q":439,"r":153,"mobs":["kiki-jiki-mirror-breaker","trained-orgg","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"13_4:1","q":439,"r":153,"mobs":["mahamoti-djinn","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

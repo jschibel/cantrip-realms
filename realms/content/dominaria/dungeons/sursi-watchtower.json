@@ -16,9 +16,9 @@
     3
   ],
   "mobs": [
-    "abbey-gargoyles",
     "benalish-knight",
-    "white-knight"
+    "longbow-archer",
+    "pegasus-charger"
   ],
   "warden": "warden-2",
   "boss": "commander-eesha",

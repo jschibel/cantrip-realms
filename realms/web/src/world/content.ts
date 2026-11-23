@@ -2,6 +2,7 @@
 // chunk and interior is its own lazy bundle, fetched as the player nears it; the dungeons' definitions are small and
 // in the page.
 
+import planesFile from "../../../content/planes.json";
 import worldFile from "../../../content/dominaria/world/world.json";
 import { DIRECTIONS, type Hex, hex } from "../hex";
 import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey } from "./schema";
@@ -15,6 +16,23 @@ const dungeonFiles = import.meta.glob<DungeonData>("../../../content/dominaria/d
 const idOf = (path: string) => path.slice(path.lastIndexOf("/") + 1, -".json".length);
 const chunkLoaders = new Map(Object.entries(chunkFiles).map(([path, load]) => [idOf(path), load]));
 const interiorLoaders = new Map(Object.entries(interiorFiles).map(([path, load]) => [idOf(path), load]));
+
+/** A vendor file (interfaces.md, "Vendors"): a shop's in its town, or a traveling trader's round. */
+export interface VendorFile {
+  readonly id: string;
+  readonly name: string;
+  readonly town?: string;
+  readonly exotic?: boolean;
+  readonly trader?: { readonly plane: string; readonly towns: readonly string[]; readonly hour: number; readonly hours: number };
+}
+
+const vendorFiles = import.meta.glob<VendorFile>("../../../content/dominaria/vendors/*.json", { eager: true, import: "default" });
+
+/** Every vendor of the plane, by id: what the MockApi deals from, and the traders' schedule. */
+export const VENDORS: ReadonlyMap<string, VendorFile> = new Map(Object.values(vendorFiles).map((v) => [v.id, v]));
+
+/** The planes' names (planes.json), by id. */
+export const PLANE_NAMES: ReadonlyMap<string, string> = new Map(Object.entries(planesFile.planes).map(([id, p]) => [id, p.name]));
 
 /** Every dungeon, by id. */
 export const DUNGEONS: ReadonlyMap<string, DungeonData> = new Map(Object.values(dungeonFiles).map((d) => [d.id, d]));

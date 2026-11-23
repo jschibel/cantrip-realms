@@ -1096,8 +1096,8 @@
     {"id":"foriys-guard-2","kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":254,"r":193}
   ],
   "spawns": [
-    {"id":"7_6:1","q":240,"r":200,"mobs":["hill-giant","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_6:2","q":242,"r":215,"mobs":["benalish-knight","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_6:1","q":240,"r":200,"mobs":["longbow-archer","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_6:2","q":242,"r":215,"mobs":["benalish-knight","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_6:c1","q":241,"r":206,"gold":[100,250],"respawnSeconds":86400}

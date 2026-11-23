@@ -1099,12 +1099,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_9:1","q":293,"r":305,"mobs":["eternal-witness","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_9:2","q":296,"r":317,"mobs":["fire-elemental","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_9:3","q":297,"r":292,"mobs":["abbey-gargoyles","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_9:4","q":304,"r":296,"mobs":["blood-knight","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_9:5","q":316,"r":318,"mobs":["fighting-drake","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_9:6","q":317,"r":304,"mobs":["bog-wraith","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_9:1","q":293,"r":305,"mobs":["craw-wurm","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_9:2","q":296,"r":317,"mobs":["keldon-warlord","lost-soul","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_9:3","q":297,"r":292,"mobs":["azure-drake","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_9:4","q":304,"r":296,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_9:5","q":316,"r":318,"mobs":["elven-riders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_9:6","q":317,"r":304,"mobs":["cradle-guard","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"9_9:c1","q":303,"r":300,"gold":[100,250],"respawnSeconds":86400}

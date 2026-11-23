@@ -1226,7 +1226,7 @@
     {"q":351,"r":371,"kind":"bush"}
   ],
   "doors": [
-    {"q":321,"r":364,"interior":"exotic-new-benalia-shop"},
+    {"q":321,"r":364,"interior":"new-benalia-exotic-wares-shop"},
     {"q":321,"r":367,"interior":"argive-goblin-trader-shop"},
     {"q":321,"r":370,"interior":"argive-spellsmith-shop"},
     {"q":321,"r":373,"interior":"argive-land-broker-shop"},

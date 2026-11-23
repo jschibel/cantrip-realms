@@ -1076,10 +1076,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_5:1","q":199,"r":168,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_5:2","q":201,"r":184,"mobs":["goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_5:3","q":209,"r":169,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_5:4","q":215,"r":178,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_5:1","q":199,"r":168,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_5:2","q":201,"r":184,"mobs":["hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_5:3","q":209,"r":169,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_5:4","q":215,"r":178,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"6_5:c1","q":192,"r":169,"gold":[50,150],"respawnSeconds":86400},

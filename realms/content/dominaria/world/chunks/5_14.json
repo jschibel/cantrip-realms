@@ -1092,10 +1092,10 @@
     {"id":"sursi-watchtower-spell-table","q":172,"r":453,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"5_14:1","q":164,"r":469,"mobs":["abbey-gargoyles","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_14:2","q":176,"r":471,"mobs":["lord-of-atlantis","savannah-lions","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"5_14:3","q":180,"r":456,"mobs":["air-elemental","arrogant-wurm"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"5_14:4","q":189,"r":459,"mobs":["arrogant-wurm","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"5_14:1","q":164,"r":469,"mobs":["azure-drake","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_14:2","q":176,"r":471,"mobs":["guardian-of-new-benalia","lord-of-atlantis","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"5_14:3","q":180,"r":456,"mobs":["abomination","air-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"5_14:4","q":189,"r":459,"mobs":["air-elemental","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"5_14:c1","q":169,"r":465,"gold":[180,380],"respawnSeconds":86400}

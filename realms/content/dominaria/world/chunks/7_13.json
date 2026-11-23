@@ -1096,13 +1096,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_13:1","q":227,"r":424,"mobs":["fighting-drake","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:2","q":232,"r":433,"mobs":["eternal-witness","phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:3","q":235,"r":443,"mobs":["abbey-gargoyles","eternal-witness","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:4","q":238,"r":420,"mobs":["bog-wraith","hill-giant","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:5","q":243,"r":431,"mobs":["abbey-gargoyles","benalish-knight","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:6","q":254,"r":438,"mobs":["magnigoth-sentry","moor-fiend","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_13:7","q":255,"r":422,"mobs":["blood-knight","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_13:1","q":227,"r":424,"mobs":["elven-riders","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:2","q":232,"r":433,"mobs":["craw-wurm","orcish-artillery","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:3","q":235,"r":443,"mobs":["azure-drake","craw-wurm","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:4","q":238,"r":420,"mobs":["cradle-guard","longbow-archer","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:5","q":243,"r":431,"mobs":["azure-drake","benalish-knight","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:6","q":254,"r":438,"mobs":["lost-soul","moor-fiend","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_13:7","q":255,"r":422,"mobs":["bog-wraith","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_13:c1","q":235,"r":433,"gold":[100,250],"respawnSeconds":86400},

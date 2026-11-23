@@ -1203,13 +1203,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_9:1","q":482,"r":292,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_9:2","q":487,"r":301,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_9:3","q":488,"r":312,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_9:4","q":493,"r":318,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_9:5","q":502,"r":288,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_9:6","q":502,"r":299,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_9:7","q":508,"r":309,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"15_9:1","q":482,"r":292,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_9:2","q":487,"r":301,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_9:3","q":488,"r":312,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_9:4","q":493,"r":318,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_9:5","q":502,"r":288,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_9:6","q":502,"r":299,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_9:7","q":508,"r":309,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"15_9:c1","q":482,"r":319,"gold":[100,250],"respawnSeconds":86400},

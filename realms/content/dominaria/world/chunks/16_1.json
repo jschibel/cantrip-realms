@@ -1078,9 +1078,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_1:1","q":520,"r":63,"mobs":["ramirez-depietro","torsten-founder-of-benalia","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_1:2","q":532,"r":61,"mobs":["lady-orca","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_1:3","q":543,"r":48,"mobs":["enormous-baloth","mahamoti-djinn","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"16_1:1","q":520,"r":63,"mobs":["sengir-vampire","sibilant-spirit","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_1:2","q":532,"r":61,"mobs":["marhault-elsdragon","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_1:3","q":543,"r":48,"mobs":["karplusan-yeti","rorix-bladewing","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"16_1:c1","q":527,"r":57,"gold":[300,500],"respawnSeconds":86400}

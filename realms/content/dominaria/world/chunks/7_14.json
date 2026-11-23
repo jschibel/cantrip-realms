@@ -1099,14 +1099,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_14:1","q":224,"r":462,"mobs":["white-knight","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:2","q":226,"r":472,"mobs":["blood-knight","eternal-witness","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:3","q":237,"r":462,"mobs":["fighting-drake","hill-giant","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:4","q":241,"r":448,"mobs":["bog-wraith","fire-elemental","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:5","q":244,"r":474,"mobs":["eternal-witness","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:6","q":248,"r":452,"mobs":["phantom-monster","segovian-leviathan","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:7","q":250,"r":461,"mobs":["abbey-gargoyles","bog-wraith","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_14:8","q":255,"r":468,"mobs":["mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_14:1","q":224,"r":462,"mobs":["sandbar-serpent","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:2","q":226,"r":472,"mobs":["bog-wraith","craw-wurm","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:3","q":237,"r":462,"mobs":["elven-riders","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:4","q":241,"r":448,"mobs":["cradle-guard","keldon-warlord","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:5","q":244,"r":474,"mobs":["craw-wurm","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:6","q":248,"r":452,"mobs":["orcish-artillery","pegasus-charger","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:7","q":250,"r":461,"mobs":["azure-drake","cradle-guard","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_14:8","q":255,"r":468,"mobs":["merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_14:c1","q":230,"r":463,"gold":[100,250],"respawnSeconds":86400}

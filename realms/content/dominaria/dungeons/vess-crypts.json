@@ -17,23 +17,23 @@
   ],
   "mobs": [
     [
+      "abomination",
       "bog-wraith",
-      "gurmag-angler",
+      "eater-of-the-dead",
       "knight-of-malice",
-      "mass-of-ghouls",
-      "moor-fiend",
-      "stinkweed-imp"
+      "lost-soul",
+      "moor-fiend"
     ],
     [
-      "gurmag-angler",
+      "abomination",
+      "eater-of-the-dead",
+      "fallen-angel",
       "knight-of-malice",
-      "lady-orca",
-      "ramirez-depietro",
-      "stinkweed-imp",
-      "yargle-glutton-of-urborg"
+      "sengir-vampire",
+      "tombstalker"
     ]
   ],
   "warden": "tomb-warden",
-  "boss": "sheoldred",
+  "boss": "liliana",
   "region": "B"
 }

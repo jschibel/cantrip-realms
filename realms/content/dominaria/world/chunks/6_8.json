@@ -1151,11 +1151,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_8:1","q":193,"r":262,"mobs":["kiki-jiki-mirror-breaker","tarmogoyf","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_8:2","q":198,"r":272,"mobs":["bog-wraith","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_8:3","q":200,"r":281,"mobs":["benalish-knight","fire-elemental","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_8:4","q":211,"r":272,"mobs":["eternal-witness","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_8:5","q":218,"r":280,"mobs":["abbey-gargoyles","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_8:1","q":193,"r":262,"mobs":["mahamoti-djinn","shivan-dragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_8:2","q":198,"r":272,"mobs":["cradle-guard","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_8:3","q":200,"r":281,"mobs":["benalish-knight","keldon-warlord","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_8:4","q":211,"r":272,"mobs":["craw-wurm","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_8:5","q":218,"r":280,"mobs":["azure-drake","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_8:c1","q":194,"r":257,"gold":[300,500],"respawnSeconds":86400},

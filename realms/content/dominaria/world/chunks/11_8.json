@@ -1161,11 +1161,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_8:1","q":353,"r":274,"mobs":["fire-elemental","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"11_8:2","q":360,"r":263,"mobs":["bog-wraith","white-knight","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"11_8:3","q":364,"r":271,"mobs":["abbey-gargoyles","eternal-witness","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"11_8:4","q":371,"r":259,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_8:5","q":380,"r":266,"mobs":["knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"11_8:1","q":353,"r":274,"mobs":["keldon-warlord","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"11_8:2","q":360,"r":263,"mobs":["cradle-guard","sandbar-serpent","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"11_8:3","q":364,"r":271,"mobs":["azure-drake","craw-wurm","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"11_8:4","q":371,"r":259,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_8:5","q":380,"r":266,"mobs":["davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"11_8:c1","q":375,"r":263,"gold":[50,150],"respawnSeconds":86400}

@@ -1110,12 +1110,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_13:1","q":264,"r":446,"mobs":["giant-spider","knight-of-new-benalia","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_13:2","q":266,"r":421,"mobs":["coral-merfolk","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_13:3","q":270,"r":434,"mobs":["benalish-hero","llanowar-elves","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_13:4","q":277,"r":416,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_13:5","q":280,"r":441,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_13:6","q":285,"r":425,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"8_13:1","q":264,"r":446,"mobs":["coral-merfolk","elvish-warrior","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_13:2","q":266,"r":421,"mobs":["bog-raiders","durkwood-boars"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_13:3","q":270,"r":434,"mobs":["benalish-hero","hurloon-minotaur","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_13:4","q":277,"r":416,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_13:5","q":280,"r":441,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_13:6","q":285,"r":425,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

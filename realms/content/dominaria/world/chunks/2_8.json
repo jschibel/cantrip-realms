@@ -1094,9 +1094,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"2_8:1","q":74,"r":264,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"2_8:2","q":76,"r":274,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"2_8:3","q":86,"r":275,"mobs":["goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"2_8:1","q":74,"r":264,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"2_8:2","q":76,"r":274,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"2_8:3","q":86,"r":275,"mobs":["hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"2_8:c1","q":72,"r":256,"gold":[50,150],"respawnSeconds":86400},

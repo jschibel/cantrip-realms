@@ -1223,11 +1223,11 @@
     {"id":"oneah-guard-1","kind":"guard","name":"Oneah guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":524,"r":102}
   ],
   "spawns": [
-    {"id":"16_3:1","q":519,"r":117,"mobs":["moor-fiend","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_3:2","q":524,"r":125,"mobs":["fire-elemental","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_3:3","q":531,"r":109,"mobs":["eternal-witness","hill-giant","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_3:4","q":538,"r":125,"mobs":["fighting-drake","fire-elemental","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_3:5","q":542,"r":102,"mobs":["blood-knight","magnigoth-sentry","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"16_3:1","q":519,"r":117,"mobs":["moor-fiend","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_3:2","q":524,"r":125,"mobs":["keldon-warlord","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_3:3","q":531,"r":109,"mobs":["craw-wurm","longbow-archer","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_3:4","q":538,"r":125,"mobs":["elven-riders","keldon-warlord","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_3:5","q":542,"r":102,"mobs":["bog-wraith","lost-soul","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"16_3:c1","q":527,"r":127,"gold":[100,250],"respawnSeconds":86400},

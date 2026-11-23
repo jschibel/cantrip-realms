@@ -1077,14 +1077,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"5_13:1","q":161,"r":433,"mobs":["abbey-gargoyles","bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:1","q":161,"r":433,"mobs":["azure-drake","cradle-guard","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"5_13:2","q":164,"r":420,"mobs":["benalish-knight","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:3","q":164,"r":442,"mobs":["bog-wraith","fire-elemental","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:4","q":174,"r":443,"mobs":["phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:5","q":177,"r":426,"mobs":["bog-wraith","segovian-leviathan","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:6","q":188,"r":430,"mobs":["blood-knight","segovian-leviathan","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:7","q":188,"r":442,"mobs":["mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_13:8","q":189,"r":418,"mobs":["blood-knight","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"5_13:3","q":164,"r":442,"mobs":["cradle-guard","keldon-warlord","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:4","q":174,"r":443,"mobs":["orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:5","q":177,"r":426,"mobs":["cradle-guard","pegasus-charger","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:6","q":188,"r":430,"mobs":["bog-wraith","pegasus-charger","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:7","q":188,"r":442,"mobs":["merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_13:8","q":189,"r":418,"mobs":["bog-wraith","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"5_13:c1","q":163,"r":430,"gold":[100,250],"respawnSeconds":86400},

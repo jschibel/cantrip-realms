@@ -1,7 +1,7 @@
 {
-  "id": "keld-exotic-wares",
+  "id": "capashen-hold-exotic-wares",
   "name": "The Far-Shore Trader",
-  "town": "keld",
+  "town": "capashen-hold",
   "specialty": {},
   "purse": 50000,
   "exotic": true

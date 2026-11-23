@@ -1050,8 +1050,8 @@
     {"id":"caligo-4-spell-table","q":66,"r":520,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"2_16:1","q":70,"r":526,"mobs":["benthic-behemoth","serra-paragon","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_16:2","q":77,"r":513,"mobs":["ramirez-depietro","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_16:1","q":70,"r":526,"mobs":["enormous-baloth","serra-paragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_16:2","q":77,"r":513,"mobs":["sengir-vampire","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

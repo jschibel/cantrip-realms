@@ -1064,9 +1064,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_18:1","q":228,"r":603,"mobs":["phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_18:2","q":230,"r":577,"mobs":["fighting-drake","phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_18:3","q":231,"r":589,"mobs":["fighting-drake","phantom-monster","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_18:1","q":228,"r":603,"mobs":["merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_18:2","q":230,"r":577,"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_18:3","q":231,"r":589,"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_18:c1","q":224,"r":605,"gold":[100,250],"respawnSeconds":86400},

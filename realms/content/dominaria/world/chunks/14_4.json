@@ -1119,11 +1119,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_4:1","q":452,"r":145,"mobs":["gurmag-angler","stinkweed-imp","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_4:2","q":462,"r":156,"mobs":["air-elemental","serra-sphinx","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_4:3","q":463,"r":144,"mobs":["elvish-archers","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_4:4","q":474,"r":131,"mobs":["flametongue-kavu","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_4:5","q":474,"r":151,"mobs":["arrogant-wurm","roc-of-kher-ridges"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"14_4:1","q":452,"r":145,"mobs":["elvish-archers","northern-paladin","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_4:2","q":462,"r":156,"mobs":["abomination","marton-stromgald","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_4:3","q":463,"r":144,"mobs":["commander-eesha","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_4:4","q":474,"r":131,"mobs":["eater-of-the-dead","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_4:5","q":474,"r":151,"mobs":["air-elemental","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"14_4:c1","q":468,"r":135,"gold":[180,380],"respawnSeconds":86400},

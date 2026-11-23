@@ -1104,10 +1104,10 @@
   "npcs": [],
   "spawns": [
     {"id":"17_12:1","q":545,"r":399,"mobs":["serra-angel","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_12:2","q":549,"r":412,"mobs":["lady-orca","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_12:3","q":556,"r":397,"mobs":["lady-orca","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_12:4","q":561,"r":414,"mobs":["enormous-baloth","lady-orca"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_12:5","q":568,"r":403,"mobs":["enormous-baloth","lady-orca","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_12:2","q":549,"r":412,"mobs":["marhault-elsdragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_12:3","q":556,"r":397,"mobs":["marhault-elsdragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_12:4","q":561,"r":414,"mobs":["karplusan-yeti","marhault-elsdragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_12:5","q":568,"r":403,"mobs":["karplusan-yeti","marhault-elsdragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"17_12:c1","q":551,"r":392,"gold":[300,500],"respawnSeconds":86400},

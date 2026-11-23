@@ -1206,12 +1206,12 @@
     {"id":"llanowar-guard-3","kind":"guard","name":"The Elfhames of Llanowar guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":540,"r":182}
   ],
   "spawns": [
-    {"id":"16_5:1","q":515,"r":162,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:2","q":517,"r":186,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:3","q":520,"r":175,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:4","q":531,"r":171,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:5","q":536,"r":177,"mobs":["elvish-warrior","giant-spider"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:6","q":539,"r":160,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"16_5:1","q":515,"r":162,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:2","q":517,"r":186,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:3","q":520,"r":175,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:4","q":531,"r":171,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:5","q":536,"r":177,"mobs":["durkwood-boars","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:6","q":539,"r":160,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"16_5:c1","q":517,"r":183,"gold":[50,150],"respawnSeconds":86400},

@@ -1072,13 +1072,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_5:1","q":292,"r":184,"mobs":["fire-elemental","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:2","q":295,"r":172,"mobs":["air-elemental","gurmag-angler"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_5:3","q":298,"r":161,"mobs":["lord-of-atlantis","savannah-lions","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_5:4","q":303,"r":180,"mobs":["flametongue-kavu","gurmag-angler","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"9_5:5","q":306,"r":165,"mobs":["ramirez-depietro","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"9_5:6","q":310,"r":191,"mobs":["serra-paragon","trained-orgg","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"9_5:7","q":315,"r":173,"mobs":["bloodbraid-elf","mahamoti-djinn","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"9_5:1","q":292,"r":184,"mobs":["keldon-warlord","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:2","q":295,"r":172,"mobs":["abomination","elvish-archers"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_5:3","q":298,"r":161,"mobs":["guardian-of-new-benalia","lord-of-atlantis","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_5:4","q":303,"r":180,"mobs":["eater-of-the-dead","elvish-archers","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"9_5:5","q":306,"r":165,"mobs":["sengir-vampire","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"9_5:6","q":310,"r":191,"mobs":["serra-paragon","tarmogoyf","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"9_5:7","q":315,"r":173,"mobs":["fallen-angel","rorix-bladewing","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"9_5:c1","q":292,"r":172,"gold":[180,380],"respawnSeconds":86400},

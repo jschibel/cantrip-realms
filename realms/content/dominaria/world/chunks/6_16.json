@@ -1040,8 +1040,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_16:1","q":201,"r":518,"mobs":["giant-spider","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_16:2","q":215,"r":519,"mobs":["coral-merfolk","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_16:1","q":201,"r":518,"mobs":["coral-merfolk","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_16:2","q":215,"r":519,"mobs":["bog-raiders","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"6_16:c1","q":202,"r":514,"gold":[50,150],"respawnSeconds":86400},

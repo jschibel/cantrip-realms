@@ -1087,11 +1087,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_13:1","q":201,"r":431,"mobs":["abbey-gargoyles","fire-elemental","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_13:2","q":206,"r":437,"mobs":["birds-of-paradise","elvish-archers"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_13:3","q":208,"r":417,"mobs":["blood-knight","eternal-witness","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_13:4","q":212,"r":426,"mobs":["arrogant-wurm","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_13:5","q":221,"r":436,"mobs":["air-elemental","elvish-archers","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"6_13:1","q":201,"r":431,"mobs":["azure-drake","keldon-warlord","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_13:2","q":206,"r":437,"mobs":["arrogant-wurm","commander-eesha"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_13:3","q":208,"r":417,"mobs":["bog-wraith","craw-wurm","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_13:4","q":212,"r":426,"mobs":["air-elemental","frost-giant"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_13:5","q":221,"r":436,"mobs":["abomination","commander-eesha","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"6_13:c1","q":199,"r":435,"gold":[100,250],"respawnSeconds":86400}

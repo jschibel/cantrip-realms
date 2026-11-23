@@ -1141,11 +1141,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_9:1","q":257,"r":297,"mobs":["abbey-gargoyles","blood-knight","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_9:2","q":261,"r":314,"mobs":["blood-knight","bog-wraith","eternal-witness"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_9:3","q":267,"r":301,"mobs":["bog-wraith","magnigoth-sentry","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_9:4","q":278,"r":309,"mobs":["fire-elemental","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_9:5","q":282,"r":295,"mobs":["benalish-knight","blood-knight","bog-wraith"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"8_9:1","q":257,"r":297,"mobs":["azure-drake","bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_9:2","q":261,"r":314,"mobs":["bog-wraith","cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_9:3","q":267,"r":301,"mobs":["cradle-guard","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_9:4","q":278,"r":309,"mobs":["keldon-warlord","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_9:5","q":282,"r":295,"mobs":["benalish-knight","bog-wraith","cradle-guard"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"8_9:c1","q":264,"r":296,"gold":[100,250],"respawnSeconds":86400},

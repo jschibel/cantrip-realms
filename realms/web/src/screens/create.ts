@@ -11,11 +11,11 @@ import { PixelRenderer } from "../render";
 // the choices, drawn by the same pixel renderer as the world.
 
 const COLORS: readonly { color: ManaColor; name: string; home: string }[] = [
-  { color: "W", name: "White", home: "New Benalia, in Benalia" },
-  { color: "U", name: "Blue", home: "the Tolarian Academy, in Tolaria" },
-  { color: "B", name: "Black", home: "Urborg" },
-  { color: "R", name: "Red", home: "Keld, in Shiv" },
-  { color: "G", name: "Green", home: "Llanowar" },
+  { color: "W", name: "White", home: "Capashen Hold, in Benalia" },
+  { color: "U", name: "Blue", home: "the Tolarian Academy, on Walassa in Orvada" },
+  { color: "B", name: "Black", home: "the Vess estate, in the Caligo Morass" },
+  { color: "R", name: "Red", home: "Keld, on Icehaven" },
+  { color: "G", name: "Green", home: "the elfhames of Llanowar" },
 ];
 
 const BODY_NAMES: Record<Body, string> = { lithe: "Lithe", broad: "Broad", tall: "Tall", stocky: "Stocky" };
@@ -73,7 +73,7 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
     mage.dispose();
     mage = Character.player("You", { body, palette, identity: [color], slots: {} });
     scene.add(mage.root);
-    root.querySelector<HTMLElement>("[data-hint=color]")!.textContent = `You begin in ${COLORS.find((c) => c.color === color)!.home}.`;
+    root.querySelector<HTMLElement>("[data-hint=color]")!.textContent = `Your home is ${COLORS.find((c) => c.color === color)!.home}; every mage begins in New Benalia.`;
   };
   let running = true;
   const clock = new THREE.Clock();

@@ -1099,10 +1099,10 @@
     {"id":"verdura-ferry-ferryman-to","q":508,"r":409,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry"}
   ],
   "spawns": [
-    {"id":"15_12:1","q":481,"r":415,"mobs":["commander-eesha","elvish-archers","flametongue-kavu"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_12:2","q":491,"r":403,"mobs":["commander-eesha","flametongue-kavu","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_12:3","q":493,"r":390,"mobs":["birds-of-paradise","flametongue-kavu","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_12:4","q":504,"r":390,"mobs":["benthic-behemoth","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"15_12:1","q":481,"r":415,"mobs":["birds-of-paradise","commander-eesha","eater-of-the-dead"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_12:2","q":491,"r":403,"mobs":["birds-of-paradise","eater-of-the-dead","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_12:3","q":493,"r":390,"mobs":["arrogant-wurm","eater-of-the-dead","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_12:4","q":504,"r":390,"mobs":["enormous-baloth","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"15_12:c1","q":486,"r":393,"gold":[180,380],"respawnSeconds":86400}

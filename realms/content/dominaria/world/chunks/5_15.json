@@ -1092,13 +1092,13 @@
     {"id":"orvada-3-spell-table","q":164,"r":492,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"5_15:1","q":164,"r":480,"mobs":["moor-fiend","segovian-leviathan","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:2","q":172,"r":485,"mobs":["blood-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:3","q":173,"r":496,"mobs":["bog-wraith","eternal-witness","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:4","q":176,"r":506,"mobs":["moor-fiend","phantom-monster","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:5","q":183,"r":484,"mobs":["blood-knight","mass-of-ghouls","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:6","q":184,"r":494,"mobs":["fighting-drake","fire-elemental","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_15:7","q":188,"r":506,"mobs":["blood-knight","fighting-drake"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"5_15:1","q":164,"r":480,"mobs":["moor-fiend","pegasus-charger","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:2","q":172,"r":485,"mobs":["bog-wraith","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:3","q":173,"r":496,"mobs":["cradle-guard","craw-wurm","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:4","q":176,"r":506,"mobs":["moor-fiend","orcish-artillery","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:5","q":183,"r":484,"mobs":["bog-wraith","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:6","q":184,"r":494,"mobs":["elven-riders","keldon-warlord","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_15:7","q":188,"r":506,"mobs":["bog-wraith","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"5_15:c1","q":173,"r":499,"gold":[100,250],"respawnSeconds":86400},

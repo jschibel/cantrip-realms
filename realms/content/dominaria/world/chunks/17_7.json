@@ -1165,9 +1165,9 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"17_7:1","q":547,"r":255,"mobs":["elvish-warrior","giant-spider"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_7:2","q":556,"r":243,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_7:3","q":567,"r":234,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"17_7:1","q":547,"r":255,"mobs":["durkwood-boars","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_7:2","q":556,"r":243,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_7:3","q":567,"r":234,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"17_7:c1","q":554,"r":248,"gold":[50,150],"respawnSeconds":86400}

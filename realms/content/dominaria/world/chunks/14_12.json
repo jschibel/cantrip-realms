@@ -1126,12 +1126,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_12:1","q":454,"r":386,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_12:2","q":455,"r":397,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_12:3","q":463,"r":401,"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_12:4","q":465,"r":411,"mobs":["air-elemental","lord-of-atlantis","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_12:5","q":474,"r":392,"mobs":["commander-eesha","savannah-lions","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"14_12:6","q":478,"r":399,"mobs":["savannah-lions","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"14_12:1","q":454,"r":386,"mobs":["longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_12:2","q":455,"r":397,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_12:3","q":463,"r":401,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_12:4","q":465,"r":411,"mobs":["abomination","guardian-of-new-benalia","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_12:5","q":474,"r":392,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"14_12:6","q":478,"r":399,"mobs":["guardian-of-new-benalia","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"14_12:c1","q":472,"r":388,"gold":[180,380],"respawnSeconds":86400}

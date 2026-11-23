@@ -1212,12 +1212,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_8:1","q":290,"r":276,"mobs":["abbey-gargoyles","phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_8:2","q":294,"r":263,"mobs":["abbey-gargoyles","bog-wraith","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_8:3","q":294,"r":284,"mobs":["hill-giant","mass-of-ghouls","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_8:4","q":304,"r":268,"mobs":["abbey-gargoyles","blood-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_8:5","q":308,"r":277,"mobs":["abbey-gargoyles","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_8:6","q":312,"r":284,"mobs":["abbey-gargoyles","bog-wraith","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_8:1","q":290,"r":276,"mobs":["azure-drake","orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_8:2","q":294,"r":263,"mobs":["azure-drake","cradle-guard","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_8:3","q":294,"r":284,"mobs":["longbow-archer","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_8:4","q":304,"r":268,"mobs":["azure-drake","bog-wraith"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_8:5","q":308,"r":277,"mobs":["azure-drake","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_8:6","q":312,"r":284,"mobs":["azure-drake","cradle-guard","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"9_8:c1","q":292,"r":259,"gold":[100,250],"respawnSeconds":86400},

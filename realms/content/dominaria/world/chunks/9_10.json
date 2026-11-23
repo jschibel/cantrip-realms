@@ -1146,9 +1146,9 @@
     {"id":"new-benalia-guard-3","kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":304,"r":340}
   ],
   "spawns": [
-    {"id":"9_10:1","q":290,"r":349,"mobs":["phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_10:2","q":303,"r":322,"mobs":["hill-giant","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_10:3","q":305,"r":331,"mobs":["hill-giant","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_10:1","q":290,"r":349,"mobs":["orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_10:2","q":303,"r":322,"mobs":["longbow-archer","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_10:3","q":305,"r":331,"mobs":["longbow-archer","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"9_10:c1","q":290,"r":326,"gold":[100,250],"respawnSeconds":86400},

@@ -1218,9 +1218,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_11:1","q":397,"r":380,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_11:2","q":411,"r":368,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_11:3","q":411,"r":381,"mobs":["knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"12_11:1","q":397,"r":380,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_11:2","q":411,"r":368,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_11:3","q":411,"r":381,"mobs":["davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"12_11:c1","q":414,"r":383,"gold":[50,150],"respawnSeconds":86400}

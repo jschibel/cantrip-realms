@@ -1205,14 +1205,14 @@
   "doors": [
     {"q":341,"r":471,"interior":"benalia-soldiers-shop"},
     {"q":343,"r":449,"interior":"capashen-hold-house-1"},
-    {"q":343,"r":464,"interior":"exotic-capashen-hold-shop"},
+    {"q":343,"r":464,"interior":"capashen-hold-exotic-wares-shop"},
     {"q":343,"r":467,"interior":"benalia-white-goods-shop"}
   ],
   "npcs": [
     {"id":"capashen-hold-folk-1","kind":"townsfolk","name":"Benalish squire","text":["The Capashens held this land before New Benalia stood."],"q":343,"r":457}
   ],
   "spawns": [
-    {"id":"10_14:1","q":322,"r":451,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"10_14:1","q":322,"r":451,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

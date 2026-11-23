@@ -1115,11 +1115,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_4:1","q":195,"r":133,"mobs":["kiki-jiki-mirror-breaker","tarmogoyf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_4:2","q":202,"r":156,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_4:3","q":205,"r":138,"mobs":["blood-knight","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_4:4","q":211,"r":143,"mobs":["blood-knight","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_4:5","q":220,"r":154,"mobs":["goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_4:1","q":195,"r":133,"mobs":["mahamoti-djinn","shivan-dragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_4:2","q":202,"r":156,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_4:3","q":205,"r":138,"mobs":["keldon-warlord","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_4:4","q":211,"r":143,"mobs":["keldon-warlord","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_4:5","q":220,"r":154,"mobs":["hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"6_4:c1","q":200,"r":128,"gold":[300,500],"respawnSeconds":86400},

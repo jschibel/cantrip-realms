@@ -1031,7 +1031,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_10:1","q":116,"r":349,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"3_10:1","q":116,"r":349,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

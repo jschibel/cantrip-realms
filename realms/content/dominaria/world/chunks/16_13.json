@@ -1284,7 +1284,7 @@
     {"id":"verdura-grove-quest-board","kind":"quest-board","name":"Notice board","text":["The druids ask that you leave the wood as you found it."],"q":520,"r":436}
   ],
   "spawns": [
-    {"id":"16_13:1","q":537,"r":438,"mobs":["enormous-baloth","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"16_13:1","q":537,"r":438,"mobs":["karplusan-yeti","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

@@ -1164,10 +1164,10 @@
     {"id":"serras-rest-quest-board","kind":"quest-board","name":"Notice board","text":["Ferry to Verdura at the south dock."],"q":477,"r":345}
   ],
   "spawns": [
-    {"id":"14_10:1","q":452,"r":331,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_10:2","q":453,"r":350,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_10:3","q":462,"r":335,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_10:4","q":468,"r":323,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"14_10:1","q":452,"r":331,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_10:2","q":453,"r":350,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_10:3","q":462,"r":335,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_10:4","q":468,"r":323,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"14_10:c1","q":461,"r":351,"gold":[50,150],"respawnSeconds":86400},

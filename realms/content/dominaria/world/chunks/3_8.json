@@ -1238,9 +1238,9 @@
     {"id":"keldon-fortress-spell-table","q":96,"r":256,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"3_8:1","q":96,"r":280,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_8:2","q":99,"r":264,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_8:3","q":111,"r":287,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"3_8:1","q":96,"r":280,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_8:2","q":99,"r":264,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_8:3","q":111,"r":287,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"3_8:c1","q":109,"r":286,"gold":[50,150],"respawnSeconds":86400}

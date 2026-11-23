@@ -6,7 +6,7 @@ import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { DIRECTIONS, type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
 import { mobInfo } from "./mobs";
-import { ApiError, type Character as CharacterData, type Place, type RealmApi, type RunFloor, type TravelerVisit, identityOf } from "./net/api";
+import { ApiError, type Character as CharacterData, type Place, type RealmApi, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Look, Presence, ServerMessage } from "./net/presence";
 import { DOMINARIA } from "./palette";
@@ -105,7 +105,10 @@ export class Overworld {
   /** On a ferry now: its boat under the player. */
   private riding: THREE.Object3D | null = null;
   /** The traveling vendors in town, by the server's schedule, and when it was last asked. */
-  visits: readonly TravelerVisit[] = [];
+  /** The traveling traders and their schedule, as `GET /api/travelers` last said. */
+  travelers: readonly Traveler[] = [];
+  /** The trader whose caravan each pitch shows, by town. */
+  private readonly caravans = new Map<string, string>();
   private travelersTimer = 0;
 
   constructor(
@@ -916,9 +919,9 @@ export class Overworld {
   /** Asks the server who is in town, and shows their caravans at the pitches near the player. */
   private async askTravelers(): Promise<void> {
     try {
-      this.visits = (await this.api.travelers()).Visits;
+      this.travelers = (await this.api.travelers()).Travelers;
     } catch {
-      this.visits = [];
+      this.travelers = [];
     }
     this.showCaravans();
   }
@@ -927,17 +930,21 @@ export class Overworld {
   private showCaravans(): void {
     const now = this.options.now() * 1000;
     for (const pitch of WORLD.pitches) {
-      const visit = this.visits.find((v) => v.Town === pitch.town && Date.parse(v.Until) > now);
+      const visit = travelerIn(this.travelers, pitch.town, now);
       const k = `caravan:${pitch.town}`;
       const at = hex(pitch.q, pitch.r);
-      const shown = this.worldScene.hasPatch(k);
-      if (visit && !shown && this.world.chunkAt(at)) {
-        const npc: NpcData = { id: visit.Vendor, q: pitch.q, r: pitch.r, kind: "vendor", vendor: visit.Vendor, name: `${visit.Name} of ${visit.Plane}` };
-        this.world.visit(at, { kind: "npc", npc });
-        this.worldScene.addPatch(k, { tiles: [], props: [{ q: pitch.q, r: pitch.r, kind: "caravan" }], npcs: [npc], chests: [], doors: [], entrances: [], leaves: [], tint: "hub", seed: k });
-      } else if (!visit && shown) {
+      // One caravan leaves at the hour another comes in: a pitch shows the trader there now, or nobody.
+      if (this.worldScene.hasPatch(k) && this.caravans.get(pitch.town) !== visit?.Id) {
         this.world.visit(at, null);
         this.worldScene.removePatch(k);
+        this.caravans.delete(pitch.town);
+      }
+      const shown = this.worldScene.hasPatch(k);
+      if (visit && !shown && this.world.chunkAt(at)) {
+        this.caravans.set(pitch.town, visit.Id);
+        const npc: NpcData = { id: visit.Id, q: pitch.q, r: pitch.r, kind: "vendor", vendor: visit.Id, name: `${visit.Name}, from ${visit.PlaneName}` };
+        this.world.visit(at, { kind: "npc", npc });
+        this.worldScene.addPatch(k, { tiles: [], props: [{ q: pitch.q, r: pitch.r, kind: "caravan" }], npcs: [npc], chests: [], doors: [], entrances: [], leaves: [], tint: "hub", seed: k });
       }
     }
   }
@@ -945,12 +952,12 @@ export class Overworld {
   /** What the HUD says of a town's traveling vendor, on coming into it. */
   private announceTraveler(town: string): void {
     const now = this.options.now() * 1000;
-    const visit = this.visits.find((v) => v.Town === town && Date.parse(v.Until) > now);
+    const visit = travelerIn(this.travelers, town, now);
     if (!visit) return;
-    const until = new Date(visit.Until);
+    const until = new Date(visit.Visit!.Until);
     const clock = `${String(until.getUTCHours()).padStart(2, "0")}:${String(until.getUTCMinutes()).padStart(2, "0")}`;
     const name = WORLD.towns.find((t) => t.id === town)?.name ?? town;
-    this.say(`A trader from ${visit.Plane} is in ${name} until ${clock}.`);
+    this.say(`A trader from ${visit.PlaneName} is in ${name} until ${clock}.`);
   }
 
   private async openChest(id: string): Promise<void> {

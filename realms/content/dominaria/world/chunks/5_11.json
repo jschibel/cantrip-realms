@@ -1138,7 +1138,7 @@
     {"id":"cabal-crossing-guard-2","kind":"guard","name":"Cabal Crossing guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":177,"r":358}
   ],
   "spawns": [
-    {"id":"5_11:1","q":182,"r":374,"mobs":["bog-imp","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_11:1","q":182,"r":374,"mobs":["bog-imp","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"5_11:c1","q":177,"r":372,"gold":[50,150],"respawnSeconds":86400}

@@ -1190,14 +1190,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_7:1","q":417,"r":225,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_7:2","q":418,"r":250,"mobs":["elvish-warrior","giant-spider"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_7:3","q":420,"r":233,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_7:4","q":431,"r":225,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_7:5","q":431,"r":245,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_7:6","q":434,"r":234,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_7:7","q":438,"r":250,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_7:8","q":445,"r":228,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"13_7:1","q":417,"r":225,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_7:2","q":418,"r":250,"mobs":["durkwood-boars","elvish-warrior"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_7:3","q":420,"r":233,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_7:4","q":431,"r":225,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_7:5","q":431,"r":245,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_7:6","q":434,"r":234,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_7:7","q":438,"r":250,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_7:8","q":445,"r":228,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"13_7:c1","q":433,"r":239,"gold":[50,150],"respawnSeconds":86400},

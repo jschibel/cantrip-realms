@@ -1100,10 +1100,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_1:1","q":548,"r":57,"mobs":["birds-of-paradise","roc-of-kher-ridges","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_1:2","q":555,"r":45,"mobs":["benthic-behemoth","tarmogoyf","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_1:3","q":560,"r":52,"mobs":["lady-orca","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_1:4","q":566,"r":62,"mobs":["mahamoti-djinn","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_1:1","q":548,"r":57,"mobs":["arrogant-wurm","knight-of-malice","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_1:2","q":555,"r":45,"mobs":["enormous-baloth","shivan-dragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:3","q":560,"r":52,"mobs":["marhault-elsdragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:4","q":566,"r":62,"mobs":["rorix-bladewing","serra-paragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"17_1:c1","q":548,"r":49,"gold":[300,500],"respawnSeconds":86400}

@@ -1044,8 +1044,8 @@
     {"id":"keldon-ferry-ferryman-from","q":242,"r":190,"kind":"ferryman","ferry":"keldon-ferry","name":"The ferryman of the Keldon Ferry"}
   ],
   "spawns": [
-    {"id":"7_5:1","q":226,"r":162,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_5:2","q":253,"r":186,"mobs":["hurloon-minotaur","scathe-zombies","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"7_5:1","q":226,"r":162,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_5:2","q":253,"r":186,"mobs":["durkwood-boars","llanowar-elves","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"7_5:c1","q":255,"r":183,"gold":[100,250],"respawnSeconds":86400}

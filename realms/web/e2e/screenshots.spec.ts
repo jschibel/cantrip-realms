@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 import { hex } from "../src/hex";
 import { doorOf, spawnNear } from "./places";
-import { at, clickControl, dungeon, entity, openNear, openRealm, realm, waitSpace, world } from "./realm";
+import { TRADERS_IN, at, clickControl, dungeon, entity, openNear, openRealm, realm, waitSpace, world } from "./realm";
 
 // Pictures of the world, for eyes: each region of the Domains, the capital, a shop and the exotic wares shop inside,
 // a caravan at its pitch, the regional and whole maps with their tier zones, and a floor of every dungeon theme. Not
@@ -51,7 +51,7 @@ for (const town of ["new-benalia", "capashen-hold", "llanowar", "vess-estate", "
 }
 
 test("screenshot: a shop inside, and the exotic wares shop", async ({ page }) => {
-  for (const [id, file] of [["argive-goblin-trader-shop", "interior-shop"], ["exotic-new-benalia-shop", "interior-exotic-wares"], ["new-benalia-inn", "interior-inn"]] as const) {
+  for (const [id, file] of [["argive-goblin-trader-shop", "interior-shop"], ["new-benalia-exotic-wares-shop", "interior-exotic-wares"], ["new-benalia-inn", "interior-inn"]] as const) {
     await openRealm(page, { at: id, extra: "&mobs=0" });
     await settle(page);
     await shot(page, file);
@@ -61,7 +61,7 @@ test("screenshot: a shop inside, and the exotic wares shop", async ({ page }) =>
 
 test("screenshot: a traveling trader's caravan at the pitch", async ({ page }) => {
   const pitch = world().pitches.find((p) => p.town === "new-benalia")!;
-  await openRealm(page, { at: at(openNear(hex(pitch.q, pitch.r), 2)), extra: "&mobs=0" });
+  await openRealm(page, { at: at(openNear(hex(pitch.q, pitch.r), 2)), extra: "&mobs=0", now: TRADERS_IN });
   await entity(page, (e) => e.kind === "vendor" && e.hex === `${pitch.q},${pitch.r}`, "the trader");
   await settle(page);
   await shot(page, "caravan");

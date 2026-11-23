@@ -1162,12 +1162,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_10:1","q":517,"r":333,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_10:2","q":522,"r":322,"mobs":["eternal-witness","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_10:3","q":528,"r":338,"mobs":["mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_10:4","q":531,"r":346,"mobs":["arrogant-wurm","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_10:5","q":534,"r":327,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_10:6","q":539,"r":334,"mobs":["fighting-drake","mass-of-ghouls"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"16_10:1","q":517,"r":333,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_10:2","q":522,"r":322,"mobs":["cradle-guard","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_10:3","q":528,"r":338,"mobs":["merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_10:4","q":531,"r":346,"mobs":["air-elemental","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_10:5","q":534,"r":327,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_10:6","q":539,"r":334,"mobs":["elven-riders","merfolk-raiders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"16_10:c1","q":523,"r":349,"gold":[180,380],"respawnSeconds":86400},

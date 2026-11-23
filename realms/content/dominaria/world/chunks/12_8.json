@@ -1239,8 +1239,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_8:1","q":396,"r":261,"mobs":["giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_8:2","q":406,"r":267,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"12_8:1","q":396,"r":261,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_8:2","q":406,"r":267,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"12_8:c1","q":397,"r":269,"gold":[50,150],"respawnSeconds":86400},

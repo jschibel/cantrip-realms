@@ -1035,8 +1035,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"5_3:1","q":177,"r":126,"mobs":["enormous-baloth","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_3:2","q":188,"r":122,"mobs":["benthic-behemoth","serra-angel","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"5_3:1","q":177,"r":126,"mobs":["karplusan-yeti","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_3:2","q":188,"r":122,"mobs":["enormous-baloth","serra-angel","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

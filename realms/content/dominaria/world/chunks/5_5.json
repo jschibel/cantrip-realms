@@ -1134,12 +1134,12 @@
     {"id":"keldon-watch-guard-1","kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":185,"r":166}
   ],
   "spawns": [
-    {"id":"5_5:1","q":160,"r":181,"mobs":["benthic-behemoth","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_5:2","q":164,"r":170,"mobs":["tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_5:3","q":171,"r":176,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_5:4","q":177,"r":183,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_5:5","q":190,"r":180,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_5:6","q":190,"r":191,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_5:1","q":160,"r":181,"mobs":["enormous-baloth","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_5:2","q":164,"r":170,"mobs":["shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_5:3","q":171,"r":176,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_5:4","q":177,"r":183,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_5:5","q":190,"r":180,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_5:6","q":190,"r":191,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"5_5:c1","q":164,"r":185,"gold":[50,150],"respawnSeconds":86400},

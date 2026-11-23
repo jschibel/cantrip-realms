@@ -1039,7 +1039,7 @@
     {"id":"orvada-4-spell-table","q":161,"r":615,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"5_19:1","q":185,"r":615,"mobs":["coral-merfolk","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_19:1","q":185,"r":615,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"5_19:c1","q":184,"r":612,"gold":[50,150],"respawnSeconds":86400}

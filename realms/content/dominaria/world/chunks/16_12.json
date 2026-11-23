@@ -1135,10 +1135,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_12:1","q":520,"r":399,"mobs":["bloodbraid-elf","ramirez-depietro","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_12:2","q":527,"r":408,"mobs":["lady-orca","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_12:3","q":534,"r":414,"mobs":["tarmogoyf","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_12:4","q":535,"r":397,"mobs":["benthic-behemoth","lady-orca"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"16_12:1","q":520,"r":399,"mobs":["fallen-angel","sengir-vampire","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_12:2","q":527,"r":408,"mobs":["marhault-elsdragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_12:3","q":534,"r":414,"mobs":["shivan-dragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_12:4","q":535,"r":397,"mobs":["enormous-baloth","marhault-elsdragon"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"16_12:c1","q":524,"r":406,"gold":[300,500],"respawnSeconds":86400}

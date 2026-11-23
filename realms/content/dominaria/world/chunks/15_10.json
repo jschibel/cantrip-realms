@@ -1210,11 +1210,11 @@
     {"id":"serras-rest-guard-2","kind":"guard","name":"Serra's Rest guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":487,"r":347}
   ],
   "spawns": [
-    {"id":"15_10:1","q":481,"r":323,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_10:2","q":494,"r":348,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_10:3","q":501,"r":337,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_10:4","q":507,"r":324,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_10:5","q":509,"r":344,"mobs":["stinkweed-imp","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"15_10:1","q":481,"r":323,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_10:2","q":494,"r":348,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_10:3","q":501,"r":337,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_10:4","q":507,"r":324,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_10:5","q":509,"r":344,"mobs":["northern-paladin","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"15_10:c1","q":495,"r":323,"gold":[100,250],"respawnSeconds":86400},

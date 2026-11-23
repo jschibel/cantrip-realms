@@ -1254,9 +1254,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_8:1","q":485,"r":279,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_8:2","q":498,"r":267,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"15_8:3","q":503,"r":277,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"15_8:1","q":485,"r":279,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_8:2","q":498,"r":267,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"15_8:3","q":503,"r":277,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"15_8:c1","q":481,"r":264,"gold":[50,150],"respawnSeconds":86400}

@@ -1155,9 +1155,9 @@
     {"id":"tolarian-academy-guard-2","kind":"guard","name":"Tolarian Academy guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":181,"r":587}
   ],
   "spawns": [
-    {"id":"5_18:1","q":171,"r":603,"mobs":["coral-merfolk","storm-crow","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_18:2","q":189,"r":604,"mobs":["coral-merfolk","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_18:3","q":190,"r":593,"mobs":["coral-merfolk","storm-crow","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_18:1","q":171,"r":603,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_18:2","q":189,"r":604,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_18:3","q":190,"r":593,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

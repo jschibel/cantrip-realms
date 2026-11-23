@@ -1068,9 +1068,9 @@
     {"id":"stahaan-ferry-ferryman-to","q":81,"r":503,"kind":"ferryman","ferry":"stahaan-ferry","name":"The ferryman of the Stahaan Ferry"}
   ],
   "spawns": [
-    {"id":"2_15:1","q":66,"r":502,"mobs":["bloodbraid-elf","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_15:2","q":70,"r":509,"mobs":["enormous-baloth","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_15:3","q":75,"r":491,"mobs":["enormous-baloth","tarmogoyf","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_15:1","q":66,"r":502,"mobs":["fallen-angel","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_15:2","q":70,"r":509,"mobs":["karplusan-yeti","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_15:3","q":75,"r":491,"mobs":["karplusan-yeti","shivan-dragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"2_15:c1","q":69,"r":495,"gold":[300,500],"respawnSeconds":86400}

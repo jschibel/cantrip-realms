@@ -17,10 +17,10 @@
   ],
   "mobs": [
     "benalish-hero",
-    "knight-of-new-benalia",
-    "suntail-hawk"
+    "davenant-archer",
+    "mesa-pegasus"
   ],
   "warden": "warden-1",
-  "boss": "abbey-gargoyles",
+  "boss": "benalish-knight",
   "region": "W"
 }

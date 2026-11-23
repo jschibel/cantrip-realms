@@ -1137,10 +1137,10 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"8_5:1","q":261,"r":165,"mobs":["magnigoth-sentry","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_5:2","q":270,"r":172,"mobs":["blood-knight","phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_5:3","q":282,"r":169,"mobs":["commander-eesha","roc-of-kher-ridges","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"8_5:4","q":284,"r":181,"mobs":["arrogant-wurm","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"8_5:1","q":261,"r":165,"mobs":["lost-soul","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_5:2","q":270,"r":172,"mobs":["bog-wraith","orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"8_5:3","q":282,"r":169,"mobs":["birds-of-paradise","knight-of-malice","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"8_5:4","q":284,"r":181,"mobs":["air-elemental","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"8_5:c1","q":284,"r":161,"gold":[180,380],"respawnSeconds":86400},

@@ -1036,8 +1036,8 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_16:1","q":226,"r":518,"mobs":["blood-knight","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_16:2","q":246,"r":514,"mobs":["eternal-witness","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_16:1","q":226,"r":518,"mobs":["bog-wraith","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:2","q":246,"r":514,"mobs":["craw-wurm","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": []

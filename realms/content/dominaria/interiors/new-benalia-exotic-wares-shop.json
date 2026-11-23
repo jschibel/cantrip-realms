@@ -1,5 +1,5 @@
 {
-  "id": "exotic-new-benalia-shop",
+  "id": "new-benalia-exotic-wares-shop",
   "name": "Wares from Beyond",
   "kind": "shop",
   "town": "new-benalia",
@@ -69,6 +69,6 @@
     {"q":3,"r":0,"kind":"wall","style":"benalish","h":0.3}
   ],
   "npcs": [
-    {"id":"exotic-new-benalia","kind":"vendor","vendor":"exotic-new-benalia","name":"Wares from Beyond","q":0,"r":-1}
+    {"id":"new-benalia-exotic-wares","kind":"vendor","vendor":"new-benalia-exotic-wares","name":"Wares from Beyond","q":0,"r":-1}
   ]
 }

@@ -1057,10 +1057,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"2_7:1","q":76,"r":246,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"2_7:2","q":87,"r":232,"mobs":["ramirez-depietro","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_7:3","q":89,"r":242,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"2_7:4","q":91,"r":253,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"2_7:1","q":76,"r":246,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"2_7:2","q":87,"r":232,"mobs":["sengir-vampire","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_7:3","q":89,"r":242,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"2_7:4","q":91,"r":253,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

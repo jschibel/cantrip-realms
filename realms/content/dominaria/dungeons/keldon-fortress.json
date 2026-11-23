@@ -17,23 +17,23 @@
   ],
   "mobs": [
     [
-      "blood-knight",
-      "fire-elemental",
-      "flametongue-kavu",
-      "hill-giant",
-      "roc-of-kher-ridges",
-      "thundering-giant"
+      "frost-giant",
+      "keldon-warlord",
+      "marton-stromgald",
+      "orcish-artillery",
+      "talruum-minotaur",
+      "two-headed-giant-of-foriys"
     ],
     [
-      "flametongue-kavu",
-      "kiki-jiki-mirror-breaker",
-      "roc-of-kher-ridges",
-      "thundering-giant",
-      "trained-orgg",
-      "volcanic-dragon"
+      "frost-giant",
+      "karplusan-yeti",
+      "marton-stromgald",
+      "rorix-bladewing",
+      "shivan-dragon",
+      "two-headed-giant-of-foriys"
     ]
   ],
   "warden": "foundry-warden",
-  "boss": "darigaaz",
+  "boss": "garna",
   "region": "R"
 }

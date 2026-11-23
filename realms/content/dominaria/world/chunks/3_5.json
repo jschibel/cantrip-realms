@@ -1076,13 +1076,13 @@
     {"id":"parma-caves-spell-table","q":120,"r":165,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"3_5:1","q":97,"r":168,"mobs":["lady-orca","ramirez-depietro"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:2","q":102,"r":179,"mobs":["kiki-jiki-mirror-breaker","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:3","q":107,"r":186,"mobs":["benthic-behemoth","enormous-baloth","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:4","q":112,"r":168,"mobs":["enormous-baloth","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:5","q":119,"r":182,"mobs":["lady-orca","volcanic-dragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:6","q":123,"r":171,"mobs":["serra-angel","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_5:7","q":126,"r":187,"mobs":["bloodbraid-elf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"3_5:1","q":97,"r":168,"mobs":["marhault-elsdragon","sengir-vampire"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:2","q":102,"r":179,"mobs":["mahamoti-djinn","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:3","q":107,"r":186,"mobs":["enormous-baloth","karplusan-yeti","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:4","q":112,"r":168,"mobs":["karplusan-yeti","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:5","q":119,"r":182,"mobs":["marhault-elsdragon","tombstalker","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:6","q":123,"r":171,"mobs":["serra-angel","shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_5:7","q":126,"r":187,"mobs":["fallen-angel","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"3_5:c1","q":115,"r":191,"gold":[300,500],"respawnSeconds":86400}

@@ -1100,10 +1100,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_13:1","q":129,"r":433,"mobs":["moor-fiend","phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_13:2","q":144,"r":435,"mobs":["eternal-witness","hill-giant","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_13:3","q":149,"r":424,"mobs":["blood-knight","fighting-drake","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_13:4","q":150,"r":440,"mobs":["abbey-gargoyles","fighting-drake","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"4_13:1","q":129,"r":433,"mobs":["moor-fiend","orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_13:2","q":144,"r":435,"mobs":["craw-wurm","longbow-archer","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_13:3","q":149,"r":424,"mobs":["bog-wraith","elven-riders","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_13:4","q":150,"r":440,"mobs":["azure-drake","elven-riders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"4_13:c1","q":144,"r":432,"gold":[100,250],"respawnSeconds":86400}

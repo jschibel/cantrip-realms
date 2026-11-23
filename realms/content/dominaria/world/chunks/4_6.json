@@ -1211,9 +1211,9 @@
     {"id":"keld-arena","q":128,"r":219,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."]}
   ],
   "spawns": [
-    {"id":"4_6:1","q":131,"r":208,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_6:2","q":134,"r":194,"mobs":["mahamoti-djinn","torsten-founder-of-benalia","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"4_6:3","q":159,"r":193,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_6:1","q":131,"r":208,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_6:2","q":134,"r":194,"mobs":["rorix-bladewing","sibilant-spirit","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"4_6:3","q":159,"r":193,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"4_6:c1","q":128,"r":199,"gold":[300,500],"respawnSeconds":86400}

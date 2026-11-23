@@ -1045,7 +1045,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_3:1","q":608,"r":115,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"19_3:1","q":608,"r":115,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"19_3:2","q":614,"r":99,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [

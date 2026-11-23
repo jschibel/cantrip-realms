@@ -1226,11 +1226,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_13:1","q":353,"r":427,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_13:2","q":363,"r":416,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_13:3","q":368,"r":429,"mobs":["benalish-hero","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_13:4","q":374,"r":418,"mobs":["benalish-hero","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_13:5","q":380,"r":428,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"11_13:1","q":353,"r":427,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_13:2","q":363,"r":416,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_13:3","q":368,"r":429,"mobs":["benalish-hero","davenant-archer"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_13:4","q":374,"r":418,"mobs":["benalish-hero","davenant-archer"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_13:5","q":380,"r":428,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

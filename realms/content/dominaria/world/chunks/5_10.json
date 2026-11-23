@@ -1118,10 +1118,10 @@
     {"id":"cabal-crossing-folk-1","kind":"townsfolk","name":"Lantern keeper","text":["Keep the lantern lit and the dead keep their distance. Usually."],"q":190,"r":346}
   ],
   "spawns": [
-    {"id":"5_10:1","q":165,"r":346,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:2","q":167,"r":330,"mobs":["bog-imp","plague-beetle","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:3","q":178,"r":324,"mobs":["bog-imp","plague-beetle"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:4","q":191,"r":330,"mobs":["bog-imp","scathe-zombies"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_10:1","q":165,"r":346,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:2","q":167,"r":330,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:3","q":178,"r":324,"mobs":["bog-imp","bog-raiders"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:4","q":191,"r":330,"mobs":["bog-imp","bog-rats"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"5_10:c1","q":167,"r":342,"gold":[50,150],"respawnSeconds":86400}

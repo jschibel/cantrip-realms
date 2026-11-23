@@ -1226,10 +1226,10 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"16_2:1","q":522,"r":78,"mobs":["commander-eesha","gurmag-angler","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_2:2","q":534,"r":81,"mobs":["commander-eesha","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_2:3","q":535,"r":93,"mobs":["gurmag-angler","roc-of-kher-ridges","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_2:4","q":540,"r":70,"mobs":["arrogant-wurm","lord-of-atlantis","stinkweed-imp"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"16_2:1","q":522,"r":78,"mobs":["birds-of-paradise","elvish-archers","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_2:2","q":534,"r":81,"mobs":["birds-of-paradise","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_2:3","q":535,"r":93,"mobs":["elvish-archers","knight-of-malice","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_2:4","q":540,"r":70,"mobs":["air-elemental","guardian-of-new-benalia","northern-paladin"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"16_2:c1","q":534,"r":84,"gold":[180,380],"respawnSeconds":86400}

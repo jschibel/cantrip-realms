@@ -1179,7 +1179,7 @@
     {"id":"capashen-hold-arena","q":308,"r":501,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."]}
   ],
   "spawns": [
-    {"id":"9_15:1","q":298,"r":492,"mobs":["benalish-hero","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"9_15:1","q":298,"r":492,"mobs":["benalish-hero","davenant-archer"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

@@ -1189,9 +1189,9 @@
     {"id":"benalish-watchtower-spell-table","q":444,"r":298,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"13_9:1","q":438,"r":306,"mobs":["benalish-hero","knight-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:2","q":439,"r":319,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:3","q":447,"r":308,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"13_9:1","q":438,"r":306,"mobs":["benalish-hero","davenant-archer"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:2","q":439,"r":319,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:3","q":447,"r":308,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [

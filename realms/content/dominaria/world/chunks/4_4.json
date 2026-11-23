@@ -1069,10 +1069,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_4:1","q":131,"r":146,"mobs":["ramirez-depietro","serra-angel","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"4_4:2","q":137,"r":151,"mobs":["lady-orca","serra-angel","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"4_4:3","q":148,"r":149,"mobs":["mahamoti-djinn","torsten-founder-of-benalia","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"4_4:4","q":157,"r":137,"mobs":["bloodbraid-elf","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"4_4:1","q":131,"r":146,"mobs":["sengir-vampire","serra-angel","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"4_4:2","q":137,"r":151,"mobs":["marhault-elsdragon","serra-angel","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"4_4:3","q":148,"r":149,"mobs":["rorix-bladewing","sibilant-spirit","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"4_4:4","q":157,"r":137,"mobs":["fallen-angel","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"4_4:c1","q":132,"r":157,"gold":[300,500],"respawnSeconds":86400},

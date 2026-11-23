@@ -1048,9 +1048,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_4:1","q":97,"r":156,"mobs":["serra-paragon","tarmogoyf","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_4:2","q":114,"r":153,"mobs":["kiki-jiki-mirror-breaker","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_4:3","q":121,"r":157,"mobs":["serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"3_4:1","q":97,"r":156,"mobs":["serra-paragon","shivan-dragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_4:2","q":114,"r":153,"mobs":["mahamoti-djinn","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_4:3","q":121,"r":157,"mobs":["serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"3_4:c1","q":105,"r":153,"gold":[300,500],"respawnSeconds":86400}

@@ -16,11 +16,11 @@
     3
   ],
   "mobs": [
-    "kiki-jiki-mirror-breaker",
-    "trained-orgg",
-    "volcanic-dragon"
+    "karplusan-yeti",
+    "rorix-bladewing",
+    "shivan-dragon"
   ],
   "warden": "warden-4",
-  "boss": "kiki-jiki-mirror-breaker",
+  "boss": "karplusan-yeti",
   "region": "R"
 }

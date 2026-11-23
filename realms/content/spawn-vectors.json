@@ -1,5 +1,5 @@
 {
-  "comment": "Golden vectors for the spawn algorithm of realms/docs/interfaces.md ('Spawns'): seed = fnv1a32(key), mob = mobs[seed % len]. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
+  "comment": "Golden vectors for the spawn algorithm of realms/docs/interfaces.md ('Spawns'): seed = fnv1a32(key), mob = mobs[seed % len]; the keys' map names are the first overworld's, kept so the seeds hold, the mobs the roster's. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
   "cases": [
     {
       "player": "discord-1",
@@ -8,11 +8,11 @@
       "unixSeconds": 1763856000,
       "respawnSeconds": 600,
       "mobs": [
-        "phyrexian-scout"
+        "benalish-hero"
       ],
       "key": "discord-1|benalish-meadow|s1|2939760",
       "seed": 2393667333,
-      "mob": "phyrexian-scout"
+      "mob": "benalish-hero"
     },
     {
       "player": "discord-1",
@@ -21,13 +21,13 @@
       "unixSeconds": 1763856599,
       "respawnSeconds": 600,
       "mobs": [
-        "phyrexian-scout",
-        "benalish-deserter",
-        "kjeldoran-raider"
+        "benalish-hero",
+        "benalish-knight",
+        "mesa-pegasus"
       ],
       "key": "discord-1|benalish-meadow|s1|2939760",
       "seed": 2393667333,
-      "mob": "phyrexian-scout"
+      "mob": "benalish-hero"
     },
     {
       "player": "discord-42",
@@ -36,12 +36,12 @@
       "unixSeconds": 1763856600,
       "respawnSeconds": 600,
       "mobs": [
-        "urborg-ghoul",
-        "cabal-initiate"
+        "bog-rats",
+        "bog-imp"
       ],
       "key": "discord-42|urborg-mire|s3|2939761",
       "seed": 2487930082,
-      "mob": "urborg-ghoul"
+      "mob": "bog-rats"
     },
     {
       "player": "discord-42",
@@ -50,13 +50,13 @@
       "unixSeconds": 1763943000,
       "respawnSeconds": 86400,
       "mobs": [
-        "urborg-ghoul",
-        "cabal-initiate",
+        "bog-rats",
+        "bog-imp",
         "bog-wraith"
       ],
       "key": "discord-42|urborg-mire|s3|20416",
       "seed": 2204170632,
-      "mob": "urborg-ghoul"
+      "mob": "bog-rats"
     },
     {
       "player": "discord-7",
@@ -78,14 +78,14 @@
       "unixSeconds": 1700000000,
       "respawnSeconds": 300,
       "mobs": [
-        "llanowar-elves-pack",
-        "yavimaya-wurm",
-        "elvish-scout",
-        "multani-guard"
+        "llanowar-elves",
+        "craw-wurm",
+        "elvish-archers",
+        "elvish-warrior"
       ],
       "key": "discord-ü|llanowar-wilds|s2|5666666",
       "seed": 3344485933,
-      "mob": "yavimaya-wurm"
+      "mob": "craw-wurm"
     }
   ]
 }

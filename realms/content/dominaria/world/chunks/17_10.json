@@ -1035,7 +1035,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_10:1","q":547,"r":320,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"17_10:1","q":547,"r":320,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": []

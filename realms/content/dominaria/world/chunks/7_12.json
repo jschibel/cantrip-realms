@@ -1076,14 +1076,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_12:1","q":224,"r":414,"mobs":["blood-knight","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:2","q":229,"r":398,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:1","q":224,"r":414,"mobs":["bog-wraith","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:2","q":229,"r":398,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"7_12:3","q":234,"r":386,"mobs":["bog-wraith","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:4","q":235,"r":412,"mobs":["blood-knight","hill-giant","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:5","q":245,"r":386,"mobs":["fighting-drake","magnigoth-sentry","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:6","q":247,"r":402,"mobs":["bog-wraith","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:7","q":251,"r":410,"mobs":["phantom-monster","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_12:8","q":253,"r":391,"mobs":["benalish-knight","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_12:4","q":235,"r":412,"mobs":["bog-wraith","longbow-archer","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:5","q":245,"r":386,"mobs":["elven-riders","lost-soul","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:6","q":247,"r":402,"mobs":["cradle-guard","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:7","q":251,"r":410,"mobs":["orcish-artillery","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_12:8","q":253,"r":391,"mobs":["longbow-archer","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_12:c1","q":238,"r":415,"gold":[100,250],"respawnSeconds":86400},

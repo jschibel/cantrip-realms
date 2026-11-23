@@ -1225,11 +1225,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_10:1","q":224,"r":349,"mobs":["blood-knight","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_10:2","q":235,"r":338,"mobs":["benalish-knight","bog-wraith","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_10:3","q":237,"r":327,"mobs":["mass-of-ghouls","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_10:4","q":245,"r":346,"mobs":["phantom-monster","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_10:5","q":248,"r":327,"mobs":["abbey-gargoyles","fighting-drake","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_10:1","q":224,"r":349,"mobs":["bog-wraith","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_10:2","q":235,"r":338,"mobs":["benalish-knight","cradle-guard","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_10:3","q":237,"r":327,"mobs":["merfolk-raiders","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_10:4","q":245,"r":346,"mobs":["orcish-artillery","talruum-minotaur"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_10:5","q":248,"r":327,"mobs":["azure-drake","elven-riders","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"7_10:c1","q":233,"r":344,"gold":[100,250],"respawnSeconds":86400},

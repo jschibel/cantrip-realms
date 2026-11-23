@@ -1224,7 +1224,7 @@
     {"id":"denawa-guard-2","kind":"guard","name":"Denawa guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":214,"r":578}
   ],
   "spawns": [
-    {"id":"6_18:1","q":206,"r":578,"mobs":["coral-merfolk","storm-crow"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_18:1","q":206,"r":578,"mobs":["coral-merfolk","soaring-drake"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [

@@ -16,14 +16,14 @@
     3
   ],
   "mobs": [
-    "gurmag-angler",
+    "abomination",
+    "eater-of-the-dead",
+    "fallen-angel",
     "knight-of-malice",
-    "lady-orca",
-    "ramirez-depietro",
-    "stinkweed-imp",
-    "yargle-glutton-of-urborg"
+    "sengir-vampire",
+    "tombstalker"
   ],
   "warden": "warden-3",
-  "boss": "lady-orca",
+  "boss": "fallen-angel",
   "region": "B"
 }

@@ -1040,7 +1040,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"5_16:1","q":183,"r":518,"mobs":["benalish-hero","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_16:1","q":183,"r":518,"mobs":["benalish-hero","davenant-archer"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

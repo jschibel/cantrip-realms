@@ -1100,9 +1100,9 @@
     {"id":"verdura-ferry-ferryman-from","q":512,"r":378,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry"}
   ],
   "spawns": [
-    {"id":"16_11:1","q":518,"r":353,"mobs":["air-elemental","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_11:2","q":519,"r":370,"mobs":["birds-of-paradise","commander-eesha","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_11:3","q":524,"r":359,"mobs":["commander-eesha","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"16_11:1","q":518,"r":353,"mobs":["abomination","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_11:2","q":519,"r":370,"mobs":["arrogant-wurm","birds-of-paradise","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_11:3","q":524,"r":359,"mobs":["birds-of-paradise","guardian-of-new-benalia"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": []

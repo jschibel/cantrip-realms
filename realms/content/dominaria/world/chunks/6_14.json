@@ -1088,12 +1088,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_14:1","q":195,"r":467,"mobs":["roc-of-kher-ridges","savannah-lions"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_14:2","q":196,"r":448,"mobs":["knight-of-malice","roc-of-kher-ridges","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_14:3","q":204,"r":456,"mobs":["lord-of-atlantis","stinkweed-imp","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_14:4","q":206,"r":478,"mobs":["abbey-gargoyles","fighting-drake","white-knight"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_14:5","q":208,"r":466,"mobs":["air-elemental","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_14:6","q":215,"r":455,"mobs":["air-elemental","commander-eesha","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"6_14:1","q":195,"r":467,"mobs":["knight-of-malice","lord-of-atlantis"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_14:2","q":196,"r":448,"mobs":["frost-giant","knight-of-malice","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_14:3","q":204,"r":456,"mobs":["guardian-of-new-benalia","northern-paladin","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_14:4","q":206,"r":478,"mobs":["azure-drake","elven-riders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_14:5","q":208,"r":466,"mobs":["abomination","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_14:6","q":215,"r":455,"mobs":["abomination","birds-of-paradise","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"6_14:c1","q":196,"r":475,"gold":[100,250],"respawnSeconds":86400},

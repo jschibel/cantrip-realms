@@ -1074,11 +1074,11 @@
     {"id":"phyrexian-portal-spell-table","q":194,"r":229,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"6_7:1","q":202,"r":233,"mobs":["lady-orca","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_7:2","q":202,"r":251,"mobs":["serra-paragon","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_7:3","q":208,"r":240,"mobs":["serra-paragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_7:4","q":212,"r":255,"mobs":["enormous-baloth","torsten-founder-of-benalia","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_7:5","q":218,"r":227,"mobs":["mahamoti-djinn","serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"6_7:1","q":202,"r":233,"mobs":["marhault-elsdragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_7:2","q":202,"r":251,"mobs":["serra-paragon","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_7:3","q":208,"r":240,"mobs":["serra-paragon","shivan-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_7:4","q":212,"r":255,"mobs":["karplusan-yeti","sibilant-spirit","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_7:5","q":218,"r":227,"mobs":["rorix-bladewing","serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"6_7:c1","q":195,"r":240,"gold":[300,500],"respawnSeconds":86400},

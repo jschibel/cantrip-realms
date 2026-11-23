@@ -1085,12 +1085,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_6:1","q":98,"r":221,"mobs":["serra-paragon","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_6:2","q":104,"r":210,"mobs":["serra-paragon","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_6:3","q":109,"r":222,"mobs":["bloodbraid-elf","trained-orgg","volcanic-dragon"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_6:4","q":111,"r":194,"mobs":["trained-orgg","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_6:5","q":118,"r":210,"mobs":["bloodbraid-elf","lady-orca","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_6:6","q":119,"r":199,"mobs":["bloodbraid-elf","serra-paragon","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"3_6:1","q":98,"r":221,"mobs":["serra-paragon","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_6:2","q":104,"r":210,"mobs":["serra-paragon","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_6:3","q":109,"r":222,"mobs":["fallen-angel","tarmogoyf","tombstalker"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_6:4","q":111,"r":194,"mobs":["tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_6:5","q":118,"r":210,"mobs":["fallen-angel","marhault-elsdragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"3_6:6","q":119,"r":199,"mobs":["fallen-angel","serra-paragon","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"3_6:c1","q":121,"r":216,"gold":[50,150],"respawnSeconds":86400}

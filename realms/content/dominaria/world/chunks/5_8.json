@@ -1100,12 +1100,12 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"5_8:1","q":173,"r":278,"mobs":["balduvian-barbarians","goblin-hero"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_8:2","q":174,"r":257,"mobs":["ramirez-depietro","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_8:3","q":179,"r":267,"mobs":["balduvian-barbarians","goblin-hero","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_8:4","q":185,"r":256,"mobs":["benthic-behemoth","ramirez-depietro"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_8:5","q":186,"r":273,"mobs":["abbey-gargoyles","bog-wraith","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"5_8:6","q":187,"r":287,"mobs":["benalish-knight","mass-of-ghouls","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"5_8:1","q":173,"r":278,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_8:2","q":174,"r":257,"mobs":["sengir-vampire","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_8:3","q":179,"r":267,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_8:4","q":185,"r":256,"mobs":["enormous-baloth","sengir-vampire"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_8:5","q":186,"r":273,"mobs":["azure-drake","cradle-guard","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"5_8:6","q":187,"r":287,"mobs":["benalish-knight","merfolk-raiders","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"5_8:c1","q":174,"r":272,"gold":[50,150],"respawnSeconds":86400}

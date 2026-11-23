@@ -1072,13 +1072,13 @@
     {"id":"keldon-ferry-ferryman-to","q":201,"r":201,"kind":"ferryman","ferry":"keldon-ferry","name":"The ferryman of the Keldon Ferry"}
   ],
   "spawns": [
-    {"id":"6_6:1","q":193,"r":220,"mobs":["ramirez-depietro","serra-angel","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:2","q":199,"r":209,"mobs":["bloodbraid-elf","lady-orca","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:3","q":204,"r":192,"mobs":["bloodbraid-elf","mahamoti-djinn","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:4","q":204,"r":222,"mobs":["bloodbraid-elf","trained-orgg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:5","q":210,"r":202,"mobs":["tarmogoyf","torsten-founder-of-benalia","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:6","q":216,"r":218,"mobs":["true-name-nemesis","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"6_6:7","q":218,"r":206,"mobs":["giant-spider","knight-of-new-benalia","wind-drake"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_6:1","q":193,"r":220,"mobs":["sengir-vampire","serra-angel","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:2","q":199,"r":209,"mobs":["fallen-angel","marhault-elsdragon","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:3","q":204,"r":192,"mobs":["fallen-angel","rorix-bladewing","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:4","q":204,"r":222,"mobs":["fallen-angel","tarmogoyf"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:5","q":210,"r":202,"mobs":["shivan-dragon","sibilant-spirit","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:6","q":216,"r":218,"mobs":["tempest-djinn","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"6_6:7","q":218,"r":206,"mobs":["coral-merfolk","elvish-warrior","vodalian-soldiers"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"6_6:c1","q":210,"r":222,"gold":[300,500],"respawnSeconds":86400},

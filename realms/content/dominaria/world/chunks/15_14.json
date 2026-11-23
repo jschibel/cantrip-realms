@@ -1119,10 +1119,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_14:1","q":485,"r":471,"mobs":["lord-of-atlantis","roc-of-kher-ridges"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_14:2","q":494,"r":458,"mobs":["stinkweed-imp","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_14:3","q":500,"r":476,"mobs":["mahamoti-djinn","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"15_14:4","q":506,"r":462,"mobs":["air-elemental","savannah-lions","thundering-giant"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"15_14:1","q":485,"r":471,"mobs":["guardian-of-new-benalia","knight-of-malice"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_14:2","q":494,"r":458,"mobs":["northern-paladin","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_14:3","q":500,"r":476,"mobs":["rorix-bladewing","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_14:4","q":506,"r":462,"mobs":["abomination","lord-of-atlantis","two-headed-giant-of-foriys"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
     {"id":"15_14:c1","q":486,"r":460,"gold":[180,380],"respawnSeconds":86400},

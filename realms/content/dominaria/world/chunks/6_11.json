@@ -1176,11 +1176,11 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"6_11:1","q":193,"r":369,"mobs":["bog-wraith","mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:2","q":201,"r":375,"mobs":["mass-of-ghouls","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:3","q":205,"r":363,"mobs":["abbey-gargoyles","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:4","q":218,"r":360,"mobs":["eternal-witness","hill-giant"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:5","q":222,"r":370,"mobs":["eternal-witness","phantom-monster"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_11:1","q":193,"r":369,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:2","q":201,"r":375,"mobs":["lost-soul","moor-fiend"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:3","q":205,"r":363,"mobs":["azure-drake","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:4","q":218,"r":360,"mobs":["craw-wurm","longbow-archer"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:5","q":222,"r":370,"mobs":["craw-wurm","orcish-artillery"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"6_11:c1","q":199,"r":380,"gold":[100,250],"respawnSeconds":86400},

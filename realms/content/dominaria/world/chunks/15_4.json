@@ -1196,11 +1196,11 @@
     {"id":"llanowar-3-spell-table","q":503,"r":150,"kind":"spell-table","name":"Spell table"}
   ],
   "spawns": [
-    {"id":"15_4:1","q":486,"r":132,"mobs":["commander-eesha","roc-of-kher-ridges","serra-sphinx"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_4:2","q":491,"r":149,"mobs":["eternal-witness","fire-elemental"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:3","q":495,"r":134,"mobs":["flametongue-kavu","stinkweed-imp","thunder-spirit"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"15_4:4","q":501,"r":159,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:5","q":504,"r":136,"mobs":["bog-wraith","segovian-leviathan","white-knight"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"15_4:1","q":486,"r":132,"mobs":["birds-of-paradise","knight-of-malice","marton-stromgald"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_4:2","q":491,"r":149,"mobs":["craw-wurm","keldon-warlord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:3","q":495,"r":134,"mobs":["eater-of-the-dead","northern-paladin","river-merfolk"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"15_4:4","q":501,"r":159,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:5","q":504,"r":136,"mobs":["cradle-guard","pegasus-charger","sandbar-serpent"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"15_4:c1","q":510,"r":131,"gold":[100,250],"respawnSeconds":86400}

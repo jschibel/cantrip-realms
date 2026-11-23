@@ -1163,8 +1163,8 @@
     {"id":"new-benalia-guard-4","kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":339,"r":303}
   ],
   "spawns": [
-    {"id":"10_9:1","q":330,"r":290,"mobs":["benalish-knight","blood-knight","segovian-leviathan"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"10_9:2","q":331,"r":302,"mobs":["fighting-drake","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"10_9:1","q":330,"r":290,"mobs":["benalish-knight","bog-wraith","pegasus-charger"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"10_9:2","q":331,"r":302,"mobs":["elven-riders","lost-soul"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"10_9:c1","q":327,"r":289,"gold":[100,250],"respawnSeconds":86400}

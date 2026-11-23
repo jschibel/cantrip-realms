@@ -1187,10 +1187,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_6:1","q":421,"r":205,"mobs":["magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_6:2","q":429,"r":211,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_6:3","q":432,"r":198,"mobs":["eternal-witness","magnigoth-sentry","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_6:4","q":443,"r":206,"mobs":["eternal-witness","magnigoth-sentry"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"13_6:1","q":421,"r":205,"mobs":["craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_6:2","q":429,"r":211,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_6:3","q":432,"r":198,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_6:4","q":443,"r":206,"mobs":["cradle-guard","craw-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"13_6:c1","q":426,"r":204,"gold":[100,250],"respawnSeconds":86400},

@@ -1055,8 +1055,8 @@
     {"id":"shanodin-ferry-ferryman-from","q":580,"r":146,"kind":"ferryman","ferry":"shanodin-ferry","name":"The ferryman of the Shanodin Ferry"}
   ],
   "spawns": [
-    {"id":"18_4:1","q":576,"r":141,"mobs":["elvish-warrior","giant-spider","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"18_4:2","q":581,"r":153,"mobs":["elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"18_4:1","q":576,"r":141,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"18_4:2","q":581,"r":153,"mobs":["durkwood-boars","llanowar-elves"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": []

@@ -1098,13 +1098,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_5:1","q":358,"r":174,"mobs":["enormous-baloth","trained-orgg","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:2","q":359,"r":163,"mobs":["benthic-behemoth","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:3","q":360,"r":188,"mobs":["enormous-baloth","true-name-nemesis"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:4","q":370,"r":190,"mobs":["kiki-jiki-mirror-breaker","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:5","q":372,"r":162,"mobs":["benthic-behemoth","bloodbraid-elf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:6","q":375,"r":178,"mobs":["benthic-behemoth","kiki-jiki-mirror-breaker","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_5:7","q":383,"r":166,"mobs":["serra-angel","yargle-glutton-of-urborg"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_5:1","q":358,"r":174,"mobs":["karplusan-yeti","tarmogoyf","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:2","q":359,"r":163,"mobs":["enormous-baloth","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:3","q":360,"r":188,"mobs":["karplusan-yeti","tempest-djinn"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:4","q":370,"r":190,"mobs":["mahamoti-djinn","rorix-bladewing"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:5","q":372,"r":162,"mobs":["enormous-baloth","fallen-angel","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:6","q":375,"r":178,"mobs":["enormous-baloth","mahamoti-djinn","serra-angel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_5:7","q":383,"r":166,"mobs":["serra-angel","torsten-founder-of-benalia"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
     {"id":"11_5:c1","q":352,"r":176,"gold":[300,500],"respawnSeconds":86400},

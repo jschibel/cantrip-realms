@@ -1183,9 +1183,9 @@
     {"id":"new-benalia-guard-1","kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"q":358,"r":402}
   ],
   "spawns": [
-    {"id":"11_12:1","q":354,"r":412,"mobs":["knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_12:2","q":376,"r":399,"mobs":["benalish-hero","knight-of-new-benalia","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_12:3","q":381,"r":405,"mobs":["benalish-hero","suntail-hawk"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"11_12:1","q":354,"r":412,"mobs":["davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_12:2","q":376,"r":399,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_12:3","q":381,"r":405,"mobs":["benalish-hero","mesa-pegasus"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"11_12:c1","q":376,"r":414,"gold":[50,150],"respawnSeconds":86400}
