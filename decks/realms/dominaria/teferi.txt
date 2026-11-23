@@ -1,0 +1,12 @@
+# Teferi (teferi), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Teferi, Hero of Dominaria
+3 Mana Drain
+2 Aven Envoy
+4 Naban, Dean of Iteration
+2 Bay Falcon
+4 Tempest Drake
+2 Azure Drake
+2 Lyra Dawnbringer
+6 Plains
+11 Island

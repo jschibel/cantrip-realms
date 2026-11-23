@@ -1,0 +1,11 @@
+# Temporal Sentinel (temporal-sentinel), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Mana Drain
+3 Remand
+2 Fugitive Wizard
+4 Naban, Dean of Iteration
+2 Soldevi Machinist
+4 Tolarian Scholar
+2 Dancing Scimitar
+2 Serra Sphinx
+17 Island

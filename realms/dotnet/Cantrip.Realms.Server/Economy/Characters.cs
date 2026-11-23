@@ -24,10 +24,14 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     /// <summary>How many gear items a new character wears.</summary>
     public const int StartingGear = 3;
 
-    /// <summary>How many bodies, and palettes, a character is drawn with.</summary>
-    public const int Bodies = 4;
+    /// <summary>The bodies a character is drawn with (realms/web/src/character.ts), as the API names them; stored by index.</summary>
+    public static IReadOnlyList<string> BodyNames { get; } = ["lithe", "broad", "tall", "stocky"];
 
+    /// <summary>How many skin and hair palettes a character is drawn with.</summary>
     public const int Palettes = 6;
+
+    /// <summary>A body's name, from its stored index.</summary>
+    public static string BodyName(int body) => body >= 0 && body < BodyNames.Count ? BodyNames[body] : BodyNames[0];
 
     [GeneratedRegex(@"^[\p{L}\p{N}][\p{L}\p{N} '\-]{0,22}[\p{L}\p{N}]$")]
     private static partial Regex NamePattern();
@@ -45,7 +49,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         ArgumentNullException.ThrowIfNull(request);
         string name = request.Name?.Trim() ?? string.Empty;
         if (!NamePattern().IsMatch(name)) throw Refusal.BadRequest("A name is 2 to 24 letters, digits, spaces, hyphens and apostrophes.");
-        if (request.Body is < 0 or >= Bodies) throw Refusal.BadRequest($"A body is 0 to {Bodies - 1}.");
+        int body = request.Body is { } named ? BodyNames.ToList().IndexOf(named) : -1;
+        if (body < 0) throw Refusal.BadRequest($"A body is one of {string.Join(", ", BodyNames)}.");
         if (request.Palette is < 0 or >= Palettes) throw Refusal.BadRequest($"A palette is 0 to {Palettes - 1}.");
         string color = request.Color?.Trim().ToUpperInvariant() ?? string.Empty;
         if (!RealmContent.StarterFiles.ContainsKey(color)) throw Refusal.BadRequest("A starting color is one of W, U, B, R and G.");
@@ -60,7 +65,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         {
             Id = player,
             Name = name,
-            Body = request.Body,
+            Body = body,
             Palette = request.Palette,
             Color = color,
             Gold = StartingGold,
@@ -125,12 +130,15 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         List<GearInstance> gear = await Gear(player).ConfigureAwait(false);
         Dictionary<string, GearInstance?> loadout = await Loadout(player, gear).ConfigureAwait(false);
         List<string> unlocked = await db.Unlocks.Where(unlock => unlock.PlayerId == player).Select(unlock => unlock.Color).ToListAsync().ConfigureAwait(false);
+        List<AnteRow> ante = await db.Ante.AsNoTracking().Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
         return new CharacterView(
+            row.Id,
             row.Name,
-            row.Body,
+            BodyName(row.Body),
             row.Palette,
             Identity(row, unlocked),
             row.Gold,
+            ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count),
             row.Map,
             row.Q,
             row.R,

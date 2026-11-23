@@ -1,0 +1,22 @@
+{
+  "id": "thran-amulet",
+  "name": "Thran Amulet",
+  "slot": "neck",
+  "rarity": "rare",
+  "gold": 3500,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 3
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by three.",
+  "look": {
+    "mesh": "amulet",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c"
+    ]
+  },
+  "unique": false
+}

@@ -31,15 +31,27 @@ public sealed class MoveMessage : PresenceClientMessage
     public double Speed { get; set; }
 }
 
-/// <summary>How the character looks: body, palette and a mesh per loadout slot.</summary>
+/// <summary>
+/// How the character looks: a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a skin and hair palette, and for
+/// any of the loadout's slots the worn item's look - its gear mesh and its colors.
+/// </summary>
 [MessagePackObject(true)]
 public sealed class LookMessage : PresenceClientMessage
 {
-    public int Body { get; set; }
+    public string Body { get; set; } = string.Empty;
 
     public int Palette { get; set; }
 
-    public Dictionary<string, string> Slots { get; set; } = [];
+    public Dictionary<string, SlotLook> Slots { get; set; } = [];
+}
+
+/// <summary>A worn item's look in one slot: its gear mesh and its palette (<c>"#rrggbb"</c> colors).</summary>
+[MessagePackObject(true)]
+public sealed class SlotLook
+{
+    public string Mesh { get; set; } = string.Empty;
+
+    public List<string> Palette { get; set; } = [];
 }
 
 [MessagePackObject(true)]
@@ -48,15 +60,15 @@ public sealed class EmoteMessage : PresenceClientMessage
     public string Emote { get; set; } = string.Empty;
 }
 
-/// <summary>A look as others see it.</summary>
+/// <summary>A look as others see it: as <see cref="LookMessage"/> has it.</summary>
 [MessagePackObject(true)]
 public sealed class LookView
 {
-    public int Body { get; set; }
+    public string Body { get; set; } = string.Empty;
 
     public int Palette { get; set; }
 
-    public Dictionary<string, string> Slots { get; set; } = [];
+    public Dictionary<string, SlotLook> Slots { get; set; } = [];
 }
 
 /// <summary>What the server sends.</summary>

@@ -1,0 +1,15 @@
+# Academy Automaton (academy-automaton), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Aven Envoy
+2 Bay Falcon
+2 Storm Crow
+2 Tetsuko Umezawa, Fugitive
+2 Reconstructed Thopter
+2 Soaring Drake
+2 Azure Drake
+2 Serra Sphinx
+2 Miscalculation
+2 Remand
+2 Counterspell
+1 Disdainful Stroke
+17 Island

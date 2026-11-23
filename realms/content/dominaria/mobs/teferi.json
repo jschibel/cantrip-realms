@@ -1,0 +1,40 @@
+{
+  "id": "teferi",
+  "name": "Teferi",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/teferi.txt",
+  "stats": {
+    "life": 30,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "serran-vestments",
+    "argivian-crown"
+  ],
+  "prize": 6000,
+  "goldRange": [
+    1500,
+    1500
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "WU",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#5b8fd6",
+      "#f1b44c"
+    ],
+    "size": 1.4
+  },
+  "boss": true,
+  "unlocks": "U"
+}

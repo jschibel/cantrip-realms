@@ -18,17 +18,20 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wizard",
+      "Bird",
+      "Drake"
+    ],
     "rarities": [
-      "common",
-      "uncommon"
+      "common"
     ]
   },
   "model": {
     "mesh": "humanoid",
     "palette": [
-      "#2f5fa8",
-      "#d8dce4"
+      "#5b8fd6",
+      "#f4ecc2"
     ],
     "size": 0.95
   },

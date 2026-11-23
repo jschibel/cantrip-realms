@@ -1,0 +1,22 @@
+{
+  "id": "scholars-circlet",
+  "name": "Scholar's Circlet",
+  "slot": "head",
+  "rarity": "common",
+  "gold": 300,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by one.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#b8733a",
+      "#5b8fd6"
+    ]
+  },
+  "unique": false
+}

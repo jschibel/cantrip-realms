@@ -1,0 +1,11 @@
+# Phyrexian Horror (phyrexian-horror), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Cut Down
+3 Bone Splinters
+2 Plague Beetle
+4 Knight of Dusk's Shadow
+2 Knight of Malice
+4 Yotian Soldier
+2 Sheoldred, the Apocalypse
+2 Yargle, Glutton of Urborg
+17 Swamp

@@ -1,0 +1,22 @@
+{
+  "id": "mantle-of-the-ancients",
+  "name": "Mantle of the Ancients",
+  "slot": "body",
+  "rarity": "mythic",
+  "gold": 9000,
+  "stats": {
+    "life": 12,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 12 additional life.",
+  "look": {
+    "mesh": "robe",
+    "palette": [
+      "#3e9a4a",
+      "#f1b44c"
+    ]
+  },
+  "unique": false
+}

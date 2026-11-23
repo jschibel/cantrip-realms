@@ -20,17 +20,17 @@
     "types": [],
     "subtypes": [],
     "rarities": [
-      "common",
-      "uncommon"
+      "common"
     ]
   },
   "model": {
     "mesh": "elf",
     "palette": [
-      "#4f7f3a",
-      "#a87f4a"
+      "#3e9a4a",
+      "#8f6340",
+      "#c08a62"
     ],
-    "size": 0.9
+    "size": 0.95
   },
   "boss": false
 }

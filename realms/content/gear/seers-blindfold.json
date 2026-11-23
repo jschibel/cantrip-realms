@@ -1,0 +1,22 @@
+{
+  "id": "seers-blindfold",
+  "name": "Seer's Blindfold",
+  "slot": "head",
+  "rarity": "uncommon",
+  "gold": 1100,
+  "stats": {
+    "life": 0,
+    "hand": 1,
+    "maxHand": -1
+  },
+  "effects": [],
+  "text": "You draw an additional card for your opening hand.\nYour maximum hand size is reduced by one.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#2a2b36",
+      "#a97fd0"
+    ]
+  },
+  "unique": false
+}

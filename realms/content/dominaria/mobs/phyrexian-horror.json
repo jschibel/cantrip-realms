@@ -1,0 +1,41 @@
+{
+  "id": "phyrexian-horror",
+  "name": "Phyrexian Horror",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/phyrexian-horror.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "keldon-greaves"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "phyrexian",
+    "palette": [
+      "#b3b5bc",
+      "#7a1f24",
+      "#2a2b36"
+    ],
+    "size": 1.3
+  },
+  "boss": false
+}

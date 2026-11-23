@@ -1,0 +1,11 @@
+# Rift Warden (rift-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Mana Drain
+3 Remand
+2 Fugitive Wizard
+4 Naban, Dean of Iteration
+2 Soldevi Machinist
+4 Soaring Drake
+2 Azure Drake
+2 Serra Sphinx
+17 Island

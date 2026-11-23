@@ -1,11 +1,11 @@
-# tolarian-apprentice: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+# Tolarian Apprentice (tolarian-apprentice), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Aven Envoy
 2 Bay Falcon
 2 Storm Crow
 2 Zephyr Falcon
-2 Glacial Wall
 2 Soaring Drake
+2 Tolarian Scholar
 2 Keeneye Aven
 2 Cold-Water Snapper
 2 Miscalculation

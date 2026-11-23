@@ -1,0 +1,41 @@
+{
+  "id": "yavimaya-ancient",
+  "name": "Yavimaya Ancient",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/yavimaya-ancient.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "elvish-striders"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#2a4524",
+      "#8f6340",
+      "#3e9a4a"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

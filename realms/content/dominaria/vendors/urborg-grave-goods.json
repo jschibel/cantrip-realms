@@ -1,0 +1,17 @@
+{
+  "id": "urborg-grave-goods",
+  "name": "Grave Goods",
+  "town": "urborg",
+  "specialty": {
+    "subtypes": [
+      "Zombie",
+      "Spirit",
+      "Skeleton",
+      "Phyrexian",
+      "Horror",
+      "Demon",
+      "Imp"
+    ]
+  },
+  "purse": 50000
+}

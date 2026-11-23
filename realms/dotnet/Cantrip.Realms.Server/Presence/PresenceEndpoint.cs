@@ -68,7 +68,10 @@ public static class PresenceEndpoint
             {
                 Body = character.Body,
                 Palette = character.Palette,
-                Slots = character.Loadout.Where(slot => slot.Value is not null).ToDictionary(slot => slot.Key, slot => slot.Value!.Gear.Look.Mesh, StringComparer.Ordinal),
+                Slots = character.Loadout.Where(slot => slot.Value is not null).ToDictionary(
+                    slot => slot.Key,
+                    slot => new SlotLook { Mesh = slot.Value!.Gear.Look.Mesh, Palette = [.. slot.Value.Gear.Look.Palette] },
+                    StringComparer.Ordinal),
             };
             PresenceHub.Member member = hub.Connect(player, character.Name, character.Identity, look, message =>
             {

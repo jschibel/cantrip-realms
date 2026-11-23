@@ -40,7 +40,7 @@ draws). Ids are kebab-case and never reused.
 - `effects` are the item's abilities, each an effect family and its parameters (gear.md, M4). The engine has one emblem
   definition per item, named `"<name> (gear)"`, generated from this file; an item with no effects has none.
 - `gold` is what an armorer sells it for; it buys at half.
-- `look` is how it shows on a character: a mesh of `realms/content/models` and its palette.
+- `look` is how it shows on a character: a gear mesh of `realms/content/models` (below) and its palette.
 
 ### Mobs (`<plane>/mobs/*.json`)
 
@@ -64,6 +64,11 @@ draws). Ids are kebab-case and never reused.
 - `gear` names gear items the mob wears, whose stats and emblems it starts with as a player does.
 - `loot` filters the plane's pool for the three cards offered after a win.
 - A boss has `"boss": true` and `"unlocks": "W"`.
+- `model.mesh` is a mob mesh of `realms/content/models` (below).
+- `tools/realms/sample-decks.py` writes every mob the maps name, and its deck, by tier (design.md A3, A6): its prize
+  (tier 1 100 gold, 2 300, 3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can
+  buy, and stats-only gear. Wilderness and encounter maps hold tiers 1-2, a dungeon's floors 2-4 (3-4 below the first),
+  each floor's `*-warden` keeper is a tier 4 mini-boss, and the last floor's `boss` spawn one of the five bosses.
 
 ### Maps (`<plane>/maps/*.json`)
 
@@ -143,7 +148,12 @@ them all.
 ```
 
 `specialty` is any of `colors` (a color identity the card's is within), `types`, `subtypes`, `rarities`, `names` (a theme
-listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it.
+listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it. Every vendor keeps a stall on
+its town's map: a `vendor` NPC there names it.
+
+The server reads all of this at start and refuses to start on content that does not hold together: every mob, vendor and
+map a map names is there (spawns' mobs, vendor NPCs, exits, the world map's encounter maps, inns), every mob's deck, gear
+and model resolve, and every mob and vendor is met on some map (`ContentTests`).
 
 ## The realm server's API (`/api`)
 
@@ -165,7 +175,7 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Map, Spawn, Mob}` | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [card], Cap, Gear, Detail}`; 404 `NoDuel`, 409 `Finished` |
+| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
 | `POST /api/chest/open` | `{Map, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
 | `POST /api/travel` | `{Map, Q, R}` | `{}`: where the character is, for the inn and the checks above; 422 `NoSuchPlace` off the map or on a blocked hex |
@@ -174,7 +184,8 @@ player with no character is 404 `NoCharacter`.
   Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color]}`. `Id` is the player id (`discord-<id>`,
   `dev-<id>`) the spawn algorithm hashes; `AnteValue` the sum of the ante's list prices, for the HUD. `Body` is one of
   `lithe`, `broad`, `tall`, `stocky` (as `POST /api/character` takes it); `Palette` 0-5, the skin and hair palette
-  (`realms/web/src/character.ts`). `Identity` is the starting color and the unlocked ones, as letters in WUBRG order. The
+  (`realms/web/src/character.ts`). `Identity` is the starting color and the unlocked ones, as one string of letters in WUBRG
+  order (`"WU"`). The
   loadout's slots are `head`, `neck`, `body`, `hands`, `feet`, `ring1`, `ring2` and `relic`; a `ring` item fits either
   ring slot. `Stats` are the base (20, 7, 7) plus every worn item's.
 - `Gear` is a gear item as its content file has it, PascalCase, with its `Emblem` (`"<name> (gear)"`, or null for an
@@ -194,8 +205,9 @@ player with no character is 404 `NoCharacter`.
   24 hours counts as lost.
 - `POST /api/encounter/finish`: `won` only when the log is accepted and seat 1 alone won it; a draw, the mob's win and a
   log not accepted are `lost`, with the reason in `Detail`. A win's `Gold` is rolled from the mob's gold range and paid at
-  once; `Offer` is up to three different cards of the mob's loot, each within `Cap` (none with an empty ante); `Gear` is
-  the gear item a win dropped (`GearInstance`, or null).
+  once; `Offer` is up to three different cards of the mob's loot, each with its list price (`Gold`) and within `Cap`
+  (none with an empty ante): what the `loot` screen shows; `Gear` is the gear item a win dropped (`GearInstance`, or
+  null). A loss moves the character to the inn the duel's map names.
 - `Duel`: everything the browser deals the game from - `{Seats: [the NewGame seat of docs/host-protocol.md, with
   StartingLife, StartingHandSize, MaximumHandSize, Emblems], MinimumDeckSize: 40, Seed, Mob: {Name, Tier, Prize},
   AnteValue, Cap}`. The player is seat 1, the mob seat 2. Each seat's setup values are always given: its stats with its
@@ -245,10 +257,10 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
 | --- | --- | --- | --- |
 | client | 0 | `Enter` | `Map` |
 | client | 1 | `Move` | `From: [q, r]`, `Path: [[q, r], ...]` (the hexes after `From`), `Speed` (hexes a second) |
-| client | 2 | `Look` | `Body, Palette, Slots: {slot: {Mesh, Palette: ["#rrggbb", ...]}}` (a worn item's `look`) |
+| client | 2 | `Look` | `Body, Palette, Slots: {slot: {Mesh, Palette: ["#rrggbb", ...]}}` (a body name, and a worn item's `look`) |
 | client | 3 | `Emote` | `Emote` |
 | server | 0 | `Welcome` | `Instance`, `Player` (this connection's own number), `Others: [Other]` |
-| server | 1 | `Other` | `Player, Name, Identity, Look: {Body, Palette, Slots}, At: [q, r], Path, Speed, Since` |
+| server | 1 | `Other` | `Player, Name, Identity` (letters, as `Character`'s), `Look: {Body, Palette, Slots}, At: [q, r], Path, Speed, Since` |
 | server | 2 | `Moved` | `Player, From, Path, Speed, Since` |
 | server | 3 | `Looked` | `Player, Look` |
 | server | 4 | `Emoted` | `Player, Emote` |
@@ -266,7 +278,8 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
   more than one hex from where the player is (as far along their last walk as its speed has taken them), is walked
   faster than walking allows (`REALMS_WALKING_SPEED`, 4 hexes a second), is longer than 256 hexes, or comes more than 10
   to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
-- An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look names only loadout slots.
+- An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
+  and for loadout slots only a gear mesh of `realms/content/models` and up to eight `#rrggbb` colors.
 
 ## Spawns
 

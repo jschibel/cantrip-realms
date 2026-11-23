@@ -12,7 +12,7 @@
   "effects": [],
   "text": "Your maximum hand size is increased by one.",
   "look": {
-    "mesh": "cap",
+    "mesh": "helm",
     "palette": [
       "#7a5230",
       "#c9a46a"

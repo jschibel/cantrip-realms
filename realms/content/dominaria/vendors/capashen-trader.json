@@ -1,0 +1,13 @@
+{
+  "id": "capashen-trader",
+  "name": "Capashen Trading Post",
+  "town": "capashen-hold",
+  "specialty": {
+    "colors": "W",
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "purse": 50000
+}

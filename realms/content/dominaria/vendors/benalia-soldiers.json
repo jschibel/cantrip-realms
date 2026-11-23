@@ -1,0 +1,12 @@
+{
+  "id": "benalia-soldiers",
+  "name": "The Soldiers' Quarter",
+  "town": "new-benalia",
+  "specialty": {
+    "subtypes": [
+      "Soldier",
+      "Knight"
+    ]
+  },
+  "purse": 50000
+}

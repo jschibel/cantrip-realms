@@ -1,0 +1,13 @@
+{
+  "id": "ghitu-trader",
+  "name": "Ghitu Trader",
+  "town": "ghitu-encampment",
+  "specialty": {
+    "colors": "R",
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "purse": 50000
+}

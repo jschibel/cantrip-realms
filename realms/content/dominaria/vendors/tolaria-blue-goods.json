@@ -1,0 +1,9 @@
+{
+  "id": "tolaria-blue-goods",
+  "name": "Academy Supplies",
+  "town": "tolarian-academy",
+  "specialty": {
+    "colors": "U"
+  },
+  "purse": 50000
+}

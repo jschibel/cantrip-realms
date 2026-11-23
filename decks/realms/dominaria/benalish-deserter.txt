@@ -1,9 +1,9 @@
-# benalish-deserter: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+# Benalish Deserter (benalish-deserter), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Benalish Hero
 2 Benalish Faithbonder
-2 Angelic Wall
 2 Glory Seeker
+2 Knight Errant
 2 Benalish Knight
 2 Standing Troops
 2 Moorish Cavalry

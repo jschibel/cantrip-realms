@@ -13,9 +13,10 @@ namespace Cantrip.Realms.Server.Tests;
 public sealed class EncounterTests
 {
     private const string Meadow = "benalish-meadow";
-    private const string Spawn = "s1";
+    /// <summary>The meadow's spawn of three mobs, so that the mob there changes from epoch to epoch.</summary>
+    private const string Spawn = "s3";
 
-    /// <summary>The mob spawn s1 of the meadow holds for a player now.</summary>
+    /// <summary>The mob the meadow's spawn holds for a player now.</summary>
     private static string MobNow(RealmApp app, Browser browser, int epochsBack = 0)
     {
         MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
@@ -23,7 +24,7 @@ public sealed class EncounterTests
         return Spawns.MobOf(browser.Player, Meadow, Spawn, epoch, spawn.Mobs);
     }
 
-    /// <summary>A white character with <paramref name="ante"/> anted, standing by spawn s1.</summary>
+    /// <summary>A white character with <paramref name="ante"/> anted, standing at the spawn.</summary>
     private static async Task<Browser> Ready(RealmApp app, ulong id = 1, params (string Name, int Count)[] ante)
     {
         Browser browser = await app.Character(id, "W");
@@ -35,7 +36,7 @@ public sealed class EncounterTests
             await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = ante.Select(card => new CardCount(card.Name, card.Count)) });
         }
 
-        await browser.Travel(Meadow, 6, 3);
+        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
         return browser;
     }
 
@@ -128,7 +129,7 @@ public sealed class EncounterTests
 
         // Two epochs on, the spawn holds a mob again.
         app.Time.Advance(TimeSpan.FromSeconds(2 * spawn.RespawnSeconds));
-        await browser.Travel(Meadow, 6, 3);
+        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
         await Begin(browser, MobNow(app, browser));
     }
 
@@ -143,7 +144,7 @@ public sealed class EncounterTests
         string before = MobNow(app, browser);
         for (int i = 0; i < 50 && MobNow(app, browser) == before; i++) app.Time.Advance(TimeSpan.FromSeconds(spawn.RespawnSeconds));
         Assert.NotEqual(before, MobNow(app, browser));
-        await browser.Travel(Meadow, 6, 3);
+        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
 
         await Begin(browser, MobNow(app, browser, epochsBack: 1));
     }
@@ -153,9 +154,10 @@ public sealed class EncounterTests
     {
         await using var app = new RealmApp();
         Browser browser = await Ready(app);
-        await browser.Travel(Meadow, -10, 1);
+        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
+        await browser.Travel(Meadow, RealmApp.Away(Meadow, spawn.At, spawn.Radius + 9));
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Travel("new-argive", 0, -4);
+        await browser.Travel("new-argive", RealmApp.InnOf("new-argive").At);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
@@ -175,8 +177,9 @@ public sealed class EncounterTests
         Assert.Equal(Encounters.Offered, won.Offer.Count);
         Assert.All(won.Offer, card =>
         {
-            Assert.True(RealmApp.Content.Cards.Price(card) <= won.Cap, card);
-            Assert.True(RealmApp.Content.Cards.Fits(card, content.File.Loot), card);
+            Assert.Equal(RealmApp.Content.Cards.Price(card.Name), card.Gold);
+            Assert.True(card.Gold <= won.Cap, card.Name);
+            Assert.True(RealmApp.Content.Cards.Fits(card.Name, content.File.Loot), card.Name);
         });
         Assert.Equal(Characters.StartingGold + won.Gold, (await browser.Me()).Gold);
 
@@ -196,11 +199,11 @@ public sealed class EncounterTests
         IReadOnlyDictionary<string, int> before = await browser.Collection();
 
         // Every offered card fits alone; the dearest pair may not.
-        List<string> byPrice = [.. won.Offer.OrderByDescending(card => RealmApp.Content.Cards.Price(card))];
-        long all = won.Offer.Sum(card => RealmApp.Content.Cards.Price(card)!.Value);
+        List<string> byPrice = [.. won.Offer.OrderByDescending(card => card.Gold).Select(card => card.Name)];
+        long all = won.Offer.Sum(card => card.Gold);
         if (all > won.Cap)
         {
-            await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = won.Offer }, HttpStatusCode.UnprocessableEntity, Codes.OverCap);
+            await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = won.Offer.Select(card => card.Name) }, HttpStatusCode.UnprocessableEntity, Codes.OverCap);
         }
 
         await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = new[] { "Black Lotus" } }, HttpStatusCode.UnprocessableEntity, Codes.NotOffered);
@@ -315,9 +318,9 @@ public sealed class EncounterTests
         IReadOnlyDictionary<string, int> before = await browser.Collection();
         EncounterView first = await Begin(browser, MobNow(app, browser));
 
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn = "s3", Mob = "shivan-raider" }, HttpStatusCode.Conflict, Codes.Unfinished);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn = "s2", Mob = RealmApp.Content.Maps[Meadow].Spawn("s2")!.Mobs[0] }, HttpStatusCode.Conflict, Codes.Unfinished);
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal((0, 0), ((await browser.Me()).Q, (await browser.Me()).R));
+        Assert.Equal(RealmApp.InnOf(Meadow), ((await browser.Me()).Map, new Hex((await browser.Me()).Q, (await browser.Me()).R)));
         await browser.Refused(HttpMethod.Post, "/api/encounter/finish", new { first.Token, Log = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
         Assert.Empty(app.Verifier.Checked);
     }
@@ -337,7 +340,7 @@ public sealed class EncounterTests
         // Looking at the character settles it.
         CharacterView me = await browser.Me();
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal((0, 0), (me.Q, me.R));
+        Assert.Equal(RealmApp.InnOf(Meadow), (me.Map, new Hex(me.Q, me.R)));
         string state = await app.Store(db => db.Duels.Where(duel => duel.Token == encounter.Token).Select(duel => duel.State).SingleAsync());
         Assert.Equal(DuelRow.Lost, state);
     }

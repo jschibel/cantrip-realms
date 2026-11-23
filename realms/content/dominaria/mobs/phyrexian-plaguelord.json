@@ -1,0 +1,39 @@
+{
+  "id": "phyrexian-plaguelord",
+  "name": "Phyrexian Plaguelord",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/phyrexian-plaguelord.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "phyrexian",
+    "palette": [
+      "#5d6646",
+      "#7a1f24",
+      "#2a2b36"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

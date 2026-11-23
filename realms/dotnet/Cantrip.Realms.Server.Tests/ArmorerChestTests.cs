@@ -51,7 +51,7 @@ public sealed class ArmorerChestTests
         await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, 0)));
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.CannotAfford);
 
-        await browser.Travel("benalish-meadow", 0, 0);
+        await browser.Travel("benalish-meadow", new Hex(0, 0));
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
@@ -62,10 +62,10 @@ public sealed class ArmorerChestTests
         Browser browser = await app.Character(1);
         MapChest chest = RealmApp.Content.Maps["benalish-meadow"].Chest("c1")!;
 
-        await browser.Travel("benalish-meadow", 0, 0);
+        await browser.Travel("benalish-meadow", RealmApp.Away("benalish-meadow", chest.At, 2));
         await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" }, HttpStatusCode.Conflict, Codes.NotNear);
 
-        await browser.Travel("benalish-meadow", chest.Q + 1, chest.R);
+        await browser.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", chest.At));
         ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" });
         Assert.InRange(found.Found, chest.Gold[0], chest.Gold[1]);
         Assert.Equal(Characters.StartingGold + found.Found, found.Gold);
@@ -79,7 +79,7 @@ public sealed class ArmorerChestTests
 
         // Another player's chest is full.
         Browser other = await app.Character(2);
-        await other.Travel("benalish-meadow", chest.Q, chest.R);
+        await other.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", chest.At));
         await other.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" });
     }
 }

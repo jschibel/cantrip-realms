@@ -1,4 +1,4 @@
-# phyrexian-scout: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Scout (phyrexian-scout), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Plague Beetle
 2 Cabal Evangel

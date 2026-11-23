@@ -1,0 +1,22 @@
+{
+  "id": "urborg-bone-charm",
+  "name": "Urborg Bone Charm",
+  "slot": "neck",
+  "rarity": "common",
+  "gold": 300,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by one.",
+  "look": {
+    "mesh": "amulet",
+    "palette": [
+      "#e8e4d8",
+      "#4b2f5e"
+    ]
+  },
+  "unique": false
+}

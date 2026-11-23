@@ -1,0 +1,12 @@
+{
+  "id": "tolaria-artificers",
+  "name": "The Artificers' Bench",
+  "town": "tolarian-academy",
+  "specialty": {
+    "colors": "U",
+    "types": [
+      "Artifact"
+    ]
+  },
+  "purse": 50000
+}

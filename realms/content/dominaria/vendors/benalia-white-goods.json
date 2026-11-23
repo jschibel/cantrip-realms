@@ -1,0 +1,9 @@
+{
+  "id": "benalia-white-goods",
+  "name": "Benalish White Goods",
+  "town": "new-benalia",
+  "specialty": {
+    "colors": "W"
+  },
+  "purse": 50000
+}

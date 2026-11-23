@@ -28,6 +28,12 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
     [GeneratedRegex("^[a-z0-9][a-z0-9-]{0,31}$")]
     private static partial Regex EmoteName();
 
+    [GeneratedRegex("^#[0-9a-fA-F]{6}$")]
+    private static partial Regex PaletteColor();
+
+    /// <summary>The most colors one slot's look names.</summary>
+    public const int MostLookColors = 8;
+
     private long Now => time.GetUtcNow().ToUnixTimeMilliseconds();
 
     /// <summary>A player connected: who they are, how they look, and where messages to them go.</summary>
@@ -168,15 +174,20 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         ArgumentNullException.ThrowIfNull(look);
         lock (_gate)
         {
-            if (look.Body is < 0 or >= Economy.Characters.Bodies || look.Palette is < 0 or >= Economy.Characters.Palettes
-                || look.Slots.Count > RealmContent.LoadoutSlots.Count
-                || look.Slots.Any(slot => !RealmContent.LoadoutSlots.ContainsKey(slot.Key) || slot.Value is not { Length: > 0 and <= 64 }))
+            if (!Economy.Characters.BodyNames.Contains(look.Body) || look.Palette is < 0 or >= Economy.Characters.Palettes
+                || look.Slots is null || look.Slots.Count > RealmContent.LoadoutSlots.Count
+                || look.Slots.Any(slot => !RealmContent.LoadoutSlots.ContainsKey(slot.Key) || !Wearable(slot.Value)))
             {
-                member.Send(new RefusedMessage { Reason = "A look is a body, a palette and a mesh for any of the loadout's slots." });
+                member.Send(new RefusedMessage { Reason = "A look is a body, a palette and, for any of the loadout's slots, a gear mesh and its colors." });
                 return;
             }
 
-            member.Look = new LookView { Body = look.Body, Palette = look.Palette, Slots = new Dictionary<string, string>(look.Slots, StringComparer.Ordinal) };
+            member.Look = new LookView
+            {
+                Body = look.Body,
+                Palette = look.Palette,
+                Slots = look.Slots.ToDictionary(slot => slot.Key, slot => new SlotLook { Mesh = slot.Value.Mesh, Palette = [.. slot.Value.Palette] }, StringComparer.Ordinal),
+            };
             if (member.Instance is not { } instance) return;
             var looked = new LookedMessage { Player = member.Id, Look = member.Look };
             foreach (Member other in instance.Members.Values.Where(other => other != member)) other.Send(looked);
@@ -203,6 +214,12 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
             foreach (Member other in instance.Members.Values.Where(other => other != member)) other.Send(emoted);
         }
     }
+
+    /// <summary>Whether a slot's look is one: a gear model's mesh and a few colors.</summary>
+    private bool Wearable(SlotLook? look) =>
+        look is { Mesh: { Length: > 0 and <= 64 } mesh, Palette: { Count: <= MostLookColors } palette }
+        && content.Models.TryGetValue(mesh, out string? kind) && kind == "gear"
+        && palette.All(color => color is not null && PaletteColor().IsMatch(color));
 
     private static OtherMessage Other(Member member) => new()
     {

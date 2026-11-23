@@ -1,0 +1,11 @@
+{
+  "id": "argive-land-broker",
+  "name": "The Land Broker",
+  "town": "new-argive",
+  "specialty": {
+    "types": [
+      "Land"
+    ]
+  },
+  "purse": 50000
+}

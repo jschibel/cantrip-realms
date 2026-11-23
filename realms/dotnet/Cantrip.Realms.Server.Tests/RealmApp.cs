@@ -93,9 +93,28 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     public async Task<Browser> Character(ulong id, string color = "W", string name = "Tester")
     {
         Browser browser = await SignIn(id, name);
-        await browser.Ok<CharacterView>(HttpMethod.Post, "/api/character", new { Name = name, Body = 1, Palette = 2, Color = color });
+        await browser.Ok<CharacterView>(HttpMethod.Post, "/api/character", new { Name = name, Body = "broad", Palette = 2, Color = color });
         return browser;
     }
+
+    /// <summary>The inn a map names: its map and hex.</summary>
+    public static (string Map, Hex At) InnOf(string map)
+    {
+        MapInn inn = Content.Maps[map].File.Inn!;
+        return (inn.Map ?? map, inn.At);
+    }
+
+    /// <summary>The first open hex beside a hex of a map (in hex.ts's order of directions), to stand at.</summary>
+    public static Hex Beside(string map, Hex at) =>
+        Hex.Directions.Select(step => new Hex(at.Q + step.Q, at.R + step.R)).First(Content.Maps[map].Walkable);
+
+    /// <summary>An open hex of a map at least <paramref name="steps"/> hexes from another, the nearest such.</summary>
+    public static Hex Away(string map, Hex from, int steps) =>
+        Content.Maps[map].Tiles.Where(tile => !tile.Blocked && tile.At.DistanceTo(from) >= steps)
+            .OrderBy(tile => tile.At.DistanceTo(from)).ThenBy(tile => tile.At.Q).ThenBy(tile => tile.At.R).First().At;
+
+    /// <summary>Where a map's NPC of a kind stands (the first of them).</summary>
+    public static Hex Npc(string map, string kind) => Content.Maps[map].File.Npcs.First(npc => npc.Kind == kind).At;
 
     /// <summary>Works with the store directly, as a test arranges what a call would take long to.</summary>
     public async Task Store(Func<RealmDb, Task> work)
@@ -184,8 +203,10 @@ public sealed class Browser(RealmApp app, HttpClient client, string player, stri
 
     public Task Travel(string map, int q, int r) => Ok<object>(HttpMethod.Post, "/api/travel", new { Map = map, Q = q, R = r });
 
-    /// <summary>Walks to New Argive's spell table (it stands at (3, -3)).</summary>
-    public Task ToSpellTable() => Travel("new-argive", 2, -3);
+    public Task Travel(string map, Hex at) => Travel(map, at.Q, at.R);
+
+    /// <summary>Walks to beside New Argive's spell table.</summary>
+    public Task ToSpellTable() => Travel("new-argive", RealmApp.Beside("new-argive", RealmApp.Npc("new-argive", RealmMap.SpellTable)));
 }
 
 /// <summary>A duel verifier a test decides the answers of: by default, every log is a win for the player.</summary>

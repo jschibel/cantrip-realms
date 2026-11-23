@@ -12,7 +12,7 @@
   "effects": [],
   "text": "Your maximum hand size is increased by two.",
   "look": {
-    "mesh": "pendant",
+    "mesh": "amulet",
     "palette": [
       "#c9ced8",
       "#2f5fa8"

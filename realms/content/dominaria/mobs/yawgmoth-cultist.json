@@ -1,0 +1,40 @@
+{
+  "id": "yawgmoth-cultist",
+  "name": "Yawgmoth Cultist",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/yawgmoth-cultist.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "urborg-bone-charm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#4b2f5e",
+      "#c8432c"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

@@ -1,0 +1,15 @@
+# Coral Merfolk (coral-merfolk), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Coral Merfolk
+2 Miscalculation
+2 Counterspell
+2 Disdainful Stroke
+1 Memory Lapse
+2 Merfolk of the Pearl Trident
+2 Vodalian Soldiers
+2 Bay Falcon
+2 Devouring Deep
+2 Soaring Drake
+2 Giant Octopus
+2 Cold-Water Snapper
+17 Island

@@ -1,0 +1,42 @@
+{
+  "id": "keldon-raider",
+  "name": "Keldon Raider",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/keldon-raider.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [
+      "Human",
+      "Warrior",
+      "Barbarian"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#8f2f2f",
+      "#4a3122"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

@@ -1,0 +1,41 @@
+{
+  "id": "tomb-warden",
+  "name": "Tomb Warden",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/tomb-warden.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "thran-amulet"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "ghoul",
+    "palette": [
+      "#2a2b36",
+      "#7a1f24",
+      "#8c909c"
+    ],
+    "size": 1.35
+  },
+  "boss": false
+}

@@ -1,0 +1,11 @@
+# Sanctum Warden (sanctum-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Destroy Evil
+3 Mana Tithe
+2 Dauntless Bodyguard
+4 Knight of Grace
+2 Silver Knight
+4 Benalish Knight
+2 Serra Paragon
+2 Lyra Dawnbringer
+17 Plains

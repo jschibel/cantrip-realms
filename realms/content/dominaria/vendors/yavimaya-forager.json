@@ -1,0 +1,13 @@
+{
+  "id": "yavimaya-forager",
+  "name": "Yavimaya Forager",
+  "town": "yavimaya-hollow",
+  "specialty": {
+    "colors": "G",
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "purse": 50000
+}

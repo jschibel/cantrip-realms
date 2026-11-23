@@ -1,0 +1,22 @@
+{
+  "id": "crown-of-the-ages",
+  "name": "Crown of the Ages",
+  "slot": "head",
+  "rarity": "mythic",
+  "gold": 9000,
+  "stats": {
+    "life": 0,
+    "hand": 2,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You draw two additional cards for your opening hand.",
+  "look": {
+    "mesh": "helm",
+    "palette": [
+      "#f1b44c",
+      "#f2efe6"
+    ]
+  },
+  "unique": false
+}

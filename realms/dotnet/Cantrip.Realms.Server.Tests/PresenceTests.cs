@@ -89,9 +89,10 @@ public sealed class PresenceTests
         Assert.Equal(Path((1, -1), (2, -1), (3, -2)), moved.Path);
         Assert.Equal(app.Time.GetUtcNow().ToUnixTimeMilliseconds(), moved.Since);
 
-        await bob.Send(new LookMessage { Body = 3, Palette = 1, Slots = new() { ["head"] = "circlet" } });
+        await bob.Send(new LookMessage { Body = "stocky", Palette = 1, Slots = new() { ["head"] = new SlotLook { Mesh = "circlet", Palette = ["#f1b44c", "#5b8fd6"] } } });
         LookedMessage looked = await ann.Next<LookedMessage>();
-        Assert.Equal(("circlet", 3), (looked.Look.Slots["head"], looked.Look.Body));
+        Assert.Equal(("circlet", "stocky"), (looked.Look.Slots["head"].Mesh, looked.Look.Body));
+        Assert.Equal(["#f1b44c", "#5b8fd6"], looked.Look.Slots["head"].Palette);
 
         await bob.Send(new EmoteMessage { Emote = "wave" });
         Assert.Equal("wave", (await ann.Next<EmotedMessage>()).Emote);

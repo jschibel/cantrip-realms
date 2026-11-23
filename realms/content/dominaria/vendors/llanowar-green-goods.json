@@ -1,0 +1,9 @@
+{
+  "id": "llanowar-green-goods",
+  "name": "Llanowar Provisions",
+  "town": "llanowar",
+  "specialty": {
+    "colors": "G"
+  },
+  "purse": 50000
+}

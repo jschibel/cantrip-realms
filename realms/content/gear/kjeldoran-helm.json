@@ -1,0 +1,22 @@
+{
+  "id": "kjeldoran-helm",
+  "name": "Kjeldoran Helm",
+  "slot": "head",
+  "rarity": "common",
+  "gold": 350,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by one.",
+  "look": {
+    "mesh": "helm",
+    "palette": [
+      "#9aa0aa",
+      "#3a5f8f"
+    ]
+  },
+  "unique": false
+}

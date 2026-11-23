@@ -1,0 +1,41 @@
+{
+  "id": "heart-warden",
+  "name": "Heart Warden",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/heart-warden.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wurm",
+    "palette": [
+      "#2a4524",
+      "#f1b44c",
+      "#3e9a4a"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

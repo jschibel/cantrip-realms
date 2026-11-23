@@ -18,17 +18,19 @@
     "pool": "dominaria",
     "colors": "W",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Soldier",
+      "Human"
+    ],
     "rarities": [
-      "common",
-      "uncommon"
+      "common"
     ]
   },
   "model": {
     "mesh": "humanoid",
     "palette": [
-      "#d8c9a3",
-      "#6b5a3a"
+      "#d8d6d0",
+      "#8f6340"
     ],
     "size": 1.0
   },

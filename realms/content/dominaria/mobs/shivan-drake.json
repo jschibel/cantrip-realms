@@ -1,0 +1,39 @@
+{
+  "id": "shivan-drake",
+  "name": "Shivan Drake",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/shivan-drake.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "leather-cap"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "drake",
+    "palette": [
+      "#c8432c",
+      "#f1b44c",
+      "#2e1f17"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

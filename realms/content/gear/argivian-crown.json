@@ -1,0 +1,22 @@
+{
+  "id": "argivian-crown",
+  "name": "Argivian Crown",
+  "slot": "head",
+  "rarity": "rare",
+  "gold": 4500,
+  "stats": {
+    "life": 0,
+    "hand": 1,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "You draw an additional card for your opening hand.\nYour maximum hand size is increased by one.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#f1b44c",
+      "#c8432c"
+    ]
+  },
+  "unique": false
+}

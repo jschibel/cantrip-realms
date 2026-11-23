@@ -1,0 +1,13 @@
+{
+  "id": "lat-nam-scribe",
+  "name": "The Lat-Nam Scribe",
+  "town": "lat-nam",
+  "specialty": {
+    "colors": "U",
+    "types": [
+      "Instant",
+      "Sorcery"
+    ]
+  },
+  "purse": 50000
+}

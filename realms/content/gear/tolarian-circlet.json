@@ -1,0 +1,22 @@
+{
+  "id": "tolarian-circlet",
+  "name": "Tolarian Circlet",
+  "slot": "head",
+  "rarity": "uncommon",
+  "gold": 1000,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 2
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by two.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#c9ced8",
+      "#5b8fd6"
+    ]
+  },
+  "unique": false
+}

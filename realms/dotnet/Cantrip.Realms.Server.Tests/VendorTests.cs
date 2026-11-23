@@ -10,7 +10,18 @@ namespace Cantrip.Realms.Server.Tests;
 /// <summary>Card vendors (design.md A5): specialty, prices, the purse, the stock, the hourly trickle and rotation.</summary>
 public sealed class VendorTests
 {
-    private const string Whites = "argive-white-goods";
+    /// <summary>New Benalia's white goods: a vendor of every white card.</summary>
+    private const string Whites = "benalia-white-goods";
+
+    private const string Town = "new-benalia";
+
+    /// <summary>A player with a character, at New Benalia's inn among its vendors.</summary>
+    private static async Task<Browser> Shopper(RealmApp app, ulong id, string color = "W", string name = "Tester")
+    {
+        Browser browser = await app.Character(id, color, name);
+        await browser.Travel(Town, RealmApp.InnOf(Town).At);
+        return browser;
+    }
 
     private static string Path(string vendor, string action = "") => $"/api/vendor/{vendor}{action}";
 
@@ -27,7 +38,7 @@ public sealed class VendorTests
     public async Task A_new_vendor_has_its_purse_and_twelve_seeded_cards_of_its_specialty()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         VendorView view = await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
 
         Assert.Equal(50_000, view.Purse);
@@ -45,8 +56,8 @@ public sealed class VendorTests
     public async Task A_vendor_trades_in_its_own_town()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
-        await browser.Travel("benalish-meadow", 0, 0);
+        Browser browser = await Shopper(app, 1);
+        await browser.Travel("benalish-meadow", new Hex(0, 0));
         await browser.Refused(HttpMethod.Get, Path(Whites), null, HttpStatusCode.Conflict, Codes.NotNear);
         await browser.Refused(HttpMethod.Get, Path("nobody"), null, HttpStatusCode.NotFound, Codes.NoVendor);
     }
@@ -55,7 +66,7 @@ public sealed class VendorTests
     public async Task Buying_moves_gold_to_the_purse_and_the_card_to_the_collection()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         VendorView before = await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         (string name, long gold) = Cheapest(before);
         int owned = (await browser.Collection()).GetValueOrDefault(name);
@@ -73,7 +84,7 @@ public sealed class VendorTests
     public async Task A_purchase_the_player_cannot_afford_changes_nothing()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         VendorView before = await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         (string name, long gold) = Cheapest(before);
         await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, gold - 1)));
@@ -93,8 +104,8 @@ public sealed class VendorTests
     public async Task Two_players_racing_for_the_last_copy_do_not_both_get_it()
     {
         await using var app = new RealmApp();
-        Browser ann = await app.Character(1, name: "Ann");
-        Browser bob = await app.Character(2, name: "Bob");
+        Browser ann = await Shopper(app, 1, name: "Ann");
+        Browser bob = await Shopper(app, 2, name: "Bob");
         VendorView view = await ann.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         (string name, _) = Cheapest(view);
 
@@ -120,7 +131,7 @@ public sealed class VendorTests
     public async Task Selling_pays_half_and_shelves_the_card_at_full_price_until_bought()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         (string name, int owned) = await Spare(app, browser);
         long price = RealmApp.Content.Cards.Price(name)!.Value;
@@ -154,11 +165,11 @@ public sealed class VendorTests
     public async Task A_vendor_buys_only_its_trade_and_only_cards_outside_the_deck()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1, "W");
+        Browser browser = await Shopper(app, 1, "W");
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
 
         // A goblin vendor's trade is goblins; a white card is not.
-        await browser.Refused(HttpMethod.Post, Path("argive-goblin-trader", "/sell"), new { Name = "Serra Angel" }, HttpStatusCode.Conflict, Codes.NotTheirTrade);
+        await browser.Refused(HttpMethod.Post, Path("benalia-soldiers", "/sell"), new { Name = "Serra Angel" }, HttpStatusCode.Conflict, Codes.NotTheirTrade);
 
         // Every copy of a starter card is in the deck.
         DeckView deck = await browser.Deck();
@@ -172,7 +183,7 @@ public sealed class VendorTests
     public async Task A_vendor_with_too_small_a_purse_or_full_shelves_buys_nothing()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         (string name, int owned) = await Spare(app, browser);
 
@@ -193,8 +204,8 @@ public sealed class VendorTests
     public async Task Each_hour_the_purse_trickles_in_with_the_visitors_of_the_hour_before()
     {
         await using var app = new RealmApp();
-        Browser ann = await app.Character(1, name: "Ann");
-        Browser bob = await app.Character(2, name: "Bob");
+        Browser ann = await Shopper(app, 1, name: "Ann");
+        Browser bob = await Shopper(app, 2, name: "Bob");
 
         // 10:30 - two visitors this hour (Ann twice).
         await ann.Ok<VendorView>(HttpMethod.Get, Path(Whites));
@@ -215,7 +226,7 @@ public sealed class VendorTests
     public async Task The_purse_stops_at_its_ceiling()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         await app.Store(db => db.Vendors.Where(row => row.Id == Whites).ExecuteUpdateAsync(set => set.SetProperty(row => row.Purse, Vendors.PurseCeiling - 500)));
 
@@ -228,7 +239,7 @@ public sealed class VendorTests
     public async Task Three_cards_come_in_each_hour_and_leave_after_a_day()
     {
         await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
         Assert.Equal(12, await Stocked(app, Whites, VendorStockRow.Seeded));
 
@@ -255,7 +266,7 @@ public sealed class VendorTests
     public async Task The_clock_brings_every_vendor_up_to_the_hour_with_nobody_looking()
     {
         await using var app = new RealmApp { Clock = true };
-        Browser browser = await app.Character(1);
+        Browser browser = await Shopper(app, 1);
         long hour = (await Row(app, Whites)).Hour;
 
         app.Time.Advance(TimeSpan.FromMinutes(30));

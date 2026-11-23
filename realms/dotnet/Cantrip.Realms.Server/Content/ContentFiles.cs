@@ -216,6 +216,25 @@ public sealed class MapFile
     public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
 
     public MapInn? Inn { get; init; }
+
+    /// <summary>The world map's encounter zones: where travel may be interrupted, and the map each is fought on.</summary>
+    public IReadOnlyList<MapEncounterZone> Encounters { get; init; } = [];
+}
+
+/// <summary>A zone of the world map where travel may be interrupted, fought on the small map it names.</summary>
+public sealed class MapEncounterZone
+{
+    public int Q { get; init; }
+
+    public int R { get; init; }
+
+    public int Radius { get; init; }
+
+    /// <summary>The map an encounter here is fought on: its spawn is the mob.</summary>
+    public string Map { get; init; } = string.Empty;
+
+    /// <summary>The chance of an encounter on each hex travelled off the roads.</summary>
+    public double Chance { get; init; }
 }
 
 /// <summary>A card vendor (<c>realms/content/&lt;plane&gt;/vendors/*.json</c>).</summary>

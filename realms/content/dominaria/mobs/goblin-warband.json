@@ -1,0 +1,36 @@
+{
+  "id": "goblin-warband",
+  "name": "Goblin Warband",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/goblin-warband.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "goblin",
+    "palette": [
+      "#6b963e",
+      "#c8432c",
+      "#4a3122"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

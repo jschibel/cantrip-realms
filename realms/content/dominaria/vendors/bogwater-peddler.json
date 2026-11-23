@@ -1,0 +1,13 @@
+{
+  "id": "bogwater-peddler",
+  "name": "Bogwater Peddler",
+  "town": "bogwater",
+  "specialty": {
+    "colors": "B",
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "purse": 50000
+}

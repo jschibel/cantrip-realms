@@ -1,0 +1,22 @@
+{
+  "id": "keldon-greaves",
+  "name": "Keldon Greaves",
+  "slot": "feet",
+  "rarity": "uncommon",
+  "gold": 1100,
+  "stats": {
+    "life": 5,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 5 additional life.",
+  "look": {
+    "mesh": "boots",
+    "palette": [
+      "#8f2f2f",
+      "#9aa0aa"
+    ]
+  },
+  "unique": false
+}

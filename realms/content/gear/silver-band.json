@@ -1,0 +1,22 @@
+{
+  "id": "silver-band",
+  "name": "Silver Band",
+  "slot": "ring",
+  "rarity": "common",
+  "gold": 350,
+  "stats": {
+    "life": 2,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 2 additional life.",
+  "look": {
+    "mesh": "ring",
+    "palette": [
+      "#c9ced8",
+      "#c9ced8"
+    ]
+  },
+  "unique": false
+}
