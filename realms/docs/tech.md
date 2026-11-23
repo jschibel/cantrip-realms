@@ -72,6 +72,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
     terrain palette doesn't use, with a clear silhouette and a soft ring on the ground under the player. They are never
     lost in the scene.
   - Effects are billboards at the same pixel scale.
+  - Where it lives: the cel materials, light and band thresholds in `src/look.ts`, the ramps in `src/palette.ts`, the
+    post pass (bands to colors, outlines) in `src/render.ts`. Two choices are left open for comparing on any page:
+    `?bands=2` (lit and shade only) and `?outline=ramp` (outlines in the darkest of the outlined thing's own ramp).
 - **Assets:** **voxel models stored as data** (`realms/content/models/*.vox.json`), written by generator scripts and tuned by hand.
   - The browser greedy-meshes them when they load (`src/voxel/mesher.ts`) into vertex-colored meshes in the palette's colors, shared between every character drawn alike; they are small enough that no build step is needed.
   - Characters are segmented rigs (head, torso, arms, legs) with idle, walk, cast and interact animations. Each slot's gear is a voxel piece hung on an attachment point of the body. Mobs are base models with palette swaps (ten so far).

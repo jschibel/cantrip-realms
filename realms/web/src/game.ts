@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { CardScreens, Closed } from "./cardLayer";
-import { type Appearance, Character, type GearLook, SLOTS, type Slot } from "./character";
+import { type Appearance, Character, type GearLook, RING_COLORS, SLOTS, type Slot } from "./character";
 import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
@@ -102,6 +102,7 @@ export class Overworld {
     this.data = data;
     this.hud.showCharacter(data);
     this.character = Character.player(data.Name, this.appearance);
+    this.character.showRing(RING_COLORS[this.appearance.identity[0] ?? "W"]);
     this.sendLook();
     const map = at?.map ?? data.Map;
     await this.enter(map, { at: at?.hex ?? (data.Map === map && (data.Q !== 0 || data.R !== 0) ? hex(data.Q, data.R) : undefined) });
