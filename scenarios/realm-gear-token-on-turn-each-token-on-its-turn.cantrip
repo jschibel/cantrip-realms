@@ -1,0 +1,36 @@
+# token-on-turn over its range: Bot1 wears five, one for each token it may make and turns 1 to 4 - a Soldier and a Thopter
+# on its first turn, a Goblin on its second, an Elf Warrior on its third, a Spirit on its fourth. Each "at the beginning of
+# your upkeep, if it's your Nth turn, create ..." makes its token under Bot1's control (CR 111.1) as its text describes it
+# (CR 111.4), on that upkeep only: Bot2's turns and Bot1's fifth turn make none.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: token-on-turn, turn 1, token soldier; emblem Gear test: token-on-turn, turn 1, token thopter; emblem Gear test: token-on-turn, turn 2, token goblin; emblem Gear test: token-on-turn, turn 3, token elf-warrior; emblem Gear test: token-on-turn, turn 4, token spirit
+Bot2: maximum 20
+
+[Actions]
+[T1 Bot1.Main1]
+? Bot1.Battlefield = Soldier Token; Thopter Token
+? Bot1.Battlefield.Soldier Token.Colors = White
+? Bot1.Battlefield.Thopter Token.Types = Artifact; Creature
+? Bot1.Battlefield.Thopter Token.Keywords = Flying
+[T2 Bot2.Main1]
+? Bot1.Battlefield.Count = 2
+? Bot2.Battlefield.Count = 0
+[T3 Bot1.Main1]
+? Bot1.Battlefield.Goblin Token.Colors = Red
+[T5 Bot1.Main1]
+? Bot1.Battlefield.Elf Warrior Token.Subtypes = Elf; Warrior
+[T7 Bot1.Main1]
+? Bot1.Battlefield.Spirit Token.Keywords = Flying
+? Bot1.Battlefield.Spirit Token.Colors = White
+[T9 Bot1.Main1]
+
+[Expect]
+Bot1.Battlefield = Elf Warrior Token; Goblin Token; Soldier Token; Spirit Token; Thopter Token
+Bot2.Battlefield.Count = 0

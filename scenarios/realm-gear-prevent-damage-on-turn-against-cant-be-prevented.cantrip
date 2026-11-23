@@ -1,0 +1,41 @@
+# prevent-damage-on-turn at turn 3 against "damage can't be prevented this turn" (CR 615.12): on Bot1's third turn (turn 5)
+# the prevention is made at its upkeep, and Bot1's Lightning Bolt at itself is prevented; then Skullcrack's "damage can't
+# be prevented this turn" applies, and its own 3 damage to Bot1 is dealt despite the prevention effect. Bot1's second turn
+# has no trigger.
+
+[Bot1 Deck]
+Mountain x3
+Lightning Bolt
+Skullcrack
+Mountain x35
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: emblem Gear test: prevent-damage-on-turn, turn 3
+
+[Actions]
+Bot1.Hand.Mountain.Play
+[T3 Bot1.Upkeep]
+? Stack.Count = 0
+[T3 Bot1.Main1]
+Bot1.Hand.Mountain.Play
+[T5 Bot1.Upkeep]
+? Stack = Gear test: prevent-damage-on-turn, turn 3
+[T5 Bot1.Main1]
+Bot1.Hand.Mountain.Play
+Bot1.Hand.Lightning Bolt.Cast(Bot1)
+Bot1.Battlefield.Mountain#1.Activate
+Bot1.Pass
+Bot2.Pass
+? Bot1.Life = 20
+Bot1.Hand.Skullcrack.Cast(Bot1)
+Bot1.Battlefield.Mountain#2.Activate
+Bot1.Battlefield.Mountain#3.Activate
+Bot1.Pass
+Bot2.Pass
+
+[Expect]
+Bot1.Life = 17
+Prevented.Count = 1

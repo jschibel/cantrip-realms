@@ -1,0 +1,32 @@
+# "Your Nth turn" counts every turn the wearer has begun, an extra turn among them (CR 500.7, 500.1): Bot1 casts Time Walk
+# on its second turn (turn 3), so turn 4 is its third, and the Elf Warrior of "if it's your third turn" comes then - not on
+# turn 5, Bot1's fourth.
+
+[Bot1 Deck]
+Island x2
+Time Walk
+Island x37
+
+[Bot2 Deck]
+Swamp x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: token-on-turn, turn 3, token elf-warrior
+Bot2: maximum 20
+
+[Actions]
+Bot1.Hand.Island.Play
+[T3 Bot1.Main1]
+Bot1.Hand.Island.Play
+Bot1.Hand.Time Walk.Cast
+Bot1.Battlefield.Island#1.Activate
+Bot1.Battlefield.Island#2.Activate
+[T4 Bot1.Upkeep]
+? Stack = Gear test: token-on-turn, turn 3, token elf-warrior
+[T4 Bot1.Main1]
+? Bot1.Battlefield.Elf Warrior Token.Token = true
+[T6 Bot1.Upkeep]
+? Stack.Count = 0
+
+[Expect]
+Bot1.Battlefield.Count = 3

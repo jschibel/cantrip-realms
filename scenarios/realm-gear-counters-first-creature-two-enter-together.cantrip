@@ -1,0 +1,42 @@
+# counters-first-creature at two counters, with Bot1's first creatures entering together: Dragon Fodder makes two Goblin
+# tokens at once (CR 101.4, 111.1), and neither entered before the other, so each is the first creature to enter under
+# Bot1's control this game and each gets two +1/+1 counters. A creature that enters afterwards (Grizzly Bears, turn 5) gets
+# none.
+
+[Bot1 Deck]
+Mountain x2
+Dragon Fodder
+Grizzly Bears
+Forest x2
+Mountain x34
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: emblem Gear test: counters-first-creature, count 2
+
+[Actions]
+Bot1.Hand.Mountain.Play
+[T3 Bot1.Main1]
+Bot1.Hand.Mountain.Play
+Bot1.Hand.Dragon Fodder.Cast
+Bot1.Battlefield.Mountain#1.Activate
+Bot1.Battlefield.Mountain#2.Activate
+Bot1.Pass
+Bot2.Pass
+Bot1.Triggers(Gear test: counters-first-creature, count 2; Gear test: counters-first-creature, count 2)
+? Stack.Count = 2
+[T5 Bot1.Main1]
+Bot1.Hand.Forest.Play
+Bot1.Hand.Grizzly Bears.Cast
+Bot1.Battlefield.Forest.Activate
+Bot1.Battlefield.Mountain#1.Activate
+Bot1.Pass
+Bot2.Pass
+? Stack.Count = 0
+
+[Expect]
+Bot1.Battlefield.Goblin Token#1.Counters.PlusOnePlusOne = 2
+Bot1.Battlefield.Goblin Token#2.Counters.PlusOnePlusOne = 2
+Bot1.Battlefield.Grizzly Bears.Counters.PlusOnePlusOne = (absent)

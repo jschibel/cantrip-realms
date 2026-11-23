@@ -1,0 +1,29 @@
+# opponent-discards-on-turn at turn 4 against an empty hand: Bot2 begins with no cards in hand (its variant's hand 0) and
+# plays each card it draws, so at its fourth upkeep (turn 8) it has nothing to discard; the ability resolves asking nothing
+# (CR 701.9a), and nothing goes to its graveyard.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: opponent-discards-on-turn, turn 4
+Bot2: hand 0
+
+[Actions]
+[T2 Bot2.Main1]
+Bot2.Hand.Island.Play
+[T4 Bot2.Main1]
+Bot2.Hand.Island.Play
+[T6 Bot2.Main1]
+Bot2.Hand.Island.Play
+[T8 Bot2.Upkeep]
+? Stack = Gear test: opponent-discards-on-turn, turn 4
+? Bot2.Hand.Count = 0
+[T8 Bot2.Main1]
+
+[Expect]
+Bot2.Graveyard.Count = 0
+Bot2.Hand.Count = 1

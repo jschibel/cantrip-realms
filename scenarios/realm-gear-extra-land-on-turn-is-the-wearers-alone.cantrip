@@ -1,0 +1,30 @@
+# extra-land-on-turn at turn 3, worn by Bot1 only: on Bot1's third turn (turn 5) it plays two lands; Bot2's third turn (turn
+# 6) is no turn of the wearer's ("if it's your third turn", CR 603.4), so Bot2 plays one and is offered no second. Bot1's
+# second turn has no trigger.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: extra-land-on-turn, turn 3
+Bot2: maximum 20
+
+[Actions]
+[T3 Bot1.Upkeep]
+? Stack.Count = 0
+[T5 Bot1.Upkeep]
+? Stack = Gear test: extra-land-on-turn, turn 3
+[T5 Bot1.Main1]
+Bot1.Hand.Forest.Play
+Bot1.Hand.Forest.Play
+! Bot1.Hand.Forest.Play
+[T6 Bot2.Main1]
+Bot2.Hand.Island.Play
+! Bot2.Hand.Island.Play
+
+[Expect]
+Bot1.Battlefield.Count = 2
+Bot2.Battlefield.Count = 1

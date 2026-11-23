@@ -12,11 +12,11 @@
   "effects": [
     {
       "family": "draw-on-turn",
-      "turn": 3,
+      "turn": 4,
       "count": 1
     }
   ],
-  "text": "Your maximum hand size is increased by one.\nAt the beginning of your draw step on your third turn, draw a card.",
+  "text": "Your maximum hand size is increased by one.\nAt the beginning of your draw step, if it's your fourth turn, draw a card.",
   "look": {
     "mesh": "circlet",
     "palette": [

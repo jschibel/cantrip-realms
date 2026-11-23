@@ -1,0 +1,28 @@
+# draw-on-turn at the far end of its range, turn 6 and two cards: "At the beginning of your draw step, if it's your sixth
+# turn, draw two cards." Bot1's sixth turn is turn 11: its fifth draw step (turn 9) has no trigger, its sixth draws two
+# more (CR 603.4, 121.2), and its seventh none again.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: draw-on-turn, turn 6, count 2
+Bot2: maximum 20
+
+[Actions]
+[T5 Bot1.Draw]
+? Stack.Count = 0
+[T9 Bot1.Draw]
+? Stack.Count = 0
+[T11 Bot1.Draw]
+? Stack = Gear test: draw-on-turn, turn 6, count 2
+[T11 Bot1.Main1]
+? Bot1.Hand.Count = 14
+[T13 Bot1.Draw]
+? Stack.Count = 0
+
+[Expect]
+Bot1.Hand.Count = 15

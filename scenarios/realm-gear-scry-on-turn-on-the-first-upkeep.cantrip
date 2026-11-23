@@ -1,0 +1,31 @@
+# scry-on-turn at turn 1, three cards: "At the beginning of your upkeep, if it's your first turn, scry 3." Bot1 plays first,
+# so its first upkeep is turn 1's: it looks at the top three (CR 701.22a), keeps the Plains on top and puts the Island and
+# the Mountain on the bottom, and draws the Plains on turn 3. Bot2's first upkeep (turn 2) and Bot1's second (turn 3) have
+# no trigger: the turn is the wearer's own, and its first.
+
+[Bot1 Deck]
+Forest x7
+Island
+Mountain
+Plains
+Forest x30
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: scry-on-turn, turn 1, count 3
+
+[Actions]
+[T1 Bot1.Upkeep]
+? Stack = Gear test: scry-on-turn, turn 1, count 3
+Bot1.Arrange(Plains | Island; Mountain)
+[T2 Bot2.Upkeep]
+? Stack.Count = 0
+[T3 Bot1.Upkeep]
+? Stack.Count = 0
+[T3 Bot1.Main1]
+
+[Expect]
+Bot1.Hand = Forest; Forest; Forest; Forest; Forest; Forest; Forest; Plains
+Bot1.Library.Count = 32

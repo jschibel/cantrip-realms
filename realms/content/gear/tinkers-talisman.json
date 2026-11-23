@@ -11,11 +11,12 @@
   },
   "effects": [
     {
-      "family": "once-per-game-scry",
-      "count": 2
+      "family": "token-on-turn",
+      "turn": 2,
+      "token": "thopter"
     }
   ],
-  "text": "{1}: Scry 2. Activate only once each game.",
+  "text": "At the beginning of your upkeep, if it's your second turn, create a 1/1 colorless Thopter artifact creature token with flying.",
   "look": {
     "mesh": "relic",
     "palette": [

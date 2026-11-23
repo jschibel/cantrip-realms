@@ -1,0 +1,27 @@
+# surveil-on-turn at turn 1, one card: "At the beginning of your upkeep, if it's your first turn, surveil 1." Bot1 looks at
+# its top card and puts it into its graveyard (CR 701.25a); its second upkeep (turn 3) and Bot2's first (turn 2) have no
+# trigger.
+
+[Bot1 Deck]
+Forest x7
+Island
+Forest x32
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: surveil-on-turn, turn 1, count 1
+
+[Actions]
+[T1 Bot1.Upkeep]
+? Stack = Gear test: surveil-on-turn, turn 1, count 1
+Bot1.Arrange(| Island)
+[T2 Bot2.Upkeep]
+? Stack.Count = 0
+[T3 Bot1.Upkeep]
+? Stack.Count = 0
+
+[Expect]
+Bot1.Graveyard = Island
+Bot1.Surveilled = 1 requested, 1 looked

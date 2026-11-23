@@ -1,0 +1,33 @@
+# gain-life-on-turn at both ends of its range: Bot1 wears "you gain 2 life" on its second turn and "you gain 5 life" on its
+# sixth (CR 119.3), Bot2 the same second-turn one. Each gains on its own upkeeps only: Bot1 on turns 3 and 11, Bot2 on
+# turn 4; Bot1's first and fifth turns, and the other player's turns, none.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: gain-life-on-turn, turn 2, count 2; emblem Gear test: gain-life-on-turn, turn 6, count 5
+Bot2: maximum 20; emblem Gear test: gain-life-on-turn, turn 2, count 2
+
+[Actions]
+[T1 Bot1.Main1]
+? Bot1.Life = 20
+[T2 Bot2.Main1]
+? Bot1.Life = 20
+? Bot2.Life = 20
+[T3 Bot1.Main1]
+? Bot1.Life = 22
+[T4 Bot2.Main1]
+? Bot1.Life = 22
+? Bot2.Life = 22
+[T9 Bot1.Main1]
+? Bot1.Life = 22
+[T11 Bot1.Main1]
+? Bot1.Life = 27
+
+[Expect]
+Bot1.Life = 27
+Bot2.Life = 22

@@ -1,0 +1,28 @@
+# opponent-mills-on-turn at turn 1, two cards: "At the beginning of each opponent's upkeep, if it's that player's first turn,
+# that player mills two cards." Bot2's first upkeep is turn 2's: it mills two (CR 701.17a). Bot1's own first upkeep
+# (turn 1) and Bot2's second (turn 4) have no trigger.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: opponent-mills-on-turn, turn 1, count 2
+Bot2: maximum 20
+
+[Actions]
+[T1 Bot1.Upkeep]
+? Stack.Count = 0
+[T2 Bot2.Upkeep]
+? Stack = Gear test: opponent-mills-on-turn, turn 1, count 2
+[T2 Bot2.Main1]
+? Bot2.Graveyard.Count = 2
+[T4 Bot2.Upkeep]
+? Stack.Count = 0
+
+[Expect]
+Bot2.Graveyard.Count = 2
+Bot2.Library.Count = 30
+Bot1.Graveyard.Count = 0

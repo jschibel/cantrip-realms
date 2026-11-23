@@ -1,0 +1,31 @@
+# opponent-discards-on-turn at turn 2: "At the beginning of each opponent's upkeep, if it's that player's second turn, that
+# player discards a card." Bot2's second turn is turn 4: it chooses and discards its Mountain (CR 701.9a). Bot2's first
+# upkeep (turn 2) and third (turn 6) have no trigger, nor has Bot1's own second upkeep (turn 3): the turn must be an
+# opponent's.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island
+Mountain
+Island x38
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: opponent-discards-on-turn, turn 2
+Bot2: maximum 20
+
+[Actions]
+[T2 Bot2.Upkeep]
+? Stack.Count = 0
+[T3 Bot1.Upkeep]
+? Stack.Count = 0
+[T4 Bot2.Upkeep]
+? Stack = Gear test: opponent-discards-on-turn, turn 2
+Bot2.Choose(Mountain)
+[T6 Bot2.Upkeep]
+? Stack.Count = 0
+
+[Expect]
+Bot2.Graveyard = Mountain
+Bot1.Graveyard.Count = 0

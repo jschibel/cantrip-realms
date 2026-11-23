@@ -11,11 +11,11 @@
   },
   "effects": [
     {
-      "family": "opponent-starting-life",
-      "amount": -2
+      "family": "opponent-discards-on-turn",
+      "turn": 2
     }
   ],
-  "text": "Each opponent starts the game with 2 less life.",
+  "text": "At the beginning of each opponent's upkeep, if it's that player's second turn, that player discards a card.",
   "look": {
     "mesh": "ring",
     "palette": [

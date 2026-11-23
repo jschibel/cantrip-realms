@@ -1,0 +1,54 @@
+# first-creature-haste: "Whenever a creature you control enters, if it's the first creature to enter the battlefield under
+# your control this game, it gains haste until end of turn." Bot2's Llanowar Elves enters first, on turn 2, and is no
+# creature of Bot1's. Bot1's first, Grizzly Bears on turn 3, gains haste (CR 702.10) and attacks the turn it came; the haste
+# ends with the turn (CR 514.2). Bot1's second creature, Llanowar Elves on turn 5, is not the first and gets nothing: it is
+# summoning sick (CR 302.6).
+
+[Bot1 Deck]
+Forest x2
+Grizzly Bears
+Llanowar Elves
+Forest x36
+
+[Bot2 Deck]
+Forest
+Llanowar Elves
+Island x38
+
+[Variant]
+Bot1: emblem Gear test: first-creature-haste
+
+[Actions]
+Bot1.Hand.Forest.Play
+[T2 Bot2.Main1]
+Bot2.Hand.Forest.Play
+Bot2.Hand.Llanowar Elves.Cast
+Bot2.Battlefield.Forest.Activate
+[T3 Bot1.Main1]
+? Stack.Count = 0
+Bot1.Hand.Forest.Play
+Bot1.Hand.Grizzly Bears.Cast
+Bot1.Battlefield.Forest#1.Activate
+Bot1.Battlefield.Forest#2.Activate
+? Stack = Grizzly Bears
+Bot1.Pass
+Bot2.Pass
+? Stack = Gear test: first-creature-haste
+Bot1.Pass
+Bot2.Pass
+? Bot1.Battlefield.Grizzly Bears.Keywords = Haste
+Bot1.Attack(Grizzly Bears > Bot2)
+[T5 Bot1.Main1]
+? Bot1.Battlefield.Grizzly Bears.Keywords = (absent)
+Bot1.Hand.Llanowar Elves.Cast
+Bot1.Battlefield.Forest#1.Activate
+? Stack = Llanowar Elves
+Bot1.Pass
+Bot2.Pass
+? Stack.Count = 0
+
+[Expect]
+Bot2.Life = 18
+Bot2.Battlefield.Llanowar Elves.Keywords = (absent)
+Bot1.Battlefield.Llanowar Elves.Keywords = (absent)
+Bot1.Battlefield.Llanowar Elves.SummoningSick = true
