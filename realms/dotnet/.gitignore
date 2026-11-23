@@ -1,0 +1,4 @@
+# A local server's SQLite store (REALMS_DATABASE=sqlite:realms.db, the default).
+*.db
+*.db-shm
+*.db-wal

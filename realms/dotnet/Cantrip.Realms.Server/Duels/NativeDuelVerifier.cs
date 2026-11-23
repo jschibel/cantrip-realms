@@ -15,8 +15,9 @@ namespace Cantrip.Realms.Server.Duels;
 /// answers would have played out otherwise, or that a tampered bot made, comes to another game and fails that.
 /// <para>
 /// The two seats take turns as they did in the browser: before each of seat 1's messages is sent, seat 2 answers
-/// everything it has been asked, and again after the last. The browser's realm duel steps its bot seat the same way
-/// (interfaces.md says so), so a moment where both seats are asked at once plays out in the same order on both sides.
+/// everything it has been asked (<see cref="RealmBot.Settle"/>), and again after the last. The browser's realm duel steps
+/// its bot seat the same way (interfaces.md says so), so a moment where both seats are asked at once plays out in the same
+/// order on both sides.
 /// </para>
 /// </summary>
 public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDuelVerifier
@@ -62,13 +63,13 @@ public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDue
         if (Refused(session, player) is { } early) return DuelVerdict.Rejected(early);
         for (int i = 0; i < messages.Count; i++)
         {
-            if (!Settle(mob)) return DuelVerdict.Rejected($"The mob's seat never stopped answering before message {i + 1}.");
+            if (!Settle(mob)) return DuelVerdict.Rejected($"The mob's seat was still being asked after its most answers, before message {i + 1}.");
             if (session.IsOver) return DuelVerdict.Rejected($"The game was over before message {i + 1} of {messages.Count}.");
             session.Submit(player, messages[i]);
             if (Refused(session, player) is { } refused) return DuelVerdict.Rejected($"Message {i + 1} ({messages[i].GetType().Name}) was refused: {refused}");
         }
 
-        if (!Settle(mob)) return DuelVerdict.Rejected("The mob's seat never stopped answering after the last message.");
+        if (!Settle(mob)) return DuelVerdict.Rejected("The mob's seat was still being asked after its most answers, after the last message.");
         return session.IsOver
             ? new DuelVerdict(true, session.WinningSeats, null)
             : DuelVerdict.Rejected("The game is not over at the end of the log.");
@@ -81,16 +82,8 @@ public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDue
         return new RulesSeat(seat.Name, seat.Deck, seat.Sideboard, seat.Companion) { Commanders = seat.Commanders };
     }
 
-    /// <summary>Has the mob's seat answer until it is asked nothing; false if it never stops.</summary>
-    private bool Settle(AutoSeat mob)
-    {
-        for (int answers = 0; mob.Step(); answers++)
-        {
-            if (answers >= MostBotAnswers) return false;
-        }
-
-        return true;
-    }
+    /// <summary>Has the mob's seat answer everything it has been asked (<see cref="RealmBot.Settle"/>); false if it never stops.</summary>
+    private bool Settle(AutoSeat mob) => RealmBot.Settle(mob, MostBotAnswers);
 
     /// <summary>What the table said was wrong with seat 1's last message, if it refused it; null if it took it.</summary>
     private static string? Refused(GameSession session, PlayerId player) =>

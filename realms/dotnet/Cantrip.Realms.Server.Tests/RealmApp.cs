@@ -42,6 +42,9 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     /// <summary>Whether the hourly clock (<see cref="RealmClock"/>) runs; off, a test brings the realm up to the hour by its calls.</summary>
     public bool Clock { get; init; }
 
+    /// <summary>Whether duels are checked on the native engine (<see cref="NativeDuelVerifier"/>) rather than by <see cref="Verifier"/>.</summary>
+    public bool NativeVerifier { get; init; }
+
     /// <summary>Settings beyond the test's own (REALMS_*), for a test about one.</summary>
     public Dictionary<string, string> Settings { get; } = [];
 
@@ -62,7 +65,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
             services.RemoveAll<RealmContent>();
             services.AddSingleton(_ => SharedContent.Value);
             services.RemoveAll<IDuelVerifier>();
-            services.AddSingleton<IDuelVerifier>(Verifier);
+            services.AddSingleton<IDuelVerifier>(NativeVerifier ? new NativeDuelVerifier() : Verifier);
             services.RemoveAll<RealmDice>();
             services.AddSingleton(new RealmDice(new Random(20261123)));
             if (!Clock)
@@ -76,10 +79,14 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     /// <summary>A signed-in player's browser.</summary>
     public async Task<Browser> SignIn(ulong id, string name = "Tester")
     {
-        HttpClient client = CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        HttpClient client = CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
         using HttpResponseMessage response = await client.PostAsJsonAsync("/dev/signin", new { Id = id, Name = name });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return new Browser(this, client, $"dev-{id}");
+
+        // The sealed sign-in cookie, sent on every call after, as a browser would.
+        string cookie = string.Join("; ", response.Headers.GetValues("Set-Cookie").Select(header => header.Split(';')[0]));
+        client.DefaultRequestHeaders.Add("Cookie", cookie);
+        return new Browser(this, client, $"dev-{id}", cookie);
     }
 
     /// <summary>A player with a character, standing at New Argive's inn.</summary>
@@ -130,7 +137,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
 }
 
 /// <summary>A signed-in player's HTTP client, with the calls the tests make.</summary>
-public sealed class Browser(RealmApp app, HttpClient client, string player)
+public sealed class Browser(RealmApp app, HttpClient client, string player, string cookie)
 {
     public RealmApp App { get; } = app;
 
@@ -138,6 +145,9 @@ public sealed class Browser(RealmApp app, HttpClient client, string player)
 
     /// <summary>The player's id: <c>dev-{id}</c>.</summary>
     public string Player { get; } = player;
+
+    /// <summary>The sign-in cookie, as a request's Cookie header.</summary>
+    public string Cookie { get; } = cookie;
 
     public async Task<HttpResponseMessage> Send(HttpMethod method, string path, object? body = null)
     {
