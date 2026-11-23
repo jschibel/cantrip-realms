@@ -142,6 +142,19 @@ owner may extend.
     - Cards players sell stay until bought, up to 60. When that is full the vendor buys nothing more.
   - A card a player sells shows up at full price for everyone.
   - There is no trading between players.
+- **Wares from other planes.** Until other planes can be explored, cards printed only beyond Dominaria come in a
+  slow, small trickle, through two kinds of exotic dealer and nowhere else:
+  - **Exotic wares shops** in the biggest towns (New Benalia, and one more), inside like any shop. Each shows at most 6
+    off-plane cards and gains one new card every 6 hours; a card not sold within 3 days leaves.
+  - **Traveling vendors from other planes:** planeswalker traders whose caravan visits one of the big towns for a few
+    hours each day, by a schedule the server keeps and everyone sees. They rotate through New Benalia, Capashen Hold, the
+    Llanowar elfhames, Keld and Walassa. Each visit brings 3 cards from that trader's own plane (Ravnica, Zendikar,
+    Innistrad, Kamigawa, ...), so who is in town says what can be found.
+  - The off-plane pool is every card the engine has that is legal in Vintage, priced, not Universes Beyond and no relic,
+    and was never printed in a Dominaria set. Each card is tagged with the planes it was printed on (`planes.json`
+    grows a plane per trader).
+  - Exotic dealers buy and sell only off-plane cards, at list price and half back as any vendor does, so what players
+    sell them circulates. Dominaria's own vendors, loot and starter decks never hold an off-plane card.
 - **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear).
 
 ### A6. The world — Dominaria
