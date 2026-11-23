@@ -43,11 +43,18 @@ drawn(
 
 // --- Trees, hedges and stone -----------------------------------------------------------------------------------------
 
-drawn("tree", "a broadleaf tree at x, z, its size scale (1), its crown's shape seed", (b, p, pal) => D.tree(b, p.x, p.z, p.scale ?? 1, p.seed ?? 0, pal.leaves), { leaves: C.LEAF });
+drawn(
+  "tree",
+  "a broadleaf tree at x, z, its size scale (1), its crown's shape seed; args.fine draws its crown as the slice did (three times the triangles)",
+  (b, p, pal) => D.tree(b, p.x, p.z, p.scale ?? 1, p.seed ?? 0, pal.leaves, bool(p, "fine") ? 2 : 1),
+  { leaves: C.LEAF },
+  undefined,
+  (b, p, pal) => D.tree(b, p.x, p.z, p.scale ?? 1, p.seed ?? 0, pal.leaves, 0),
+);
 drawn(
   "bush",
   "a round bush at x, z; args.r its radius (0.45), args.flowering",
-  (b, p, pal) => D.bush(b, p.x, p.z, num(p, "r", 0.45), bool(p, "flowering"), pal.leaves),
+  (b, p, pal) => D.bush(b, p.x, p.z, num(p, "r", 0.45), bool(p, "flowering"), pal.leaves, bool(p, "fine") ? 2 : 1),
   { leaves: C.LEAF },
 );
 drawn(
@@ -55,10 +62,14 @@ drawn(
   "a hedgerow from x, z to args.to, its wobble seed",
   (b, p, pal) => {
     const [x1, z1] = point(p, "to");
-    D.hedgeRow(b, p.x, p.z, x1, z1, p.seed ?? 0, pal.leaves);
+    D.hedgeRow(b, p.x, p.z, x1, z1, p.seed ?? 0, pal.leaves, bool(p, "fine") ? 2 : 1);
   },
   { leaves: C.LEAF },
   needs({ to: "point" }),
+  (b, p, pal) => {
+    const [x1, z1] = point(p, "to");
+    D.hedgeRow(b, p.x, p.z, x1, z1, p.seed ?? 0, pal.leaves, 0);
+  },
 );
 drawn("boulder", "a boulder at x, z; args.r its radius (0.5), its shape seed", (b, p) => D.boulder(b, p.x, p.z, num(p, "r", 0.5), p.seed ?? 0));
 drawn("stepping-stone", "a flat stone in a stream at x, z", (b, p) => D.steppingStone(b, p.x, p.z));

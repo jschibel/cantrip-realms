@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cantrip Realms - art gallery</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #1a2a22;
+        font: 12px/1.3 Georgia, serif;
+      }
+      #hud {
+        position: fixed;
+        left: 8px;
+        top: 8px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: #f4ecd4;
+        z-index: 2;
+      }
+      #hud select {
+        font: inherit;
+        background: #1c1424;
+        color: #f4ecd4;
+        border: 2px solid #c6b496;
+        padding: 3px 4px;
+      }
+      #hud span {
+        background: #1c1424d0;
+        padding: 3px 6px;
+        border: 1px solid #5e5058;
+      }
+      .label {
+        position: fixed;
+        left: 0;
+        top: 0;
+        color: #fff8e8;
+        background: #140f1ec0;
+        padding: 1px 4px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="world"></canvas>
+    <script type="module" src="/src/gallery/main.ts"></script>
+  </body>
+</html>

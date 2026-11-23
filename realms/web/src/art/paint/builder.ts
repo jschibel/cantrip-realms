@@ -103,11 +103,27 @@ export function meshesOf(model: Model, name = "built", shadows = true): THREE.Gr
 
 type V3 = readonly [number, number, number];
 
+const spheres = new Map<number, { pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute; index: THREE.BufferAttribute | null }>();
+
+/** The low sphere blobs are squashed from, made once a detail (blobs are many: a crown is several). */
+function unitSphere(detail: number): { pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute; index: THREE.BufferAttribute | null } {
+  let s = spheres.get(detail);
+  if (!s) {
+    const geometry = new THREE.IcosahedronGeometry(1, detail);
+    s = { pos: geometry.getAttribute("position"), index: geometry.getIndex() };
+    spheres.set(detail, s);
+  }
+  return s;
+}
+
 export class MeshBuilder {
   private readonly byMaterial = new Map<Material, Buffers>();
   /** A transform applied to everything added (a prop placed and turned). */
   matrix = new THREE.Matrix4();
   private readonly normalMatrix = new THREE.Matrix3();
+  /** The transform `normalMatrix` was last worked out for, so it is inverted once a transform, not once a polygon. */
+  private normalFor: THREE.Matrix4 | null = null;
+  private normalElements: number[] = [];
 
   private buffers(mat: Material): Buffers {
     let b = this.byMaterial.get(mat);
@@ -130,7 +146,11 @@ export class MeshBuilder {
   polygon(mat: Material, corners: readonly V3[], uvs: readonly (readonly [number, number])[], normals?: readonly V3[]): void {
     const b = this.buffers(mat);
     const base = b.positions.length / 3;
-    this.normalMatrix.getNormalMatrix(this.matrix);
+    if (this.normalFor !== this.matrix || this.matrix.elements.some((e, i) => e !== this.normalElements[i])) {
+      this.normalMatrix.getNormalMatrix(this.matrix);
+      this.normalFor = this.matrix;
+      this.normalElements = [...this.matrix.elements];
+    }
     const p = new THREE.Vector3();
     const n = new THREE.Vector3();
     const flat = new THREE.Vector3()
@@ -445,10 +465,8 @@ export class MeshBuilder {
    * A rounded blob - a tree's crown, a bush, a pot's belly - as a low sphere squashed to (rx, ry, rz), smooth-shaded,
    * its tiled texture laid on as the three-quarter camera sees it so its texels are not stretched.
    */
-  blob(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, mat: Material, offset: readonly [number, number] = [0, 0]): void {
-    const geometry = new THREE.IcosahedronGeometry(1, 2);
-    const pos = geometry.getAttribute("position");
-    const index = geometry.getIndex();
+  blob(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, mat: Material, offset: readonly [number, number] = [0, 0], detail = 2): void {
+    const { pos, index } = unitSphere(detail);
     const image = mat.map?.image as { width: number; height: number } | undefined;
     const w = (image?.width ?? TEXELS) / TEXELS;
     const h = (image?.height ?? TEXELS) / TEXELS;
@@ -471,7 +489,6 @@ export class MeshBuilder {
       }
       this.polygon(mat, corners, uvs, normals);
     }
-    geometry.dispose();
   }
 
   /** A flat quad lying on the ground (a rug, a shadow, a decal), fitted with its picture, north up. */

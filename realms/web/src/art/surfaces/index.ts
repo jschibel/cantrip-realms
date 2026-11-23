@@ -4,6 +4,7 @@ import { material } from "../paint/materials";
 import { type Palette, type Ramp, withDefaults } from "../paint/palette";
 import type { Pixmap } from "../paint/pixmap";
 import * as T from "../paint/textures";
+import { bankOf, defineBiomes } from "./biomes";
 
 // The ground, by surface id: what a tile's `surface` names (world/format.ts, TileData). Each is a tiling picture 64
 // texels square (four tiles), painted from its palette, and how it meets its neighbours: where two surfaces meet, the
@@ -26,6 +27,16 @@ export interface SurfaceLook {
   readonly under?: { readonly material: Material; readonly y: number; readonly spread: number };
   /** Cards of standing grass a tile, on average. */
   readonly tufts?: number;
+  /**
+   * The ramp standing tufts are painted in, when not the slice's green (dry plains, tundra, reeds). A renderer that
+   * cannot color tufts draws them green: so only green-ish surfaces carry `tufts` until it can (conversion.md).
+   */
+  readonly tuftRamp?: Ramp;
+  /**
+   * The face of its banks where the ground steps down from it (render/terrain.ts draws banks on height steps): earth under
+   * grass, dark rock in the mountains, peat in the Morass, ice under snow. Tiled, its top row the ground's edge.
+   */
+  readonly cliff?: Material;
 }
 
 export interface SurfaceEntry {
@@ -53,7 +64,10 @@ export const SURFACES = {
   /** A surface's look under a palette (over its own). */
   look(id: string, palette?: Palette): SurfaceLook {
     const e = SURFACES.get(id);
-    return e.look(withDefaults(e.palette, palette));
+    const look = e.look(withDefaults(e.palette, palette));
+    // Every surface's bank, as biomes.ts gives it, where the surface does not name its own.
+    const cliff = look.cliff ?? bankOf(id);
+    return cliff ? { ...look, cliff } : look;
   },
 };
 
@@ -87,3 +101,8 @@ defineSurface("stream", "running water under the banks: a hole, water below", {}
 defineSurface("floorboards", "a room's boards", {}, () => ({ picture: T.floorboards(5), priority: 1 }));
 defineSurface("hearthstone", "the flags before a hearth", { stone: C.COBBLE }, (p) => ({ picture: T.flagstones(ramp(p, "stone"), 33), priority: 2 }));
 defineSurface("crypt-floor", "a crypt's cold flags, bones and grime", {}, () => ({ picture: T.cryptFloor(14), priority: 1 }));
+
+// --- The world's biomes, roads and waters (biomes.ts) ----------------------------------------------------------------------
+
+defineBiomes(defineSurface);
+export { BANKS, PRIORITY, SURFACE_GROUPS, bankOf } from "./biomes";

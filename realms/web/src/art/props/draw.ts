@@ -127,22 +127,26 @@ export function lampPost(b: MeshBuilder, x: number, z: number): void {
 
 // --- Nature ---------------------------------------------------------------------------------------------------------
 
-/** A broadleaf tree: a trunk and a crown of a few rounded clumps. */
-export function tree(b: MeshBuilder, x: number, z: number, size = 1, seed = 0, leaves: Ramp = C.LEAF): void {
-  b.cylinder(x, z, 0, 1.3 * size, 0.18 * size, 7, { mat: stock.bark() });
-  b.cylinder(x, z, 0, 0.2, 0.26 * size, 7, { mat: stock.bark() });
+/**
+ * A broadleaf tree: a trunk and a crown of a few rounded clumps. `detail` is the clumps' (2 as the slice drew them, 1
+ * near in the world, 0 its far stand-in: fewer clumps too).
+ */
+export function tree(b: MeshBuilder, x: number, z: number, size = 1, seed = 0, leaves: Ramp = C.LEAF, detail = 2): void {
+  const segments = detail === 0 ? 4 : 7;
+  b.cylinder(x, z, 0, 1.3 * size, 0.18 * size, segments, { mat: stock.bark() });
+  if (detail > 0) b.cylinder(x, z, 0, 0.2, 0.26 * size, segments, { mat: stock.bark() });
   const s = size;
   const off = (k: number) => ((seed * 7 + k * 13) % 10) / 10 - 0.5;
   const crown = stock.leaves(leaves);
-  b.blob(x, 1.95 * s, z, 1.05 * s, 0.85 * s, 1.0 * s, crown, [seed * 5, 0]);
-  b.blob(x - 0.6 * s, 1.55 * s + off(1) * 0.2, z + 0.25 * s, 0.7 * s, 0.6 * s, 0.7 * s, crown, [seed * 3, 7]);
-  b.blob(x + 0.62 * s, 1.6 * s + off(2) * 0.2, z + 0.15 * s, 0.68 * s, 0.6 * s, 0.68 * s, crown, [11, seed]);
-  b.blob(x + 0.1 * s, 2.55 * s, z - 0.15 * s, 0.68 * s, 0.55 * s, 0.68 * s, crown, [5, 3 + seed]);
+  b.blob(x, 1.95 * s, z, 1.05 * s, 0.85 * s, 1.0 * s, crown, [seed * 5, 0], detail);
+  b.blob(x - 0.6 * s, 1.55 * s + off(1) * 0.2, z + 0.25 * s, 0.7 * s, 0.6 * s, 0.7 * s, crown, [seed * 3, 7], detail);
+  b.blob(x + 0.62 * s, 1.6 * s + off(2) * 0.2, z + 0.15 * s, 0.68 * s, 0.6 * s, 0.68 * s, crown, [11, seed], detail);
+  if (detail > 0) b.blob(x + 0.1 * s, 2.55 * s, z - 0.15 * s, 0.68 * s, 0.55 * s, 0.68 * s, crown, [5, 3 + seed], detail);
 }
 
 /** A round bush. */
-export function bush(b: MeshBuilder, x: number, z: number, r = 0.45, flowering = false, leaves: Ramp = C.LEAF): void {
-  b.blob(x, r * 0.8, z, r, r * 0.85, r, flowering ? pics.flowers() : stock.leaves(leaves), [x * 16, z * 16]);
+export function bush(b: MeshBuilder, x: number, z: number, r = 0.45, flowering = false, leaves: Ramp = C.LEAF, detail = 2): void {
+  b.blob(x, r * 0.8, z, r, r * 0.85, r, flowering ? pics.flowers() : stock.leaves(leaves), [x * 16, z * 16], detail);
 }
 
 // --- Goods ----------------------------------------------------------------------------------------------------------
@@ -413,7 +417,7 @@ export function ruinedTower(b: MeshBuilder, cx: number, cz: number, y0: number, 
 }
 
 /** A hedgerow along a line: a low bank of turf and stones, bushes all along it. */
-export function hedgeRow(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number, seed = 0, leaves: Ramp = C.LEAF): void {
+export function hedgeRow(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number, seed = 0, leaves: Ramp = C.LEAF, detail = 2): void {
   const length = Math.hypot(x1 - x0, z1 - z0);
   const n = Math.max(1, Math.round(length / 0.7));
   for (let i = 0; i <= n; i++) {
@@ -422,7 +426,7 @@ export function hedgeRow(b: MeshBuilder, x0: number, z0: number, x1: number, z1:
     const x = x0 + (x1 - x0) * t + (z1 !== z0 ? wobble : 0);
     const z = z0 + (z1 - z0) * t + (x1 !== x0 ? wobble : 0);
     const r = 0.42 + 0.1 * Math.abs(Math.sin((i + seed) * 2.3));
-    b.blob(x, r * 0.85, z, r, r * 0.8, r, i % 7 === 3 ? pics.flowers() : stock.leaves(leaves), [x * 16, z * 16]);
+    b.blob(x, r * 0.85, z, r, r * 0.8, r, i % 7 === 3 ? pics.flowers() : stock.leaves(leaves), [x * 16, z * 16], detail);
   }
 }
 

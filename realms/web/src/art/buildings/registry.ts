@@ -8,6 +8,29 @@ import { type Built, Registry } from "../recipe";
 
 export const BUILDINGS = new Registry<BuildingData>("building style");
 
+/** One building a style shows in the gallery and recommends to the world's layout: a kind at a footprint, with its params. */
+export interface Showcase {
+  readonly kind: string;
+  /** Footprint, world units (tiles), facing south. */
+  readonly w: number;
+  readonly d: number;
+  /** A size or variant's name: small, large, two-storey... */
+  readonly label?: string;
+  readonly palette?: string;
+  readonly params?: Readonly<Record<string, unknown>>;
+  readonly sign?: string;
+}
+
+const showcases: Record<string, Showcase[]> = {};
+
+/** Each style's kinds and sizes as it shows them (the gallery's street, and the sizes the world's towns use). */
+export const SHOWCASE: Readonly<Record<string, readonly Showcase[]>> = showcases;
+
+/** Records the kinds and sizes a style shows. */
+export function showcase(style: string, items: readonly Showcase[]): void {
+  (showcases[style] ??= []).push(...items);
+}
+
 /**
  * Draws a building on its footprint, turned to face its `rot`. `draw` lays it out facing south (+z) between x0..x1 and
  * z0..z1 and returns where its door is, if it has one. Facing south it is drawn where it stands, in world coordinates;
