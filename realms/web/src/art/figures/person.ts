@@ -563,7 +563,7 @@ function topFaces(o: Person): PartFaces {
       break;
     }
     case "bare": {
-      front = withBelt(layer(cloth(S, 4), (p) => { const m = Math.floor(tw / 2); p.hline(m - 3, 2, 2, at(S, 3)); p.hline(m + 1, 2, 2, at(S, 3)); p.vline(m - 1, 3, th - 4, at(S, 3)); p.put(m - 2, 4, at(S, 3)); p.put(m + 1, 4, at(S, 3)); p.hline(0, 0, tw, at(S, 5)); }));
+      front = withBelt(layer(cloth(S, 3), (p) => { const m = Math.floor(tw / 2); p.hline(m - 3, 2, 2, at(S, 2)); p.hline(m + 1, 2, 2, at(S, 2)); p.vline(m - 1, 3, th - 4, at(S, 2)); p.put(m - 2, 4, at(S, 2)); p.put(m + 1, 4, at(S, 2)); p.hline(0, 0, tw, at(S, 4)); p.hline(m - 3, 1, 6, at(S, 4)); }));
       back = withBelt(layer(cloth(S, 3), (p) => p.vline(Math.floor(tw / 2) - 1, 1, th - 2, at(S, 2))));
       side = withBelt(cloth(S, 3));
       break;

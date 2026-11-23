@@ -862,8 +862,8 @@ function shaggy(name: string, [furR, face, accent]: readonly Ramp[], s: number, 
     spark: full(C.LEAF),
     stride: 0.5,
     armSwing: 0.5,
-    hunch: ape ? 0.45 : 0.25,
-    headTilt: ape ? -0.35 : -0.1,
+    hunch: ape ? 0.3 : 0.2,
+    headTilt: ape ? -0.12 : -0.05,
     footprint: 0.6 * s,
   });
 }
