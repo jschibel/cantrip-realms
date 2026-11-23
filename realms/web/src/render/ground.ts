@@ -30,6 +30,11 @@ export function buildGround(
   origin: { x: number; z: number } = { x: 0, z: 0 },
   y = 0,
   anchor: { x: number; z: number } = origin,
+  /**
+   * The mesh's own shape (render/terrain.ts: floors at their heights), where the map is wider than what is drawn - a
+   * chunk's map holds a border of its neighbours' tiles, so its edges grow over theirs as they would in one piece.
+   */
+  shape?: THREE.BufferGeometry,
 ): THREE.Mesh {
   const height = tiles.length;
   const width = tiles[0]?.length ?? 0;
@@ -145,6 +150,13 @@ float groundId(vec2 texel) {
     bandShader(shader);
   };
 
+  if (shape) {
+    const mesh = new THREE.Mesh(shape, material);
+    mesh.receiveShadow = true;
+    mesh.name = "ground";
+    mesh.userData.groundTextures = [map, atlasTexture];
+    return mesh;
+  }
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
@@ -170,5 +182,6 @@ float groundId(vec2 texel) {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.receiveShadow = true;
   mesh.name = "ground";
+  mesh.userData.groundTextures = [map, atlasTexture];
   return mesh;
 }

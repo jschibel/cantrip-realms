@@ -45,10 +45,17 @@ export class Actor {
   private readonly shadow: THREE.Mesh;
   private moved = 0;
 
+  /**
+   * The floor's height under a point, when it is more than the grid's tile heights (a ramp's slope at world scale:
+   * render/terrain.ts `floorAt`).
+   */
+  floor: ((x: number, z: number) => number) | null = null;
+
   constructor(
     spec: FigureSpec,
     tile: Tile,
-    private readonly grid: Grid,
+    /** The tiles it walks: a place's grid, or the window of the world read round the player (the streamer remakes it). */
+    public grid: Grid,
     readonly behaviour: Behaviour = {},
     name = spec.name,
     private readonly random: () => number = Math.random,
@@ -118,6 +125,23 @@ export class Actor {
     this.path = [];
   }
 
+  /** Stands it on a tile at once (a relayed position, a correction): no walk, on the floor there. */
+  place(tile: Tile): void {
+    this.path = [];
+    this.position.copy(centre(tile, this.floor ? this.floor(tile.x + 0.5, tile.z + 0.5) : this.grid.heightAt(tile.x, tile.z)));
+    this.figure.root.position.copy(this.position);
+  }
+
+  /** Walks a given path of tiles (another player's, as the relay sends it), whatever the grid says. */
+  walkPath(tiles: readonly Tile[]): void {
+    this.path = tiles.map((t) => centre(t, this.position.y));
+  }
+
+  /** The tiles left to walk. */
+  get remaining(): Tile[] {
+    return this.path.map((p) => ({ x: Math.floor(p.x), z: Math.floor(p.z) }));
+  }
+
   update(dt: number, player?: Actor): void {
     let speed = 0;
     if (this.path.length > 0) {
@@ -136,7 +160,7 @@ export class Actor {
       speed = this.speed;
       this.moved += step;
       // Up and down steps as the floor under it rises and falls.
-      const floor = this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
+      const floor = this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
       this.position.y += (floor - this.position.y) * Math.min(1, dt * 14);
     } else {
       this.think(dt, player);

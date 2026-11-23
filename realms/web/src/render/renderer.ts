@@ -55,6 +55,14 @@ void main() {
   vec2 offsets[4] = vec2[4](vec2(px.x, 0.0), vec2(-px.x, 0.0), vec2(0.0, px.y), vec2(0.0, -px.y));
   float outline = 0.0;
   float highlight = 0.0;
+  // Terrain (kind 0.875) is outlined where it stands in front of markedly farther ground - a terrace's edge - and has
+  // no highlights; flat ground and decals (0.5) neither.
+  if (kind > 0.85 && kind < 0.9) {
+    for (int i = 0; i < 4; i++) {
+      float gap = depthAt(vUv + offsets[i]) - d;
+      if (gap > 0.32) outline = 1.0;
+    }
+  }
   if (kind > 0.9) {
     for (int i = 0; i < 4; i++) {
       vec2 at = vUv + offsets[i];
@@ -189,6 +197,11 @@ export class PixelRenderer {
     this.resize();
   }
 
+  /** Places the camera for the frame as `render` will (for what is aimed by the camera before drawing: the x-ray). */
+  placeCamera(): void {
+    this.place();
+  }
+
   /** Places the camera on the view and the focus, the focus rounded to a whole pixel in the camera's frame. */
   private place(): void {
     const v = this.view;
@@ -216,9 +229,14 @@ export class PixelRenderer {
     this.camera.updateMatrixWorld();
   }
 
+  /** What the last frame drew: draw calls and triangles over all its passes (shadows, color, normals, post). */
+  readonly stats = { calls: 0, triangles: 0 };
+
   render(scene: THREE.Scene): void {
     this.place();
     const r = this.renderer;
+    r.info.autoReset = false;
+    r.info.reset();
     r.setRenderTarget(this.color);
     r.render(scene, this.camera);
 
@@ -260,6 +278,8 @@ export class PixelRenderer {
     this.post.uniforms.fade!.value = this.fade;
     r.setRenderTarget(null);
     r.render(this.postScene, this.postCamera);
+    this.stats.calls = r.info.render.calls;
+    this.stats.triangles = r.info.render.triangles;
   }
 
   /** Where a point in the world is on the page, in CSS pixels. */

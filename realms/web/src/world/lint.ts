@@ -1,5 +1,6 @@
 import {
   BARE,
+  RAMP,
   BLOCKED,
   CHUNK,
   type ChunkData,
@@ -49,14 +50,14 @@ function may(out: Problems, where: string, o: Record<string, unknown>, key: stri
 
 /** A tile on the wire: [height (whole texels), surface id or "", flags 0-3]. */
 function checkTile(t: unknown): boolean {
-  return Array.isArray(t) && t.length === 3 && isInt(t[0]) && isStr(t[1]) && isInt(t[2]) && t[2] >= 0 && t[2] <= (BLOCKED | BARE);
+  return Array.isArray(t) && t.length === 3 && isInt(t[0]) && isStr(t[1]) && isInt(t[2]) && t[2] >= 0 && t[2] <= (BLOCKED | BARE | RAMP);
 }
 
 function checkTiles(out: Problems, where: string, tiles: unknown, count: number): void {
   if (!Array.isArray(tiles)) return void out.push(`${where}: tiles should be a list`);
   if (tiles.length !== count) out.push(`${where}: ${tiles.length} tiles, not ${count}`);
   const bad = tiles.findIndex((t) => !checkTile(t));
-  if (bad >= 0) out.push(`${where}: tile ${bad} should be [height (texels), surface, flags 0-3], not ${JSON.stringify(tiles[bad])}`);
+  if (bad >= 0) out.push(`${where}: tile ${bad} should be [height (texels), surface, flags 0-7], not ${JSON.stringify(tiles[bad])}`);
 }
 
 function checkProps(out: Problems, where: string, props: unknown, inside: (x: number, z: number) => boolean): void {

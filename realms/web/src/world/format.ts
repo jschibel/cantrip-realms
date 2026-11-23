@@ -71,12 +71,17 @@ export const MAX_TIER = 4;
  * - `surface`: a surface id (art/surfaces), or `""` for none: nothing is drawn there (beyond the world's edge, the
  *   dark round a room) and nothing walks there.
  * - `flags`: `BLOCKED` (1) nobody walks there; `BARE` (2) nothing grows up off it (no standing grass under a tree or a
- *   house). 0 and 1 mean what version 1's `blocked` meant.
+ *   house); `RAMP` (4) its floor slopes between its neighbours' levels. 0 and 1 mean what version 1's `blocked` meant.
  */
 export type TileData = readonly [number, string, number];
 
 export const BLOCKED = 1;
 export const BARE = 2;
+/**
+ * `RAMP` (4): the tile's floor slopes from the level on one side to the level on the other, along the axis its
+ * neighbours differ most on - a way up a terrace (render/terrain.ts draws it; a run of ramp tiles is one even slope).
+ */
+export const RAMP = 4;
 /** The surface of no ground at all. */
 export const NO_SURFACE = "";
 
