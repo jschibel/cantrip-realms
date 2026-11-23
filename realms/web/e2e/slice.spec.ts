@@ -7,7 +7,8 @@ import { type GifFrame, encodeGif } from "./gif";
 // The art slice (slice.html): New Benalia's street, Grizzlegom's Goblins inside it, and the crypt under the churchyard,
 // in the 3D pixel-art look on square tiles. The smoke tests load each scene and check it draws, and walk through the
 // shop's door and back with real clicks. With SLICE_SHOTS=1 they also write the slice's pictures for the owner to
-// judge - each scene, the street in both outside cameras, and a walking clip of each, with the doorway's transition -
+// judge - each scene, the street at each of the camera's three headings, a room from a corner, a walking clip of each
+// scene with the doorway's transition, and the street turning both ways -
 // to e2e/screenshots/slice; otherwise to test-results/slice.
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -62,7 +63,7 @@ for (const scene of ["street", "shop", "crypt"] as const) {
     const frame = await readFrame(page);
     expect(colorCount(frame), "a scene full of painted color").toBeGreaterThan(200);
     expect(errors).toEqual([]);
-    if (shots || scene !== "street") await page.screenshot({ path: join(out, `${scene}${scene === "street" ? "-34" : ""}.png`) });
+    if (scene !== "street") await page.screenshot({ path: join(out, `${scene}.png`) });
   });
 }
 
@@ -72,42 +73,64 @@ interface CameraView {
   readonly snapped: boolean;
 }
 
-/** Waits for the camera to settle, then says which view it settled in. */
-async function settledView(page: Page): Promise<"iso" | "34"> {
+/** Waits for the camera to settle, then says which heading it settled at (and that it is a true three-quarter view). */
+async function settledHeading(page: Page): Promise<"left" | "front" | "right"> {
   await expect.poll(() => slice<boolean>(page, "cameraSettled"), { timeout: 10_000 }).toBe(true);
   const v = await slice<CameraView>(page, "view");
   expect(v.snapped, "snapped to whole pixels once settled").toBe(true);
-  if (Math.abs(v.yaw - Math.PI / 4) < 1e-6 && Math.abs(v.pitch - Math.PI / 6) < 1e-6) return "iso";
-  expect(v.yaw).toBeCloseTo(0, 6);
   expect(v.pitch).toBeCloseTo(Math.PI / 4, 6);
-  return "34";
+  const byYaw = ([[-Math.PI / 4, "left"], [0, "front"], [Math.PI / 4, "right"]] as const).find(([yaw]) => Math.abs(v.yaw - yaw) < 1e-6);
+  expect(byYaw, `a heading, not a yaw of ${v.yaw}`).toBeDefined();
+  expect(await slice<string>(page, "heading")).toBe(byYaw![1]);
+  return byYaw![1];
 }
 
-test("slice: the street's camera turns between its two views, by key and by button, and is remembered", async ({ page }) => {
+test("slice: the camera turns 45 degrees either way and no further, by key and by button, and is remembered", async ({ page }) => {
   await open(page, "still");
-  expect(await settledView(page)).toBe("34");
+  expect(await settledHeading(page)).toBe("front");
+  await page.screenshot({ path: join(out, "street-front.png") });
 
-  // V: the camera eases round - part-way through it is neither view - and settles isometric.
-  await page.keyboard.press("v");
-  expect(await slice<string>(page, "outside")).toBe("iso");
-  await page.waitForTimeout(250);
+  // E: it eases round to the right - part-way through it is between headings - and settles at 45 degrees.
+  await page.keyboard.press("e");
+  await page.waitForTimeout(120);
   const mid = await slice<CameraView>(page, "view");
   expect(mid.yaw > 0 && mid.yaw < Math.PI / 4, "mid-turn").toBe(true);
-  expect(await settledView(page)).toBe("iso");
-  await page.waitForTimeout(400);
-  await page.screenshot({ path: join(out, "street-iso.png") });
+  expect(await settledHeading(page)).toBe("right");
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(out, "street-right45.png") });
+  // A third step the same way is refused: it never goes past 45 degrees.
+  await page.keyboard.press("e");
+  expect(await settledHeading(page)).toBe("right");
+  await expect(page.locator("[data-test='slice:turn-right']")).toBeDisabled();
 
-  // The choice outlasts the visit.
+  // The heading outlasts the visit.
   await open(page, "still");
-  expect(await slice<string>(page, "outside")).toBe("iso");
-  expect(await settledView(page)).toBe("iso");
+  expect(await settledHeading(page)).toBe("right");
 
-  // The on-screen button turns it back.
-  const button = page.locator("[data-test='slice:camera']");
-  await expect(button).toContainText("isometric");
-  await button.click();
-  expect(await settledView(page)).toBe("34");
-  await expect(button).toContainText("three-quarter");
+  // The buttons step it back to the front and on to the left; Q past the left is refused.
+  const left = page.locator("[data-test='slice:turn-left']");
+  await left.click();
+  expect(await settledHeading(page)).toBe("front");
+  await left.click();
+  expect(await settledHeading(page)).toBe("left");
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(out, "street-left45.png") });
+  await page.keyboard.press("q");
+  expect(await settledHeading(page)).toBe("left");
+  await expect(left).toBeDisabled();
+});
+
+test("slice: the rooms turn too, their near wall cut down", async ({ page }) => {
+  for (const [scene, heading] of [
+    ["shop", "right"],
+    ["crypt", "left"],
+  ] as const) {
+    await open(page, `scene=${scene}&still&heading=${heading}`);
+    expect(await settledHeading(page)).toBe(heading);
+    await page.waitForTimeout(400);
+    expect(colorCount(await readFrame(page))).toBeGreaterThan(200);
+    await page.screenshot({ path: join(out, `${scene}-${heading}45.png`) });
+  }
 });
 
 test("slice: through the shop's door and back out, by clicking", async ({ page }) => {
@@ -125,7 +148,7 @@ test("slice: through the shop's door and back out, by clicking", async ({ page }
 });
 
 test("slice: down into the crypt from the churchyard and back up, by clicking", async ({ page }) => {
-  await open(page, "still&outside=iso&at=34,11");
+  await open(page, "still&heading=right&at=34,11");
   for (const [from, to] of [
     ["street", "crypt"],
     ["crypt", "street"],
@@ -136,8 +159,8 @@ test("slice: down into the crypt from the churchyard and back up, by clicking", 
     await expect.poll(() => slice<string>(page, "scene"), { timeout: 20_000 }).toBe(to);
     await expect.poll(() => slice<boolean>(page, "transitioning"), { timeout: 20_000 }).toBe(false);
   }
-  // Back on the street, in the camera it left in.
-  expect(await slice<string>(page, "outside")).toBe("iso");
+  // Back on the street, at the heading it left at.
+  expect(await settledHeading(page)).toBe("right");
 });
 
 // --- Pictures for the owner ------------------------------------------------------------------------------------------
@@ -218,20 +241,17 @@ async function recordWalk(page: Page, to: Point, seconds: number): Promise<Frame
 }
 
 const clips: readonly { name: string; query: string; to: Point; seconds: number; then?: Point; thenSeconds?: number }[] = [
-  { name: "street-34-walk", query: "at=18,13", to: { x: 13, y: 10 }, seconds: 3.2 },
-  { name: "street-iso-walk", query: "outside=iso&at=18,13", to: { x: 13, y: 10 }, seconds: 3.2 },
+  { name: "street-walk", query: "at=18,13", to: { x: 13, y: 10 }, seconds: 3.2 },
   { name: "shop-walk", query: "scene=shop", to: { x: 3, y: 6 }, seconds: 1.2, then: { x: 9, y: 4 }, thenSeconds: 1.8 },
   { name: "crypt-walk", query: "scene=crypt", to: { x: 4, y: 5 }, seconds: 1.2, then: { x: 10, y: 5 }, thenSeconds: 2.0 },
 ];
 
-test("slice clip: street-camera-toggle", async ({ page }) => {
+test("slice clip: street-rotate", async ({ page }) => {
   test.skip(!shots, "pictures only with SLICE_SHOTS");
   test.setTimeout(240_000);
-  // Walking along the street while the camera turns to isometric and back, at 20 frames a second of game time.
-  await open(page, "manual&nohud&outside=34&at=10,12");
+  // The camera stepping round about the player: right, back to the front, left, and back - at 20 frames a second.
+  await open(page, "manual&nohud&heading=front&at=14,13");
   await advance(page, 0.5);
-  const target = await tileOnPage(page, 18, 12);
-  await page.mouse.click(target.x, target.y);
   const frames: Frame[] = [];
   const record = async (seconds: number) => {
     for (let t = 0; t < seconds - 1e-6; t += 0.05) {
@@ -239,12 +259,12 @@ test("slice clip: street-camera-toggle", async ({ page }) => {
       frames.push(await readFrame(page));
     }
   };
-  await record(0.3);
-  await page.keyboard.press("v");
-  await record(1.0);
-  await page.keyboard.press("v");
-  await record(1.0);
-  writeFileSync(join(out, "street-camera-toggle.gif"), gifOf(frames, { w: 288, h: 180 }, 2, 5));
+  await record(0.25);
+  for (const key of ["e", "q", "q", "e"]) {
+    await page.keyboard.press(key);
+    await record(0.7);
+  }
+  writeFileSync(join(out, "street-rotate.gif"), gifOf(frames, { w: 288, h: 180 }, 2, 5));
 });
 
 for (const c of clips) {

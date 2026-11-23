@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Figure, ghoul, goblin, hero, knight, skeleton, townswoman } from "./characters";
 import { seeded } from "./pixmap";
-import { ISOMETRIC, SliceRenderer, THREE_QUARTER, type View, blendViews } from "./renderer";
+import { SliceRenderer, THREE_QUARTER, type View, blendViews } from "./renderer";
 import { buildCrypt } from "./scenes/crypt";
 import { buildShop } from "./scenes/shop";
 import { buildStreet } from "./scenes/street";
@@ -11,8 +11,9 @@ import { Actor, type Door, type SceneId, type SliceScene, centre } from "./world
 // the 3D pixel-art look - a real 3D scene drawn small and shown in big pixels, on square tiles, seen as a 16-bit RPG
 // sees its towns and rooms. Click to walk; walk through a door to go in or out.
 //
-//   ?outside=iso|34   the street's camera: isometric or three-quarter. V or the camera button switches it, easing
-//                     from one to the other; the choice is remembered (localStorage) for the next visit
+//   ?heading=left|front|right   the camera's heading: looking north, or swung 45 degrees round to the left or the
+//                     right. Q and E (or the turn buttons) step it one heading, easing round about the player; it never
+//                     goes past 45 degrees. The heading is remembered (localStorage) for the next visit
 //   ?scene=street|shop|crypt   where to start; ?at=x,z the tile
 //   ?test             publishes globalThis.sliceTest (screen places of everything, the state, a frame reader)
 //   ?still            the townsfolk stand still (for screenshots)
@@ -26,21 +27,31 @@ const query = new URLSearchParams(location.search);
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const still = query.has("still");
 
-/** Where the player's choice of outside camera is kept between visits. Storage may be refused: then it is not kept. */
-const CAMERA_KEY = "cantrip-realms.slice.outside";
-function storedOutside(): "iso" | "34" | null {
+/**
+ * The camera's three headings: -1 swung 45 degrees round to the left (looking north-east from the south-west), 0 looking
+ * north as a 16-bit RPG does, 1 swung to the right (looking north-west from the south-east). Never further: past 45
+ * degrees walls and signs would be seen from the side and then from behind, and nothing is made to be seen so.
+ */
+type Heading = -1 | 0 | 1;
+const HEADING_NAMES: Record<string, Heading> = { left: -1, front: 0, right: 1 };
+const NAME_OF: Record<Heading, string> = { [-1]: "left", 0: "front", 1: "right" };
+/** Where the heading is kept between visits. Storage may be refused: then it lasts the visit. */
+const HEADING_KEY = "cantrip-realms.slice.heading";
+function storedHeading(): Heading | null {
   try {
-    const v = localStorage.getItem(CAMERA_KEY);
-    return v === "iso" || v === "34" ? v : null;
+    return HEADING_NAMES[localStorage.getItem(HEADING_KEY) ?? ""] ?? null;
   } catch {
     return null;
   }
 }
-const asked = query.get("outside");
-let outside: "iso" | "34" = asked === "iso" || asked === "34" ? asked : (storedOutside() ?? "34");
+let heading: Heading = HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0;
 const outsideScale = () => Math.max(2, Math.round(window.innerHeight / 270));
-const viewFor = (s: SliceScene): View =>
-  s.inside ? { ...THREE_QUARTER, scale: outsideScale() + 1 } : { ...(outside === "iso" ? ISOMETRIC : THREE_QUARTER), scale: outsideScale() };
+/** A scene's view: the three-quarter camera at the heading (where the scene turns), closer in rooms. */
+const viewFor = (s: SliceScene): View => ({
+  ...THREE_QUARTER,
+  yaw: (s.turns ? heading : 0) * (Math.PI / 4),
+  scale: s.inside ? outsideScale() + 1 : outsideScale(),
+});
 
 const builders: Record<SceneId, () => SliceScene> = { street: () => buildStreet(), shop: () => buildShop(), crypt: () => buildCrypt() };
 const scenes = new Map<SceneId, SliceScene>();
@@ -89,9 +100,11 @@ style.textContent = `
   #slice-place { left: 16px; top: 16px; }
   #slice-help { left: 50%; bottom: 14px; transform: translateX(-50%); font-weight: 400; font-size: 13px; color: #e0d2b2; }
   #slice-help b { color: #f8d04c; font-weight: 600; }
-  #slice-camera { right: 16px; top: 16px; cursor: pointer; font-size: 13px; }
-  #slice-camera:hover { border-color: #f8d04c; }
-  #slice-camera:disabled { opacity: .55; cursor: default; }
+  #slice-turns { right: 16px; top: 16px; display: flex; gap: 6px; padding: 4px 6px; }
+  #slice-turns button { font: 600 18px/1 Georgia, serif; color: #f4ecd4; background: #2c2840; border: 1px solid #c6b496; border-radius: 3px;
+    width: 34px; height: 30px; cursor: pointer; padding: 0; }
+  #slice-turns button:hover:not(:disabled) { border-color: #f8d04c; color: #f8d04c; }
+  #slice-turns button:disabled { opacity: .35; cursor: default; }
 `;
 document.head.append(style);
 const placeLabel = document.createElement("div");
@@ -100,21 +113,31 @@ placeLabel.className = "slice-panel";
 const help = document.createElement("div");
 help.id = "slice-help";
 help.className = "slice-panel";
-const cameraButton = document.createElement("button");
-cameraButton.id = "slice-camera";
-cameraButton.className = "slice-panel";
-cameraButton.dataset.test = "slice:camera";
-cameraButton.addEventListener("click", () => setOutside(outside === "iso" ? "34" : "iso"));
-document.body.append(placeLabel, help, cameraButton);
+// The turn buttons: one heading to the left, one to the right.
+const turns = document.createElement("div");
+turns.id = "slice-turns";
+turns.className = "slice-panel";
+const turnButton = (step: -1 | 1, glyph: string, label: string) => {
+  const button = document.createElement("button");
+  button.textContent = glyph;
+  button.title = label;
+  button.dataset.test = step < 0 ? "slice:turn-left" : "slice:turn-right";
+  button.addEventListener("click", () => turn(step));
+  turns.append(button);
+  return button;
+};
+const turnLeft = turnButton(-1, "\u27F2", "Turn the camera left (Q)");
+const turnRight = turnButton(1, "\u27F3", "Turn the camera right (E)");
+document.body.append(placeLabel, help, turns);
 const showHud = !query.has("nohud");
-placeLabel.hidden = help.hidden = cameraButton.hidden = !showHud;
+placeLabel.hidden = help.hidden = turns.hidden = !showHud;
 function updateHud(): void {
   placeLabel.textContent = current.title;
-  cameraButton.textContent = `Camera: ${outside === "iso" ? "isometric" : "three-quarter"} (V)`;
-  cameraButton.title = current.inside ? "Rooms are always seen from the three-quarter view; this sets the street's camera" : "Switch the street's camera";
+  turnLeft.disabled = !current.turns || heading === -1;
+  turnRight.disabled = !current.turns || heading === 1;
   help.innerHTML = current.inside
-    ? "<b>Click</b> to walk &middot; walk out the door to leave"
-    : `<b>Click</b> to walk &middot; <b>V</b> camera: ${outside === "iso" ? "isometric" : "three-quarter"} &middot; the green door and the crypt gate go in`;
+    ? "<b>Click</b> to walk &middot; <b>Q</b> / <b>E</b> turn the camera &middot; walk out the door to leave"
+    : "<b>Click</b> to walk &middot; <b>Q</b> / <b>E</b> turn the camera &middot; the green door and the crypt gate go in";
 }
 updateHud();
 
@@ -135,7 +158,8 @@ const OUT = 0.45;
 function startDoor(door: Door): void {
   pendingDoor = null;
   // A camera turn under way gives way to the doorway's own easing, which starts from wherever the camera is.
-  cameraTurn = null;
+  turning = false;
+  turnSpeed = 0;
   renderer.snap = true;
   player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
   transition = { door, from: renderer.view, t: 0, phase: "in", focusFrom: focus.clone() };
@@ -156,6 +180,7 @@ function arrive(door: Door): void {
   focus.copy(clampFocus(player.position));
   updateHud();
 }
+
 
 function stepTransition(dt: number): void {
   const tr = transition;
@@ -187,8 +212,8 @@ function stepTransition(dt: number): void {
 // --- The camera ------------------------------------------------------------------------------------------------------
 
 /**
- * Keeps the camera's focus where the view stays on the scene's ground: a room smaller than the view is centred. The
- * three-quarter view is held to the scene's edges; the isometric view looks across them at a slant and follows the
+ * Keeps the camera's focus where the view stays on the scene's ground: a room smaller than the view is centred. Looking
+ * north the view is held to the scene's edges; swung round to a corner it looks across them at a slant and follows the
  * player freely; between the two, while the camera turns, the focus slides from one to the other with the turn.
  */
 function clampFocus(p: THREE.Vector3): THREE.Vector3 {
@@ -199,23 +224,57 @@ function clampFocus(p: THREE.Vector3): THREE.Vector3 {
   const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
   const held = new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 + halfZ, z1 - halfZ));
   const free = Math.min(1, Math.abs(v.yaw) / (Math.PI / 4));
-  return held.lerp(new THREE.Vector3(p.x, 0, p.z), free);
+  // Seen from a corner a room is wider than the view: frame it between the player and the room's middle (the back wall
+  // included), so the player and most of the room are on screen together.
+  const loose = new THREE.Vector3(p.x, 0, p.z);
+  if (current.inside) loose.lerp(new THREE.Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2), 0.45);
+  return held.lerp(loose, free);
 }
 
 /**
- * Turning the street's camera from one view to the other: pitch, turn, the three-quarter view's vertical stretch and the
- * zoom all eased together over CAMERA_TURN seconds (blendViews), the camera gliding unsnapped until it settles.
+ * Turning the camera from one heading to the next: its turn alone eases round about the player - pitch, stretch and
+ * zoom stay as they are - as a critically damped spring, so a press mid-turn retargets it without a jolt (it keeps
+ * its speed). It glides unsnapped while it turns and snaps to whole pixels once it has settled.
  */
-let cameraTurn: { from: View; t: number } | null = null;
-const CAMERA_TURN = 0.7;
+let turning = false;
+let turnSpeed = 0;
+/** How stiff the turn is: it settles in about 0.45 s. */
+const TURN_RATE = 11;
 
 function stepCameraTurn(dt: number): void {
-  if (!cameraTurn || transition) return;
-  cameraTurn.t += dt;
-  const k = Math.min(1, cameraTurn.t / CAMERA_TURN);
-  renderer.setView(blendViews(cameraTurn.from, viewFor(current), k));
-  renderer.snap = k >= 1;
-  if (k >= 1) cameraTurn = null;
+  if (!turning || transition) return;
+  const target = viewFor(current).yaw;
+  let yaw = renderer.view.yaw;
+  for (let i = 0; i < 4; i++) {
+    const h = dt / 4;
+    turnSpeed += (TURN_RATE * TURN_RATE * (target - yaw) - 2 * TURN_RATE * turnSpeed) * h;
+    yaw += turnSpeed * h;
+  }
+  if (Math.abs(target - yaw) < 2e-4 && Math.abs(turnSpeed) < 3e-3) {
+    yaw = target;
+    turnSpeed = 0;
+    turning = false;
+  }
+  renderer.setView({ ...renderer.view, yaw });
+  renderer.snap = !turning;
+}
+
+/** Steps the camera one heading left or right; a step past 45 degrees, or in a room that does not turn, does nothing. */
+function turn(step: -1 | 1): void {
+  const next = heading + step;
+  if (!current.turns || next < -1 || next > 1 || transition) return;
+  heading = next as Heading;
+  try {
+    localStorage.setItem(HEADING_KEY, NAME_OF[heading]);
+  } catch {
+    // Storage refused (a private window, blocked site data): the heading lasts this visit only.
+  }
+  turning = true;
+  renderer.snap = false;
+  const url = new URL(location.href);
+  url.searchParams.set("heading", NAME_OF[heading]);
+  history.replaceState(null, "", url);
+  updateHud();
 }
 
 // --- Input -------------------------------------------------------------------------------------------------------------
@@ -273,36 +332,29 @@ function clickTile(tile: { x: number; z: number }): void {
   if (best) player.goTo(best);
 }
 
+/** The tile on the floor under a point on the page, whatever stands in front of it. */
+function floorTileAt(x: number, y: number): { x: number; z: number } | null {
+  const point = renderer.rayAt(x, y).intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
+  return point ? { x: Math.floor(point.x), z: Math.floor(point.z) } : null;
+}
+
+const isDoorTile = (t: { x: number; z: number } | null) =>
+  !!t && current.doors.some((d) => (d.tile.x === t.x && d.tile.z === t.z) || (d.tile.x + d.step[0] === t.x && d.tile.z + d.step[1] === t.z));
+
 canvas.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
-  const tile = tileAt(e.clientX, e.clientY);
+  // A doorway seen past the corner of a wall (the camera swung round) still takes you through it.
+  const floor = floorTileAt(e.clientX, e.clientY);
+  const tile = isDoorTile(floor) ? floor : tileAt(e.clientX, e.clientY);
   if (tile) clickTile(tile);
 });
 
-/**
- * Sets the street's camera. Outside, the camera eases into it from wherever it is (even mid-turn, even walking); in a
- * room, which is always seen from the three-quarter view, it is the camera the street will be seen in on the way out.
- */
-function setOutside(mode: "iso" | "34"): void {
-  if (mode === outside) return;
-  outside = mode;
-  try {
-    localStorage.setItem(CAMERA_KEY, mode);
-  } catch {
-    // Storage refused (a private window, blocked site data): the choice lasts this visit only.
-  }
-  if (!current.inside && !transition) cameraTurn = { from: renderer.view, t: 0 };
-  const url = new URL(location.href);
-  url.searchParams.set("outside", mode);
-  history.replaceState(null, "", url);
-  updateHud();
-}
-
 window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
-  if (e.key === "v" || e.key === "V") setOutside(outside === "iso" ? "34" : "iso");
+  if (e.key === "q" || e.key === "Q") turn(-1);
+  if (e.key === "e" || e.key === "E") turn(1);
 });
-window.addEventListener("resize", () => renderer.setView(transition || cameraTurn ? renderer.view : viewFor(current)));
+window.addEventListener("resize", () => renderer.setView(transition || turning ? { ...renderer.view, scale: viewFor(current).scale } : viewFor(current)));
 
 // --- The loop --------------------------------------------------------------------------------------------------------
 
@@ -318,14 +370,8 @@ function frame(now: number): void {
   requestAnimationFrame(frame);
 }
 
-/**
- * How far figures lean back from the camera (characters.ts, setLean): 25 degrees from the three-quarter view, 15 from
- * the isometric, and in between while the camera eases from one to the other.
- */
-function leanAngle(): number {
-  const t = Math.min(1, Math.max(0, (renderer.view.pitch - Math.PI / 6) / (Math.PI / 4 - Math.PI / 6)));
-  return ((15 + 10 * t) * Math.PI) / 180;
-}
+/** How far figures lean back from the camera (characters.ts, setLean), at every heading. */
+const LEAN = (25 * Math.PI) / 180;
 
 function tick(dt: number): void {
   time += dt;
@@ -336,18 +382,17 @@ function tick(dt: number): void {
     if (still) a.figure.update(dt, 0);
     else a.update(dt, player);
   }
-  current.update(dt, time);
   stepTransition(dt);
   stepCameraTurn(dt);
+  current.update(dt, time, renderer.view.yaw, viewFor(current).yaw);
   if (!transition) {
     const target = clampFocus(player.position);
     focus.lerp(target, Math.min(1, dt * 8));
   }
   renderer.focus.copy(focus);
   // Every figure leans for the camera as it is this frame, so the lean turns with the camera and never lags it.
-  const lean = leanAngle();
   const { pitch, yaw } = renderer.view;
-  for (const f of [player.figure, ...current.actors.map((a) => a.figure), ...cast]) f.setLean(lean, pitch, yaw);
+  for (const f of [player.figure, ...current.actors.map((a) => a.figure), ...cast]) f.setLean(LEAN, pitch, yaw);
 }
 requestAnimationFrame(frame);
 
@@ -360,15 +405,16 @@ if (query.has("test")) {
     get scene() {
       return current.id;
     },
-    get outside() {
-      return outside;
+    /** The heading: "left", "front" or "right". */
+    get heading() {
+      return NAME_OF[heading];
     },
     /** The camera as it is now (its turn and pitch, radians), and whether it has settled into its view. */
     get view() {
       return { yaw: renderer.view.yaw, pitch: renderer.view.pitch, snapped: renderer.snap };
     },
     get cameraSettled() {
-      return cameraTurn === null && transition === null;
+      return !turning && transition === null;
     },
     get transitioning() {
       return transition !== null;
@@ -390,7 +436,7 @@ if (query.has("test")) {
         ...current.actors.map((a) => ({ name: a.name, kind: "figure", tile: a.tile, moving: a.moving, ...screen(a.position.clone().setY(0.4)) })),
       ];
     },
-    setOutside,
+    turn,
     /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual). */
     advance(seconds: number) {
       for (let t = 0; t < seconds - 1e-6; t += 1 / 60) tick(1 / 60);

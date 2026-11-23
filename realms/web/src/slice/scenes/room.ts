@@ -23,7 +23,18 @@ export interface RoomSpec {
   readonly exit: readonly [number, number];
 }
 
-export function roomShell(b: MeshBuilder, r: RoomSpec): void {
+/**
+ * The side walls, built apart so the one on the camera's side can be cut down to the front wall's height when the camera
+ * swings round to look across the room from a corner, the way a building between the camera and the player is cut away.
+ */
+export interface SideWalls {
+  readonly east: { readonly full: THREE.Group; readonly low: THREE.Group };
+  readonly west: { readonly full: THREE.Group; readonly low: THREE.Group };
+  /** Cuts the east (camera from the south-east) and west (from the south-west) walls down, or stands them up. */
+  cut(east: boolean, west: boolean): void;
+}
+
+export function roomShell(b: MeshBuilder, r: RoomSpec, scene: THREE.Scene): SideWalls {
   const t = r.thickness;
   const { width: w, depth: d, height: h } = r;
   // The back wall in bands (wainscot, plaster, a beam), each a texel or two proud of the one above if asked.
@@ -34,13 +45,35 @@ export function roomShell(b: MeshBuilder, r: RoomSpec): void {
     y = band.to;
   }
   b.box(-t, 0, -t, w + t, h, 0, { top: r.top });
-  // The side walls: blocks the full depth of the room.
-  b.box(-t, 0, -t, 0, h, d + t, { east: r.side, top: r.top, south: r.top });
-  b.box(w, 0, -t, w + t, h, d + t, { west: r.side, top: r.top, south: r.top });
+  // The side walls: blocks the full depth of the room, and their cut-down stand-ins.
+  const wall = (x0: number, x1: number, height: number, inner: "east" | "west", z0: number) => {
+    const wb = new MeshBuilder();
+    wb.box(x0, 0, z0, x1, height, d + t, { [inner]: r.side, top: r.top, south: r.top, north: r.top });
+    const g = wb.build(`wall:${inner === "east" ? "west" : "east"}:${height}`);
+    scene.add(g);
+    return g;
+  };
+  const sides: SideWalls = {
+    west: { full: wall(-t, 0, h, "east", -t), low: wall(-t, 0, r.front, "east", 0) },
+    east: { full: wall(w, w + t, h, "west", -t), low: wall(w, w + t, r.front, "west", 0) },
+    cut(east, west) {
+      sides.east.full.visible = !east;
+      sides.east.low.visible = east;
+      sides.west.full.visible = !west;
+      sides.west.low.visible = west;
+    },
+  };
+  sides.cut(false, false);
   // The front wall, low, with its gap.
   const [g0, g1] = r.exit;
   b.box(0, 0, d, g0, r.front, d + t, { north: r.side, top: r.top, south: r.top, east: r.side });
   b.box(g1, 0, d, w, r.front, d + t, { north: r.side, top: r.top, south: r.top, west: r.side });
+  return sides;
+}
+
+/** Which side walls to cut for the camera's turn now and the heading it is turning to: the near side's, as it swings. */
+export function cutFor(sides: SideWalls, yaw: number, toward: number): void {
+  sides.cut(yaw > 0.01 || toward > 0.01, yaw < -0.01 || toward < -0.01);
 }
 
 /** A grid of the room's floor, every tile open. */

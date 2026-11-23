@@ -57,8 +57,9 @@ function tuftAtlas(): Pixmap {
 
 export interface GrassField {
   readonly mesh: THREE.InstancedMesh;
-  /** The wind's clock. */
+  /** The wind's clock, and the camera's turn the cards face. */
   readonly time: { value: number };
+  readonly yaw: { value: number };
 }
 
 /**
@@ -92,10 +93,12 @@ export function grassField(width: number, height: number, origin: { x: number; z
   const material = new THREE.MeshLambertMaterial({ map: texture, alphaTest: 0.5, side: THREE.DoubleSide });
   material.userData.skipNormal = true;
   const time = { value: 0 };
+  const yaw = { value: 0 };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.grassTime = time;
+    shader.uniforms.grassYaw = yaw;
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\nattribute float variant;\nuniform float grassTime;`)
+      .replace("#include <common>", `#include <common>\nattribute float variant;\nuniform float grassTime;\nuniform float grassYaw;`)
       .replace(
         "#include <uv_vertex>",
         `#include <uv_vertex>\nvMapUv = vec2((uv.x + variant) / ${TUFTS.length.toFixed(1)}, uv.y);`,
@@ -106,7 +109,11 @@ export function grassField(width: number, height: number, origin: { x: number; z
         // The wind: the card's top sways, in gusts that roll across the field.
         vec3 grassAt = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float gust = sin(grassTime * 1.7 + grassAt.x * 0.55 + grassAt.z * 0.35) * 0.5 + 0.5;
-        transformed.x += uv.y * (0.025 + 0.06 * gust) * sin(grassTime * 3.1 + grassAt.x * 2.3 + grassAt.z * 1.7);`,
+        transformed.x += uv.y * (0.025 + 0.06 * gust) * sin(grassTime * 3.1 + grassAt.x * 2.3 + grassAt.z * 1.7);
+        // Each card faces the camera at whatever heading it has.
+        float grassC = cos(grassYaw);
+        float grassS = sin(grassYaw);
+        transformed.xz = vec2(grassC * transformed.x + grassS * transformed.z, -grassS * transformed.x + grassC * transformed.z);`,
       );
     bandShader(shader);
   };
@@ -122,5 +129,5 @@ export function grassField(width: number, height: number, origin: { x: number; z
   mesh.receiveShadow = true;
   mesh.castShadow = false;
   mesh.name = "grass";
-  return { mesh, time };
+  return { mesh, time, yaw };
 }

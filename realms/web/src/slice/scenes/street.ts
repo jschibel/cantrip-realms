@@ -47,8 +47,8 @@ const MAP = [
 const W = 40;
 const H = 26;
 /** Grass all round the street, beyond where anyone walks, so no view runs off the edge of the world. */
-const MARGIN_X = 10;
-const MARGIN_Z = 8;
+const MARGIN_X = 14;
+const MARGIN_Z = 12;
 
 export function buildStreet(seed = 1): SliceScene {
   const scene = new THREE.Scene();
@@ -214,14 +214,16 @@ export function buildStreet(seed = 1): SliceScene {
     id: "street",
     title: "New Benalia",
     inside: false,
+    turns: true,
     scene,
     grid,
     doors,
     actors,
     start: { x: 13, z: 12 },
     bounds: [0, 0, W, H],
-    update(_dt, time) {
+    update(_dt, time, yaw) {
       field.time.value = time;
+      field.yaw.value = yaw;
       // Water moves a whole texel at a time.
       waterMap.offset.set(Math.floor(time * 3) / 32, Math.floor(time * 5) / 32);
       fall.offset.set(0, -Math.floor(time * 14) / 16);

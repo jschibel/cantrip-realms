@@ -25,8 +25,10 @@ export interface Door {
 export interface SliceScene {
   readonly id: SceneId;
   readonly title: string;
-  /** Rooms and dungeons are seen from the three-quarter view, closer; the street from the one chosen. */
+  /** Rooms and dungeons are seen closer than the street. */
   readonly inside: boolean;
+  /** Whether the camera may swing to its 45-degree headings here (a room that reads from the corners). */
+  readonly turns: boolean;
   readonly scene: THREE.Scene;
   readonly grid: Grid;
   readonly doors: readonly Door[];
@@ -34,7 +36,8 @@ export interface SliceScene {
   readonly start: Tile;
   /** The camera keeps its focus inside this rectangle of the ground (x0, z0, x1, z1). */
   readonly bounds: readonly [number, number, number, number];
-  update(dt: number, time: number): void;
+  /** Animates the scene; `yaw` is the camera's turn now and `toward` the heading it is turning to (radians). */
+  update(dt: number, time: number, yaw: number, toward: number): void;
 }
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);

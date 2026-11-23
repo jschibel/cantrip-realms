@@ -9,7 +9,7 @@ import { Pixmap, seeded } from "../pixmap";
 import * as P from "../props";
 import * as T from "../textures";
 import { Actor, type Door, type SliceScene, blockArea } from "../world";
-import { pointLight, roomGrid, roomShell } from "./room";
+import { cutFor, pointLight, roomGrid, roomShell } from "./room";
 
 // The crypt under New Benalia's churchyard: a vaulted hall of cold violet stone where a dead order's knight lies on a
 // dais in his sarcophagus, braziers burning at its corners. Pillars, an ossuary wall of skulls in niches, torches in
@@ -34,7 +34,7 @@ export function buildCrypt(): SliceScene {
   const brick = tiled(surfaces.cryptBrick());
   const dark = tiled(material("crypt-dark", () => T.ashlar([C.DUNGEON[0]!, ...C.DUNGEON.slice(0, 6)], 29, 8, 12, 20)));
   const top = tiled(material("crypt-top", () => T.flagstones([C.DUNGEON[0]!, ...C.DUNGEON.slice(0, 6)], 31)));
-  roomShell(b, {
+  const walls = roomShell(b, {
     width: W,
     depth: D,
     height: WALL,
@@ -48,7 +48,7 @@ export function buildCrypt(): SliceScene {
     side: brick,
     top,
     exit: [6, 8],
-  });
+  }, scene);
 
   // The ossuary wall: niches of skulls between buttresses, banners, torches in sconces.
   const ossuary = material("ossuary", () => ossuaryPicture());
@@ -174,13 +174,15 @@ export function buildCrypt(): SliceScene {
     id: "crypt",
     title: "The Crypt of the Order",
     inside: true,
+    turns: true,
     scene,
     grid,
     doors,
     actors,
     start: { x: 7, z: 6 },
     bounds: [-0.875, -0.875 - WALL, W + 0.875, D + 1.6],
-    update(_dt, time) {
+    update(_dt, time, yaw, toward) {
+      cutFor(walls, yaw, toward);
       const f = Math.floor(time * 8) % 3;
       fires.forEach((list, i) => list.forEach((g) => (g.visible = i === f)));
       fireLights.forEach((l, i) => (l.intensity = (i < 2 ? 8.5 : 5.5) + [0, 1.4, 0.6][(f + i) % 3]!));

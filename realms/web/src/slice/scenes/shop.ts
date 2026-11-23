@@ -10,7 +10,7 @@ import * as P from "../props";
 import { PX } from "../props";
 import * as T from "../textures";
 import { Actor, type Door, type SliceScene, blockArea } from "../world";
-import { pointLight, roomGrid, roomShell, windowLight } from "./room";
+import { cutFor, pointLight, roomGrid, roomShell, windowLight } from "./room";
 
 // Inside Grizzlegom's Goblins: a goblin's trading post in a Benalish house. Floorboards and a red rug; along the back
 // wall a hearth with its fire, shelves of books and of bottled wares, a rack of blades, posters and a shield; the
@@ -36,7 +36,7 @@ export function buildShop(): SliceScene {
   const plaster = tiled(surfaces.plaster());
   const beam = tiled(surfaces.darkTimber());
   const wallTop = tiled(material("wall-top", () => wallTopPicture()));
-  roomShell(b, {
+  const walls = roomShell(b, {
     width: W,
     depth: D,
     height: 3.0,
@@ -50,7 +50,7 @@ export function buildShop(): SliceScene {
     side: plaster,
     top: wallTop,
     exit: [5, 7],
-  });
+  }, scene);
   // Posts in the back wall, framing it in bays.
   for (const x of [0, 4.0, 8.0, W]) b.box(x - 0.125, 0, 0, x + 0.125, 3.0, 0.1, sides(beam));
   // The doorframe in the front wall.
@@ -157,6 +157,7 @@ export function buildShop(): SliceScene {
     id: "shop",
     title: "Grizzlegom's Goblins",
     inside: true,
+    turns: true,
     scene,
     grid,
     doors,
@@ -164,7 +165,8 @@ export function buildShop(): SliceScene {
     start: { x: 6, z: 6 },
     // The view's reach, as the camera sees it: from the back wall's top to the front wall's foot.
     bounds: [-0.75, -0.75 - 3.0, W + 0.75, D + 0.75],
-    update(_dt, time) {
+    update(_dt, time, yaw, toward) {
+      cutFor(walls, yaw, toward);
       const f = Math.floor(time * 8) % 3;
       fire.forEach((g, i) => (g.visible = i === f));
       // The fire's light flickers in steps, not smoothly.

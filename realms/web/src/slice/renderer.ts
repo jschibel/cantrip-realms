@@ -7,13 +7,12 @@ import { normalMaterialFor } from "./material";
 // scaled up by a whole number with nearest-neighbour filtering. The camera is orthographic and moves only in whole
 // pixels, so nothing shimmers as it follows the player.
 //
-// Two views, and any blend of them (a door eases from one to the other):
-// - Three-quarter, as A Link to the Past, Chrono Trigger and Final Fantasy VI draw a town or a room: looking north,
-//   walls facing you. The camera is pitched 45 degrees and its image drawn at 1/sin 45 vertically, so a floor's texel
-//   and a south-facing wall's texel are both exactly one pixel: tiles are 16 by 16 pixels on screen and nothing is
-//   foreshortened, the way those games' tiles are, while the scene stays a true 3D scene (light, shadows, depth).
-// - Isometric: 2:1 dimetric, a tile 26 pixels across and 13 high - drawn a little smaller than the three-quarter view's
-//   tiles, so the street shows about half as much again round the player.
+// One view, three-quarter, as A Link to the Past, Chrono Trigger and Final Fantasy VI draw a town or a room. The camera
+// is pitched 45 degrees and its image drawn at 1/sin 45 vertically, so a floor's texel is one pixel - tiles are 16 by 16
+// pixels looking north, and nothing is foreshortened, the way those games' tiles are - while the scene stays a true 3D
+// scene (light, shadows, depth). It has three headings: north, as those games look, or swung 45 degrees round to
+// either side (main.ts); never further, so nothing is ever seen from behind. Doors ease between a street's view and a
+// room's closer one.
 //
 // A second pass draws every surface's facing; the post pass uses it and the depth to draw a soft outline in the
 // darkened color of whatever stands in front of something farther, and a bright line on convex edges - the stepped,
@@ -32,9 +31,6 @@ export interface View {
 }
 
 export const THREE_QUARTER: Omit<View, "scale"> = { yaw: 0, pitch: Math.PI / 4, wppX: 1 / 16, wppY: Math.SQRT1_2 / 16 };
-/** The isometric tile's width in pixels: 26 shows (32/26)^2, about 1.5 times, the street a 32-pixel tile would. */
-export const ISO_TILE = 26;
-export const ISOMETRIC: Omit<View, "scale"> = { yaw: Math.PI / 4, pitch: Math.PI / 6, wppX: Math.SQRT2 / ISO_TILE, wppY: Math.SQRT2 / ISO_TILE };
 
 export function blendViews(a: View, b: View, t: number): View {
   const k = t * t * (3 - 2 * t);
@@ -124,7 +120,7 @@ export class SliceRenderer {
   fade = 0;
   /**
    * Whether the camera snaps to whole pixels. It does at rest and while it follows the player; while it turns from one
-   * view to the other it glides, so the turn has no steps in it, and snaps again once it has settled. The pixels stay
+   * heading to another it glides, so the turn has no steps in it, and snaps again once it has settled. The pixels stay
    * crisp either way: the target is still drawn small and shown in whole pixels.
    */
   snap = true;
