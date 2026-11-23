@@ -98,6 +98,9 @@ export class FloorBuilder {
 
   open = (h: Hex): boolean => this.cells.get(key(h))?.blocked === false;
 
+  /** The stairs and the way out: open, but walked onto only to be taken, so no way round anything goes over them. */
+  readonly stops = new Set<string>();
+
   /** Opens a hex as floor (never the outermost ring, so every floor is walled in). */
   carve(h: Hex, terrain: Terrain = this.look.floor, height = 0): void {
     const c = this.cells.get(key(h));
@@ -165,7 +168,10 @@ export class FloorBuilder {
 
   /** Whether blocking an open hex leaves every way past it open (its open neighbours make one unbroken run). */
   safe(h: Hex): boolean {
-    const flags = DIRECTIONS.map((d) => this.open(hex(h.q + d.q, h.r + d.r)));
+    const flags = DIRECTIONS.map((d) => {
+      const n = hex(h.q + d.q, h.r + d.r);
+      return this.open(n) && !this.stops.has(key(n));
+    });
     if (!flags.some(Boolean)) return false;
     let runs = 0;
     for (let k = 0; k < 6; k++) if (flags[k] && !flags[(k + 5) % 6]) runs++;
@@ -226,10 +232,17 @@ export function finish(b: FloorBuilder, rooms: readonly Room[], request: FloorRe
   const nearWall = (h: Hex) => DIRECTIONS.some((d) => !b.open(hex(h.q + d.q, h.r + d.r)));
   const candidatesUp = b.openHexes().filter((h) => distance(h, first.at) <= first.size + 2 && nearWall(h));
   candidatesUp.sort((x, y) => toWorld(y).x + toWorld(y).z - (toWorld(x).x + toWorld(x).z) || x.q - y.q || x.r - y.r);
-  const up = candidatesUp.find((h) => DIRECTIONS.filter((d) => b.open(hex(h.q + d.q, h.r + d.r))).length >= 2) ?? start;
+  // A stair is walked onto only to be taken, so none may be the one way between two parts of the floor: its open
+  // neighbours are one run round it (b.safe), and the floor is walked from the arrival without stepping on it.
+  const twoWays = (h: Hex) => DIRECTIONS.filter((d) => b.open(hex(h.q + d.q, h.r + d.r))).length >= 2;
+  const nearest = (h: Hex[]) => h.sort((x, y) => distance(x, first.at) - distance(y, first.at) || x.q - y.q || x.r - y.r);
+  const up = candidatesUp.find((h) => twoWays(h) && b.safe(h))
+    ?? nearest(b.openHexes().filter((h) => nearWall(h) && twoWays(h) && b.safe(h)))[0]
+    ?? candidatesUp.find(twoWays) ?? start;
   const arrive = DIRECTIONS.map((d) => hex(up.q + d.q, up.r + d.r)).filter(b.open).sort((x, y) => distance(x, first.at) - distance(y, first.at) || x.q - y.q || x.r - y.r)[0] ?? start;
   start = arrive;
   b.put(up, "stairs-up", {}, true);
+  b.stops.add(key(up));
 
   const steps = b.steps(arrive);
   const far = (h: Hex) => steps.get(key(h)) ?? 0;
@@ -260,9 +273,10 @@ export function finish(b: FloorBuilder, rooms: readonly Room[], request: FloorRe
     // The stairs down in the far room, at its far side, the warden a step or two before them.
     const inRoom = b.openHexes().filter((h) => steps.has(key(h)) && distance(h, end.at) <= Math.max(2, end.room.size));
     inRoom.sort((x, y) => far(y) - far(x) || x.q - y.q || x.r - y.r);
-    down = inRoom.find((h) => DIRECTIONS.filter((d) => b.open(hex(h.q + d.q, h.r + d.r))).length >= 2) ?? end.at;
+    down = inRoom.find((h) => twoWays(h) && b.safe(h)) ?? inRoom.find(twoWays) ?? end.at;
     claim(down);
     b.put(down, "stairs-down", {}, true);
+    b.stops.add(key(down));
     if (request.run.Warden) {
       // On the way to the stairs: the hex two steps back along the walk there, or beside them.
       const back = pathTo(b, arrive, down);
@@ -273,8 +287,12 @@ export function finish(b: FloorBuilder, rooms: readonly Room[], request: FloorRe
   } else if (request.run.Boss) {
     spots.push({ index: bossIndex(request.run), mob: request.run.Boss, role: "boss", q: end.at.q, r: end.at.r });
     claim(end.at);
-    wayOut = DIRECTIONS.map((d) => hex(end.at.q + d.q, end.at.r + d.r)).filter((h) => b.open(h) && !taken.has(key(h))).sort((x, y) => far(y) - far(x) || x.q - y.q)[0] ?? null;
-    if (wayOut) claim(wayOut);
+    const beside = DIRECTIONS.map((d) => hex(end.at.q + d.q, end.at.r + d.r)).filter((h) => b.open(h) && !taken.has(key(h))).sort((x, y) => far(y) - far(x) || x.q - y.q);
+    wayOut = beside.find((h) => b.safe(h)) ?? beside[0] ?? null;
+    if (wayOut) {
+      claim(wayOut);
+      b.stops.add(key(wayOut));
+    }
     if (request.run.Warden) {
       const at = freeNear(end.at, 2)!;
       spots.push({ index: wardenIndex(request.run), mob: request.run.Warden, role: "warden", q: at.q, r: at.r });
@@ -308,6 +326,7 @@ export function finish(b: FloorBuilder, rooms: readonly Room[], request: FloorRe
   const keep = new Set([...taken]);
   for (const s of spots) for (const d of DIRECTIONS) keep.add(`${s.q + d.q},${s.r + d.r}`);
   for (const d of DIRECTIONS) keep.add(`${arrive.q + d.q},${arrive.r + d.r}`);
+  for (const d of DIRECTIONS) keep.add(`${up.q + d.q},${up.r + d.r}`);
   if (down) for (const d of DIRECTIONS) keep.add(`${down.q + d.q},${down.r + d.r}`);
   if (wayOut) for (const d of DIRECTIONS) keep.add(`${wayOut.q + d.q},${wayOut.r + d.r}`);
   for (const h of b.openHexes()) {

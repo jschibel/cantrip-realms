@@ -19,6 +19,10 @@ function check(floor: Floor, run: RunFloor): void {
   expect(isOpen(floor.arrive), "the arrival is open").toBe(true);
   const reached = reach(floor.arrive, isOpen);
   expect([...open].filter((k) => !reached.has(k)), "every open hex is reached from the arrival").toEqual([]);
+  // The stairs and the way out are walked onto only to be taken: the floor is walked from the arrival without them.
+  const stops = new Set([floor.up, floor.down, floor.wayOut].filter((h): h is NonNullable<typeof h> => h !== null).map(key));
+  const walked = reach(floor.arrive, (h) => isOpen(h) && !stops.has(key(h)));
+  expect([...open].filter((k) => !stops.has(k) && !walked.has(k)), "every open hex is walked from the arrival without a stair").toEqual([]);
   expect(isOpen(floor.up), "the way up is open").toBe(true);
   expect(distance(floor.up, floor.arrive)).toBe(1);
 
@@ -49,7 +53,7 @@ function check(floor: Floor, run: RunFloor): void {
 describe("dungeon floors", () => {
   for (const theme of THEMES) {
     it(`${theme}: valid, connected floors with exactly the run's encounters`, () => {
-      for (let seed = 1; seed <= 12; seed++) {
+      for (let seed = 1; seed <= 40; seed++) {
         const floors = theme === "tower" && seed % 3 === 0 ? 1 : 2 + (seed % 3);
         for (let floor = 0; floor < floors; floor++) {
           const run = runFloor(floor, floors, 2 + ((seed + floor) % 3));
