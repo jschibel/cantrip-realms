@@ -419,9 +419,11 @@ function reachableNear(tile: { x: number; z: number }, reach: number): { x: numb
 // --- Holding the button: walking after the cursor ---------------------------------------------------------------------
 //
 // A press is a click as it always was. Held, it becomes a drag once the pointer reaches another tile or has been down
-// HOLD_AFTER seconds; from then the player is re-aimed at the tile under the cursor every RETARGET_EVERY seconds, and at
-// once whenever the cursor crosses into another tile - so the walk always heads where the cursor is now, at every
-// heading and while the camera turns or follows. Re-aiming keeps the step being walked (Actor.retarget): no snap, no
+// HOLD_AFTER seconds. From then the player is re-aimed at the tile under the cursor the moment that tile is more than
+// REPATH_DISTANCE tiles from where the current path goes - measured from that path-to tile, not from the player - so a
+// fast sweep is answered at once, on the very event that crosses the distance; and every RETARGET_EVERY seconds besides,
+// for a cursor drifting slowly (or the view moving under a still one). So the walk always heads where the cursor is now,
+// at every heading and while the camera turns, follows or zooms. Re-aiming keeps the step being walked (Actor.retarget): no snap, no
 // restarted stride. A cursor over something blocked walks to the open tile nearest it. A held walk goes up to a door but
 // never through it - only a click goes in (a press on the door, or holding still on it) - so sweeping past the shop
 // never pulls you inside. Letting go of a drag (or the cursor leaving the window, or the window losing focus) finishes
@@ -429,7 +431,17 @@ function reachableNear(tile: { x: number; z: number }, reach: number): { x: numb
 
 const HOLD_AFTER = 0.3;
 const RETARGET_EVERY = 0.1;
-let hold: { x: number; y: number; tile: string; since: number; last: number; dragging: boolean } | null = null;
+const REPATH_DISTANCE = 1.25;
+let hold: {
+  x: number;
+  y: number;
+  tile: string;
+  since: number;
+  last: number;
+  dragging: boolean;
+  /** Where the current path goes: the tile the last re-aim chose. */
+  target: { x: number; z: number } | null;
+} | null = null;
 const tileKey = (t: { x: number; z: number } | null) => (t ? `${t.x},${t.z}` : "");
 
 function holdStep(): void {
@@ -441,7 +453,10 @@ function holdStep(): void {
   if (pendingDoor && isDoorTile(pointed)) return;
   pendingDoor = null;
   const to = reachableNear(pointed, 4);
-  if (to) player.retarget(to);
+  if (to) {
+    player.retarget(to);
+    hold.target = to;
+  }
 }
 
 function release(): void {
@@ -456,12 +471,11 @@ window.addEventListener("pointermove", (e) => {
   if ((e.buttons & 1) === 0) return release();
   hold.x = e.clientX;
   hold.y = e.clientY;
-  const key = tileKey(floorTileAt(e.clientX, e.clientY));
-  if (key !== hold.tile) {
-    hold.tile = key;
-    hold.dragging = true;
-    holdStep();
-  }
+  const under = floorTileAt(e.clientX, e.clientY);
+  if (!hold.dragging && tileKey(under) !== hold.tile) hold.dragging = true;
+  if (!hold.dragging || !under) return;
+  const from = hold.target;
+  if (!from || Math.hypot(under.x - from.x, under.z - from.z) > REPATH_DISTANCE) holdStep();
 });
 window.addEventListener("pointerup", (e) => {
   if (e.button === 0) release();
@@ -490,7 +504,7 @@ canvas.addEventListener("pointerdown", (e) => {
   const floor = floorTileAt(e.clientX, e.clientY);
   const tile = isDoorTile(floor) ? floor : tileAt(e.clientX, e.clientY);
   if (tile) clickTile(tile);
-  hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), since: time, last: time, dragging: false };
+  hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), since: time, last: time, dragging: false, target: tile };
 });
 
 window.addEventListener("keydown", (e) => {
@@ -592,7 +606,7 @@ if (query.has("test")) {
     },
     get player() {
       const s = screen(player.position.clone().setY(0.4));
-      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z } };
+      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z }, goal: player.goal };
     },
     /** Where a tile's middle is on the page. */
     tile(x: number, z: number) {

@@ -124,6 +124,12 @@ export class Actor {
     return true;
   }
 
+  /** The tile the walk under way ends on, or null standing. */
+  get goal(): Tile | null {
+    const last = this.path.at(-1);
+    return last ? { x: Math.floor(last.x), z: Math.floor(last.z) } : null;
+  }
+
   /** Finishes the step under way, then stands. */
   stopAfterStep(): void {
     this.path = this.path.slice(0, 1);

@@ -201,6 +201,32 @@ test("slice: holding the button walks after the cursor, turning with it and neve
   expect(await slice<boolean>(page, "dragging")).toBe(false);
 });
 
+test("slice: a held sweep re-aims the walk the moment the cursor is more than a tile and a quarter from its goal", async ({ page }) => {
+  await open(page, "still&at=12,12");
+  await advance(page, 0.2);
+  const start = await playerOf(page);
+  const goalOf = async () => (await slice<{ goal: { x: number; z: number } | null }>(page, "player")).goal;
+  // Hold east of the player until the hold has become a drag and aimed the walk.
+  await page.mouse.move(start.x + 144, start.y);
+  await page.mouse.down();
+  await advance(page, 0.4);
+  const aimed = (await goalOf())!;
+  expect(aimed).not.toBeNull();
+  // No game time passes from here: every re-aim below happens on the mouse event itself, in the same frame.
+  const near = await tileOnPage(page, aimed.x + 1, aimed.z);
+  await page.mouse.move(near.x, near.y);
+  expect(await goalOf(), "a tile off the goal: no re-path yet").toEqual(aimed);
+  const past = await tileOnPage(page, aimed.x + 2, aimed.z);
+  await page.mouse.move(past.x, past.y);
+  expect(await goalOf(), "two tiles off: re-aimed at once").toEqual({ x: aimed.x + 2, z: aimed.z });
+  // A fast sweep - one jump of six tiles the other way - is followed at once too.
+  const far = await tileOnPage(page, aimed.x - 4, aimed.z + 1);
+  await page.mouse.move(far.x, far.y);
+  expect(await goalOf(), "a fast sweep: re-aimed at once").toEqual({ x: aimed.x - 4, z: aimed.z + 1 });
+  expect((await playerOf(page)).moving, "and never stopped").toBe(true);
+  await page.mouse.up();
+});
+
 test("slice: the rooms turn too, their near wall cut down", async ({ page }) => {
   for (const [scene, heading] of [
     ["shop", "right"],
