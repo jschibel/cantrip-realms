@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { AttachPoint, VoxModel, VoxPart } from "./voxel/format";
 import { greedyMesh } from "./voxel/mesher";
-import { celMaterial } from "./look";
+import { ON_GROUND_ORDER, celMaterial } from "./look";
 import { getModel } from "./voxel/models";
 
 // A body in the overworld (design.md A1, A4; tech.md B5): a voxel model (realms/content/models) cut into parts - legs,
@@ -236,7 +236,10 @@ export class Character {
       this.ring = null;
     }
     if (!color) return;
-    this.ring = new THREE.Mesh(RING, new THREE.MeshBasicMaterial({ color }));
+    // Drawn after the ground and before the rest, over the ground whatever stands in front, and under the character and
+    // anything else standing nearer: the player is found at a glance, behind a rise or a tree.
+    this.ring = new THREE.Mesh(RING, new THREE.MeshBasicMaterial({ color, depthTest: false, depthWrite: false }));
+    this.ring.renderOrder = ON_GROUND_ORDER;
     this.ring.name = "ring";
     this.ring.position.y = 0.03;
     this.root.add(this.ring);

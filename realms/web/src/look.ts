@@ -42,6 +42,13 @@ export interface CelOptions {
   readonly ground?: boolean;
 }
 
+/**
+ * The draw order of the ground, and of what is drawn over the ground but under everything standing on it (the player's
+ * ring): before the rest of the scene.
+ */
+export const GROUND_ORDER = -2;
+export const ON_GROUND_ORDER = -1;
+
 /** A lit surface in flat bands, flat-shaded so each face is one band. */
 export function celMaterial(options: CelOptions): THREE.MeshLambertMaterial {
   const material = new THREE.MeshLambertMaterial({ color: options.color ?? "#ffffff", vertexColors: options.vertexColors ?? false, flatShading: true });

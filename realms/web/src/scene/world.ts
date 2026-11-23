@@ -4,7 +4,7 @@ import { HEX_SIZE, type Hex, fromWorld, key, toWorld } from "../hex";
 import type { GameMap } from "../maps/gameMap";
 import type { NpcData, Terrain } from "../maps/schema";
 import { fnv1a32, mulberry32 } from "../random";
-import { celMaterial, lightOutdoors, lightUnderground } from "../look";
+import { GROUND_ORDER, celMaterial, lightOutdoors, lightUnderground } from "../look";
 import { Boxes, TINTS, buildFixture, buildProp } from "./props";
 
 // The three.js scene for a local map: a prism for every hex (one instanced mesh, so a map of a thousand hexes is one
@@ -91,6 +91,8 @@ export class World {
       const mesh = new THREE.InstancedMesh(prism, material, group.length);
       mesh.receiveShadow = true;
       mesh.castShadow = material instanceof THREE.MeshLambertMaterial;
+      // The ground is drawn first, so the player's ring (character.ts) can go over it and under everything else.
+      mesh.renderOrder = GROUND_ORDER;
       const hexes: Hex[] = [];
       group.forEach((tile, i) => {
         const { x, z } = toWorld(tile.hex);
