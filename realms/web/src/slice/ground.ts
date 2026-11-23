@@ -13,6 +13,8 @@ export interface GroundSurface {
   readonly picture: Pixmap;
   /** Who grows over whom where they meet: the higher wins. */
   readonly priority: number;
+  /** A hole: nothing is drawn there, so what lies below shows (a stream's water); its neighbours grow over its edge. */
+  readonly hole?: boolean;
 }
 
 const ATLAS_TILE = 64;
@@ -53,6 +55,7 @@ export function buildGround(
     shader.uniforms.mapOrigin = { value: new THREE.Vector2(origin.x, origin.z) };
     shader.uniforms.atlasCount = { value: surfaces.length };
     shader.uniforms.priority = { value: priorities };
+    shader.uniforms.holeId = { value: surfaces.findIndex((s) => s.hole) };
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vSliceWorld;")
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvSliceWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;");
@@ -67,6 +70,7 @@ uniform vec2 mapSize;
 uniform vec2 mapOrigin;
 uniform float atlasCount;
 uniform float priority[16];
+uniform float holeId;
 
 float gHash(vec2 p) {
   p = fract(p * vec2(0.1031, 0.1030));
@@ -119,7 +123,7 @@ float groundId(vec2 texel) {
         /* glsl */ `
   vec2 sliceTexel = floor((vSliceWorld.xz - mapOrigin) * 16.0);
   float sliceId = groundId(sliceTexel);
-  if (sliceId > 15.0) discard;
+  if (sliceId > 15.0 || sliceId == holeId) discard;
   vec2 sliceLocal = mod(sliceTexel, 64.0);
   vec4 sliceColor = texture2D(groundAtlas, vec2((sliceId * 64.0 + sliceLocal.x + 0.5) / (64.0 * atlasCount), 1.0 - (sliceLocal.y + 0.5) / 64.0));
   // A one-texel shadow under the edge of whatever grows over this surface from the north.

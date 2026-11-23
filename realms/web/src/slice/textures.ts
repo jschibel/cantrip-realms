@@ -418,3 +418,63 @@ export function straw(seed = 15): Pixmap {
   }
   return p;
 }
+
+/** A ploughed field: furrows running east-west, a lit crest and a dark trough to each, clods and the odd green shoot. */
+export function furrows(seed = 16): Pixmap {
+  const d = C.DIRT;
+  const p = new Pixmap(64, 64);
+  const random = seeded(seed);
+  for (let y = 0; y < 64; y++) {
+    for (let x = 0; x < 64; x++) {
+      const row = (y + Math.round(valueNoise(x, 0, 16, 64, seed) * 2)) % 4;
+      let c = [d[4]!, d[3]!, d[2]!, d[1]!][row]!;
+      if (hash2(x, y, seed) < 0.06) c = row < 2 ? d[2]! : d[3]!;
+      p.set(x, y, c);
+    }
+  }
+  for (let k = 0; k < 14; k++) {
+    const x = Math.floor(random() * 64);
+    const y = Math.floor(random() * 16) * 4;
+    p.set(x, y, C.GRASS[4]!);
+    p.set(x, y + 1, C.GRASS[3]!);
+  }
+  return p;
+}
+
+/** Ripe wheat in rows: gold ears over darker stalks, a shadowed line between rows. */
+export function wheat(seed = 17): Pixmap {
+  const s = C.STRAW;
+  const p = new Pixmap(64, 64);
+  for (let y = 0; y < 64; y++) {
+    for (let x = 0; x < 64; x++) {
+      const row = y % 6;
+      const ear = (x + Math.floor(y / 6) * 2) % 3 === 0;
+      let c = s[2]!;
+      if (row === 0) c = ear ? s[4]! : s[3]!;
+      else if (row === 1) c = ear ? s[3]! : s[2]!;
+      else if (row === 5) c = s[0]!;
+      else if (row === 4) c = s[1]!;
+      if (hash2(x, y, seed) < 0.05) c = s[3]!;
+      p.set(x, y, c);
+    }
+  }
+  return p;
+}
+
+/** Weathered rock: grey bands with cracks and spots of lichen, for boulders and the rise's banks. */
+export function rock(seed = 18): Pixmap {
+  const k = C.COBBLE;
+  const p = new Pixmap(32, 32);
+  const random = seeded(seed);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const n = fbm(x, y * 1.5, 10, 32, seed);
+      let c = n < 0.35 ? k[3]! : n < 0.62 ? k[4]! : k[5]!;
+      if (hash2(x, y, seed) < 0.04) c = k[2]!;
+      if (fbm(x, y, 6, 32, seed + 3) > 0.74) c = C.MEADOW[2]!;
+      p.set(x, y, c);
+    }
+  }
+  for (let n = 0; n < 5; n++) crack(p, Math.floor(random() * 32), Math.floor(random() * 32), 4 + Math.floor(random() * 4), k[1]!, random);
+  return p;
+}

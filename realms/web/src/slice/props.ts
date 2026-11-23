@@ -450,3 +450,164 @@ export function blobShadow(radius: number): THREE.Mesh {
   mesh.renderOrder = 1;
   return mesh;
 }
+
+// --- Open country ---------------------------------------------------------------------------------------------------
+
+const rockMat = () => material("rock", () => T.rock(18), { smooth: true });
+
+/**
+ * The town's wall, running north-south along x (its outer face west), with a gate over the road between g0 and g1:
+ * limestone ashlar, a parapet with merlons on both faces, square towers either side of the gate and a lintel over it.
+ */
+export function townWall(
+  b: MeshBuilder,
+  x: number,
+  z0: number,
+  z1: number,
+  g0: number,
+  g1: number,
+  /** The tower south of the gate and the lintel, which stand in front of the gateway from the south: built full and cut down. */
+  southFull: MeshBuilder,
+  southLow: MeshBuilder,
+): void {
+  const lime = tiled(surfaces.limestone());
+  const top = tiled(surfaces.flagstone());
+  const t = 0.75;
+  const h = 2.25;
+  const run = (za: number, zb: number) => {
+    if (zb - za <= 0) return;
+    b.box(x - t, 0, za, x, h, zb, sides(lime, top));
+    for (let z = za; z < zb - 0.1; z += 0.5) {
+      b.box(x - t, h, z, x - t + 0.19, h + 0.31, Math.min(z + 0.25, zb), sides(lime));
+      b.box(x - 0.19, h, z, x, h + 0.31, Math.min(z + 0.25, zb), sides(lime));
+    }
+  };
+  run(z0, g0 - 1);
+  run(g1 + 1, z1);
+  // The gatehouse: a square tower either side, proud of the wall both ways, roofed in slate, with arrow slits and a
+  // banner on the faces that look south; a lintel across, high enough to walk under.
+  const slit = fitted(material("arrow-slit", () => {
+    const p = new Pixmap(4, 12, C.INK);
+    p.vline(0, 0, 12, C.LIMESTONE[2]!);
+    return p;
+  }));
+  for (const [za, zb] of [
+    [g0 - 2, g0],
+    [g1, g1 + 2],
+  ] as const) {
+    const xa = x - t - 0.5;
+    const xb = x + 0.5;
+    const south = za >= g1;
+    const tb = south ? southFull : b;
+    tb.box(xa, 0, za, xb, 4.0, zb, sides(lime, top));
+    for (let mx = xa; mx < xb - 0.1; mx += 0.5) {
+      tb.box(mx, 4.0, zb - 0.25, mx + 0.25, 4.375, zb, sides(lime));
+      tb.box(mx, 4.0, za, mx + 0.25, 4.375, za + 0.25, sides(lime));
+    }
+    tb.gableRoof(xa - 0.15, za - 0.15, xb + 0.15, zb + 0.15, 4.375, 1.2, surfaces.slate(), lime);
+    tb.card(slit, (xa + xb) / 2 - 0.125, 2.6, (xa + xb) / 2 + 0.125, 3.35, zb + 0.01);
+    if (south) {
+      bannerAt(tb, (xa + xb) / 2, 2.3, zb);
+      // Cut down to the wall's height, its top showing: what stands there while someone is in the gateway.
+      southLow.box(xa, 0, za, xb, 1.0, zb, sides(lime, top));
+    }
+  }
+  // The lintel goes with the south tower: from the south it too stands over whoever is in the gateway.
+  southFull.box(x - t - 0.12, 2.5, g0, x + 0.12, 3.25, g1, sides(lime, top));
+  for (let z = g0; z < g1 - 0.1; z += 0.5) southFull.box(x - t - 0.12, 3.25, z, x - t + 0.07, 3.56, z + 0.25, sides(lime));
+}
+
+/** A stone bridge over a stream: a deck at `y`, its arch's face to the water, a low parapet along each side. */
+export function bridge(b: MeshBuilder, x0: number, x1: number, z0: number, z1: number, y: number): void {
+  const stone = tiled(material("bridge-stone", () => T.ashlar(C.LIMESTONE, 51, 6, 8, 12)));
+  const deck = tiled(surfaces.flagstone());
+  b.box(x0, -0.2, z0, x1, y, z1, { top: deck, south: stone, north: stone, east: stone, west: stone });
+  for (const [za, zb] of [
+    [z0, z0 + 0.25],
+    [z1 - 0.25, z1],
+  ] as const) {
+    b.box(x0, y, za, x1, y + 0.5, zb, sides(stone));
+    b.box(x0 - 0.06, y + 0.5, za - 0.03, x1 + 0.06, y + 0.6, zb + 0.03, sides(deck));
+  }
+}
+
+/** A boulder: a squashed lump of rock, with a smaller one at its foot. */
+export function boulder(b: MeshBuilder, x: number, z: number, r = 0.5, seed = 0): void {
+  const s = ((seed * 37) % 10) / 10;
+  b.blob(x, r * 0.55, z, r, r * 0.75, r * (0.8 + s * 0.3), rockMat(), [seed * 7, seed * 3]);
+  b.blob(x + r * 0.8, r * 0.25, z + r * 0.4, r * 0.4, r * 0.32, r * 0.35, rockMat(), [seed * 3, seed * 5]);
+}
+
+/** A flat stepping stone in a stream. */
+export function steppingStone(b: MeshBuilder, x: number, z: number): void {
+  b.blob(x, 0.0, z, 0.36, 0.14, 0.3, rockMat(), [x * 16, z * 16]);
+}
+
+/** A raised terrace of turf with an earthen bank round it: a tier of a rise. */
+export function terrace(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number, y: number): void {
+  b.box(x0, 0, z0, x1, y, z1, { top: tiled(material("turf", () => T.grass(5))), south: tiled(rockMat()), north: tiled(rockMat()), east: tiled(rockMat()), west: tiled(rockMat()) });
+}
+
+/**
+ * A ruined round tower on a rise: a ring of ashlar broken off at heights from `low` to `high`, one side fallen to a
+ * gap, its inside seen from above, and fallen blocks round its foot.
+ */
+export function ruinedTower(b: MeshBuilder, cx: number, cz: number, y0: number, r: number, low: number, high: number): void {
+  const mat = material("tower-stone", () => T.ashlar(C.LIMESTONE, 61, 6, 7, 11));
+  const image = mat.map!.image as { width: number; height: number };
+  const tw = image.width / 16;
+  const th = image.height / 16;
+  const n = 20;
+  const thick = 0.5;
+  for (let i = 0; i < n; i++) {
+    // A breach to the south-east, and a jagged top elsewhere.
+    if (i >= 3 && i <= 5) continue;
+    const a0 = (i / n) * Math.PI * 2;
+    const a1 = ((i + 1) / n) * Math.PI * 2;
+    const f = Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.6));
+    const h = y0 + low + (high - low) * (i > 12 ? f : f * 0.55);
+    const at = (a: number, rr: number, y: number): [number, number, number] => [cx + Math.sin(a) * rr, y, cz + Math.cos(a) * rr];
+    const arc0 = a0 * r;
+    const arc1 = a1 * r;
+    const uv = (arc: number, y: number): [number, number] => [arc / tw, y / th];
+    b.polygon(mat, [at(a0, r, y0), at(a1, r, y0), at(a1, r, h), at(a0, r, h)], [uv(arc0, y0), uv(arc1, y0), uv(arc1, h), uv(arc0, h)]);
+    b.polygon(mat, [at(a1, r - thick, y0), at(a0, r - thick, y0), at(a0, r - thick, h), at(a1, r - thick, h)], [uv(arc1, y0), uv(arc0, y0), uv(arc0, h), uv(arc1, h)]);
+    b.polygon(mat, [at(a0, r, h), at(a1, r, h), at(a1, r - thick, h), at(a0, r - thick, h)], [uv(arc0, 0), uv(arc1, 0), uv(arc1, thick), uv(arc0, thick)]);
+    // The ends of the wall at the breach.
+    if (i === 2 || i === 6) {
+      const a = i === 2 ? a1 : a0;
+      b.polygon(mat, [at(a, r, y0), at(a, r - thick, y0), at(a, r - thick, h), at(a, r, h)], [uv(0, y0), uv(thick, y0), uv(thick, h), uv(0, h)]);
+    }
+  }
+  // Fallen blocks.
+  const fallen = fitted(mat, [0, 0, 8, 6]);
+  for (const [dx, dz, s, turn] of [
+    [r + 0.6, 0.8, 0.45, 0.3],
+    [r + 1.1, 1.6, 0.35, 1.1],
+    [0.8, r + 0.9, 0.4, 0.7],
+    [-r - 0.5, -0.4, 0.3, 0.2],
+  ] as const) {
+    b.at(cx + dx, y0, cz + dz, turn, () => b.roundedBox(-s, 0, -s * 0.7, s, s * 0.9, s * 0.7, 1 / 16, sides(fallen)));
+  }
+}
+
+/** A hedgerow along a line: a low bank of turf and stones, bushes all along it. */
+export function hedgeRow(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number, seed = 0): void {
+  const length = Math.hypot(x1 - x0, z1 - z0);
+  const n = Math.max(1, Math.round(length / 0.7));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const wobble = Math.sin((i + seed) * 1.9) * 0.12;
+    const x = x0 + (x1 - x0) * t + (z1 !== z0 ? wobble : 0);
+    const z = z0 + (z1 - z0) * t + (x1 !== x0 ? wobble : 0);
+    const r = 0.42 + 0.1 * Math.abs(Math.sin((i + seed) * 2.3));
+    b.blob(x, r * 0.85, z, r, r * 0.8, r, i % 7 === 3 ? pics.flowers() : surfaces.leaves(), [x * 16, z * 16]);
+  }
+}
+
+/** Water lying a little below the ground, seen through the ground's holes: a stream. */
+export const streamMaterial = () => material("stream", () => T.water(13), { flat: true });
+
+export function waterSurface(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number): void {
+  b.quad({ mat: streamMaterial() }, [[x0, -0.12, z1], [x1, -0.12, z1], [x1, -0.12, z0], [x0, -0.12, z0]], (c) => c[0], (c) => -c[2]);
+}

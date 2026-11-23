@@ -38,6 +38,8 @@ export interface SliceScene {
   readonly bounds: readonly [number, number, number, number];
   /** Animates the scene; `yaw` is the camera's turn now and `toward` the heading it is turning to (radians). */
   update(dt: number, time: number, yaw: number, toward: number): void;
+  /** Cuts away what stands between the camera and the player, where the scene has such a thing (a gate tower). */
+  follow?(player: THREE.Vector3): void;
 }
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);

@@ -12,34 +12,44 @@ export class Grid {
   /** How high each tile's floor stands (a dais, a step), in world units. */
   private readonly floor: Float32Array;
 
+  /**
+   * A grid `width` by `height` tiles whose first tile is (x0, z0) in the world: tiles are always named by their world
+   * coordinates, which may be negative (the country west of the town gate).
+   */
   constructor(
     readonly width: number,
     readonly height: number,
+    readonly x0 = 0,
+    readonly z0 = 0,
   ) {
     this.open = new Uint8Array(width * height);
     this.floor = new Float32Array(width * height);
   }
 
+  private index(x: number, z: number): number {
+    return (z - this.z0) * this.width + (x - this.x0);
+  }
+
   /** The floor's height on a tile (0 outside the grid). */
   heightAt(x: number, z: number): number {
-    return this.inside(x, z) ? this.floor[z * this.width + x]! : 0;
+    return this.inside(x, z) ? this.floor[this.index(x, z)]! : 0;
   }
 
   /** Raises the floor of every tile of a rectangle. */
   raise(x0: number, z0: number, x1: number, z1: number, y: number): void {
-    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (this.inside(x, z)) this.floor[z * this.width + x] = y;
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (this.inside(x, z)) this.floor[this.index(x, z)] = y;
   }
 
   inside(x: number, z: number): boolean {
-    return x >= 0 && z >= 0 && x < this.width && z < this.height;
+    return x >= this.x0 && z >= this.z0 && x < this.x0 + this.width && z < this.z0 + this.height;
   }
 
   walkable(x: number, z: number): boolean {
-    return this.inside(x, z) && this.open[z * this.width + x] === 1;
+    return this.inside(x, z) && this.open[this.index(x, z)] === 1;
   }
 
   setWalkable(x: number, z: number, open: boolean): void {
-    if (this.inside(x, z)) this.open[z * this.width + x] = open ? 1 : 0;
+    if (this.inside(x, z)) this.open[this.index(x, z)] = open ? 1 : 0;
   }
 
   /** Blocks every tile of a rectangle (a house, a counter). */
@@ -48,9 +58,14 @@ export class Grid {
   }
 
   /** The tiles from one to the other, both included, or null if there is no way. */
-  path(from: Tile, to: Tile): Tile[] | null {
-    if (!this.walkable(to.x, to.z)) return null;
-    if (from.x === to.x && from.z === to.z) return [from];
+  path(fromWorld: Tile, toWorld: Tile): Tile[] | null {
+    if (!this.walkable(toWorld.x, toWorld.z)) return null;
+    if (fromWorld.x === toWorld.x && fromWorld.z === toWorld.z) return [fromWorld];
+    // The search runs in the grid's own coordinates, from 0.
+    const { x0, z0 } = this;
+    const from = { x: fromWorld.x - x0, z: fromWorld.z - z0 };
+    const to = { x: toWorld.x - x0, z: toWorld.z - z0 };
+    const open = (x: number, z: number) => this.walkable(x + x0, z + z0);
     const w = this.width;
     const key = (x: number, z: number) => z * w + x;
     const g = new Float64Array(w * this.height).fill(Infinity);
@@ -108,8 +123,8 @@ export class Grid {
           if (dx === 0 && dz === 0) continue;
           const nx = x + dx;
           const nz = z + dz;
-          if (!this.walkable(nx, nz)) continue;
-          if (dx !== 0 && dz !== 0 && (!this.walkable(x + dx, z) || !this.walkable(x, z + dz))) continue;
+          if (!open(nx, nz)) continue;
+          if (dx !== 0 && dz !== 0 && (!open(x + dx, z) || !open(x, z + dz))) continue;
           const nk = key(nx, nz);
           const cost = g[k]! + (dx !== 0 && dz !== 0 ? Math.SQRT2 : 1);
           if (cost < g[nk]!) {
@@ -122,7 +137,7 @@ export class Grid {
     }
     if (!closed[goal]) return null;
     const out: Tile[] = [];
-    for (let k = goal; k !== -1; k = came[k]!) out.push({ x: k % w, z: Math.floor(k / w) });
+    for (let k = goal; k !== -1; k = came[k]!) out.push({ x: (k % w) + x0, z: Math.floor(k / w) + z0 });
     return out.reverse();
   }
 }

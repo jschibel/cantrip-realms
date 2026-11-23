@@ -66,15 +66,24 @@ export interface GrassField {
  * Tufts over the tiles `where` says are grass, `perTile` of them on average, each card half a tile wide and lit as the
  * ground is. One instanced mesh draws them all.
  */
-export function grassField(width: number, height: number, origin: { x: number; z: number }, where: (x: number, z: number) => boolean, perTile = 3, seed = 9): GrassField {
+export function grassField(
+  width: number,
+  height: number,
+  origin: { x: number; z: number },
+  where: (x: number, z: number) => boolean,
+  perTile = 3,
+  seed = 9,
+  /** The ground's height on a tile in the world (a terrace), for the tufts on it to stand on. */
+  heightAt: (x: number, z: number) => number = () => 0,
+): GrassField {
   const random = seeded(seed);
-  const spots: { x: number; z: number; variant: number; scale: number }[] = [];
+  const spots: { x: number; y: number; z: number; variant: number; scale: number }[] = [];
   for (let z = 0; z < height; z++) {
     for (let x = 0; x < width; x++) {
       if (!where(x, z)) continue;
       const n = Math.floor(perTile * (0.5 + random()));
       for (let k = 0; k < n; k++) {
-        spots.push({ x: origin.x + x + random(), z: origin.z + z + random(), variant: random() < 0.85 ? Math.floor(random() * 2) : 2 + Math.floor(random() * 2), scale: 0.85 + random() * 0.3 });
+        spots.push({ x: origin.x + x + random(), y: heightAt(origin.x + x, origin.z + z), z: origin.z + z + random(), variant: random() < 0.85 ? Math.floor(random() * 2) : 2 + Math.floor(random() * 2), scale: 0.85 + random() * 0.3 });
       }
     }
   }
@@ -123,7 +132,7 @@ export function grassField(width: number, height: number, origin: { x: number; z
   const q = new THREE.Quaternion();
   spots.forEach((s, i) => {
     q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (random() - 0.5) * 0.5);
-    m.compose(new THREE.Vector3(s.x, 0, s.z), q, new THREE.Vector3(s.scale, s.scale, s.scale));
+    m.compose(new THREE.Vector3(s.x, s.y, s.z), q, new THREE.Vector3(s.scale, s.scale, s.scale));
     mesh.setMatrixAt(i, m);
   });
   mesh.receiveShadow = true;

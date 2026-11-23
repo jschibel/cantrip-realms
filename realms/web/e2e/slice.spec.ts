@@ -246,6 +246,109 @@ test("slice: down into the crypt from the churchyard and back up, by clicking", 
   expect(await settledHeading(page)).toBe("right");
 });
 
+interface ZoomState {
+  readonly step: number;
+  readonly scale: number;
+  readonly steps: number;
+}
+const zoomOf = (page: Page) => slice<ZoomState>(page, "zoom");
+
+/** Gives the zoom its easing's game time, then says where it settled: its step and its whole-pixel scale. */
+async function settledZoom(page: Page): Promise<{ step: number; scale: number }> {
+  await advance(page, 0.5);
+  expect(await slice<boolean>(page, "cameraSettled"), "settled").toBe(true);
+  expect((await slice<CameraView>(page, "view")).snapped, "snapped once settled").toBe(true);
+  const z = await zoomOf(page);
+  expect(Number.isInteger(z.scale), `a whole-pixel scale, not ${z.scale}`).toBe(true);
+  return { step: z.step, scale: z.scale };
+}
+
+test("slice: the outdoor zoom steps out and in by wheel, keys and buttons, holds rooms close, and is remembered", async ({ page }) => {
+  // At 1280 by 800 the closest outdoor view is 3 screen pixels to a scene pixel; the steps out are 2 and 1.
+  await open(page, "still&at=8,12");
+  expect(await settledZoom(page)).toEqual({ step: 0, scale: 3 });
+  expect((await zoomOf(page)).steps).toBe(3);
+
+  // The wheel, down: a step out, easing - part-way it is between scales, unsnapped - then settled at 2.
+  await page.mouse.move(640, 400);
+  await page.mouse.wheel(0, 120);
+  await advance(page, 0.15);
+  const mid = await slice<CameraView & { scale: number }>(page, "view");
+  expect(mid.scale > 2 && mid.scale < 3 && !mid.snapped, "mid-zoom").toBe(true);
+  expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
+  // The minus key: the furthest step; once more is refused, and its button is disabled.
+  await page.keyboard.press("-");
+  expect(await settledZoom(page)).toEqual({ step: 2, scale: 1 });
+  await page.keyboard.press("-");
+  expect(await settledZoom(page)).toEqual({ step: 2, scale: 1 });
+  await expect(page.locator("[data-test='slice:zoom-out']")).toBeDisabled();
+  // The wheel up, then the plus button: back in to the closest.
+  await page.mouse.wheel(0, -120);
+  expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
+  await page.locator("[data-test='slice:zoom-in']").click();
+  expect(await settledZoom(page)).toEqual({ step: 0, scale: 3 });
+  await page.keyboard.press("-");
+  expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
+
+  // The step outlasts the visit.
+  await open(page, "still&at=13,11");
+  expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
+
+  // A room is always seen closest (4); zooming there does nothing; out again, the street is back at its step.
+  for (const [to, scale] of [
+    ["shop", 4],
+    ["street", 2],
+  ] as const) {
+    const door = await page.evaluate(() => ((globalThis as any).sliceTest.entities as { kind: string; x: number; y: number }[]).find((e) => e.kind === "door")!);
+    await page.mouse.click(door.x, door.y);
+    await advance(page, 3);
+    expect(await slice<string>(page, "scene")).toBe(to);
+    expect(await settledZoom(page)).toEqual({ step: 1, scale });
+    if (to === "shop") {
+      await page.keyboard.press("-");
+      await page.mouse.wheel(0, 120);
+      expect(await settledZoom(page)).toEqual({ step: 1, scale: 4 });
+      await expect(page.locator("[data-test='slice:zoom-out']")).toBeDisabled();
+    }
+  }
+});
+
+test("slice: out through the west gate into open country, and back", async ({ page }) => {
+  await open(page, "still&at=4,12&zoom=1");
+  // Just outside the gate, then on west: the gate is open, the country beyond walkable as one place with the town.
+  const gate = await tileOnPage(page, -3, 12);
+  await page.mouse.click(gate.x, gate.y);
+  await advance(page, 2.5);
+  expect((await playerOf(page)).tile).toEqual({ x: -3, z: 12 });
+  const beyond = await tileOnPage(page, -10, 13);
+  await page.mouse.click(beyond.x, beyond.y);
+  await advance(page, 3);
+  expect((await playerOf(page)).tile).toEqual({ x: -10, z: 13 });
+  expect(await slice<string>(page, "scene")).toBe("street");
+  const back = await tileOnPage(page, 3, 12);
+  await page.mouse.click(back.x, back.y);
+  await advance(page, 4);
+  expect((await playerOf(page)).tile).toEqual({ x: 3, z: 12 });
+});
+
+test.describe("slice pictures at 1080p", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+  for (const [name, at] of [
+    ["street", "at=13,12"],
+    ["wilderness", "at=-38,16"],
+  ] as const) {
+    test(`slice: the ${name} at each zoom step`, async ({ page }) => {
+      for (const step of [0, 1, 2]) {
+        await open(page, `still&zoom=${step}&${at}`);
+        await advance(page, 0.5);
+        expect(await zoomOf(page)).toMatchObject({ step, scale: 4 - step });
+        expect(colorCount(await readFrame(page))).toBeGreaterThan(200);
+        await page.screenshot({ path: join(out, `${name}-zoom${step}.png`) });
+      }
+    });
+  }
+});
+
 // --- Pictures for the owner ------------------------------------------------------------------------------------------
 
 /** Where a crop of a size sits in a frame: about its middle (frames differ in size while the view zooms). */
@@ -328,6 +431,31 @@ const clips: readonly { name: string; query: string; to: Point; seconds: number;
   { name: "shop-walk", query: "scene=shop", to: { x: 3, y: 6 }, seconds: 1.2, then: { x: 9, y: 4 }, thenSeconds: 1.8 },
   { name: "crypt-walk", query: "scene=crypt", to: { x: 4, y: 5 }, seconds: 1.2, then: { x: 10, y: 5 }, thenSeconds: 2.0 },
 ];
+
+test("slice clip: street-zoom-gate", async ({ page }) => {
+  test.skip(!shots, "pictures only with SLICE_SHOTS");
+  test.setTimeout(240_000);
+  // Walking west out through the gate while the camera steps out twice and back in, as shown on screen, 20 a second.
+  await open(page, "nohud&zoom=0&at=4,12");
+  await advance(page, 0.3);
+  // A tile past the gate that is on screen at the closest step.
+  const to = await tileOnPage(page, -5, 13);
+  await page.mouse.click(to.x, to.y);
+  const frames: Frame[] = [];
+  const record = async (seconds: number) => {
+    for (let t = 0; t < seconds - 1e-6; t += 0.05) {
+      await advance(page, 0.05);
+      const f = await page.evaluate(() => (globalThis as any).sliceTest.shown(640, 400) as { width: number; height: number; rgba: string });
+      frames.push({ width: f.width, height: f.height, rgba: new Uint8Array(Buffer.from(f.rgba, "base64")) });
+    }
+  };
+  await record(0.4);
+  for (const key of ["-", "-", "+", "+"]) {
+    await page.keyboard.press(key);
+    await record(0.5);
+  }
+  writeFileSync(join(out, "street-zoom-gate.gif"), gifOf(frames, { w: 640, h: 400 }, 1, 5));
+});
 
 test("slice clip: street-rotate", async ({ page }) => {
   test.skip(!shots, "pictures only with SLICE_SHOTS");

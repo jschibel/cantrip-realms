@@ -14,6 +14,9 @@ import { Actor, type Door, type SceneId, type SliceScene, centre } from "./world
 //   ?heading=left|front|right   the camera's heading: looking north, or swung 45 degrees round to the left or the
 //                     right. Q and E (or the turn buttons) step it one heading, easing round about the player; it never
 //                     goes past 45 degrees. The heading is remembered (localStorage) for the next visit
+//   ?zoom=0|1|2       the outdoor zoom step: 0 closest, each step out one screen pixel fewer to the scene's pixel.
+//                     The mouse wheel, + and - (or the zoom buttons) step it, easing; it is remembered. Rooms are
+//                     always seen at the closest scale.
 //   ?scene=street|shop|crypt   where to start; ?at=x,z the tile
 //   ?test             publishes globalThis.sliceTest (screen places of everything, the state, a frame reader)
 //   ?still            the townsfolk stand still (for screenshots)
@@ -46,11 +49,32 @@ function storedHeading(): Heading | null {
 }
 let heading: Heading = HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0;
 const outsideScale = () => Math.max(2, Math.round(window.innerHeight / 270));
-/** A scene's view: the three-quarter camera at the heading (where the scene turns), closer in rooms. */
+
+/**
+ * The outdoor zoom: how many steps out from the closest view. A step changes only the screen's whole-pixel scale - one
+ * screen pixel fewer to each of the scene's - never the art: a texel is still one scene pixel, crisp, with no shimmer.
+ * Two steps out at most, and never below one screen pixel to a scene pixel.
+ */
+type Zoom = 0 | 1 | 2;
+const ZOOM_KEY = "cantrip-realms.slice.zoom";
+const maxZoom = (): Zoom => Math.max(0, Math.min(2, outsideScale() - 1)) as Zoom;
+function storedZoom(): Zoom | null {
+  try {
+    const v = Number(localStorage.getItem(ZOOM_KEY) ?? "x");
+    return v === 0 || v === 1 || v === 2 ? v : null;
+  } catch {
+    return null;
+  }
+}
+const askedZoom = Number(query.get("zoom") ?? "x");
+let zoom: Zoom = Math.min(maxZoom(), askedZoom === 0 || askedZoom === 1 || askedZoom === 2 ? askedZoom : (storedZoom() ?? 0)) as Zoom;
+const outdoorScale = () => Math.max(1, outsideScale() - zoom);
+
+/** A scene's view: the three-quarter camera at the heading (where the scene turns); rooms closest, outdoors at the zoom. */
 const viewFor = (s: SliceScene): View => ({
   ...THREE_QUARTER,
   yaw: (s.turns ? heading : 0) * (Math.PI / 4),
-  scale: s.inside ? outsideScale() + 1 : outsideScale(),
+  scale: s.inside ? outsideScale() + 1 : outdoorScale(),
 });
 
 const builders: Record<SceneId, () => SliceScene> = { street: () => buildStreet(), shop: () => buildShop(), crypt: () => buildCrypt() };
@@ -128,6 +152,17 @@ const turnButton = (step: -1 | 1, glyph: string, label: string) => {
 };
 const turnLeft = turnButton(-1, "\u27F2", "Turn the camera left (Q)");
 const turnRight = turnButton(1, "\u27F3", "Turn the camera right (E)");
+const zoomButton = (step: -1 | 1, glyph: string, label: string) => {
+  const button = document.createElement("button");
+  button.textContent = glyph;
+  button.title = label;
+  button.dataset.test = step < 0 ? "slice:zoom-in" : "slice:zoom-out";
+  button.addEventListener("click", () => zoomBy(step));
+  turns.append(button);
+  return button;
+};
+const zoomIn = zoomButton(-1, "+", "Zoom in (+ or the wheel)");
+const zoomOut = zoomButton(1, "\u2212", "Zoom out (- or the wheel)");
 document.body.append(placeLabel, help, turns);
 const showHud = !query.has("nohud");
 placeLabel.hidden = help.hidden = turns.hidden = !showHud;
@@ -135,9 +170,11 @@ function updateHud(): void {
   placeLabel.textContent = current.title;
   turnLeft.disabled = !current.turns || heading === -1;
   turnRight.disabled = !current.turns || heading === 1;
+  zoomIn.disabled = current.inside || zoom === 0;
+  zoomOut.disabled = current.inside || zoom === maxZoom();
   help.innerHTML = current.inside
     ? "<b>Click</b> to walk &middot; <b>Q</b> / <b>E</b> turn the camera &middot; walk out the door to leave"
-    : "<b>Click</b> to walk &middot; <b>Q</b> / <b>E</b> turn the camera &middot; the green door and the crypt gate go in";
+    : "<b>Click</b> or hold to walk &middot; <b>Q</b> / <b>E</b> turn &middot; <b>wheel</b>, <b>+</b> / <b>-</b> zoom &middot; out through the west gate";
 }
 updateHud();
 
@@ -162,6 +199,7 @@ function startDoor(door: Door): void {
   // A camera turn under way gives way to the doorway's own easing, which starts from wherever the camera is.
   turning = false;
   turnSpeed = 0;
+  zoomEase = null;
   renderer.snap = true;
   player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
   transition = { door, from: renderer.view, t: 0, phase: "in", focusFrom: focus.clone() };
@@ -259,6 +297,44 @@ function stepCameraTurn(dt: number): void {
   }
   renderer.setView({ ...renderer.view, yaw });
   renderer.snap = !turning;
+}
+
+/**
+ * Zooming from one step to another: the scale eases over ZOOM_EASE seconds about the camera's focus (the player, as it
+ * follows him), gliding unsnapped, then settles snapped on the step's whole-pixel scale.
+ */
+let zoomEase: { from: number; t: number } | null = null;
+const ZOOM_EASE = 0.35;
+
+function stepZoom(dt: number): void {
+  if (!zoomEase || transition) return;
+  zoomEase.t += dt;
+  const k = Math.min(1, zoomEase.t / ZOOM_EASE);
+  const e = k * k * (3 - 2 * k);
+  const target = outdoorScale();
+  renderer.setView({ ...renderer.view, scale: zoomEase.from + (target - zoomEase.from) * e });
+  if (k >= 1) {
+    renderer.setView({ ...renderer.view, scale: target });
+    zoomEase = null;
+  }
+}
+
+/** Steps the outdoor zoom out (+1) or in (-1); in a room, or past the last step, it does nothing. */
+function zoomBy(step: -1 | 1): void {
+  const next = zoom + step;
+  if (current.inside || transition || next < 0 || next > maxZoom()) return;
+  zoom = next as Zoom;
+  try {
+    localStorage.setItem(ZOOM_KEY, String(zoom));
+  } catch {
+    // Storage refused: the step lasts this visit only.
+  }
+  zoomEase = { from: renderer.view.scale, t: 0 };
+  renderer.snap = false;
+  const url = new URL(location.href);
+  url.searchParams.set("zoom", String(zoom));
+  history.replaceState(null, "", url);
+  updateHud();
 }
 
 /** Steps the camera one heading left or right; a step past 45 degrees, or in a room that does not turn, does nothing. */
@@ -421,7 +497,21 @@ window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
   if (e.key === "q" || e.key === "Q") turn(-1);
   if (e.key === "e" || e.key === "E") turn(1);
+  if (e.key === "+" || e.key === "=") zoomBy(-1);
+  if (e.key === "-" || e.key === "_") zoomBy(1);
 });
+// The wheel: a notch (or a trackpad's worth of scrolling) a step, and no faster than a step per easing.
+let wheelAt = -Infinity;
+canvas.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+    if (Math.abs(e.deltaY) < 1 || time - wheelAt < ZOOM_EASE * 0.6) return;
+    wheelAt = time;
+    zoomBy(e.deltaY > 0 ? 1 : -1);
+  },
+  { passive: false },
+);
 window.addEventListener("resize", () => renderer.setView(transition || turning ? { ...renderer.view, scale: viewFor(current).scale } : viewFor(current)));
 
 // --- The loop --------------------------------------------------------------------------------------------------------
@@ -453,7 +543,10 @@ function tick(dt: number): void {
   }
   stepTransition(dt);
   stepCameraTurn(dt);
+  stepZoom(dt);
+  if (!transition) renderer.snap = !turning && !zoomEase;
   current.update(dt, time, renderer.view.yaw, viewFor(current).yaw);
+  current.follow?.(player.position);
   if (!transition) {
     const target = clampFocus(player.position);
     focus.lerp(target, Math.min(1, dt * 8));
@@ -480,15 +573,20 @@ if (query.has("test")) {
     },
     /** The camera as it is now (its turn and pitch, radians), and whether it has settled into its view. */
     get view() {
-      return { yaw: renderer.view.yaw, pitch: renderer.view.pitch, snapped: renderer.snap };
+      return { yaw: renderer.view.yaw, pitch: renderer.view.pitch, snapped: renderer.snap, scale: renderer.view.scale };
     },
     /** Whether the button is held down walking the player after the cursor. */
     get dragging() {
       return hold?.dragging ?? false;
     },
     get cameraSettled() {
-      return !turning && transition === null;
+      return !turning && !zoomEase && transition === null;
     },
+    /** The outdoor zoom step, and the screen pixels to each scene pixel now. */
+    get zoom() {
+      return { step: zoom, scale: renderer.view.scale, steps: maxZoom() + 1 };
+    },
+    zoomBy,
     get transitioning() {
       return transition !== null;
     },
@@ -513,6 +611,26 @@ if (query.has("test")) {
     /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual). */
     advance(seconds: number) {
       for (let t = 0; t < seconds - 1e-6; t += 1 / 60) tick(1 / 60);
+    },
+    /**
+     * Renders a frame now and returns the middle `w` by `h` of the window as it is shown - the scene's pixels at the
+     * screen's scale - so a clip shows the zoom (base64 RGBA, top row first).
+     */
+    shown(w: number, h: number) {
+      renderer.render(current.scene);
+      const rect = canvas.getBoundingClientRect();
+      const out = document.createElement("canvas");
+      out.width = w;
+      out.height = h;
+      const g = out.getContext("2d")!;
+      g.imageSmoothingEnabled = false;
+      g.fillStyle = "#000";
+      g.fillRect(0, 0, w, h);
+      g.drawImage(canvas, rect.left - (window.innerWidth - w) / 2, rect.top - (window.innerHeight - h) / 2, rect.width, rect.height);
+      const data = g.getImageData(0, 0, w, h).data;
+      let s = "";
+      for (let i = 0; i < data.length; i += 8192) s += String.fromCharCode(...data.subarray(i, i + 8192));
+      return { width: w, height: h, rgba: btoa(s) };
     },
     /** Renders a frame now and returns its scene pixels (base64 RGBA, top row first). */
     frame() {
