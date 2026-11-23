@@ -1,4 +1,4 @@
-// A dungeon floor on squares, as the browser generates it for a run (realms/docs/conversion.md, "Dungeons on
+// A dungeon floor on squares, as the browser generates it for a run (realms/docs/tech.md B5, "Dungeons on
 // squares"): the floor's own tiles `w` by `d` from (0, 0), in version 2's tile format, the props and lights that
 // furnish and light it, the spell table's NPC on the first floor, and where the run's way up, way down, way out and
 // encounters stand. The same request always gives the same floor.

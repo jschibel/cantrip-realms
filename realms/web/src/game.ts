@@ -526,24 +526,38 @@ export class Overworld {
       this.area = { name: this.spot.title, tier: this.run?.dungeon.tier ?? 0, region: null };
       this.hud.showArea(this.spot.title, this.area.tier);
     }
-    if (!arriving) this.report();
+    // On a door's tile, at once: the server lets one into a room only from beside its door.
+    if (!arriving) this.report(!!this.stage.doorAt(t));
   }
 
   /** Where the player is, to the server: on standing, and every two seconds of walking. */
   private report(force = false): void {
     if (this.spot.id.startsWith("run:")) return;
     const now = performance.now();
+    const where = `${this.spaceId}:${this.player.tile.x},${this.player.tile.z}`;
+    // Once for each place stood on (never again every frame while standing), and every two seconds of a walk.
+    if (where === this.lastReported) return;
     if (!force && now - this.lastReport < 2000 && this.player.moving) return;
     this.lastReport = now;
+    this.lastReported = where;
     void this.api.position(placeOf(this.spaceId, this.player.tile)).catch(() => {});
   }
+
+  private lastReported = "";
 
   /** Tells the relay of a walk when it changes: from the open tile the player stands on, along the grid's path. */
   private relayWalk(): void {
     if (this.spot.id.startsWith("run:") || !this.presence) return;
     const from = this.player.tile;
-    if (!this.spot.grid.walkable(from.x, from.z)) return;
-    const path = this.player.remaining.filter((t, i, all) => i === 0 || t.x !== all[i - 1]!.x || t.z !== all[i - 1]!.z);
+    if (!this.riding && !this.spot.grid.walkable(from.x, from.z)) return;
+    // The tiles still to walk, each a step from the one before: none the same as the last (the tile stood on first),
+    // which the server takes as a step of no length and refuses (walking into a doorway ends on the tile stood on).
+    // Only the open tiles: a doorway's last step into the building or the dungeon is not walked as far as anyone sees.
+    const grid = this.spot.grid;
+    const path = this.player.remaining.filter((t, i, all) => {
+      const before = i === 0 ? from : all[i - 1]!;
+      return (t.x !== before.x || t.z !== before.z) && (this.riding !== null || grid.walkable(t.x, t.z));
+    });
     const key = `${from.x},${from.z}:${path.map((t) => `${t.x},${t.z}`).join(";")}`;
     const goal = path.at(-1);
     const sentGoal = this.lastSent.split(";").at(-1);

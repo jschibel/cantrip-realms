@@ -66,7 +66,7 @@ public abstract class RealmSpace
     private protected const byte Bare = 4;
 
     /// <summary>
-    /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (conversion.md): the floor's height in whole texels,
+    /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (interfaces.md, "Version 2 of the world data"): the floor's height in whole texels,
     /// a surface id or <c>""</c> (nothing: never walked), and flags 1 blocked, 2 bare and 4 ramp (a slope between two
     /// levels, walked as any open tile). Each into a state byte and a height, at the index it has in the list.
     /// </summary>

@@ -1,5 +1,5 @@
 // Dominaria as the game reads it (interfaces.md, "The world, interiors and dungeons"; the version-2 format of
-// realms/docs/conversion.md): world.json and the dungeons' definitions are small and in the page; each chunk and
+// realms/docs/interfaces.md): world.json and the dungeons' definitions are small and in the page; each chunk and
 // interior is its own lazy bundle, read as the player nears it (`DOMINARIA`, a WorldSource). Also the vendors and the
 // planes' names, and the few rules of place the in-memory API (net/mockApi.ts) keeps as the server does.
 

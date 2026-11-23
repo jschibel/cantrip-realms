@@ -1,4 +1,4 @@
-// Every art id the world generator names (realms/docs/conversion.md, "The world's ids"): the surfaces of its tiles, the
+// Every art id the world generator names (realms/docs/tech.md B5, "The world's ids"): the surfaces of its tiles, the
 // props it stands on them, the building styles and kinds, the room kinds of its interiors, the figures of its people.
 // An id the art registries do not have yet is a placeholder, listed in PLACEHOLDERS with what it should look like.
 

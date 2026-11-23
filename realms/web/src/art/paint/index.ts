@@ -1,4 +1,4 @@
-// The painting toolkit every recipe draws with (realms/docs/conversion.md, "art/paint"):
+// The painting toolkit every recipe draws with (realms/docs/tech.md B5, "art/paint"):
 //
 //   Pixmap, seeded, hash2, rgb      pixel buffers painted by code, seeded randomness (pixmap.ts)
 //   colors (C)                      the ramps, dark to light, hue-shifting (colors.ts)

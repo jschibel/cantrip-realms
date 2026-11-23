@@ -764,7 +764,7 @@ public sealed partial class RealmContent
     }
 
     /// <summary>
-    /// Reads a plane's world in version 2 of the world data (conversion.md): <c>world.json</c> and every chunk of
+    /// Reads a plane's world in version 2 of the world data (interfaces.md, "Version 2 of the world data"): <c>world.json</c> and every chunk of
     /// <c>chunks/</c>, chunk files named <c>&lt;cx&gt;_&lt;cz&gt;.json</c> (negative ones too); null for a plane with none.
     /// </summary>
     internal static RealmWorld? ReadWorld(string folder, string plane, List<string> problems)

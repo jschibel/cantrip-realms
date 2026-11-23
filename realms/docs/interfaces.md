@@ -151,8 +151,8 @@ Design.md A6: one connected world, interiors entered through doors, and dungeons
 overworld's per-map files are gone). The server starts on the generated world; its tests also keep a small world of the
 same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py`).
 
-The server reads these files in version 2 of the world data, on square tiles (realms/docs/conversion.md, "The world data,
-version 2"; Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
+The server reads these files in version 2 of the world data, on square tiles ("Version 2 of the world data", below;
+Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
 (the doors into interiors), its `npcs` (vendors, armorers, innkeepers, spell tables: a spell table is a `spell-table`
 NPC), `spawns`, `chests` and `entrances`; of an interior its `w`, `d`, `area`, `tiles`, `npcs`, `entry`, `exit`, `town`
 and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of world.json its `size`, `origin`, `chunk`,
@@ -171,7 +171,7 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`); and the `ferries` (`{id, name, from, to}`, each dock the
   open shore nearest its place). The world generator reads it (and refuses one whose towns stand within 16 tiles of each
   other, wall to wall), and the server tests' world takes its towns' and dungeons' ids from it.
-- **The world** is the version-2 format of realms/docs/conversion.md ("The world data, version 2"; types in
+- **The world** is the version-2 format ("Version 2 of the world data", below; types in
   `realms/web/src/world/format.ts`). Dominaria is 1024 by 1216 tiles from `[0, 0]` (32 by 38 chunks), no `bounds`.
   `world/world.json` holds `{size: [width, height], chunk: 32, tile: 1, seed, regions: [{color, name, tiles}] (each
   colored region and how many tiles of land it has), towns: [{id, name, kind: capital|town|village, center: [x, z],
@@ -198,7 +198,7 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   - `overview` is the world from above for the regional map: `{cell, legend: {letter: surface, T: town, F: woods},
     rows}`, a letter for each `cell`-by-`cell` square (8).
 
-  `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk (conversion.md has every field): its `tiles` (`[height, surface,
+  `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk ("Version 2 of the world data" has every field): its `tiles` (`[height, surface,
   flags]`, row by row; flags 1 blocked, 2 bare, 4 a ramp, which is walked as any open tile), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
   `chests`, `entrances` and `waymarkers`, all in tiles but props' places, in world units. In Dominaria:
   - `npcs` stand outdoors on open tiles: townsfolk and guards who walk, ferrymen. What a player uses but nobody walks
@@ -229,7 +229,7 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   tier is its zone's and its mobs', tiers grow with distance, waymarkers stand at rises, ferries' lanes are walks with a
   ferryman at each dock, pitches stand open in their towns, every id the art does not have is a documented placeholder,
   and the files are what the generator writes.
-- **Interiors.** `interiors/<id>.json` is a room in the version-2 format (conversion.md): `{id, name, kind, town, style,
+- **Interiors.** `interiors/<id>.json` is a room in the version-2 format (below): `{id, name, kind, town, style,
   w, d, area, tiles, props, npcs, lights, entry: [x, z], exit: [x, z]}`, `exit` the world tile it comes out on - its
   building's door tile - and `entry` its own tile at the door (stepping onto it leaves; one arrives a step in from it).
   Kinds: shop, inn, guildhall, temple, smithy, library, house, tower, and `exotic-wares` for an exotic wares shop
@@ -253,11 +253,59 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   exactly the encounters the run names, each with its mob. world.json's `dungeons` places each at its entrance, where a
   chunk's `entrances` leads into it.
 
+#### Version 2 of the world data (types in `realms/web/src/world/format.ts`)
+
+The art slice's small world is `realms/web/fixtures/slice-world`.
+
+- `world.json`:
+  - `{size: [width, height] (tiles), origin?: [x, z] (default [0, 0]), chunk: 32, tile: 1 (world units), bounds?:
+    [x0, z0, x1, z1]}`: the world's tiles are `size` from `origin`; `bounds` (default the whole world) is where the
+    camera keeps its view - tiles past it are scenery seen from a corner (the sample's wood round its edges). Dominaria
+    keeps `origin` [0, 0] and no `bounds`.
+  - plus the existing content: `regions` (`{color, name, tiles}`), `towns` (with `style`, `center: [x, z]`, `radius`,
+    `start`, `home`), `inns` (`{id, town, x, z, interior}`), `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x,
+    z}`), `roads` (`{from, to, tiles}`), `zones` (the tier grid: squares of `cell` tiles from the origin), `overview`.
+  - Every position is `[x, z]` in tiles, with x east and z south; an entity in a list has fields `x` and `z`.
+- `chunks/<cx>_<cz>.json`, 32 by 32 tiles, chunk (cx, cz) holding x from `cx * 32`, likewise z (negative chunks are
+  named `-1_0.json`):
+  - `tiles`: one entry per tile, `[height, surface, flags]`, row by row (z then x), so a chunk is 1,024 entries.
+    `height` is in texels (a sixteenth of a tile, so a dais of 3/16 is 3 and a terrace of 3/4 is 12), `surface` a
+    surface id or `""` (nothing: not drawn, never walked), `flags` 1 blocked, 2 bare (nothing grows up off it - no
+    standing grass under a tree or a house), 4 ramp (its floor slopes between its neighbours' levels: see "The
+    renderer at world scale"). A tile past the world's edge is blocked.
+  - `props`: `[{id, x, z, y?, rot? (0..3), turn? (radians), scale?, tint? (a palette name), seed?, args?}]`. `x`, `z`
+    (and `y`) are world units, fractions allowed: the prop's anchor, as its registry entry says; `args` are its own
+    (a line's far end `to`, a crate's `goods`). A prop belongs to the chunk its anchor is in.
+  - `buildings`: `[{id, style, kind?, x, z, w, d, rot, door?: [x, z], interior?, sign?, palette?, params?}]`, the
+    footprint `w` by `d` world units from (x, z) (fractions allowed), the front toward `rot` (0 south, quarter turns
+    clockwise), `params` the style's choices. The door tile is walkable; a door with no `interior` is only painted.
+  - `npcs`: `[{id, x, z, kind, name?, vendor?, tower?, ferry?, text?, figure?, palette?, behaviour?, speed?, seed?,
+    stand?}]`: `figure` and `palette` its look, `behaviour` `{wander?: {home, reach, pause}, beat?: {stops, pause},
+    watch?, rest?}` (tiles), `speed` tiles a second, `seed` makes its wandering the same every visit, `stand: [x, y, z]`
+    where it stands when not on its tile's middle (a vendor on a crate). Kinds add `ambient` (only there to be seen).
+  - `spawns`, `chests`, `entrances`, `waymarkers`: as before, in tiles (`{x, z, ...}`).
+  - `lights?`: `[{kind: point | spot, at: [x, y, z], color: [r, g, b] (linear, 0-1), intensity, reach, decay?, to?,
+    angle?, penumbra?, shadow?, flicker?: {base, steps, rate, phase?}}]`: a fire, a candle, a window's daylight. A
+    flicker's intensity is `base + steps[(floor(time * rate) + phase) % steps.length]`, in step with the flames.
+- `interiors/<id>.json`:
+  - `{id, name, kind, town?, style, w, d, area?: [x0, z0, x1, z1], tiles, props, npcs, lights?, entry: [x, z], exit:
+    [x, z], params?}`: the floor is `w` by `d` tiles from (0, 0); `tiles` cover `area` (default the floor), so an area
+    may reach past the floor where something is drawn (the sill of the front wall's gap); props may stand against the
+    walls, a tile past the area. `entry` is the room's tile at its door (stepping onto it leaves; one arrives a step in,
+    north); `exit` the world tile one comes out on, the door tile of the building that leads in. The exit is in the
+    front (south) wall, the gap two tiles wide with `entry` its east tile.
+  - Kinds: `shop`, `inn`, `guildhall`, `temple`, `smithy`, `library`, `house`, `tower`, `exotic-wares`, and `crypt`
+    (the sample's crypt is a fixed interior; the game's crypts are dungeon runs).
+  - the room is laid out by its recipe, and the file holds what the generator chose: its furniture is its `props`,
+    its fires' and windows' light its `lights`.
+- `dungeons/<id>.json`: as before, but `entrance` is `[x, z]`. A run's layout is the browser's, on squares.
+- Spawn ids stay `"<cx>_<cz>:<n>"`. The spawn algorithm is unchanged, and its golden vectors hold.
+
 ### Places
 
 A character's place is `{Space, X, Z}`: `Space` is `"world"`, an interior's id, or `"run:<run>"` for a dungeon run, and
 `X`, `Z` a square tile of it (x east, z south; the world's may be negative, from its `origin`). The server reads the world,
-its interiors and its dungeons in version 2 of the world data (realms/docs/conversion.md, "The world data, version 2"):
+its interiors and its dungeons in version 2 of the world data (above):
 
 - **Open tiles.** A tile is open - someone may stand on it - when it is a tile of the space (in the world: within `size`
   from `origin`, in a chunk with a file; in an interior: within its `area`), has a surface (not `""`) and is not blocked

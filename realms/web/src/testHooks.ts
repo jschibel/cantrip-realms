@@ -211,6 +211,13 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     async advance(seconds: number) {
       const o = live();
       if (!o) return;
+      // On its own clock (no ?manual: against a real server, whose walks are timed by its clock), the page's time is let
+      // run on by as much instead.
+      if (!o.options.manual) {
+        const until = o.stage.time + seconds;
+        while (live() && o.stage.time < until) await new Promise((r) => requestAnimationFrame(r));
+        return;
+      }
       for (let t = 0; t < seconds - 1e-6; t += 1 / 60) {
         o.tick(1 / 60);
         await yieldFrame();

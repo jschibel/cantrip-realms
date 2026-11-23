@@ -1,4 +1,4 @@
-// Dungeon floors on squares (realms/docs/conversion.md, "Dungeons on squares"): one generator per theme, the run's
+// Dungeon floors on squares (realms/docs/tech.md B5, "Dungeons on squares"): one generator per theme, the run's
 // contract placed on what it carves, and the floor drawn in the slice's look.
 //
 //   generateDungeonFloor(request)   a run's floor: its plan, tiles, props, lights, stairs and encounters (generate.ts)

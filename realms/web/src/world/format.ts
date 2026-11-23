@@ -1,4 +1,4 @@
-// The world as data, version 2 (realms/docs/conversion.md, "The world data, version 2"): square tiles, positions in
+// The world as data, version 2 (realms/docs/interfaces.md, "Version 2 of the world data"): square tiles, positions in
 // tiles `[x, z]` with x east and z south, the world cut into 32-by-32 chunks. What the world generator writes, what the
 // overworld walks and draws (render/assemble.ts names each id to the art registries), and what the realm server checks
 // places against. Nothing here is three.js: the world data names ids, and the art registries make the meshes.

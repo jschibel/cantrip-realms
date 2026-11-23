@@ -1,5 +1,5 @@
 """The realm server's test world (realms/docs/interfaces.md, "The world, interiors and dungeons"): a small but real
-Dominaria in version 2 of the world data (realms/docs/conversion.md, "The world data, version 2": square tiles, the
+Dominaria in version 2 of the world data (realms/docs/interfaces.md, "Version 2 of the world data": square tiles, the
 types of realms/web/src/world/format.ts), for the server's tests to walk until - and beside - the generated world.
 
     python realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py

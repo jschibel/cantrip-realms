@@ -202,7 +202,7 @@ public sealed class RelicsFile
     public IReadOnlyList<RelicEntry> Relics { get; init; } = [];
 }
 
-// The world, its interiors and its dungeons, in version 2 of the world data (realms/docs/conversion.md, "The world data,
+// The world, its interiors and its dungeons, in version 2 of the world data (realms/docs/interfaces.md, "Version 2 of the
 // version 2"; the types are realms/web/src/world/format.ts): square tiles, every position [x, z] in tiles or an entity's
 // fields x and z, x east and z south. The server reads what it checks places against and leaves the rest - surfaces'
 // looks, props, buildings but their doors, lights - to the overworld.

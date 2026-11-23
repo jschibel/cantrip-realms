@@ -12,7 +12,7 @@ const SERVER = process.env.REALMS_E2E_SERVER!;
 const CARDS = process.env.REALMS_E2E_CARDS!;
 
 const query = (extra = "") =>
-  `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&manual&wander=0&encounters=never${extra}`;
+  `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never${extra}`;
 
 async function signIn(request: APIRequestContext, id: number, name: string): Promise<void> {
   const response = await request.post(new URL("dev/signin", SERVER).toString(), { data: { Id: id, Name: name } });

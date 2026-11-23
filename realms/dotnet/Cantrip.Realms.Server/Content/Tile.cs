@@ -1,7 +1,7 @@
 namespace Cantrip.Realms.Server.Content;
 
 /// <summary>
-/// A square tile of a space (realms/docs/conversion.md, "The world data, version 2"): <see cref="X"/> east and
+/// A square tile of a space (realms/docs/interfaces.md, "Version 2 of the world data"): <see cref="X"/> east and
 /// <see cref="Z"/> south, in whole tiles, named by the space's own coordinates (the world's may be negative). Tile (x, z)
 /// covers the world units [x, x + 1) by [z, z + 1).
 /// </summary>

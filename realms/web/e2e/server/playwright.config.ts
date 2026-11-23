@@ -10,9 +10,8 @@ import { defineConfig } from "@playwright/test";
 // as static files on an origin of its own (cards.mjs) - and plays its duel, which the server checks on the native engine
 // host. `npm run e2e:server`, after building the realm server, the web client (with the rules engine for the page,
 // toolsuild-engine-wasm.cmd) and the engine host (cargo build --profile cards -p cantrip-host).
-const web = 5175;
-const realm = 5181;
-const cards = 5197;
+// The ports, each overridable where another run holds it (REALMS_E2E_PORTS=web,realm,cards).
+const [web, realm, cards] = (process.env.REALMS_E2E_PORTS ?? "5175,5181,5197").split(",").map(Number) as [number, number, number];
 const here = dirname(fileURLToPath(import.meta.url));
 const server = resolve(here, "..", "..", "..", "dotnet", "Cantrip.Realms.Server");
 

@@ -372,7 +372,7 @@ public sealed class ContentTests
     [Fact]
     public void The_server_reads_the_slice_worlds_files_as_the_overworld_does()
     {
-        // realms/web/fixtures/slice-world: the foundation's sample of version 2 (conversion.md), with an origin west and north of
+        // realms/web/fixtures/slice-world: the foundation's sample of version 2 (interfaces.md, "Version 2 of the world data"), with an origin west and north of
         // 0, negative chunks, heights in texels, bare tiles and tiles of no surface; read with the server's own reader.
         string folder = Path.Combine(RealmApp.Root, "realms", "web", "fixtures", "slice-world");
         List<string> problems = [];

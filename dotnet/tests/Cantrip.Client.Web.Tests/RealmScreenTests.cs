@@ -20,19 +20,30 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    /// <summary>Starts an encounter with the Phyrexian Scout of Benalish Meadow, the one mob its first spawn holds: the duel screen's args.</summary>
+    /// <summary>
+    /// Starts an encounter with the mob a spawn of the wilds by New Benalia holds for the player now, standing on the
+    /// spawn's tile (POST /dev/place): the duel screen's args.
+    /// </summary>
     private static async Task<(object Args, string Token)> Encounter(RealmPage realm)
     {
-        await realm.OkAsync(HttpMethod.Post, "travel", new { Map = "benalish-meadow", Q = 6, R = 3 });
-        JsonElement start = await realm.OkAsync(HttpMethod.Post, "encounter/start", new { Map = "benalish-meadow", Spawn = "s1", Mob = "phyrexian-scout" });
+        (string spawn, int x, int z, string mob, string name, int tier) = RealmSite.SpawnNear("new-benalia", realm.Player);
+        await realm.OkAsync(HttpMethod.Post, "dev/place", new { Space = "world", X = x, Z = z }, api: false);
+        JsonElement start = await realm.OkAsync(HttpMethod.Post, "encounter/start", new { Spawn = spawn, Mob = mob });
         string token = start.GetProperty("Token").GetString()!;
         return (new
         {
             token,
             seed = start.GetProperty("Seed").GetInt64(),
             duel = start.GetProperty("Duel"),
-            mob = new { id = "phyrexian-scout", name = "Phyrexian Scout", tier = 1, map = "benalish-meadow", spawn = "s1" },
+            mob = new { id = mob, name, tier, map = "world", spawn },
         }, token);
+    }
+
+    /// <summary>Stands the character beside an NPC of a kind in a room (POST /dev/place): at a spell table, a vendor, an armorer.</summary>
+    private static Task<JsonElement> Beside(RealmPage realm, string interior, string kind)
+    {
+        (int x, int z) = RealmSite.BesideNpc(interior, kind);
+        return realm.OkAsync(HttpMethod.Post, "dev/place", new { Space = interior, X = x, Z = z }, api: false);
     }
 
     private static string[] Log(JsonElement closed) =>
@@ -79,8 +90,7 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         (object Args, string Token) encounter = (new object(), string.Empty);
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 102, "W", Pictures, async page =>
         {
-            (int q, int r) = RealmSite.BesideNpc("new-argive", "spell-table");
-            await page.OkAsync(HttpMethod.Post, "travel", new { Map = "new-argive", Q = q, R = r });
+            await Beside(page, "new-benalia-inn", "spell-table");
             await page.OkAsync(HttpMethod.Put, "deck", new { Main = new[] { new { Name = "Plains", Count = 40 } }, Ante = Array.Empty<object>() });
             encounter = await Encounter(page);
         }, query: "&auto");
@@ -140,11 +150,10 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
     {
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 104, "W", Pictures, async page =>
         {
-            (int q, int r) = RealmSite.BesideNpc("new-argive", "spell-table");
-            await page.OkAsync(HttpMethod.Post, "travel", new { Map = "new-argive", Q = q, R = r });
+            await Beside(page, "new-benalia-inn", "spell-table");
         });
         JsonElement deck = await realm.OkAsync(HttpMethod.Get, "deck");
-        int id = await realm.OpenScreenAsync("spell-table", new { map = "new-argive", name = "the spell table at New Argive" });
+        int id = await realm.OpenScreenAsync("spell-table", new { map = "new-benalia-inn", name = "the spell table at the inn" });
 
         RealmState table = await realm.SettledAsync(state => state.DeckEditor is { } editor && editor.Main.Count > 0 && editor.Status.StartsWith("Legal", StringComparison.Ordinal));
         await realm.PictureAsync("spell-table");
@@ -193,8 +202,7 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
     {
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 105, "W", Pictures, async page =>
         {
-            (int q, int r) = RealmSite.Inn("new-benalia");
-            await page.OkAsync(HttpMethod.Post, "travel", new { Map = "new-benalia", Q = q, R = r });
+            await Beside(page, "benalia-white-goods-shop", "vendor");
         });
         JsonElement shop = await realm.OkAsync(HttpMethod.Get, "vendor/benalia-white-goods");
         JsonElement cheapest = shop.GetProperty("Stock").EnumerateArray().OrderBy(item => item.GetProperty("Gold").GetInt64()).First();
@@ -235,7 +243,7 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
     [Fact]
     public async Task The_gear_screen_takes_off_and_wears_gear_and_trades_with_an_armorer()
     {
-        await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 106, "W", Pictures);
+        await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 106, "W", Pictures, page => Beside(page, "new-benalia-smithy", "armorer"));
         JsonElement me = await realm.OkAsync(HttpMethod.Get, "me");
         (string slot, JsonElement worn) = me.GetProperty("Loadout").EnumerateObject()
             .Where(pair => pair.Value.ValueKind == JsonValueKind.Object).Select(pair => (pair.Name, pair.Value)).First();
@@ -261,13 +269,13 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         await realm.ClickAsync("Done");
         Assert.Equal("closed", (await realm.ClosedAsync(id)).GetProperty("outcome").GetString());
 
-        // At New Argive's armorer: an item of the day's stock bought, and sold back at half its price.
-        JsonElement stock = await realm.OkAsync(HttpMethod.Get, "armorer/new-argive");
+        // At New Benalia's armorer, in its smithy: an item of the day's stock bought, and sold back at half its price.
+        JsonElement stock = await realm.OkAsync(HttpMethod.Get, "armorer/new-benalia");
         JsonElement cheapest = stock.GetProperty("Stock").EnumerateArray().OrderBy(gear => gear.GetProperty("Gold").GetInt64()).First();
         string bought = cheapest.GetProperty("Name").GetString()!;
         long price = cheapest.GetProperty("Gold").GetInt64();
         Assert.True(price <= 2000, $"{bought} costs {price}, more than a new character has.");
-        id = await realm.OpenScreenAsync("gear", new { armorer = "new-argive", name = "the armorer of New Argive" });
+        id = await realm.OpenScreenAsync("gear", new { armorer = "new-benalia", name = "the armorer of New Benalia" });
         await realm.ClickGearAsync("stock", bought);
         await realm.ClickAsync("Buy");
         await realm.SettledAsync(state => state.Realm?.Status.StartsWith("You bought", StringComparison.Ordinal) == true && state.Realm.Gear.Any(card => card.Place == "owned" && card.Name == bought));

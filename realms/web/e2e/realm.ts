@@ -70,7 +70,8 @@ export async function until(page: Page, check: () => Promise<boolean>, what: str
     if (await check()) return;
     await advance(page, 0.2);
   }
-  expect(await check(), what).toBe(true);
+  const said = await realm<string[]>(page, "messages").catch(() => []);
+  expect(await check(), `${what} (the page said: ${JSON.stringify(said?.slice(-4) ?? [])})`).toBe(true);
 }
 
 export const entities = (page: Page) => realm<Entity[]>(page, "entities");

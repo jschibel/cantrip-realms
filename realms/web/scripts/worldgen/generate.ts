@@ -1,7 +1,7 @@
 // Dominaria, generated (design.md A6; interfaces.md "The world, interiors and dungeons"): one seeded run lays the land,
 // the towns and their buildings, the dungeons and mage towers, the ferries, the roads between them, the fields and the
 // scenery, the tier zones and what lives in them, and writes it all as the world's files in the version-2 format
-// (realms/docs/conversion.md) - its chunks of square tiles, the interiors behind its doors and its dungeons'
+// (realms/docs/interfaces.md, "Version 2 of the world data") - its chunks of square tiles, the interiors behind its doors and its dungeons'
 // definitions. The same layout, seed and mob roster give the same files, byte for byte.
 
 import {

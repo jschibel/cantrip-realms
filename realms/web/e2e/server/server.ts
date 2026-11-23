@@ -7,8 +7,12 @@ import { type Tile, dungeon, openWorld, realm } from "../realm";
 
 export const SERVER = process.env.REALMS_E2E_SERVER!;
 
-/** The page's query: the real server, the stand-in card layer, the test hooks, and nothing left to chance. */
-export const query = (extra = "") => `/?server=${encodeURIComponent(SERVER)}&cards=stub&test&manual&wander=0&encounters=never${extra}`;
+/**
+ * The page's query: the real server, the stand-in card layer, the test hooks, and nothing left to chance. The page runs
+ * on its own clock here (no ?manual): the server times every walk by its clock, so the page's walks must take as long.
+ * The tests still wait by the page's clock (realmTest.advance lets it run on), never a set time.
+ */
+export const query = (extra = "") => `/?server=${encodeURIComponent(SERVER)}&cards=stub&test&wander=0&encounters=never${extra}`;
 
 /** Signs a player in on the server by the development sign-in: the cookie goes to the page's browser context. */
 export async function signIn(request: APIRequestContext, id: number, name: string): Promise<void> {

@@ -16,7 +16,7 @@ import { type Finish, ROOM_STYLES, type RoomStyle, finishOf, styleOf } from "./s
 
 // Laying out a room: from an interior's kind, its building's style and size, and a seed, the room's floor, its
 // furniture (props), the people who keep it (npcs) and its fires' and windows' light - an `InteriorData`, as the world
-// generator writes it to `interiors/<id>.json` (realms/docs/conversion.md, "Rooms"). The same spec gives the same room.
+// generator writes it to `interiors/<id>.json` (realms/docs/tech.md B5, "Rooms"). The same spec gives the same room.
 //
 // Every room is walked whole from its door: furniture is set down only where it leaves every open tile reached from the
 // arrival (a keeper's place behind a counter is the one pocket allowed). The tall things stand against the back wall,

@@ -1,4 +1,4 @@
-// Prints the art library's ids as Markdown, for realms/docs/conversion.md's "Art ids": every surface with its priority,
+// Prints the art library's ids as Markdown, for realms/docs/tech.md B5's "Art ids": every surface with its priority,
 // every catalogued (outdoor) prop with its footprint and biomes, every building style's kinds and showcase sizes, and the
 // named palettes. Run: npx vite-node scripts/art-ids.ts
 import { BUILDINGS, SHOWCASE } from "../src/art/buildings";

@@ -7,7 +7,7 @@ import { BODY_NAMES, FIGURES, Figure, GEAR_PARTS, MOB_MESHES, SKINS, figureSpec,
 import { rampOf } from "./ramps";
 import type { FigureSpec } from "./rig";
 
-// The figures (conversion.md, "Characters"): every mesh the content names builds, every gear look maps to a part and
+// The figures (realms/docs/tech.md B5, "Characters"): every mesh the content names builds, every gear look maps to a part and
 // shows, every body in every palette and color builds, the townsfolk vary by seed, and the rig acts.
 
 const here = dirname(fileURLToPath(import.meta.url));

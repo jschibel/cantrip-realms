@@ -1,4 +1,4 @@
-// The renderer's API: what the game calls to draw the world (realms/docs/conversion.md, "Module interfaces").
+// The renderer's API: what the game calls to draw the world (realms/docs/tech.md B5, "Module interfaces").
 //
 //   CameraRig        the view: a PixelRenderer on the canvas, the three headings, the stepped zoom, the turn and zoom
 //                    easing, the focus held to a place's bounds (camera.ts)

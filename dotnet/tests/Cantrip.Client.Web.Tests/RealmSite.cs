@@ -232,40 +232,88 @@ public sealed class RealmSite : IAsyncLifetime
         _starting.Dispose();
     }
 
-    /// <summary>The map files the realm is played on, by id: what a test reads to stand a character somewhere.</summary>
-    public static JsonElement Map(string id)
+    private static string Plane => Path.Combine(WebClient.Root, "realms", "content", "dominaria");
+
+    private static JsonElement Read(string path)
     {
-        string file = Directory.EnumerateFiles(Path.Combine(WebClient.Root, "realms", "content"), id + ".json", SearchOption.AllDirectories)
-            .First(path => path.Contains($"{Path.DirectorySeparatorChar}maps{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllBytes(file));
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Plane, path)));
         return document.RootElement.Clone();
     }
 
-    /// <summary>The first open hex beside a map's first NPC of a kind (in hex.ts's order of directions): where one stands to use it.</summary>
-    public static (int Q, int R) BesideNpc(string map, string kind)
+    /// <summary>The eight steps to a neighbour in the server's order (south, east, west, north, then the diagonals).</summary>
+    private static readonly (int X, int Z)[] Steps = [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1)];
+
+    /// <summary>
+    /// The first open tile beside an interior's first NPC of a kind (in the server's order of steps): where one stands to
+    /// use it, as <c>POST /dev/place</c> takes it (realms/docs/interfaces.md, "Version 2 of the world data").
+    /// </summary>
+    public static (int X, int Z) BesideNpc(string interior, string kind)
     {
-        JsonElement data = Map(map);
-        JsonElement npc = data.GetProperty("npcs").EnumerateArray().First(person => person.GetProperty("kind").GetString() == kind);
-        int q = npc.GetProperty("q").GetInt32();
-        int r = npc.GetProperty("r").GetInt32();
-        HashSet<(int, int)> open = [.. data.GetProperty("tiles").EnumerateArray()
-            .Where(tile => tile[4].GetInt32() == 0)
-            .Select(tile => (tile[0].GetInt32(), tile[1].GetInt32()))];
-        foreach ((int dq, int dr) in ((int, int)[])[(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)])
+        JsonElement room = Read(Path.Combine("interiors", interior + ".json"));
+        JsonElement[] npcs = [.. room.GetProperty("npcs").EnumerateArray()];
+        JsonElement npc = npcs.First(person => person.GetProperty("kind").GetString() == kind);
+        int x = npc.GetProperty("x").GetInt32();
+        int z = npc.GetProperty("z").GetInt32();
+        int w = room.GetProperty("w").GetInt32();
+        int[] area = room.TryGetProperty("area", out JsonElement a) ? [.. a.EnumerateArray().Select(v => v.GetInt32())] : [0, 0, w, room.GetProperty("d").GetInt32()];
+        JsonElement[] tiles = [.. room.GetProperty("tiles").EnumerateArray()];
+        bool Open(int tx, int tz)
         {
-            if (open.Contains((q + dq, r + dr)))
+            if (tx < area[0] || tz < area[1] || tx >= area[2] || tz >= area[3]) return false;
+            JsonElement tile = tiles[((tz - area[1]) * (area[2] - area[0])) + (tx - area[0])];
+            return tile[1].GetString()!.Length > 0 && (tile[2].GetInt32() & 1) == 0;
+        }
+
+        // Beside it, or a tile further (a vendor behind a counter is spoken to across it).
+        foreach ((int dx, int dz) in Steps.Concat(Steps.Select(step => (step.X * 2, step.Z * 2))))
+        {
+            if (Open(x + dx, z + dz) && !npcs.Any(n => n.GetProperty("x").GetInt32() == x + dx && n.GetProperty("z").GetInt32() == z + dz))
             {
-                return (q + dq, r + dr);
+                return (x + dx, z + dz);
             }
         }
 
-        throw new InvalidOperationException($"No open hex beside {map}'s {kind}.");
+        throw new InvalidOperationException($"No open tile beside {interior}'s {kind}.");
     }
 
-    /// <summary>Where a town's inn stands.</summary>
-    public static (int Q, int R) Inn(string map)
+    /// <summary>
+    /// The spawn point of the world nearest a town (outside it), and the mob it holds for a player now (realms/docs/
+    /// interfaces.md, "Spawns", this epoch on the clock the server also reads): its id, its
+    /// tile, that mob's id and name, and its tier.
+    /// </summary>
+    public static (string Id, int X, int Z, string Mob, string Name, int Tier) SpawnNear(string town, string player)
     {
-        JsonElement inn = Map(map).GetProperty("inn");
-        return (inn.GetProperty("q").GetInt32(), inn.GetProperty("r").GetInt32());
+        JsonElement world = Read(Path.Combine("world", "world.json"));
+        JsonElement t = world.GetProperty("towns").EnumerateArray().First(candidate => candidate.GetProperty("id").GetString() == town);
+        int cx = t.GetProperty("center")[0].GetInt32();
+        int cz = t.GetProperty("center")[1].GetInt32();
+        int radius = t.GetProperty("radius").GetInt32();
+        var found = new List<(int D, string Id, int X, int Z, string[] Mobs, int Respawn, int Tier)>();
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(Plane, "world", "chunks"), "*.json"))
+        {
+            using JsonDocument chunk = JsonDocument.Parse(File.ReadAllBytes(file));
+            foreach (JsonElement spawn in chunk.RootElement.GetProperty("spawns").EnumerateArray())
+            {
+                int x = spawn.GetProperty("x").GetInt32();
+                int z = spawn.GetProperty("z").GetInt32();
+                int d = Math.Max(Math.Abs(x - cx), Math.Abs(z - cz));
+                if (d <= radius + 4) continue;
+                string[] mobs = [.. spawn.GetProperty("mobs").EnumerateArray().Select(m => m.GetString()!)];
+                found.Add((d, spawn.GetProperty("id").GetString()!, x, z, mobs, spawn.GetProperty("respawnSeconds").GetInt32(), spawn.GetProperty("tier").GetInt32()));
+            }
+        }
+
+        (int _, string id, int sx, int sz, string[] all, int respawn, int tier) = found.OrderBy(f => f.D).ThenBy(f => f.Id, StringComparer.Ordinal).First();
+        long epoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / respawn;
+        // The spawn algorithm (realms/dotnet/Cantrip.Realms/Spawns.cs): FNV-1a of "player|space|spawn|epoch" picks the mob.
+        uint hash = 2166136261;
+        foreach (byte b in System.Text.Encoding.UTF8.GetBytes(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{player}|world|{id}|{epoch}")))
+        {
+            hash = unchecked((hash ^ b) * 16777619);
+        }
+
+        string mob = all[(int)(hash % (uint)all.Length)];
+        string name = Read(Path.Combine("mobs", mob + ".json")).GetProperty("name").GetString()!;
+        return (id, sx, sz, mob, name, tier);
     }
 }
