@@ -126,9 +126,12 @@ Every call but sign-in needs the signed-in cookie (`SiteSignIn`'s). A refused ca
 - `Duel`: everything the browser deals the game from - `{Seats: [the NewGame seat of docs/host-protocol.md, with
   StartingLife, StartingHandSize, MaximumHandSize, Emblems], MinimumDeckSize: 40, Seed, Mob: {Name, Tier, Prize},
   AnteValue, Cap}`. The player is seat 1, the mob seat 2.
-- `Log` is the duel's answers, in order: `[{RequestId, Seat, Answer}]`, each `Answer` as the host's `Answer` request carries it.
-  The server deals the same `Duel` on the native engine, replays the log, recomputes every one of seat 2's answers with
-  the same seeded tactical bot, and takes the result only if every answer matches and the game is over.
+- `Log` is what seat 1 sent the table, in order: each `Cantrip.Protocol` client message the player's `GameClient` sent,
+  MessagePack-serialised and base64-encoded, as a JSON array of strings. Seat 2's answers are not in it. The server deals
+  the same `Duel` on the native engine behind a `GameSession`, as the browser did; plays seat 1's messages back in
+  order; and answers seat 2 with `TacticalPlay` on the duel's seed, as the browser's bot seat did. It takes the result
+  only if the game is over at the end of the log and no message was refused. A log the bot's answers would have made
+  play out otherwise (a tampered bot) ends in a different game, which fails that check.
 
 ## Presence (`/realm/ws`)
 
