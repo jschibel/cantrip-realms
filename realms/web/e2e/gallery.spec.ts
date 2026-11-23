@@ -5,8 +5,9 @@ import { type Page, expect, test } from "@playwright/test";
 
 // The art gallery (gallery.html, dev only): every board - the surfaces and where biomes meet, the props by kind, each
 // region's building style - loads and draws without an error. With ART_SHOTS=1 it also writes the pictures for review
-// to e2e/screenshots/art: each board at the three headings one zoom step out (where most boards are seen whole), at
-// the closest step from the front, and the building styles row by row and at the farthest step too (the trees there in their far stand-ins); otherwise to test-results/art.
+// to e2e/screenshots/art: each board at the three headings one zoom step out (where most boards are seen whole) and at
+// the closest step from the front; the building styles row by row from the front and whole at the farthest step at all
+// three headings; the trees at the farthest step too, in their far stand-ins; otherwise to test-results/art.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shots = !!process.env.ART_SHOTS;
@@ -79,13 +80,24 @@ for (const board of BOARDS) {
     test.setTimeout(120_000);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    const views: [string, number][] = [
-      ["front", 1],
-      ["left", 1],
-      ["right", 1],
-      ["front", 0],
-      ...(board.startsWith("style-") || board === "props-trees" || board === "props-plants" ? ([["front", 2]] as [string, number][]) : []),
-    ];
+    // A style's street is seen whole at the far step, so its turned headings are pictured there (and its rows up close
+    // from the front); every other board at the three headings one step out.
+    const style = board.startsWith("style-");
+    const views: [string, number][] = style
+      ? [
+          ["front", 1],
+          ["left", 2],
+          ["right", 2],
+          ["front", 0],
+          ["front", 2],
+        ]
+      : [
+          ["front", 1],
+          ["left", 1],
+          ["right", 1],
+          ["front", 0],
+          ...(board === "props-trees" || board === "props-plants" ? ([["front", 2]] as [string, number][]) : []),
+        ];
     await open(page, board, "front", 1);
     const places = (await page.evaluate(() => (globalThis as any).galleryTest.views)) as [number, number][];
     for (const [heading, zoom] of shots ? views : views.slice(0, 3)) {
