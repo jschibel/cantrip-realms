@@ -204,10 +204,10 @@ export function finish(plan: Plan, rooms: readonly Room[], request: FloorRequest
     const ok = ([x, z]: [number, number]) => plan.walkable(x, z) && !isTaken(x, z) && plan.safe(x, z) && far(x, z) >= 0 && !plan.stops.has(plan.index(x, z)) && plan.passable(x, z + 1);
     const table = options.find((t) => ok(t) && plan.cell(t[0], t[1] - 1) === WALL && cheb(t[0], t[1], up[0], up[1]) > 1) ?? options.find((t) => ok(t) && cheb(t[0], t[1], up[0], up[1]) > 1) ?? options.find(ok);
     if (!table) throw new Error(`${request.theme} ${request.seed}: no room for the entrance's spell table`);
-    plan.block(table[0], table[1], { id: "spell-table", x: table[0] + 0.5, z: table[1] + 0.45 });
+    plan.block(table[0], table[1], { id: "spell-desk", x: table[0] + 0.5, z: table[1] + 0.45 });
     claim(table[0], table[1]);
     keepRound(table[0], table[1]);
-    npcs.push({ id: "spell-table", x: table[0], z: table[1], kind: "spell-table", name: "Spell table" });
+    npcs.push({ id: "spell-desk", x: table[0], z: table[1], kind: "spell-table", name: "Spell table" });
   }
 
   // The stairs and the way out, drawn.

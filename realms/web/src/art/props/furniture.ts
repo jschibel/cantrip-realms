@@ -266,7 +266,7 @@ drawn("tapestry", "a tapestry on a wall (its face at z) from x (2 wide), its foo
   });
 }, { cloth: C.GREEN });
 
-drawn("quest-board", "a board of notices on a wall (its face at z) from x (2 wide), its foot at y (0.9)", (b, p) => {
+drawn("notice-board", "a board of notices on a wall (its face at z) from x (2 wide), its foot at y (0.9)", (b, p) => {
   const y = p.y ?? 0.9;
   wallPiece(b, p, () => {
     b.box(0, y, 0, 2, y + 1.25, 0.08, { south: fitted(material(`notices-${p.seed ?? 4}`, () => RP.noticeBoard(p.seed ?? 4))), top: tiled(stock.darkTimber()) });
@@ -280,7 +280,7 @@ drawn("wall-map", "a map of the Domains on a wall (its face at z) from x (1.5 wi
 
 // --- The spell table -----------------------------------------------------------------------------------------------------
 
-drawn("spell-table", "a spell table, its middle at x, z (1.5 by 1): a violet cloth, a spellbook, decks and a candle; rot turns it", (b, p) => {
+drawn("spell-desk", "a spell table, its middle at x, z (1.5 by 1): a violet cloth, a spellbook, decks and a candle; rot turns it", (b, p) => {
   const timber = tiled(stock.timber());
   const dark = tiled(stock.darkTimber());
   const cloth = material("spell-cloth", () => spellCloth());

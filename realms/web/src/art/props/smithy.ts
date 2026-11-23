@@ -55,7 +55,7 @@ drawn("forge", "a forge against a wall (its face at z), its middle at x: a brick
   return { frames: [flameCards(fx, 0.95, fz, 12, 1.4), flameCards(gx, 0.95, gz, 8)] };
 });
 
-drawn("anvil", "an anvil on a stump, its middle at x, z, its horn to the east unless rot turns it", (b, p) => {
+drawn("stump-anvil", "an anvil on a stump, its middle at x, z, its horn to the east unless rot turns it", (b, p) => {
   standing(b, p, () => {
     b.cylinder(0, 0, 0, 0.45, 0.3, 8, { mat: stock.bark() }, fitted(material("stump-top", () => stumpTop())));
     b.box(-0.18, 0.45, -0.12, 0.18, 0.6, 0.12, sides(ironDark()));

@@ -517,7 +517,7 @@ const inn: Layout = (plan, spec, keeper) => {
   const tx = west ? w - 3 : 1;
   const tz = d - 3;
   if (plan.take(tx, tz, tx + 2, tz + 1)) {
-    plan.add({ id: "spell-table", x: tx + 1, z: tz + 0.5 });
+    plan.add({ id: "spell-desk", x: tx + 1, z: tz + 0.5 });
     plan.npcs.push({ id: `${spec.id}-spell-table`, x: tx + (west ? 0 : 1), z: tz, kind: "spell-table", name: "Spell table" });
   }
   // Tables in the middle; in a tavern, a game of cards in the other front corner.
@@ -540,7 +540,7 @@ const guildhall: Layout = (plan, spec, keeper) => {
   for (let x = 2; x < w - 1; x += 4) plan.add({ id: "guild-banner", x, z: 0, tint, y: 2.9 });
   const qx = plan.between(0, 1) ? 0.5 : w - 2.5;
   if (plan.take(Math.floor(qx), 0, Math.floor(qx) + 2, 1)) {
-    plan.add({ id: "quest-board", x: qx, z: 0 });
+    plan.add({ id: "notice-board", x: qx, z: 0 });
   }
   const mx = qx < w / 2 ? w - 3.5 : 2;
   plan.add({ id: "wall-map", x: mx, z: 0, y: 1.0 });
@@ -563,7 +563,7 @@ const guildhall: Layout = (plan, spec, keeper) => {
   // The mages' spell table, a keeper.
   const sx = plan.chance(0.5) ? 1 : w - 3;
   if (plan.take(sx, d - 2, sx + 2, d - 1)) {
-    plan.add({ id: "spell-table", x: sx + 1, z: d - 1.5 });
+    plan.add({ id: "spell-desk", x: sx + 1, z: d - 1.5 });
     plan.npcs.push({ id: `${spec.id}-spell-table`, x: sx + (sx < w / 2 ? 1 : 0), z: d - 2, kind: "spell-table", name: "Spell table" });
   }
   keeper({ id: `${spec.id}-guildmaster`, x: tx + tw, z: 2, kind: "townsfolk", name: "Guildmaster", behaviour: { rest: [-1, 0], watch: 5 } });
@@ -597,7 +597,7 @@ const temple: Layout = (plan, spec, keeper) => {
   }
   // Columns down both sides, pews between them and the aisle.
   for (const z of [2, 4]) {
-    for (const x of [1, w - 2]) if (z < d - 1 && plan.take(x, z, x + 1, z + 1)) plan.add({ id: "column", x: x + 0.5, z: z + 0.5, args: { h: 4.25 } });
+    for (const x of [1, w - 2]) if (z < d - 1 && plan.take(x, z, x + 1, z + 1)) plan.add({ id: "pillar", x: x + 0.5, z: z + 0.5, args: { h: 4.25 } });
   }
   for (const [x0, x1] of [[2, mid - 1], [mid + 1, w - 2]] as const) {
     if (x1 - x0 < 2) continue;
@@ -623,7 +623,7 @@ const smithy: Layout = (plan, spec, keeper) => {
   plan.take(fx - 2, 0, fx + 2, 2);
   plan.add({ id: "forge", x: fx, z: 0 });
   plan.lights.push(fire(fx, 1.0, 1.6, 0, 1.4), glowLight(fx, 0.6, 1.4, [1, 0.45, 0.15], 6, 4));
-  if (plan.take(fx - 1, 2, fx, 3)) plan.add({ id: "anvil", x: fx - 0.5, z: 2.6, rot: west ? 0 : 2 });
+  if (plan.take(fx - 1, 2, fx, 3)) plan.add({ id: "stump-anvil", x: fx - 0.5, z: 2.6, rot: west ? 0 : 2 });
   if (plan.take(fx + 1, 2, fx + 2, 4)) plan.add({ id: "quench-trough", x: fx + 1.5, z: 3, rot: 1 });
   keeper({ id: `${spec.id}-armorer`, x: fx, z: 3, kind: "armorer", name: "Armorer", behaviour: { rest: [0, 1], watch: 5 } });
   plan.take(fx, 3, fx + 1, 4);
@@ -793,7 +793,7 @@ function wallReach(p: PropData): [number, number] | null {
     case "stained-window":
       return [x - w / 2 - 0.2, x + w / 2 + 0.2];
     case "tapestry":
-    case "quest-board":
+    case "notice-board":
       return [x, x + 2];
     case "wall-map":
     case "tool-rack":

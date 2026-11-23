@@ -87,7 +87,7 @@ export function check(floor: DungeonFloor, run: RunFloor): void {
     expect(walk(t.x, t.z), "the spell table stands on its tile").toBe(false);
     const beside = [-1, 0, 1].flatMap((dz) => [-1, 0, 1].map((dx) => [t.x + dx, t.z + dz] as const)).some(([x, z]) => reached.has(key(x, z)));
     expect(beside, "the spell table is reached").toBe(true);
-    expect(floor.props.some((p) => p.id === "spell-table")).toBe(true);
+    expect(floor.props.some((p) => p.id === "spell-desk")).toBe(true);
   } else expect(tables).toHaveLength(0);
   for (const p of floor.props) expect(PROPS.has(p.id), `prop ${p.id}`).toBe(true);
   for (const t of floor.tiles) if (t[1] !== "") expect(SURFACES.has(t[1]), `surface ${t[1]}`).toBe(true);

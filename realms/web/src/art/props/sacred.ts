@@ -54,7 +54,7 @@ drawn(
   WOOD_PALETTE,
 );
 
-drawn("column", "a round column, its middle at x, z, args.h high (3.5), of the palette's stone, on a base under a capital", (b, p, pal) => {
+drawn("pillar", "a round column, its middle at x, z, args.h high (3.5), of the palette's stone, on a base under a capital", (b, p, pal) => {
   const h = num(p, "h", 3.5);
   const stone = painted("column-stone", pal.stone!, RP.MARBLE, (r) => RP.marble(r, 62));
   const { x, z } = p;

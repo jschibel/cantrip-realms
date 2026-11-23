@@ -617,9 +617,9 @@ layoutRoom({
   - house and common: `table`, `chair`, `bench-seat`, `tankards`, `bed`, `chest`, `wardrobe`, `plant`,
     `candle-stand`, `wall-lamp`, `carpet`, `fur-rug`;
   - inn: `bar-counter`, `bar-shelf`, `keg-rack`, `inn-stair`;
-  - guildhall: `guild-banner`, `tapestry`, `quest-board`, `wall-map`, `spell-table`;
-  - temple: `altar`, `pew`, `column`, `stained-window`, `font`, `candle-rack`;
-  - smithy: `forge`, `anvil`, `quench-trough`, `grindstone`, `weapon-rack`, `armor-stand`, `tool-rack`, `coal-heap`,
+  - guildhall: `guild-banner`, `tapestry`, `notice-board`, `wall-map`, `spell-desk`;
+  - temple: `altar`, `pew`, `pillar`, `stained-window`, `font`, `candle-rack`;
+  - smithy: `forge`, `stump-anvil`, `quench-trough`, `grindstone`, `weapon-rack`, `armor-stand`, `tool-rack`, `coal-heap`,
     `ingots`;
   - library and tower: `bookcase`, `reading-desk`, `lectern`, `globe`, `book-pile`, `ladder`, `rune-circle`,
     `orrery`, `telescope`, `crystal-pedestal`, `floating-crystal`, `spiral-stair`;
