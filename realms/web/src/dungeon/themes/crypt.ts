@@ -1,6 +1,6 @@
 // Crypt (swamps and dark realms: the Caligo Morass, Amjad; the Vess crypts): catacombs dug as a maze of passages, the
 // slice's crypt grown into a warren - ossuaries where the passages meet, their walls niched with skulls, burial halls of
-// coffins, flooded tombs half under black water; crypt brick and cold flags, braziers and torches in the violet dark.
+// coffins, flooded tombs half under black water; crypt brick and cold flags, braziers and torches in the black dark.
 
 import type { ThemeDef } from "../finish";
 import { type Plan, type Room, WATER } from "../plan";

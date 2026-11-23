@@ -287,9 +287,8 @@ export function roofTiles(ramp: readonly Rgb[] = C.ROOF, seed = 8): Pixmap {
 }
 
 /** Slate shingles: square-cut dark blue-grey plates. */
-export function slates(seed = 9): Pixmap {
+export function slates(seed = 9, s: readonly Rgb[] = C.SLATE): Pixmap {
   const size = 32;
-  const s = C.SLATE;
   const p = new Pixmap(size, size);
   const random = seeded(seed);
   for (let row = 0; row < size / 4; row++) {

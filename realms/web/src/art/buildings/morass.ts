@@ -15,7 +15,7 @@ import { BUILDINGS, showcase } from "./registry";
 
 // The Caligo Morass's style: dark stilt-houses of tarred planks standing on crooked stilts over the mire, their steep
 // roofs of moss-grown shingles sagging at the ridge, a flight of steps up to a raised door, windows lit a sickly
-// yellow-green, green lanterns hung from brackets, purple cloth, and skulls and bones nailed up against what walks the
+// yellow-green, green lanterns hung from brackets, black cloth, and skulls and bones nailed up against what walks the
 // swamp at night. A whole house is a touch askew (turned a hair off true), as nothing in the Morass stands straight.
 //
 // Kinds: house, shop, tenement, inn, temple, guildhall, smithy, library, tower, warehouse, gatehouse (its passage the
@@ -23,7 +23,7 @@ import { BUILDINGS, showcase } from "./registry";
 // 1.2), doorAt (along the front, tiles from the west end). Palette slots: wall (planks), roof (shingles), timber
 // (stilts and frames), cloth.
 
-const MORASS: Palette = { wall: R.TARRED, roof: R.MOSS_ROOF, timber: R.DEADWOOD, cloth: C.PURPLE };
+const MORASS: Palette = { wall: R.TARRED, roof: R.MOSS_ROOF, timber: R.DEADWOOD, cloth: C.BLACK };
 
 // --- Shared with the other new styles: flames laid as a building is (keldon.ts, llanowar.ts) ------------------------------
 
@@ -167,7 +167,7 @@ const mats = (pal: Palette) => {
     deck: material(`morass-deck@${rampKey(timber)}`, () => tarredPlanks(timber)),
     window: material(`sickly-window@${rampKey(timber)}`, () => sicklyWindow(timber), { cutout: true, glow: 0.7 }),
     door: doorMaterial(timber, R.WEATHERED, "square", true),
-    cloth: pal.cloth ?? C.PURPLE,
+    cloth: pal.cloth ?? C.BLACK,
     skull: cutout("skull-and-bones", skullAndBones, false),
     lanternGlass: glowing(0xc8e060),
   };
@@ -546,7 +546,7 @@ function morass(building: BuildingData, pal: Palette): Built {
         rise: 2.2,
         sag: 0.35,
         extra: (b, s, door) => {
-          plaque(b, s.x0 + door, s.floor + 2.65, s.zf, signMaterial(trade ?? "guild", C.PURPLE, C.BONE, "shield"));
+          plaque(b, s.x0 + door, s.floor + 2.65, s.zf, signMaterial(trade ?? "guild", C.BLACK, C.BONE, "shield"));
           hangingCloth(b, s.x0 + 0.8, s.floor + 4.3, s.zf, m.cloth);
           hangingCloth(b, s.x1 - 0.8, s.floor + 4.3, s.zf, m.cloth);
         },
@@ -588,7 +588,7 @@ function morass(building: BuildingData, pal: Palette): Built {
 
 BUILDINGS.define(
   "morass",
-  "the Caligo Morass's style - stilt-houses of tarred planks over the mire, sagging moss-shingle roofs, steps up to a raised door, sickly green-lit windows, purple cloth, skulls. Kinds: house, shop, tenement (floors), inn, temple, guildhall, smithy (on a stone footing), library, tower (floors), warehouse, gatehouse (its passage the middle 2 tiles, a plank bridge over it), wall (a palisade of stakes along its longer side), wall-tower; params: trade, stilts (1.2), doorAt. Palette: wall, roof, timber, cloth",
+  "the Caligo Morass's style - stilt-houses of tarred planks over the mire, sagging moss-shingle roofs, steps up to a raised door, sickly green-lit windows, black cloth, skulls. Kinds: house, shop, tenement (floors), inn, temple, guildhall, smithy (on a stone footing), library, tower (floors), warehouse, gatehouse (its passage the middle 2 tiles, a plank bridge over it), wall (a palisade of stakes along its longer side), wall-tower; params: trade, stilts (1.2), doorAt. Palette: wall, roof, timber, cloth",
   morass,
   MORASS,
 );

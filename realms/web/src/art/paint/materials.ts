@@ -54,7 +54,7 @@ export const stock = {
   limestone: (ramp: Ramp = C.LIMESTONE) => painted("limestone", ramp, C.LIMESTONE, (r) => T.ashlar(r, 7)),
   plaster: (ramp: Ramp = C.PLASTER) => painted("plaster", ramp, C.PLASTER, (r) => T.plaster(6, r)),
   roof: (ramp: Ramp = C.ROOF) => painted("roof", ramp, C.ROOF, (r) => T.roofTiles(r, 8)),
-  slate: () => material("slate", () => T.slates(9)),
+  slate: (ramp: Ramp = C.SLATE) => painted("slate", ramp, C.SLATE, (r) => T.slates(9, r)),
   timber: (ramp: Ramp = C.WOOD) => painted("timber", ramp, C.WOOD, (r) => T.timber(10, r)),
   darkTimber: (ramp: Ramp = C.DARKWOOD) => painted("dark-timber", ramp, C.DARKWOOD, (r) => T.timber(16, r)),
   leaves: (ramp: Ramp = C.LEAF) => painted("leaves", ramp, C.LEAF, (r) => T.leaves(11, r), { smooth: true }),

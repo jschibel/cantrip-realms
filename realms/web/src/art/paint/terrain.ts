@@ -373,7 +373,7 @@ export function swampMud(r: Ramp = R.MUD, seed = 111): Pixmap {
   return p;
 }
 
-/** The Morass's mire: oily violet-black, sick green where the light catches it, bubbles and a rainbow sheen. */
+/** The Morass's mire: oily black, sick green where the light catches it, bubbles and a rainbow sheen. */
 export function mire(r: Ramp = R.MIRE, seed = 112): Pixmap {
   const p = new Pixmap(SIZE, SIZE);
   for (let y = 0; y < SIZE; y++) {
@@ -382,7 +382,7 @@ export function mire(r: Ramp = R.MIRE, seed = 112): Pixmap {
       let c = n < 0.3 ? r[1]! : n < 0.5 ? r[2]! : n < 0.7 ? r[3]! : r[4]!;
       const sheen = valueNoise(x, y, 8, SIZE, seed + 5);
       if (n < 0.3 && sheen > 0.7) c = R.OIL[5]!;
-      if (n < 0.3 && sheen > 0.78) c = R.OIL[6]!;
+      if (n < 0.3 && sheen > 0.78) c = R.BOG[6]!;
       if (hash2(x, y, seed) < 0.03) c = r[5]!;
       p.set(x, y, c);
     }

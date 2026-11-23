@@ -296,7 +296,7 @@ prop(
       const flag = tiled(stock.cryptStone(pal.stone));
       for (const x of [-1.3, 1.3]) b.box(x - 0.3, 0, -2.6, x + 0.3, 2.2, 0, sides(stone, flag));
       b.box(-1.6, 2.2, -2.7, 1.6, 2.6, 0.1, sides(stone, flag));
-      b.gableRoof(-1.7, -2.8, 1.7, 0.2, 2.6, 0.8, stock.slate(), stone);
+      b.gableRoof(-1.7, -2.8, 1.7, 0.2, 2.6, 0.8, stock.slate(R.VESS_SLATE), stone);
       // The stair going down into the dark: treads stepping down and back.
       for (let k = 0; k < 5; k++) b.box(-1.0, -0.02 - k * 0.001, -0.4 - k * 0.42, 1.0, 0.0, -0.4 - (k + 1) * 0.42, sides(flag));
       b.decal(fitted(mouth(32, 40, C.DUNGEON)), -1.0, -2.4, 1.0, -0.4, 0.004);

@@ -93,7 +93,7 @@ button.primary:hover { filter: brightness(1.08); }
 }
 .pip-w { background: #f4ecc2; }
 .pip-u { background: #5b8fd6; }
-.pip-b { background: #4b2f5e; }
+.pip-b { background: #121214; border-color: #8a8d96; }
 .pip-r { background: #c8432c; }
 .pip-g { background: #3e9a4a; }
 

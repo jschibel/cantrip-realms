@@ -59,7 +59,8 @@ export function rampOf(color: string | Rgb, at = 3): Rgb[] {
     if (d < 0) {
       const n = -d;
       const li = Math.max(0.04, l - n * Math.min(0.12, (l - 0.03) / (at + 0.5)));
-      const si = Math.min(1, Math.max(s * (1 + 0.1 * n), 0.06 * n));
+      // A grey stays grey into its shadows: black is black, never violet.
+      const si = s < 0.08 ? s : Math.min(1, Math.max(s * (1 + 0.1 * n), 0.06 * n));
       const hi = s < 0.08 ? 250 : toward(h, 255, 9 * n);
       out.push(fromHsl(hi, si, li));
     } else {
@@ -113,12 +114,13 @@ export const MANA: readonly ManaColor[] = ["W", "U", "B", "R", "G"];
 
 /**
  * Each color's cloth: saturated, in hues the land does not use (no grass green, no earth brown), so a character stands
- * out from wherever they stand. White is cream and gold; green is an emerald far bluer and brighter than grass.
+ * out from wherever they stand. White is cream and gold; black is black, trimmed silver; green is an emerald far bluer
+ * and brighter than grass.
  */
 export const IDENTITY: Readonly<Record<ManaColor, Ramp>> = {
   W: rampOf("#f2ead0"),
   U: full(C.BLUE),
-  B: rampOf("#8a3cc8"),
+  B: rampOf("#2a2a2d"),
   R: full(C.RED),
   G: rampOf("#1ed27a"),
 };
@@ -127,7 +129,7 @@ export const IDENTITY: Readonly<Record<ManaColor, Ramp>> = {
 export const IDENTITY_TRIM: Readonly<Record<ManaColor, Ramp>> = {
   W: full(C.GOLD),
   U: rampOf("#f4d04c"),
-  B: rampOf("#d8b4f0"),
+  B: rampOf("#b8bcc4"),
   R: full(C.GOLD),
   G: rampOf("#e8f4a0"),
 };

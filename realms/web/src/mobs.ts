@@ -39,7 +39,7 @@ const GUESSES: readonly [RegExp, string, readonly string[], number?][] = [
   [/wurm|beast|ancient/, "wurm", ["#4f7a34", "#d6ae7e", "#2a4524"], 1.2],
   [/elf|elves|elvish|forager/, "elf", ["#3e9a4a", "#8f6340", "#c08a62"]],
   [/goblin/, "goblin", ["#6b963e", "#c8432c", "#4a3122"]],
-  [/ghoul|zombie/, "ghoul", ["#8c909c", "#4b2f5e", "#5d6646"]],
+  [/ghoul|zombie/, "ghoul", ["#8c909c", "#2a2a2d", "#5d6646"]],
   [/phyrexian|horror|plaguelord/, "phyrexian", ["#b3b5bc", "#7a1f24", "#2a2b36"]],
   [/automaton|construct|sentinel|warden|golem/, "construct", ["#8c909c", "#9c6a1e", "#62a4c2"]],
   [/wraith|spirit|elemental|drifter/, "spirit", ["#93c8dc", "#f4ecc2", "#5b8fd6"]],

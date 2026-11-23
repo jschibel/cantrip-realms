@@ -462,7 +462,7 @@ defineMob({
   id: "imp",
   about: "an imp: small, big-eared and grinning, bat wings, a barbed tail",
   slots: ["skin", "wings", "accent"],
-  palette: ["#8c909c", "#4b2f5e", "#c8432c"],
+  palette: ["#8c909c", "#2a2a2d", "#c8432c"],
   build: ([skin, wingR, accent], s) => {
     const b = sized(SMALL, s);
     return person({
@@ -532,7 +532,7 @@ defineMob({
   id: "ghoul",
   about: "a ghoul, a zombie of the Morass: hunched and grey-green, sunken glowing eyes, rags, long clawed arms",
   slots: ["skin", "rags", "accent"],
-  palette: ["#8c909c", "#4b2f5e", "#5d6646"],
+  palette: ["#8c909c", "#2a2a2d", "#5d6646"],
   build: ([skin, rags, accent], s, next, id) => {
     const master = has(id, "master", "warden") || s >= 1.3;
     return person({
@@ -561,7 +561,7 @@ defineMob({
   scale: 1.1,
   about: "a horror: a hunched hulk of the swamp, a fanged maw, many eyes, spines down its back, long claws",
   slots: ["skin", "flesh", "spines"],
-  palette: ["#4b2f5e", "#7a1f24", "#2a2b36"],
+  palette: ["#2a2a2d", "#7a1f24", "#2a2b36"],
   build: ([skin, flesh, spines], s, next) => {
     const b = sized({ head: [13, 9, 10], torso: [15, 9, 9], arm: [5, 13, 5], leg: [5, 5, 5] }, s);
     const [w, h] = b.head;
@@ -742,7 +742,7 @@ function mageOf(kind: MageKind, [robe, trim, accent]: readonly Ramp[], s: number
 const MAGES: readonly [MageKind, string, readonly string[]][] = [
   ["wizard", "a wizard of Tolaria: a pointed hat (or none), a trimmed robe, a staff with a crystal, orb or moon, often a book", ["#2f5fa8", "#f4ecc2", "#a97fd0"]],
   ["cleric", "a cleric of Benalia: a mitre or a hood, a white robe, a sun-topped staff, an amulet", ["#f2efe6", "#f1b44c", "#93c8dc"]],
-  ["warlock", "a warlock of the Morass: hooded, violet-eyed, a ragged robe and cape, a staff with a skull, moon or crystal", ["#2a2b36", "#4b2f5e", "#7a1f24"]],
+  ["warlock", "a warlock of the Morass: hooded, violet-eyed, a ragged robe and cape, a staff with a skull, moon or crystal", ["#2a2b36", "#2a2a2d", "#7a1f24"]],
   ["shaman", "a Keldon shaman: war paint, a feathered headband, furs over a ragged robe, a staff of fire", ["#8f2f2f", "#4a3122", "#f1b44c"]],
   ["druid", "a druid of the elfhame: leaves or antlers on the head, a robe, a ragged cloak, a staff in leaf", ["#6b963e", "#8f6340", "#2a4524"]],
   ["artificer", "an artificer: goggles, a work coat, gloves, a wrench, a pack of tools and a floating device", ["#8f6340", "#f1b44c", "#62a4c2"]],
@@ -753,7 +753,7 @@ defineMob({
   id: "thrull",
   about: "a thrull: a hunched, hairless, grey servant-creature of the Morass in a robe, its eyes glowing",
   slots: ["skin", "robe", "trim"],
-  palette: ["#8c909c", "#4b2f5e", "#c9ced8"],
+  palette: ["#8c909c", "#2a2a2d", "#c9ced8"],
   build: ([skin, robe, trim], s, next) =>
     person({
       name: "thrull",

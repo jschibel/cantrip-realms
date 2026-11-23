@@ -40,7 +40,7 @@ const STYLES: Readonly<Record<Region, RegionStyle>> = {
     hats: [() => undefined, () => undefined, (r, t) => ({ kind: "wizard", ramp: r, band: t, tall: 0.75 }), (r) => ({ kind: "cap", ramp: r, brim: false })],
   },
   caligo: {
-    cloth: ["#2a2b36", "#4b2f5e", "#5d6646", "#3a3442", "#6e4436"],
+    cloth: ["#2a2b36", "#2a2a2d", "#5d6646", "#3a3442", "#6e4436"],
     trim: ["#8c909c", "#7a1f24", "#c9a46a"],
     tops: ["coat", "rags", "leather", "dress"],
     hats: [(r, t) => ({ kind: "hood", ramp: r, trim: t }), (r) => ({ kind: "hood", ramp: r }), () => undefined],

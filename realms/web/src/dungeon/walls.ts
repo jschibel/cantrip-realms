@@ -116,7 +116,7 @@ export function wallLook(theme: Theme): WallLook {
         top: topOf(C.DUNGEON, "dungeon-crypt-top", 31),
         rim: C.DUNGEON[5]!,
         skirt: brick,
-        fill: { kind: "hemisphere", sky: [0.36, 0.38, 0.74], ground: [0.16, 0.12, 0.22], intensity: 0.52 * Math.PI },
+        fill: { kind: "hemisphere", sky: [0.46, 0.47, 0.5], ground: [0.16, 0.15, 0.15], intensity: 0.52 * Math.PI },
       };
     }
     case "hollow": {

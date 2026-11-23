@@ -799,9 +799,9 @@ export function bones(seed = 1): Pixmap {
   return p;
 }
 
-/** A tattered banner of the crypt's dead order, 12 by 28: violet, frayed and holed. */
+/** A tattered banner of the crypt's dead order, 12 by 28: black, frayed and holed. */
 export function tatteredBanner(): Pixmap {
-  const p = banner(C.PURPLE, C.BONE);
+  const p = banner(C.BLACK, C.BONE);
   const random = seeded(9);
   for (let y = 18; y < 32; y++) for (let x = 0; x < 12; x++) if (random() < (y - 18) / 20) p.put(x, y, 0, 0);
   for (let k = 0; k < 3; k++) p.put(2 + Math.floor(random() * 8), 4 + Math.floor(random() * 20), 0, 0);

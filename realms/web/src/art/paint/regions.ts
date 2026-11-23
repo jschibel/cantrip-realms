@@ -15,10 +15,10 @@ import * as R from "./ramps";
 definePalette("benalish", { stone: C.LIMESTONE, plaster: C.PLASTER, roof: C.ROOF, timber: C.WOOD, darkTimber: C.DARKWOOD, cloth: C.BLUE, trim: C.GOLD });
 definePalette("benalish-slate", { roof: C.SLATE });
 definePalette("llanowar", { timber: R.ELFWOOD, darkTimber: R.ELFWOOD, leaves: R.ELF_LEAF, bark: R.ELFWOOD, cloth: R.ELF_CLOTH, trim: C.GOLD, roof: R.ELF_LEAF });
-definePalette("morass", { timber: R.TARRED, darkTimber: R.TARRED, roof: R.MOSS_ROOF, wall: R.TARRED, cloth: C.PURPLE, trim: R.BOG, leaves: R.CYPRESS, bark: R.DEADWOOD, moss: R.HANGING_MOSS });
+definePalette("morass", { timber: R.TARRED, darkTimber: R.TARRED, roof: R.MOSS_ROOF, wall: R.TARRED, cloth: C.BLACK, trim: R.BOG, leaves: R.CYPRESS, bark: R.DEADWOOD, moss: R.HANGING_MOSS });
 definePalette("keldon", { stone: R.KELD_STONE, timber: R.LOG, darkTimber: R.LOG, roof: R.SOD, cloth: R.KELD_RED, trim: C.IRON, needles: R.PINE });
 definePalette("tolarian", { stone: R.MARBLE, plaster: R.MARBLE, roof: R.VERDIGRIS, cloth: R.TOLARIAN_CLOTH, trim: C.GOLD, wall: R.MARBLE });
-definePalette("vess", { stone: R.VESS_STONE, roof: R.VESS_SLATE, cloth: C.PURPLE, trim: C.GOLD, timber: C.DARKWOOD, darkTimber: C.DARKWOOD });
+definePalette("vess", { stone: R.VESS_STONE, roof: R.VESS_SLATE, cloth: C.BLACK, trim: C.GOLD, timber: C.DARKWOOD, darkTimber: C.DARKWOOD });
 definePalette("village", { plaster: R.DAUB, roof: R.THATCH, timber: C.WOOD, darkTimber: C.DARKWOOD, stone: C.COBBLE, cloth: C.RED });
 definePalette("phyrexian", { metal: R.PHYREXIAN, wall: R.PHYREXIAN, accent: R.SINEW, trim: R.OIL, cloth: R.SINEW });
 

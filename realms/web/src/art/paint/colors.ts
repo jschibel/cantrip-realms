@@ -7,7 +7,7 @@ import { type Rgb, rgb } from "./pixmap";
 
 const ramp = (...hexes: string[]): Rgb[] => hexes.map(rgb);
 
-export const INK = rgb("#140f1e");
+export const INK = rgb("#111113");
 
 export const GRASS = ramp("#173326", "#1f4a2c", "#2c6a32", "#41893a", "#5fa843", "#86c653", "#b4e06c");
 export const MEADOW = ramp("#2a4a24", "#3b6a2c", "#558a34", "#78a840");
@@ -25,6 +25,8 @@ export const BLUE = ramp("#10143a", "#192664", "#24409a", "#3462c8", "#4c8ae6", 
 export const RED = ramp("#3a0c1c", "#661428", "#982034", "#c8343a", "#e85a48", "#f88c6a");
 export const GREEN = ramp("#0c2a1c", "#14482a", "#1e6a34", "#2e8e3e");
 export const PURPLE = ramp("#1e1030", "#34184e", "#502872", "#6e3c98", "#9058c0");
+/** Black cloth: black, its folds lifting to charcoal - the color black, never violet. */
+export const BLACK = ramp("#0c0c0e", "#161618", "#222224", "#303033", "#424245");
 export const TEAL = ramp("#0e2a34", "#164a52", "#206a6a", "#2e8c80", "#4cb09a");
 export const WATER = ramp("#0c1a3a", "#13306a", "#1c4c94", "#2a70b8", "#4498d4", "#78c4ec", "#c8f0ff");
 export const SKIN = ramp("#4a2224", "#7a3a32", "#b05e46", "#dc8c62", "#f4b888", "#ffdcb0");
@@ -32,8 +34,8 @@ export const GOBLIN = ramp("#1c2c1c", "#2c4a22", "#44702a", "#649a34", "#8cc244"
 export const BONE = ramp("#3a3036", "#5e5250", "#8a7e70", "#b4aa92", "#d8d0b6", "#f4f0dc");
 export const GHOUL = ramp("#1e2228", "#2e3a38", "#46584c", "#647a5e", "#8a9e74", "#b4c48e");
 export const IRON = ramp("#161624", "#262838", "#3a3e52", "#585e74", "#808aa0", "#b0b8c8", "#e4ecf4");
-export const DUNGEON = ramp("#0e0c18", "#1a1828", "#28263c", "#383652", "#4a4a6a", "#646686", "#8486a4");
-export const CRYPT_FLOOR = ramp("#16141e", "#24202e", "#342e40", "#463e52", "#5a5266", "#726a7c");
+export const DUNGEON = ramp("#0d0d0f", "#18181b", "#252528", "#343437", "#46464a", "#5e5e62", "#7c7c80");
+export const CRYPT_FLOOR = ramp("#141415", "#212123", "#303032", "#424244", "#565658", "#6e6e70");
 export const FIRE = ramp("#7a1810", "#c8401c", "#f07a28", "#ffbc40", "#fff08a", "#ffffe0");
 export const CLOTH_WHITE = ramp("#6c6480", "#9890a8", "#c4bed0", "#e8e4ec", "#ffffff");
 export const HAIR_BROWN = ramp("#2a1418", "#4a2420", "#6e3a26", "#965430", "#b8743c");

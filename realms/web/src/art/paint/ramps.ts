@@ -30,8 +30,8 @@ export const LITTER = ramp("#32160f", "#521f14", "#7a3218", "#a24a1e", "#c46628"
 export const NEEDLES = ramp("#22120e", "#3a1e16", "#56301e", "#744228", "#925834", "#ae7444");
 /** Swamp mud: wet, nearly black, olive where it catches the light. */
 export const MUD = ramp("#0f0e14", "#18161c", "#242220", "#332f28", "#443e30", "#58503a", "#706646");
-/** The Morass: oily violet-black mire, sick green in its light. */
-export const MIRE = ramp("#0c0910", "#15111b", "#1f1b25", "#2a282c", "#36382f", "#464a36", "#5c6040");
+/** The Morass: oily black mire, sick green in its light. */
+export const MIRE = ramp("#0c0c0d", "#141415", "#1e1e1f", "#2a2a2a", "#36382f", "#464a36", "#5c6040");
 /** Bog water: brown-green, murky. */
 export const BOG = ramp("#0a1210", "#101c18", "#18281f", "#223628", "#2e4630", "#3e5a3a", "#5a7650");
 /** Sand: warm, pale at its lightest. */
@@ -64,8 +64,8 @@ export const SEA = ramp("#071a30", "#0c2a4c", "#123e6a", "#1a568a", "#2874a6", "
 
 /** Phyrexian metal: cold grey-teal, bone-pale at its edges. */
 export const PHYREXIAN = ramp("#0e1218", "#181e26", "#252d36", "#36404a", "#4c585e", "#6a7678", "#929c98");
-/** Glistening oil: black, an iridescent sheen of teal and violet. */
-export const OIL = ramp("#050308", "#0c0912", "#16111e", "#22192c", "#30223c", "#3e5c62", "#6a4a86");
+/** Glistening oil: black, an iridescent sheen of teal and green. */
+export const OIL = ramp("#050506", "#0b0b0c", "#141415", "#1d1d1f", "#28282b", "#3e5c62", "#5a8a7a");
 /** Sinew and flesh: dark red to pink. */
 export const SINEW = ramp("#260a12", "#44101e", "#6a1a2a", "#922a36", "#b64646", "#d6766a", "#eeaa90");
 
@@ -111,10 +111,10 @@ export const TARRED = ramp("#0b0a0d", "#141217", "#1d1a1f", "#272327", "#332d30"
 export const MARBLE = ramp("#464866", "#64688a", "#8a8eaa", "#b2b6ca", "#d4d6e2", "#eeeff4", "#ffffff");
 /** Verdigris copper: a dome's green-blue. */
 export const VERDIGRIS = ramp("#0c2628", "#123c3c", "#1a5650", "#267464", "#3a927a", "#5eb094", "#94d0b2");
-/** The Vess estate's stone: dark violet-grey. */
-export const VESS_STONE = ramp("#110d17", "#1c1724", "#282132", "#352c42", "#453a54", "#584b68", "#706282");
-/** Purple slate for the manor's roofs. */
-export const VESS_SLATE = ramp("#130b1b", "#1f132a", "#2c1d3e", "#3c2954", "#50376a", "#664a82");
+/** The Vess estate's stone: black and charcoal. */
+export const VESS_STONE = ramp("#0f0f10", "#19191b", "#242426", "#313133", "#404042", "#525254", "#68686a");
+/** Black slate for the manor's roofs. */
+export const VESS_SLATE = ramp("#0b0b0d", "#141416", "#1e1e21", "#29292d", "#36363a", "#46464b");
 /** Keldon basalt blocks and their red-brown mortar. */
 export const KELD_STONE = ramp("#141016", "#201a20", "#2e262a", "#3e3436", "#524444", "#685854", "#827064");
 /** Wattle and daub: ochre plaster of a village's cottages. */

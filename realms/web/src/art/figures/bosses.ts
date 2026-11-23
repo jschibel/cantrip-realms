@@ -93,7 +93,7 @@ defineMob({
   id: "liliana",
   about: "Liliana of the Veil: pale, black-haired, violet-eyed, a dark hood and gown, the Chain Veil's gold at her brow, dark motes about her",
   slots: ["gown", "trim", "veil"],
-  palette: ["#2a2b36", "#4b2f5e", "#c9a46a"],
+  palette: ["#2a2b36", "#2a2a2d", "#c9a46a"],
   build: ([gown, trim, veil], s) => {
     const b = big(s, { head: [12, 10, 10], torso: [10, 9, 6], arm: [3, 10, 3], leg: [4, 8, 4] });
     return person({

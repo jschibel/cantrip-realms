@@ -13,14 +13,14 @@ import { door, doorMaterial, hangingSign, hipRoof, merlons, params as paramsOf, 
 import { BUILDINGS, showcase } from "./registry";
 import { ridgeNS } from "./tolarian";
 
-// The Vess estate's style, in the Caligo Morass: a manor and its village of dark violet-grey stone, steep roofs of
-// purple slate with iron finials on their ridges, tall chimneys, gothic lancet windows lit gold from within, pointed
-// doors, gargoyles crouched at the eaves, purple-and-gold cloth; and the Vess crypts' mausoleum.
+// The Vess estate's style, in the Caligo Morass: a manor and its village of black stone, steep roofs of
+// black slate with iron finials on their ridges, tall chimneys, gothic lancet windows lit gold from within, pointed
+// doors, gargoyles crouched at the eaves, black-and-gold cloth; and the Vess crypts' mausoleum.
 //
 // Palette slots: stone (walls), roof (slate), cloth and trim (banners), timber (doors). Params: floors (house, shop,
 // inn, tower), trade (a sign's emblem), doorAt.
 
-const VESS: Palette = { stone: R.VESS_STONE, roof: R.VESS_SLATE, cloth: C.PURPLE, trim: C.GOLD, timber: C.DARKWOOD };
+const VESS: Palette = { stone: R.VESS_STONE, roof: R.VESS_SLATE, cloth: C.BLACK, trim: C.GOLD, timber: C.DARKWOOD };
 
 type Draw = (b: MeshBuilder, x0: number, z0: number, x1: number, z1: number) => XYZ | undefined;
 
@@ -131,7 +131,7 @@ function chimney(b: MeshBuilder, m: Mats, x: number, z: number, y0: number, y1: 
   for (const dx of [-0.13, 0.13]) b.cylinder(x + dx, z, y1 + 0.15, y1 + 0.45, 0.09, 6, { mat: flat(C.ROOF[1]!) }, { mat: flat(C.INK) });
 }
 
-/** A steep gabled range: stone walls `h` high, purple slate rising `rise` east-west, finials at both ends of the ridge. */
+/** A steep gabled range: stone walls `h` high, black slate rising `rise` east-west, finials at both ends of the ridge. */
 function range(b: MeshBuilder, m: Mats, x0: number, z0: number, x1: number, z1: number, h: number, rise: number): void {
   b.box(x0 - 0.08, 0, z0 - 0.08, x1 + 0.08, 0.35, z1 + 0.08, sides(m.flag));
   b.box(x0, 0.35, z0, x1, h, z1, sides(m.wall));
@@ -198,7 +198,7 @@ function house(m: Mats, building: BuildingData, floors: number, trade?: Trade): 
   };
 }
 
-/** A lantern on an iron bracket, its glass purple-gold. */
+/** A lantern on an iron bracket, its glass gold. */
 function wallLantern(b: MeshBuilder, x: number, y: number, z: number): void {
   b.box(x - 0.03, y + 0.3, z, x + 0.03, y + 0.36, z + 0.35, sides(iron()));
   lantern(b, x, y - 0.1, z + 0.3);
@@ -524,7 +524,7 @@ function vess(building: BuildingData, pal: Palette): Built {
 
 BUILDINGS.define(
   "vess",
-  "The Vess estate's style (the Caligo Morass): violet-grey stone, steep purple slate with iron finials, tall chimneys, gothic lancets lit gold, pointed doors, gargoyles. Kinds: manor (the great house: a towered central block and two forward wings round a court; about 14x9), house, shop, inn (params floors), temple (a chapel with a needle spire), guildhall, library, smithy, tower (floors), warehouse, gatehouse (its passage the middle 2 tiles), wall, wall-tower, mausoleum (the Vess crypts' entrance); params.trade names a sign's emblem, params.doorAt the door",
+  "The Vess estate's style (the Caligo Morass): black stone, steep black slate with iron finials, tall chimneys, gothic lancets lit gold, pointed doors, gargoyles. Kinds: manor (the great house: a towered central block and two forward wings round a court; about 14x9), house, shop, inn (params floors), temple (a chapel with a needle spire), guildhall, library, smithy, tower (floors), warehouse, gatehouse (its passage the middle 2 tiles), wall, wall-tower, mausoleum (the Vess crypts' entrance); params.trade names a sign's emblem, params.doorAt the door",
   vess,
   VESS,
 );
