@@ -1,0 +1,18 @@
+{
+  "id": "zendikar-trader",
+  "name": "Kessa the Roil-Walker",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "zendikar",
+    "towns": [
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia"
+    ],
+    "hour": 6,
+    "hours": 4
+  }
+}

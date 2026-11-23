@@ -385,13 +385,38 @@ public sealed class VendorFile
 
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>The town map it trades in.</summary>
+    /// <summary>The town it keeps its shop in; none for a traveling trader, whose caravan moves (<see cref="Trader"/>).</summary>
     public string Town { get; init; } = string.Empty;
 
     public CardFilter Specialty { get; init; } = new();
 
     /// <summary>The purse it is created with.</summary>
     public long Purse { get; init; }
+
+    /// <summary>An exotic wares shop (design.md A5): it deals only in off-plane cards, a few at a time.</summary>
+    public bool Exotic { get; init; }
+
+    /// <summary>A traveling trader from another plane (design.md A5): its plane and its caravan's round; null for a shop.</summary>
+    public TraderRound? Trader { get; init; }
+}
+
+/// <summary>
+/// A traveling trader's plane and round (design.md A5, "Wares from other planes"): on day <c>d</c> (the Unix day, UTC) its
+/// caravan is in <c>Towns[d mod Towns.Count]</c> from <see cref="Hour"/> o'clock UTC for <see cref="Hours"/> hours.
+/// </summary>
+public sealed class TraderRound
+{
+    /// <summary>Its home plane: a trader plane of planes.json, whose off-plane cards it brings.</summary>
+    public string Plane { get; init; } = string.Empty;
+
+    /// <summary>The towns its caravan visits, a day each, in turn.</summary>
+    public IReadOnlyList<string> Towns { get; init; } = [];
+
+    /// <summary>The hour of the day (UTC, 0 to 23) its caravan comes in.</summary>
+    public int Hour { get; init; }
+
+    /// <summary>How many hours its caravan stays: within the day.</summary>
+    public int Hours { get; init; }
 }
 
 

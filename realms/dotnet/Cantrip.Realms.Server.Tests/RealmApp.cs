@@ -95,7 +95,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
         return new Browser(this, client, $"dev-{id}", cookie);
     }
 
-    /// <summary>A player with a character, standing at New Argive's inn.</summary>
+    /// <summary>A player with a character, standing at New Benalia's inn.</summary>
     public async Task<Browser> Character(ulong id, string color = "W", string name = "Tester")
     {
         Browser browser = await SignIn(id, name);
@@ -250,8 +250,8 @@ public sealed class Browser(RealmApp app, HttpClient client, string player, stri
     /// <summary>Puts the character inside an interior, on its middle hex.</summary>
     public Task Inside(string interior) => Put(interior, new Hex(0, 0));
 
-    /// <summary>Puts the character beside the spell table of New Argive's inn.</summary>
-    public Task ToSpellTable() => Put("new-argive-inn", RealmApp.Beside("new-argive-inn", RealmApp.Npc("new-argive-inn", RealmSpace.SpellTable)));
+    /// <summary>Puts the character beside the spell table of New Benalia's inn.</summary>
+    public Task ToSpellTable() => Put("new-benalia-inn", RealmApp.Beside("new-benalia-inn", RealmApp.Npc("new-benalia-inn", RealmSpace.SpellTable)));
 }
 
 /// <summary>

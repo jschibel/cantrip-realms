@@ -16,6 +16,16 @@ public sealed record Mob(MobFile File, string Plane, DeckList Deck)
 public sealed record Vendor(VendorFile File, string Plane)
 {
     public string Id => File.Id;
+
+    /// <summary>What kind of dealer it is: <see cref="Shop"/> (Dominaria's own), <see cref="ExoticShop"/> or <see cref="Traveler"/>.</summary>
+    public string Kind => File.Trader is not null ? Traveler : File.Exotic ? ExoticShop : Shop;
+
+    /// <summary>Whether it deals in off-plane cards alone: an exotic wares shop or a traveling trader.</summary>
+    public bool Exotic => Kind != Shop;
+
+    public const string Shop = "shop";
+    public const string ExoticShop = "exotic";
+    public const string Traveler = "trader";
 }
 
 /// <summary>Content that does not hold together: everything found wrong with it, one line each.</summary>
@@ -134,6 +144,9 @@ public sealed partial class RealmContent
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
 
+    /// <summary>The planes of planes.json not walked yet, whose traders bring their cards (design.md A5): id to name.</summary>
+    public IReadOnlyDictionary<string, string> TraderPlanes { get; private set; } = new Dictionary<string, string>();
+
     /// <summary>The relics (design.md A3a), in <c>relics.json</c>'s order.</summary>
     public IReadOnlyList<RelicEntry> Relics { get; private set; } = [];
 
@@ -179,8 +192,22 @@ public sealed partial class RealmContent
                 [.. pool.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString() ?? string.Empty)];
         }
 
-        var cards = new CardPool(CardPool.WithRealmLegality(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices), prices, pools, relicNames);
-        var content = new RealmContent(root, cards) { Relics = relics };
+        Dictionary<string, IReadOnlyList<string>> offPlane = ReadOffPlane(Path.Combine(realms, "off-plane.json"), problems);
+        var cards = new CardPool(CardPool.WithRealmLegality(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices), prices, pools, relicNames, offPlane);
+        var content = new RealmContent(root, cards) { Relics = relics, TraderPlanes = ReadTraderPlanes(Path.Combine(realms, "planes.json")) };
+
+        // The off-plane pool is apart from every walked plane's (design.md A5): no card of it in a pool, every card of it one
+        // the engine plays, priced and legal in Vintage, and every tag a trader's plane.
+        foreach ((string name, IReadOnlyList<string> tags) in offPlane)
+        {
+            string where = $"off-plane.json: {name}";
+            if (!cards.Catalog.ContainsKey(name)) problems.Add($"{where} is not a card the engine plays.");
+            else if (!prices.TryGetValue(name, out CardPrice? price)) problems.Add($"{where} has no price.");
+            else if (price.Vintage is not ("legal" or "restricted")) problems.Add($"{where} is not legal in Vintage.");
+            if (relicNames.Contains(name)) problems.Add($"{where} is a relic, which no dealer holds.");
+            foreach (string plane in pools.Where(pool => pool.Value.Contains(name, StringComparer.Ordinal)).Select(pool => pool.Key)) problems.Add($"{where} is in the {plane} pool too.");
+            foreach (string tag in tags.Where(tag => !content.TraderPlanes.ContainsKey(tag))) problems.Add($"{where}: '{tag}' is no trader's plane of planes.json.");
+        }
 
         foreach ((string name, CardPrice price) in prices)
         {
@@ -278,6 +305,42 @@ public sealed partial class RealmContent
         content.Check(problems);
 
         return problems.Count == 0 ? content : throw new RealmContentException(problems);
+    }
+
+    private static Dictionary<string, IReadOnlyList<string>> ReadOffPlane(string path, List<string> problems)
+    {
+        Dictionary<string, IReadOnlyList<string>> cards = new(StringComparer.Ordinal);
+        if (!System.IO.File.Exists(path)) return cards;
+        try
+        {
+            using JsonDocument file = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
+            foreach (JsonProperty card in file.RootElement.GetProperty("cards").EnumerateObject())
+            {
+                cards[card.Name] = [.. card.Value.EnumerateArray().Select(tag => tag.GetString() ?? string.Empty)];
+            }
+        }
+        catch (Exception problem) when (problem is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            problems.Add($"off-plane.json: {problem.Message}");
+        }
+
+        return cards;
+    }
+
+    private static Dictionary<string, string> ReadTraderPlanes(string path)
+    {
+        Dictionary<string, string> planes = new(StringComparer.Ordinal);
+        if (!System.IO.File.Exists(path)) return planes;
+        using JsonDocument file = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
+        foreach (JsonProperty plane in file.RootElement.GetProperty("planes").EnumerateObject())
+        {
+            if (plane.Value.TryGetProperty("trader", out JsonElement trader) && trader.ValueKind == JsonValueKind.True)
+            {
+                planes[plane.Name] = plane.Value.TryGetProperty("name", out JsonElement name) ? name.GetString() ?? plane.Name : plane.Name;
+            }
+        }
+
+        return planes;
     }
 
     private static List<RelicEntry> ReadRelics(string path, List<string> problems)
@@ -388,7 +451,22 @@ public sealed partial class RealmContent
             string where = $"vendor {vendor.Id}";
             if (string.IsNullOrWhiteSpace(vendor.File.Name)) problems.Add($"{where}: no name.");
             if (vendor.File.Purse < 0) problems.Add($"{where}: a purse is never less than nothing.");
-            if (Cards.Filter(vendor.Plane, vendor.File.Specialty).Count == 0) problems.Add($"{where}: its specialty has no card in the {vendor.Plane} pool.");
+            if (vendor.File.Trader is { } round)
+            {
+                if (vendor.File.Exotic) problems.Add($"{where}: a trader is not a shop as well.");
+                if (!TraderPlanes.ContainsKey(round.Plane)) problems.Add($"{where}: its plane '{round.Plane}' is no trader's plane of planes.json.");
+                else if (Cards.OffPlaneFilter(new CardFilter(), round.Plane).Count < Economy.Travelers.Brought) problems.Add($"{where}: the {round.Plane} off-plane cards are fewer than a caravan brings.");
+                if (round.Towns.Count == 0) problems.Add($"{where}: its caravan visits no town.");
+                if (round.Hour is < 0 or > 23 || round.Hours < 1 || round.Hour + round.Hours > 24) problems.Add($"{where}: its caravan comes at an hour of the day (0 to 23) and stays some hours within it.");
+            }
+            else if (vendor.File.Exotic)
+            {
+                if (Cards.OffPlaneFilter(vendor.File.Specialty).Count == 0) problems.Add($"{where}: its specialty has no off-plane card.");
+            }
+            else if (Cards.Filter(vendor.Plane, vendor.File.Specialty).Count == 0)
+            {
+                problems.Add($"{where}: its specialty has no card in the {vendor.Plane} pool.");
+            }
         }
 
         CheckPlaces(problems);
@@ -510,7 +588,12 @@ public sealed partial class RealmContent
         CheckNpcs(world, "the world", problems);
         CheckChests(world, world.Chests, "the world", problems);
 
-        foreach (Vendor vendor in Vendors.Values)
+        foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is { } round))
+        {
+            foreach (string town in vendor.File.Trader!.Towns.Where(town => !Towns.ContainsKey(town))) problems.Add($"vendor {vendor.Id}: its caravan visits '{town}', which is no town of the world.");
+        }
+
+        foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is null))
         {
             string where = $"vendor {vendor.Id}";
             if (!Towns.ContainsKey(vendor.File.Town)) problems.Add($"{where}: its town '{vendor.File.Town}' is no town of the world.");

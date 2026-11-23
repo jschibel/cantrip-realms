@@ -1,0 +1,18 @@
+{
+  "id": "kaladesh-trader",
+  "name": "Aditi the Inventor's Factor",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "kaladesh",
+    "towns": [
+      "new-benalia",
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy"
+    ],
+    "hour": 10,
+    "hours": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "strixhaven-trader",
+  "name": "Professor Quillan of Strixhaven",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "strixhaven",
+    "towns": [
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold",
+      "llanowar",
+      "keld"
+    ],
+    "hour": 14,
+    "hours": 4
+  }
+}

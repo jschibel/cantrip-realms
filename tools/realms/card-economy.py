@@ -7,7 +7,8 @@ the cards loot and vendors draw from.
 Writes:
     realms/content/prices.json        {"source", "surcharge", "cards": {name: {"gold", "usd", "rarity", "planes",
                                                                                "vintage", "identity"}}}
-    realms/content/pools/<plane>.json {"plane", "cards": [name, ...]}
+    realms/content/pools/<plane>.json {"plane", "cards": [name, ...]}, for each plane walked (not a trader's)
+    realms/content/off-plane.json     {"comment", "cards": {name: [trader plane, ...]}}
 
 A card's list price is the median TCGplayer market price of its paper printings (Scryfall's prices.usd, else usd_foil,
 else usd_etched), plus a surcharge by the rarity of the printing at that median: +$0.50 common, +$1 uncommon, +$5 rare,
@@ -24,6 +25,11 @@ A plane's pool is every card the engine has that is legal or restricted in Vinta
 and Un- cards), has a price, and was printed in one of the plane's sets - except the relics (realms/content/relics.json,
 design.md A3a), which drop only from the bosses their entries name and are in no pool, so that no vendor, loot offer or
 starter deck ever holds one. A relic is still priced, for reference.
+
+The off-plane pool (design.md A5, "Wares from other planes") is every card the engine has that is legal or restricted in
+Vintage, priced, no relic, and printed in no set of a walked plane (a plane of planes.json without "trader": true), each
+tagged with the traders' planes it was printed on (none for a card printed only in core sets and the like, which the
+exotic wares shops still sell). Only exotic dealers deal in it; no walked plane's pool shares a card with it.
 """
 
 import datetime
@@ -98,7 +104,9 @@ def main():
         printings.setdefault(key, []).append(card)
 
     cards = {}
-    pools = {plane: [] for plane in planes["planes"]}
+    walked = {plane for plane, spec in planes["planes"].items() if not spec.get("trader")}
+    pools = {plane: [] for plane in planes["planes"] if plane in walked}
+    off_plane = {}
     for name in sorted(printings):
         priced = sorted(((price(p), p) for p in printings[name] if price(p) is not None), key=lambda pair: pair[0])
         if not priced:
@@ -114,7 +122,10 @@ def main():
                        "vintage": vintage, "identity": identity}
         if vintage in ("legal", "restricted") and name not in relics:
             for plane in on:
-                pools[plane].append(name)
+                if plane in walked:
+                    pools[plane].append(name)
+            if not any(plane in walked for plane in on):
+                off_plane[name] = [plane for plane in on if plane not in walked]
 
     stamp = datetime.date.today().isoformat()
     json.dump(
@@ -136,10 +147,21 @@ def main():
             indent=0,
             ensure_ascii=False,
         )
+    json.dump(
+        {
+            "comment": "Cards from other planes (design.md A5): Vintage-legal, priced, no relic, printed on no walked plane; each with the traders' planes it was printed on. Written by tools/realms/card-economy.py.",
+            "cards": off_plane,
+        },
+        open(os.path.join(CONTENT, "off-plane.json"), "w", encoding="utf-8", newline="\n"),
+        indent=0,
+        sort_keys=True,
+        ensure_ascii=False,
+    )
     unpriced = len(have) - len(cards)
     print(f"card-economy: {len(cards)} cards priced, {unpriced} the engine has without a paper price")
     for plane, names in pools.items():
         print(f"  {plane}: {len(names)} cards in its pool")
+    print(f"  off-plane: {len(off_plane)} cards, {sum(1 for tags in off_plane.values() if tags)} of them a trader's")
 
 
 if __name__ == "__main__":

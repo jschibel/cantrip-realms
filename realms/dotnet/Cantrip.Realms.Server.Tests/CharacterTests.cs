@@ -51,9 +51,9 @@ public sealed class CharacterTests
         Assert.Equal(2000, me.Gold);
         Assert.Empty(me.Unlocked);
 
-        // In the world outside New Argive's inn, which is their home; no tower attuned.
-        Assert.Equal((RealmContent.WorldSpace, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
-        Assert.Equal(RealmApp.Inn("new-argive").Id, me.Inn);
+        // In the world outside New Benalia's inn, which is their home; no tower attuned.
+        Assert.Equal((RealmContent.WorldSpace, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal(RealmApp.Inn("new-benalia").Id, me.Inn);
         Assert.Empty(me.Attuned);
 
         // Common gear in three slots, worn, with the stats it gives.

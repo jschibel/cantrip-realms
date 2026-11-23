@@ -24,12 +24,16 @@ public sealed class CardPool
         IReadOnlyDictionary<string, CatalogCard> catalog,
         IReadOnlyDictionary<string, CardPrice> prices,
         IReadOnlyDictionary<string, IReadOnlyList<string>> pools,
-        IReadOnlySet<string>? relics = null)
+        IReadOnlySet<string>? relics = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? offPlane = null)
     {
         ArgumentNullException.ThrowIfNull(pools);
         Catalog = catalog;
         Prices = prices;
         Relics = relics ?? new HashSet<string>(StringComparer.Ordinal);
+        OffPlane = (offPlane ?? new Dictionary<string, IReadOnlyList<string>>())
+            .Where(card => catalog.TryGetValue(card.Key, out CatalogCard? known) && !IsBasic(known) && prices.ContainsKey(card.Key) && !Relics.Contains(card.Key))
+            .ToDictionary(card => card.Key, card => card.Value, StringComparer.Ordinal);
         _pools = pools.ToDictionary(
             plane => plane.Key,
             plane => (IReadOnlyList<string>)[.. plane.Value.Where(name => catalog.TryGetValue(name, out CatalogCard? card) && !IsBasic(card) && prices.ContainsKey(name) && !Relics.Contains(name))
@@ -48,6 +52,22 @@ public sealed class CardPool
     public bool IsRelic(string name) => Relics.Contains(name);
 
     public IEnumerable<string> Planes => _pools.Keys;
+
+    /// <summary>
+    /// The off-plane pool (design.md A5, "Wares from other planes"): cards printed on no walked plane, each with the trader
+    /// planes it was printed on. Only exotic dealers deal in it.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> OffPlane { get; }
+
+    public bool IsOffPlane(string name) => OffPlane.ContainsKey(name);
+
+    /// <summary>The off-plane cards that fit a filter (its <c>Pool</c> aside), and with a plane given, printed on that plane.</summary>
+    public IReadOnlyList<string> OffPlaneFilter(CardFilter filter, string? plane = null)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        CardFilter any = new() { Colors = filter.Colors, Types = filter.Types, Subtypes = filter.Subtypes, Rarities = filter.Rarities, Names = filter.Names };
+        return [.. OffPlane.Where(card => plane is null || card.Value.Contains(plane, StringComparer.Ordinal)).Select(card => card.Key).Where(name => Fits(name, any)).Order(StringComparer.Ordinal)];
+    }
 
     /// <summary>A plane's pool, without its basic lands; empty for a plane there is none of.</summary>
     public IReadOnlyList<string> Pool(string plane) => _pools.GetValueOrDefault(plane) ?? [];

@@ -169,7 +169,7 @@ public sealed class PresenceTests
     {
         await using var app = new RealmApp();
         await using Walker ann = await Connect(app, 1, 5, 5);
-        await ann.Send(new EnterMessage { Space = "new-argive-inn" });
+        await ann.Send(new EnterMessage { Space = "new-benalia-inn" });
         Assert.Equal("You are not there, or nobody else is.", (await ann.Next<RefusedMessage>()).Reason);
 
         // In a dungeon run, nobody else is.
@@ -182,21 +182,21 @@ public sealed class PresenceTests
     public async Task Players_in_an_interior_see_each_other_and_nobody_outside()
     {
         await using var app = new RealmApp();
-        await using Walker ann = await Connect(app, 1, 0, 0, "new-argive-inn");
-        await ann.Send(new EnterMessage { Space = "new-argive-inn" });
+        await using Walker ann = await Connect(app, 1, 0, 0, "new-benalia-inn");
+        await ann.Send(new EnterMessage { Space = "new-benalia-inn" });
         Assert.Empty((await ann.Next<WelcomeMessage>()).Others);
 
         // Someone in the street outside is not seen inside, nor someone in another building.
-        Hex inn = RealmApp.Inn("new-argive").At;
+        Hex inn = RealmApp.Inn("new-benalia").At;
         await using Walker street = await Connect(app, 2, inn.Q, inn.R);
         await street.Send(new EnterMessage { Space = World });
         Assert.Empty((await street.Next<WelcomeMessage>()).Others);
-        await using Walker smith = await Connect(app, 3, 0, 0, "new-argive-smithy");
-        await smith.Send(new EnterMessage { Space = "new-argive-smithy" });
+        await using Walker smith = await Connect(app, 3, 0, 0, "new-benalia-smithy");
+        await smith.Send(new EnterMessage { Space = "new-benalia-smithy" });
         Assert.Empty((await smith.Next<WelcomeMessage>()).Others);
 
-        await using Walker bob = await Connect(app, 4, 1, 0, "new-argive-inn");
-        await bob.Send(new EnterMessage { Space = "new-argive-inn" });
+        await using Walker bob = await Connect(app, 4, 1, 0, "new-benalia-inn");
+        await bob.Send(new EnterMessage { Space = "new-benalia-inn" });
         Assert.Equal("Walker 1", Assert.Single((await bob.Next<WelcomeMessage>()).Others).Name);
         Assert.Equal("Walker 4", (await ann.Next<OtherMessage>()).Name);
 
@@ -310,13 +310,13 @@ public sealed class PresenceTests
     public void An_interiors_instance_holds_its_number_of_players_and_another_opens_when_it_is_full()
     {
         var hub = new Hub(2);
-        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> inside = [.. Enumerable.Range(0, 5).Select(i => hub.Join("new-argive-inn", new Hex(0, 0), i))];
-        Assert.Equal([2, 2, 1], hub.Presence.Instances("new-argive-inn"));
+        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> inside = [.. Enumerable.Range(0, 5).Select(i => hub.Join("new-benalia-inn", new Hex(0, 0), i))];
+        Assert.Equal([2, 2, 1], hub.Presence.Instances("new-benalia-inn"));
         Assert.Empty(hub.Presence.Instances(World));
         hub.Presence.Leave(inside[0].Member);
         Assert.IsType<LeftMessage>(inside[1].Inbox[^1]);
-        hub.Join("new-argive-inn", new Hex(0, 0), 9);
-        Assert.Equal([2, 2, 1], hub.Presence.Instances("new-argive-inn"));
+        hub.Join("new-benalia-inn", new Hex(0, 0), 9);
+        Assert.Equal([2, 2, 1], hub.Presence.Instances("new-benalia-inn"));
         Assert.DoesNotContain(inside[4].Inbox, message => message is OtherMessage);
     }
 }

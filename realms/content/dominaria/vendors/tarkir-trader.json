@@ -1,0 +1,18 @@
+{
+  "id": "tarkir-trader",
+  "name": "Tsuro of the Clans",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "tarkir",
+    "towns": [
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia"
+    ],
+    "hour": 14,
+    "hours": 4
+  }
+}

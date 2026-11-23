@@ -131,6 +131,9 @@ public sealed class VendorRow
     /// <summary>The Unix hour of the last trickle and rotation applied.</summary>
     public long Hour { get; set; }
 
+    /// <summary>A traveling trader's: the Unix day of the last visit its caravan brought cards to (a day long past, -1 or 0, before any).</summary>
+    public long Visit { get; set; } = -1;
+
     public long CreatedAt { get; set; }
 }
 

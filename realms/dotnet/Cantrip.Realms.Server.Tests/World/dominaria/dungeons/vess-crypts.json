@@ -1,0 +1,1 @@
+{"id":"vess-crypts","name":"The Vess Crypts","theme":"crypt","floors":[3,5],"tier":4,"encounters":[2,4],"mobs":[["abomination","eater-of-the-dead","knight-of-malice"],["fallen-angel","sengir-vampire","tombstalker"]],"warden":"tomb-warden","boss":"liliana","region":"B","entrance":[72,112]}

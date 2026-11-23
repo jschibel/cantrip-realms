@@ -17,6 +17,11 @@ draws). Ids are kebab-case and never reused.
 
 - `planes.json`, `prices.json`, `pools/<plane>.json`: `tools/realms/card-economy.py` (the card economy, design.md A5).
   A relic is priced but in no pool.
+- `prices.json` is `{source, surcharge, cards: {name: {gold, usd, rarity, planes, vintage, identity}}}`: `vintage` is the
+  card's Vintage legality (`legal`, `restricted`, `banned`, `not_legal`) and `identity` its color identity (WUBRG
+  letters), both Scryfall's from the same file as the prices. The realm deals by them - its pools, its deck checks and
+  `/api/catalog`'s legalities and identities - in place of `content/mtg/legality.json`, which lags the cards the engine
+  has; a card prices.json gives none of them for is as that file has it.
 
 ### Relics (`relics.json`)
 
@@ -92,18 +97,22 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `tools/realms/sample-decks.py` writes the whole roster and its decks (design.md A3, A6), each deck built round its
   creature - the creature, its kin, the cards that support what it does - and by tier: its prize (tier 1 100 gold, 2 300,
   3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can buy, and stats-only gear.
-  The roster's ids:
-  - **Wanderers**, about fifteen a tier for tiers 1-4, three of each region a tier: a real creature card each, its id
-    the card's name in kebab-case (`llanowar-elves`, `serra-angel`, `volcanic-dragon`).
-  - **Mages**: a mage tower's id is `<region>-<tier>` (regions `benalia`, `tolaria`, `urborg`, `shiv`, `llanowar`; tiers
-    1-4: `benalia-1` ... `llanowar-4`), and its boss is `mage-<tower>` (`mage-benalia-1`): a wizard, cleric, artificer or
-    planeswalker of the region, of the tower's tier, `"boss": false`.
-  - **Wardens**: each region dungeon's and the Portal's (`sanctum-warden`, `rift-warden`, `tomb-warden`,
-    `foundry-warden`, `heart-warden`, `portal-warden`, tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers
-    and the smaller dungeons of the wilds.
-  - **Bosses**: the five who unlock a color (`lyra-dawnbringer`, `teferi`, `sheoldred`, `darigaaz`, `multani`), the
-    Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`, `phyrexian-gorger`,
-    `gitaxian-mindcutter`), and the capstone's praetor, whose deck the script writes out card by card.
+  The roster's ids (the Domains, design.md A6):
+  - **Wanderers**, fifteen a tier for tiers 1-4, three of each region a tier: a real creature card each that fits its
+    region (Benalish knights and Sursi pegasi, Orvada's merfolk and drakes, the Morass's bog creatures and Amjad's
+    horrors, Hurloon minotaurs, Ironclaw orcs and Keldon and Foriys giants, Llanowar's elves), its id the card's name in
+    kebab-case (`llanowar-elves`, `serra-angel`, `shivan-dragon`, `two-headed-giant-of-foriys`).
+  - **Mages**: a mage tower's id is `<region>-<tier>` (regions `benalia` W, `orvada` U, `caligo` B, `keld` R, `llanowar`
+    G; tiers 1-4: `benalia-1` ... `llanowar-4`), and its boss is `mage-<tower>` (`mage-orvada-4`, Urza): a wizard,
+    cleric, shaman, artificer or planeswalker of the region, of the tower's tier, `"boss": false`.
+  - **Wardens**: the region dungeons' and the Portal's (`sanctum-warden` Benalia's, `rift-warden` the academy's,
+    `tomb-warden` the Vess crypts', `foundry-warden` the Keldon fortress's, `heart-warden` the elfhames' hollow's,
+    `portal-warden`; tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers and the smaller dungeons of the wilds.
+  - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
+    Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `caleria` (G,
+    Lady Caleria of Llanowar); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
+    `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 42 life, a hand of 9, a
+    maximum of 10 with its gear), whose deck the script writes out card by card.
 
 ### The world, interiors and dungeons (`<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`)
 
@@ -166,7 +175,7 @@ A character's place is `{Space, Q, R}`: `Space` is `"world"`, an interior's id, 
 - a character whose place the content no longer has (an old map's id) may report any open hex.
 
 A lost duel sends the character to their inn, outside it in the world (world.json's `inns[].q, r`): the one they set with
-`POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Argive), where a new character begins.
+`POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Benalia), where a new character begins.
 
 ### Models (`models/<id>.vox.json`)
 
@@ -214,12 +223,34 @@ them all.
 listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it. `town` is a town of
 world.json; every vendor keeps a shop there: a `vendor` NPC of an interior of that town names it.
 
+**Wares from other planes** (design.md A5) come only through the exotic dealers, who deal in the off-plane pool alone,
+and no other vendor deals in it:
+
+- The off-plane pool is `off-plane.json`, `{comment, cards: {name: [plane, ...]}}` (`card-economy.py`): every card the
+  engine has that is legal or restricted in Vintage (prices.json's `vintage`), priced, no relic, not Universes Beyond, and
+  printed in no set of a walked plane, each with the trader planes it was printed on (perhaps none). A trader plane is a
+  plane of `planes.json` with `"trader": true` (Ravnica, Zendikar, Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet,
+  Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim, Strixhaven); it has no pool file and is not walked.
+- An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (New Benalia's and Keld's): its stock
+  is off-plane cards within its `specialty`; it shows at most 6 cards, gains one at each six-hour mark of the clock (00, 06,
+  12, 18 UTC) while it shows fewer, lets a card go unsold after 3 days, and is created with 6 that leave six hours apart.
+  It buys off-plane cards of its specialty at half; a card sold to it stays until bought, and while it shows 6 it buys
+  nothing (409 `VendorFull`).
+- A **traveling trader** is a vendor with `"trader": {plane, towns: [town ids], hour, hours}` and no `town`: on Unix day
+  `d` (UTC) its caravan is in `towns[d mod towns.length]` from `hour` o'clock UTC for `hours` hours (within the day), a
+  schedule of the date alone. Each visit brings 3 cards of its plane's off-plane cards, which leave with it; it buys any
+  off-plane card at half, and that card too leaves with it. It trades only while its caravan is in the character's town:
+  the character in the world within the town's radius, or in a building of the town (409 `NotNear` otherwise). The
+  traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy.
+
 The server reads all of this at start and refuses to start on content that does not hold together: one plane has a world;
 every mob, interior, dungeon and vendor a place names is there (spawns' mobs of the spawn's tier and no boss, doors'
 interiors, entrances' dungeons as world.json places them, dungeons' mobs, wardens and bosses, vendor NPCs of the vendor's
-town, inns' towns); every hex a character is put on or meets something at is open (inns, exits, entrances, spawns);
-every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every vendor keeps a shop; every relic
-is a card from a boss and in no pool; and every `requires` is colors' letters (`ContentTests`).
+town, inns' towns, traders' towns); every hex a character is put on or meets something at is open (inns, exits,
+entrances, spawns); every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
+somewhere; every relic is a card from a boss and in no pool; the off-plane pool shares no card with any pool, its cards
+are legal and priced and its tags are trader planes; every trader's plane is a trader plane with cards to bring; and
+every `requires` is colors' letters (`ContentTests`).
 
 ## The realm server's API (`/api`)
 
@@ -237,7 +268,8 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/deck/check` | `{Main, Ante}` | `{Problems: [...], AnteValue}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands, and the ante's worth |
 | `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` (a relic in the ante is one) |
 | `PUT /api/loadout` | `{Slots: {slot: gearInstanceId or null}}` | the `Character`; 422 `IllegalLoadout` with `Problems` |
-| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`; a visit is counted; 404 `NoVendor` |
+| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty, Kind, Plane}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`: `Kind` is `shop`, `exotic` or `trader`, `Plane` a trader's home plane (else null), `Town` a trader's caravan's town now; a visit is counted; 404 `NoVendor`, 409 `NotNear` |
+| `GET /api/travelers` | | `{Travelers: [{Id, Name, Plane, PlaneName, Visit: {Town, From, Until} or null, Next: {Town, From, Until}}]}`: every traveling trader, in id order, the visit its caravan is on now (null between visits) and the next to begin |
 | `POST /api/vendor/{id}/buy` | `{Name}` | `{Gold, Collection}`; 409 `SoldOut`, `CannotAfford` |
 | `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `Relic` (a relic is never sold, whatever the vendor), `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |

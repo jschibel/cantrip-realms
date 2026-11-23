@@ -14,7 +14,7 @@ public sealed class ContentTests
 {
     private const string World = RealmContent.WorldSpace;
 
-    private static readonly string[] Regions = ["benalia", "tolaria", "urborg", "shiv", "llanowar"];
+    private static readonly string[] Regions = ["benalia", "orvada", "caligo", "keld", "llanowar"];
 
     [Fact]
     public void The_content_loads_whole_over_the_test_world()
@@ -22,9 +22,9 @@ public sealed class ContentTests
         RealmContent content = RealmApp.Content;
         Assert.Equal("dominaria", content.World.Plane);
         Assert.Equal(16, content.World.Chunks.Count);
-        Assert.Contains("new-argive", content.Towns.Keys);
+        Assert.Contains("new-benalia", content.Towns.Keys);
         Assert.True(content.Mobs.Count >= 90);
-        Assert.True(content.Vendors.Values.Count(vendor => vendor.File.Town == "new-argive") >= 2);
+        Assert.True(content.Vendors.Values.Count(vendor => vendor.File.Town == "new-benalia") >= 2);
         foreach (string slot in RealmContent.GearSlots)
         {
             Assert.Contains(content.Gear.Values, item => item.Slot == slot);
@@ -71,7 +71,7 @@ public sealed class ContentTests
             Assert.True(world.Walkable(inside.File.Exit!.At), interior);
         }
 
-        foreach (Vendor vendor in content.Vendors.Values)
+        foreach (Vendor vendor in content.Vendors.Values.Where(vendor => vendor.Kind != Vendor.Traveler))
         {
             RealmInterior shop = Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id));
             Assert.Equal(vendor.File.Town, shop.Town?.Id);
@@ -183,7 +183,7 @@ public sealed class ContentTests
         Assert.All(bosses, boss => Assert.Equal(6000, boss.File.Prize));
         Assert.Contains("Lyra Dawnbringer", content.Mobs["lyra-dawnbringer"].Deck.Entries.Select(entry => entry.Card));
         Assert.Contains("Teferi, Hero of Dominaria", content.Mobs["teferi"].Deck.Entries.Select(entry => entry.Card));
-        Assert.Contains("Sheoldred, the Apocalypse", content.Mobs["sheoldred"].Deck.Entries.Select(entry => entry.Card));
+        Assert.Contains("Liliana of the Veil", content.Mobs["liliana"].Deck.Entries.Select(entry => entry.Card));
 
         Dictionary<int, (long Prize, long Low, long High)> tiers = new() { [1] = (100, 20, 60), [2] = (300, 50, 150), [3] = (800, 120, 300), [4] = (2000, 250, 600) };
         foreach (Mob mob in content.Mobs.Values.Where(mob => !mob.File.Boss))
@@ -285,11 +285,11 @@ public sealed class ContentTests
         Assert.Equal((-2, 0), world.ChunkOf(new Hex(-33, 0)));
 
         // A building belongs to the town its door stands in.
-        Assert.Equal("new-argive", RealmApp.Content.Interiors["new-argive-inn"].Town?.Id);
-        Assert.Equal("new-argive", RealmApp.Content.TownAt(new Hex(16, 16))?.Id);
+        Assert.Equal("new-benalia", RealmApp.Content.Interiors["new-benalia-inn"].Town?.Id);
+        Assert.Equal("new-benalia", RealmApp.Content.TownAt(new Hex(16, 16))?.Id);
         Assert.Null(RealmApp.Content.TownAt(new Hex(120, 120)));
-        Assert.Contains(world.SpellTables, table => RealmApp.Content.TownAt(table)?.Id == "new-argive");
-        Assert.Contains(new Hex(1, -1), RealmApp.Content.Interiors["new-argive-inn"].SpellTables);
+        Assert.Contains(world.SpellTables, table => RealmApp.Content.TownAt(table)?.Id == "new-benalia");
+        Assert.Contains(new Hex(1, -1), RealmApp.Content.Interiors["new-benalia-inn"].SpellTables);
     }
 
     [Fact]
@@ -313,13 +313,13 @@ public sealed class ContentTests
             string places = Path.Combine(root, "places", "dominaria");
 
             // A mob whose deck is gone, a mob that is not its creature's deck, and gear in no slot.
-            Edit(Path.Combine(content, "dominaria", "mobs", "goblin-hero.json"), json => json.Replace("decks/realms/dominaria/goblin-hero.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "dominaria", "mobs", "hurloon-minotaur.json"), json => json.Replace("decks/realms/dominaria/hurloon-minotaur.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
             Edit(Path.Combine(content, "dominaria", "mobs", "llanowar-elves.json"), json => json.Replace("\"creature\": \"Llanowar Elves\"", "\"creature\": \"Serra Angel\"", StringComparison.Ordinal));
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
 
             // A relic in a pool, and a relic from a mob that is no boss.
             Edit(Path.Combine(content, "pools", "dominaria.json"), json => json.Replace("\"cards\": [", "\"cards\": [\n\"Black Lotus\",", StringComparison.Ordinal));
-            Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"goblin-hero\"]", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"hurloon-minotaur\"]", StringComparison.Ordinal));
 
             // In the world: a spawn on the rock holding nobody, a spawn of the wrong tier, a door into no building, a dungeon
             // sealed to colors that are none, and one whose boss is nobody.
@@ -327,7 +327,7 @@ public sealed class ContentTests
             string tier1 = RealmApp.SpawnOf(1).Id;
             Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"q\":10,\"r\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"q\":26,\"r\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
-            Edit(chunk, json => json.Replace("\"interior\":\"new-argive-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
+            Edit(chunk, json => json.Replace("\"interior\":\"new-benalia-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
             Edit(Path.Combine(places, "dungeons", "phyrexian-portal.json"), json => json.Replace("\"requires\":\"WUBRG\"", "\"requires\":\"WX\"", StringComparison.Ordinal));
             Edit(Path.Combine(places, "dungeons", "keldon-caves.json"), json => json.Replace("\"boss\":\"", "\"boss\":\"x", StringComparison.Ordinal));
 
@@ -336,12 +336,12 @@ public sealed class ContentTests
             Assert.Contains("mob llanowar-elves: its deck does not hold Serra Angel, the creature it is.", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.Contains("slot 'hat'", StringComparison.Ordinal));
             Assert.Contains("pools/dominaria.json: Black Lotus is a relic, which is in no pool (design.md A3a).", refused.Problems);
-            Assert.Contains("relics.json: Mox Pearl drops from 'goblin-hero', which is no boss.", refused.Problems);
+            Assert.Contains("relics.json: Mox Pearl drops from 'hurloon-minotaur', which is no boss.", refused.Problems);
             Assert.Contains($"the world: spawn {tier1} stands on (26, 4), which nobody can stand on.", refused.Problems);
             Assert.Contains($"the world: spawn {tier1} holds 'nobody', which is no mob.", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.Contains("is tier 3 but holds", StringComparison.Ordinal));
             Assert.Contains(refused.Problems, problem => problem.Contains("leads into 'nowhere', which is no interior.", StringComparison.Ordinal));
-            Assert.Contains("interior new-argive-smithy: no door of the world leads into it.", refused.Problems);
+            Assert.Contains("interior new-benalia-smithy: no door of the world leads into it.", refused.Problems);
             Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon keldon-caves: its boss 'x", StringComparison.Ordinal));
         }
@@ -360,6 +360,19 @@ public sealed class ContentTests
         Assert.Contains("Lightning Bolt is outside the color identity W.", problems);
         Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", problems);
         Assert.Contains(problems, problem => problem.StartsWith("A deck is at least 40 cards", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_card_the_deck_sites_legality_data_lacks_is_dealt_by_the_realms_own()
+    {
+        // content/mtg/legality.json has no Shivan Dragon; prices.json (Scryfall's legalities, card-economy.py) does.
+        RealmContent content = RealmApp.Content;
+        Assert.Contains("Shivan Dragon", content.Cards.Pool("dominaria"));
+        Assert.Equal(("legal", "R"), (content.Cards.Prices["Shivan Dragon"].Vintage, content.Cards.Prices["Shivan Dragon"].Identity));
+        Assert.Equal("R", CardPool.Letters(content.Cards.Catalog["Shivan Dragon"].Identity));
+        Assert.Empty(DeckChecks.Problems(content.Cards, [new("Shivan Dragon", 4), new("Mountain", 36)], CardPool.Identity("R")));
+        Assert.Equal(["Shivan Dragon is outside the color identity W."], DeckChecks.Problems(content.Cards, [new("Shivan Dragon", 4), new("Plains", 36)], CardPool.Identity("W")));
+        Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", DeckChecks.Problems(content.Cards, [new("Black Lotus", 2), new("Mountain", 38)], identity: null));
     }
 
     private static void Edit(string path, Func<string, string> change)

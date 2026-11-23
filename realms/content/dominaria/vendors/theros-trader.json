@@ -1,0 +1,18 @@
+{
+  "id": "theros-trader",
+  "name": "Melitta of Meletis",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "theros",
+    "towns": [
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold",
+      "llanowar",
+      "keld"
+    ],
+    "hour": 6,
+    "hours": 4
+  }
+}

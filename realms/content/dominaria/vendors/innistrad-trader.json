@@ -1,0 +1,18 @@
+{
+  "id": "innistrad-trader",
+  "name": "Brother Aldric of Thraben",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "innistrad",
+    "towns": [
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold"
+    ],
+    "hour": 6,
+    "hours": 4
+  }
+}

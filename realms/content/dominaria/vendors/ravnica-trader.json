@@ -1,0 +1,18 @@
+{
+  "id": "ravnica-trader",
+  "name": "Ottilie of the Tenth District",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "ravnica",
+    "towns": [
+      "new-benalia",
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy"
+    ],
+    "hour": 6,
+    "hours": 4
+  }
+}

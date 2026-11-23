@@ -68,7 +68,7 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_CLIENT` | the world client's address: where sign-in lands, and a browser origin the API answers | none |
 | `REALMS_CARDS` | the card layer's address (the web client's `?realm` page), when it has an origin of its own: the other browser origin the API answers | none |
 | `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin` - never in production | off |
-| `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-argive` |
+| `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-benalia` |
 | `REALMS_PLACES` | where each plane's world, interiors and dungeons are read from instead of `realms/content` (a folder of `<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`) | `realms/content` |
 | `REALMS_WALKING_SPEED` | presence's fastest walk, hexes a second | `4` |
 | `REALMS_INSTANCE_SIZE` | players in one layer of an area of the world (within two chunks), or one instance of an interior | `40` |

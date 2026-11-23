@@ -15,12 +15,12 @@ public sealed class ArmorerChestTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        ArmorerView morning = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-argive");
+        ArmorerView morning = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-benalia");
         Assert.InRange(morning.Stock.Count, Math.Min(Armorers.Fewest, RealmApp.Content.Gear.Count), Armorers.Most);
         Assert.Equal(morning.Stock.Count, morning.Stock.Select(item => item.Id).Distinct().Count());
 
         app.Time.Advance(TimeSpan.FromHours(10));
-        ArmorerView evening = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-argive");
+        ArmorerView evening = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-benalia");
         Assert.Equal(morning.Stock.Select(item => item.Id), evening.Stock.Select(item => item.Id));
 
         await browser.Refused(HttpMethod.Get, "/api/armorer/keld", null, HttpStatusCode.NotFound, Codes.NoArmorer);
@@ -32,35 +32,35 @@ public sealed class ArmorerChestTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Inside("new-argive-smithy");
-        ArmorerView shop = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-argive");
+        await browser.Inside("new-benalia-smithy");
+        ArmorerView shop = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-benalia");
         GearItem item = shop.Stock.Where(item => item.Gold <= Characters.StartingGold).OrderBy(item => item.Gold).First();
 
-        GearTradeView bought = await browser.Ok<GearTradeView>(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id });
+        GearTradeView bought = await browser.Ok<GearTradeView>(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id });
         Assert.Equal(Characters.StartingGold - item.Gold, bought.Gold);
         GearInstance mine = bought.Gear.Last();
         Assert.Equal(item.Id, mine.Gear.Id);
 
-        GearTradeView sold = await browser.Ok<GearTradeView>(HttpMethod.Post, "/api/armorer/new-argive/sell", new { InstanceId = mine.InstanceId });
+        GearTradeView sold = await browser.Ok<GearTradeView>(HttpMethod.Post, "/api/armorer/new-benalia/sell", new { InstanceId = mine.InstanceId });
         Assert.Equal(Characters.StartingGold - item.Gold + (item.Gold / 2), sold.Gold);
         Assert.DoesNotContain(sold.Gear, owned => owned.InstanceId == mine.InstanceId);
 
         CharacterView me = await browser.Me();
         GearInstance worn = me.Loadout.Values.OfType<GearInstance>().First();
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/sell", new { worn.InstanceId }, HttpStatusCode.Conflict, Codes.Worn);
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = "no-such-thing" }, HttpStatusCode.Conflict, Codes.NotInStock);
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/sell", new { worn.InstanceId }, HttpStatusCode.Conflict, Codes.Worn);
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = "no-such-thing" }, HttpStatusCode.Conflict, Codes.NotInStock);
 
         await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, 0)));
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.CannotAfford);
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.CannotAfford);
 
         // Out of the smithy, in the street or the inn, the armorer does not trade.
         await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, 5000)));
-        await browser.Put(RealmContent.WorldSpace, RealmApp.Inn("new-argive").At);
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Inside("new-argive-inn");
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Inside("new-benalia-smithy");
-        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Put(RealmContent.WorldSpace, RealmApp.Inn("new-benalia").At);
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("new-benalia-inn");
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("new-argive-smithy");
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class ArmorerChestTests
         await other.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
 
         // A chest is named by its space: none of that name inside a building.
-        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = "new-argive-inn", Chest = chest.Id }, HttpStatusCode.NotFound, Codes.NoSuchPlace);
+        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = "new-benalia-inn", Chest = chest.Id }, HttpStatusCode.NotFound, Codes.NoSuchPlace);
     }
 }
 
