@@ -63,7 +63,7 @@ The owner's decisions:
 
 ### A3. Duels and rewards
 - **Starting a duel:**
-  - A wandering mob that reaches your hex, or one you click, starts a duel.
+  - A wandering mob that reaches your tile, or one you click, starts a duel.
   - The splash shows the mob's name, its tier, its stats and gear traits, three cards from its deck, your ante value, the prize cap and its gold range. Then the table opens.
   - The mob's seat is played by the tactical bot in your tab.
   - The duel is a single game. Who plays first is decided at random, as CR 103.1 says.
@@ -159,8 +159,13 @@ owner may extend.
 
 ### A6. The world — Dominaria
 - **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
-  no separate travel screen and no local maps to load between. It is big (about 640 by 640 hexes) and streamed in chunks
-  as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other.
+  no separate travel screen and no local maps to load between. It is big (1024 by 1216 square tiles, walked eight
+  ways) and streamed in chunks as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other.
+- **The scale.** A tile is the art's: a house is five to eight tiles across, a street two to five wide. The world is
+  sized for walking at 4.2 tiles a second: four to five minutes north to south in a straight line; from New Benalia's
+  walls 40 seconds by road to Capashen Hold or the elfhames, a minute to the Vess estate, two to Keld with the ferry;
+  35 seconds across New Benalia; a ferry crossing 10 to 30 seconds. The Domains keep their shape: Aerona about 600
+  tiles across, Icehaven 250, Walassa 160, the small isles 80 to 140. Waystones and ferries make the far places near.
 - **Difficulty grows with distance.** The five home towns and New Benalia are the starting areas. Around them and along
   their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
   enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
@@ -247,8 +252,9 @@ owner may extend.
   the forest's big creatures; a Shivan Dragon brings dragons, burn and red mana. Each has stats and gear traits, through the same
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
-  - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** are big walled cities (New Benalia about 120 by 120 hexes, home towns about 80, villages about 30) with gates,
+  - Behavior: they wander within a home radius and give chase when you come within 8 tiles, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
+- **Towns** are big walled cities (New Benalia about 140 tiles across within its walls, home towns about 100, villages
+  about 40), shaped by the land they stand on, with gates,
   streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
   guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
   region's towns are built in its own style: Benalish stone and banners, Tolarian domes on Walassa, the Morass's dark stilt-houses,

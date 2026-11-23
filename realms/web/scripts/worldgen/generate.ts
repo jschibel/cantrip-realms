@@ -1,40 +1,36 @@
 // Dominaria, generated (design.md A6; interfaces.md "The world, interiors and dungeons"): one seeded run lays the land,
-// the towns and their buildings, the dungeons and mage towers, the roads between them, the scenery, the tier zones and
-// what lives in them, and writes it all as the world's files - its chunks, the interiors behind its doors and its
-// dungeons' definitions. The same seed and the same mob roster give the same files, byte for byte.
+// the towns and their buildings, the dungeons and mage towers, the ferries, the roads between them, the fields and the
+// scenery, the tier zones and what lives in them, and writes it all as the world's files in the version-2 format
+// (realms/docs/conversion.md) - its chunks of square tiles, the interiors behind its doors and its dungeons'
+// definitions. The same layout, seed and mob roster give the same files, byte for byte.
 
-import { hex } from "../../src/hex";
 import {
   CHUNK,
-  CHUNKS,
   type ChunkData,
-  type DoorData,
   type DungeonData,
-  type FerryData,
   type EntranceData,
-  type InnData,
+  type FerryData,
   type InteriorData,
   type NpcData,
   type Overview,
   type PropData,
-  TERRAINS,
+  type Region,
+  TILE,
   type TileData,
-  type TownData,
   type WorldData,
   chunkKey,
-  tierAt,
-} from "../../src/world/schema";
-import { Grid, SIZE, T, Use, around, disc, distanceField, hexDistance, hexOf, idx, line as hexLine, qOf, rOf, safeToBlock, terrainName } from "./grid";
-import { buildInterior } from "./interiors";
+} from "../../src/world/format";
+import { S, SURFACES } from "./ids";
+import { Land, Use, terraces } from "./land";
 import type { DungeonLayout, Layout } from "./layout";
 import { Roads } from "./roads";
-import { mountains, shapeLand, waters } from "./terrain";
+import { buildInterior } from "./rooms";
+import { mountains, seas, shapeLand, waters } from "./terrain";
 import { type BuiltTown, buildTown } from "./towns";
-import { type MobFile, type Site, connect, dress, placeDungeon, populate, resolveMobs } from "./wilds";
+import { type MobFile, type Site, connect, dress, fields, placeDungeon, populate, resolveMobs } from "./wilds";
 import { makeZones } from "./zones";
 
-/** A vendor file (interfaces.md, "Vendors"): a shop's in its `town`, an exotic wares shop's `exotic`; a traveling
- * trader has no town, and keeps no shop (its caravan stands at a town's pitch while it is in town). */
+/** A vendor file (interfaces.md, "Vendors"): a shop's in its `town`, an exotic wares shop's `exotic`; a traveling trader has no town. */
 export interface Vendor {
   readonly id: string;
   readonly name: string;
@@ -48,212 +44,178 @@ export interface Generated {
   readonly stats: Record<string, number>;
   /** Every mob id the world and its dungeons name. */
   readonly mobs: readonly string[];
+  /** The workbench, for the tools that draw it. */
+  readonly land: Land;
 }
 
 export function generate(layout: Layout, roster: readonly MobFile[], vendors: readonly Vendor[], log: (text: string) => void = () => {}): Generated {
   const seed = layout.seed;
-  const grid = new Grid();
-  shapeLand(grid, layout);
-  mountains(grid, layout);
-  waters(grid, layout);
+  const [W, H] = layout.size;
+  const land = new Land(W, H);
+  shapeLand(land, layout);
+  mountains(land, layout);
+  waters(land, layout);
+  const fromLand = seas(land);
   log("land");
 
-  // Where the towns stand, and which roads leave each.
-  const at = (p: readonly [number, number]) => hex(p[0], p[1]);
-  const centreOf = new Map(layout.towns.map((t) => [t.id, at(t.at)]));
-  const dungeonAt = new Map(layout.dungeons.map((d) => [d.id, at(d.at)]));
-  for (const f of layout.ferries ?? []) {
-    dungeonAt.set(`ferry:${f.id}:from`, at(f.from));
-    dungeonAt.set(`ferry:${f.id}:to`, at(f.to));
+  // The towns, each with a gate toward every road that leaves it.
+  const colorOf = (region: string | undefined): Region | null => layout.regions.find((r) => r.id === region)?.color ?? null;
+  const placeOf = new Map<string, readonly [number, number]>();
+  for (const t of layout.towns) placeOf.set(t.id, t.at);
+  for (const d of layout.dungeons) placeOf.set(d.id, d.at);
+  for (const f of layout.ferries) {
+    placeOf.set(`ferry:${f.id}:from`, f.from);
+    placeOf.set(`ferry:${f.id}:to`, f.to);
   }
   const links: { a: string; b: string; main: boolean }[] = layout.roads.map((r) => ({ a: r.from, b: r.to, main: r.main ?? false }));
   for (const d of layout.dungeons) if (d.road) links.push({ a: d.road, b: d.id, main: false });
-  const colorOf = (region: string | undefined) => layout.regions.find((r) => r.id === region)?.color ?? null;
-
-  const towns: BuiltTown[] = [];
-  const townPlans = layout.towns;
-  townPlans.forEach((plan, index) => {
+  const towns: BuiltTown[] = layout.towns.map((plan, index) => {
     const targets = links
       .filter((l) => l.a === plan.id || l.b === plan.id)
       .map((l) => (l.a === plan.id ? l.b : l.a))
-      .map((id) => ({ id, at: centreOf.get(id) ?? dungeonAt.get(id)! }));
+      .map((id) => ({ id, at: placeOf.get(id)! }));
     const sold = vendors.filter((v) => v.town === plan.id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
-    // The town's exotic wares shop is its exotic vendor's (layout.json's `exotic` names the vendor file).
     const exotic = vendors.filter((v) => v.town === plan.id && v.exotic);
     if (exotic.length !== (plan.exotic ? 1 : 0) || (plan.exotic && exotic[0]!.id !== plan.exotic)) {
       throw new Error(`${plan.id}: layout.json's exotic shop is ${plan.exotic ?? "none"}, its exotic vendors ${exotic.map((v) => v.id).join(", ") || "none"}`);
     }
-    towns.push(buildTown(grid, plan, colorOf(plan.region), index, centreOf.get(plan.id)!, targets, seed, sold, exotic[0] ?? null));
+    return buildTown(land, { plan, index, color: colorOf(plan.region), targets, vendors: sold, exotic: exotic[0] ?? null }, seed);
   });
   log("towns");
 
   const outdoor: NpcData[] = towns.flatMap((t) => t.npcs);
   const sites = new Map<string, Site>();
   for (const plan of layout.dungeons) {
-    // Its front toward the nearest town.
-    const here = at(plan.at);
-    const near = [...centreOf.values()].sort((x, y) => Math.hypot(x.q - here.q, x.r - here.r) - Math.hypot(y.q - here.q, y.r - here.r))[0]!;
-    sites.set(plan.id, placeDungeon(grid, plan, outdoor, near));
+    const near = [...layout.towns].sort((p, q) => Math.hypot(p.at[0] - plan.at[0], p.at[1] - plan.at[1]) - Math.hypot(q.at[0] - plan.at[0], q.at[1] - plan.at[1]))[0]!;
+    sites.set(plan.id, placeDungeon(land, plan, outdoor, near.at));
   }
   log("dungeons");
 
-  // Ferries to the far isles: a dock on each shore, a ferryman beside it, and the lane over the water between.
-  const ferries: FerryData[] = [];
-  const docks = new Map<string, number>();
-  const shore = (want: ReturnType<typeof hex>): number => {
-    const options = disc(want, 30).filter((i) => !grid.isWater(i) && grid.town[i] === 0 && grid.use[i] !== Use.Door && grid.use[i] !== Use.Building && around(i).some((n) => grid.isWater(n)));
-    options.sort((a, b) => hexDistance(qOf(a), rOf(a), want.q, want.r) - hexDistance(qOf(b), rOf(b), want.q, want.r) || a - b);
-    if (options[0] === undefined) throw new Error(`no shore near ${want.q},${want.r} for a ferry`);
-    return options[0];
-  };
-  for (const f of layout.ferries ?? []) {
-    const a = shore(at(f.from));
-    const b = shore(at(f.to));
-    const lane = hexLine(hexOf(a), hexOf(b)).map((h) => idx(h.q, h.r));
-    for (const i of lane) {
-      grid.props.delete(i);
-      grid.blocked[i] = 0;
-      grid.use[i] = Use.Kept;
-      if (!grid.isWater(i)) grid.terrain[i] = T.wood;
-    }
-    for (const [end, which] of [[a, "from"], [b, "to"]] as const) {
-      grid.terrain[end] = T.wood;
-      docks.set(`ferry:${f.id}:${which}`, end);
-      const open = (q: number, r: number) => grid.blocked[idx(q, r)] === 0;
-      const beside = around(end).filter((n) => !lane.includes(n) && !grid.isWater(n) && grid.blocked[n] === 0 && safeToBlock(open, qOf(n), rOf(n))).sort((x, y) => x - y)[0];
-      if (beside === undefined) throw new Error(`ferry ${f.id}: no room for its ferryman`);
-      grid.blocked[beside] = 1;
-      grid.use[beside] = Use.Building;
-      outdoor.push({ id: `${f.id}-ferryman-${which}`, q: qOf(beside), r: rOf(beside), kind: "ferryman", ferry: f.id, name: `The ferryman of ${f.name.replace(/^The /, "the ")}` });
-    }
-    ferries.push({ id: f.id, name: f.name, from: [qOf(a), rOf(a)], to: [qOf(b), rOf(b)], lane: lane.map((i) => [qOf(i), rOf(i)] as const) });
-  }
+  const { ferries, docks } = layFerries(land, layout, outdoor);
   log("ferries");
 
-  const roads = new Roads(grid);
-  const endOf = (id: string, toward: string): number => {
+  const roads = new Roads(land);
+  /** Where a road may end at a place: a dock, a dungeon's entrance, or any of a town's gates. */
+  const endsOf = (id: string): number[] => {
     const dock = docks.get(id);
-    if (dock !== undefined) return dock;
+    if (dock !== undefined) return [dock];
     const town = towns.find((t) => t.data.id === id);
-    if (town) {
-      const gate = town.gates.get(toward);
-      if (gate === undefined) throw new Error(`${id} has no gate toward ${toward}`);
-      return gate;
-    }
-    const site = sites.get(id)!;
-    return idx(site.entrance.q, site.entrance.r);
+    if (town) return [...town.gates.values()];
+    return [sites.get(id)!.entrance];
   };
   // Main roads first, so the others join them.
   for (const link of [...links.filter((l) => l.main), ...links.filter((l) => !l.main)]) {
-    const a = endOf(link.a, link.b);
-    const b = endOf(link.b, link.a);
-    if (!roads.lay(link.a, link.b, a, b, link.main)) {
-      const say = (i: number) => `${qOf(i)},${rOf(i)} use ${grid.use[i]} town ${grid.town[i]} terrain ${terrainName(grid.terrain[i]!)} [${around(i).map((n) => `${grid.use[n]}/${grid.town[n]}/${terrainName(grid.terrain[n]!)}`).join(" ")}]`;
-      throw new Error(`no road from ${link.a} (${say(a)}) to ${link.b} (${say(b)})`);
-    }
+    if (!roads.lay(link.a, link.b, endsOf(link.a), endsOf(link.b), link.main)) throw new Error(`no road from ${link.a} to ${link.b}`);
   }
   log("roads");
 
-  dress(grid, layout);
-  const innHex = towns[0]!.inn;
-  const joined = connect(grid, idx(innHex.q, innHex.r));
+  fields(land, layout);
+  dress(land, layout);
+  const step = Math.max(1, Math.round(12 * Math.min(1, layout.relief)));
+  const shaped = terraces(land, step, seed);
+  log(`terraces: ${shaped.ramps} ramp tiles, ${shaped.rims} rims`);
+  const capital = towns.find((t) => t.data.kind === "capital") ?? towns[0]!;
+  const joined = connect(land, land.idx(capital.inn.x, capital.inn.z), step);
   log(`connect: ${joined.filled} pockets filled, ${joined.joined} stretches joined`);
 
   const starts: number[] = [];
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    const t = grid.town[i]!;
-    if (t !== 0 && townPlans[t - 1]!.start && grid.use[i] !== Use.Kept) starts.push(i);
+  for (let i = 0; i < land.size; i++) {
+    const t = land.town[i]!;
+    if (t !== 0 && layout.towns[t - 1]!.start) starts.push(i);
   }
-  const sea: number[] = [];
-  for (let i = 0; i < SIZE * SIZE; i++) if (grid.terrain[i] === T["deep-water"]) sea.push(i);
-  const zones = makeZones(grid, layout, starts, roads.main, distanceField(sea, 2000));
+  const zones = makeZones(land, layout, starts, roads.main, fromLand);
   log("zones");
 
   const keepAway = [
-    ...towns.flatMap((t) => t.doors.map((d) => hex(d.q, d.r))),
+    ...towns.flatMap((t) => t.interiors.map((r) => land.idx(r.exit[0], r.exit[1]))),
     ...[...sites.values()].map((s) => s.entrance),
-    ...outdoor.map((n) => hex(n.q, n.r)),
+    ...outdoor.map((n) => land.idx(n.x, n.z)),
+    ...docks.values(),
   ];
-  const placed = populate(grid, zones, roster, seed, keepAway);
-  log(`populate: ${placed.spawns.length} spawns, ${placed.chests.length} chests, ${placed.markers.length} waymarkers`);
+  const placed = populate(land, zones, roster, seed, keepAway);
+  log(`populate: ${placed.spawns.length} spawns, ${placed.chests.length} chests, ${placed.waymarkers.length} waymarkers`);
 
-  // The files.
+  // --- The files ------------------------------------------------------------------------------------------------------
+
   const files = new Map<string, string>();
-  const doors: DoorData[] = towns.flatMap((t) => t.doors);
-  const entrances: EntranceData[] = [...sites.values()].map((s) => ({ q: s.entrance.q, r: s.entrance.r, dungeon: s.plan.id }));
-  const chunkOfHex = (q: number, r: number) => chunkKey(Math.floor(q / CHUNK), Math.floor(r / CHUNK));
-  const byChunk = <T extends { q: number; r: number }>(list: readonly T[]) => {
+  const keyOf = (x: number, z: number) => chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK));
+  const byChunk = <T>(list: readonly T[], at: (item: T) => readonly [number, number]) => {
     const map = new Map<string, T[]>();
     for (const item of list) {
-      const k = chunkOfHex(item.q, item.r);
-      map.set(k, [...(map.get(k) ?? []), item]);
+      const [x, z] = at(item);
+      const k = keyOf(Math.floor(x), Math.floor(z));
+      let found = map.get(k);
+      if (!found) map.set(k, (found = []));
+      found.push(item);
     }
     return map;
   };
-  const doorsBy = byChunk(doors);
-  const entrancesBy = byChunk(entrances);
-  const npcsBy = byChunk(outdoor);
-  const spawnsBy = byChunk(placed.spawns);
-  const chestsBy = byChunk(placed.chests);
-  const propsBy = byChunk([...grid.props.values()]);
-  const order = (a: { q: number; r: number }, b: { q: number; r: number }) => a.q - b.q || a.r - b.r;
-  for (let cq = 0; cq < CHUNKS; cq++) {
-    for (let cr = 0; cr < CHUNKS; cr++) {
-      const k = chunkKey(cq, cr);
+  const props: PropData[] = [...land.fixtures, ...land.decor.values()];
+  const buildings = towns.flatMap((t) => t.buildings);
+  const entrances: EntranceData[] = [...sites.values()].map((s) => ({ x: land.xOf(s.entrance), z: land.zOf(s.entrance), dungeon: s.plan.id }));
+  const propsBy = byChunk(props, (p) => [p.x, p.z]);
+  const buildingsBy = byChunk(buildings, (b) => [b.x, b.z]);
+  const npcsBy = byChunk(outdoor, (n) => [n.x, n.z]);
+  const spawnsBy = byChunk(placed.spawns, (s) => [s.x, s.z]);
+  const chestsBy = byChunk(placed.chests, (c) => [c.x, c.z]);
+  const entrancesBy = byChunk(entrances, (e) => [e.x, e.z]);
+  const markersBy = byChunk(placed.waymarkers, (m) => [m.x, m.z]);
+  const order = <T extends { x: number; z: number; id?: string }>(a: T, b: T) => a.z - b.z || a.x - b.x || (a.id ?? "").localeCompare(b.id ?? "");
+  for (let cz = 0; cz < H / CHUNK; cz++) {
+    for (let cx = 0; cx < W / CHUNK; cx++) {
+      const k = chunkKey(cx, cz);
       const tiles: TileData[] = [];
-      for (let q = cq * CHUNK; q < cq * CHUNK + CHUNK; q++) {
-        for (let r = cr * CHUNK; r < cr * CHUNK + CHUNK; r++) {
-          const i = idx(q, r);
-          tiles.push([q, r, Math.round(grid.height[i]! * 100) / 100, terrainName(grid.terrain[i]!), grid.blocked[i]!]);
+      for (let z = cz * CHUNK; z < cz * CHUNK + CHUNK; z++) {
+        for (let x = cx * CHUNK; x < cx * CHUNK + CHUNK; x++) {
+          const i = land.idx(x, z);
+          tiles.push([land.height[i]!, SURFACES[land.surface[i]!]!, land.flags[i]!]);
         }
       }
       const chunk: ChunkData = {
-        cq,
-        cr,
+        cx,
+        cz,
         tiles,
         props: (propsBy.get(k) ?? []).sort(order),
-        doors: (doorsBy.get(k) ?? []).sort(order),
+        buildings: (buildingsBy.get(k) ?? []).sort(order),
         npcs: (npcsBy.get(k) ?? []).sort(order),
         spawns: (spawnsBy.get(k) ?? []).sort(order),
         chests: (chestsBy.get(k) ?? []).sort(order),
         entrances: (entrancesBy.get(k) ?? []).sort(order),
+        waymarkers: (markersBy.get(k) ?? []).sort(order),
       };
       files.set(`world/chunks/${k}.json`, formatChunk(chunk));
     }
   }
 
   const interiors: InteriorData[] = towns.flatMap((t) => t.interiors).map(buildInterior);
-  for (const room of interiors) files.set(`interiors/${room.id}.json`, formatRecord(room as unknown as Record<string, unknown>, ["tiles", "props", "npcs"]));
+  for (const room of interiors) files.set(`interiors/${room.id}.json`, formatInterior(room));
 
+  const tierOf = (x: number, z: number) => zones.areas[zones.grid[Math.floor(z / zones.cell)]?.[Math.floor(x / zones.cell)] ?? 0]?.tier ?? 0;
   const dungeons: DungeonData[] = layout.dungeons.map((plan) => {
-    const site = sites.get(plan.id)!;
-    // A dungeon is at least as hard as the land it stands in; a mage tower is its circle's tier, as its mage and its
-    // mobs are (the roster's mage-<region>-<tier>), wherever it stands.
-    return dungeonData(plan, colorOf(plan.region), site, plan.waystone ? plan.tier : Math.max(plan.tier, tierAt(zones, site.entrance)), roster);
+    const e = sites.get(plan.id)!.entrance;
+    // A dungeon is at least as hard as the land it stands in; a mage tower is its circle's tier, as its mage and its mobs
+    // are (the roster's mage-<region>-<tier>), wherever it stands.
+    return dungeonData(plan, colorOf(plan.region), [land.xOf(e), land.zOf(e)], plan.waystone ? plan.tier : Math.max(plan.tier, tierOf(land.xOf(e), land.zOf(e))), roster);
   });
   for (const d of dungeons) files.set(`dungeons/${d.id}.json`, `${JSON.stringify(d, null, 2)}\n`);
 
-  const inns: InnData[] = towns.map((t) => ({ id: `${t.data.id}-inn`, town: t.data.id, q: t.inn.q, r: t.inn.r, interior: t.inn.interior }));
-  const colored = layout.regions.filter((r) => r.color !== null);
-  const regionCounts = colored.map((r) => ({ color: r.color!, name: r.name, hexes: 0 }));
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    const region = layout.regions[grid.region[i]!]!;
-    const k = colored.indexOf(region);
-    if (k >= 0 && grid.terrain[i] !== T["deep-water"] && grid.terrain[i] !== T.water) regionCounts[k]!.hexes++;
-  }
+  const colored = layout.regions.map((r, k) => ({ r, k })).filter(({ r }) => r.color !== null);
+  const counts = new Map<number, number>();
+  for (let i = 0; i < land.size; i++) if (!land.isWater(i)) counts.set(land.region[i]!, (counts.get(land.region[i]!) ?? 0) + 1);
   const world: WorldData = {
-    size: [SIZE, SIZE],
+    size: [W, H],
     chunk: CHUNK,
+    tile: TILE,
     seed,
-    regions: regionCounts,
-    towns: towns.map((t): TownData => t.data),
-    inns,
-    dungeons: dungeons.map((d) => ({ id: d.id, q: d.entrance[0], r: d.entrance[1] })),
-    roads: roads.laid.map((road) => ({ from: road.from, to: road.to, hexes: road.hexes.map((i) => [qOf(i), rOf(i)] as const) })),
+    regions: colored.map(({ r, k }) => ({ color: r.color!, name: r.name, tiles: counts.get(k) ?? 0 })),
+    towns: towns.map((t) => t.data),
+    inns: towns.map((t) => ({ id: `${t.data.id}-inn`, town: t.data.id, x: t.inn.x, z: t.inn.z, interior: t.inn.interior })),
+    dungeons: dungeons.map((d) => ({ id: d.id, x: d.entrance[0], z: d.entrance[1] })),
+    roads: roads.laid.map((road) => ({ from: road.from, to: road.to, tiles: road.tiles.map((i) => [land.xOf(i), land.zOf(i)] as const) })),
     ferries,
-    pitches: towns.flatMap((t) => (t.pitch ? [{ town: t.data.id, q: t.pitch.q, r: t.pitch.r }] : [])),
+    pitches: towns.flatMap((t) => (t.pitch ? [{ town: t.data.id, x: t.pitch.x, z: t.pitch.z }] : [])),
     zones,
-    overview: overview(grid),
+    overview: overview(land),
   };
   files.set("world/world.json", formatWorld(world));
 
@@ -266,31 +228,103 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   }
   return {
     files,
+    land,
     mobs: [...mobs].sort(),
     stats: {
-      chunks: CHUNKS * CHUNKS,
+      chunks: (W / CHUNK) * (H / CHUNK),
       towns: towns.length,
-      buildings: towns.reduce((n, t) => n + t.buildings.length, 0),
+      buildings: buildings.length,
       interiors: interiors.length,
       dungeons: dungeons.length,
       towers: dungeons.filter((d) => d.waystone).length,
       spawns: placed.spawns.length,
       chests: placed.chests.length,
-      waymarkers: placed.markers.length,
-      roadHexes: roads.laid.reduce((n, r) => n + r.hexes.length, 0),
+      waymarkers: placed.waymarkers.length,
+      props: props.length,
+      roadTiles: roads.laid.reduce((n, r) => n + r.tiles.length, 0),
     },
   };
 }
 
-function dungeonData(plan: DungeonLayout, color: DungeonData["region"] | null, site: Site, tier: number, roster: readonly MobFile[]): DungeonData {
-  const ask = (spec: string) => resolveMobs(roster, color ?? null, spec);
+/**
+ * The ferries to the far isles: a dock on each shore (the open shore tile nearest the layout's place, sea beside it), a
+ * ferryman beside each, and the lane over the water between: sea tiles edge to edge, open to the ferry's passengers
+ * (the overworld lets nobody else onto it; interfaces.md).
+ */
+function layFerries(land: Land, layout: Layout, npcs: NpcData[]): { ferries: FerryData[]; docks: Map<string, number> } {
+  const ferries: FerryData[] = [];
+  const docks = new Map<string, number>();
+  const near: number[] = [];
+  const shore = (want: readonly [number, number]): number => {
+    const options = land
+      .disc(want[0], want[1], 70)
+      .filter((i) => !land.isWater(i) && land.open(i) && land.town[i] === 0 && (land.use[i] === Use.Wild || land.use[i] === Use.Kept) && land.n4(i, near).some((n) => land.isSea(n)));
+    options.sort((a, b) => Math.hypot(land.xOf(a) - want[0], land.zOf(a) - want[1]) - Math.hypot(land.xOf(b) - want[0], land.zOf(b) - want[1]) || a - b);
+    if (options[0] === undefined) throw new Error(`no shore near ${want.join(",")} for a ferry`);
+    return options[0];
+  };
+  for (const f of layout.ferries) {
+    const a = shore(f.from);
+    const b = shore(f.to);
+    const lane = seaPath(land, a, b);
+    if (!lane) throw new Error(`ferry ${f.id}: no way over the water from ${land.xOf(a)},${land.zOf(a)} to ${land.xOf(b)},${land.zOf(b)}`);
+    for (const i of lane) {
+      land.decor.delete(i);
+      land.unblock(i);
+      land.use[i] = Use.Dock;
+    }
+    for (const [end, which] of [[a, "from"], [b, "to"]] as const) {
+      land.surface[end] = S.planks;
+      docks.set(`ferry:${f.id}:${which}`, end);
+      // The ferryman stands beside the dock, on the land side, with the mooring post by him.
+      const beside = land
+        .n8(end, near)
+        .filter((n) => !land.isWater(n) && land.open(n) && land.use[n] !== Use.Dock && land.town[n] === 0)
+        .sort((p, q) => p - q)[0];
+      if (beside === undefined) throw new Error(`ferry ${f.id}: no room for its ferryman`);
+      land.use[beside] = Use.Kept;
+      land.decor.delete(beside);
+      npcs.push({ id: `${f.id}-ferryman-${which}`, x: land.xOf(beside), z: land.zOf(beside), kind: "ferryman", ferry: f.id, name: `The ferryman of ${f.name.replace(/^The /, "the ")}`, figure: "ferryman", behaviour: { watch: 5 } });
+      land.fixtures.push({ id: "ferry-post", x: land.xOf(end) + 0.5, z: land.zOf(end) + 0.5 });
+    }
+    ferries.push({ id: f.id, name: f.name, from: [land.xOf(a), land.zOf(a)], to: [land.xOf(b), land.zOf(b)], lane: lane.map((i) => [land.xOf(i), land.zOf(i)] as const) });
+  }
+  return { ferries, docks };
+}
+
+/** The shortest way edge to edge over the sea from one shore tile to another, both ends included, or null. */
+function seaPath(land: Land, a: number, b: number): number[] | null {
+  const came = new Int32Array(land.size).fill(-2);
+  const queue = new Int32Array(land.size);
+  let head = 0;
+  let tail = 0;
+  queue[tail++] = a;
+  came[a] = -1;
+  const near: number[] = [];
+  while (head < tail) {
+    const i = queue[head++]!;
+    if (i === b) break;
+    for (const n of land.n4(i, near)) {
+      if (came[n] !== -2 || !(land.isSea(n) || n === b)) continue;
+      came[n] = i;
+      queue[tail++] = n;
+    }
+  }
+  if (came[b] === -2) return null;
+  const path: number[] = [];
+  for (let i = b; i !== -1; i = came[i]!) path.push(i);
+  return path.reverse();
+}
+
+function dungeonData(plan: DungeonLayout, color: Region | null, entrance: readonly [number, number], tier: number, roster: readonly MobFile[]): DungeonData {
+  const ask = (spec: string) => resolveMobs(roster, color, spec);
   const nested = Array.isArray(plan.mobs[0]);
   const mobs = nested ? (plan.mobs as string[][]).map((list) => [...new Set(list.flatMap(ask))]) : [...new Set((plan.mobs as string[]).flatMap(ask))];
   return {
     id: plan.id,
     name: plan.name,
     theme: plan.theme,
-    entrance: [site.entrance.q, site.entrance.r],
+    entrance: [entrance[0], entrance[1]],
     ...(plan.requires ? { requires: plan.requires } : {}),
     floors: plan.floors,
     tier,
@@ -303,25 +337,28 @@ function dungeonData(plan: DungeonLayout, color: DungeonData["region"] | null, s
   };
 }
 
-/** The world from above, a letter for each 4-by-4 square: its commonest ground, woods, or a town. */
-function overview(grid: Grid): Overview {
-  const cell = 4;
-  const letters = "abcdefghijklmnopqrstuvwx";
-  const legend: Record<string, string> = Object.fromEntries(TERRAINS.map((t, i) => [letters[i]!, t]));
+/** The letters of the overview, by surface. */
+const LETTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+/** The world from above for the regional map: a letter for each 8-by-8 square, its commonest ground, woods or a town. */
+function overview(land: Land): Overview {
+  const cell = 8;
+  const legend: Record<string, string> = {};
+  SURFACES.forEach((s, k) => {
+    if (s !== "") legend[LETTERS[k - 1]!] = s;
+  });
   legend.T = "town";
   legend.F = "woods";
+  const woods = new Set(["tree", "pine", "dead-tree", "great-tree", "swamp-tree"]);
   const rows: string[] = [];
-  for (let r0 = 0; r0 < SIZE; r0 += cell) {
+  for (let z0 = 0; z0 < land.depth; z0 += cell) {
     let row = "";
-    for (let q0 = 0; q0 < SIZE; q0 += cell) {
+    for (let x0 = 0; x0 < land.width; x0 += cell) {
       const counts = new Map<string, number>();
-      for (let dq = 0; dq < cell; dq++) {
-        for (let dr = 0; dr < cell; dr++) {
-          const i = idx(q0 + dq, r0 + dr);
-          const prop = grid.props.get(i)?.kind;
-          const k = grid.town[i] !== 0 && grid.use[i] !== Use.Kept ? "T" : prop === "tree" || prop === "pine" || prop === "dead-tree" ? "F" : letters[grid.terrain[i]!]!;
-          counts.set(k, (counts.get(k) ?? 0) + (k === "T" ? 3 : k === "F" ? 2 : 1));
-        }
+      for (const i of land.rect(x0, z0, x0 + cell - 1, z0 + cell - 1)) {
+        const tree = land.decor.get(i);
+        const k = land.town[i] !== 0 ? "T" : tree && woods.has(tree.id) ? "F" : LETTERS[land.surface[i]! - 1]!;
+        counts.set(k, (counts.get(k) ?? 0) + (k === "T" ? 3 : k === "F" ? 3 : 1));
       }
       row += [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]![0];
     }
@@ -330,22 +367,33 @@ function overview(grid: Grid): Overview {
   return { cell, legend, rows };
 }
 
-// --- Formatting: one item to a line, so a file diffs well -----------------------------------------------------------
+// --- Formatting: one item to a line (a chunk's tiles a row to a line), so a file diffs well --------------------------
 
 const line = (v: unknown) => JSON.stringify(v);
 
-export function formatRecord(record: Record<string, unknown>, lists: readonly string[]): string {
+export function formatRecord(record: Record<string, unknown>, lists: readonly string[], rows: Readonly<Record<string, number>> = {}): string {
   const parts: string[] = [];
   for (const [k, v] of Object.entries(record)) {
+    if (v === undefined) continue;
     if (lists.includes(k) && Array.isArray(v)) {
-      parts.push(v.length === 0 ? `  ${line(k)}: []` : `  ${line(k)}: [\n${v.map((item) => `    ${line(item)}`).join(",\n")}\n  ]`);
+      const per = rows[k];
+      if (v.length === 0) parts.push(`  ${line(k)}: []`);
+      else if (per) {
+        const out: string[] = [];
+        for (let i = 0; i < v.length; i += per) out.push(`    ${v.slice(i, i + per).map(line).join(",")}`);
+        parts.push(`  ${line(k)}: [\n${out.join(",\n")}\n  ]`);
+      } else parts.push(`  ${line(k)}: [\n${v.map((item) => `    ${line(item)}`).join(",\n")}\n  ]`);
     } else parts.push(`  ${line(k)}: ${line(v)}`);
   }
   return `{\n${parts.join(",\n")}\n}\n`;
 }
 
 function formatChunk(chunk: ChunkData): string {
-  return formatRecord(chunk as unknown as Record<string, unknown>, ["doors", "entrances", "npcs", "spawns", "chests", "props", "tiles"]);
+  return formatRecord(chunk as unknown as Record<string, unknown>, ["tiles", "props", "buildings", "npcs", "spawns", "chests", "entrances", "waymarkers", "lights"], { tiles: CHUNK });
+}
+
+function formatInterior(room: InteriorData): string {
+  return formatRecord(room as unknown as Record<string, unknown>, ["tiles", "props", "npcs", "lights"], { tiles: room.w });
 }
 
 function formatWorld(world: WorldData): string {
@@ -356,5 +404,3 @@ function formatWorld(world: WorldData): string {
   const list = (name: string, items: readonly unknown[]) => (items.length === 0 ? `  "${name}": []` : `  "${name}": [\n${items.map((r) => `    ${line(r)}`).join(",\n")}\n  ]`);
   return `${head},\n${list("roads", roads)},\n${list("ferries", ferries)},\n${list("pitches", pitches)},\n${zoneText},\n${viewText}\n}\n`;
 }
-
-export { around };

@@ -1,117 +1,113 @@
-// The wilds between the towns: dungeon entrances and mage towers with their waystones, the scenery of each region,
-// a last pass that joins every open hex to the rest of the world (or fills a pocket nobody could reach), then the
-// spawn points by tier, chests, and the waymarkers where the tier changes.
+// The wilds between the towns: dungeon entrances and mage towers with their waystones and spell tables, fields round
+// the towns of the plains, the scenery of each region, a pass that joins every open tile to the rest of the world (or
+// fills a pocket nobody could reach), then the spawn points by tier, chests, and the waymarkers where the tier rises.
 
-import { type Hex, hex, toWorld } from "../../src/hex";
-import { type ChestData, type NpcData, type PropData, type Region, type SpawnData, type Theme, type Zones, areaAt, chunkKey, CHUNK } from "../../src/world/schema";
-import { Grid, HUB, SIZE, STEP, T, Use, angleOf, around, atAngle, disc, fbm, hexDistance, hexOf, idx, inside, noise, qOf, rOf, randomFor, safeToBlock, shuffle } from "./grid";
-import type { Biome, DungeonLayout as DungeonPlan, Layout } from "./layout";
-import { biomeOf } from "./terrain";
-import { footprintOf, frontToward } from "./towns";
+import type { ChestData, NpcData, Region, SpawnData, Theme, WaymarkerData, Zones } from "../../src/world/format";
+import { BLOCKED, CHUNK, RAMP, chunkKey } from "../../src/world/format";
+import type { Footprint } from "./buildings";
+import { S } from "./ids";
+import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
+import type { Biome, DungeonLayout, Layout } from "./layout";
+import { biomeOf, woodsNoise } from "./terrain";
+import { safeToBlock } from "./towns";
 
-const SIZES: Record<Theme, readonly [number, number, number]> = {
-  caves: [5, 4, 2.6],
-  castle: [7.5, 6, 4.4],
-  tower: [4.4, 4.4, 8.5],
-  crypt: [5.6, 4.6, 3],
-  hollow: [5.6, 4.6, 4.2],
-  foundry: [7.4, 5.6, 3.6],
-  portal: [6.4, 3.4, 5.6],
+/** A dungeon's way in, by theme: the prop drawn over its footprint, and the footprint's size across its front and deep. */
+const ENTRANCES: Record<Theme, { prop: string; size: readonly [number, number] }> = {
+  caves: { prop: "cave-mouth", size: [6, 4] },
+  castle: { prop: "castle-gate", size: [9, 7] },
+  tower: { prop: "mage-tower", size: [6, 6] },
+  crypt: { prop: "crypt-door", size: [6, 5] },
+  hollow: { prop: "root-hollow", size: [7, 5] },
+  foundry: { prop: "foundry-gate", size: [9, 6] },
+  portal: { prop: "phyrexian-portal", size: [8, 4] },
 };
 
 export interface Site {
-  readonly plan: DungeonPlan;
-  readonly entrance: Hex;
-  readonly waystone?: Hex;
+  readonly plan: DungeonLayout;
+  /** The entrance tile: walked onto, it starts a run. */
+  readonly entrance: number;
 }
 
-/** Stands a dungeon's way in where its plan says, as near as the land allows: the structure, the hex before it. */
-export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[], toward: Hex): Site {
-  const want = hex(plan.at[0], plan.at[1]);
-  const good = (i: number) => {
-    if (grid.town[i] !== 0) return false;
-    for (const j of disc(hexOf(i), 4)) {
-      const t = grid.terrain[j]!;
-      if (t === T["deep-water"] || grid.town[j] !== 0 || grid.use[j] !== Use.Wild) return false;
+/** The footprint of something whose front's middle opens onto `door`, facing `rot`. */
+function footprintBefore(door: readonly [number, number], rot: number, wide: number, deep: number): Footprint {
+  const [dx, dz] = door;
+  const h = Math.floor(wide / 2);
+  const f =
+    rot === 0
+      ? { x: dx - h, z: dz - deep, w: wide, d: deep, rot }
+      : rot === 2
+        ? { x: dx - (wide - 1 - h), z: dz + 1, w: wide, d: deep, rot }
+        : rot === 1
+          ? { x: dx + 1, z: dz - (wide - 1 - h), w: deep, d: wide, rot }
+          : { x: dx - deep, z: dz - h, w: deep, d: wide, rot };
+  return { ...f, door };
+}
+
+/**
+ * Stands a dungeon's way in where its plan says, as near as the land allows: its structure facing toward `toward` (a
+ * town) but never north, away from the camera; the entrance tile before it; the antechamber's spell table beside it, and
+ * a mage tower's waystone.
+ */
+export function placeDungeon(land: Land, plan: DungeonLayout, npcs: NpcData[], toward: readonly [number, number]): Site {
+  const [wx, wz] = plan.at;
+  const good = (x: number, z: number) => {
+    for (const j of land.rect(x - 8, z - 8, x + 8, z + 8)) {
+      if (land.isSea(j) || land.town[j] !== 0 || land.use[j] !== Use.Wild) return false;
     }
-    return true;
+    return land.inside(x - 8, z - 8) && land.inside(x + 8, z + 8);
   };
-  let at: Hex | null = null;
-  for (let radius = 0; radius < 70 && !at; radius++) {
-    for (const i of disc(want, radius)) {
-      if (hexDistance(qOf(i), rOf(i), want.q, want.r) !== radius) continue;
-      if (good(i)) {
-        at = hexOf(i);
-        break;
+  let at: [number, number] | null = null;
+  for (let r = 0; r < 120 && !at; r++) {
+    for (let dz = -r; dz <= r && !at; dz++) {
+      for (let dx = -r; dx <= r && !at; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+        if (good(wx + dx, wz + dz)) at = [wx + dx, wz + dz];
       }
     }
   }
-  if (!at) throw new Error(`no ground for ${plan.id}`);
-  const e = idx(at.q, at.r);
-  // Clear the ground round it, filling water so the way in can be reached.
-  for (const i of disc(at, 6)) {
-    if (grid.terrain[i] === T.water || grid.terrain[i] === T.swamp || grid.terrain[i] === T.lava || grid.terrain[i] === T.mountain) {
-      grid.terrain[i] = plan.theme === "foundry" ? T.ash : plan.theme === "crypt" ? T.mud : T.dirt;
-    }
-    grid.props.delete(i);
-    grid.blocked[i] = 0;
-    grid.height[i] = grid.height[e]!;
-    grid.use[i] = Use.Kept;
+  if (!at) throw new Error(`no ground for ${plan.id} near ${plan.at.join(",")}`);
+  const e = land.idx(at[0], at[1]);
+  const floor = plan.theme === "portal" ? S["phyrexian-ground"] : plan.theme === "foundry" ? S.ash : plan.theme === "crypt" ? S.mud : null;
+  for (const i of land.disc(at[0], at[1], 8)) {
+    const s = land.surface[i]!;
+    const dry = land.isWater(i) || !land.open(i) ? S.dirt : s;
+    land.clear(i, floor ?? dry);
+    land.height[i] = land.height[e]!;
+    land.use[i] = Use.Kept;
   }
-  const front = frontToward(angleOf(at, toward));
-  const [across, deep, tall] = SIZES[plan.theme];
-  const along = front === "x+" || front === "x-";
-  const w = along ? deep : across;
-  const d = along ? across : deep;
-  const n = { "x+": [1, 0], "x-": [-1, 0], "z+": [0, 1], "z-": [0, -1] }[front];
-  const p = toWorld(at);
-  const extent = (along ? w : d) / 2 + 0.55;
-  const anchor = nearestHex(p.x - n[0]! * extent, p.z - n[1]! * extent);
-  const footprint = footprintOf(anchor, w, d).filter((i) => i !== e);
-  for (const i of footprint) grid.blocked[i] = 1;
-  grid.prop(idx(anchor.q, anchor.r), { kind: "entrance", style: plan.theme, w: round(w), d: round(d), h: tall, front, use: plan.id });
-  grid.use[e] = Use.Door;
-  // Beside the way in: the antechamber's spell table (interfaces.md), and a mage tower's waystone.
-  const beside = (taken: number[]) =>
-    around(e)
-      .filter((i) => !footprint.includes(i) && grid.blocked[i] === 0 && !taken.includes(i))
-      .map((i) => hexOf(i))
-      .sort((a, b) => a.q - b.q || a.r - b.r)
-      .find((h) => around(idx(h.q, h.r)).filter((i) => grid.blocked[i] === 0 && i !== e).length >= 3);
-  const placed: number[] = [];
-  let waystone: Hex | undefined;
-  if (plan.waystone) {
-    const spot = beside(placed);
-    if (!spot) throw new Error(`${plan.id}: no room for the waystone`);
-    grid.blocked[idx(spot.q, spot.r)] = 1;
-    grid.use[idx(spot.q, spot.r)] = Use.Building;
-    placed.push(idx(spot.q, spot.r));
-    waystone = spot;
-    npcs.push({ id: `${plan.id}-waystone`, q: spot.q, r: spot.r, kind: "waystone", tower: plan.id, name: `The waystone of ${plan.name.replace(/^The /, "the ")}` });
+  // Facing the town it is nearest, never north (its door would be behind it).
+  const dx = toward[0] - at[0];
+  const dz = toward[1] - at[1];
+  const rot = Math.abs(dx) > Math.abs(dz) || dz < 0 ? (dx >= 0 ? 3 : 1) : 0;
+  const { prop, size } = ENTRANCES[plan.theme];
+  const f = footprintBefore(at, rot, size[0], size[1]);
+  for (const i of land.rect(f.x, f.z, f.x + f.w - 1, f.z + f.d - 1)) {
+    land.use[i] = Use.Building;
+    land.block(i);
   }
-  const table = beside(placed);
-  if (!table) throw new Error(`${plan.id}: no room for the spell table`);
-  grid.blocked[idx(table.q, table.r)] = 1;
-  grid.use[idx(table.q, table.r)] = Use.Building;
-  npcs.push({ id: `${plan.id}-spell-table`, q: table.q, r: table.r, kind: "spell-table", name: "Spell table" });
-  return { plan, entrance: at, ...(waystone ? { waystone } : {}) };
+  land.fixtures.push({ id: prop, x: f.x, z: f.z, rot, args: { w: f.w, d: f.d } });
+  land.use[e] = Use.Door;
+  land.unblock(e);
+  // Beside the way in, along the front: the spell table, and a tower's waystone on the other side.
+  const height = land.height[e]! / 16;
+  // Two tiles either side of the door, along the front.
+  const beside = (side: number): [number, number] => (rot % 2 === 0 ? [at[0] + side * 2, at[1]] : [at[0], at[1] + side * 2]);
+  const object = (id: string, kind: NpcData["kind"], name: string, tile: [number, number], extra: Partial<NpcData> = {}) => {
+    const i = land.idx(tile[0], tile[1]);
+    land.use[i] = Use.Building;
+    land.block(i);
+    land.fixtures.push({ id: kind, x: tile[0] + 0.5, z: tile[1] + 0.5, rot });
+    npcs.push({ id, x: tile[0], z: tile[1], kind, name, stand: [tile[0] + 0.5, height, tile[1] + 0.5], ...extra });
+  };
+  object(`${plan.id}-spell-table`, "spell-table", "Spell table", beside(-1));
+  if (plan.waystone) object(`${plan.id}-waystone`, "waystone", `The waystone of ${plan.name.replace(/^The /, "the ")}`, beside(1), { tower: plan.id });
+  return { plan, entrance: e };
 }
 
-const round = (v: number) => Math.round(v * 100) / 100;
-
-function nearestHex(x: number, z: number): Hex {
-  const q = (2 / 3) * x;
-  const r = (-1 / 3) * x + (Math.sqrt(3) / 3) * z;
-  const s = -q - r;
-  let rq = Math.round(q);
-  let rr = Math.round(r);
-  const rs = Math.round(s);
-  if (Math.abs(rq - q) > Math.abs(rr - r) && Math.abs(rq - q) > Math.abs(rs - s)) rq = -rr - rs;
-  else if (Math.abs(rr - r) > Math.abs(rs - s)) rr = -rq - rs;
-  return hex(rq + 0, rr + 0);
-}
+// --- Scenery -------------------------------------------------------------------------------------------------------------
 
 interface Dress {
+  /** Trees, rocks and the rest, each as props by id; shares are of open wild tiles at full thickness of woods. */
   readonly trees: readonly string[];
   readonly treeShare: number;
   readonly rocks: readonly string[];
@@ -121,99 +117,167 @@ interface Dress {
 }
 
 const DRESS: Record<Biome, Dress> = {
-  plains: { trees: ["tree", "tree", "bush"], treeShare: 0.06, rocks: ["rock", "boulder"], rockShare: 0.015, extras: ["bush", "fence"], extraShare: 0.01 },
-  coast: { trees: ["pine", "bush"], treeShare: 0.04, rocks: ["rock", "crystal", "boulder"], rockShare: 0.02, extras: ["reeds", "ruin", "pillar"], extraShare: 0.01 },
-  swamp: { trees: ["dead-tree", "dead-tree", "mushroom"], treeShare: 0.07, rocks: ["rock", "bones"], rockShare: 0.015, extras: ["reeds", "bones", "mushroom", "coffin"], extraShare: 0.025 },
-  volcanic: { trees: ["dead-tree", "pine"], treeShare: 0.025, rocks: ["boulder", "rock", "rock"], rockShare: 0.06, extras: ["bones", "brazier"], extraShare: 0.004 },
-  forest: { trees: ["tree", "tree", "pine", "tree"], treeShare: 0.2, rocks: ["rock", "mushroom"], rockShare: 0.015, extras: ["bush", "mushroom", "bush"], extraShare: 0.04 },
-  heartland: { trees: ["tree", "bush"], treeShare: 0.035, rocks: ["rock"], rockShare: 0.008, extras: ["fence", "crate"], extraShare: 0.006 },
-  waste: { trees: ["dead-tree"], treeShare: 0.01, rocks: ["boulder", "rock", "bones"], rockShare: 0.04, extras: ["bones"], extraShare: 0.01 },
-  mountains: { trees: ["pine", "pine", "dead-tree"], treeShare: 0.05, rocks: ["boulder", "rock"], rockShare: 0.05, extras: ["bones"], extraShare: 0.004 },
-  tundra: { trees: ["pine", "dead-tree"], treeShare: 0.03, rocks: ["rock", "boulder", "crystal"], rockShare: 0.03, extras: ["bones"], extraShare: 0.004 },
+  plains: { trees: ["tree", "tree", "bush"], treeShare: 0.05, rocks: ["boulder"], rockShare: 0.006, extras: ["bush", "stump"], extraShare: 0.006 },
+  heartland: { trees: ["tree", "bush"], treeShare: 0.04, rocks: ["boulder"], rockShare: 0.004, extras: ["bush"], extraShare: 0.004 },
+  coast: { trees: ["pine", "bush", "tree"], treeShare: 0.04, rocks: ["boulder", "boulder", "crystal"], rockShare: 0.012, extras: ["reeds", "ruined-wall"], extraShare: 0.006 },
+  swamp: { trees: ["dead-tree", "swamp-tree", "swamp-tree", "mushroom"], treeShare: 0.12, rocks: ["boulder", "bones"], rockShare: 0.006, extras: ["reeds", "mushroom", "bones"], extraShare: 0.03 },
+  volcanic: { trees: ["dead-tree", "pine"], treeShare: 0.02, rocks: ["boulder", "boulder"], rockShare: 0.04, extras: ["bones"], extraShare: 0.004 },
+  forest: { trees: ["tree", "tree", "tree", "pine"], treeShare: 0.3, rocks: ["boulder", "mushroom"], rockShare: 0.01, extras: ["bush", "mushroom", "stump", "bush"], extraShare: 0.04 },
+  waste: { trees: ["dead-tree"], treeShare: 0.008, rocks: ["boulder", "boulder", "bones"], rockShare: 0.03, extras: ["bones", "ruined-wall"], extraShare: 0.006 },
+  mountains: { trees: ["pine", "pine", "dead-tree"], treeShare: 0.06, rocks: ["boulder"], rockShare: 0.04, extras: ["stump"], extraShare: 0.004 },
+  tundra: { trees: ["pine", "pine", "dead-tree"], treeShare: 0.035, rocks: ["boulder", "ice-rock"], rockShare: 0.02, extras: ["bones"], extraShare: 0.003 },
 };
 
-/** Scenery over the wilds: woods thicken and thin by a noise, so there are forests and clearings. */
-export function dress(grid: Grid, layout: Layout): void {
-  const seed = layout.seed;
-  const random = randomFor(seed, "dress");
-  const woods = fbm(`${seed}:woods`, 30, 3);
-  const pick = <T>(list: readonly T[]) => list[Math.floor(random() * list.length)]!;
-  for (let q = 0; q < SIZE; q++) {
-    for (let r = 0; r < SIZE; r++) {
-      const i = idx(q, r);
-      if (grid.use[i] !== Use.Wild || grid.blocked[i] || grid.town[i] !== 0) continue;
-      const t = grid.terrain[i]!;
-      if (t === T.sand || t === T.road || t === T.wood) continue;
-      const style = DRESS[biomeOf(layout, grid.region[i]!)];
-      const thick = 0.25 + 1.6 * Math.max(0, woods(q, r) - 0.3);
-      const roll = random();
-      if (roll < style.treeShare * thick) grid.prop(i, { kind: pick(style.trees) });
-      else if (roll < style.treeShare * thick + style.rockShare) grid.prop(i, { kind: pick(style.rocks) });
-      else if (roll < style.treeShare * thick + style.rockShare + style.extraShare) grid.prop(i, { kind: pick(style.extras) });
+/** Regions whose woods are their own: Llanowar's giant trees, Skyshroud's and Keld's pines, Orvada's crystals. */
+const REGION_TREES: Record<string, readonly string[]> = {
+  llanowar: ["tree", "tree", "great-tree", "tree", "great-tree", "pine"],
+  skyshroud: ["pine", "pine", "tree"],
+  durkwood: ["tree", "pine", "dead-tree", "tree"],
+  amjad: ["dead-tree", "swamp-tree", "mushroom"],
+};
+
+/** Fields round the towns of the plains: ploughland and wheat in hedged squares (Benalia's farmland, design.md A6). */
+export function fields(land: Land, layout: Layout): void {
+  const random = randomFor(layout.seed, "fields");
+  const farming = new Set(["plains", "heartland"]);
+  for (const town of layout.towns) {
+    const region = layout.regions.findIndex((r) => r.id === town.region);
+    if (!farming.has(layout.regions[region]?.biome ?? "")) continue;
+    const [cx, cz] = town.at;
+    const count = town.kind === "capital" ? 46 : town.kind === "town" ? 28 : 12;
+    let made = 0;
+    for (let n = 0; n < count * 4 && made < count; n++) {
+      const angle = random() * Math.PI * 2;
+      const reach = town.radius + 10 + random() * (town.kind === "village" ? 40 : 70);
+      const w = between(random, 10, 22);
+      const d = between(random, 8, 15);
+      const x0 = Math.round(cx + Math.cos(angle) * reach - w / 2);
+      const z0 = Math.round(cz + Math.sin(angle) * reach - d / 2);
+      const tiles = land.rect(x0 - 1, z0 - 1, x0 + w, z0 + d);
+      if (tiles.length !== (w + 2) * (d + 2)) continue;
+      if (!tiles.every((i) => land.use[i] === Use.Wild && land.open(i) && !land.isWater(i) && farming.has(biomeOf(layout, land.region[i]!)))) continue;
+      const crop = random() < 0.5 ? S.furrows : S.wheat;
+      for (const i of land.rect(x0, z0, x0 + w - 1, z0 + d - 1)) {
+        land.clear(i, crop);
+        land.use[i] = Use.Field;
+      }
+      // A hedgerow along its north edge with a gap to walk through, and along its west edge now and then.
+      const gap = x0 + between(random, 2, w - 4);
+      for (const [a, b] of [[x0, gap - 1], [gap + 2, x0 + w - 1]] as const) {
+        if (b < a) continue;
+        for (let x = a; x <= b; x++) {
+          land.use[land.idx(x, z0 - 1)] = Use.Field;
+          land.block(land.idx(x, z0 - 1));
+        }
+        land.fixtures.push({ id: "hedgerow", x: a + 0.5, z: z0 - 0.5, seed: between(random, 0, 15), args: { to: [b + 0.5, z0 - 0.5] } });
+      }
+      if (random() < 0.4) {
+        const gz = z0 + between(random, 1, d - 3);
+        for (const [a, b] of [[z0, gz - 1], [gz + 2, z0 + d - 1]] as const) {
+          if (b < a) continue;
+          for (let z = a; z <= b; z++) {
+            land.use[land.idx(x0 - 1, z)] = Use.Field;
+            land.block(land.idx(x0 - 1, z));
+          }
+          land.fixtures.push({ id: "hedgerow", x: x0 - 0.5, z: a + 0.5, seed: between(random, 0, 15), args: { to: [x0 - 0.5, b + 0.5] } });
+        }
+      }
+      if (random() < 0.3) {
+        const i = land.idx(x0 + w - 2, z0 + d - 2);
+        land.put(i, { id: "hay-bale", x: x0 + w - 1.5, z: z0 + d - 1.5 });
+      }
+      made++;
     }
   }
 }
 
-/**
- * Every open hex joins the world (the lint walks it all from every inn): a pocket too small to matter is filled in,
- * a bigger stretch - an island, a valley walled by mountains - gets a way through to the rest, a ford or a pass.
- */
-export function connect(grid: Grid, from: number): { filled: number; joined: number } {
-  const label = new Int32Array(SIZE * SIZE).fill(-1);
-  const queue = new Int32Array(SIZE * SIZE);
+/** Scenery over the wilds: woods thicken and thin by a noise, so there are forests and clearings. */
+export function dress(land: Land, layout: Layout): void {
+  const random = randomFor(layout.seed, "dress");
+  const woods = woodsNoise(layout.seed);
   const near: number[] = [];
-  const flood = (start: number, mark: number): number[] => {
-    const found: number[] = [];
-    let head = 0;
-    let tail = 0;
-    queue[tail++] = start;
-    label[start] = mark;
-    while (head < tail) {
-      const i = queue[head++]!;
-      found.push(i);
-      for (const n of around(i, near)) {
-        if (label[n] === -1 && grid.blocked[n] === 0) {
-          label[n] = mark;
-          queue[tail++] = n;
+  for (let i = 0; i < land.size; i++) {
+    if (land.use[i] !== Use.Wild || !land.open(i) || land.town[i] !== 0) continue;
+    const s = land.surface[i]!;
+    if (s === S.sand || s === S.road || s === S.planks || s === S.ice) continue;
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    const region = layout.regions[land.region[i]!]!;
+    const style = DRESS[region.biome];
+    const trees = REGION_TREES[region.id] ?? style.trees;
+    const thick = 0.2 + 2.4 * Math.max(0, woods(x, z) - 0.35);
+    const wet = land.n4(i, near).some((j) => land.isWater(j));
+    const roll = random();
+    const prop = (id: string, blocks = true, big = 0) =>
+      land.put(i, { id, x: texel(x + 0.5 + (random() - 0.5) * 0.3), z: texel(z + 0.5 + (random() - 0.5) * 0.3), seed: between(random, 0, 15), ...(big ? { scale: texel(0.8 + random() * big) } : {}) }, blocks);
+    if (wet && roll < 0.25) prop("reeds", false);
+    else if (roll < style.treeShare * thick) prop(pick(random, trees), true, 0.45);
+    else if (roll < style.treeShare * thick + style.rockShare) prop(pick(random, style.rocks), true, 0.5);
+    else if (roll < style.treeShare * thick + style.rockShare + style.extraShare) {
+      const id = pick(random, style.extras);
+      if (id === "ruined-wall") {
+        const len = between(random, 2, 5);
+        if (land.rect(x, z, x + len - 1, z).every((j) => land.use[j] === Use.Wild && land.open(j))) {
+          for (const j of land.rect(x, z, x + len - 1, z)) land.block(j);
+          land.fixtures.push({ id, x: x + 0.5, z: z + 0.5, args: { to: [x + len - 0.5, z + 0.5] } });
         }
-      }
+      } else prop(id, id !== "reeds" && id !== "bones" && id !== "stump", 0);
     }
-    return found;
-  };
-  flood(from, 0);
-  const others: number[][] = [];
-  for (let i = 0; i < SIZE * SIZE; i++) if (label[i] === -1 && grid.blocked[i] === 0) others.push(flood(i, others.length + 1));
-  others.sort((a, b) => b.length - a.length);
+  }
+}
+
+// --- One world -----------------------------------------------------------------------------------------------------------
+
+/**
+ * Every open tile joins the world (the lint walks it all from every inn): a pocket too small to matter is filled in, a
+ * bigger stretch - an island, a valley walled by mountains, a yard behind a row of houses - gets a way through to the
+ * rest: a ford, a pass, a gap.
+ */
+export function connect(land: Land, from: number, step = 12): { filled: number; joined: number } {
+  const { label, tiles } = land.pieces(from);
   let filled = 0;
   let joined = 0;
-  const passable = (i: number) => grid.use[i] !== Use.Wall && grid.use[i] !== Use.Building && (grid.town[i] === 0 || grid.use[i] === Use.Kept);
-  const from2 = new Int32Array(SIZE * SIZE);
-  for (const part of others) {
-    const important = part.some((i) => grid.use[i] === Use.Door || grid.use[i] === Use.Road || grid.use[i] === Use.Street);
-    if (part.length < 120 && !important) {
+  const important = (i: number) => {
+    const u = land.use[i]!;
+    return u === Use.Door || u === Use.Road || u === Use.Street || u === Use.Dock;
+  };
+  const carvable = (i: number) => {
+    const u = land.use[i]!;
+    if (u === Use.Wall || u === Use.Building || u === Use.Door) return false;
+    if (land.surface[i] === S.sea) return false;
+    return true;
+  };
+  const came = new Int32Array(land.size);
+  const seen = new Uint8Array(land.size);
+  const queue = new Int32Array(land.size);
+  const near: number[] = [];
+  for (let k = 1; k < tiles.length; k++) {
+    const part = tiles[k]!;
+    if (label[part[0]!] === 0) continue;
+    if (part.length < 400 && !part.some(important)) {
       for (const i of part) {
-        grid.blocked[i] = 1;
-        if (!grid.props.has(i) && !grid.isWater(i)) grid.prop(i, { kind: "bush" });
+        land.block(i);
+        label[i] = -1;
       }
       filled++;
       continue;
     }
     // The shortest way out across what blocks, to the world.
-    const seen = new Uint8Array(SIZE * SIZE);
+    seen.fill(0);
     let head = 0;
     let tail = 0;
     for (const i of part) {
       seen[i] = 1;
-      from2[i] = -1;
+      came[i] = -1;
       queue[tail++] = i;
     }
     let reached = -1;
     while (head < tail && reached < 0) {
       const i = queue[head++]!;
-      for (const n of around(i, near)) {
-        if (seen[n] || !passable(n)) continue;
+      for (const n of land.n4(i, near)) {
+        if (seen[n] || !carvable(n)) continue;
         seen[n] = 1;
-        from2[n] = i;
+        came[n] = i;
         if (label[n] === 0) {
           reached = n;
           break;
@@ -221,26 +285,54 @@ export function connect(grid: Grid, from: number): { filled: number; joined: num
         queue[tail++] = n;
       }
     }
-    if (reached < 0) throw new Error(`a stretch of ${part.length} hexes cannot be joined to the world`);
-    for (let i = from2[reached]!; i !== -1 && label[i] !== label[part[0]!]; i = from2[i]!) {
-      const t = grid.terrain[i]!;
-      if (t === T.water || t === T["deep-water"] || t === T.swamp) {
-        grid.terrain[i] = T.sand;
-        grid.height[i] = 0;
-      } else if (t === T.lava) grid.terrain[i] = T.ash;
-      else if (t === T.mountain || t === T.snow) {
-        grid.terrain[i] = T.rock;
-        grid.height[i] = Math.max(0, grid.height[i]! - STEP * 3);
+    if (reached < 0) {
+      if (part.some(important)) throw new Error(`a stretch of ${part.length} tiles at ${land.xOf(part[0]!)},${land.zOf(part[0]!)} cannot be joined to the world: ${part.slice(0, 30).map((i) => `${land.xOf(i)},${land.zOf(i)}:${land.use[i]}/${land.surface[i]}`).join(" ")}`);
+      for (const i of part) land.block(i);
+      filled++;
+      continue;
+    }
+    const cut: number[] = [reached];
+    for (let i = came[reached]!; i !== -1; i = came[i]!) {
+      cut.push(i);
+      if (label[i] === k) break;
+    }
+    for (const i of cut.slice(1, -1)) {
+      const s = land.surface[i]!;
+      if (s === S.stream) {
+        land.fixtures.push({ id: "stepping-stone", x: land.xOf(i) + 0.5, z: land.zOf(i) + 0.5 });
+      } else if (s === S.shallows || s === S.bog) land.surface[i] = S.sand;
+      else if (s === S.lava) land.surface[i] = S.ash;
+      else if (land.height[i]! > 60) {
+        land.surface[i] = S.scree;
       }
-      grid.props.delete(i);
-      grid.blocked[i] = 0;
+      land.decor.delete(i);
+      land.unblock(i);
+      if (land.use[i] === Use.Yard) land.use[i] = Use.Street;
       label[i] = 0;
+    }
+    // Graded from one end's level to the other's, a ramp wherever it climbs a level (terraces, land.ts).
+    const from = land.height[cut[0]!]!;
+    const to = land.height[cut[cut.length - 1]!]!;
+    const levels = cut.map((_, k2) => (k2 === 0 ? from : k2 === cut.length - 1 ? to : Math.round((from + ((to - from) * k2) / (cut.length - 1)) / step) * step));
+    for (let k2 = 1; k2 < cut.length - 1; k2++) if ((land.flags[cut[k2]!]! & RAMP) === 0) land.height[cut[k2]!] = levels[k2]!;
+    for (let k2 = 1; k2 < cut.length; k2++) {
+      const a = cut[k2 - 1]!;
+      const b = cut[k2]!;
+      const ha = land.height[a]!;
+      const hb = land.height[b]!;
+      if (Math.abs(ha - hb) <= step / 4 || land.flags[a]! & RAMP || land.flags[b]! & RAMP) continue;
+      const [low, high] = ha < hb ? [a, b] : [b, a];
+      land.height[low] = land.height[low]! + Math.round(step / 4);
+      land.height[high] = land.height[high]! - Math.round(step / 4);
+      for (const t of [low, high]) land.flags[t] = (land.flags[t]! & ~BLOCKED) | RAMP;
     }
     for (const i of part) label[i] = 0;
     joined++;
   }
   return { filled, joined };
 }
+
+// --- What lives in the wilds ---------------------------------------------------------------------------------------------
 
 export interface MobFile {
   readonly id: string;
@@ -251,13 +343,13 @@ export interface MobFile {
   readonly loot?: { readonly colors?: string };
 }
 
-/** The mobs that wander: no boss, no dungeon warden, no tower's mage. */
+/** The mobs that wander: no boss, no dungeon warden, no tower's mage, none of the Portal's. */
 export const wanderers = (roster: readonly MobFile[]) =>
   roster.filter((m) => !m.boss && !m.id.includes("warden") && !m.id.startsWith("mage-") && !m.id.startsWith("phyrexian-") && m.id !== "gitaxian-mindcutter");
 
 /**
- * A dungeon's mob list, warden or boss as the layout names it (layout.ts): ids as they are, and the roster asked for
- * the rest - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`.
+ * A dungeon's mob list, warden or boss as the layout names it (layout.ts): ids as they are, and the roster asked for the
+ * rest - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`.
  */
 export function resolveMobs(roster: readonly MobFile[], region: Region | null, spec: string): string[] {
   const match = /^@(wanderers|wanderer|warden):(\d)(?:-(\d))?$/.exec(spec);
@@ -272,112 +364,124 @@ export function resolveMobs(roster: readonly MobFile[], region: Region | null, s
   return match[1] === "wanderer" ? [pool[0]!] : pool;
 }
 
-/** Two or three mobs of a tier for a spawn in a region: its own colors' first, any of the tier's if it has none. */
-export function mobsFor(roster: readonly MobFile[], tier: number, region: Region | null, random: () => number): string[] {
+/** The wanderers of a tier for a region: its own colors' first, any of the tier's if it has none. */
+function poolFor(roster: readonly MobFile[], tier: number, region: Region | null): string[] {
   const tierMobs = wanderers(roster).filter((m) => m.tier === tier);
   if (tierMobs.length === 0) throw new Error(`the roster has no tier ${tier} mob that wanders`);
   const own = region ? tierMobs.filter((m) => (m.region !== undefined ? m.region === region : (m.loot?.colors ?? "").includes(region))) : tierMobs;
-  const pool = shuffle((own.length > 0 ? own : tierMobs).map((m) => m.id).sort(), random);
-  return pool.slice(0, Math.min(pool.length, 2 + Math.floor(random() * 2))).sort();
+  return (own.length > 0 ? own : tierMobs).map((m) => m.id).sort();
 }
 
 export interface Placed {
   readonly spawns: SpawnData[];
   readonly chests: ChestData[];
-  readonly markers: PropData[];
+  readonly waymarkers: WaymarkerData[];
 }
 
 const GOLD: Record<number, readonly [number, number]> = { 1: [50, 150], 2: [100, 250], 3: [180, 380], 4: [300, 500] };
 
-/** Spawn points, chests and waymarkers, by tier. Nothing placed here can cut a way off. */
-export function populate(grid: Grid, zones: Zones, roster: readonly MobFile[], seed: number, keepAway: readonly Hex[]): Placed {
+/** Spawn points, chests and waymarkers, by tier. Nothing placed here cuts a way off. */
+export function populate(land: Land, zones: Zones, roster: readonly MobFile[], seed: number, keepAway: readonly number[]): Placed {
   const random = randomFor(seed, "populate");
-  const away = new Uint8Array(SIZE * SIZE);
-  for (const h of keepAway) for (const i of disc(h, 7)) away[i] = 1;
-  const open = (q: number, r: number) => inside(q, r) && grid.blocked[idx(q, r)] === 0;
-  const tierOf = (i: number) => areaAt(zones, hexOf(i))?.tier ?? 0;
-  const regionOf = (i: number) => areaAt(zones, hexOf(i))?.region ?? null;
+  const away = new Uint8Array(land.size);
+  for (const k of keepAway) for (const i of land.disc(land.xOf(k), land.zOf(k), 9)) away[i] = 1;
+  const cellOf = (i: number) => zones.grid[Math.floor(land.zOf(i) / zones.cell)]?.[Math.floor(land.xOf(i) / zones.cell)];
+  const tierOf = (i: number) => zones.areas[cellOf(i) ?? 0]?.tier ?? 0;
+  const regionOf = (i: number) => zones.areas[cellOf(i) ?? 0]?.region ?? null;
   const counts = new Map<string, number>();
   const nextId = (i: number, prefix = "") => {
-    const k = chunkKey(Math.floor(qOf(i) / CHUNK), Math.floor(rOf(i) / CHUNK));
+    const k = chunkKey(Math.floor(land.xOf(i) / CHUNK), Math.floor(land.zOf(i) / CHUNK));
     const n = (counts.get(k + prefix) ?? 0) + 1;
     counts.set(k + prefix, n);
     return `${k}:${prefix}${n}`;
   };
+  const near: number[] = [];
+  const order = shuffle(Array.from({ length: land.size }, (_, i) => i), random);
+  const wild = (i: number) => (land.use[i] === Use.Wild || land.use[i] === Use.Field) && land.town[i] === 0 && !land.townArea[i] && !away[i];
 
-  const order = shuffle(Array.from({ length: SIZE * SIZE }, (_, i) => i), random);
-  const wild = (i: number) => grid.use[i] === Use.Wild && grid.town[i] === 0 && !away[i];
-
-  // Spawns: on open wild ground of some tier, apart from each other.
-  const taken = new Uint8Array(SIZE * SIZE);
+  // Spawns: on open wild ground of some tier, well apart.
+  const taken = new Uint8Array(land.size);
   const spawns: SpawnData[] = [];
   for (const i of order) {
-    if (!wild(i) || grid.blocked[i] || taken[i]) continue;
+    if (!wild(i) || !land.open(i) || taken[i]) continue;
     const tier = tierOf(i);
     if (tier === 0) continue;
-    if (around(i).filter((n) => grid.blocked[n] === 0).length < 4) continue;
+    if (land.steps(i, near).length < 6) continue;
     if (random() > 0.5) continue;
-    for (const j of disc(hexOf(i), 10)) taken[j] = 1;
-    spawns.push({ id: "", q: qOf(i), r: rOf(i), mobs: mobsFor(roster, tier, regionOf(i), random), radius: 4, respawnSeconds: 600, tier });
+    for (const j of land.disc(land.xOf(i), land.zOf(i), 17)) taken[j] = 1;
+    const pool = shuffle(poolFor(roster, tier, regionOf(i)), random);
+    spawns.push({ id: "", x: land.xOf(i), z: land.zOf(i), mobs: pool.slice(0, Math.min(pool.length, 2 + Math.floor(random() * 2))).sort(), radius: 6, respawnSeconds: 600, tier });
+  }
+  // Every wanderer is met somewhere: one nobody drew joins the spawns of its tier (and its region's) with fewest mobs.
+  const met = new Set(spawns.flatMap((s) => s.mobs));
+  for (const m of wanderers(roster).sort((a, b) => a.id.localeCompare(b.id))) {
+    if (met.has(m.id)) continue;
+    const ofTier = spawns.filter((s) => s.tier === m.tier);
+    const own = ofTier.filter((s) => regionOf(land.idx(s.x, s.z)) === (m.region ?? null));
+    const options = (own.length > 0 ? own : ofTier).sort((a, b) => a.mobs.length - b.mobs.length || a.x - b.x || a.z - b.z).slice(0, 3);
+    if (options.length === 0) throw new Error(`no spawn of tier ${m.tier} for ${m.id}`);
+    for (const s of options) (s as { mobs: readonly string[] }).mobs = [...s.mobs, m.id].sort();
+    met.add(m.id);
   }
 
-  // Chests: on a blocked hex with open ground all round, far apart.
-  const chestTaken = new Uint8Array(SIZE * SIZE);
+  // Chests: on a tile of their own with open ground all round, far apart.
+  const chestTaken = new Uint8Array(land.size);
   const chests: ChestData[] = [];
   for (const i of order) {
-    if (!wild(i) || grid.blocked[i] || chestTaken[i] || taken[i] === 2) continue;
+    if (!wild(i) || !land.open(i) || chestTaken[i] || land.use[i] === Use.Field) continue;
     const tier = tierOf(i);
-    if (tier === 0 || random() > 0.04) continue;
-    if (around(i).length !== 6 || !around(i).every((n) => grid.blocked[n] === 0 && grid.use[n] !== Use.Road)) continue;
-    if (spawns.some((s) => hexDistance(s.q, s.r, qOf(i), rOf(i)) < 3)) continue;
-    for (const j of disc(hexOf(i), 16)) chestTaken[j] = 1;
-    grid.blocked[i] = 1;
-    chests.push({ id: "", q: qOf(i), r: rOf(i), gold: GOLD[tier]!, respawnSeconds: 86400 });
+    if (tier === 0 || random() > 0.03) continue;
+    const ring = land.n8(i, near);
+    if (ring.length !== 8 || !ring.every((n) => land.open(n) && land.use[n] === Use.Wild)) continue;
+    if (spawns.some((s) => Math.abs(s.x - land.xOf(i)) < 5 && Math.abs(s.z - land.zOf(i)) < 5)) continue;
+    for (const j of land.disc(land.xOf(i), land.zOf(i), 30)) chestTaken[j] = 1;
+    land.block(i);
+    chests.push({ id: "", x: land.xOf(i), z: land.zOf(i), gold: GOLD[tier]!, respawnSeconds: 86400 });
   }
 
-  // Waymarkers: where the tier rises, a banner beside every road that crosses, and standing stones along the rest.
-  const markers: PropData[] = [];
-  const markerTaken = new Uint8Array(SIZE * SIZE);
-  const mark = (i: number, tier: number, style: "banner" | "stone", spacing: number) => {
-    if (markerTaken[i] || grid.blocked[i] || grid.use[i] !== Use.Wild || grid.town[i] !== 0) return false;
-    if (spawns.some((s) => s.q === qOf(i) && s.r === rOf(i))) return false;
-    if (!safeToBlock(open, qOf(i), rOf(i)) || around(i).filter((n) => grid.blocked[n] === 0).length < 4) return false;
-    if (around(i).some((n) => grid.use[n] === Use.Door)) return false;
-    grid.blocked[i] = 1;
-    for (const j of disc(hexOf(i), spacing)) markerTaken[j] = 1;
-    const prop = { q: qOf(i), r: rOf(i), kind: "waymarker", tier, style } as const;
-    grid.props.set(i, prop);
-    markers.push(prop);
+  // Waymarkers: where the tier rises, a marker beside every road that crosses, and standing stones along the rest.
+  const waymarkers: WaymarkerData[] = [];
+  const markerTaken = new Uint8Array(land.size);
+  const mark = (i: number, tier: number, spacing: number) => {
+    if (markerTaken[i] || !land.open(i) || land.use[i] !== Use.Wild || land.town[i] !== 0 || land.townArea[i]) return false;
+    if (tierOf(i) !== tier) return false;
+    // At the rise: softer ground within two tiles.
+    if (!land.rect(land.xOf(i) - 2, land.zOf(i) - 2, land.xOf(i) + 2, land.zOf(i) + 2).some((j) => tierOf(j) < tier)) return false;
+    if (land.steps(i, near).length < 5 || !safeToBlock(land, i)) return false;
+    if (land.n8(i, near).some((n) => land.use[n] === Use.Door)) return false;
+    if (spawns.some((s) => s.x === land.xOf(i) && s.z === land.zOf(i))) return false;
+    land.block(i);
+    for (const j of land.disc(land.xOf(i), land.zOf(i), spacing)) markerTaken[j] = 1;
+    waymarkers.push({ x: land.xOf(i), z: land.zOf(i), tier });
     return true;
   };
-  // Roads first, so every road crossing gets its banner.
-  const near: number[] = [];
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    if (grid.use[i] !== Use.Road) continue;
+  const four: number[] = [];
+  for (let i = 0; i < land.size; i++) {
+    if (land.use[i] !== Use.Road) continue;
     const here = tierOf(i);
     if (here === 0) continue;
-    for (const n of around(i, near)) {
+    for (const n of land.n4(i, four)) {
       const there = tierOf(n);
-      if (there <= here || grid.use[n] !== Use.Road) continue;
-      // The banner stands on the harder side, beside the road.
-      for (const b of around(n)) if (tierOf(b) === there && grid.use[b] !== Use.Road && mark(b, there, "banner", 4)) break;
+      if (there <= here || land.use[n] !== Use.Road) continue;
+      // The marker stands on the harder side, just off the road.
+      const x = land.xOf(n);
+      const z = land.zOf(n);
+      const options = land.rect(x - 3, z - 3, x + 3, z + 3).sort((p, q) => Math.hypot(land.xOf(p) - x, land.zOf(p) - z) - Math.hypot(land.xOf(q) - x, land.zOf(q) - z) || p - q);
+      for (const b of options) if (land.use[b] === Use.Wild && mark(b, there, 8)) break;
     }
   }
   for (const i of order) {
     const here = tierOf(i);
-    if (here === 0 || markerTaken[i]) continue;
-    const harder = around(i).map(tierOf).filter((t) => t > here);
-    if (harder.length === 0) continue;
-    if (random() < 0.5) continue;
-    for (const n of around(i)) if (tierOf(n) > here && mark(n, tierOf(n), "stone", 14)) break;
+    if (here === 0 || markerTaken[i] || land.use[i] !== Use.Wild) continue;
+    const harder = land.n4(i, four).filter((n) => tierOf(n) > here);
+    if (harder.length === 0 || random() < 0.6) continue;
+    for (const n of harder) if (mark(n, tierOf(n), 26)) break;
   }
 
-  const sorted = <T extends { q: number; r: number }>(list: T[]) => list.sort((a, b) => a.q - b.q || a.r - b.r);
+  const byPlace = <T extends { x: number; z: number }>(list: T[]) => list.sort((a, b) => a.z - b.z || a.x - b.x);
   return {
-    spawns: sorted(spawns).map((s) => ({ ...s, id: nextId(idx(s.q, s.r)) })),
-    chests: sorted(chests).map((c) => ({ ...c, id: nextId(idx(c.q, c.r), "c") })),
-    markers: sorted(markers),
+    spawns: byPlace(spawns).map((s) => ({ ...s, id: nextId(land.idx(s.x, s.z)) })),
+    chests: byPlace(chests).map((c) => ({ ...c, id: nextId(land.idx(c.x, c.z), "c") })),
+    waymarkers: byPlace(waymarkers),
   };
 }
-
-export { noise };
