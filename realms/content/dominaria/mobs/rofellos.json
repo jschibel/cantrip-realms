@@ -1,10 +1,10 @@
 {
-  "id": "caleria",
-  "name": "Lady Caleria",
-  "creature": "Lady Caleria",
+  "id": "rofellos",
+  "name": "Rofellos, Llanowar Emissary",
+  "creature": "Rofellos, Llanowar Emissary",
   "region": "G",
   "tier": 4,
-  "deck": "decks/realms/dominaria/caleria.txt",
+  "deck": "decks/realms/dominaria/rofellos.txt",
   "stats": {
     "life": 30,
     "hand": 7,
@@ -21,9 +21,14 @@
   ],
   "loot": {
     "pool": "dominaria",
-    "colors": "WG",
+    "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Elf",
+      "Druid",
+      "Beast",
+      "Wurm"
+    ],
     "rarities": [
       "rare",
       "mythic"
@@ -33,7 +38,7 @@
     "mesh": "elf",
     "palette": [
       "#3e9a4a",
-      "#f2efe6",
+      "#8f6340",
       "#f1b44c"
     ],
     "size": 1.6

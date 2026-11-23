@@ -1,0 +1,9 @@
+# Rofellos, Llanowar Emissary (rofellos, Rofellos, Llanowar Emissary), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Rofellos, Llanowar Emissary
+4 Llanowar Elves
+4 Silverback Elder
+4 Primordial Wurm
+4 Enormous Baloth
+3 Song of Freyalise
+17 Forest
