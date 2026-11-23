@@ -1,4 +1,4 @@
-// Square tiles: the slice's world is a grid (classic 16-bit RPGs are tile-based), and the player walks it by A* in eight
+// Square tiles: the world is a grid (classic 16-bit RPGs are tile-based), and the player walks it by A* in eight
 // directions - never cutting a corner past a blocked tile, so a diagonal step is only taken where both of the tiles it
 // passes between are open.
 
@@ -38,6 +38,11 @@ export class Grid {
   /** Raises the floor of every tile of a rectangle. */
   raise(x0: number, z0: number, x1: number, z1: number, y: number): void {
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (this.inside(x, z)) this.floor[this.index(x, z)] = y;
+  }
+
+  /** Sets one tile's floor height. */
+  setHeight(x: number, z: number, y: number): void {
+    if (this.inside(x, z)) this.floor[this.index(x, z)] = y;
   }
 
   inside(x: number, z: number): boolean {

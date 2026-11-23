@@ -1,15 +1,20 @@
 import * as THREE from "three";
-import { Figure, ghoul, goblin, hero, knight, skeleton, townswoman } from "../art/figures/rig";
+import { Figure, figureSpec } from "../art/figures";
+import { namedPalette } from "../art/paint/palette";
 import { seeded } from "../art/paint/pixmap";
-import { SliceRenderer, THREE_QUARTER, type View, blendViews } from "../render/renderer";
-import { buildCrypt } from "./scenes/crypt";
-import { buildShop } from "./scenes/shop";
-import { buildStreet } from "./scenes/street";
-import { Actor, type Door, type SceneId, type SliceScene, centre } from "./actor";
+import { Actor, behaviourOf, centre } from "../render/actor";
+import { assembleInterior, assembleWorld } from "../render/assemble";
+import { CameraRig, type Framing, HEADING_NAMES, type Heading, NAME_OF, ZOOM_EASE, type Zoom } from "../render/camera";
+import type { Place } from "../render/place";
+import { type View, blendViews } from "../render/view";
+import { type InteriorData, type NpcData, type Rect, type XZ, frontStep } from "../world/format";
+import type { Grid, Tile } from "../world/grid";
+import { globSource, gridOfInterior, gridOfWorld, loadChunks, loadInterior, loadWorld } from "../world/load";
 
 // The art slice (slice.html): New Benalia's street, Grizzlegom's Goblins inside, and a crypt below the churchyard, in
 // the 3D pixel-art look - a real 3D scene drawn small and shown in big pixels, on square tiles, seen as a 16-bit RPG
-// sees its towns and rooms. Click to walk; walk through a door to go in or out.
+// sees its towns and rooms. Click to walk; walk through a door to go in or out. All of it is a version-2 world's data
+// (fixtures/slice-world: world.json, its chunks and two interiors), drawn by the art registries (render/assemble.ts).
 //
 //   ?heading=left|front|right   the camera's heading: looking north, or swung 45 degrees round to the left or the
 //                     right. Q and E (or the turn buttons) step it one heading, easing round about the player; it never
@@ -30,14 +35,6 @@ const query = new URLSearchParams(location.search);
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const still = query.has("still");
 
-/**
- * The camera's three headings: -1 swung 45 degrees round to the left (looking north-east from the south-west), 0 looking
- * north as a 16-bit RPG does, 1 swung to the right (looking north-west from the south-east). Never further: past 45
- * degrees walls and signs would be seen from the side and then from behind, and nothing is made to be seen so.
- */
-type Heading = -1 | 0 | 1;
-const HEADING_NAMES: Record<string, Heading> = { left: -1, front: 0, right: 1 };
-const NAME_OF: Record<Heading, string> = { [-1]: "left", 0: "front", 1: "right" };
 /** Where the heading is kept between visits. Storage may be refused: then it lasts the visit. */
 const HEADING_KEY = "cantrip-realms.slice.heading";
 function storedHeading(): Heading | null {
@@ -47,17 +44,7 @@ function storedHeading(): Heading | null {
     return null;
   }
 }
-let heading: Heading = HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0;
-const outsideScale = () => Math.max(2, Math.round(window.innerHeight / 270));
-
-/**
- * The outdoor zoom: how many steps out from the closest view. A step changes only the screen's whole-pixel scale - one
- * screen pixel fewer to each of the scene's - never the art: a texel is still one scene pixel, crisp, with no shimmer.
- * Two steps out at most, and never below one screen pixel to a scene pixel.
- */
-type Zoom = 0 | 1 | 2;
 const ZOOM_KEY = "cantrip-realms.slice.zoom";
-const maxZoom = (): Zoom => Math.max(0, Math.min(2, outsideScale() - 1)) as Zoom;
 function storedZoom(): Zoom | null {
   try {
     const v = Number(localStorage.getItem(ZOOM_KEY) ?? "x");
@@ -67,49 +54,147 @@ function storedZoom(): Zoom | null {
   }
 }
 const askedZoom = Number(query.get("zoom") ?? "x");
-let zoom: Zoom = Math.min(maxZoom(), askedZoom === 0 || askedZoom === 1 || askedZoom === 2 ? askedZoom : (storedZoom() ?? 0)) as Zoom;
-const outdoorScale = () => Math.max(1, outsideScale() - zoom);
 
-/** A scene's view: the three-quarter camera at the heading (where the scene turns); rooms closest, outdoors at the zoom. */
-const viewFor = (s: SliceScene): View => ({
-  ...THREE_QUARTER,
-  yaw: (s.turns ? heading : 0) * (Math.PI / 4),
-  scale: s.inside ? outsideScale() + 1 : outdoorScale(),
-});
+// --- The places: the world's street and country, and the rooms behind its doors ----------------------------------------
 
-const builders: Record<SceneId, () => SliceScene> = { street: () => buildStreet(), shop: () => buildShop(), crypt: () => buildCrypt() };
+/** "street" for the world outside, else an interior's id. */
+type SceneId = string;
+
+/** A door as the page walks through it: stand on `tile`, step `step`, come out in `to` on `arrive` facing `arriveFacing`. */
+interface Door {
+  readonly tile: Tile;
+  readonly step: readonly [number, number];
+  readonly to: SceneId;
+  readonly arrive: Tile;
+  readonly arriveFacing: readonly [number, number];
+  /** The doorway itself, for the iris to close on. */
+  readonly at: THREE.Vector3;
+  readonly name: string;
+}
+
+/** A place as the page holds it: what is drawn, where one walks, its doors and the figures living there. */
+interface SliceScene extends Framing {
+  readonly id: SceneId;
+  readonly title: string;
+  readonly place: Place;
+  readonly scene: THREE.Scene;
+  readonly grid: Grid;
+  readonly doors: readonly Door[];
+  readonly actors: readonly Actor[];
+  readonly start: Tile;
+  readonly bounds: Rect;
+}
+
+// The world's data is read up front (it is small); each place is put together the first time it is visited.
+const source = globSource(
+  () => import("../../fixtures/slice-world/world.json"),
+  import.meta.glob("../../fixtures/slice-world/chunks/*.json", { import: "default" }),
+  import.meta.glob("../../fixtures/slice-world/interiors/*.json", { import: "default" }),
+);
+const world = await loadWorld(source);
+const chunks = await loadChunks(source, world);
+const rooms = new Map<string, InteriorData>();
+for (const id of new Set(chunks.flatMap((c) => c.buildings.flatMap((b) => (b.interior ? [b.interior] : []))))) rooms.set(id, await loadInterior(source, id));
+const town = world.towns.find((t) => t.start) ?? world.towns[0]!;
+const tileOf = ([x, z]: XZ): Tile => ({ x, z });
+
+/** The figures that live in a place, as its NPCs say: their look, their manner and their pace. */
+function actorsOf(npcs: readonly NpcData[], grid: Grid, place: Place): Actor[] {
+  const actors = npcs.map((n) => {
+    const spec = figureSpec(n.figure ?? "townswoman", n.palette ? namedPalette(n.palette) : undefined);
+    const a = new Actor(spec, { x: n.x, z: n.z }, grid, behaviourOf(n.behaviour), n.name ?? n.id, n.seed !== undefined ? seeded(n.seed) : Math.random);
+    if (n.stand) a.position.set(...n.stand);
+    return a;
+  });
+  for (const a of actors) place.addFigure(a.figure.root);
+  npcs.forEach((n, i) => {
+    if (n.speed !== undefined) actors[i]!.speed = n.speed;
+  });
+  return actors;
+}
+
+function buildStreet(): SliceScene {
+  const built = assembleWorld(world, chunks);
+  const grid = gridOfWorld(world, chunks);
+  const actors = actorsOf(chunks.flatMap((c) => c.npcs), grid, built.place);
+  const doors: Door[] = built.doors.map((d) => {
+    const room = rooms.get(d.to)!;
+    return {
+      name: `door:${d.to}`,
+      tile: tileOf(d.tile),
+      step: d.step,
+      to: d.to,
+      // One arrives a step in from the room's door, facing in.
+      arrive: { x: room.entry[0], z: room.entry[1] - 1 },
+      arriveFacing: [0, -1],
+      at: new THREE.Vector3(...d.at),
+    };
+  });
+  return { id: "street", title: town.name, inside: false, turns: true, place: built.place, scene: built.place.scene, grid, doors, actors, start: tileOf(town.center), bounds: built.bounds };
+}
+
+function buildRoom(id: SceneId): SliceScene {
+  const room = rooms.get(id)!;
+  const built = assembleInterior(room);
+  const grid = gridOfInterior(room);
+  const actors = actorsOf(room.npcs, grid, built.place);
+  // Out through the room's door onto the world's tile before the building's door, facing out of the building.
+  const building = chunks.flatMap((c) => c.buildings).find((b) => b.interior === id && b.door?.[0] === room.exit[0] && b.door?.[1] === room.exit[1]);
+  const doors: Door[] = [
+    {
+      name: "door:street",
+      tile: tileOf(room.entry),
+      step: [0, 1],
+      to: "street",
+      arrive: tileOf(room.exit),
+      arriveFacing: frontStep(building?.rot ?? 0),
+      at: new THREE.Vector3(...built.doorway),
+    },
+  ];
+  return { id, title: room.name, inside: true, turns: true, place: built.place, scene: built.place.scene, grid, doors, actors, start: { x: room.entry[0], z: room.entry[1] - 1 }, bounds: built.bounds };
+}
+
 const scenes = new Map<SceneId, SliceScene>();
 const sceneOf = (id: SceneId) => {
   let s = scenes.get(id);
   if (!s) {
-    s = builders[id]();
+    s = id === "street" ? buildStreet() : buildRoom(id);
     scenes.set(id, s);
   }
   return s;
 };
 
-const startId = (["street", "shop", "crypt"] as const).find((id) => id === query.get("scene")) ?? "street";
+const asked = query.get("scene") ?? "";
+const startId: SceneId = rooms.has(asked) ? asked : "street";
 let current = sceneOf(startId);
-const renderer = new SliceRenderer(canvas, viewFor(current));
+const rig = new CameraRig(
+  canvas,
+  HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0,
+  askedZoom === 0 || askedZoom === 1 || askedZoom === 2 ? askedZoom : (storedZoom() ?? 0),
+  current,
+);
+const renderer = rig.renderer;
 if (query.get("edges") === "0") renderer.setEdges(0, 0);
+/** A place's view: the rig's, for the place. */
+const viewFor = (s: Framing): View => rig.viewFor(s);
 
 const startAt = query.get("at")?.split(",").map(Number);
 const startTile = startAt && startAt.length === 2 ? { x: startAt[0]!, z: startAt[1]! } : current.start;
-let player = new Actor(hero(), startTile, current.grid, {}, "player", seeded(7));
+let player = new Actor(figureSpec("hero"), startTile, current.grid, {}, "player", seeded(7));
 player.speed = 4.2;
-current.scene.add(player.figure.root);
+current.place.addFigure(player.figure.root);
 const focus = player.position.clone();
 renderer.focus.copy(focus);
 
 // ?cast lines every figure up beside the start, facing the camera (?cast=walk: walking on the spot), to judge them.
 const cast: Figure[] = [];
 if (query.has("cast")) {
-  [knight(), goblin(true), goblin(false), townswoman(), skeleton(), ghoul()].forEach((spec, i) => {
+  ["knight", "grizzlegom", "goblin", "townswoman", "skeleton", "ghoul"].map((id) => figureSpec(id)).forEach((spec, i) => {
     const f = new Figure(spec);
     // Two tiles apart, so that seen from a 45-degree heading too each stands clear of the next.
     f.root.position.set(startTile.x + 0.5 + (i < 3 ? -6 + 2 * i : 2 * (i - 2)), 0, startTile.z + 0.5);
     f.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
-    current.scene.add(f.root);
+    current.place.addFigure(f.root);
     cast.push(f);
   });
 }
@@ -169,10 +254,10 @@ const showHud = !query.has("nohud");
 placeLabel.hidden = help.hidden = turns.hidden = !showHud;
 function updateHud(): void {
   placeLabel.textContent = current.title;
-  turnLeft.disabled = !current.turns || heading === -1;
-  turnRight.disabled = !current.turns || heading === 1;
-  zoomIn.disabled = current.inside || zoom === 0;
-  zoomOut.disabled = current.inside || zoom === maxZoom();
+  turnLeft.disabled = !current.turns || rig.heading === -1;
+  turnRight.disabled = !current.turns || rig.heading === 1;
+  zoomIn.disabled = current.inside || rig.zoom === 0;
+  zoomOut.disabled = current.inside || rig.zoom === rig.maxZoom();
   help.innerHTML = current.inside
     ? "<b>Click</b> to walk &middot; <b>Q</b> / <b>E</b> turn the camera &middot; walk out the door to leave"
     : "<b>Click</b> or hold to walk &middot; <b>Q</b> / <b>E</b> turn &middot; <b>wheel</b>, <b>+</b> / <b>-</b> zoom &middot; out through the west gate";
@@ -198,18 +283,15 @@ function startDoor(door: Door): void {
   // Going through ends a hold: in the next room the button must be pressed again.
   hold = null;
   // A camera turn under way gives way to the doorway's own easing, which starts from wherever the camera is.
-  turning = false;
-  turnSpeed = 0;
-  zoomEase = null;
-  renderer.snap = true;
+  rig.halt();
   player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
   transition = { door, from: renderer.view, t: 0, phase: "in", focusFrom: focus.clone() };
 }
 
 function arrive(door: Door): void {
-  current.scene.remove(player.figure.root);
+  current.place.removeFigure(player.figure.root);
   current = sceneOf(door.to);
-  const next = new Actor(hero(), door.arrive, current.grid, {}, "player", seeded(7));
+  const next = new Actor(figureSpec("hero"), door.arrive, current.grid, {}, "player", seeded(7));
   next.speed = player.speed;
   player = next;
   // Out of the doorway a step, then onto the tile.
@@ -217,8 +299,8 @@ function arrive(door: Door): void {
   player.position.copy(back);
   player.figure.face(door.arriveFacing[0], door.arriveFacing[1]);
   player.walkTo(centre(door.arrive));
-  current.scene.add(player.figure.root);
-  focus.copy(clampFocus(player.position));
+  current.place.addFigure(player.figure.root);
+  focus.copy(rig.clampFocus(player.position, current));
   updateHud();
 }
 
@@ -252,106 +334,30 @@ function stepTransition(dt: number): void {
 
 // --- The camera ------------------------------------------------------------------------------------------------------
 
-/**
- * Keeps the camera's focus where the view stays on the scene's ground: a room smaller than the view is centred. Looking
- * north the view is held to the scene's edges; swung round to a corner it looks across them at a slant and follows the
- * player freely; between the two, while the camera turns, the focus slides from one to the other with the turn.
- */
-function clampFocus(p: THREE.Vector3): THREE.Vector3 {
-  const [x0, z0, x1, z1] = current.bounds;
-  const v = renderer.view;
-  const halfX = (renderer.width * THREE_QUARTER.wppX) / 2;
-  const halfZ = (renderer.height * THREE_QUARTER.wppY) / Math.sin(THREE_QUARTER.pitch) / 2;
-  const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
-  const held = new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 + halfZ, z1 - halfZ));
-  const free = Math.min(1, Math.abs(v.yaw) / (Math.PI / 4));
-  // Seen from a corner a room is wider than the view: frame it between the player and the room's middle (the back wall
-  // included), so the player and most of the room are on screen together.
-  const loose = new THREE.Vector3(p.x, 0, p.z);
-  if (current.inside) loose.lerp(new THREE.Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2), 0.45);
-  return held.lerp(loose, free);
-}
-
-/**
- * Turning the camera from one heading to the next: its turn alone eases round about the player - pitch, stretch and
- * zoom stay as they are - as a critically damped spring, so a press mid-turn retargets it without a jolt (it keeps
- * its speed). It glides unsnapped while it turns and snaps to whole pixels once it has settled.
- */
-let turning = false;
-let turnSpeed = 0;
-/** How stiff the turn is: it settles in about 0.45 s. */
-const TURN_RATE = 11;
-
-function stepCameraTurn(dt: number): void {
-  if (!turning || transition) return;
-  const target = viewFor(current).yaw;
-  let yaw = renderer.view.yaw;
-  for (let i = 0; i < 4; i++) {
-    const h = dt / 4;
-    turnSpeed += (TURN_RATE * TURN_RATE * (target - yaw) - 2 * TURN_RATE * turnSpeed) * h;
-    yaw += turnSpeed * h;
-  }
-  if (Math.abs(target - yaw) < 2e-4 && Math.abs(turnSpeed) < 3e-3) {
-    yaw = target;
-    turnSpeed = 0;
-    turning = false;
-  }
-  renderer.setView({ ...renderer.view, yaw });
-  renderer.snap = !turning;
-}
-
-/**
- * Zooming from one step to another: the scale eases over ZOOM_EASE seconds about the camera's focus (the player, as it
- * follows him), gliding unsnapped, then settles snapped on the step's whole-pixel scale.
- */
-let zoomEase: { from: number; t: number } | null = null;
-const ZOOM_EASE = 0.35;
-
-function stepZoom(dt: number): void {
-  if (!zoomEase || transition) return;
-  zoomEase.t += dt;
-  const k = Math.min(1, zoomEase.t / ZOOM_EASE);
-  const e = k * k * (3 - 2 * k);
-  const target = outdoorScale();
-  renderer.setView({ ...renderer.view, scale: zoomEase.from + (target - zoomEase.from) * e });
-  if (k >= 1) {
-    renderer.setView({ ...renderer.view, scale: target });
-    zoomEase = null;
-  }
-}
-
 /** Steps the outdoor zoom out (+1) or in (-1); in a room, or past the last step, it does nothing. */
 function zoomBy(step: -1 | 1): void {
-  const next = zoom + step;
-  if (current.inside || transition || next < 0 || next > maxZoom()) return;
-  zoom = next as Zoom;
+  if (transition || !rig.zoomBy(step, current)) return;
   try {
-    localStorage.setItem(ZOOM_KEY, String(zoom));
+    localStorage.setItem(ZOOM_KEY, String(rig.zoom));
   } catch {
     // Storage refused: the step lasts this visit only.
   }
-  zoomEase = { from: renderer.view.scale, t: 0 };
-  renderer.snap = false;
   const url = new URL(location.href);
-  url.searchParams.set("zoom", String(zoom));
+  url.searchParams.set("zoom", String(rig.zoom));
   history.replaceState(null, "", url);
   updateHud();
 }
 
 /** Steps the camera one heading left or right; a step past 45 degrees, or in a room that does not turn, does nothing. */
 function turn(step: -1 | 1): void {
-  const next = heading + step;
-  if (!current.turns || next < -1 || next > 1 || transition) return;
-  heading = next as Heading;
+  if (transition || !rig.turn(step, current)) return;
   try {
-    localStorage.setItem(HEADING_KEY, NAME_OF[heading]);
+    localStorage.setItem(HEADING_KEY, NAME_OF[rig.heading]);
   } catch {
     // Storage refused (a private window, blocked site data): the heading lasts this visit only.
   }
-  turning = true;
-  renderer.snap = false;
   const url = new URL(location.href);
-  url.searchParams.set("heading", NAME_OF[heading]);
+  url.searchParams.set("heading", NAME_OF[rig.heading]);
   history.replaceState(null, "", url);
   updateHud();
 }
@@ -527,7 +533,7 @@ canvas.addEventListener(
   },
   { passive: false },
 );
-window.addEventListener("resize", () => renderer.setView(transition || turning ? { ...renderer.view, scale: viewFor(current).scale } : viewFor(current)));
+window.addEventListener("resize", () => renderer.setView(transition || rig.turning ? { ...renderer.view, scale: viewFor(current).scale } : viewFor(current)));
 
 // --- The loop --------------------------------------------------------------------------------------------------------
 
@@ -557,13 +563,13 @@ function tick(dt: number): void {
     else a.update(dt, player);
   }
   stepTransition(dt);
-  stepCameraTurn(dt);
-  stepZoom(dt);
-  if (!transition) renderer.snap = !turning && !zoomEase;
-  current.update(dt, time, renderer.view.yaw, viewFor(current).yaw);
-  current.follow?.(player.position);
+  if (!transition) rig.stepTurn(dt, current);
+  if (!transition) rig.stepZoom(dt);
+  if (!transition) renderer.snap = rig.settled;
+  current.place.update(time, renderer.view.yaw, viewFor(current).yaw);
+  current.place.follow(player.position);
   if (!transition) {
-    const target = clampFocus(player.position);
+    const target = rig.clampFocus(player.position, current);
     focus.lerp(target, Math.min(1, dt * 8));
   }
   renderer.focus.copy(focus);
@@ -584,7 +590,7 @@ if (query.has("test")) {
     },
     /** The heading: "left", "front" or "right". */
     get heading() {
-      return NAME_OF[heading];
+      return NAME_OF[rig.heading];
     },
     /** The camera as it is now (its turn and pitch, radians), and whether it has settled into its view. */
     get view() {
@@ -595,11 +601,11 @@ if (query.has("test")) {
       return hold?.dragging ?? false;
     },
     get cameraSettled() {
-      return !turning && !zoomEase && transition === null;
+      return rig.settled && transition === null;
     },
     /** The outdoor zoom step, and the screen pixels to each scene pixel now. */
     get zoom() {
-      return { step: zoom, scale: renderer.view.scale, steps: maxZoom() + 1 };
+      return { step: rig.zoom, scale: renderer.view.scale, steps: rig.maxZoom() + 1 };
     },
     zoomBy,
     get transitioning() {

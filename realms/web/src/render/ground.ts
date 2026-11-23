@@ -19,11 +19,17 @@ export interface GroundSurface {
 
 const ATLAS_TILE = 64;
 
+/**
+ * The ground over a block of tiles: `tiles[row][column]` an index into `surfaces` (-1: nothing there), the block's first
+ * tile at `origin`. Every texture's texels are counted from `anchor` (default the block's origin), so blocks of one
+ * world anchored alike join without a seam: the world's origin, whichever chunks are drawn.
+ */
 export function buildGround(
   tiles: readonly (readonly number[])[],
   surfaces: readonly GroundSurface[],
   origin: { x: number; z: number } = { x: 0, z: 0 },
   y = 0,
+  anchor: { x: number; z: number } = origin,
 ): THREE.Mesh {
   const height = tiles.length;
   const width = tiles[0]?.length ?? 0;
@@ -52,7 +58,8 @@ export function buildGround(
     shader.uniforms.groundMap = { value: map };
     shader.uniforms.groundAtlas = { value: atlasTexture };
     shader.uniforms.mapSize = { value: new THREE.Vector2(width, height) };
-    shader.uniforms.mapOrigin = { value: new THREE.Vector2(origin.x, origin.z) };
+    shader.uniforms.mapOrigin = { value: new THREE.Vector2(anchor.x, anchor.z) };
+    shader.uniforms.mapShift = { value: new THREE.Vector2(anchor.x - origin.x, anchor.z - origin.z) };
     shader.uniforms.atlasCount = { value: surfaces.length };
     shader.uniforms.priority = { value: priorities };
     shader.uniforms.holeId = { value: surfaces.findIndex((s) => s.hole) };
@@ -68,6 +75,7 @@ uniform sampler2D groundMap;
 uniform sampler2D groundAtlas;
 uniform vec2 mapSize;
 uniform vec2 mapOrigin;
+uniform vec2 mapShift;
 uniform float atlasCount;
 uniform float priority[16];
 uniform float holeId;
@@ -83,7 +91,9 @@ float gNoise(float x) {
   f = f * f * (3.0 - 2.0 * f);
   return mix(gHash(vec2(i, 7.0)), gHash(vec2(i + 1.0, 7.0)), f);
 }
-float tileId(vec2 tile) {
+// A tile counted from the anchor, looked up in the block's map.
+float tileId(vec2 anchored) {
+  vec2 tile = anchored + mapShift;
   if (tile.x < 0.0 || tile.y < 0.0 || tile.x >= mapSize.x || tile.y >= mapSize.y) return 255.0;
   return floor(texture2D(groundMap, (tile + 0.5) / mapSize).r * 255.0 + 0.5);
 }

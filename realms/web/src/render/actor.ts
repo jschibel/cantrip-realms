@@ -1,46 +1,13 @@
 import * as THREE from "three";
 import { Figure, type FigureSpec } from "../art/figures/rig";
-import { Grid, type Tile } from "../world/grid";
-import { blobShadow } from "../art/props/props";
+import type { Behaviour as BehaviourData } from "../world/format";
+import type { Grid, Tile } from "../world/grid";
+import { blobShadow } from "./shadow";
 
-// What a scene of the slice is - a 3D scene on a square grid, its doors, the figures in it - and the figures' walking:
-// along a path of tiles at a steady pace, turning to face where they go, and (for those that live there) idling and
-// wandering about a home tile or pacing a beat.
-
-export type SceneId = "street" | "shop" | "crypt";
-
-export interface Door {
-  /** The tile you stand on to go through, and the way you step to go in. */
-  readonly tile: Tile;
-  readonly step: readonly [number, number];
-  readonly to: SceneId;
-  /** Where you come out in the other scene, and which way you face. */
-  readonly arrive: Tile;
-  readonly arriveFacing: readonly [number, number];
-  /** The doorway itself, for the iris to close on. */
-  readonly at: THREE.Vector3;
-  readonly name: string;
-}
-
-export interface SliceScene {
-  readonly id: SceneId;
-  readonly title: string;
-  /** Rooms and dungeons are seen closer than the street. */
-  readonly inside: boolean;
-  /** Whether the camera may swing to its 45-degree headings here (a room that reads from the corners). */
-  readonly turns: boolean;
-  readonly scene: THREE.Scene;
-  readonly grid: Grid;
-  readonly doors: readonly Door[];
-  readonly actors: readonly Actor[];
-  readonly start: Tile;
-  /** The camera keeps its focus inside this rectangle of the ground (x0, z0, x1, z1). */
-  readonly bounds: readonly [number, number, number, number];
-  /** Animates the scene; `yaw` is the camera's turn now and `toward` the heading it is turning to (radians). */
-  update(dt: number, time: number, yaw: number, toward: number): void;
-  /** Cuts away what stands between the camera and the player, where the scene has such a thing (a gate tower). */
-  follow?(player: THREE.Vector3): void;
-}
+// A figure walking a place's grid: along a path of tiles at a steady pace, turning to face where it goes, stepping up
+// and down as the floor rises and falls, its walk cycle running while it moves, its round shadow under it; and (for
+// those that live there) idling and wandering about a home tile, pacing a beat, or turning to watch the player. The
+// game moves the player's (`goTo`, `retarget`, `walkTo`) and lets the others think for themselves (`update`).
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);
 
@@ -53,6 +20,18 @@ export interface Behaviour {
   readonly watch?: number;
   /** Which way to face when standing. */
   readonly rest?: readonly [number, number];
+}
+
+/** An NPC's behaviour as the world data gives it (tiles as `[x, z]`), for an Actor. */
+export function behaviourOf(b: BehaviourData | undefined): Behaviour {
+  if (!b) return {};
+  const tile = ([x, z]: readonly [number, number]): Tile => ({ x, z });
+  return {
+    ...(b.wander ? { wander: { home: tile(b.wander.home), reach: b.wander.reach, pause: b.wander.pause } } : {}),
+    ...(b.beat ? { beat: { stops: b.beat.stops.map(tile), pause: b.beat.pause } } : {}),
+    ...(b.watch !== undefined ? { watch: b.watch } : {}),
+    ...(b.rest ? { rest: b.rest } : {}),
+  };
 }
 
 export class Actor {
@@ -193,26 +172,4 @@ export class Actor {
       this.waiting = 1e9;
     }
   }
-}
-
-/** Sunlight for the open air: a warm sun from the south-west, high, casting shadows; a cool sky over everything. */
-export function sunlight(scene: THREE.Scene, centreX: number, centreZ: number, reach: number): THREE.DirectionalLight {
-  const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.92, 0.78), 0.86 * Math.PI);
-  sun.position.set(-15, 17, 9);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(4096, 4096);
-  sun.shadow.bias = -0.0006;
-  sun.shadow.normalBias = 0.01;
-  Object.assign(sun.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach, near: 1, far: 90 });
-  const holder = new THREE.Group();
-  holder.position.set(centreX, 0, centreZ);
-  holder.add(sun, sun.target);
-  scene.add(holder);
-  scene.add(new THREE.HemisphereLight(new THREE.Color(0.6, 0.68, 1.0), new THREE.Color(0.52, 0.42, 0.5), 0.46 * Math.PI));
-  return sun;
-}
-
-/** Blocks a rectangle of tiles on a grid, given in world units (any tile it overlaps). */
-export function blockArea(grid: Grid, x0: number, z0: number, x1: number, z1: number): void {
-  grid.block(Math.floor(x0), Math.floor(z0), Math.ceil(x1) - 1, Math.ceil(z1) - 1);
 }

@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { normalMaterialFor } from "./lighting";
+import { normalMaterialFor } from "./edges";
+import type { View } from "./view";
 
 // The slice's renderer: a real 3D scene drawn small and shown in big, clean pixels.
 //
@@ -17,26 +18,6 @@ import { normalMaterialFor } from "./lighting";
 // A second pass draws every surface's facing; the post pass uses it and the depth to draw a soft outline in the
 // darkened color of whatever stands in front of something farther, and a bright line on convex edges - the stepped,
 // hand-drawn edges pixel artists put on blocks and boxes. It also draws the iris that closes over a doorway.
-
-export interface View {
-  /** Turn about the vertical, radians: 0 looks north (towards -z). */
-  readonly yaw: number;
-  /** Down from the horizon, radians. */
-  readonly pitch: number;
-  /** World units across one pixel, horizontally and vertically in the camera's frame. */
-  readonly wppX: number;
-  readonly wppY: number;
-  /** Screen pixels to each of the scene's: the zoom. A whole number at rest. */
-  readonly scale: number;
-}
-
-export const THREE_QUARTER: Omit<View, "scale"> = { yaw: 0, pitch: Math.PI / 4, wppX: 1 / 16, wppY: Math.SQRT1_2 / 16 };
-
-export function blendViews(a: View, b: View, t: number): View {
-  const k = t * t * (3 - 2 * t);
-  const mix = (x: number, y: number) => x + (y - x) * k;
-  return { yaw: mix(a.yaw, b.yaw), pitch: mix(a.pitch, b.pitch), wppX: mix(a.wppX, b.wppX), wppY: mix(a.wppY, b.wppY), scale: mix(a.scale, b.scale) };
-}
 
 const DISTANCE = 120;
 const NEAR = 1;
@@ -107,7 +88,7 @@ void main() {
   gl_FragColor = vec4(color, 1.0);
 }`;
 
-export class SliceRenderer {
+export class PixelRenderer {
   readonly renderer: THREE.WebGLRenderer;
   readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, NEAR, FAR);
   width = 2;

@@ -1,0 +1,112 @@
+{
+  "size": [
+    136,
+    78
+  ],
+  "origin": [
+    -78,
+    -24
+  ],
+  "chunk": 32,
+  "tile": 1,
+  "bounds": [
+    -60,
+    -6,
+    40,
+    36
+  ],
+  "seed": 1,
+  "regions": [
+    {
+      "color": "W",
+      "name": "Benalia",
+      "tiles": 4200
+    }
+  ],
+  "towns": [
+    {
+      "id": "new-benalia",
+      "name": "New Benalia",
+      "kind": "capital",
+      "center": [
+        13,
+        12
+      ],
+      "radius": 28,
+      "style": "benalish",
+      "region": "W",
+      "start": true,
+      "home": "W"
+    }
+  ],
+  "inns": [],
+  "dungeons": [],
+  "roads": [],
+  "ferries": [],
+  "pitches": [],
+  "zones": {
+    "cell": 34,
+    "cols": 4,
+    "rows": 3,
+    "areas": [
+      {
+        "id": "new-benalia",
+        "name": "New Benalia",
+        "region": "W",
+        "tier": 0
+      },
+      {
+        "id": "benalish-fields",
+        "name": "The Benalish Fields",
+        "region": "W",
+        "tier": 1
+      }
+    ],
+    "grid": [
+      [
+        1,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  "overview": {
+    "cell": 8,
+    "legend": {
+      "g": "grass",
+      "c": "cobbles",
+      "f": "flagstones",
+      "d": "dirt",
+      "s": "straw",
+      "p": "furrows",
+      "h": "wheat",
+      "w": "stream",
+      "T": "town"
+    },
+    "rows": [
+      "ggggggggggggggggg",
+      "ggggggggggggggggg",
+      "ggggggggggggggggg",
+      "ggghgpggggTTTTTgg",
+      "ggggggggggTTTTTgg",
+      "ggggggggggTTTTTgg",
+      "ggggggggggTTTTTgg",
+      "ggggggggggggggggg",
+      "ggggggggggggggggg",
+      "ggggggggggggggggg"
+    ]
+  }
+}

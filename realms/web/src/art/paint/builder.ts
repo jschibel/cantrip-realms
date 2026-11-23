@@ -4,7 +4,9 @@ import { TEXELS } from "../../render/lighting";
 // Low-poly shapes authored by code - boxes, gable roofs, cylinders, blobs - textured at one texel density. A face is
 // either tiled from a repeating texture anchored to the world grid (a wall's stones, a floor's planks: so they line up
 // across pieces and every texel is the same size), or fitted with one painted picture (a door, a crate's side, a face).
-// A builder gathers the faces of many shapes by material and merges them, so a whole house is a handful of meshes.
+// A builder gathers the faces of many shapes by material. What it gathered is a `Model`: plain geometry by material, in
+// world coordinates, that a recipe returns (art/recipe.ts) and the renderer merges with the rest of a place's scenery,
+// so a whole street is a handful of meshes (`meshesOf`).
 
 export type Material = THREE.Material & { map?: THREE.Texture | null };
 
@@ -47,6 +49,56 @@ interface Buffers {
   normals: number[];
   uvs: number[];
   indices: number[];
+}
+
+/** One material's share of a model: triangles in world coordinates (three per index triple), smooth or flat normals. */
+export interface ModelPart {
+  readonly material: Material;
+  readonly positions: readonly number[];
+  readonly normals: readonly number[];
+  readonly uvs: readonly number[];
+  readonly indices: readonly number[];
+}
+
+/**
+ * Geometry by material, in the order each material was first drawn with - what a recipe makes. Plain data (no meshes
+ * yet), so models merge: the renderer appends every piece of a place's scenery into one model and makes it a handful of
+ * meshes, one per material. Merging keeps each material's triangles in the order they were drawn.
+ */
+export interface Model {
+  readonly parts: readonly ModelPart[];
+}
+
+/** A model with nothing in it. */
+export const EMPTY_MODEL: Model = { parts: [] };
+
+/** The models one after another, as if one builder had drawn them all in turn. */
+export function mergeModels(models: readonly Model[]): Model {
+  const b = new MeshBuilder();
+  for (const m of models) b.add(m);
+  return b.model();
+}
+
+/** A model as meshes, one per material, casting and taking shadows (glowing materials do neither; flat ones take only). */
+export function meshesOf(model: Model, name = "built", shadows = true): THREE.Group {
+  const group = new THREE.Group();
+  group.name = name;
+  for (const part of model.parts) {
+    if (part.indices.length === 0) continue;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(part.positions as number[], 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(part.normals as number[], 3));
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(part.uvs as number[], 2));
+    geometry.setIndex(part.indices as number[]);
+    geometry.computeBoundingSphere();
+    const mat = part.material;
+    const mesh = new THREE.Mesh(geometry, mat);
+    const glowing = !!mat.userData.glow;
+    mesh.castShadow = shadows && !glowing && !mat.userData.flat;
+    mesh.receiveShadow = shadows && !glowing;
+    group.add(mesh);
+  }
+  return group;
 }
 
 type V3 = readonly [number, number, number];
@@ -452,25 +504,28 @@ export class MeshBuilder {
     );
   }
 
+  /** Appends a model's geometry, as though it had been drawn here (the builder's transform does not apply). */
+  add(model: Model): void {
+    for (const part of model.parts) {
+      const b = this.buffers(part.material);
+      const base = b.positions.length / 3;
+      for (const v of part.positions) b.positions.push(v);
+      for (const v of part.normals) b.normals.push(v);
+      for (const v of part.uvs) b.uvs.push(v);
+      for (const i of part.indices) b.indices.push(base + i);
+    }
+  }
+
+  /** The gathered faces as a model, and the builder emptied for the next. */
+  model(): Model {
+    const parts: ModelPart[] = [];
+    for (const [material, b] of this.byMaterial) parts.push({ material, ...b });
+    this.byMaterial.clear();
+    return { parts };
+  }
+
   /** The gathered faces as meshes, one per material, casting and taking shadows. */
   build(name = "built", shadows = true): THREE.Group {
-    const group = new THREE.Group();
-    group.name = name;
-    for (const [mat, b] of this.byMaterial) {
-      if (b.indices.length === 0) continue;
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.Float32BufferAttribute(b.positions, 3));
-      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(b.normals, 3));
-      geometry.setAttribute("uv", new THREE.Float32BufferAttribute(b.uvs, 2));
-      geometry.setIndex(b.indices);
-      geometry.computeBoundingSphere();
-      const mesh = new THREE.Mesh(geometry, mat);
-      const glowing = !!mat.userData.glow;
-      mesh.castShadow = shadows && !glowing && !mat.userData.flat;
-      mesh.receiveShadow = shadows && !glowing;
-      group.add(mesh);
-    }
-    this.byMaterial.clear();
-    return group;
+    return meshesOf(this.model(), name, shadows);
   }
 }

@@ -1,12 +1,16 @@
 import * as THREE from "three";
-import { type Material, type Face, fitted, tiled } from "./builder";
 import { type LitOptions, glow, lit, textureOf } from "../../render/lighting";
+import { type Face, type Material, fitted, tiled } from "./builder";
+import * as C from "./colors";
+import { type Ramp, rampKey } from "./palette";
 import type { Pixmap } from "./pixmap";
 import * as T from "./textures";
-import * as C from "./colors";
 
-// The materials every scene draws with, each made once from its painted picture: the tiling surfaces (textures.ts) and
-// the painted pictures of single things (pictures.ts) fitted onto their faces.
+// The materials recipes draw with, each made once from its painted picture: the tiling surfaces (textures.ts) and the
+// painted pictures of single things (pictures.ts), fitted onto their faces. A material is made the first time its name
+// is asked for and the same object is handed back ever after, so everything painted alike shares one material - and
+// the renderer merges by material. Name a material for everything that makes it different: a ramp from a palette goes
+// into its name (`painted`, or `rampKey`).
 
 const cache = new Map<string, Material>();
 
@@ -22,6 +26,15 @@ export function material(name: string, paint: () => Pixmap, options: LitOptions 
   return m;
 }
 
+/**
+ * A material painted from a ramp: under `name` itself when the ramp is `usual` (the default a recipe's palette gives),
+ * else under the name and the ramp's key - so a palette that recolors a recipe makes materials of its own, and one that
+ * leaves it be shares the usual ones.
+ */
+export function painted(name: string, ramp: Ramp, usual: Ramp, paint: (ramp: Ramp) => Pixmap, options: LitOptions & { glowing?: boolean } = {}): Material {
+  return material(ramp === usual ? name : `${name}@${rampKey(ramp)}`, () => paint(ramp), options);
+}
+
 /** A flat-colored lit material (an iron band, a candle), made once per color. */
 export function flat(color: number, options: LitOptions = {}): Material {
   const name = `flat:${color.toString(16)}:${options.smooth ? "s" : ""}`;
@@ -33,20 +46,24 @@ export function flat(color: number, options: LitOptions = {}): Material {
   return m;
 }
 
-export const surfaces = {
-  limestone: () => material("limestone", () => T.ashlar(C.LIMESTONE, 7)),
-  plaster: () => material("plaster", () => T.plaster(6)),
-  roof: () => material("roof", () => T.roofTiles(C.ROOF, 8)),
+/**
+ * The stock materials of walls, roofs, timber and foliage, tiled on whatever is built of them. Those painted from a ramp
+ * take one (a palette's slot), defaulting to the Benalish slice's.
+ */
+export const stock = {
+  limestone: (ramp: Ramp = C.LIMESTONE) => painted("limestone", ramp, C.LIMESTONE, (r) => T.ashlar(r, 7)),
+  plaster: (ramp: Ramp = C.PLASTER) => painted("plaster", ramp, C.PLASTER, (r) => T.plaster(6, r)),
+  roof: (ramp: Ramp = C.ROOF) => painted("roof", ramp, C.ROOF, (r) => T.roofTiles(r, 8)),
   slate: () => material("slate", () => T.slates(9)),
-  timber: () => material("timber", () => T.timber(10, C.WOOD)),
-  darkTimber: () => material("dark-timber", () => T.timber(16, C.DARKWOOD)),
-  leaves: () => material("leaves", () => T.leaves(11), { smooth: true }),
+  timber: (ramp: Ramp = C.WOOD) => painted("timber", ramp, C.WOOD, (r) => T.timber(10, r)),
+  darkTimber: (ramp: Ramp = C.DARKWOOD) => painted("dark-timber", ramp, C.DARKWOOD, (r) => T.timber(16, r)),
+  leaves: (ramp: Ramp = C.LEAF) => painted("leaves", ramp, C.LEAF, (r) => T.leaves(11, r), { smooth: true }),
   bark: () => material("bark", () => T.bark(12), { smooth: true }),
   boards: () => material("boards", () => T.floorboards(5)),
-  cryptBrick: () => material("crypt-brick", () => T.ashlar(C.DUNGEON, 21, 5, 6, 10)),
+  cryptBrick: (ramp: Ramp = C.DUNGEON) => painted("crypt-brick", ramp, C.DUNGEON, (r) => T.ashlar(r, 21, 5, 6, 10)),
   cobbleWall: () => material("cobble-wall", () => T.cobbles(2)),
-  flagstone: () => material("flagstone", () => T.flagstones(C.LIMESTONE, 3)),
-  cryptStone: () => material("crypt-stone", () => T.flagstones(C.DUNGEON, 23)),
+  flagstone: (ramp: Ramp = C.LIMESTONE) => painted("flagstone", ramp, C.LIMESTONE, (r) => T.flagstones(r, 3)),
+  cryptStone: (ramp: Ramp = C.DUNGEON) => painted("crypt-stone", ramp, C.DUNGEON, (r) => T.flagstones(r, 23)),
 };
 
 export { fitted, tiled, type Face };
