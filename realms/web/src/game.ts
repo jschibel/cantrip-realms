@@ -27,6 +27,8 @@ import { spawnEpoch, spawnMob } from "./spawn";
 export interface Options {
   /** Whether mobs wander (tests turn it off; they still chase). */
   readonly wander: boolean;
+  /** Whether there are mobs at all (tests of other things turn them off). */
+  readonly mobs: boolean;
   readonly encounters: EncounterMode;
   /** The clock spawns are computed on, unix seconds. */
   readonly now: () => number;
@@ -147,7 +149,7 @@ export class Overworld {
     this.player.onStep = () => this.reportTravel();
 
     const now = this.options.now();
-    for (const spawn of map.spawns) {
+    for (const spawn of this.options.mobs ? map.spawns : []) {
       const epoch = spawnEpoch(spawn, now);
       if (this.beaten.has(`${map.id}|${spawn.id}|${epoch}`)) continue;
       const info = mobInfo(spawnMob(this.data.Id, map.id, spawn, epoch));

@@ -108,7 +108,7 @@ const CHASE_SPEED = 2.6;
 /** A spawn point's mob, walking the map. */
 export class Mob {
   /** Seconds until it next picks somewhere to wander, or may engage again. */
-  rest = 1 + Math.random() * 2;
+  rest = 3 + Math.random() * 2;
   engaged = false;
 
   constructor(

@@ -20,6 +20,10 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       });
 
   g.realmTest = {
+    /** The overworld itself, for poking at in a debugger; tests read the properties below. */
+    get game() {
+      return game();
+    },
     get ready() {
       return game()?.screen === "world";
     },

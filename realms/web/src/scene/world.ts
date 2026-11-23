@@ -116,8 +116,19 @@ export class World {
       scenery.traverse((o) => this.clickable.set(o, { q: NaN, r: NaN }));
     }
 
-    // The people and their fixtures.
+    // The people and their fixtures, and an unseen column over each person and chest that clicks catch, however
+    // thin the thing drawn there is from where the camera looks.
     for (const npc of map.data.npcs) this.placeNpc(npc, random);
+    const column = new THREE.CylinderGeometry(0.75, 0.75, 1.8, 6, 1, false, Math.PI / 2);
+    const unseen = new THREE.MeshBasicMaterial();
+    for (const thing of [...map.data.npcs, ...map.data.chests]) {
+      const h = { q: thing.q, r: thing.r };
+      const catcher = new THREE.Mesh(column, unseen);
+      catcher.visible = false;
+      catcher.position.copy(this.surface(h)).add(new THREE.Vector3(0, 0.9, 0));
+      catcher.updateMatrixWorld();
+      this.clickable.set(catcher, h);
+    }
     for (const chest of map.data.chests) {
       const h = { q: chest.q, r: chest.r };
       const group = new THREE.Group();
@@ -147,14 +158,14 @@ export class World {
 
     // Light: the sun and sky outdoors; in a dungeon, gloom and a warm light at each brazier.
     if (dungeon) {
-      this.scene.add(new THREE.HemisphereLight("#8c909c", "#1a1c24", 1.0));
-      const moon = new THREE.DirectionalLight("#b3b5bc", 0.7);
+      this.scene.add(new THREE.HemisphereLight("#d8d6d0", "#3b3c4a", 1.9));
+      const moon = new THREE.DirectionalLight("#f2efe6", 1.3);
       moon.position.set(-10, 30, 6);
       this.scene.add(moon, moon.target);
       let lamps = 0;
       for (const tile of tiles) {
         if (tile.prop !== "brazier" || lamps >= 8) continue;
-        const lamp = new THREE.PointLight("#f1b44c", 6, 7, 1.5);
+        const lamp = new THREE.PointLight("#f1b44c", 10, 8, 1.5);
         lamp.position.copy(this.surface(tile.hex)).add(new THREE.Vector3(0, 1.2, 0));
         this.scene.add(lamp);
         lamps++;
@@ -255,8 +266,13 @@ export class World {
       if (ground && hit.instanceId !== undefined) return ground.hexes[hit.instanceId]!;
       const owner = this.clickable.get(hit.object);
       if (owner) {
-        // Scenery is merged, so its hex is where the ray met it.
-        if (Number.isNaN(owner.q)) return fromWorld(hit.point.x, hit.point.z);
+        // Scenery is merged, so its hex is where the ray met it; scenery in the way of nothing is looked through,
+        // to the ground behind it.
+        if (Number.isNaN(owner.q)) {
+          const h = fromWorld(hit.point.x, hit.point.z);
+          if (this.map.thing(h)) return h;
+          continue;
+        }
         return owner;
       }
     }

@@ -22,7 +22,8 @@ import { publishTestHooks } from "./testHooks";
 //   ?editor[=<map>] the map editor instead (development builds only).
 //   ?test           publishes globalThis.realmTest.
 // and, for development and tests, forces a state rather than waiting on chance:
-//   ?at=<map>[:q,r] start there; ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home;
+//   ?at=<map>[:q,r] start there; ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home, ?mobs=0
+//   leaves them out;
 //   ?encounters=always|never|roll; ?name=&color=&body=&palette= makes the offline character without the screen.
 
 // Colors are given as the palette's own sRGB values and lit as they are; the post pass snaps the result to the
@@ -65,6 +66,7 @@ async function boot(): Promise<void> {
 
   const options = {
     wander: query.get("wander") !== "0",
+    mobs: query.get("mobs") !== "0",
     encounters: (["always", "never", "roll"] as const).find((m) => m === query.get("encounters")) ?? ("roll" as EncounterMode),
     now,
   };
