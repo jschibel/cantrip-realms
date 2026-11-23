@@ -76,7 +76,22 @@ export class CameraRig {
 
   /** A place's view: the three-quarter camera at the heading (where the place turns); rooms closest, outdoors at the zoom. */
   viewFor(f: Framing): View {
-    return { ...THREE_QUARTER, yaw: (f.turns ? this.heading : 0) * (Math.PI / 4), scale: f.inside ? this.outsideScale() + 1 : this.outdoorScale() };
+    return { ...THREE_QUARTER, yaw: (f.turns ? this.heading : 0) * (Math.PI / 4), scale: f.inside ? this.insideScale(f) : this.outdoorScale() };
+  }
+
+  /**
+   * A room's scale: a step closer than the open air's closest - unless the room would then not be seen whole from every
+   * heading it is seen from while one step further out it would, when it is seen from that step (never further), so a
+   * room's far corners are never off the screen when they need not be. The same at every heading: turning never zooms.
+   */
+  insideScale(f: Framing): number {
+    const close = this.outsideScale() + 1;
+    const fits = (scale: number) =>
+      (f.turns ? [-1, 0, 1] : [0]).every((h) => {
+        const { across, along } = extentAt(f.bounds, (h * Math.PI) / 4, THREE_QUARTER.pitch);
+        return across <= (window.innerWidth / scale) * THREE_QUARTER.wppX && along <= (window.innerHeight / scale) * THREE_QUARTER.wppY;
+      });
+    return !fits(close) && fits(close - 1) ? close - 1 : close;
   }
 
   /** Whether the camera is at rest: not turning, not zooming. (A door's transition is the page's to know.) */
@@ -168,10 +183,49 @@ export class CameraRig {
     const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
     const held = new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 + halfZ, z1 - halfZ));
     const free = Math.min(1, Math.abs(v.yaw) / (Math.PI / 4));
-    // Seen from a corner a room is wider than the view: frame it between the point and the room's middle (the back wall
-    // included), so the player and most of the room are on screen together.
+    // A room seen from a corner, or turning toward one, is held as the camera sees it at this turn.
+    if (f.inside && free > 0) return this.heldAcross(p, f.bounds);
     const loose = new THREE.Vector3(p.x, 0, p.z);
-    if (f.inside) loose.lerp(new THREE.Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2), 0.45);
     return held.lerp(loose, free);
   }
+
+  /**
+   * A room's focus at a turn: held so the view stays on the room as the camera sees it - the room's rectangle measured
+   * across and up the screen at this turn - so a room that fits is seen whole and centred, its far corners and all, and
+   * a bigger one is followed only as far as its edges. (Looking north this is the held focus, worked out the same way.)
+   */
+  private heldAcross(p: THREE.Vector3, bounds: Rect): THREE.Vector3 {
+    const r = this.renderer;
+    const v = r.view;
+    const { right, up } = screenAxes(v.yaw, v.pitch);
+    const [x0, z0, x1, z1] = bounds;
+    const across = [x0, x1].flatMap((x) => [z0, z1].map((z) => x * right.x + z * right.z));
+    const along = [x0, x1].flatMap((x) => [z0, z1].map((z) => x * up.x + z * up.z));
+    const halfA = (r.width * v.wppX) / 2;
+    const halfB = (r.height * v.wppY) / 2;
+    const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
+    const a = clamp(p.x * right.x + p.z * right.z, Math.min(...across) + halfA, Math.max(...across) - halfA);
+    const b = clamp(p.x * up.x + p.z * up.z, Math.min(...along) + halfB, Math.max(...along) - halfB);
+    // The point of the floor that is `a` across and `b` up the screen.
+    const det = right.x * up.z - right.z * up.x;
+    return new THREE.Vector3((a * up.z - b * right.z) / det, 0, (right.x * b - up.x * a) / det);
+  }
+}
+
+/** The screen's axes across and up, in the world, for a camera at a turn and pitch. */
+function screenAxes(yaw: number, pitch: number): { right: THREE.Vector3; up: THREE.Vector3 } {
+  const turn = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, yaw, 0));
+  return { right: new THREE.Vector3(1, 0, 0).applyQuaternion(turn), up: new THREE.Vector3(0, 1, 0).applyQuaternion(turn) };
+}
+
+/** How far a rectangle of the ground reaches across and up the screen, world units, seen at a turn and pitch. */
+function extentAt(bounds: Rect, yaw: number, pitch: number): { across: number; along: number } {
+  const { right, up } = screenAxes(yaw, pitch);
+  const [x0, z0, x1, z1] = bounds;
+  const corners = [x0, x1].flatMap((x) => [z0, z1].map((z) => [x, z] as const));
+  const span = (axis: THREE.Vector3) => {
+    const values = corners.map(([x, z]) => x * axis.x + z * axis.z);
+    return Math.max(...values) - Math.min(...values);
+  };
+  return { across: span(right), along: span(up) };
 }

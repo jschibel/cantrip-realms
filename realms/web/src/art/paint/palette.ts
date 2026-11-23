@@ -53,12 +53,19 @@ export function paletteKey(palette: Palette): string {
  * The named palettes the world data may name (a prop's `tint`, an NPC's `palette`, a building's `palette`). Each is a
  * partial palette laid over the recipe's own defaults. Add one here when a region or a variant needs it.
  */
-export const PALETTES: ReadonlyMap<string, Palette> = new Map<string, Palette>([
+const palettes = new Map<string, Palette>([
   ["default", NO_PALETTE],
   // Examples of the mechanism, used by nothing in the slice yet.
   ["autumn", { leaves: [0x2a1a10, 0x4a2414, 0x7a3418, 0xa8501c, 0xcc7224, 0xe89a34, 0xf8c454] }],
   ["dark-hair", { hair: C.HAIR_BROWN }],
 ]);
+export const PALETTES: ReadonlyMap<string, Palette> = palettes;
+
+/** Names a palette from the module that owns it (at module load, as a registry entry is defined): art/rooms' styles. */
+export function definePalette(name: string, palette: Palette): void {
+  if (palettes.has(name)) throw new Error(`palette "${name}" is defined twice`);
+  palettes.set(name, palette);
+}
 
 /** A named palette, or the empty one for none; an unknown name throws (the lint catches it first). */
 export function namedPalette(name: string | undefined): Palette {
