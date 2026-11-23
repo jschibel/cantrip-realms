@@ -4,6 +4,7 @@ import { material } from "../paint/materials";
 import { type Palette, type Ramp, withDefaults } from "../paint/palette";
 import type { Pixmap } from "../paint/pixmap";
 import * as T from "../paint/textures";
+import { defineBiomes } from "./biomes";
 
 // The ground, by surface id: what a tile's `surface` names (world/format.ts, TileData). Each is a tiling picture 64
 // texels square (four tiles), painted from its palette, and how it meets its neighbours: where two surfaces meet, the
@@ -26,6 +27,11 @@ export interface SurfaceLook {
   readonly under?: { readonly material: Material; readonly y: number; readonly spread: number };
   /** Cards of standing grass a tile, on average. */
   readonly tufts?: number;
+  /**
+   * The ramp standing tufts are painted in, when not the slice's green (dry plains, tundra, reeds). A renderer that
+   * cannot color tufts draws them green: so only green-ish surfaces carry `tufts` until it can (conversion.md).
+   */
+  readonly tuftRamp?: Ramp;
 }
 
 export interface SurfaceEntry {
@@ -87,3 +93,8 @@ defineSurface("stream", "running water under the banks: a hole, water below", {}
 defineSurface("floorboards", "a room's boards", {}, () => ({ picture: T.floorboards(5), priority: 1 }));
 defineSurface("hearthstone", "the flags before a hearth", { stone: C.COBBLE }, (p) => ({ picture: T.flagstones(ramp(p, "stone"), 33), priority: 2 }));
 defineSurface("crypt-floor", "a crypt's cold flags, bones and grime", {}, () => ({ picture: T.cryptFloor(14), priority: 1 }));
+
+// --- The world's biomes, roads and waters (biomes.ts) ----------------------------------------------------------------------
+
+defineBiomes(defineSurface);
+export { PRIORITY, SURFACE_GROUPS } from "./biomes";
