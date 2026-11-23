@@ -1,11 +1,13 @@
 # prevent-damage-on-turn at turn 1: "At the beginning of your upkeep, if it's your first turn, prevent all damage that would
-# be dealt to you this turn." Bot1's own Lightning Bolt at itself on turn 1 is prevented (CR 615.1a); the effect lasts the
-# turn only (CR 615.3), so Bot2's Bolt on turn 2 and Bot1's on turn 3 are dealt.
+# be dealt to you this turn." On turn 1 both of Bot1's own Lightning Bolts at itself are prevented - all of it, 6 damage in
+# all, not a shield of the first 3 (CR 615.1a) - while its Bolt at Bot2 is dealt: the damage prevented is the wearer's
+# alone. The effect lasts the turn only (CR 615.3), so Bot2's Bolt on turn 2 and Bot1's on turn 3 are dealt.
 
 [Bot1 Deck]
 Mountain
-Lightning Bolt x2
-Mountain x37
+Black Lotus
+Lightning Bolt x4
+Mountain x34
 
 [Bot2 Deck]
 Mountain
@@ -22,8 +24,19 @@ Bot1.Hand.Lightning Bolt.Cast(Bot1)
 Bot1.Battlefield.Mountain.Activate
 Bot1.Pass
 Bot2.Pass
+Bot1.Hand.Black Lotus.Cast
+Bot1.Pass
+Bot2.Pass
+Bot1.Battlefield.Black Lotus.Activate(Color: Red)
+Bot1.Hand.Lightning Bolt.Cast(Bot1)
+Bot1.Pass
+Bot2.Pass
+Bot1.Hand.Lightning Bolt.Cast(Bot2)
+Bot1.Pass
+Bot2.Pass
 ? Bot1.Life = 20
-? Prevented = 3 Lightning Bolt > Bot1 by Gear test: prevent-damage-on-turn, turn 1
+? Bot2.Life = 17
+? Prevented.Count = 2
 [T2 Bot2.Main1]
 Bot2.Hand.Mountain.Play
 Bot2.Hand.Lightning Bolt.Cast(Bot1)
@@ -39,4 +52,4 @@ Bot2.Pass
 
 [Expect]
 Bot1.Life = 14
-Prevented.Count = 1
+Prevented.Count = 2

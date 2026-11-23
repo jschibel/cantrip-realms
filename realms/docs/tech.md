@@ -9,7 +9,7 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
   1. `gh repo fork cantrip-rs/cantrip-rs --fork-name cantrip-realms` under jschibel.
   2. In the local clone, add the remote `upstream` = cantrip-rs.
   3. Merge upstream `main` into the fork's `main` regularly, through `tools/realms/sync-upstream.cmd`.
-- **Layout:** the fork adds `realms/` (game code and content) and a few project heads. It touches upstream files only at documented seams, to keep merges clean. CLAUDE.md gets a Realms section.
+- **Layout:** the fork adds `realms/` (game code and content) and a few project heads. It touches upstream files only at documented seams, to keep merges clean. CLAUDE.md gets a Realms section. The one seam inside the engine's folders is new files only: the gear's card files and test in `crates/cantrip-cards` and its scenarios `scenarios/realm-gear-*` (B3), which an upstream merge never meets.
 
 ### B2. Upstream engine work (lands on cantrip-rs first)
 1. **Per-player game parameters** in `Setup`, the host `Deal`, `NewGame` and `RulesGameOptions`:
@@ -30,11 +30,11 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
    - Importing the Dominaria sets uses the existing `import-cards` skill and the GitHub claim flow, and runs alongside everything else: DOM, DMU and DMR first, then whatever the mob and boss decks need from the classic Dominaria sets.
    - Card coverage only limits the loot pool, so it never blocks the RPG work.
 
-### B3. Gear in the engine (fork: `realms/crates/realms-gear`)
-- **Effect families** are written once in Rust, each a parameterised constructor of command-zone abilities built from `cantrip-mechanics` (draw, scry, tokens, mana, counters, damage, prevention, once-per-game activated abilities), never a new core brick.
-- **Item definitions** live in `realms/content/gear/*.json`. A build script generates one static `CardDef` per item from them, the way `cantrip-oracle` does, plus an extended card table for `deal_on`.
-- **The fork's WASM build** and its native **replay verifier** both link cards plus gear.
-- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated smoke scenario. Coverage uses `tools/card-coverage.cmd` on the gear crate. The no-rules-deviation bar applies in full.
+### B3. Gear in the engine (fork: card files of `crates/cantrip-cards`, realms/docs/gear.md)
+- **Effect families** are written once in Rust, each a parameterised `const fn` making a command-zone ability from `cantrip-mechanics` and the core's verbs (draw, scry, surveil, tokens, mana, counters, haste, life, prevention, discard, mill), never a new core brick and never in an upstream module: they are `crates/cantrip-cards/src/cards/realm_gear.rs`, a new file of the card crate that defines no card.
+- **Item definitions** live in `realms/content/gear/*.json`. `tools/realms/gear-cards.py` generates one card file per item with effects, `realm_gear_<item>.rs`, holding its typeless emblem, and validates each item against its slot's families and its rarity's budget. The card crate's own build script registers them as it registers every card, so the engine's one card table has them: no hook, no second table.
+- **The fork's WASM build** (`cantrip-wasm`) and its native **replay verifier** (`cantrip-native-host`) are the stock ones built from the fork, which has the gear's card files.
+- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated smoke scenario, all in the stock corpus (`scenarios/realm-gear-*.cantrip`). Coverage is `tools/realms/gear-coverage.py`, card-coverage.py for the gear. The no-rules-deviation bar applies in full.
 
 ### B4. Server (fork: `realms/dotnet/Cantrip.Realms.Server`, ASP.NET Core)
 - **Auth:** reuses the `SiteSignIn` code (Discord OAuth with PKCE and a sealed cookie) with the game's own Discord application and keys. The player id is `discord-{id}`.
@@ -95,7 +95,7 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
 
 ### B8. Deployment (provider-neutral, separate from cantrip-rs.dev)
 - **One container image:** `realms/deploy/Dockerfile` is a multi-stage build.
-  - A Rust stage builds the native replay verifier, `cantrip-native-host` linked with `realms-gear`, for linux-x64 and linux-arm64.
+  - A Rust stage builds the native replay verifier, `cantrip-native-host` built from the fork (its card table has the gear), for linux-x64 and linux-arm64.
   - A .NET stage publishes `Cantrip.Realms.Server`.
   - The final image is the ASP.NET runtime with both, and it exposes the API, the WebSocket and `/healthz`.
   - All configuration comes from environment variables: the database URL, the Discord client id and secret, the cookie-key directory or KMS, and the CDN base URL.
@@ -130,7 +130,7 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
 | 1 | Per-player setup and Vanguard objects (B2.1–2) | upstream | scenarios for life, hand sizes and command objects; `test.cmd` passes |
 | 2 | The WASM engine and `?local` bot play (B2.3–4) | upstream | determinism check passes; a whole bot game in a browser with no server |
 | 3 | Data pipelines (B7) and the Dominaria card import (B2.5), continuing in parallel | fork + upstream | prices and pools generated; card imports keep landing |
-| 4 | `realms-gear`: about 25 effect families, the generator, scenarios | fork | every family and item covered and passing |
+| 4 | Gear in the engine (B3): the effect families, the generator, scenarios | fork | every family and item covered and passing |
 | 5 | The realm server (B4): accounts, collection, decks, ante, gear, vendors, encounters, replay check, loot, presence | fork | server tests pass (B10) |
 | 6 | The overworld (B5): renderer, maps, movement, mobs, world map, HUD, map editor | fork | you can walk Dominaria and see other players |
 | 7 | Card screens in `?realm` (B6): duel, spell table, vendor, loot, gear | fork | the whole loop plays end to end in a browser |
@@ -151,7 +151,7 @@ The work runs through the existing worktree pool and agents: card agents for B2.
 - **Engine (upstream):**
   - Run `tools\test.cmd` for core and host changes; the Rust workspace includes the new scenarios.
   - Run the WASM-versus-native determinism check over bench games and the scenario corpus.
-- **Gear:** `realms` scenarios for every family and item, through the corpus runner on the fork's card table, and coverage of the gear crate.
+- **Gear:** `realm-gear-*` scenarios for every family and item, in the stock corpus (the fork's card table has the gear's card files), coverage of the gear's files (`tools/realms/gear-coverage.py`), and the determinism check over them.
 - **Server:** xUnit tests for these areas.
 
   | Area | What the tests cover |
