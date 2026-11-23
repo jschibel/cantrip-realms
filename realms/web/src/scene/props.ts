@@ -133,10 +133,10 @@ export function buildProp(b: Boxes, kind: PropKind, tint: PropTint, random: () =
       break;
     case "mushroom":
       b.box(0.14, 0.4, 0.14, "#f2f7f8", 0, 0.2, 0);
-      b.box(0.55, 0.18, 0.55, pickOf(random, ["#ad5238", "#b06ee6", "#f58a3a"]), 0, 0.46, 0);
+      b.box(0.55, 0.18, 0.55, pickOf(random, ["#ad5238", "#8e82c8", "#f58a3a"]), 0, 0.46, 0);
       break;
     case "crystal":
-      b.box(0.3, 1.0, 0.3, "#b06ee6", 0, 0.5, 0, { glow: true, tilt: 0.15 });
+      b.box(0.3, 1.0, 0.3, "#c4bcef", 0, 0.5, 0, { glow: true, tilt: 0.15 });
       b.box(0.22, 0.6, 0.22, "#84bfd3", 0.25, 0.3, 0.1, { glow: true, tilt: -0.3 });
       b.box(0.18, 0.5, 0.18, "#5296b5", -0.2, 0.25, -0.12, { glow: true, tilt: 0.4 });
       break;
@@ -237,7 +237,7 @@ export function buildProp(b: Boxes, kind: PropKind, tint: PropTint, random: () =
       break;
     case "altar":
       b.box(1.2, 0.6, 0.7, tint.stone[1]!, 0, 0.3, 0);
-      b.box(0.2, 0.2, 0.2, "#b06ee6", 0, 0.75, 0, { glow: true });
+      b.box(0.2, 0.2, 0.2, "#c4bcef", 0, 0.75, 0, { glow: true });
       break;
     case "coffin":
       b.box(0.5, 0.3, 1.2, "#2e1c14", 0, 0.15, 0, { turn: random() });
@@ -251,7 +251,7 @@ export function buildProp(b: Boxes, kind: PropKind, tint: PropTint, random: () =
       b.box(0.25, 2.0, 0.25, "#3e4252", -0.7, 1.0, 0);
       b.box(0.25, 2.0, 0.25, "#3e4252", 0.7, 1.0, 0);
       b.box(1.65, 0.25, 0.25, "#3e4252", 0, 2.1, 0);
-      b.box(1.15, 1.8, 0.08, "#b06ee6", 0, 1.0, 0, { glow: true });
+      b.box(1.15, 1.8, 0.08, "#8e82c8", 0, 1.0, 0, { glow: true });
       break;
     case "stairs-down":
       b.box(1.2, 0.04, 1.2, "#0b0c10", 0, 0.01, 0);

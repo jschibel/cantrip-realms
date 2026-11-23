@@ -30,6 +30,8 @@ export const DOMINARIA: Palette = {
     tile: ["#5a2420", "#85382c", "#ad5238"],
     gold: ["#6e4210", "#a8681a", "#e09a2a", "#ffc94a", "#fff09a"],
     fire: ["#8a2a12", "#d0521f", "#f58a3a"],
+    // Magic in the land - crystal, a portal, an altar's light: dusty lavender, never the black's violet.
+    arcane: ["#3a2f5c", "#5e5294", "#8e82c8", "#c4bcef"],
     // The five colors' cloth: what a character wears, and nothing the land is made of.
     white: ["#b0a37a", "#e6dbb4", "#fff8de"],
     blue: ["#142266", "#2338b0", "#3f62e8", "#85a6ff"],

@@ -34,7 +34,7 @@ const SHADES: Record<Terrain, readonly string[]> = {
   floor: ["#575c6e"],
   wood: ["#73472b"],
   marble: ["#979cab"],
-  crystal: ["#7a32b0"],
+  crystal: ["#5e5294"],
   forest: ["#2f5424"],
   hills: ["#5e9134"],
   mountain: ["#757b8c"],
