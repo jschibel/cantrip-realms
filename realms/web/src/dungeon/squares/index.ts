@@ -4,31 +4,15 @@
 //
 //   generateDungeonFloor(request)   a run's floor: its plan, tiles, props, lights, stairs and encounters (generate.ts)
 //   assembleFloor(floor)            the floor as a Place to draw, its bounds and the way up's doorway (assemble.ts)
-//   gridOfFloor(floor)              the floor's walkable Grid
+//   gridOfFloor(floor)              the floor's walkable Grid (assemble.ts)
 
-import type { Place } from "../../render/place";
-import type { Rect, XYZ } from "../../world/format";
-import type { Grid } from "../../world/grid";
-import type { DungeonFloor, FloorRequest } from "./types";
+// The art the floors name: the props and rooms registries, and the dungeons' own surfaces and props.
+import "../../art/props";
+import "../../art/rooms";
+import "./surfaces";
+import "./props";
 
+export { type AssembledFloor, assembleFloor, gridOfFloor } from "./assemble";
+export { THEME_DEFS, generateDungeonFloor } from "./generate";
+export { MAX_LIGHTS, bossIndex, wardenIndex } from "./finish";
 export type { DungeonFloor, FloorRequest, Role, RunFloor, Spot } from "./types";
-
-export interface AssembledFloor {
-  readonly place: Place;
-  /** The ground the camera keeps its view within. */
-  readonly bounds: Rect;
-  /** The way up's doorway: where the iris closes leaving the dungeon. */
-  readonly doorway: XYZ;
-}
-
-export function generateDungeonFloor(_request: FloorRequest): DungeonFloor {
-  throw new Error("dungeon floors on squares: not built yet");
-}
-
-export function assembleFloor(_floor: DungeonFloor): AssembledFloor {
-  throw new Error("dungeon floors on squares: not built yet");
-}
-
-export function gridOfFloor(_floor: DungeonFloor): Grid {
-  throw new Error("dungeon floors on squares: not built yet");
-}
