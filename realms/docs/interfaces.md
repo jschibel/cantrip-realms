@@ -189,7 +189,8 @@ players (design.md A6). Each frame is a MessagePack union, `[key, {Field: value,
 | server | 5 | `Left` | `Player` |
 | server | 6 | `Refused` | `Reason, At`: a message refused, and where the player truly is |
 
-- `Player` is a number for the connection, never the player's account.
+- `Player` is a number for the connection, never the player's account. A connection from a page of another origin than
+  the world client's (`REALMS_CLIENT`) or the server's own is refused.
 - `Enter` enters the map the character last reported standing on (`/api/travel`), at that hex; another map is refused.
   The character's look starts as their loadout's meshes.
 - The server refuses a `Move` whose path leaves the map, crosses a blocked hex, steps anywhere but to a neighbour, starts

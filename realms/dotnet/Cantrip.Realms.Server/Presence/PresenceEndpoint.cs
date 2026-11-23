@@ -33,6 +33,12 @@ public static class PresenceEndpoint
                 return Results.BadRequest(new ApiError("BadRequest", "This is a WebSocket."));
             }
 
+            // A page of another site cannot open a player's connection with their cookie.
+            if (context.Request.Headers.Origin is [{ } origin] && !Allowed(origin, context.RequestServices.GetRequiredService<RealmOptions>(), context.Request))
+            {
+                return Results.Json(new ApiError("Forbidden", "Not from this realm's pages."), statusCode: StatusCodes.Status403Forbidden);
+            }
+
             if (RealmSignIn.PlayerId(context) is not { } player)
             {
                 return Results.Json(new ApiError(Codes.NotSignedIn, "Sign in first."), statusCode: StatusCodes.Status401Unauthorized);
@@ -95,6 +101,12 @@ public static class PresenceEndpoint
             return Results.Empty;
         });
     }
+
+    /// <summary>Whether a connection's origin is the world client's (<see cref="RealmOptions.Client"/>) or the server's own.</summary>
+    private static bool Allowed(string origin, RealmOptions options, HttpRequest request) =>
+        Uri.TryCreate(origin, UriKind.Absolute, out Uri? from)
+        && (string.Equals(from.GetLeftPart(UriPartial.Authority), options.Client?.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(from.Authority, request.Host.Value, StringComparison.OrdinalIgnoreCase));
 
     private static async Task Read(WebSocket socket, PresenceHub hub, PresenceHub.Member member, PlayerRow row, IServiceScopeFactory scopes, CancellationToken cancel)
     {

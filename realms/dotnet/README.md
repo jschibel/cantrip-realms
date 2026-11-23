@@ -25,8 +25,8 @@ set REALMS_DEV_SIGNIN=1
 dotnet run --project realms\dotnet\Cantrip.Realms.Server --urls http://localhost:5080
 ```
 
-That keeps its data in `realms.db` (SQLite) in the working directory, finds the content in the repository it runs from,
-and lets anyone sign in as anyone. Then:
+That keeps its data in `realms.db` (SQLite) beside the server's project (`dotnet run` runs it from there; git ignores
+it), finds the content in the repository it runs from, and lets anyone sign in as anyone. Then:
 
 ```
 curl -c jar -H "Content-Type: application/json" -d "{\"Id\":1,\"Name\":\"Ann\"}" http://localhost:5080/dev/signin

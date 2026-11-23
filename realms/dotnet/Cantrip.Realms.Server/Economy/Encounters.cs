@@ -173,7 +173,7 @@ public sealed class Encounters(
 
         if (Now - duel.StartedAt > (long)Abandoned.TotalMilliseconds)
         {
-            await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false);
+            if (!await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
             return new OutcomeView("lost", 0, [], duel.Cap, null, duel.Detail);
         }
 
@@ -183,7 +183,7 @@ public sealed class Encounters(
         if (!verdict.PlayerWon)
         {
             string detail = verdict.Accepted ? (verdict.Winners.Count == 0 ? "A draw." : "The mob won.") : $"The log was not a game of this duel: {verdict.Problem}";
-            await Lose(duel, detail).ConfigureAwait(false);
+            if (!await Lose(duel, detail).ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
             return new OutcomeView("lost", 0, [], duel.Cap, null, detail);
         }
 
@@ -305,7 +305,8 @@ public sealed class Encounters(
     /// A lost duel (design.md A3): a card of the ante it was fought for, chosen uniformly among its copies, is gone from the
     /// collection and the ante; and the character wakes at the nearest inn. Gold is kept.
     /// </summary>
-    private async Task Lose(DuelRow duel, string detail)
+    /// <returns>Whether this call ended the duel; false if it had ended already.</returns>
+    private async Task<bool> Lose(DuelRow duel, string detail)
     {
         string player = duel.PlayerId;
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
@@ -315,7 +316,7 @@ public sealed class Encounters(
                 .SetProperty(row => row.FinishedAt, Now)
                 .SetProperty(row => row.Detail, detail)).ConfigureAwait(false) != 1)
         {
-            return;
+            return false;
         }
 
         duel.State = DuelRow.Lost;
@@ -354,6 +355,7 @@ public sealed class Encounters(
 
         await db.SaveChangesAsync().ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
+        return true;
     }
 
     private async Task<DuelRow> Owned(string player, string? token) =>

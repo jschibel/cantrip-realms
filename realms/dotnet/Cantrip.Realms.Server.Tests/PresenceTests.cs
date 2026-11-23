@@ -158,6 +158,20 @@ public sealed class PresenceTests
     }
 
     [Fact]
+    public async Task A_page_of_another_site_cannot_connect_with_the_players_cookie()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1);
+        WebSocketClient client = app.Server.CreateWebSocketClient();
+        client.ConfigureRequest = request =>
+        {
+            request.Headers.Cookie = browser.Cookie;
+            request.Headers.Origin = "https://elsewhere.example";
+        };
+        await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.ConnectAsync(new Uri(app.Server.BaseAddress, PresenceEndpoint.Route), CancellationToken.None));
+    }
+
+    [Fact]
     public void An_instance_holds_its_number_of_players_and_another_opens_when_it_is_full()
     {
         RealmContent content = RealmApp.Content;
