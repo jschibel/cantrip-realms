@@ -1,0 +1,91 @@
+{
+  "comment": "Golden vectors for the spawn algorithm of realms/docs/interfaces.md ('Spawns'): seed = fnv1a32(key), mob = mobs[seed % len]. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
+  "cases": [
+    {
+      "player": "discord-1",
+      "map": "benalish-meadow",
+      "spawn": "s1",
+      "unixSeconds": 1763856000,
+      "respawnSeconds": 600,
+      "mobs": [
+        "phyrexian-scout"
+      ],
+      "key": "discord-1|benalish-meadow|s1|2939760",
+      "seed": 2393667333,
+      "mob": "phyrexian-scout"
+    },
+    {
+      "player": "discord-1",
+      "map": "benalish-meadow",
+      "spawn": "s1",
+      "unixSeconds": 1763856599,
+      "respawnSeconds": 600,
+      "mobs": [
+        "phyrexian-scout",
+        "benalish-deserter",
+        "kjeldoran-raider"
+      ],
+      "key": "discord-1|benalish-meadow|s1|2939760",
+      "seed": 2393667333,
+      "mob": "phyrexian-scout"
+    },
+    {
+      "player": "discord-42",
+      "map": "urborg-mire",
+      "spawn": "s3",
+      "unixSeconds": 1763856600,
+      "respawnSeconds": 600,
+      "mobs": [
+        "urborg-ghoul",
+        "cabal-initiate"
+      ],
+      "key": "discord-42|urborg-mire|s3|2939761",
+      "seed": 2487930082,
+      "mob": "urborg-ghoul"
+    },
+    {
+      "player": "discord-42",
+      "map": "urborg-mire",
+      "spawn": "s3",
+      "unixSeconds": 1763943000,
+      "respawnSeconds": 86400,
+      "mobs": [
+        "urborg-ghoul",
+        "cabal-initiate",
+        "bog-wraith"
+      ],
+      "key": "discord-42|urborg-mire|s3|20416",
+      "seed": 2204170632,
+      "mob": "urborg-ghoul"
+    },
+    {
+      "player": "discord-7",
+      "map": "tolarian-shore",
+      "spawn": "boss",
+      "unixSeconds": 1763856000,
+      "respawnSeconds": 604800,
+      "mobs": [
+        "teferi"
+      ],
+      "key": "discord-7|tolarian-shore|boss|2916",
+      "seed": 1903977180,
+      "mob": "teferi"
+    },
+    {
+      "player": "discord-ü",
+      "map": "llanowar-wilds",
+      "spawn": "s2",
+      "unixSeconds": 1700000000,
+      "respawnSeconds": 300,
+      "mobs": [
+        "llanowar-elves-pack",
+        "yavimaya-wurm",
+        "elvish-scout",
+        "multani-guard"
+      ],
+      "key": "discord-ü|llanowar-wilds|s2|5666666",
+      "seed": 3344485933,
+      "mob": "yavimaya-wurm"
+    }
+  ]
+}
