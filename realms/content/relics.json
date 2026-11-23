@@ -1,0 +1,14 @@
+{
+  "comment": "Relics (realms/docs/design.md, A3a): cards that drop only from the bosses named here, at most once per account ever, and are never in a pool, a vendor's stock, a loot offer, an ante or a sale. The capstone boss is milestone 8's content; until it exists no relic can drop.",
+  "relics": [
+    { "card": "Black Lotus", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Mox Pearl", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Mox Sapphire", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Mox Jet", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Mox Ruby", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Mox Emerald", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Ancestral Recall", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Time Walk", "bosses": ["phyrexian-praetor"], "chance": 0.02 },
+    { "card": "Timetwister", "bosses": ["phyrexian-praetor"], "chance": 0.02 }
+  ]
+}

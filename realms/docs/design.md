@@ -81,6 +81,23 @@ The owner's decisions:
 - **Conceding** counts as a loss.
 - **Leaving mid-duel:** the duel's log is saved locally and resumes on reload. A duel that is never finished counts as lost when you start your next encounter, or after 24 hours.
 
+### A3a. Relics
+
+Some cards are too powerful to come any way but one: the Power 9 to begin with (Black Lotus, Mox Pearl, Mox Sapphire, Mox
+Jet, Mox Ruby, Mox Emerald, Ancestral Recall, Time Walk, Timetwister), listed in `realms/content/relics.json`, which the
+owner may extend.
+
+- **Only from the highest-level bosses.** A relic drops only from the bosses its entry names: the capstone dungeon's
+  boss (the Phyrexian praetor that ends the Dominaria arc), and later planes' capstones. The chance is small, about 1 in
+  50 per win, in the entry. It is rolled after the duel, apart from the three-card offer and outside the prize cap, since
+  no ante could cover a relic's value.
+- **One per account, ever.** The server keeps a ledger of every relic each account has received. One already in the
+  ledger never drops for that account again, even if the card has since left the collection.
+- **Never anywhere else.** Relics are in no plane's pool: no vendor sells or buys one, no loot offer holds one, no starter
+  deck has one.
+- **Kept.** A relic can't be put in the ante and can't be sold, so it is never lost or passed on. A deck holds one copy at
+  most (they are restricted in Vintage).
+
 ### A4. Equipment (gear)
 - **Eight fixed slots:** Head, Neck, Body, Hands, Feet, Ring ×2 and Relic.
 - **What gear is in the game:** each worn item becomes a Vanguard-style object in your command zone from the start of the game. It can't be targeted, removed or interacted with, and it can do anything a card can do. Its stat lines change the setup values.
