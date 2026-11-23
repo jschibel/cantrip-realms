@@ -29,7 +29,7 @@ Until the world generator's world is in `realms/content/dominaria/world`, the se
 and refuses to start; point it at the tests' world meanwhile:
 
 ```
-set REALMS_PLACES=%CD%ealms\dotnet\Cantrip.Realms.Server.Tests\World
+set REALMS_PLACES=%CD%\realms\dotnet\Cantrip.Realms.Server.Tests\World
 ```
 
 That keeps its data in `realms.db` (SQLite) beside the server's project (`dotnet run` runs it from there; git ignores
