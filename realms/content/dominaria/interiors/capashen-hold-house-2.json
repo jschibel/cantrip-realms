@@ -39,5 +39,5 @@
     {"kind":"spot","at":[4.5,4,-1.6],"to":[4.5,0,3.1],"color":[1,0.94,0.78],"intensity":40,"reach":14,"angle":0.36,"penumbra":0.05,"decay":1.2}
   ],
   "entry": [4,6],
-  "exit": [335,907]
+  "exit": [378,894]
 }

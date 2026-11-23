@@ -44,6 +44,8 @@ export class Land {
   readonly decor = new Map<number, PropData>();
   /** Everything else that stands in the world: set pieces, walls, wares, bridges. Never removed. */
   readonly fixtures: PropData[] = [];
+  /** Tiles within a town's square (its `radius` along x and z) or just round it: no spawn, chest or waymarker there. */
+  readonly townArea: Uint8Array;
 
   constructor(
     readonly width: number,
@@ -56,6 +58,7 @@ export class Land {
     this.use = new Uint8Array(this.size);
     this.region = new Uint8Array(this.size);
     this.town = new Uint16Array(this.size);
+    this.townArea = new Uint8Array(this.size);
   }
 
   idx = (x: number, z: number): number => z * this.width + x;

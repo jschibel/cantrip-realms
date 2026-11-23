@@ -62,6 +62,15 @@ export interface Folk {
 
 export type Centrepiece = "fountain" | "statue" | "well" | "crystal" | "tree" | "brazier";
 
+/**
+ * How a town is laid out (towns.ts): `capital` and `city` walled stone towns of avenues and districts, `village` a
+ * hamlet in hedges, `elfhame` tree-houses spread among Llanowar's giant trees, `stilts` the Morass's houses on stilts
+ * along boardwalks, `clan` Keldon longhouses clustered round a great hall in a palisade, `campus` Tolarian domes round
+ * courtyards, `estate` a manor with its grounds and outbuildings.
+ */
+export const FORMS = ["capital", "city", "village", "elfhame", "stilts", "clan", "campus", "estate"] as const;
+export type Form = (typeof FORMS)[number];
+
 export interface TownLayout {
   readonly id: string;
   readonly name: string;
@@ -70,8 +79,11 @@ export interface TownLayout {
   readonly region: string;
   readonly style: Style;
   readonly at: At;
-  /** Tiles from the centre to the walls, along x and z: the town is the square of tiles within it. */
+  /** Tiles from the centre to the edge of its square, along x and z: the town is the square of tiles within it, its walls
+   * (or its edge) an outline inside that square, hugging the land. */
   readonly radius: number;
+  /** How it is laid out; by default `capital`, `city` or `village` by its kind. */
+  readonly form?: Form;
   readonly inn: string;
   readonly innkeeper: readonly string[];
   readonly board: readonly string[];
@@ -173,6 +185,7 @@ export function checkLayout(layout: Layout): string[] {
   for (const t of layout.towns) {
     if (!regions.has(t.region)) problems.push(`town ${t.id}: no region ${t.region}`);
     if (!(STYLES as readonly string[]).includes(t.style)) problems.push(`town ${t.id}: style ${t.style} is unknown`);
+    if (t.form !== undefined && !FORMS.includes(t.form)) problems.push(`town ${t.id}: form ${t.form} is unknown`);
     if (!on(t.at, t.radius + 24)) problems.push(`town ${t.id} is off the world, or too near its edge`);
   }
   for (const [k, a] of layout.towns.entries()) {

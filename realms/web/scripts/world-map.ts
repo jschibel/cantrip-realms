@@ -53,9 +53,13 @@ function draw(x0: number, z0: number, x1: number, z1: number, scale: number, zon
       const z = pz(prop.z);
       const to = prop.args?.to as [number, number] | undefined;
       if (TREE.has(prop.id)) p.fill(x - scale * 0.4, z - scale * 0.4, Math.max(1, scale * 0.8), Math.max(1, scale * 0.8), rgb("#1e3a18"));
-      else if (prop.id === "wall-run" && to) p.fill(Math.min(x, px(to[0])) - scale / 2, Math.min(z, pz(to[1])) - scale / 2, Math.abs(px(to[0]) - x) + scale, Math.abs(pz(to[1]) - z) + scale, rgb("#5a5a62"));
+      else if ((prop.id === "wall-run" || prop.id === "hedgerow" || prop.id === "ruined-wall") && to) {
+        // A run of wall or hedge, at any angle: a dot every half tile along it.
+        const steps = Math.max(1, Math.ceil(Math.hypot(to[0] - prop.x, to[1] - prop.z) * 2));
+        const color = prop.id === "wall-run" ? (prop.args?.kind === "palisade" ? rgb("#6a4a2a") : rgb("#5a5a62")) : rgb("#2e4a22");
+        for (let s2 = 0; s2 <= steps; s2++) p.fill(px(prop.x + ((to[0] - prop.x) * s2) / steps) - scale / 2, pz(prop.z + ((to[1] - prop.z) * s2) / steps) - scale / 2, scale, scale, color);
+      }
       else if (prop.id === "wall-tower" || prop.id === "gatehouse") p.fill(x - scale, z - scale, scale * 2, scale * 2, rgb("#45454c"));
-      else if ((prop.id === "hedgerow" || prop.id === "ruined-wall") && to) p.fill(Math.min(x, px(to[0])) - scale / 2, Math.min(z, pz(to[1])) - scale / 2, Math.abs(px(to[0]) - x) + scale, Math.abs(pz(to[1]) - z) + scale, rgb("#2e4a22"));
       else if ((prop.id === "bridge" || prop.id === "pier") && to) p.fill(x, z, px(to[0]) - x, pz(to[1]) - z, rgb("#8a6a48"));
       else if (prop.args?.w !== undefined) p.fill(x, z, (prop.args.w as number) * scale, (prop.args.d as number) * scale, rgb("#d040d0"));
       else if (scale >= 3) p.fill(x - scale * 0.3, z - scale * 0.3, scale * 0.6, scale * 0.6, rgb("#303030"));

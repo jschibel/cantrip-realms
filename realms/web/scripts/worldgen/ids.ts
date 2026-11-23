@@ -60,7 +60,7 @@ export const STYLE_OF_REGION = {
  * The kinds of building the world asks each style for, with the `params` it gives every one (art/buildings/benalish.ts
  * documents them: ground, upper, roof, rise, chimney, wall, openings): a style reads what it can use of them.
  */
-export const BUILDING_KINDS = ["house", "tenement", "shop", "inn", "temple", "guildhall", "smithy", "library", "tower", "warehouse", "barn"] as const;
+export const BUILDING_KINDS = ["house", "tenement", "shop", "inn", "temple", "guildhall", "smithy", "library", "tower", "warehouse", "barn", "keep", "manor"] as const;
 export type BuildingKind = (typeof BUILDING_KINDS)[number];
 
 /**
@@ -99,6 +99,8 @@ export const PLACEHOLDERS: Readonly<Record<"surfaces" | "props" | "styles" | "ro
     "ice-rock": "a block of blue ice at x, z, seed (Parma, Keld's shores)",
     crystal: "a growth of blue crystal at x, z, seed (Orvada's isles, Tolarian squares)",
     stump: "a tree stump at x, z, seed",
+    "fruit-tree": "a small fruit tree at x, z, scale, seed (orchards inside the walls)",
+    "tree-platform": "a ring platform round a giant tree's trunk at x, z, args.height up, with a ladder (the elfhames)",
     "ruined-wall": "a broken stretch of wall from x, z to args.to",
     "wall-run": "a town wall from x, z to args.to (tile middles, one straight run), its outer face args.face (n, e, s, w), in args.style",
     "wall-tower": "a round tower of a town wall at x, z (a corner, or beside a gate), in args.style",

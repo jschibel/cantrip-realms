@@ -2,12 +2,12 @@
   "cx": 17,
   "cz": 32,
   "tiles": [
-    [4,"grass",2],[4,"grass",3],[3,"grass",0],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",3],[3,"dirt",0],[3,"dirt",0],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"grass",0],
-    [3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[3,"dirt",0],[3,"dirt",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
-    [2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[3,"dirt",0],[3,"dirt",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",3],
-    [2,"grass",0],[1,"sand",0],[1,"sand",0],[1,"planks",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[3,"dirt",0],[3,"dirt",0],[1,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
-    [1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[3,"dirt",0],[3,"dirt",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",3],
-    [0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",3],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",3],
+    [4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[3,"dirt",0],[3,"dirt",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",3],[2,"grass",0],
+    [3,"grass",0],[3,"grass",0],[3,"grass",2],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[3,"dirt",0],[3,"dirt",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
+    [2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[3,"dirt",0],[3,"dirt",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
+    [2,"grass",0],[1,"sand",0],[1,"sand",0],[1,"planks",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[3,"dirt",0],[3,"dirt",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",3],
+    [1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[2,"road",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[1,"dirt",0],[3,"dirt",0],[3,"dirt",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],
+    [0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"grass",0],[1,"grass",3],[1,"grass",3],[1,"grass",0],[1,"grass",3],[1,"grass",0],[1,"grass",3],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],
     [0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],
@@ -36,29 +36,26 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
   "props": [
-    {"id":"bush","x":547.375,"z":1024.375,"seed":3},
-    {"id":"tree","x":556.4375,"z":1024.375,"seed":2,"scale":0.9375},
-    {"id":"pine","x":545.5,"z":1024.5,"seed":6,"scale":1.0625},
-    {"id":"tree","x":559.375,"z":1024.5,"seed":14,"scale":1.1875},
-    {"id":"pine","x":569.5625,"z":1024.5,"seed":4,"scale":0.8125},
-    {"id":"stump","x":544.5,"z":1024.5625,"seed":13},
-    {"id":"tree","x":572.5625,"z":1024.5625,"seed":2,"scale":1.125},
-    {"id":"pine","x":561.5,"z":1025.5,"seed":13,"scale":1.25},
-    {"id":"tree","x":562.375,"z":1025.5,"seed":3,"scale":0.9375},
-    {"id":"tree","x":548.375,"z":1025.5625,"seed":5,"scale":1.0625},
-    {"id":"tree","x":555.375,"z":1026.375,"seed":7,"scale":1.125},
-    {"id":"bush","x":575.5,"z":1026.625,"seed":6},
+    {"id":"bush","x":574.5625,"z":1024.4375,"seed":11},
+    {"id":"tree","x":573.4375,"z":1024.5625,"seed":0,"scale":1.1875},
+    {"id":"tree","x":570.4375,"z":1024.625,"seed":1,"scale":1},
+    {"id":"boulder","x":556.4375,"z":1025.4375,"seed":4,"scale":1.25},
+    {"id":"stump","x":546.5625,"z":1025.5,"seed":12},
+    {"id":"bush","x":552.4375,"z":1025.625,"seed":10},
+    {"id":"tree","x":556.5,"z":1026.4375,"seed":12,"scale":1.0625},
     {"id":"ferry-post","x":547.5,"z":1027.5},
-    {"id":"tree","x":575.5,"z":1028.4375,"seed":10,"scale":1},
-    {"id":"tree","x":567.5,"z":1029.4375,"seed":5,"scale":1.1875},
-    {"id":"mushroom","x":575.5625,"z":1029.5,"seed":3,"scale":1.0625}
+    {"id":"tree","x":575.5,"z":1027.625,"seed":1,"scale":1.1875},
+    {"id":"tree","x":565.4375,"z":1029.375,"seed":8,"scale":0.875},
+    {"id":"tree","x":564.4375,"z":1029.5,"seed":0,"scale":1.1875},
+    {"id":"tree","x":567.5625,"z":1029.5625,"seed":2,"scale":1.25},
+    {"id":"mushroom","x":569.5625,"z":1029.625,"seed":10}
   ],
   "buildings": [],
   "npcs": [
     {"id":"verdura-ferry-ferryman-from","x":546,"z":1026,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"17_32:1","x":574,"z":1030,"mobs":["abomination","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"17_32:1","x":572,"z":1029,"mobs":["guardian-of-new-benalia","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

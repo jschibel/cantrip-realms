@@ -96,8 +96,8 @@
     {"id":"keld-4-waystone","x":587,"z":102,"kind":"waystone","name":"The waystone of the Keldon Tower of the Fourth Circle","stand":[587.5,0.625,102.5],"tower":"keld-4"}
   ],
   "spawns": [
-    {"id":"18_3:1","x":603,"z":96,"mobs":["karplusan-yeti","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"18_3:2","x":594,"z":111,"mobs":["fallen-angel","rorix-bladewing"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"18_3:1","x":602,"z":96,"mobs":["enormous-baloth","fallen-angel","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"18_3:2","x":586,"z":120,"mobs":["tempest-djinn","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

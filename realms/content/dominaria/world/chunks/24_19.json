@@ -32,15 +32,21 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],
-    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",2],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0]
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],
+    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0]
   ],
   "props": [
-    {"id":"pine","x":787.625,"z":638.375,"seed":5,"scale":1},
-    {"id":"tree","x":789.5,"z":638.4375,"seed":3,"scale":1.0625},
-    {"id":"tree","x":786.5,"z":638.625,"seed":13,"scale":1},
-    {"id":"stump","x":789.625,"z":639.5,"seed":15},
-    {"id":"tree","x":791.625,"z":639.5,"seed":6,"scale":1.25}
+    {"id":"tree","x":788.625,"z":638.5,"seed":1,"scale":0.875},
+    {"id":"tree","x":791.5,"z":638.5625,"seed":10,"scale":1.1875},
+    {"id":"tree","x":785.5625,"z":639.375,"seed":2,"scale":1.125},
+    {"id":"tree","x":789.5625,"z":639.375,"seed":7,"scale":1.125},
+    {"id":"tree","x":792.5,"z":639.375,"seed":7,"scale":1.125},
+    {"id":"tree","x":783.5625,"z":639.4375,"seed":5,"scale":0.875},
+    {"id":"tree","x":786.625,"z":639.4375,"seed":4,"scale":1},
+    {"id":"tree","x":791.375,"z":639.4375,"seed":5,"scale":1},
+    {"id":"tree","x":790.625,"z":639.5,"seed":13,"scale":0.875},
+    {"id":"tree","x":784.375,"z":639.5625,"seed":8,"scale":0.875},
+    {"id":"bush","x":793.625,"z":639.625,"seed":8}
   ],
   "buildings": [],
   "npcs": [],

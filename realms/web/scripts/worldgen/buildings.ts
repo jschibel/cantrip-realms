@@ -81,6 +81,8 @@ const LOOKS: Record<BuildingKind, Look> = {
   tower: { ground: [3.2, 3.4], upper: [1, 2.4, 2.6], rise: [2.6, 3], door: "door", windows: "window", sign: true, chimney: 0, wall: "limestone" },
   warehouse: { ground: [3, 3.3], upper: [0, 0, 0], rise: [1.8, 2], door: "door", windows: "window", chimney: 0, wall: "plaster" },
   barn: { ground: [2.5, 2.8], upper: [0, 0, 0], rise: [2, 2.3], door: "door", windows: "window", chimney: 0, wall: "plaster" },
+  keep: { ground: [5, 5.5], upper: [1, 3, 3.4], rise: [2.6, 3], door: "door", windows: "window", banners: true, chimney: 0, wall: "limestone" },
+  manor: { ground: [3, 3.2], upper: [1, 2, 2.2], rise: [2.2, 2.5], door: "door", windows: "window", banners: true, lamp: true, chimney: 1, wall: "limestone" },
 };
 
 const range = (random: () => number, [low, high]: readonly [number, number]) => texel(low + random() * (high - low));

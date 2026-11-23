@@ -377,7 +377,7 @@ export function populate(land: Land, zones: Zones, roster: readonly MobFile[], s
   };
   const near: number[] = [];
   const order = shuffle(Array.from({ length: land.size }, (_, i) => i), random);
-  const wild = (i: number) => (land.use[i] === Use.Wild || land.use[i] === Use.Field) && land.town[i] === 0 && !away[i];
+  const wild = (i: number) => (land.use[i] === Use.Wild || land.use[i] === Use.Field) && land.town[i] === 0 && !land.townArea[i] && !away[i];
 
   // Spawns: on open wild ground of some tier, well apart.
   const taken = new Uint8Array(land.size);
@@ -423,7 +423,7 @@ export function populate(land: Land, zones: Zones, roster: readonly MobFile[], s
   const waymarkers: WaymarkerData[] = [];
   const markerTaken = new Uint8Array(land.size);
   const mark = (i: number, tier: number, spacing: number) => {
-    if (markerTaken[i] || !land.open(i) || land.use[i] !== Use.Wild || land.town[i] !== 0) return false;
+    if (markerTaken[i] || !land.open(i) || land.use[i] !== Use.Wild || land.town[i] !== 0 || land.townArea[i]) return false;
     if (tierOf(i) !== tier) return false;
     // At the rise: softer ground within two tiles.
     if (!land.rect(land.xOf(i) - 2, land.zOf(i) - 2, land.xOf(i) + 2, land.zOf(i) + 2).some((j) => tierOf(j) < tier)) return false;

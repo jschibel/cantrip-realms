@@ -89,14 +89,18 @@ describe("a town", () => {
     7,
   );
 
-  it("has its walls with a gate on every side, its own buildings with interiors, and its people", () => {
-    expect([...town.gates.keys()].sort()).toEqual(["e", "n", "s", "w"]);
-    for (const g of town.gates.values()) expect(land.open(g)).toBe(true);
+  it("has its walls with a gate toward each road, its own buildings with interiors, and its people", () => {
+    expect(town.gates.size).toBe(2);
+    for (const g of town.gates.values()) expect(land.open(g) && land.town[g] === 0).toBe(true);
+    // One gate faces north, toward its road, the other east.
+    const toward = [...town.gates.values()].map((g) => Math.atan2(land.zOf(g) - 80, land.xOf(g) - 80));
+    expect(toward.some((a) => Math.abs(a + Math.PI / 2) < 0.8) && toward.some((a) => Math.abs(a) < 0.8)).toBe(true);
     expect(town.interiors.map((r) => r.kind).sort()).toEqual(expect.arrayContaining(["inn", "shop", "shop", "guildhall", "temple", "library", "smithy", "house"]));
     expect(town.npcs.map((n) => n.kind)).toEqual(expect.arrayContaining(["quest-board", "guard", "townsfolk", "arena"]));
     expect(town.pitch).not.toBeNull();
-    expect(land.use[land.idx(80 - 50, 80 - 10)]).toBe(Use.Wall);
-    expect(land.use[land.idx(80 - 50, 80)]).toBe(Use.Street);
+    let wall = 0;
+    for (let i = 0; i < land.size; i++) if (land.use[i] === Use.Wall) wall++;
+    expect(wall).toBeGreaterThan(200);
   });
 
   it("stands every building on its own ground, every door on the street before its front, never facing north", () => {

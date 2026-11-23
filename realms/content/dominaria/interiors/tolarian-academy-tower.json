@@ -42,5 +42,5 @@
     {"kind":"point","at":[5,1.6,4.5],"color":[0.6,0.7,1],"intensity":4,"reach":6,"flicker":{"base":3.6,"steps":[0,1.6,0.7],"rate":8,"phase":0}}
   ],
   "entry": [5,10],
-  "exit": [100,686]
+  "exit": [133,649]
 }
