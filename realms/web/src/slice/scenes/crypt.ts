@@ -98,12 +98,20 @@ export function buildCrypt(): SliceScene {
   const stone = tiled(surfaces.cryptStone());
   b.box(4.5, 0, 0.5, 9.5, 0.1875, 4.75, sides(stone));
   b.box(5.0, 0.1875, 0.75, 9.0, 0.375, 4.4, sides(stone));
+  // A worn runner of the order's violet from the stair to the dais and up its steps.
+  const runner = { mat: material("runner", () => runnerPicture()), offset: [8, 0] as const };
+  b.box(6.5, 0, 4.75, 7.5, 1 / 16, D + 0.1, { top: runner });
+  b.box(6.5, 0.1875, 4.4, 7.5, 0.1875 + 1 / 16, 4.75, { top: runner, south: runner });
+  b.box(6.5, 0.375, 3.75, 7.5, 0.375 + 1 / 16, 4.4, { top: runner, south: runner });
   const lid = material("sarcophagus-lid", () => Pic.sarcophagusLid(24, 40));
   const end = material("sarcophagus-end", () => Pic.sarcophagusSide(24, 12));
   const side = material("sarcophagus-side", () => Pic.sarcophagusSide(40, 12));
   b.box(6.25, 0.375, 1.25, 7.75, 1.125, 3.75, { south: fitted(end), north: fitted(end), east: fitted(side), west: fitted(side) });
   b.roundedBox(6.1875, 1.125, 1.1875, 7.8125, 1.3125, 3.8125, 1 / 16, { top: fitted(lid), south: stone, east: stone, west: stone, north: stone });
   blockArea(grid, 6.25, 1.25, 7.75, 3.75);
+  // The dais's floor: its step all round, its top within.
+  grid.raise(4, 1, 9, 4, 0.1875);
+  grid.raise(5, 1, 8, 3, 0.375);
   for (const [x, z] of [[5.0, 5.0], [9.0, 5.0]] as const) {
     b.cylinder(x, z, 0, 0.125, 0.25, 8, { mat: flat(C.IRON[2]!) });
     b.cylinder(x, z, 0.125, 0.75, 0.0625, 6, { mat: flat(C.IRON[3]!) });
@@ -201,6 +209,24 @@ function ossuaryPicture(): Pixmap {
     p.set(x, 12, d[5]!);
     p.set(x, 17, d[5]!);
     p.set(x, 23, d[5]!);
+  }
+  return p;
+}
+
+/** A runner's weave, 16 by 16 to tile along it: violet with gold edges and a worn, darker middle. */
+function runnerPicture(): Pixmap {
+  const v = C.PURPLE;
+  const p = new Pixmap(16, 16);
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      let c = (x + y) % 4 === 0 ? v[2]! : v[3]!;
+      if (x === 0 || x === 15) c = C.GOLD[2]!;
+      if (x === 1 || x === 14) c = C.GOLD[3]!;
+      if (x === 2 || x === 13) c = v[1]!;
+      if (x > 5 && x < 10 && (x * 7 + y * 3) % 5 === 0) c = v[2]!;
+      if (y % 8 === 0 && x > 3 && x < 12 && x % 2 === 0) c = C.GOLD[3]!;
+      p.set(x, y, c);
+    }
   }
   return p;
 }

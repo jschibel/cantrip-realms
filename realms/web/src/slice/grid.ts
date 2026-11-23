@@ -9,12 +9,25 @@ export interface Tile {
 
 export class Grid {
   private readonly open: Uint8Array;
+  /** How high each tile's floor stands (a dais, a step), in world units. */
+  private readonly floor: Float32Array;
 
   constructor(
     readonly width: number,
     readonly height: number,
   ) {
     this.open = new Uint8Array(width * height);
+    this.floor = new Float32Array(width * height);
+  }
+
+  /** The floor's height on a tile (0 outside the grid). */
+  heightAt(x: number, z: number): number {
+    return this.inside(x, z) ? this.floor[z * this.width + x]! : 0;
+  }
+
+  /** Raises the floor of every tile of a rectangle. */
+  raise(x0: number, z0: number, x1: number, z1: number, y: number): void {
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) if (this.inside(x, z)) this.floor[z * this.width + x] = y;
   }
 
   inside(x: number, z: number): boolean {

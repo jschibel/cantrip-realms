@@ -75,7 +75,7 @@ export class Actor {
       o.castShadow = true;
       o.receiveShadow = true;
     });
-    this.position.copy(centre(tile));
+    this.position.copy(centre(tile, grid.heightAt(tile.x, tile.z)));
     this.figure.root.position.copy(this.position);
     this.shadow = blobShadow(0.42);
     this.figure.root.add(this.shadow);
@@ -118,7 +118,7 @@ export class Actor {
       const d = to.length();
       const step = this.speed * dt;
       if (d <= step) {
-        this.position.copy(next);
+        this.position.set(next.x, this.position.y, next.z);
         this.path.shift();
       } else {
         this.position.addScaledVector(to, step / d);
@@ -126,6 +126,9 @@ export class Actor {
       if (d > 1e-4) this.figure.face(to.x, to.z);
       speed = this.speed;
       this.moved += step;
+      // Up and down steps as the floor under it rises and falls.
+      const floor = this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
+      this.position.y += (floor - this.position.y) * Math.min(1, dt * 14);
     } else {
       this.think(dt, player);
     }
