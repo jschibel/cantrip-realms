@@ -1,11 +1,11 @@
 # Rift Warden (rift-warden, Zephid), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Zephid
-2 Flying Men
+2 Fugitive Wizard
 3 Narcomoeba
-2 Serendib Efreet
+2 Soaring Drake
 2 Azure Drake
 2 Serra Sphinx
 4 Mana Drain
-4 Remand
+4 Force Void
 17 Island

@@ -7,6 +7,6 @@
 2 Argothian Swine
 2 Havenwood Wurm
 3 Audacity
-1 Song of Freyalise
-3 Beast Within
+1 Rancor
+3 Song of Freyalise
 17 Forest

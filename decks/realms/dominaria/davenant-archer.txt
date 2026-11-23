@@ -4,7 +4,7 @@
 2 Serra Zealot
 1 Glory Seeker
 2 Kjeldoran Guard
-2 Standing Troops
+2 Yotian Medic
 2 Aven Sentry
 1 Kjeldoran Escort
 2 Lowland Tracker

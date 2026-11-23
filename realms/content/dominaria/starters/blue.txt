@@ -9,7 +9,7 @@
 2 Azure Drake
 2 Serra Sphinx
 2 Pongify
-2 Remand
 2 Force Void
-1 Force Spike
+2 Force Spike
+1 Psionic Blast
 17 Island

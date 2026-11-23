@@ -1,8 +1,8 @@
 # Bog Rats (bog-rats, Bog Rats), a tier 1 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Bog Rats
-1 Cabal Evangel
-2 Erg Raiders
+1 Basal Thrull
+2 Cabal Evangel
 2 Necrite
 2 Razortooth Rats
 1 Giant Cockroach

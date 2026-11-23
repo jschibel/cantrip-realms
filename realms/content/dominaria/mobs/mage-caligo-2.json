@@ -1,7 +1,7 @@
 {
   "id": "mage-caligo-2",
-  "name": "Vampire Hexmage",
-  "creature": "Vampire Hexmage",
+  "name": "Thrull Wizard",
+  "creature": "Thrull Wizard",
   "region": "B",
   "tier": 2,
   "deck": "decks/realms/dominaria/mage-caligo-2.txt",

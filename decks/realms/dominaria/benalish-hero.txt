@@ -3,7 +3,7 @@
 2 Benalish Hero
 1 Glory Seeker
 2 Kjeldoran Guard
-2 Standing Troops
+2 Benalish Infantry
 2 Yotian Medic
 2 Aven Sentry
 1 Kjeldoran Escort

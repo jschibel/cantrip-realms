@@ -6,11 +6,11 @@
 2 Devouring Deep
 2 Soaring Drake
 2 Ghost Ship
-1 Giant Octopus
+1 Keeneye Aven
 2 Homarid Warrior
 2 Cold-Water Snapper
 2 Force Spike
 2 Counterspell
-2 Disdainful Stroke
-1 Essence Scatter
+2 Essence Scatter
+1 Flash Counter
 17 Island

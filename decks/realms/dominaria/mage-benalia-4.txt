@@ -2,12 +2,12 @@
 
 4 Anointed Peacekeeper
 1 Icatian Priest
-1 Containment Priest
-1 Jazal Goldmane
+1 True Believer
+1 Serra Paragon
 1 Serra Angel
 1 Akroma, Angel of Wrath
-4 Path to Exile
 4 Swords to Plowshares
-2 Banishing Light
+2 Deadly Riposte
+4 Destroy Evil
 4 Leyline Binding
 17 Plains

@@ -1,14 +1,15 @@
-# El-Hajjâj (mage-caligo-3, El-Hajjâj), the mage of the Caligo Morass's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+# Nebuchadnezzar (mage-caligo-3, Nebuchadnezzar), the mage of the Caligo Morass's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 El-Hajjâj
-1 Will-o'-the-Wisp
-1 Cuombajj Witches
-1 Derelor
-1 Yargle, Glutton of Urborg
+4 Nebuchadnezzar
+1 Fugitive Wizard
+1 Zuran Enchanter
+1 Raven Guild Initiate
+1 Ertai Resurrected
 1 Yawgmoth Demon
 3 Cut Down
-3 Feed the Swarm
 3 Go for the Throat
-3 Hero's Downfall
-2 Touch of Death
-17 Swamp
+3 Terror
+2 Dark Banishing
+3 Essence Vortex
+6 Island
+11 Swamp

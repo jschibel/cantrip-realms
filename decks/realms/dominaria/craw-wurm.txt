@@ -3,14 +3,14 @@
 3 Craw Wurm
 2 Defiant Elf
 2 Ashcoat Bear
-1 Canopy Spider
+1 Elvish Warrior
 2 Branchsnap Lorian
 1 Goliath Beetle
 2 Argothian Swine
 2 Elfhame Wurm
-1 Spined Wurm
+1 Panther Warriors
 2 Audacity
-1 Rancor
+2 Rancor
 2 Song of Freyalise
-2 Beast Within
+1 Fanatical Fever
 17 Forest

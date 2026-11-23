@@ -2,10 +2,10 @@
 
 4 Loran of the Third Path
 1 Ornithopter
-1 Containment Priest
+1 True Believer
 1 Juggernaut
 1 Marble Priest
-1 Zetalpa, Primal Dawn
+1 Noble Templar
 3 Goblin Firebomb
 3 Pit Trap
 2 Staff of Zegon

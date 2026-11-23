@@ -1,7 +1,7 @@
 {
   "id": "mage-caligo-3",
-  "name": "El-Hajjâj",
-  "creature": "El-Hajjâj",
+  "name": "Nebuchadnezzar",
+  "creature": "Nebuchadnezzar",
   "region": "B",
   "tier": 3,
   "deck": "decks/realms/dominaria/mage-caligo-3.txt",
@@ -21,9 +21,11 @@
   ],
   "loot": {
     "pool": "dominaria",
-    "colors": "B",
+    "colors": "UB",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wizard"
+    ],
     "rarities": [
       "common",
       "uncommon",

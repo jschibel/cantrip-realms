@@ -9,9 +9,9 @@
 1 Cold-Water Snapper
 2 Force Spike
 2 Counterspell
-2 Disdainful Stroke
 2 Essence Scatter
 2 Flash Counter
 2 Memory Lapse
 2 Miscalculation
+2 Negate
 17 Island

@@ -5,11 +5,11 @@
 2 Benalish Faithbonder
 2 Knight of Grace
 2 Benalish Knight
-2 Standing Troops
+2 Yotian Medic
 2 Baird, Steward of Argive
-2 Abbey Gargoyles
-2 Path to Exile
+2 Ardent Militia
 2 Swords to Plowshares
 2 Destroy Evil
-1 Banishing Light
+2 Deadly Riposte
+1 Mana Tithe
 17 Plains

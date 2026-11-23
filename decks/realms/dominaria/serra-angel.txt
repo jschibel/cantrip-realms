@@ -6,6 +6,6 @@
 3 Anointed Peacekeeper
 2 Serra Paragon
 2 Akroma, Angel of Wrath
-3 Path to Exile
+3 Swords to Plowshares
 4 Glorious Anthem
 17 Plains

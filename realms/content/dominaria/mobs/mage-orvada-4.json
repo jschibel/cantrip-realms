@@ -1,7 +1,7 @@
 {
   "id": "mage-orvada-4",
-  "name": "Urza, Lord High Artificer",
-  "creature": "Urza, Lord High Artificer",
+  "name": "Arcanis the Omnipotent",
+  "creature": "Arcanis the Omnipotent",
   "region": "U",
   "tier": 4,
   "deck": "decks/realms/dominaria/mage-orvada-4.txt",
@@ -24,9 +24,7 @@
     "colors": "U",
     "types": [],
     "subtypes": [
-      "Artificer",
-      "Wizard",
-      "Construct"
+      "Wizard"
     ],
     "rarities": [
       "uncommon",

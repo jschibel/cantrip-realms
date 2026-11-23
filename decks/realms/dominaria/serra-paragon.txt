@@ -2,10 +2,10 @@
 
 4 Serra Paragon
 2 Icatian Priest
-3 Containment Priest
+3 Angelic Curator
 3 Anointed Peacekeeper
 2 Serra Angel
 2 Akroma, Angel of Wrath
-3 Path to Exile
+3 Swords to Plowshares
 4 Deadly Riposte
 17 Plains

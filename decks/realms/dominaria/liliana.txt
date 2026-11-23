@@ -7,6 +7,6 @@
 2 Moor Fiend
 1 Eater of the Dead
 1 Minion of Leshrac
-3 Cut Down
-4 Dismember
+4 Cut Down
+3 Go for the Throat
 17 Swamp

@@ -1,7 +1,7 @@
 # Elven Riders (elven-riders, Elven Riders), a tier 2 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
 
 3 Elven Riders
-2 Elvish Mystic
+2 Fyndhorn Elves
 2 Elvish Warrior
 1 Thornweald Archer
 2 Elvish Ranger
@@ -9,8 +9,8 @@
 2 Argothian Elder
 1 Erhnam Djinn
 2 Wirewood Guardian
-1 Bushwhack
+1 Audacity
+2 Bushwhack
 2 Giant Growth
 2 Song of Freyalise
-2 Beast Within
 17 Forest

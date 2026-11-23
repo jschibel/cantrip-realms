@@ -7,10 +7,10 @@
 1 Coalition Warbrute
 1 Reckless Wurm
 1 Blitz Automaton
+2 Disintegrate
 2 Firebolt
 2 Lava Dart
 2 Shock
-2 Abrade
 2 Incinerate
 2 Lightning Strike
 2 Flare

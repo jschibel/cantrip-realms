@@ -20,11 +20,7 @@
     "pool": "dominaria",
     "colors": "W",
     "types": [],
-    "subtypes": [
-      "Pegasus",
-      "Bird",
-      "Griffin"
-    ],
+    "subtypes": [],
     "rarities": [
       "common"
     ]

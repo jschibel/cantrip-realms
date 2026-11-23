@@ -8,10 +8,10 @@
 1 Grapeshot Catapult
 1 Venser's Sliver
 1 Pardic Wanderer
+1 Ashnod's Transmogrant
 2 Barbed Sextant
 2 Chromatic Star
 2 Goblin Firebomb
 2 Enervate
-1 Prophetic Prism
 2 Staff of Zegon
 17 Island

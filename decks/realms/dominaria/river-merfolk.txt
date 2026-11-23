@@ -2,11 +2,11 @@
 
 4 River Merfolk
 2 Merfolk of the Pearl Trident
-3 True-Name Nemesis
+3 Vodalian Mage
 3 Azure Drake
 2 Serra Sphinx
-2 Benthic Behemoth
-1 Force Spike
-3 Remand
+2 Mahamoti Djinn
+3 Force Spike
+1 Counterspell
 3 Force Void
 17 Island

@@ -2,15 +2,15 @@
 
 3 Sandbar Serpent
 2 Aven Envoy
-1 Bay Falcon
-2 Giant Tortoise
-1 Devouring Deep
-2 Horned Turtle
-2 Giant Octopus
+2 Bay Falcon
+1 Storm Crow
+2 Devouring Deep
+1 Soaring Drake
+2 Azure Drake
 1 Cold-Water Snapper
 2 Tolarian Terror
-1 Force Spike
+2 Force Spike
 2 Pongify
-2 Remand
 2 Force Void
+1 Psionic Blast
 17 Island

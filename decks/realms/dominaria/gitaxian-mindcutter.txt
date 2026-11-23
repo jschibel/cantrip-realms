@@ -3,10 +3,10 @@
 4 Ertai Resurrected
 2 Phyrexian Walker
 3 Zuran Enchanter
-2 Serendib Efreet
-2 Nebuchadnezzar
+2 Raven Guild Initiate
+2 Abomination
 2 Phyrexian Fleshgorger
-4 Thoughtseize
 4 Mana Drain
-11 Island
-6 Swamp
+4 Mind Ravel
+10 Island
+7 Swamp

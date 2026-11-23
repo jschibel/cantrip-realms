@@ -7,6 +7,6 @@
 2 Ashen Ghoul
 2 Yawgmoth Demon
 3 Cut Down
-1 Feed the Swarm
-3 Hero's Downfall
+3 Go for the Throat
+1 Terror
 17 Swamp

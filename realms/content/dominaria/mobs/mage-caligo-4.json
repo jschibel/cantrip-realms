@@ -1,7 +1,7 @@
 {
   "id": "mage-caligo-4",
-  "name": "Sorceress Queen",
-  "creature": "Sorceress Queen",
+  "name": "Zur, Eternal Schemer",
+  "creature": "Zur, Eternal Schemer",
   "region": "B",
   "tier": 4,
   "deck": "decks/realms/dominaria/mage-caligo-4.txt",
@@ -22,9 +22,12 @@
   ],
   "loot": {
     "pool": "dominaria",
-    "colors": "B",
+    "colors": "WUB",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wizard",
+      "Minion"
+    ],
     "rarities": [
       "uncommon",
       "rare",

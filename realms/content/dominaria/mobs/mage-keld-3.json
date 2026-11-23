@@ -1,7 +1,7 @@
 {
   "id": "mage-keld-3",
-  "name": "Dreadhorde Arcanist",
-  "creature": "Dreadhorde Arcanist",
+  "name": "Dragon Mage",
+  "creature": "Dragon Mage",
   "region": "R",
   "tier": 3,
   "deck": "decks/realms/dominaria/mage-keld-3.txt",
@@ -23,7 +23,10 @@
     "pool": "dominaria",
     "colors": "R",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wizard",
+      "Dragon"
+    ],
     "rarities": [
       "common",
       "uncommon",

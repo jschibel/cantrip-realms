@@ -3,9 +3,8 @@
 4 Cityscape Leveler
 1 Ornithopter
 2 Battering Ram
-2 Adaptive Automaton
-1 Lodestone Golem
-1 Su-Chi
+2 Dragon Engine
+2 Su-Chi
 1 Adarkar Sentinel
 3 Goblin Firebomb
 4 Aeolipile

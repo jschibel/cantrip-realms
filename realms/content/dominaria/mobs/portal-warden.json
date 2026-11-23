@@ -1,7 +1,7 @@
 {
   "id": "portal-warden",
   "name": "Portal Warden",
-  "creature": "Phyrexian Hulk",
+  "creature": "Yawgmoth Demon",
   "tier": 4,
   "deck": "decks/realms/dominaria/portal-warden.txt",
   "stats": {

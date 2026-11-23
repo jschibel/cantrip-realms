@@ -2,7 +2,7 @@
 
 2 Mesa Pegasus
 2 Suntail Hawk
-1 Skyshroud Falcon
+1 Duskrider Falcon
 2 Kjeldoran Skyknight
 2 Pegasus Charger
 2 Aven Sentry

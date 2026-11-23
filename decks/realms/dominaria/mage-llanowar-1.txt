@@ -1,16 +1,16 @@
 # Woodland Druid (mage-llanowar-1, Woodland Druid), the mage of Llanowar's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Woodland Druid
-2 Elvish Mystic
 2 Fyndhorn Elves
+2 Llanowar Elves
 2 Elvish Warrior
 2 Elvish Ranger
 1 Magnigoth Sentry
 1 Elfhame Wurm
 1 Wirewood Guardian
+2 Giant Growth
 2 Gaea's Touch
 2 Rampant Growth
-2 Cultivate
 2 Foxfire
 2 Grow from the Ashes
 17 Forest

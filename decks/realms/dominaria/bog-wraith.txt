@@ -3,13 +3,13 @@
 3 Bog Wraith
 2 Plague Beetle
 2 Black Knight
-1 Erg Raiders
+1 Knight of Dusk's Shadow
 2 Legions of Lim-Dûl
 2 Lost Soul
 2 Yargle, Glutton of Urborg
 2 Yawgmoth Demon
 2 Cut Down
-2 Feed the Swarm
 2 Go for the Throat
-1 Terror
+2 Terror
+1 Dark Banishing
 17 Swamp

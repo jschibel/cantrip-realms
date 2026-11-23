@@ -2,14 +2,14 @@
 
 2 Plague Beetle
 2 Black Knight
-2 Erg Raiders
 2 Knight of Dusk's Shadow
+2 Knight of Malice
 2 Legions of Lim-Dûl
 2 Bog Raiders
 2 Bog Wraith
 2 Yargle, Glutton of Urborg
 2 Cut Down
 2 Touch of Death
-2 Feed the Swarm
-1 Go for the Throat
+2 Go for the Throat
+1 Terror
 17 Swamp

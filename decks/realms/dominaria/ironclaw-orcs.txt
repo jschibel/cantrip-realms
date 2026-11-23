@@ -4,8 +4,8 @@
 2 Monastery Swiftspear
 1 Blazing Effigy
 2 Brassclaw Orcs
-2 Goblin Chariot
-1 Lightning Elemental
+2 Orcish Mechanics
+1 Coalition Warbrute
 2 Talruum Minotaur
 2 Reckless Wurm
 2 Blitz Automaton

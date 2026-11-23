@@ -6,7 +6,7 @@
 3 Elder Druid
 2 Elfhame Wurm
 2 Wirewood Guardian
-1 Giant Growth
-3 Beast Within
+3 Giant Growth
+1 Song of Freyalise
 3 Forbidden Lore
 17 Forest

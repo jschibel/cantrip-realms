@@ -6,8 +6,8 @@
 1 Gorilla Warrior
 1 Erhnam Djinn
 1 Enormous Baloth
+4 Audacity
 4 Bushwhack
+2 Gaea's Touch
 4 Song of Freyalise
-4 Beast Within
-2 Desert Twister
 17 Forest

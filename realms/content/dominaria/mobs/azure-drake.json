@@ -1,10 +1,10 @@
 {
-  "id": "fighting-drake",
-  "name": "Fighting Drake",
-  "creature": "Fighting Drake",
+  "id": "azure-drake",
+  "name": "Azure Drake",
+  "creature": "Azure Drake",
   "region": "U",
   "tier": 2,
-  "deck": "decks/realms/dominaria/fighting-drake.txt",
+  "deck": "decks/realms/dominaria/azure-drake.txt",
   "stats": {
     "life": 20,
     "hand": 7,
@@ -22,9 +22,7 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [
-      "Drake"
-    ],
+    "subtypes": [],
     "rarities": [
       "common",
       "uncommon"
@@ -33,9 +31,8 @@
   "model": {
     "mesh": "drake",
     "palette": [
-      "#3d8fa8",
-      "#93c8dc",
-      "#f4ecc2"
+      "#2f5fa8",
+      "#a97fd0"
     ],
     "size": 1.25
   },

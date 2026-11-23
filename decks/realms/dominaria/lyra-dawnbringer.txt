@@ -6,6 +6,6 @@
 1 Thunder Spirit
 4 Serra Angel
 4 Archangel
-4 Path to Exile
+4 Swords to Plowshares
 4 Deadly Riposte
 17 Plains

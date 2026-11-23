@@ -6,6 +6,6 @@
 2 Erhnam Djinn
 3 Silverback Elder
 2 Enormous Baloth
-4 Beast Within
-3 Forbidden Lore
+3 Giant Growth
+4 Forbidden Lore
 17 Forest

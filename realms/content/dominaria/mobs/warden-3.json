@@ -1,7 +1,7 @@
 {
   "id": "warden-3",
-  "name": "Myr Battlesphere",
-  "creature": "Myr Battlesphere",
+  "name": "Triskelion",
+  "creature": "Triskelion",
   "tier": 3,
   "deck": "decks/realms/dominaria/warden-3.txt",
   "stats": {
@@ -41,7 +41,7 @@
       "#62a4c2",
       "#2a2b36"
     ],
-    "size": 1.6
+    "size": 1.5
   },
   "boss": false
 }

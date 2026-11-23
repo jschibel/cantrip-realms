@@ -2,11 +2,11 @@
 
 4 Lord of Atlantis
 2 Merfolk of the Pearl Trident
-3 True-Name Nemesis
+3 Devouring Deep
 3 Azure Drake
 2 Serra Sphinx
-2 Benthic Behemoth
+2 Mahamoti Djinn
+1 Force Spike
 3 Pongify
-3 Remand
-1 Force Void
+3 Force Void
 17 Island

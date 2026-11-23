@@ -9,9 +9,9 @@ Writes:
     realms/content/dominaria/mobs/<mob>.json          each mob (realms/docs/interfaces.md, "Mobs")
 and removes any mob file or mob deck it did not write, so those folders are exactly its output.
 
-Every card is from the plane's pool (realms/content/pools/dominaria.json), legal in Vintage (one copy of a card restricted
+Every card is from the plane's pool (a view of realms/content/cards.json, tools/realms/realm_cards.py), legal in Vintage (one copy of a card restricted
 there, only where a mob names it), no relic, and within the deck's colors - Vintage legality and color identity as
-realms/content/prices.json gives them, which the server judges by too; starters take only commons and uncommons of
+realms/content/cards.json gives them, which the server judges by too; starters take only commons and uncommons of
 exactly their color, as design.md A1 says, 23 spells along a mana curve and 17 basic lands.
 
 The roster (design.md A6, "Mobs are Dominaria's own creatures", in the Domains). Every mob names the pool card it is
@@ -49,6 +49,9 @@ import re
 import sys
 import unicodedata
 import zlib
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import realm_cards  # noqa: E402
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PLANE = "dominaria"
@@ -167,14 +170,14 @@ MOBS = [
     wanderer("Soaring Drake", 1, "U", lean=["Drake", "Bird"], themes=["flyers", "counters"]),
     wanderer("Vodalian Soldiers", 1, "U", lean=["Merfolk", "Soldier"], themes=["counters", "bounce"]),
     wanderer("Merfolk Raiders", 2, "U", lean=["Merfolk"], themes=["landwalk", "bounce"]),
-    wanderer("Fighting Drake", 2, "U", lean=["Drake"], themes=["flyers", "counters"]),
+    wanderer("Azure Drake", 2, "U", lean=["Drake"], themes=["flyers", "counters"]),
     wanderer("Sandbar Serpent", 2, "U", lean=["Serpent", "Leviathan", "Octopus", "Fish", "Turtle"], themes=["big", "bounce"]),
     wanderer("Lord of Atlantis", 3, "U", lean=["Merfolk"], themes=["landwalk", "anthem"]),
     wanderer("River Merfolk", 3, "U", lean=["Merfolk"], themes=["landwalk", "counters"]),
     wanderer("Air Elemental", 3, "U", lean=["Elemental", "Djinn"], themes=["flyers", "counters"]),
     wanderer("Mahamoti Djinn", 4, "U", lean=["Djinn", "Elemental"], themes=["flyers", "counters"]),
-    wanderer("True-Name Nemesis", 4, "U", lean=["Merfolk", "Rogue"], themes=["counters", "protection"]),
-    wanderer("Benthic Behemoth", 4, "U", lean=["Serpent", "Leviathan"], themes=["landwalk", "big"]),
+    wanderer("Tempest Djinn", 4, "U", lean=["Djinn", "Elemental"], themes=["flyers", "counters"]),
+    wanderer("Sibilant Spirit", 4, "U", lean=["Spirit", "Serpent", "Leviathan"], themes=["flyers", "big"]),
     # The Caligo Morass and Amjad (B): bog creatures and the Cabal's servants in the fens, fallen knights and Amjad's
     # horrors deeper in, vampires and demons in the dark.
     wanderer("Bog Imp", 1, "B", lean=["Imp"], themes=["flyers", "removal"]),
@@ -224,14 +227,14 @@ MOBS = [
     mage("orvada", 1, "Tolarian Scholar", lean=["Wizard"], themes=["counters", "bounce"]),
     mage("orvada", 2, "Prodigal Sorcerer", lean=["Wizard"], themes=["counters", "draw"]),
     mage("orvada", 3, "Naban, Dean of Iteration", lean=["Wizard"], themes=["counters", "draw"]),
-    mage("orvada", 4, "Urza, Lord High Artificer", lean=["Artificer", "Wizard", "Construct"], themes=["artifacts", "counters"], artifacts=True),
+    mage("orvada", 4, "Arcanis the Omnipotent", lean=["Wizard"], themes=["counters", "draw"]),
     mage("caligo", 1, "Cabal Evangel", lean=["Cleric", "Minion"], themes=["removal", "discard"]),
-    mage("caligo", 2, "Vampire Hexmage", lean=["Shaman", "Vampire"], themes=["removal", "discard"]),
-    mage("caligo", 3, "El-Hajjâj", lean=["Wizard"], themes=["removal", "draw"]),
-    mage("caligo", 4, "Sorceress Queen", lean=["Wizard", "Minion"], themes=["removal", "discard"]),
+    mage("caligo", 2, "Thrull Wizard", lean=["Wizard", "Thrull"], themes=["removal", "discard"]),
+    mage("caligo", 3, "Nebuchadnezzar", colors="UB", prefer="B", lean=["Wizard"], themes=["removal", "discard"]),
+    mage("caligo", 4, "Zur, Eternal Schemer", colors="WUB", prefer="B", lean=["Wizard", "Minion"], themes=["removal", "enchantments"]),
     mage("keld", 1, "Brothers of Fire", lean=["Shaman", "Wizard"], themes=["burn"]),
     mage("keld", 2, "Pyromantic Pilgrim", lean=["Wizard", "Shaman"], themes=["burn", "draw"]),
-    mage("keld", 3, "Dreadhorde Arcanist", lean=["Wizard"], themes=["burn", "draw"]),
+    mage("keld", 3, "Dragon Mage", lean=["Wizard", "Dragon"], themes=["burn", "draw"]),
     mage("keld", 4, "Magus of the Moon", lean=["Wizard"], themes=["burn", "wrath"], featured=["Blood Moon"]),
     mage("llanowar", 1, "Woodland Druid", lean=["Druid", "Elf"], themes=["ramp", "pump"]),
     mage("llanowar", 2, "Argothian Elder", lean=["Druid", "Elf"], themes=["ramp", "big"]),
@@ -245,8 +248,8 @@ MOBS = [
     dict(kind="warden", id="heart-warden", name="Heart Warden", creature="Wirewood Guardian", region="G", lean=["Elf", "Treefolk", "Wurm", "Elemental"], themes=["big", "ramp"], gear=["benalish-plate", "silver-pendant"], model=("treefolk", ["#2a4524", "#f1b44c", "#3e9a4a"], 1.45)),
     dict(kind="warden", id="warden-1", name="Yotian Soldier", creature="Yotian Soldier", tier=1, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Soldier", "Thopter"], themes=["artifacts", "defenders"]),
     dict(kind="warden", id="warden-2", name="Obsianus Golem", creature="Obsianus Golem", tier=2, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Thopter"], themes=["artifacts"]),
-    dict(kind="warden", id="warden-3", name="Myr Battlesphere", creature="Myr Battlesphere", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
-    dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"], featured=["Lodestone Golem"]),
+    dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
+    dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"]),
     # The five bosses, each unlocking its color: its region's legend the pool has.
     dict(kind="boss", id="lyra-dawnbringer", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"], model=("angel", ["#f2efe6", "#f1b44c", "#93c8dc"], 1.6)),
     dict(kind="boss", id="teferi", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"], model=("wizard", ["#5b8fd6", "#f1b44c", "#f2efe6"], 1.4)),
@@ -261,7 +264,7 @@ MOBS = [
     dict(kind="portal", id="phyrexian-negator", name="Phyrexian Negator", creature="Gallowbraid", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Imp", "Demon"], themes=["removal", "discard"], gear=["serran-vestments", "thran-amulet"], model=("phyrexian", ["#2a2b36", "#7a1f24", "#b3b5bc"], 1.4)),
     dict(kind="portal", id="gitaxian-mindcutter", name="Gitaxian Mindcutter", creature="Ertai Resurrected", tier=4, colors="UB", artifacts=True, prefer="B", lean=["Phyrexian", "Wizard", "Horror"], themes=["counters", "discard"], gear=["serran-vestments", "sages-circlet"], model=("phyrexian", ["#5b8fd6", "#b3b5bc", "#0d0f14"], 1.3)),
     dict(kind="portal", id="phyrexian-gorger", name="Phyrexian Gorger", creature="Phyrexian Fleshgorger", tier=4, colors="BG", artifacts=True, prefer="B", lean=["Phyrexian", "Beast", "Horror", "Wurm"], themes=["removal", "big"], gear=["mantle-of-the-ancients", "silver-pendant"], model=("phyrexian", ["#5d6646", "#7a1f24", "#2a4524"], 1.4)),
-    dict(kind="warden", id="portal-warden", name="Portal Warden", creature="Phyrexian Hulk", colors="UBR", artifacts=True, prefer="B", lean=["Phyrexian", "Construct", "Horror", "Golem"], themes=["artifacts", "removal"], gear=["mantle-of-the-ancients", "thran-amulet", "sages-circlet"], model=("phyrexian", ["#b3b5bc", "#c8432c", "#0d0f14"], 1.5)),
+    dict(kind="warden", id="portal-warden", name="Portal Warden", creature="Yawgmoth Demon", colors="UBR", artifacts=True, prefer="B", lean=["Phyrexian", "Construct", "Horror", "Golem"], themes=["artifacts", "removal"], gear=["mantle-of-the-ancients", "thran-amulet", "sages-circlet"], model=("phyrexian", ["#b3b5bc", "#c8432c", "#0d0f14"], 1.5)),
     dict(
         kind="boss",
         id="phyrexian-praetor",
@@ -274,23 +277,24 @@ MOBS = [
         gear=["mantle-of-the-ancients", "crown-of-the-ages", "thran-amulet"],
         model=("phyrexian", ["#f2efe6", "#7a1f24", "#0d0f14"], 1.9),
         # Five colors on the ten original duals and five fetches, round Sheoldred, the Apocalypse (the pool's one
-        # praetor): Fusion Elemental for the five colors, the best creatures, removal and card advantage of each.
+        # praetor): the best creatures, removal and card advantage of each color the pool holds.
         decklist=[
             (2, "Sheoldred, the Apocalypse"),
             (2, "Birds of Paradise"),
-            (2, "Baleful Strix"),
+            (2, "Hypnotic Specter"),
             (2, "Tarmogoyf"),
-            (2, "Bloodbraid Elf"),
-            (1, "True-Name Nemesis"),
+            (1, "Silverback Elder"),
+            (1, "Firestorm Hellkite"),
+            (1, "Ertai Resurrected"),
             (1, "Lightning Angel"),
             (1, "Lyra Dawnbringer"),
-            (1, "Fusion Elemental"),
+            (1, "Muldrotha, the Gravetide"),
             (1, "Teferi, Hero of Dominaria"),
             (2, "Lightning Bolt"),
             (1, "Vindicate"),
-            (1, "Abrupt Decay"),
-            (1, "Dismember"),
-            (1, "Thoughtseize"),
+            (1, "Swords to Plowshares"),
+            (1, "Go for the Throat"),
+            (1, "Hymn to Tourach"),
             (1, "Mana Drain"),
             (1, "Demonic Tutor"),
             (1, "Underground Sea"),
@@ -836,10 +840,12 @@ def problems_of(mob, deck, pool, prices, legality, cards, relics, gear):
 
 
 def main():
-    pool = load(os.path.join(ROOT, "realms", "content", "pools", f"{PLANE}.json"))["cards"]
-    prices = load(os.path.join(ROOT, "realms", "content", "prices.json"))["cards"]
-    # Each card's Vintage legality and color identity, as prices.json gives them and the server judges them.
-    legality = {name: {"identity": card.get("identity", ""), "legalities": {"vintage": card.get("vintage")}} for name, card in prices.items()}
+    # The realm's card database (realms/content/cards.json) and the plane's pool, a view of it computed as the server
+    # computes it; each card's Vintage legality and color identity as cards.json gives them and the server judges them.
+    records = realm_cards.load()
+    pool = realm_cards.pool(records, PLANE)
+    prices = {name: card for name, card in records.items() if card["gold"] is not None}
+    legality = {name: {"identity": card.get("identity", ""), "legalities": {"vintage": card.get("vintage")}} for name, card in records.items()}
     relics = {entry["card"] for entry in load(os.path.join(ROOT, "realms", "content", "relics.json"))["relics"]}
     gear_folder = os.path.join(ROOT, "realms", "content", "gear")
     gear = {g["id"]: g for g in (load(os.path.join(gear_folder, f)) for f in sorted(os.listdir(gear_folder)) if f.endswith(".json"))}

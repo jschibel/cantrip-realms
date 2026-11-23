@@ -6,6 +6,6 @@
 3 Hypnotic Specter
 2 Derelor
 2 Yawgmoth Demon
-3 Cut Down
-4 Dismember
+4 Cut Down
+3 Go for the Throat
 17 Swamp

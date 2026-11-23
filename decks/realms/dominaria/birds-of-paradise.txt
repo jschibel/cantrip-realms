@@ -6,7 +6,7 @@
 2 Erhnam Djinn
 2 Elfhame Wurm
 2 Enormous Baloth
-1 Bushwhack
+1 Audacity
+3 Bushwhack
 3 Song of Freyalise
-3 Beast Within
 17 Forest

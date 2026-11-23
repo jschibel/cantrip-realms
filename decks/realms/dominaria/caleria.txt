@@ -4,9 +4,9 @@
 2 Defiant Elf
 4 Elvish Archers
 2 Elvish Ranger
-2 Jazal Goldmane
+2 Ancient Spider
 1 Silverback Elder
 4 Giant Growth
 4 Forbidden Lore
-5 Plains
-12 Forest
+4 Plains
+13 Forest

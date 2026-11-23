@@ -1,6 +1,6 @@
-# Portal Warden (portal-warden, Phyrexian Hulk), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Portal Warden (portal-warden, Yawgmoth Demon), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Phyrexian Hulk
+4 Yawgmoth Demon
 2 Phyrexian Walker
 3 Priest of Yawgmoth
 2 Phyrexian Dragon Engine

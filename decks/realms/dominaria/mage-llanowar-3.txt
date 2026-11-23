@@ -7,8 +7,8 @@
 1 Elfhame Wurm
 1 Enormous Baloth
 3 Audacity
-2 Exploration
+3 Exploration
+2 Living Artifact
 3 Song of Freyalise
-3 Beast Within
 3 Forbidden Lore
 17 Forest

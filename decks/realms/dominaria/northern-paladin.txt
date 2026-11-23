@@ -5,8 +5,8 @@
 3 Knight of Grace
 3 Benalish Knight
 2 Serra Angel
-2 Zetalpa, Primal Dawn
-3 Path to Exile
+2 Angel of Retribution
 3 Swords to Plowshares
-1 Banishing Light
+3 Destroy Evil
+1 Lightning Blow
 17 Plains

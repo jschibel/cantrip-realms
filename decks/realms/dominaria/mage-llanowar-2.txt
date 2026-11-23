@@ -1,7 +1,7 @@
 # Argothian Elder (mage-llanowar-2, Argothian Elder), the mage of Llanowar's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
 3 Argothian Elder
-1 Elvish Mystic
+1 Fyndhorn Elves
 2 Elvish Warrior
 1 Elvish Ranger
 1 Elfhame Wurm
@@ -11,6 +11,6 @@
 2 Gaea's Touch
 2 Rampant Growth
 2 Song of Freyalise
-2 Beast Within
-2 Desert Twister
+2 Grow from the Ashes
+2 Untamed Wilds
 17 Forest

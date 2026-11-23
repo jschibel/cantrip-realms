@@ -1,0 +1,11 @@
+# Sibilant Spirit (sibilant-spirit, Sibilant Spirit), a tier 4 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Sibilant Spirit
+2 Aven Envoy
+3 Bay Falcon
+3 Tempest Djinn
+2 Ghost Ship
+2 Wind Spirit
+4 Pongify
+3 Force Void
+17 Island

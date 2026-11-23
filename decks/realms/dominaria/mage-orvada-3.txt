@@ -7,8 +7,8 @@
 1 Serra Sphinx
 1 Sibilant Spirit
 3 Force Spike
-2 Counterspell
-3 Remand
+3 Counterspell
+3 Essence Scatter
+2 Flash Counter
 3 Force Void
-3 Mystic Confluence
 17 Island
