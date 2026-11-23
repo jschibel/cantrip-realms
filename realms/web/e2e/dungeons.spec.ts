@@ -46,7 +46,7 @@ async function enter(page: Page, id: string): Promise<void> {
 }
 
 test("into a dungeon: the run's floor with its spell table, the warden before the stair, and the stair down", async ({ page }) => {
-  const id = "serras-fallen-sanctum";
+  const id = "benalish-keep";
   await openRealm(page, { at: id, extra: "&mobs=0" });
   await enter(page, id);
   await waitSpace(page, /^run:/);
@@ -83,7 +83,7 @@ test("the Phyrexian Portal stays sealed to a mage without all five colors", asyn
 test("a mage tower attuned by beating its mage, then its waystone's travel to another attuned tower", async ({ page }) => {
   test.setTimeout(120_000);
   const tower = "benalia-1";
-  const other = "tolaria-1";
+  const other = "orvada-1";
   await openRealm(page, { at: tower, extra: `&mobs=0&attuned=${other}` });
   // Dormant until its mage is beaten.
   const stone = await entity(page, (e) => e.kind === "waystone" && e.tower === tower, "the tower's waystone");
