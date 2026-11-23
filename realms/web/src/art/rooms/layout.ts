@@ -610,7 +610,7 @@ const temple: Layout = (plan, spec, keeper) => {
     plan.lights.push(candleLight(0.6, 1.0, d - 0.5));
   }
   plan.add({ id: "carpet", x: mid - 0.875, z: 2.75, tint, args: { to: [mid + 0.875, d] } });
-  keeper({ id: `${spec.id}-priest`, x: mid, z: 2, kind: "townsfolk", name: "Priest", behaviour: { rest: [0, 1], watch: 5 } });
+  keeper({ id: `${spec.id}-priest`, x: mid, z: 3, kind: "townsfolk", name: "Priest", behaviour: { rest: [0, 1], watch: 5 } });
 };
 
 const smithy: Layout = (plan, spec, keeper) => {
@@ -890,8 +890,10 @@ export function layoutRoom(spec: RoomSpec): InteriorData {
         continue;
       }
       const s = plan.get(x, z);
+      // A keeper's place is walked by the keeper alone: its tiles are blocked but the one they stand on.
+      const keeps = s === POCKET && keepers.some((k) => k.x === x && k.z === z);
       if (s === OUTSIDE) tiles.push([0, NO_SURFACE, BLOCKED]);
-      else tiles.push([0, plan.surface[z * w + x]!, s === TAKEN ? BLOCKED : 0]);
+      else tiles.push([0, plan.surface[z * w + x]!, s === TAKEN || (s === POCKET && !keeps) ? BLOCKED : 0]);
     }
   }
   return {
