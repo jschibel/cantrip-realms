@@ -20,7 +20,10 @@
     "pool": "dominaria",
     "colors": "R",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Barbarian",
+      "Warrior"
+    ],
     "rarities": [
       "common"
     ]

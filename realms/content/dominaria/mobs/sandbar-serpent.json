@@ -1,0 +1,47 @@
+{
+  "id": "sandbar-serpent",
+  "name": "Sandbar Serpent",
+  "creature": "Sandbar Serpent",
+  "region": "U",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/sandbar-serpent.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Serpent",
+      "Leviathan",
+      "Octopus",
+      "Fish",
+      "Turtle"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "serpent",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2",
+      "#2f5fa8"
+    ],
+    "size": 1.35
+  },
+  "boss": false
+}

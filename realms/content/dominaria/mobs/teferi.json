@@ -23,7 +23,11 @@
     "pool": "dominaria",
     "colors": "WU",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wizard",
+      "Drake",
+      "Bird"
+    ],
     "rarities": [
       "rare",
       "mythic"

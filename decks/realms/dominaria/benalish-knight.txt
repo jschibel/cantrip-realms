@@ -4,13 +4,13 @@
 2 Dauntless Bodyguard
 2 Knight of Grace
 1 Silver Knight
-1 Pegasus Charger
+1 Kjeldoran Skyknight
 1 Ekundu Griffin
 2 Moorish Cavalry
 2 Abbey Gargoyles
 2 Angel of Retribution
-1 Mana Tithe
 2 Path to Exile
 2 Swords to Plowshares
 2 Destroy Evil
+1 Banishing Light
 17 Plains

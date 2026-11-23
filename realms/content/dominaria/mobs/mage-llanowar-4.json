@@ -1,7 +1,7 @@
 {
   "id": "mage-llanowar-4",
-  "name": "Karn, Scion of Urza",
-  "creature": "Karn, Scion of Urza",
+  "name": "Silverback Elder",
+  "creature": "Silverback Elder",
   "region": "G",
   "tier": 4,
   "deck": "decks/realms/dominaria/mage-llanowar-4.txt",
@@ -32,11 +32,11 @@
     ]
   },
   "model": {
-    "mesh": "construct",
+    "mesh": "beast",
     "palette": [
-      "#c9ced8",
       "#3e9a4a",
-      "#8f6340"
+      "#8f6340",
+      "#f1b44c"
     ],
     "size": 1.3
   },

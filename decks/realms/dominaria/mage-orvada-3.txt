@@ -1,0 +1,14 @@
+# Naban, Dean of Iteration (mage-orvada-3, Naban, Dean of Iteration), the mage of Orvada's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Naban, Dean of Iteration
+1 Fugitive Wizard
+1 Raven Guild Initiate
+1 Micromancer
+1 Serra Sphinx
+1 Sibilant Spirit
+3 Force Spike
+2 Counterspell
+3 Remand
+3 Force Void
+3 Mystic Confluence
+17 Island

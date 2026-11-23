@@ -1,11 +1,11 @@
-# Foundry Warden (foundry-warden, Goblin Welder), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Foundry Warden (foundry-warden, Orcish Mechanics), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Goblin Welder
+4 Orcish Mechanics
+2 Phyrexian Walker
 3 Goblin Engineer
-2 Goblin Chariot
-2 Goblin Berserker
-2 Kiki-Jiki, Mirror Breaker
+2 Su-Chi
+2 Coal Golem
 2 Cityscape Leveler
-4 Abrade
-4 The Mightstone and Weakstone
+4 Aeolipile
+4 Rocket Launcher
 17 Mountain

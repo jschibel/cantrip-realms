@@ -1,0 +1,16 @@
+# Prodigal Sorcerer (mage-orvada-2, Prodigal Sorcerer), the mage of Orvada's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Prodigal Sorcerer
+1 Fugitive Wizard
+2 Mistfolk
+1 Micromancer
+1 Serra Sphinx
+1 Cold-Water Snapper
+2 Force Spike
+2 Counterspell
+2 Disdainful Stroke
+2 Essence Scatter
+2 Flash Counter
+2 Remand
+2 Force Void
+17 Island

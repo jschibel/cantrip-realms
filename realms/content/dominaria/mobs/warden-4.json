@@ -22,7 +22,12 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Construct",
+      "Golem",
+      "Myr",
+      "Thopter"
+    ],
     "rarities": [
       "uncommon",
       "rare",

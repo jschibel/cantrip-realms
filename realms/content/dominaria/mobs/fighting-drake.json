@@ -22,7 +22,9 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Drake"
+    ],
     "rarities": [
       "common",
       "uncommon"

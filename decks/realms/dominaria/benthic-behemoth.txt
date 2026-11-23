@@ -1,11 +1,11 @@
-# Benthic Behemoth (benthic-behemoth, Benthic Behemoth), a tier 4 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+# Benthic Behemoth (benthic-behemoth, Benthic Behemoth), a tier 4 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Benthic Behemoth
 2 Flying Men
 3 Lord of Atlantis
-3 Devouring Deep
+3 Serendib Efreet
 2 Azure Drake
 2 Segovian Leviathan
-4 Mana Drain
+4 Pongify
 3 Remand
 17 Island

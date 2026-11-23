@@ -1,7 +1,7 @@
 {
   "id": "mage-llanowar-3",
-  "name": "Sylvan Safekeeper",
-  "creature": "Sylvan Safekeeper",
+  "name": "Verduran Enchantress",
+  "creature": "Verduran Enchantress",
   "region": "G",
   "tier": 3,
   "deck": "decks/realms/dominaria/mage-llanowar-3.txt",
@@ -24,7 +24,9 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Druid"
+    ],
     "rarities": [
       "common",
       "uncommon",

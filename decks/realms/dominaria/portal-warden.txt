@@ -1,12 +1,11 @@
-# Portal Warden (portal-warden, Phyrexian Walker), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Portal Warden (portal-warden, Phyrexian Hulk), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Phyrexian Walker
-3 Baleful Strix
+4 Phyrexian Hulk
+2 Phyrexian Walker
+3 Priest of Yawgmoth
 2 Phyrexian Dragon Engine
-2 Moor Fiend
-2 Yargle, Glutton of Urborg
-2 Cityscape Leveler
+2 Su-Chi
+2 Eater of the Dead
 4 Go for the Throat
-4 The Mightstone and Weakstone
-4 Island
-13 Swamp
+4 Terror
+17 Swamp

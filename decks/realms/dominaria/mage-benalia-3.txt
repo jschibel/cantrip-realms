@@ -3,12 +3,12 @@
 4 Loran of the Third Path
 1 Ornithopter
 1 Containment Priest
-1 Commander Eesha
-1 Serra Angel
+1 Juggernaut
+1 Marble Priest
 1 Zetalpa, Primal Dawn
-3 Path to Exile
-3 Swords to Plowshares
-3 Destroy Evil
-2 Mazemind Tome
+3 Goblin Firebomb
+3 Pit Trap
+2 Staff of Zegon
+3 Tawnos's Coffin
 3 The Mightstone and Weakstone
 17 Plains

@@ -1,0 +1,12 @@
+# Marhault Elsdragon (marhault-elsdragon, Marhault Elsdragon), a tier 4 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Marhault Elsdragon
+2 Defiant Elf
+3 Elvish Archers
+3 Nessian Courser
+2 Barkweave Crusher
+2 Silverback Elder
+3 Lightning Bolt
+4 Stormbind
+7 Mountain
+10 Forest

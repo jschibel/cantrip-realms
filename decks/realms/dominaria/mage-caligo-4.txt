@@ -1,0 +1,13 @@
+# Sorceress Queen (mage-caligo-4, Sorceress Queen), the mage of the Caligo Morass's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Sorceress Queen
+1 Will-o'-the-Wisp
+1 Cuombajj Witches
+1 Rag Man
+1 Yargle, Glutton of Urborg
+1 Minion of Leshrac
+4 Cut Down
+2 Feed the Swarm
+4 Dismember
+4 Hero's Downfall
+17 Swamp

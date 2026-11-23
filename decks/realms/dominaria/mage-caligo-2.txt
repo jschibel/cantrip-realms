@@ -1,0 +1,16 @@
+# Vampire Hexmage (mage-caligo-2, Vampire Hexmage), the mage of the Caligo Morass's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Vampire Hexmage
+1 Plague Beetle
+2 Necrite
+1 Bog Wraith
+1 Yargle, Glutton of Urborg
+1 Yawgmoth Demon
+2 Cut Down
+2 Feed the Swarm
+2 Go for the Throat
+2 Terror
+2 Dark Banishing
+2 Mind Ravel
+2 Touch of Death
+17 Swamp

@@ -1,0 +1,46 @@
+{
+  "id": "mage-orvada-3",
+  "name": "Naban, Dean of Iteration",
+  "creature": "Naban, Dean of Iteration",
+  "region": "U",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/mage-orvada-3.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "tolarian-robe",
+    "tolarian-circlet",
+    "silver-band"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Wizard"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2",
+      "#2f5fa8"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

@@ -1,0 +1,16 @@
+# Lost Soul (lost-soul, Lost Soul), a tier 2 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Lost Soul
+2 Plague Beetle
+2 Cabal Evangel
+1 Order of the Ebon Hand
+1 Legions of Lim-Dûl
+2 Bog Wraith
+1 Moor Fiend
+2 Yargle, Glutton of Urborg
+2 Yawgmoth Demon
+2 Cut Down
+2 Feed the Swarm
+2 Go for the Throat
+1 Terror
+17 Swamp

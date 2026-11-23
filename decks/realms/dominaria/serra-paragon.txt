@@ -1,11 +1,11 @@
 # Serra Paragon (serra-paragon, Serra Paragon), a tier 4 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Serra Paragon
-2 Mother of Runes
+2 Icatian Priest
 3 Containment Priest
 3 Anointed Peacekeeper
 2 Serra Angel
-2 Archangel
-4 Path to Exile
-3 Swords to Plowshares
+2 Akroma, Angel of Wrath
+3 Path to Exile
+4 Deadly Riposte
 17 Plains

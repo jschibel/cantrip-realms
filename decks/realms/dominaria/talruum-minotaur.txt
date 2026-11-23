@@ -1,0 +1,15 @@
+# Talruum Minotaur (talruum-minotaur, Talruum Minotaur), a tier 2 wanderer of Keld: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Talruum Minotaur
+2 Monastery Swiftspear
+2 Blazing Effigy
+1 Blood Knight
+2 Giant Cindermaw
+2 Hurloon Minotaur
+2 Thundering Giant
+2 Volcanic Dragon
+2 Chain Lightning
+2 Firebolt
+1 Lava Dart
+2 Flare
+17 Mountain

@@ -1,0 +1,12 @@
+# Frost Giant (frost-giant, Frost Giant), a tier 3 wanderer of Keld: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Frost Giant
+2 Monastery Swiftspear
+3 Dreadhorde Arcanist
+3 Ball Lightning
+2 Stone Giant
+2 Two-Headed Giant of Foriys
+1 Chain Lightning
+3 Lightning Bolt
+3 Flare
+17 Mountain

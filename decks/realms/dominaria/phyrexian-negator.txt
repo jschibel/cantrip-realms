@@ -1,11 +1,11 @@
-# Phyrexian Negator (phyrexian-negator, Crazed Skirge), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Negator (phyrexian-negator, Gallowbraid), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Crazed Skirge
+4 Gallowbraid
 2 Phyrexian Walker
 3 Bog Imp
 2 Dusk Imp
-2 Yargle, Glutton of Urborg
-2 Cityscape Leveler
+2 Moor Fiend
+2 Phyrexian Fleshgorger
 4 Cut Down
 4 Dismember
 17 Swamp

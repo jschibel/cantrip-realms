@@ -23,7 +23,9 @@
     "pool": "dominaria",
     "colors": "W",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Cleric"
+    ],
     "rarities": [
       "common"
     ]

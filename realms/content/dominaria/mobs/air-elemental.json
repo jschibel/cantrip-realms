@@ -23,7 +23,10 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Elemental",
+      "Djinn"
+    ],
     "rarities": [
       "common",
       "uncommon",

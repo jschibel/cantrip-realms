@@ -1,0 +1,46 @@
+{
+  "id": "tombstalker",
+  "name": "Tombstalker",
+  "creature": "Tombstalker",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/tombstalker.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "urborg-bone-charm"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [
+      "Demon",
+      "Horror"
+    ],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "giant",
+    "palette": [
+      "#4b2f5e",
+      "#5d6646",
+      "#2a2b36"
+    ],
+    "size": 1.75
+  },
+  "boss": false
+}

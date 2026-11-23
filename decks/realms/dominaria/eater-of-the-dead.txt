@@ -1,0 +1,12 @@
+# Eater of the Dead (eater-of-the-dead, Eater of the Dead), a tier 3 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Eater of the Dead
+2 Will-o'-the-Wisp
+3 Frankenstein's Monster
+3 Zombie Master
+2 Ashen Ghoul
+2 Yawgmoth Demon
+3 Cut Down
+1 Feed the Swarm
+3 Hero's Downfall
+17 Swamp

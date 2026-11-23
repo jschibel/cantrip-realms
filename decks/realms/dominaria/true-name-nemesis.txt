@@ -1,4 +1,4 @@
-# True-Name Nemesis (true-name-nemesis, True-Name Nemesis), a tier 4 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+# True-Name Nemesis (true-name-nemesis, True-Name Nemesis), a tier 4 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 True-Name Nemesis
 2 Merfolk of the Pearl Trident

@@ -6,6 +6,6 @@
 2 Elvish Ranger
 2 Magnigoth Sentry
 2 Elfhame Wurm
-4 Bushwhack
 4 Song of Freyalise
+4 Beast Within
 17 Forest

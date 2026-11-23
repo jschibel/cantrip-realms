@@ -1,0 +1,47 @@
+{
+  "id": "marton-stromgald",
+  "name": "Márton Stromgald",
+  "creature": "Márton Stromgald",
+  "region": "R",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/marton-stromgald.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots",
+    "leather-cap"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [
+      "Knight",
+      "Barbarian",
+      "Warrior"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "knight",
+    "palette": [
+      "#8f2f2f",
+      "#4a3122",
+      "#f1b44c"
+    ],
+    "size": 1.3
+  },
+  "boss": false
+}

@@ -1,0 +1,15 @@
+# Merfolk Raiders (merfolk-raiders, Merfolk Raiders), a tier 2 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Merfolk Raiders
+2 Merfolk of the Pearl Trident
+2 Devouring Deep
+2 Soaring Drake
+2 Azure Drake
+1 Fighting Drake
+2 Serra Sphinx
+2 Cold-Water Snapper
+1 Force Spike
+2 Pongify
+2 Remand
+2 Force Void
+17 Island

@@ -23,7 +23,12 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Elf",
+      "Treefolk",
+      "Wurm",
+      "Elemental"
+    ],
     "rarities": [
       "uncommon",
       "rare",

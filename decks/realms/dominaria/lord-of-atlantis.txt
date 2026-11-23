@@ -1,4 +1,4 @@
-# Lord of Atlantis (lord-of-atlantis, Lord of Atlantis), a tier 3 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+# Lord of Atlantis (lord-of-atlantis, Lord of Atlantis), a tier 3 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Lord of Atlantis
 2 Merfolk of the Pearl Trident
@@ -6,7 +6,7 @@
 3 Azure Drake
 2 Serra Sphinx
 2 Benthic Behemoth
-3 Counterspell
-1 Disdainful Stroke
+3 Pongify
 3 Remand
+1 Force Void
 17 Island

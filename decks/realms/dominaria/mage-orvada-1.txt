@@ -1,0 +1,17 @@
+# Tolarian Scholar (mage-orvada-1, Tolarian Scholar), the mage of Orvada's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Tolarian Scholar
+1 Fugitive Wizard
+1 Bay Falcon
+2 Mistfolk
+1 Ghost Ship
+1 Homarid Warrior
+1 Cold-Water Snapper
+2 Force Spike
+2 Counterspell
+2 Disdainful Stroke
+2 Essence Scatter
+2 Flash Counter
+2 Memory Lapse
+2 Miscalculation
+17 Island

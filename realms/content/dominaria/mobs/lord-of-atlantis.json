@@ -23,7 +23,9 @@
     "pool": "dominaria",
     "colors": "U",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Merfolk"
+    ],
     "rarities": [
       "common",
       "uncommon",

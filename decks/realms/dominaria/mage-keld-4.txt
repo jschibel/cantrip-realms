@@ -1,0 +1,13 @@
+# Magus of the Moon (mage-keld-4, Magus of the Moon), the mage of Keld's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Magus of the Moon
+1 Ghitu Lavarunner
+1 Dreadhorde Arcanist
+1 Crimson Manticore
+1 Two-Headed Giant of Foriys
+1 Rorix Bladewing
+2 Chain Lightning
+4 Lightning Bolt
+4 Blood Moon
+4 Flare
+17 Mountain

@@ -1,7 +1,7 @@
 {
   "id": "foundry-warden",
   "name": "Foundry Warden",
-  "creature": "Goblin Welder",
+  "creature": "Orcish Mechanics",
   "region": "R",
   "tier": 4,
   "deck": "decks/realms/dominaria/foundry-warden.txt",
@@ -23,7 +23,12 @@
     "pool": "dominaria",
     "colors": "R",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Orc",
+      "Artificer",
+      "Construct",
+      "Golem"
+    ],
     "rarities": [
       "uncommon",
       "rare",

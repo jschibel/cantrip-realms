@@ -1,0 +1,13 @@
+# Garna, Bloodfist of Keld (garna, Garna, Bloodfist of Keld), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Garna, Bloodfist of Keld
+2 Raging Goblin
+2 Erg Raiders
+1 Ball Lightning
+4 Keldon Warlord
+1 Thundering Giant
+1 Rorix Bladewing
+4 Lightning Bolt
+4 Flare
+3 Swamp
+14 Mountain

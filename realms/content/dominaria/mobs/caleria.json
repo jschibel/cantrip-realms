@@ -1,0 +1,43 @@
+{
+  "id": "caleria",
+  "name": "Lady Caleria",
+  "creature": "Lady Caleria",
+  "region": "G",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/caleria.txt",
+  "stats": {
+    "life": 30,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "argivian-crown"
+  ],
+  "prize": 6000,
+  "goldRange": [
+    1500,
+    1500
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "WG",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#3e9a4a",
+      "#f2efe6",
+      "#f1b44c"
+    ],
+    "size": 1.6
+  },
+  "boss": true,
+  "unlocks": "G"
+}

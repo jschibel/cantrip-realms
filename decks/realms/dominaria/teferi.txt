@@ -3,12 +3,12 @@
 4 Teferi, Hero of Dominaria
 1 Aven Envoy
 3 Bay Falcon
-2 Tempest Drake
+2 Serendib Efreet
 2 Azure Drake
 1 Cerulean Wyvern
-1 Mahamoti Djinn
-1 Mana Drain
+1 Sibilant Spirit
 4 Remand
-4 Mystic Confluence
-3 Plains
-14 Island
+4 Force Void
+1 Mystic Confluence
+2 Plains
+15 Island

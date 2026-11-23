@@ -1,0 +1,11 @@
+# Rorix Bladewing (rorix-bladewing, Rorix Bladewing), a tier 4 wanderer of Keld: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Rorix Bladewing
+2 Monastery Swiftspear
+3 Dreadhorde Arcanist
+3 Ball Lightning
+2 Dragon Whelp
+2 Thundering Giant
+4 Lightning Bolt
+3 Flare
+17 Mountain

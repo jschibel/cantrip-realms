@@ -1,12 +1,12 @@
-# Phyrexian Gorger (phyrexian-gorger, Phyrexian Hulk), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Gorger (phyrexian-gorger, Phyrexian Fleshgorger), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Phyrexian Hulk
+4 Phyrexian Fleshgorger
 2 Phyrexian Walker
-3 Knight of Dusk's Shadow
-2 Bog Raiders
+3 Priest of Yawgmoth
+2 Branchsnap Lorian
 2 Moor Fiend
-2 Yargle, Glutton of Urborg
+2 Elfhame Wurm
 4 Abrupt Decay
 4 Dismember
-14 Swamp
-3 Forest
+11 Swamp
+6 Forest

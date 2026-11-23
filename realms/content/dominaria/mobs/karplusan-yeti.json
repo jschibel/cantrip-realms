@@ -1,0 +1,42 @@
+{
+  "id": "karplusan-yeti",
+  "name": "Karplusan Yeti",
+  "creature": "Karplusan Yeti",
+  "region": "R",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/karplusan-yeti.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "keldon-greaves",
+    "leather-cap"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "beast",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

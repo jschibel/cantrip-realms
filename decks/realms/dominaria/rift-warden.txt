@@ -2,8 +2,8 @@
 
 4 Zephid
 2 Flying Men
-3 Bay Falcon
-2 Soaring Drake
+3 Narcomoeba
+2 Serendib Efreet
 2 Azure Drake
 2 Serra Sphinx
 4 Mana Drain

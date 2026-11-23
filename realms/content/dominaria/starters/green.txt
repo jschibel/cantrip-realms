@@ -1,15 +1,15 @@
 # The green starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
 
-2 Wall of Wood
+2 Rime Dryad
 2 Ashcoat Bear
 2 Canopy Spider
 2 Elvish Warrior
-2 Wall of Ice
+2 Branchsnap Lorian
 2 Nessian Courser
-2 Carnivorous Plant
+2 Erhnam Djinn
 2 Elfhame Wurm
-2 Fecundity
-2 Giant Growth
-2 Bushwhack
-1 Fog
+2 Beast Within
+2 Audacity
+2 Foxfire
+1 Giant Growth
 17 Forest

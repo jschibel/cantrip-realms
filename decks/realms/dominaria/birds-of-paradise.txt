@@ -2,11 +2,11 @@
 
 4 Birds of Paradise
 3 Elvish Archers
-3 Pale Bears
-2 Magnigoth Sentry
+3 Spitting Slug
+2 Erhnam Djinn
 2 Elfhame Wurm
 2 Enormous Baloth
-3 Bushwhack
-1 Giant Growth
+1 Bushwhack
 3 Song of Freyalise
+3 Beast Within
 17 Forest

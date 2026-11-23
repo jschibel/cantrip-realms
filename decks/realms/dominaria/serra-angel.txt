@@ -5,7 +5,7 @@
 3 Angelic Curator
 3 Anointed Peacekeeper
 2 Serra Paragon
-2 Archangel
+2 Akroma, Angel of Wrath
 3 Path to Exile
 4 Glorious Anthem
 17 Plains

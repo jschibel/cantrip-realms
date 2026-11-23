@@ -1,0 +1,46 @@
+{
+  "id": "guardian-of-new-benalia",
+  "name": "Guardian of New Benalia",
+  "creature": "Guardian of New Benalia",
+  "region": "W",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/guardian-of-new-benalia.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "kjeldoran-helm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Soldier",
+      "Knight"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

@@ -1,0 +1,16 @@
+# Pegasus Charger (pegasus-charger, Pegasus Charger), a tier 2 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Pegasus Charger
+2 Suntail Hawk
+2 Mesa Pegasus
+1 Skyshroud Falcon
+1 Benalish Knight
+2 Ekundu Griffin
+1 Razorfoot Griffin
+2 Dragonstalker
+2 Angel of Retribution
+2 Path to Exile
+2 Swords to Plowshares
+2 Destroy Evil
+1 Banishing Light
+17 Plains

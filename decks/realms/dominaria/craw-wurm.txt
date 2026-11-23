@@ -1,0 +1,16 @@
+# Craw Wurm (craw-wurm, Craw Wurm), a tier 2 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Craw Wurm
+2 Defiant Elf
+2 Ashcoat Bear
+1 Canopy Spider
+2 Branchsnap Lorian
+1 Goliath Beetle
+2 Argothian Swine
+2 Elfhame Wurm
+1 Spined Wurm
+2 Audacity
+1 Rancor
+2 Song of Freyalise
+2 Beast Within
+17 Forest

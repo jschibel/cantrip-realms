@@ -1,0 +1,16 @@
+# Ironclaw Orcs (ironclaw-orcs, Ironclaw Orcs), a tier 1 wanderer of Keld: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Ironclaw Orcs
+2 Monastery Swiftspear
+1 Blazing Effigy
+2 Brassclaw Orcs
+2 Goblin Chariot
+1 Lightning Elemental
+2 Talruum Minotaur
+2 Reckless Wurm
+2 Blitz Automaton
+2 Firebolt
+2 Lava Dart
+1 Shock
+2 Flare
+17 Mountain

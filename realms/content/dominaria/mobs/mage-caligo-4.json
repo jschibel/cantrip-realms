@@ -1,0 +1,44 @@
+{
+  "id": "mage-caligo-4",
+  "name": "Sorceress Queen",
+  "creature": "Sorceress Queen",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mage-caligo-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "marsh-waders",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#5d6646",
+      "#7a1f24",
+      "#0d0f14"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

@@ -1,11 +1,11 @@
-# Tomb Warden (tomb-warden, Tombstalker), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Tomb Warden (tomb-warden, Zombie Master), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Tombstalker
+4 Zombie Master
 2 Plague Beetle
-3 Knight of Dusk's Shadow
-2 Bog Raiders
-2 Moor Fiend
-2 Yargle, Glutton of Urborg
+3 Cyclopean Mummy
+2 Bog Wraith
+2 Dread Wight
+2 Phyrexian Fleshgorger
 4 Cut Down
 4 Dismember
 17 Swamp

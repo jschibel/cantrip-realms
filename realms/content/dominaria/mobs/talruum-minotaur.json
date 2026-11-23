@@ -1,0 +1,41 @@
+{
+  "id": "talruum-minotaur",
+  "name": "Talruum Minotaur",
+  "creature": "Talruum Minotaur",
+  "region": "R",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/talruum-minotaur.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "giant",
+    "palette": [
+      "#e0703a",
+      "#2e1f17",
+      "#f4ecc2"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

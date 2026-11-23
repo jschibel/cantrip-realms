@@ -3,9 +3,9 @@
 4 Enormous Baloth
 2 Birds of Paradise
 3 Elvish Archers
-3 Pale Bears
-2 Magnigoth Sentry
-2 Elfhame Wurm
-3 Bushwhack
-4 Song of Freyalise
+3 Branchsnap Lorian
+2 Erhnam Djinn
+2 Silverback Elder
+3 Song of Freyalise
+4 Beast Within
 17 Forest
