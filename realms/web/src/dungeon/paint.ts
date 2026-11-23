@@ -279,6 +279,22 @@ export function caveTop(seed = 57): Pixmap {
   return p;
 }
 
+/** The rock beyond a cave's walls going into the dark: the tops' lumps, a shade or two darker (`deeper` darker still), 32 by 32. */
+export function caveShoulder(seed = 58, deeper = false): Pixmap {
+  const deep = rgb(deeper ? "#060508" : "#0c0a10");
+  const p = new Pixmap(32, 32);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const n = fbm(x, y, 8, 32, seed);
+      const m = fbm(x + 1, y + 1, 8, 32, seed);
+      let c = n < (deeper ? 0.65 : 0.5) ? deep : CAVE[0]!;
+      if (n > m + 0.03) c = deeper ? CAVE[0]! : CAVE[1]!;
+      p.set(x, y, c);
+    }
+  }
+  return p;
+}
+
 /** Living roots woven into a wall: twisting trunks side by side, dark between, 32 by 32. */
 export function rootWall(seed = 52): Pixmap {
   const p = new Pixmap(32, 32, ROOT[0]!);

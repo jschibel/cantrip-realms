@@ -9,7 +9,8 @@ import { Place } from "../render/place";
 import { NO_SURFACE, type Rect, type TileData, type XYZ } from "../world/format";
 import { Grid } from "../world/grid";
 import type { DungeonFloor } from "./types";
-import { drawWalls } from "./walls";
+import { THEME_DEFS } from "./generate";
+import { drawWalls, groundUnderWalls } from "./walls";
 
 export interface AssembledFloor {
   readonly place: Place;
@@ -22,7 +23,11 @@ export interface AssembledFloor {
 export function assembleFloor(floor: DungeonFloor): AssembledFloor {
   const place = new Place(INDOOR_BACKGROUND);
   const tileAt = (x: number, z: number): TileData | null => (x >= 0 && z >= 0 && x < floor.w && z < floor.d ? floor.tiles[z * floor.w + x] ?? null : null);
-  const { ids, looks } = groundOf(floor.d, floor.w, tileAt);
+  // Where the walls are crags standing back from their tiles' edges, the floor runs on under them.
+  const under = groundUnderWalls(floor.cells, floor.theme);
+  const floorSurface = THEME_DEFS[floor.theme].floor;
+  const groundAt = under ? (x: number, z: number): TileData | null => (under(x, z) ? [0, floorSurface, 1] : tileAt(x, z)) : tileAt;
+  const { ids, looks } = groundOf(floor.d, floor.w, (x, z) => groundAt(x, z));
   place.addGround(buildGround(ids, looks.map((l) => ({ picture: l.picture, priority: l.priority, hole: l.hole })), { x: 0, z: 0 }));
   const walls = drawWalls(floor.cells, floor.theme);
   // What lies under the holes: water, lava.

@@ -2,7 +2,8 @@
 // top flagged, as the slice's rooms draw their walls - with the dark round them. A wall between the camera and the
 // floor (open ground north of it) is drawn low, as a room's front wall is; a wall on the east or west side of a space
 // is drawn twice, full and low, the low one shown while the camera is swung round toward its side (a room's side
-// walls). Where the floor meets the void (a chasm, the portal's islands) its edge drops away in a skirt.
+// walls). Where the floor meets the void (a chasm, the portal's islands) its edge drops away in a skirt. A cave's walls
+// are crags of living rock instead of blocks, and its chasms' edges lips of rock (rock.ts).
 
 import { type Face, MeshBuilder, tiled } from "../art/paint/builder";
 import * as C from "../art/paint/colors";
@@ -14,6 +15,7 @@ import type { Built, Cutaway, LightSpec } from "../art/recipe";
 import type { Theme } from "../world/format";
 import { type Cell, VOID, WALL, type WallKind, wallKind } from "./plan";
 import * as P from "./paint";
+import { type Crag, Rock } from "./rock";
 
 export interface WallLook {
   /** A full wall's height, how much it varies tile to tile (a cave's crags), and a cut-down wall's. */
@@ -29,8 +31,10 @@ export interface WallLook {
   readonly top: Face;
   /** The texel of lit edge round a top where it meets open ground. */
   readonly rim: number;
-  /** How far, at most, a rough wall (a cave's) stands back from the open ground, world units; its heights vary too. */
+  /** How far, at most, a rough wall (the hollow's) stands back from the open ground, world units; its heights vary too. */
   readonly rough?: number;
+  /** Walls of living rock (a cave's), drawn as crags rather than blocks (rock.ts). */
+  readonly crag?: Crag;
   /** The face of the ground's edge where it drops into the void. */
   readonly skirt: Face;
   /** The light that fills the dark: a hemisphere in the theme's colour. */
@@ -47,13 +51,19 @@ export function wallLook(theme: Theme): WallLook {
       const rock = tiled(material("dungeon-cave-rock", () => P.caveRock(51)));
       return {
         height: 2.6,
-        jitter: 0.75,
+        jitter: 0.35,
         low: 0.55,
         body: rock,
         side: rock,
         top: tiled(material("dungeon-cave-top", () => P.caveTop(57))),
         rim: P.CAVE[4]!,
-        rough: 2 / 16,
+        crag: {
+          recess: 0.3,
+          corner: 0.42,
+          relief: 0.6,
+          shoulder: tiled(material("dungeon-cave-shoulder", () => P.caveShoulder(58))),
+          deep: tiled(material("dungeon-cave-deep", () => P.caveShoulder(59, true))),
+        },
         skirt: rock,
         fill: { kind: "hemisphere", sky: [0.36, 0.4, 0.6], ground: [0.18, 0.14, 0.14], intensity: 0.6 * Math.PI },
       };
@@ -162,8 +172,22 @@ export function wallLook(theme: Theme): WallLook {
 /** How deep the ground's edge drops into the void. */
 const SKIRT = 2.5;
 
-/** The walls of a plan (its rows of characters), as a recipe's Built: still walls, and the side walls as cut-aways. */
-export function drawWalls(cells: readonly string[], theme: Theme): Built {
+/** What drawing a plan's walls reads: its cells, each wall tile's kind and its heights. */
+export interface WallContext {
+  readonly look: WallLook;
+  readonly w: number;
+  readonly d: number;
+  /** The plan's cell at a tile (beyond its edges, wall). */
+  readonly at: (x: number, z: number) => Cell;
+  readonly kindAt: (x: number, z: number) => WallKind;
+  /** A wall's full height, and its cut-down one. */
+  readonly full: (x: number, z: number) => number;
+  readonly lowAt: (x: number, z: number) => number;
+  /** The lowest a drawn wall ever stands (0 for a wall not drawn, -1 for open ground). */
+  readonly lowest: (x: number, z: number) => number;
+}
+
+export function wallContext(cells: readonly string[], theme: Theme): WallContext {
   const look = wallLook(theme);
   const d = cells.length;
   const w = cells[0]?.length ?? 0;
@@ -177,13 +201,27 @@ export function drawWalls(cells: readonly string[], theme: Theme): Built {
   const kindAt = (x: number, z: number): WallKind => (x < 0 || z < 0 || x >= w || z >= d ? "none" : kinds[z * w + x]!);
   const full = (x: number, z: number) => look.height + (look.jitter ? (hash2(x, z, 77) - 0.5) * look.jitter : 0);
   /** A cut-down wall's height: a rough one's varies by a few texels, tile by tile. */
-  const lowAt = (x: number, z: number) => look.low + (look.rough ? Math.round((hash2(x, z, 78) - 0.5) * 6) / 16 : 0);
-  /** The lowest a drawn wall ever stands (0 for a tile not drawn: its face toward it is the wall's end). */
+  const lowAt = (x: number, z: number) => look.low + (look.rough || look.crag ? Math.round((hash2(x, z, 78) - 0.5) * 6) / 16 : 0);
   const lowest = (x: number, z: number): number => {
     const k = kindAt(x, z);
     if (k === "none") return at(x, z) === WALL ? 0 : -1;
     return k === "back" ? full(x, z) : lowAt(x, z);
   };
+  return { look, w, d, at, kindAt, full, lowAt, lowest };
+}
+
+/** Where a theme's rock stands back from its tile's edge (a crag look's), the wall tiles the floor's ground runs under. */
+export function groundUnderWalls(cells: readonly string[], theme: Theme): ((x: number, z: number) => boolean) | null {
+  const ctx = wallContext(cells, theme);
+  if (!ctx.look.crag) return null;
+  const rock = new Rock(ctx, ctx.look.crag);
+  return (x, z) => rock.groundUnder(x, z);
+}
+
+/** The walls of a plan (its rows of characters), as a recipe's Built: still walls, and the side walls as cut-aways. */
+export function drawWalls(cells: readonly string[], theme: Theme): Built {
+  const ctx = wallContext(cells, theme);
+  const { look, w, d, at, kindAt, full, lowAt, lowest } = ctx;
 
   const still = new MeshBuilder();
   const east = { full: new MeshBuilder(), low: new MeshBuilder() };
@@ -231,21 +269,25 @@ export function drawWalls(cells: readonly string[], theme: Theme): Built {
     }
   };
 
+  const rock = look.crag ? new Rock(ctx, look.crag) : null;
+  const draw = (b: MeshBuilder, x: number, z: number, h: number, banded: boolean) => (rock ? rock.block(b, x, z, h) : block(b, x, z, h, banded));
   for (let z = 0; z < d; z++) {
     for (let x = 0; x < w; x++) {
       const k = kindAt(x, z);
       if (k === "none") continue;
-      if (k === "near") block(still, x, z, lowAt(x, z), false);
-      else if (k === "back") block(still, x, z, full(x, z), true);
+      if (k === "near") draw(still, x, z, lowAt(x, z), false);
+      else if (k === "back") draw(still, x, z, full(x, z), true);
       else {
         const pair = k === "east" ? east : west;
-        block(pair.full, x, z, full(x, z), true);
-        block(pair.low, x, z, lowAt(x, z), false);
+        draw(pair.full, x, z, full(x, z), true);
+        draw(pair.low, x, z, lowAt(x, z), false);
       }
     }
   }
-  // The ground's edges over the void.
-  for (let z = 0; z < d; z++) {
+  rock?.shoulders(still);
+  // The ground's edges over the void: a crag's lips of rock, or plain skirts.
+  if (rock) rock.chasm(still);
+  else for (let z = 0; z < d; z++) {
     for (let x = 0; x < w; x++) {
       const c = at(x, z);
       if (c === WALL || c === VOID) continue;
