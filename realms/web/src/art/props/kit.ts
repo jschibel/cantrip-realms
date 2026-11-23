@@ -332,7 +332,9 @@ export function cloth(ramp: Ramp, kind: "plain" | "striped" = "plain", stripe: R
 
 /** A banner of a ramp: the slice's Benalish banner (pictures.ts) recolored. */
 export function bannerMaterial(field: Ramp, trim: Ramp = C.GOLD): Material {
-  return material(`banner@${rampKey(field)}+${rampKey(trim)}`, () => Pic.banner(field, trim), { cutout: true, twoSided: true });
+  // The banner's painter reads six steps of its trim (and five of its field): shorter ramps repeat their lightest.
+  const pad = (r: Ramp, n: number): Ramp => (r.length >= n ? r : [...r, ...new Array<number>(n - r.length).fill(r[r.length - 1]!)]);
+  return material(`banner@${rampKey(field)}+${rampKey(trim)}`, () => Pic.banner(pad(field, 6), pad(trim, 6)), { cutout: true, twoSided: true });
 }
 
 /** Three frames of a flame `n` texels high, as cards facing south and east-west, burning at (x, y, z). */

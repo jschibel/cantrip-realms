@@ -35,6 +35,8 @@ export interface Board {
   readonly lights?: readonly LightData[];
   /** Where the camera looks first (tiles); the board's middle by default. */
   readonly focus?: readonly [number, number];
+  /** The places worth a picture each (a style's rows of buildings), for the screenshots; the focus by default. */
+  readonly views?: readonly (readonly [number, number])[];
 }
 
 const WIDTH = 26;
@@ -197,6 +199,8 @@ function styleBoard(style: string): Board {
   street.push([z + rowDepth, z + rowDepth + STREET]);
   const d = z + rowDepth + STREET + 1;
   const w = WIDTH + 6;
+  // A picture of each row of buildings, looking at its fronts.
+  const views = street.map(([a]) => [w / 2, a - 2] as const);
   const look = STYLE_GROUND[style] ?? ["grass", "cobbles"];
   const onStreet = (zz: number) => street.some(([a, b]) => zz >= a && zz < b);
   const inBuilding = (xx: number, zz: number) => buildings.some((b) => xx >= b.x && xx < b.x + b.w && zz >= b.z && zz < b.z + b.d);
@@ -210,6 +214,7 @@ function styleBoard(style: string): Board {
     props,
     buildings,
     labels,
+    views,
   };
 }
 

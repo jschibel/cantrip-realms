@@ -634,9 +634,10 @@ export function lava(r: Ramp = R.LAVA, seed = 124): Pixmap {
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
       const n = fbm(x, y, 16, SIZE, seed);
-      const v = valueNoise(x * 2, y, 8, SIZE, seed + 3);
-      let c = n < 0.3 ? r[1]! : n < 0.45 ? r[2]! : n < 0.65 ? r[3]! : n < 0.8 ? r[4]! : r[5]!;
-      if (v > 0.74) c = r[6]!;
+      const v = fbm(x, y, 8, SIZE, seed + 3);
+      let c = n < 0.32 ? r[1]! : n < 0.45 ? r[2]! : n < 0.62 ? r[3]! : n < 0.76 ? r[4]! : r[5]!;
+      if (v > 0.7 && n > 0.45) c = r[6]!;
+      if (hash2(x, y, seed) < 0.03) c = r[Math.max(1, n < 0.45 ? 2 : 4)]!;
       p.set(x, y, c);
     }
   }
@@ -652,11 +653,12 @@ export function waste(r: Ramp = R.WASTE, seed = 125): Pixmap {
   const cell = cellAt(map, SIZE, SIZE);
   const random = seeded(seed + 1);
   const shades = points.map(() => {
-    const b = 3 + Math.floor(random() * 3);
-    return { base: at(r, b), light: at(r, b + 1), lighter: at(r, b + 1), dark: at(r, b - 1), speckle: 0.05, speckleColor: at(r, b - 1) };
+    const b = 4 + Math.floor(random() * 2);
+    // Flat plates: only the cracks between them and a curled lip on their far side show.
+    return { base: at(r, b), light: at(r, b), lighter: at(r, b + 1), dark: at(r, b - 1), speckle: 0.06, speckleColor: at(r, b - 1) };
   });
   const p = new Pixmap(SIZE, SIZE);
-  paintCells(p, cell, (i) => shades[i]!, r[1]!, seed);
+  paintCells(p, cell, (i) => shades[i]!, r[2]!, seed);
   const bone = C.BONE;
   for (let k = 0; k < 2; k++) {
     const x = Math.floor(random() * SIZE);
@@ -678,8 +680,9 @@ export function saltFlat(r: Ramp = R.SALT, seed = 126): Pixmap {
   const cell = cellAt(map, SIZE, SIZE);
   const random = seeded(seed + 1);
   const shades = points.map(() => {
-    const b = 2 + Math.floor(random() * 2);
-    return { base: at(r, b), light: at(r, b + 1), lighter: at(r, b + 2), dark: at(r, b - 1), speckle: 0.08, speckleColor: at(r, b + 1) };
+    const b = 3 + Math.floor(random() * 2);
+    // Flat crust, its ridged rims white along the cracks.
+    return { base: at(r, b), light: at(r, b), lighter: at(r, b), dark: at(r, b - 1), speckle: 0.08, speckleColor: at(r, b + 1) };
   });
   const p = new Pixmap(SIZE, SIZE);
   paintCells(p, cell, (i) => shades[i]!, r[5]!, seed);
@@ -894,8 +897,23 @@ export function cartTrack(seed = 133): Pixmap {
     p.set(x + 2, y - 1, d[1]!);
     p.set(x, y + 1, d[5]!);
   }
-  // Puddles in the low places, the sky in them.
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (fbm(x, y, 16, SIZE, seed + 5) < 0.2) p.set(x, y, hash2(x, y, seed) < 0.15 ? C.WATER[5]! : C.WATER[2]!);
+  // A couple of puddles in the ruts, the sky in them: small ragged ovals, dark at their near rim.
+  for (let k = 0; k < 2; k++) {
+    const cx = Math.floor(random() * SIZE);
+    const cy = Math.floor(random() * SIZE);
+    const rx = 3 + random() * 3;
+    const ry = 1.5 + random() * 1.2;
+    for (let dy = -3; dy <= 3; dy++) {
+      for (let dx = -7; dx <= 7; dx++) {
+        const d = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) + (hash2(cx + dx, cy + dy, seed) - 0.5) * 0.4;
+        if (d > 1) continue;
+        p.set(cx + dx, cy + dy, dy < -ry * 0.4 ? d1(d) : hash2(dx, dy, seed + 2) < 0.12 ? C.WATER[5]! : C.WATER[2]!);
+      }
+    }
+  }
+  function d1(d: number): Rgb {
+    return d > 0.7 ? C.DIRT[1]! : C.WATER[3]!;
+  }
   for (let k = 0; k < 20; k++) pebble(p, Math.floor(random() * SIZE), Math.floor(random() * SIZE), d[4]!, d[5]!, d[1]!, random() < 0.5);
   return p;
 }

@@ -17,7 +17,7 @@ import { type Board, boardById, boards } from "./boards";
 //
 //   ?board=<id>                 which board (the menu lists them; [ and ] step through them)
 //   ?heading=left|front|right   Q and E turn; ?zoom=0|1|2, the mouse wheel, + and - zoom
-//   arrow keys or WASD          move the view
+//   arrow keys or WASD          move the view; ?focus=x,z looks at a place (tiles)
 //   ?test                       publishes globalThis.galleryTest (the boards, the clock, a frame reader)
 //   ?manual                     the clock moves only when a test advances it; ?nolabels hides the names
 
@@ -91,7 +91,8 @@ const framing: Framing = { inside: false, turns: true, bounds: [-40, -40, board.
 const askedZoom = Number(query.get("zoom") ?? "0");
 const rig = new CameraRig(canvas, HEADING_NAMES[query.get("heading") ?? ""] ?? 0, askedZoom === 1 || askedZoom === 2 ? askedZoom : 0, framing);
 const renderer = rig.renderer;
-const focus = new THREE.Vector3(board.focus?.[0] ?? board.w / 2, 0, board.focus?.[1] ?? board.d / 2);
+const asked = query.get("focus")?.split(",").map(Number);
+const focus = new THREE.Vector3(...(asked?.length === 2 && asked.every(Number.isFinite) ? [asked[0]!, 0, asked[1]!] as const : [board.focus?.[0] ?? board.w / 2, 0, board.focus?.[1] ?? board.d / 2] as const));
 renderer.focus.copy(focus);
 
 // --- The page round it: the board menu, the labels, the keys -------------------------------------------------------------
@@ -189,6 +190,8 @@ requestAnimationFrame(frame);
       ready: true,
       board: board.id,
       boards: all.map((b) => b.id),
+      /** The places on this board worth a picture each ([x, z] tiles: ?focus=x,z looks there). */
+      views: board.views ?? [[board.focus?.[0] ?? board.w / 2, board.focus?.[1] ?? board.d / 2]],
       get heading() {
         return NAME_OF[rig.heading];
       },
