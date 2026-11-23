@@ -21,6 +21,12 @@ import {
   interiorTile,
   isBlocked,
   worldRect,
+  type DungeonData,
+  MAX_TIER,
+  type NpcData,
+  inTown,
+  tierAt,
+  townAt,
 } from "./format";
 
 // The world's lint, in two parts. Per file (`checkWorld`, `checkChunk`, `checkInterior`): each file is what the format
@@ -227,7 +233,15 @@ export interface KnownArt {
   /** A prop's own problems (its args), as its registry entry checks them. */
   readonly propProblems?: (p: PropData) => readonly string[];
   readonly buildingProblems?: (b: BuildingData) => readonly string[];
+  /**
+   * Given, an id the art does not have is named to it instead of being a problem: while the art is being built beside
+   * the world, the world may name ids the art will have (the generator's placeholders, scripts/worldgen/ids.ts).
+   */
+  readonly onUnknown?: (kind: UnknownKind, id: string, where: string) => void;
 }
+
+/** The kinds of art id the lint looks up. */
+export type UnknownKind = "surface" | "prop" | "style" | "room" | "figure" | "palette";
 
 /**
  * A whole world: each file as `checkChunk` and `checkInterior` have it, and together - one chunk a place, ids unique,
@@ -236,6 +250,10 @@ export interface KnownArt {
  */
 export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interiors: readonly InteriorData[], known?: KnownArt): Problems {
   const out: Problems = [...checkWorld(world)];
+  const unknown = (kind: UnknownKind, id: string, where: string, problem: string) => {
+    if (known?.onUnknown) known.onUnknown(kind, id, where);
+    else out.push(`${where}: ${problem}`);
+  };
   const rect = worldRect(world);
   const byKey = new Map<string, ChunkData>();
   for (const c of chunks) {
@@ -270,7 +288,7 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
       const x = c.cx * CHUNK + (i % CHUNK);
       const z = c.cz * CHUNK + Math.floor(i / CHUNK);
       if (!inRect(rect, x, z) && !isBlocked(t)) out.push(`chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z} is past the world's edge and open`);
-      if (known && t[1] !== NO_SURFACE && !known.surfaces.has(t[1])) out.push(`chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z} has no surface "${t[1]}"`);
+      if (known && t[1] !== NO_SURFACE && !known.surfaces.has(t[1])) unknown("surface", t[1], `chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z}`, `has no surface "${t[1]}"`);
     });
   }
 
@@ -300,9 +318,9 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
         if (!rooms.has(b.interior)) out.push(`${where}: no interior ${b.interior}`);
         if (b.door) doorsInto.set(b.interior, [...(doorsInto.get(b.interior) ?? []), [b.door[0], b.door[1]]]);
       }
-      if (known && !known.styles.has(b.style)) out.push(`${where}: no building style ${b.style}`);
-      if (known && b.palette && !known.palettes.has(b.palette)) out.push(`${where}: no palette ${b.palette}`);
-      if (known?.buildingProblems) out.push(...known.buildingProblems(b).map((p) => `${where}: ${p}`));
+      if (known && !known.styles.has(b.style)) unknown("style", b.style, where, `no building style ${b.style}`);
+      else if (known?.buildingProblems) out.push(...known.buildingProblems(b).map((p) => `${where}: ${p}`));
+      if (known && b.palette && !known.palettes.has(b.palette)) unknown("palette", b.palette, where, `no palette ${b.palette}`);
     }
   }
   for (const r of interiors) {
@@ -310,11 +328,11 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
     if (doors.length === 0) out.push(`interior ${r.id}: no door leads into it`);
     if (!doors.some(([x, z]) => x === r.exit[0] && z === r.exit[1])) out.push(`interior ${r.id}: its exit ${r.exit.join(",")} is not the door that leads in`);
     if (!open(r.exit[0], r.exit[1])) out.push(`interior ${r.id}: its exit ${r.exit.join(",")} is not an open world tile`);
-    if (known && !known.rooms.has(r.kind)) out.push(`interior ${r.id}: no room recipe for ${r.kind}`);
+    if (known && !known.rooms.has(r.kind)) unknown("room", r.kind, `interior ${r.id}`, `no room recipe for ${r.kind}`);
     if (known) {
       const a = interiorArea(r);
       r.tiles.forEach((t, i) => {
-        if (t[1] !== NO_SURFACE && !known.surfaces.has(t[1])) out.push(`interior ${r.id}: tile ${a[0] + (i % (a[2] - a[0]))},${a[1] + Math.floor(i / (a[2] - a[0]))} has no surface "${t[1]}"`);
+        if (t[1] !== NO_SURFACE && !known.surfaces.has(t[1])) unknown("surface", t[1], `interior ${r.id}: tile ${a[0] + (i % (a[2] - a[0]))},${a[1] + Math.floor(i / (a[2] - a[0]))}`, `has no surface "${t[1]}"`);
       });
     }
   }
@@ -322,14 +340,14 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
   // NPCs on open tiles; props and figures the art has.
   const npcCheck = (where: string, n: ChunkData["npcs"][number], isOpen: (x: number, z: number) => boolean) => {
     if (!isOpen(n.x, n.z) && n.stand === undefined) out.push(`${where}: npc ${n.id} stands on a blocked tile ${n.x},${n.z}`);
-    if (known && n.figure && !known.figures.has(n.figure)) out.push(`${where}: npc ${n.id}: no figure ${n.figure}`);
-    if (known && n.palette && !known.palettes.has(n.palette)) out.push(`${where}: npc ${n.id}: no palette ${n.palette}`);
+    if (known && n.figure && !known.figures.has(n.figure)) unknown("figure", n.figure, `${where}: npc ${n.id}`, `no figure ${n.figure}`);
+    if (known && n.palette && !known.palettes.has(n.palette)) unknown("palette", n.palette, `${where}: npc ${n.id}`, `no palette ${n.palette}`);
   };
   const propCheck = (where: string, p: PropData) => {
     if (!known) return;
-    if (!known.props.has(p.id)) out.push(`${where}: no prop ${p.id}`);
+    if (!known.props.has(p.id)) unknown("prop", p.id, where, `no prop ${p.id}`);
     else if (known.propProblems) out.push(...known.propProblems(p).map((m) => `${where}: ${m}`));
-    if (p.tint && !known.palettes.has(p.tint)) out.push(`${where}: prop ${p.id}: no palette ${p.tint}`);
+    if (p.tint && !known.palettes.has(p.tint)) unknown("palette", p.tint, `${where}: prop ${p.id}`, `no palette ${p.tint}`);
   };
   for (const c of chunks) {
     const where = `chunk ${chunkKey(c.cx, c.cz)}`;
@@ -344,6 +362,191 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
     };
     for (const n of r.npcs) npcCheck(where, n, isOpen);
     for (const p of r.props) propCheck(where, p);
+  }
+  return out;
+}
+
+// --- The realm: the whole world as the game plays it ------------------------------------------------------------------
+
+/** What the realm lint is told beyond the files: the art's ids, and the mob roster's tiers. */
+export interface RealmOptions {
+  readonly known?: KnownArt;
+  /** Each mob's tier, by id: a spawn's mobs are of its tier, and every mob a spawn names is one. */
+  readonly tiers?: ReadonlyMap<string, number>;
+}
+
+/**
+ * A whole realm (interfaces.md, "The world, interiors and dungeons"), beyond `lintWorld`: the world is one walkable whole
+ * from the first inn (every open tile reached, eight ways with no corner cut, the ferries' lanes included) and
+ * everything in it is reached - inns, doors, entrances, spawns, pitches, docks, and beside every NPC, chest and
+ * waymarker; nothing that is stood on stands on a blocked tile; every interior belongs to the town its door stands in;
+ * every entrance has its dungeon where world.json and the dungeon say, its spell table beside it, a tower its waystone,
+ * and an open step out; every spawn is of its zone's tier and of its mobs', and the tiers grow with distance from the
+ * starting areas; waymarkers stand where the tier rises, in the harder side's tier; ferries' lanes are walks from dock
+ * to dock with a ferryman at each; pitches stand open in their towns; spell tables are spell-table NPCs.
+ */
+export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interiors: readonly InteriorData[], dungeons: readonly DungeonData[], options: RealmOptions = {}): Problems {
+  const out: Problems = lintWorld(world, chunks, interiors, options.known);
+  if (out.length > 0) return out;
+  const rect = worldRect(world);
+  const W = rect[2] - rect[0];
+  const H = rect[3] - rect[1];
+  const index = (x: number, z: number) => (z - rect[1]) * W + (x - rect[0]);
+  const openTiles = new Uint8Array(W * H);
+  for (const c of chunks) {
+    c.tiles.forEach((t, k) => {
+      const x = c.cx * CHUNK + (k % CHUNK);
+      const z = c.cz * CHUNK + Math.floor(k / CHUNK);
+      if (inRect(rect, x, z) && !isBlocked(t)) openTiles[index(x, z)] = 1;
+    });
+  }
+  const open = (x: number, z: number) => inRect(rect, x, z) && openTiles[index(x, z)] === 1;
+  const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "chests" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
+    chunks.flatMap((c) => [...c[k]] as ChunkData[K][number][]);
+  const npcs = all("npcs");
+  const at = (p: { x: number; z: number }) => `${p.x},${p.z}`;
+
+  // Walked whole from the first inn.
+  const first = world.inns[0];
+  if (!first) return ["world.json: no inn"];
+  if (!open(first.x, first.z)) return [`inn ${first.id}: ${at(first)} is not an open tile`];
+  const reached = new Uint8Array(W * H);
+  const queue = new Int32Array(W * H);
+  let tail = 0;
+  queue[tail++] = index(first.x, first.z);
+  reached[index(first.x, first.z)] = 1;
+  for (let head = 0; head < tail; head++) {
+    const k = queue[head]!;
+    const x = (k % W) + rect[0];
+    const z = Math.floor(k / W) + rect[1];
+    for (let dz = -1; dz <= 1; dz++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if ((!dx && !dz) || !open(x + dx, z + dz)) continue;
+        if (dx && dz && !(open(x + dx, z) && open(x, z + dz))) continue;
+        const n = index(x + dx, z + dz);
+        if (reached[n]) continue;
+        reached[n] = 1;
+        queue[tail++] = n;
+      }
+    }
+  }
+  const walked = (x: number, z: number) => inRect(rect, x, z) && reached[index(x, z)] === 1;
+  const beside = (p: { x: number; z: number }, reach = 1) => {
+    for (let dz = -reach; dz <= reach; dz++) for (let dx = -reach; dx <= reach; dx++) if (walked(p.x + dx, p.z + dz)) return true;
+    return false;
+  };
+  let openCount = 0;
+  for (let k = 0; k < openTiles.length; k++) openCount += openTiles[k]!;
+  if (tail !== openCount) {
+    let sample = "";
+    for (let k = 0; k < openTiles.length && !sample; k++) if (openTiles[k] && !reached[k]) sample = `${(k % W) + rect[0]},${Math.floor(k / W) + rect[1]}`;
+    out.push(`the world: ${openCount - tail} open tiles are not walked to from inn ${first.id} (one at ${sample})`);
+  }
+  for (const inn of world.inns) {
+    if (!walked(inn.x, inn.z)) out.push(`inn ${inn.id}: ${at(inn)} is not walked to`);
+    if (!interiors.some((r) => r.id === inn.interior && r.kind === "inn" && r.exit[0] === inn.x && r.exit[1] === inn.z)) out.push(`inn ${inn.id}: no inn interior ${inn.interior} coming out at ${at(inn)}`);
+  }
+
+  // Doors and the towns their interiors belong to.
+  for (const b of all("buildings")) {
+    if (!b.door) continue;
+    if (!walked(b.door[0], b.door[1])) out.push(`building ${b.id}: its door ${b.door.join(",")} is not walked to`);
+    const room = interiors.find((r) => r.id === b.interior);
+    const town = townAt(world.towns, b.door[0], b.door[1]);
+    if (room && (room.town ?? null) !== (town?.id ?? null)) out.push(`interior ${room.id}: its town is ${room.town ?? "none"}, but its door stands in ${town?.id ?? "no town"}`);
+  }
+
+  // Dungeons and their entrances.
+  const entrances = all("entrances");
+  const byId = new Map(dungeons.map((d) => [d.id, d]));
+  for (const place of world.dungeons) {
+    const d = byId.get(place.id);
+    if (!d) out.push(`world.json: dungeon ${place.id} has no dungeon file`);
+    else if (d.entrance[0] !== place.x || d.entrance[1] !== place.z) out.push(`dungeon ${d.id}: its entrance ${d.entrance.join(",")} is not where world.json places it, ${at(place)}`);
+  }
+  for (const d of dungeons) {
+    if (!world.dungeons.some((p) => p.id === d.id)) out.push(`dungeon ${d.id}: world.json does not place it`);
+    const e = entrances.find((x) => x.dungeon === d.id);
+    if (!e) {
+      out.push(`dungeon ${d.id}: no entrance of a chunk leads into it`);
+      continue;
+    }
+    if (e.x !== d.entrance[0] || e.z !== d.entrance[1]) out.push(`dungeon ${d.id}: its chunk's entrance is at ${at(e)}, not ${d.entrance.join(",")}`);
+    if (!walked(e.x, e.z)) out.push(`dungeon ${d.id}: its entrance ${at(e)} is not walked to`);
+    const near = (kind: string, extra: (n: NpcData) => boolean = () => true) => npcs.some((n) => n.kind === kind && Math.max(Math.abs(n.x - e.x), Math.abs(n.z - e.z)) <= 2 && extra(n));
+    if (!near("spell-table")) out.push(`dungeon ${d.id}: no spell table beside its entrance`);
+    if (d.waystone && !near("waystone", (n) => n.tower === d.id)) out.push(`dungeon ${d.id}: no waystone beside its entrance`);
+    let step = false;
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if ((dx || dz) && open(e.x + dx, e.z + dz)) step = true;
+    if (!step) out.push(`dungeon ${d.id}: no open step out of its entrance`);
+  }
+  for (const e of entrances) if (!byId.has(e.dungeon)) out.push(`entrance at ${at(e)}: no dungeon ${e.dungeon}`);
+
+  // People and things: the stood-on walked to, the rest walked to beside; spell tables are NPCs.
+  for (const n of npcs) if (n.stand === undefined ? !walked(n.x, n.z) : !beside(n)) out.push(`npc ${n.id} at ${at(n)} is not walked to`);
+  for (const p of all("props")) {
+    if (p.id !== "spell-table") continue;
+    const x = Math.floor(p.x);
+    const z = Math.floor(p.z);
+    if (!npcs.some((n) => n.kind === "spell-table" && n.x === x && n.z === z)) out.push(`a spell-table prop at ${x},${z} is no spell-table NPC`);
+  }
+  for (const r of interiors) {
+    for (const p of r.props) if (p.id === "spell-table" && !r.npcs.some((n) => n.kind === "spell-table" && n.x === Math.floor(p.x) && n.z === Math.floor(p.z))) out.push(`interior ${r.id}: a spell-table prop is no spell-table NPC`);
+  }
+  for (const c of all("chests")) if (!beside(c)) out.push(`chest ${c.id} at ${at(c)} is not walked to`);
+
+  // Spawns and tiers: each of its zone's tier, harder the farther from the starting areas.
+  const starts = world.towns.filter((t) => t.start);
+  const fromStart = (x: number, z: number) => Math.min(...starts.map((t) => Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) - t.radius));
+  const byTier = Array.from({ length: MAX_TIER + 1 }, () => [] as number[]);
+  for (const s of all("spawns")) {
+    const where = `spawn ${s.id}`;
+    if (!walked(s.x, s.z)) out.push(`${where} at ${at(s)} is not walked to`);
+    if (s.tier < 1 || s.tier > MAX_TIER) out.push(`${where}: tier ${s.tier} is not 1 to ${MAX_TIER}`);
+    if (s.tier !== tierAt(world, s.x, s.z)) out.push(`${where}: tier ${s.tier}, but its zone's is ${tierAt(world, s.x, s.z)}`);
+    if (townAt(world.towns, s.x, s.z)) out.push(`${where} stands in a town`);
+    if (s.mobs.length === 0) out.push(`${where} has no mobs`);
+    for (const m of s.mobs) {
+      const tier = options.tiers?.get(m);
+      if (options.tiers && tier === undefined) out.push(`${where}: no mob ${m}`);
+      else if (tier !== undefined && tier !== s.tier) out.push(`${where} is tier ${s.tier} but holds ${m}, of tier ${tier}`);
+    }
+    byTier[s.tier]?.push(fromStart(s.x, s.z));
+  }
+  const means = byTier.map((list) => (list.length === 0 ? Number.NaN : list.reduce((a, b) => a + b, 0) / list.length));
+  for (let t = 2; t < MAX_TIER; t++) if (!(means[t]! > means[t - 1]!)) out.push(`tier ${t} spawns lie no farther out than tier ${t - 1}'s (${Math.round(means[t]!)} against ${Math.round(means[t - 1]!)} tiles)`);
+  if (!(means[MAX_TIER]! > Math.max(means[1]!, means[2]!))) out.push(`tier ${MAX_TIER} spawns lie no farther out than tiers 1 and 2`);
+  for (const m of all("waymarkers")) {
+    const here = tierAt(world, m.x, m.z);
+    if (m.tier !== here) out.push(`waymarker at ${at(m)}: tier ${m.tier}, but its zone's is ${here}`);
+    let softer = false;
+    for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if (tierAt(world, m.x + dx, m.z + dz) < here) softer = true;
+    if (!softer) out.push(`waymarker at ${at(m)} stands at no rise of the tier`);
+    if (!beside(m)) out.push(`waymarker at ${at(m)} is not walked to`);
+  }
+
+  // Ferries and pitches.
+  for (const f of world.ferries) {
+    const lane = f.lane;
+    if (lane.length < 2 || lane[0]![0] !== f.from[0] || lane[0]![1] !== f.from[1] || lane.at(-1)![0] !== f.to[0] || lane.at(-1)![1] !== f.to[1]) out.push(`ferry ${f.id}: its lane does not run from ${f.from.join(",")} to ${f.to.join(",")}`);
+    for (let k = 0; k < lane.length; k++) {
+      const [x, z] = lane[k]!;
+      if (!open(x, z)) out.push(`ferry ${f.id}: its lane's tile ${x},${z} is not open`);
+      if (k === 0) continue;
+      const [px, pz] = lane[k - 1]!;
+      const dx = x - px;
+      const dz = z - pz;
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 1 || (dx && dz && !(open(px + dx, pz) && open(px, pz + dz)))) out.push(`ferry ${f.id}: its lane steps from ${px},${pz} to ${x},${z}, no step of a walk`);
+    }
+    for (const end of [f.from, f.to]) {
+      if (!walked(end[0], end[1])) out.push(`ferry ${f.id}: its dock ${end.join(",")} is not walked to`);
+      if (!npcs.some((n) => n.kind === "ferryman" && n.ferry === f.id && Math.max(Math.abs(n.x - end[0]), Math.abs(n.z - end[1])) <= 1)) out.push(`ferry ${f.id}: no ferryman beside its dock ${end.join(",")}`);
+    }
+  }
+  for (const p of world.pitches) {
+    const town = world.towns.find((t) => t.id === p.town);
+    if (!town || !inTown(town, p.x, p.z)) out.push(`pitch of ${p.town} at ${at(p)} is not in its town`);
+    if (!walked(p.x, p.z)) out.push(`pitch of ${p.town} at ${at(p)} is not walked to`);
   }
   return out;
 }

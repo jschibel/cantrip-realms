@@ -165,6 +165,27 @@ export function gridOfWorld(world: WorldData, chunks: readonly ChunkData[]): Gri
   });
 }
 
+/**
+ * The walkable tiles of the chunks loaded, as one grid over the rectangle they cover (no bigger: the world is a million
+ * tiles, the chunks round a player a few dozen thousand), so a walk crosses from chunk to chunk as if they were one. A
+ * tile of the rectangle whose chunk is not loaded, or past the world's edge, is not walked on. The chunk manager
+ * remakes it as chunks come and go; a path's tiles are world tiles throughout.
+ */
+export function gridOfChunks(world: WorldData, chunks: readonly ChunkData[]): Grid {
+  if (chunks.length === 0) return new Grid(0, 0);
+  const x0 = Math.min(...chunks.map((c) => c.cx)) * CHUNK;
+  const z0 = Math.min(...chunks.map((c) => c.cz)) * CHUNK;
+  const x1 = (Math.max(...chunks.map((c) => c.cx)) + 1) * CHUNK;
+  const z1 = (Math.max(...chunks.map((c) => c.cz)) + 1) * CHUNK;
+  const edge = worldRect(world);
+  const byKey = new Map(chunks.map((c) => [chunkKey(c.cx, c.cz), c]));
+  return gridOver([x0, z0, x1, z1], (x, z) => {
+    if (x < edge[0] || z < edge[1] || x >= edge[2] || z >= edge[3]) return null;
+    const c = byKey.get(chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK)));
+    return c ? chunkTile(c, x, z) : null;
+  });
+}
+
 /** An interior's walkable tiles. */
 export function gridOfInterior(room: InteriorData): Grid {
   return gridOver(interiorArea(room), (x, z) => interiorTile(room, x, z));

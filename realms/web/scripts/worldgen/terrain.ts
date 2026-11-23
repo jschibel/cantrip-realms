@@ -1,203 +1,229 @@
 // The lie of the land, from the layout (layout.ts): the landmasses and their coasts, bays cut into them and islets
-// scattered over the sea, each region's ground by its biome shading into its neighbours', mountain ranges, rivers
-// running to the sea, and lakes.
+// scattered over the sea, each region's ground by its biome shading into its neighbours', heights rolling with the land,
+// mountain ranges, rivers running to the sea, and lakes. Heights are texels (1/16 tile); the sea is at 0, the land above.
 
-import { toWorld } from "../../src/hex";
-import type { Terrain } from "../../src/world/schema";
-import { Grid, SIZE, STEP, T, around, disc, fbm, hexDistance, idx, line, noise } from "./grid";
-import type { Biome, Layout } from "./layout";
-
-const SQRT3 = Math.sqrt(3);
-
-/** How far a hex lies inside a landmass's coast, hexes: negative past it. */
-function inside(q: number, r: number, mass: Layout["landmasses"][number], wobble: number): number {
-  const p = toWorld({ q, r });
-  const c = toWorld({ q: mass.center[0], r: mass.center[1] });
-  const turn = ((mass.turn ?? 0) * Math.PI) / 180;
-  const dx = p.x - c.x;
-  const dz = p.z - c.z;
-  const x = (dx * Math.cos(turn) + dz * Math.sin(turn)) / (mass.stretch?.[0] ?? 1);
-  const z = (-dx * Math.sin(turn) + dz * Math.cos(turn)) / (mass.stretch?.[1] ?? 1);
-  return mass.radius + (wobble - 0.5) * 2 * (mass.wobble ?? 0) - Math.hypot(x, z) / SQRT3;
-}
+import { BLOCKED } from "../../src/world/format";
+import { S } from "./ids";
+import { Land, fbm, noise } from "./land";
+import type { Biome, Landmass, Layout } from "./layout";
 
 /** The biome of each region index. */
 export const biomeOf = (layout: Layout, region: number): Biome => layout.regions[region]?.biome ?? "plains";
 
-export function shapeLand(grid: Grid, layout: Layout): void {
-  const seed = layout.seed;
-  const wobble = fbm(`${seed}:coast`, 60, 3);
-  const isles = fbm(`${seed}:isles`, 26, 3);
-  const hills = fbm(`${seed}:hills`, 34, 4);
-  const ridge = fbm(`${seed}:ridge`, 22, 3);
-  const wet = fbm(`${seed}:wet`, 28, 3);
-  const fine = noise(`${seed}:fine`, 5);
-  const blend = layout.regions.map((r) => fbm(`${seed}:blend:${r.id}`, 40, 2));
+/** How high each biome's land rolls, texels at the most, before the layout's relief. */
+const AMPLITUDE: Record<Biome, number> = { heartland: 16, plains: 28, coast: 14, swamp: 4, mountains: 56, volcanic: 44, forest: 22, tundra: 32, waste: 18 };
 
-  for (let q = 0; q < SIZE; q++) {
-    for (let r = 0; r < SIZE; r++) {
-      const i = idx(q, r);
+/** Where the woods are thick: the terrain's forest floor and the scenery's trees follow the same noise. */
+export const woodsNoise = (seed: number) => fbm(`${seed}:woods`, 48, 3);
+
+/** How far a tile lies inside a landmass's coast, tiles: negative past it. */
+function inside(x: number, z: number, mass: Landmass, wobble: number): number {
+  const turn = ((mass.turn ?? 0) * Math.PI) / 180;
+  const dx = x - mass.center[0];
+  const dz = z - mass.center[1];
+  const u = (dx * Math.cos(turn) + dz * Math.sin(turn)) / (mass.stretch?.[0] ?? 1);
+  const v = (-dx * Math.sin(turn) + dz * Math.cos(turn)) / (mass.stretch?.[1] ?? 1);
+  return mass.radius + (wobble - 0.5) * 4 * (mass.wobble ?? 0) - Math.hypot(u, v);
+}
+
+/** The land and the sea, the regions, each tile's ground by its region's biome, and the land's rise and fall. */
+export function shapeLand(land: Land, layout: Layout): void {
+  const seed = layout.seed;
+  const relief = layout.relief;
+  const wobble = fbm(`${seed}:coast`, 90, 4);
+  const isles = fbm(`${seed}:isles`, 46, 3);
+  const hills = fbm(`${seed}:hills`, 90, 3);
+  const ridge = fbm(`${seed}:ridge`, 34, 3);
+  const wet = fbm(`${seed}:wet`, 50, 3);
+  const fine = noise(`${seed}:fine`, 9);
+  const woods = woodsNoise(seed);
+  const blend = layout.regions.map((r) => fbm(`${seed}:blend:${r.id}`, 70, 2));
+  const W = land.width;
+
+  for (let z = 0; z < land.depth; z++) {
+    for (let x = 0; x < W; x++) {
+      const i = z * W + x;
       // Which region: the one whose middle is nearest, by its weight, its border waved by noise.
       let best = 0;
       let bestScore = Infinity;
-      layout.regions.forEach((region, k) => {
-        const d = hexDistance(q, r, region.at[0], region.at[1]) / (region.weight ?? 1);
-        const score = d * (0.82 + 0.36 * blend[k]!(q, r));
+      for (let k = 0; k < layout.regions.length; k++) {
+        const region = layout.regions[k]!;
+        const d = Math.hypot(x - region.at[0], z - region.at[1]) / (region.weight ?? 1);
+        const score = d * (0.82 + 0.36 * blend[k]!(x, z));
         if (score < bestScore) {
           bestScore = score;
           best = k;
         }
-      });
-      grid.region[i] = best;
+      }
+      land.region[i] = best;
 
       // Land or sea: within a landmass's coast, out of its bays, or on an islet of an archipelago.
-      const w = wobble(q, r);
-      let depth = Math.max(...layout.landmasses.map((m) => inside(q, r, m, w)), -99);
+      const w = wobble(x, z);
+      let depth = -99;
+      for (const m of layout.landmasses) depth = Math.max(depth, inside(x, z, m, w));
       for (const bay of layout.bays) {
-        const into = bay.radius + (w - 0.5) * 20 - hexDistance(q, r, bay.center[0], bay.center[1]);
+        const into = bay.radius + (w - 0.5) * 34 - Math.hypot(x - bay.center[0], z - bay.center[1]);
         if (into > 0) depth = Math.min(depth, -into);
       }
       for (const isle of layout.archipelagos) {
-        const d = hexDistance(q, r, isle.center[0], isle.center[1]);
-        if (d < isle.radius && isles(q, r) > 1 - (isle.density ?? 0.4) * 0.5) depth = Math.max(depth, (isles(q, r) - (1 - (isle.density ?? 0.4) * 0.5)) * 40);
+        const d = Math.hypot(x - isle.center[0], z - isle.center[1]);
+        const threshold = 1 - (isle.density ?? 0.4) * 0.5;
+        if (d < isle.radius) {
+          const n = isles(x, z);
+          if (n > threshold) depth = Math.max(depth, (n - threshold) * 70);
+        }
       }
       if (depth < 0) {
-        grid.terrain[i] = depth > -4 ? T.water : T["deep-water"];
-        grid.height[i] = depth > -4 ? -0.1 : -0.2;
-        grid.blocked[i] = 1;
+        land.surface[i] = S.sea;
+        land.height[i] = 0;
+        land.flags[i] = BLOCKED;
         continue;
       }
-      const shore = depth < 2.5;
-      const biome = biomeOf(layout, best);
-      const m = wet(q, r);
-      const e = hills(q, r);
-      const f = fine(q, r);
-      let terrain: Terrain = "grass";
-      let steps = 0;
+      const biome = layout.regions[best]!.biome;
+      const m = wet(x, z);
+      const f = fine(x, z);
+      const e = hills(x, z);
+      let surface = S.grass;
       let blocked = false;
+      let rise = Math.max(0, e - 0.25) * 1.33;
       switch (biome) {
         case "heartland":
-          terrain = m < 0.42 ? "meadow" : "grass";
-          steps = Math.max(0, Math.round((e - 0.5) * 4));
+          surface = m < 0.42 ? S.meadow : S.grass;
           break;
         case "plains":
-          terrain = m < 0.4 ? "meadow" : "grass";
-          steps = Math.max(0, Math.round((e - 0.38) * 9));
-          if (steps >= 3) terrain = "hills";
-          break;
-        case "tundra":
-          terrain = m < 0.45 ? "snow" : f < 0.3 ? "ice" : "snow";
-          steps = Math.max(0, Math.round((e - 0.4) * 7));
+          surface = m < 0.4 ? S.meadow : S.grass;
           break;
         case "coast":
-          terrain = m < 0.46 ? "grass" : f < 0.5 ? "sand" : "grass";
-          steps = Math.max(0, Math.round((e - 0.42) * 5));
-          if (m > 0.7 && e < 0.45) {
-            terrain = "water";
-            blocked = true;
-          }
+          surface = m > 0.62 && f < 0.4 ? S.sand : f > 0.9 ? S.rock : S.grass;
           break;
         case "swamp":
-          terrain = m > 0.62 ? "swamp" : m > 0.5 ? "mud" : f < 0.4 ? "mud" : "moss";
-          blocked = terrain === "swamp";
-          steps = Math.max(0, Math.round((e - 0.5) * 3));
+          surface = m > 0.63 ? S.bog : m > 0.5 ? S.mud : f < 0.45 ? S.mud : S.moss;
+          blocked = surface === S.bog;
           break;
         case "mountains":
         case "volcanic": {
-          const ridgeline = ridge(q, r);
-          steps = Math.max(0, Math.round((e - 0.32) * 12));
-          const ashen = biome === "volcanic" && m < 0.55;
-          terrain = ashen ? (f < 0.5 ? "ash" : "rock") : m < 0.35 ? "dirt" : m < 0.6 ? "rock" : "stone";
-          if (ridgeline > 0.66) {
-            terrain = biome === "mountains" && ridgeline > 0.72 ? "snow" : "mountain";
-            steps += 5;
+          const ash = biome === "volcanic" && m < 0.55;
+          surface = ash ? (f < 0.5 ? S.ash : S.rock) : m < 0.35 ? S.grass : m < 0.6 ? S.scree : S.rock;
+          const r = ridge(x, z);
+          if (r > 0.67) {
+            surface = biome === "mountains" && r > 0.73 ? S.snow : S.rock;
             blocked = true;
+            rise = 1 + (r - 0.67) * 8;
           }
-          if (biome === "volcanic" && m > 0.74 && ridgeline < 0.6) {
-            terrain = "lava";
-            steps = 0;
+          if (biome === "volcanic" && m > 0.75 && r < 0.6) {
+            surface = S.lava;
             blocked = true;
           }
           break;
         }
         case "waste":
-          terrain = m < 0.4 ? "ash" : f < 0.5 ? "rock" : "dirt";
-          steps = Math.max(0, Math.round((e - 0.45) * 5));
+          surface = m < 0.4 ? S.ash : f < 0.5 ? S["cracked-earth"] : S.rock;
           break;
         case "forest":
-          terrain = m < 0.3 ? "meadow" : m < 0.62 ? "grass" : "moss";
-          if (f < 0.3) terrain = "forest";
-          steps = Math.max(0, Math.round((e - 0.4) * 6));
+          surface = woods(x, z) > 0.47 ? S["forest-floor"] : m > 0.6 ? S.moss : S.grass;
+          break;
+        case "tundra":
+          surface = m < 0.38 || e > 0.62 ? S.snow : f < 0.14 && m > 0.66 ? S.ice : S.tundra;
           break;
       }
-      if (shore && !blocked) {
-        terrain = biome === "swamp" ? "mud" : biome === "volcanic" || biome === "mountains" || biome === "waste" ? "rock" : biome === "tundra" ? "ice" : "sand";
-        steps = Math.min(steps, 1);
+      // The shore: sand, or what the land's own edge is.
+      if (depth < 3 && !blocked) {
+        surface = biome === "swamp" ? S.mud : biome === "volcanic" || biome === "mountains" || biome === "waste" ? S.rock : biome === "tundra" ? S.ice : S.sand;
+        rise = Math.min(rise, 0.05);
       }
-      grid.terrain[i] = T[terrain];
-      grid.height[i] = terrain === "water" || terrain === "lava" || terrain === "swamp" ? -0.1 : steps * STEP;
-      grid.blocked[i] = blocked ? 1 : 0;
+      land.surface[i] = surface;
+      land.flags[i] = blocked ? BLOCKED : 0;
+      // Land stands above the sea, its height smoothed toward the shore so the coast is low.
+      const shore = Math.min(1, depth / 12);
+      land.height[i] = surface === S.bog || surface === S.lava ? 1 : 1 + Math.round(relief * AMPLITUDE[biome] * rise * shore);
     }
   }
 }
 
-/** The mountain ranges: a jagged band of peaks along each, passable hills at its feet. */
-export function mountains(grid: Grid, layout: Layout): void {
-  const jag = noise(`${layout.seed}:ranges`, 9);
+/** The distance from a point to a segment. */
+function toSegment(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
+  const vx = bx - ax;
+  const vz = bz - az;
+  const t = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz || 1)));
+  return Math.hypot(x - (ax + vx * t), z - (az + vz * t));
+}
+
+/** The mountain ranges: a jagged band of peaks along each, walkable scree at its feet. */
+export function mountains(land: Land, layout: Layout): void {
+  const jag = noise(`${layout.seed}:ranges`, 14);
   for (const range of layout.mountains) {
-    for (const h of line({ q: range.from[0], r: range.from[1] }, { q: range.to[0], r: range.to[1] })) {
-      for (const i of disc(h, range.width + 2)) {
-        if (grid.isWater(i) && grid.terrain[i] !== T.swamp) continue;
-        const d = hexDistance(Math.floor(i / SIZE), i % SIZE, h.q, h.r);
-        const reach = range.width * (0.6 + 0.8 * jag(Math.floor(i / SIZE), i % SIZE));
-        if (d <= reach) {
-          grid.terrain[i] = d <= reach * 0.4 && biomeOf(layout, grid.region[i]!) !== "volcanic" ? T.snow : T.mountain;
-          grid.height[i] = Math.max(grid.height[i]!, STEP * (6 + Math.round((reach - d) * 1.5)));
-          grid.blocked[i] = 1;
-        } else if (d <= reach + 2 && grid.blocked[i] === 0) {
-          grid.terrain[i] = T.hills;
-          grid.height[i] = Math.max(grid.height[i]!, STEP * 3);
-        }
+    const [ax, az] = range.from;
+    const [bx, bz] = range.to;
+    const pad = Math.ceil(range.width * 1.4 + 6);
+    for (const i of land.rect(Math.min(ax, bx) - pad, Math.min(az, bz) - pad, Math.max(ax, bx) + pad, Math.max(az, bz) + pad)) {
+      if (land.isSea(i)) continue;
+      const x = land.xOf(i);
+      const z = land.zOf(i);
+      const d = toSegment(x, z, ax, az, bx, bz);
+      const reach = range.width * (0.6 + 0.8 * jag(x, z));
+      const biome = biomeOf(layout, land.region[i]!);
+      if (d <= reach) {
+        land.surface[i] = d <= reach * 0.45 && biome !== "volcanic" && biome !== "waste" ? S.snow : S.rock;
+        land.height[i] = Math.max(land.height[i]!, Math.round(64 + (reach - d) * 14));
+        land.flags[i] = BLOCKED;
+      } else if (d <= reach + 5 && land.open(i)) {
+        land.surface[i] = S.scree;
+        land.height[i] = Math.max(land.height[i]!, land.height[i]! + Math.round((reach + 5 - d) * 4 * layout.relief));
       }
     }
   }
 }
 
-/** Rivers running from their springs toward the sea, wandering on the way, and lakes. */
-export function waters(grid: Grid, layout: Layout): void {
-  const meander = noise(`${layout.seed}:meander`, 18);
+/** Rivers running from their springs toward their mouths, wandering on the way and widening, and lakes. */
+export function waters(land: Land, layout: Layout): void {
+  const meander = noise(`${layout.seed}:meander`, 40);
   layout.rivers.forEach((river, k) => {
-    const to = { q: river.to[0], r: river.to[1] };
-    let at = { q: river.from[0], r: river.from[1] };
-    for (let step = 0; step < 900; step++) {
-      if (at.q < 0 || at.r < 0 || at.q >= SIZE || at.r >= SIZE) break;
-      const i = idx(at.q, at.r);
-      if (grid.terrain[i] === T["deep-water"] && step > 4) break;
-      for (const w of step > 60 ? [i, ...around(i)] : [i]) {
-        if (grid.terrain[w] === T["deep-water"]) continue;
-        grid.terrain[w] = river.lava ? T.lava : T.water;
-        grid.height[w] = -0.1;
-        grid.blocked[w] = 1;
+    const [tx, tz] = river.to;
+    let x = river.from[0];
+    let z = river.from[1];
+    for (let step = 0; step < 4000; step++) {
+      const width = 1 + Math.min(1.6, step / 110);
+      const ix = Math.round(x);
+      const iz = Math.round(z);
+      if (!land.inside(ix, iz)) break;
+      if (step > 12 && land.isSea(land.idx(ix, iz))) break;
+      for (const i of land.disc(ix, iz, width)) {
+        if (land.isSea(i)) continue;
+        land.decor.delete(i);
+        land.surface[i] = river.lava ? S.lava : S.stream;
+        land.flags[i] = BLOCKED;
       }
-      if (at.q === to.q && at.r === to.r) break;
-      // A step toward the mouth, or aside from it as the meander leans.
-      const steps = around(i).map((n) => ({ q: Math.floor(n / SIZE), r: n % SIZE }));
-      steps.sort((a, b) => hexDistance(a.q, a.r, to.q, to.r) - hexDistance(b.q, b.r, to.q, to.r) || a.q - b.q || a.r - b.r);
-      const lean = meander(at.q + k * 50, at.r);
-      at = lean > 0.68 && steps[1] ? steps[1] : lean < 0.32 && steps[2] && hexDistance(steps[2].q, steps[2].r, to.q, to.r) <= hexDistance(at.q, at.r, to.q, to.r) ? steps[2] : steps[0]!;
+      if (Math.hypot(tx - x, tz - z) < 1.5) break;
+      const toward = Math.atan2(tz - z, tx - x);
+      const lean = (meander(x + k * 400, z) - 0.5) * 2.2;
+      x += Math.cos(toward + lean);
+      z += Math.sin(toward + lean);
     }
   });
+  const edge = noise(`${layout.seed}:lakes`, 6);
   for (const lake of layout.lakes) {
-    const water = lake.kind === "lava" ? T.lava : lake.kind === "swamp" ? T.swamp : T.water;
-    const shore = lake.kind === "swamp" ? T.mud : lake.kind === "lava" ? T.ash : T.sand;
-    for (const i of disc({ q: lake.at[0], r: lake.at[1] }, lake.radius + 1)) {
-      if (grid.terrain[i] === T["deep-water"]) continue;
-      const d = hexDistance(Math.floor(i / SIZE), i % SIZE, lake.at[0], lake.at[1]);
+    const water = lake.kind === "lava" ? S.lava : lake.kind === "swamp" ? S.bog : S.shallows;
+    const shore = lake.kind === "swamp" ? S.mud : lake.kind === "lava" ? S.ash : S.sand;
+    const [cx, cz] = lake.at;
+    for (const i of land.disc(cx, cz, lake.radius * 1.3 + 3)) {
+      if (land.isSea(i)) continue;
+      const x = land.xOf(i);
+      const z = land.zOf(i);
+      const d = Math.hypot(x - cx, z - cz) / (0.8 + 0.4 * edge(x, z));
       if (d <= lake.radius) {
-        grid.terrain[i] = water;
-        grid.height[i] = -0.1;
-        grid.blocked[i] = 1;
-      } else if (grid.blocked[i] === 0) grid.terrain[i] = shore;
+        land.surface[i] = water;
+        land.flags[i] = BLOCKED;
+        land.height[i] = Math.max(1, Math.min(land.height[i]!, 4));
+      } else if (d <= lake.radius + 2 && land.open(i)) land.surface[i] = shore;
     }
   }
+}
+
+/** The sea's two waters: shallows along the coasts, the open sea beyond. */
+export function seas(land: Land): Float32Array {
+  const shore: number[] = [];
+  for (let i = 0; i < land.size; i++) if (!land.isSea(i)) shore.push(i);
+  const fromLand = land.distances(shore, 64);
+  for (let i = 0; i < land.size; i++) if (land.isSea(i)) land.surface[i] = fromLand[i]! <= 6 ? S.shallows : S.sea;
+  return fromLand;
 }

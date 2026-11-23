@@ -418,6 +418,24 @@ export function interiorTile(i: InteriorData, x: number, z: number): TileData | 
   return i.tiles[(z - a[1]) * (a[2] - a[0]) + (x - a[0])] ?? null;
 }
 
+/** The tier zone a tile lies in (world.json's `zones`, squares of `cell` tiles from the world's origin), or null off it. */
+export function areaAt(world: Pick<WorldData, "zones" | "origin">, x: number, z: number): ZoneArea | null {
+  const [ox, oz] = world.origin ?? [0, 0];
+  const zones = world.zones;
+  const index = zones.grid[Math.floor((z - oz) / zones.cell)]?.[Math.floor((x - ox) / zones.cell)];
+  return index === undefined ? null : (zones.areas[index] ?? null);
+}
+
+/** A tile's tier: its zone's (0 for the sea, or off the world). A town within its walls is no tier's (see `townAt`). */
+export const tierAt = (world: Pick<WorldData, "zones" | "origin">, x: number, z: number): number => areaAt(world, x, z)?.tier ?? 0;
+
+/** Whether a tile is within a town's walls: no farther than its `radius` from its `center` along x and along z. */
+export const inTown = (town: Pick<TownData, "center" | "radius">, x: number, z: number): boolean =>
+  Math.max(Math.abs(x - town.center[0]), Math.abs(z - town.center[1])) <= town.radius;
+
+/** The town whose walls a tile is within, if any. */
+export const townAt = (towns: readonly TownData[], x: number, z: number): TownData | null => towns.find((t) => inTown(t, x, z)) ?? null;
+
 /** A tile's floor height in world units. */
 export const heightOf = (t: TileData): number => t[0] / TEXELS_PER_TILE;
 export const isBlocked = (t: TileData): boolean => (t[2] & BLOCKED) !== 0 || t[1] === NO_SURFACE;

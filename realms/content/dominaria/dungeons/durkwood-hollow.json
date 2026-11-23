@@ -3,14 +3,14 @@
   "name": "The Durkwood Hollow",
   "theme": "hollow",
   "entrance": [
-    256,
-    259
+    570,
+    451
   ],
   "floors": [
     1,
     2
   ],
-  "tier": 2,
+  "tier": 3,
   "encounters": [
     2,
     3

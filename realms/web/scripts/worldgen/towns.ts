@@ -1,538 +1,648 @@
-// Towns (design.md A6): a walled hexagon with a gate toward every road that leaves it, streets from the gates to the
-// square, ring streets and lanes, districts round them - the square's inn, shops, temple and guildhall, the smithy by
-// a gate, houses and tenements beyond, warehouses and a pier where there is water - each building a box facing its
-// street, its door between it and the street. A building with a door gets an interior (interiors.ts).
+// Towns (design.md A6) on square tiles: a walled square with a gate toward every road that leaves it (and the harbour,
+// where there is water), avenues from the gates to the central square, a lane inside the walls, and the quarters
+// between cut into blocks by streets. Each block is built round its edges, every building facing the street it stands
+// on - its door the street tile before its front - with yards behind. The town's own buildings come first, where they
+// belong: the inn on the square, the shops round it and the market, the guildhall, temple and library a street or two
+// off, the smithy by a gate; then rows of houses and tenements, warehouses by the harbour. A building with a door into an
+// interior faces south, east or west, never away from the camera. Outdoors: the centrepiece, benches and lamps, market
+// stalls and wares, the quest board by the inn's door, guards at the gates, townsfolk on the square, the arena, and the
+// caravans' pitch.
 
-import { DIRECTIONS, type Hex, hex, toWorld } from "../../src/hex";
-import type { BuildingUse, Front, InteriorKind, NpcData, Region, TownData, TownStyle } from "../../src/world/schema";
-import { Grid, STEP, T, Use, angleGap, angleOf, around, disc, hexDistance, hexOf, idx, inside, line, qOf, randomFor, rOf, ringOf, safeToBlock, shuffle } from "./grid";
-import type { TownLayout as TownPlan } from "./layout";
-
-export interface Building {
-  readonly use: BuildingUse;
-  readonly anchor: number;
-  readonly front: Front;
-  /** Size along x and z, world units. */
-  readonly w: number;
-  readonly d: number;
-  readonly h: number;
-  readonly footprint: readonly number[];
-  readonly door: number | null;
-  /** The street hex in front of the door. */
-  readonly exit: number;
-}
+import type { BuildingData, InteriorKind, NpcData, PropData, Region, TownData } from "../../src/world/format";
+import { type Footprint, building, frontTile } from "./buildings";
+import { type BuildingKind, S } from "./ids";
+import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
+import type { TownLayout } from "./layout";
 
 export interface InteriorSpec {
   readonly id: string;
   readonly name: string;
   readonly kind: InteriorKind;
   readonly town: string;
-  readonly style: TownStyle;
-  readonly exit: Hex;
-  readonly door: Hex;
+  readonly style: string;
+  /** The door's tile in the world: where one comes out. */
+  readonly exit: readonly [number, number];
   readonly vendor?: { readonly id: string; readonly name: string };
   readonly armorer?: boolean;
   readonly innkeeper?: { readonly name: string; readonly text: readonly string[] };
   readonly spellTable?: boolean;
   readonly resident?: { readonly name: string; readonly text: readonly string[] };
-  /** An exotic wares shop's: dressed in curios from other planes. */
-  readonly exotic?: boolean;
 }
 
 export interface BuiltTown {
   readonly data: TownData;
-  readonly buildings: Building[];
+  readonly buildings: BuildingData[];
   readonly interiors: InteriorSpec[];
-  readonly doors: { q: number; r: number; interior: string }[];
   readonly npcs: NpcData[];
-  /** Outside each gate, by the target it was made for. */
+  /** The road's end outside each gate, by the target the gate was made toward. */
   readonly gates: Map<string, number>;
-  readonly inn: { q: number; r: number; interior: string };
+  /** The inn's door tile, outside. */
+  readonly inn: { readonly x: number; readonly z: number; readonly interior: string };
   /** Where traveling vendors' caravans pitch, if the town has one. */
-  readonly pitch: { q: number; r: number } | null;
+  readonly pitch: { readonly x: number; readonly z: number } | null;
+}
+
+export interface TownSpec {
+  readonly plan: TownLayout;
+  readonly index: number;
+  readonly color: Region | null;
+  /** Where the roads out of it go: a gate faces each. */
+  readonly targets: readonly { readonly id: string; readonly at: readonly [number, number] }[];
+  readonly vendors: readonly { readonly id: string; readonly name: string }[];
+  readonly exotic: { readonly id: string; readonly name: string } | null;
 }
 
 interface Ground {
-  readonly lot: keyof typeof T;
-  readonly street: keyof typeof T;
-  readonly square: keyof typeof T;
-}
-
-const GROUNDS: Record<TownStyle, Ground> = {
-  argive: { lot: "grass", street: "cobble", square: "marble" },
-  benalish: { lot: "meadow", street: "cobble", square: "marble" },
-  tolarian: { lot: "sand", street: "stone", square: "crystal" },
-  urborg: { lot: "mud", street: "wood", square: "stone" },
-  keldon: { lot: "dirt", street: "stone", square: "rock" },
-  llanowar: { lot: "moss", street: "dirt", square: "meadow" },
-};
-
-/** Footprints, world units: across the front, then deep; and how tall. */
-const SIZES: Record<BuildingUse, readonly (readonly [number, number, number])[]> = {
-  house: [[3, 3, 2], [3.2, 3.6, 2.2], [4.2, 3, 2]],
-  tenement: [[3.2, 4.6, 3.6], [4.6, 3.2, 3.2]],
-  shop: [[4.4, 3.6, 2.6], [4.8, 4, 2.8]],
-  inn: [[6.2, 4.8, 3.4], [5.6, 5, 3.2]],
-  temple: [[6, 7.4, 4.6], [5.6, 6.6, 4.2]],
-  guildhall: [[7.2, 5.6, 4], [6.4, 5.6, 3.8]],
-  smithy: [[4.6, 4.4, 2.4], [4.2, 4.2, 2.4]],
-  library: [[6, 5.6, 4], [5.6, 5.2, 3.8]],
-  "mage-tower": [[4, 4, 8], [3.6, 3.6, 7]],
-  warehouse: [[7.4, 4.6, 3], [6.2, 4.6, 3.2]],
-};
-
-const INTERIOR_OF: Partial<Record<BuildingUse, InteriorKind>> = {
-  house: "house",
-  shop: "shop",
-  inn: "inn",
-  temple: "temple",
-  guildhall: "guildhall",
-  smithy: "smithy",
-  library: "library",
-  "mage-tower": "tower",
-};
-
-const NORMALS: Record<Front, { x: number; z: number }> = { "x+": { x: 1, z: 0 }, "x-": { x: -1, z: 0 }, "z+": { x: 0, z: 1 }, "z-": { x: 0, z: -1 } };
-const FRONT_LIST: readonly Front[] = ["x+", "x-", "z+", "z-"];
-
-const worldOf = (i: number) => toWorld(hexOf(i));
-
-/** The hex nearest a point of the ground plane. */
-function hexAtPoint(x: number, z: number): Hex {
-  const q = (2 / 3) * x;
-  const r = (-1 / 3) * x + (Math.sqrt(3) / 3) * z;
-  const s = -q - r;
-  let rq = Math.round(q);
-  let rr = Math.round(r);
-  const rs = Math.round(s);
-  if (Math.abs(rq - q) > Math.abs(rr - r) && Math.abs(rq - q) > Math.abs(rs - s)) rq = -rr - rs;
-  else if (Math.abs(rr - r) > Math.abs(rs - s)) rr = -rq - rs;
-  return hex(rq + 0, rr + 0);
-}
-
-/** The hexes a box of `w` by `d` round a hex covers: those whose centres it all but reaches. */
-export function footprintOf(anchor: Hex, w: number, d: number): number[] {
-  const { x, z } = toWorld(anchor);
-  const found: number[] = [];
-  const reach = Math.ceil(Math.max(w, d) / 1.5) + 1;
-  for (const i of disc(anchor, reach)) {
-    const p = worldOf(i);
-    if (Math.abs(p.x - x) <= w / 2 + 0.3 && Math.abs(p.z - z) <= d / 2 + 0.3) found.push(i);
-  }
-  return found;
-}
-
-interface Site {
+  readonly lot: number;
   readonly street: number;
-  readonly door: number;
-  readonly front: Front;
+  readonly square: number;
+  readonly yard: number;
 }
 
-export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, index: number, centre: Hex, targets: readonly { id: string; at: Hex }[], seed: number, vendors: readonly { id: string; name: string }[], exotic: { id: string; name: string } | null = null): BuiltTown {
+const GROUNDS: Record<string, Ground> = {
+  benalish: { lot: S.grass, street: S.cobbles, square: S.flagstones, yard: S.grass },
+  llanowar: { lot: S.moss, street: S.dirt, square: S.grass, yard: S["forest-floor"] },
+  urborg: { lot: S.mud, street: S.planks, square: S.flagstones, yard: S.moss },
+  keldon: { lot: S.tundra, street: S.dirt, square: S.flagstones, yard: S.tundra },
+  tolarian: { lot: S.grass, street: S.flagstones, square: S.flagstones, yard: S.sand },
+  argive: { lot: S.grass, street: S.cobbles, square: S.flagstones, yard: S.grass },
+};
+
+/** Who keeps a town's gates and walks its square, by its style (art/figures; townsman, elf, wizard and humanoid are placeholders). */
+const FOLK_FIGURES: Record<string, { guard: string; folk: readonly string[] }> = {
+  benalish: { guard: "knight", folk: ["townswoman", "townsman"] },
+  llanowar: { guard: "elf", folk: ["elf", "elf", "townswoman"] },
+  urborg: { guard: "knight", folk: ["townswoman", "townsman"] },
+  keldon: { guard: "humanoid", folk: ["townsman", "townswoman", "humanoid"] },
+  tolarian: { guard: "wizard", folk: ["wizard", "townswoman", "townsman"] },
+  argive: { guard: "knight", folk: ["townswoman", "townsman"] },
+};
+
+/** The four sides of a town, as the fronts that face out of them. */
+const SIDES = [
+  { name: "s", rot: 0, dx: 0, dz: 1 },
+  { name: "w", rot: 1, dx: -1, dz: 0 },
+  { name: "n", rot: 2, dx: 0, dz: -1 },
+  { name: "e", rot: 3, dx: 1, dz: 0 },
+] as const;
+type Side = (typeof SIDES)[number];
+
+const sideToward = (dx: number, dz: number): Side => (Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? SIDES[3] : SIDES[1]) : dz > 0 ? SIDES[0] : SIDES[2]);
+
+interface Block {
+  readonly x0: number;
+  readonly z0: number;
+  readonly x1: number;
+  readonly z1: number;
+}
+
+/** Sizes, tiles across the front and deep, of the town's own buildings. */
+const SIZE: Record<string, readonly [number, number]> = {
+  "inn-capital": [14, 9],
+  "inn-town": [12, 8],
+  "inn-village": [10, 7],
+  shop: [8, 6],
+  exotic: [9, 7],
+  guildhall: [12, 9],
+  temple: [11, 12],
+  library: [10, 8],
+  tower: [8, 8],
+  smithy: [8, 7],
+  shrine: [7, 6],
+  house: [7, 6],
+};
+
+export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
+  const { plan } = spec;
   const random = randomFor(seed, `town:${plan.id}`);
   const R = plan.radius;
-  const ground = GROUNDS[plan.style];
-  const C = idx(centre.q, centre.r);
-  const tag = index + 1;
-  const distC = (i: number) => hexDistance(qOf(i), rOf(i), centre.q, centre.r);
-  const level = STEP;
+  const [cx, cz] = plan.at;
+  const tag = spec.index + 1;
+  const style = plan.style;
+  const ground = GROUNDS[style] ?? GROUNDS.benalish!;
+  const capital = plan.kind === "capital";
+  const village = plan.kind === "village";
+  const cheb = (x: number, z: number) => Math.max(Math.abs(x - cx), Math.abs(z - cz));
+  const I = (x: number, z: number) => land.idx(x, z);
 
-  // Water near the walls makes a harbour: the direction with the most of it.
-  let harbour: number | null = null;
+  // --- The site: levelled, cleared and walled ---------------------------------------------------------------------
+
+  // Which side the sea is on, if it comes near the walls: the harbour's.
+  let harbour: Side | null = null;
   {
-    let most = 0;
-    for (let a = 0; a < 360; a += 15) {
-      let water = 0;
-      for (let s = R + 3; s <= R + 16; s++) {
-        const h = atAngleFrom(centre, a, s);
-        if (inside(h.q, h.r) && grid.isWater(idx(h.q, h.r)) && grid.terrain[idx(h.q, h.r)] !== T.lava) water++;
+    let most = 0.25;
+    for (const side of SIDES) {
+      let sea = 0;
+      let all = 0;
+      for (let out = R + 3; out <= R + 22; out++) {
+        for (let t = -Math.floor(R / 2); t <= Math.floor(R / 2); t++) {
+          const x = side.dx !== 0 ? cx + side.dx * out : cx + t;
+          const z = side.dz !== 0 ? cz + side.dz * out : cz + t;
+          if (!land.inside(x, z)) continue;
+          all++;
+          if (land.isSea(I(x, z))) sea++;
+        }
       }
-      if (water > most) {
-        most = water;
-        harbour = a;
-      }
-    }
-    if (most < 6) harbour = null;
-  }
-
-  // The ground: levelled and cleared inside, an apron cleared outside.
-  for (const i of disc(centre, R + 6)) {
-    const d = distC(i);
-    if (d <= R + 2) {
-      if (d > R && grid.isWater(i)) continue;
-      grid.props.delete(i);
-      grid.blocked[i] = 0;
-      grid.terrain[i] = d <= R ? T[ground.lot] : grid.isWater(i) ? T.grass : grid.terrain[i]!;
-      grid.height[i] = level;
-      grid.use[i] = d <= R ? Use.Lot : Use.Kept;
-      grid.town[i] = tag;
-    } else if (!grid.isWater(i)) {
-      grid.height[i] = Math.min(grid.height[i]!, STEP * 2);
-      if (grid.terrain[i] === T.mountain) {
-        grid.terrain[i] = T.rock;
-        grid.blocked[i] = 0;
+      if (all > 0 && sea / all > most) {
+        most = sea / all;
+        harbour = side;
       }
     }
   }
 
-  const street = (i: number, terrain: keyof typeof T = ground.street) => {
-    if (grid.use[i] === Use.Wall) return;
-    grid.use[i] = Use.Street;
-    grid.terrain[i] = T[terrain];
-    grid.blocked[i] = 0;
-    grid.props.delete(i);
-  };
-  const kept = (i: number, terrain: keyof typeof T) => {
-    grid.use[i] = Use.Kept;
-    grid.terrain[i] = T[terrain];
-    grid.blocked[i] = 0;
-    grid.props.delete(i);
-  };
+  const heights: number[] = [];
+  for (const i of land.rect(cx - R, cz - R, cx + R, cz + R)) if (!land.isWater(i) && land.open(i)) heights.push(land.height[i]!);
+  heights.sort((a, b) => a - b);
+  const level = Math.max(1, heights[Math.floor(heights.length / 2)] ?? 2);
 
-  // The walls and their corner towers.
-  const ring = ringOf(centre, R);
-  for (const h of ring) {
-    const i = idx(h.q, h.r);
-    grid.use[i] = Use.Wall;
-    grid.terrain[i] = T[ground.street === "wood" ? "wood" : "stone"];
-    grid.prop(i, { kind: "wall", style: plan.style });
-  }
-  for (let side = 0; side < 6; side++) {
-    const corner = hex(centre.q + DIRECTIONS[(side + 4) % 6]!.q * R, centre.r + DIRECTIONS[(side + 4) % 6]!.r * R);
-    grid.prop(idx(corner.q, corner.r), { kind: "tower", style: plan.style });
+  for (const i of land.rect(cx - R - 6, cz - R - 6, cx + R + 6, cz + R + 6)) {
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    const d = cheb(x, z);
+    if (d <= R) {
+      land.clear(i, ground.lot);
+      land.height[i] = level;
+      land.use[i] = Use.Lot;
+      land.town[i] = tag;
+    } else if (!land.isSea(i)) {
+      // The apron round the walls: open ground, easing down to the land.
+      land.clear(i, land.isWater(i) || !land.open(i) ? S.dirt : land.surface[i]!);
+      const t = (d - R) / 7;
+      land.height[i] = Math.round(level * (1 - t) + land.height[i]! * t);
+      land.use[i] = Use.Kept;
+    }
   }
 
-  // Gates toward the roads (and the harbour), kept apart and off the corners.
+  const street = (i: number, surface = ground.street) => {
+    if (land.use[i] === Use.Wall || land.use[i] === Use.Door) return;
+    land.clear(i, surface);
+    land.use[i] = Use.Street;
+  };
+  const kept = (i: number, surface: number) => {
+    if (land.use[i] === Use.Wall || land.use[i] === Use.Door) return;
+    land.clear(i, surface);
+    land.use[i] = Use.Kept;
+  };
+
+  for (const i of land.rect(cx - R, cz - R, cx + R, cz + R)) {
+    if (cheb(land.xOf(i), land.zOf(i)) === R) {
+      land.use[i] = Use.Wall;
+      land.surface[i] = ground.street;
+      land.block(i);
+    }
+  }
+
+  // Gates toward the roads (and the harbour): one a side, at its middle, where the avenue meets the wall.
+  const gateWidth = capital ? 5 : 3;
+  const half = (gateWidth - 1) / 2;
   const gates = new Map<string, number>();
-  const gateHexes: Hex[] = [];
-  const outside = (g: Hex) => {
-    const gi = idx(g.q, g.r);
-    return around(gi).filter((n) => distC(n) === R + 1).sort((a, b) => a - b)[0] ?? gi;
+  const gateSides = new Set<Side>();
+  // A road leaves by the side facing its target, unless the sea comes up to that side's gate: then by the next best.
+  const dry = (side: Side) => [1, 2, 3].every((out) => !land.isSea(I(cx + side.dx * (R + out), cz + side.dz * (R + out))));
+  const roadSide = (at: readonly [number, number]): Side => {
+    const dx = at[0] - cx;
+    const dz = at[1] - cz;
+    const ranked = [...SIDES].sort((p, q) => q.dx * dx + q.dz * dz - (p.dx * dx + p.dz * dz));
+    return ranked.find(dry) ?? sideToward(dx, dz);
   };
-  const wantGate = (id: string, angle: number) => {
-    // A road that leaves near an existing gate shares it.
-    const shared = gateHexes.find((g) => angleGap(angleOf(centre, g), angle) < 32);
-    if (shared) {
-      gates.set(id, outside(shared));
-      return;
-    }
-    let best: Hex | null = null;
-    let bestGap = Infinity;
-    for (const h of ring) {
-      const corner = (Math.abs(h.q - centre.q) === R || Math.abs(h.r - centre.r) === R || Math.abs(h.q + h.r - centre.q - centre.r) === R)
-        && [Math.abs(h.q - centre.q), Math.abs(h.r - centre.r), Math.abs(h.q + h.r - centre.q - centre.r)].filter((v) => v === R).length >= 2;
-      if (corner) continue;
-      if (gateHexes.some((g) => hexDistance(g.q, g.r, h.q, h.r) < Math.max(5, R / 3))) continue;
-      const gap = angleGap(angleOf(centre, h), angle);
-      if (gap < bestGap) {
-        bestGap = gap;
-        best = h;
+  for (const t of spec.targets) gateSides.add(roadSide(t.at));
+  if (harbour) gateSides.add(harbour);
+  if (gateSides.size === 0) gateSides.add(SIDES[0]);
+  const outsideOf = (side: Side) => I(cx + side.dx * (R + 1), cz + side.dz * (R + 1));
+  for (const side of SIDES.filter((s) => gateSides.has(s))) {
+    for (let t = -half; t <= half; t++) {
+      const x = side.dx !== 0 ? cx + side.dx * R : cx + t;
+      const z = side.dz !== 0 ? cz + side.dz * R : cz + t;
+      land.use[I(x, z)] = Use.Street;
+      land.clear(I(x, z), ground.street);
+      // The way out, through the apron.
+      for (let out = 1; out <= 3; out++) {
+        const j = I(x + side.dx * out, z + side.dz * out);
+        if (land.inside(x + side.dx * out, z + side.dz * out) && !land.isSea(j)) land.clear(j, ground.street);
       }
     }
-    if (!best) throw new Error(`${plan.id}: no room for a gate toward ${id}`);
-    gateHexes.push(best);
-    gates.set(id, outside(best));
-  };
-  for (const t of targets) wantGate(t.id, angleOf(centre, t.at));
-  if (harbour !== null) wantGate("harbour", harbour);
-  for (const g of gateHexes) {
-    const gi = idx(g.q, g.r);
-    const width = plan.kind === "village" ? [gi] : [gi, ...around(gi).filter((n) => grid.use[n] === Use.Wall)];
-    for (const w of width) {
-      grid.props.delete(w);
-      grid.blocked[w] = 0;
-      grid.use[w] = Use.Street;
-      grid.terrain[w] = T[ground.street];
-    }
-    const angle = angleOf(centre, g);
-    grid.prop(gi, { kind: "gate", style: plan.style, front: frontToward(angle) }, false);
-    for (const w of around(gi)) if (grid.use[w] === Use.Wall && !width.includes(w)) grid.prop(w, { kind: "tower", style: plan.style });
-    for (const n of around(gi)) if (distC(n) === R + 1) street(n);
+    land.fixtures.push({ id: "gatehouse", x: cx + side.dx * R + 0.5, z: cz + side.dz * R + 0.5, rot: side.rot, args: { width: gateWidth, style, size: plan.kind } });
   }
+  for (const t of spec.targets) gates.set(t.id, outsideOf(roadSide(t.at)));
+  if (harbour) gates.set("harbour", outsideOf(harbour));
 
-  // Streets: the lane inside the walls, the square, streets from the square to the gates, rings and spokes.
-  for (const h of ringOf(centre, R - 1)) street(idx(h.q, h.r));
-  const S = plan.kind === "capital" ? 9 : plan.kind === "town" ? 6 : 3;
-  for (const i of disc(centre, S)) kept(i, ground.square);
-  const wide = plan.kind === "village" ? 0 : 1;
-  const road = (a: Hex, b: Hex, width: number) => {
-    for (const h of line(a, b)) for (const w of width ? disc(h, width) : [idx(h.q, h.r)]) if (grid.use[w] !== Use.Kept && distC(w) < R) street(w);
-  };
-  for (const g of gateHexes) road(centre, g, wide);
-  if (plan.kind === "capital") {
-    for (const f of [0.38, 0.7]) for (const h of ringOf(centre, Math.round(R * f))) street(idx(h.q, h.r));
-    for (let side = 0; side < 6; side++) road(centre, hex(centre.q + DIRECTIONS[side]!.q * (R - 1), centre.r + DIRECTIONS[side]!.r * (R - 1)), 0);
-    for (let side = 0; side < 6; side++) {
-      // Lanes between the spokes, from the inner ring to the lane.
-      const a = 30 + side * 60;
-      road(atAngleFrom(centre, a + 15, Math.round(R * 0.38)), atAngleFrom(centre, a + 15, R - 1), 0);
-    }
-  } else if (plan.kind === "town") {
-    for (const h of ringOf(centre, Math.round(R * 0.55))) street(idx(h.q, h.r));
-    for (let side = 0; side < 6; side += 2) road(centre, hex(centre.q + DIRECTIONS[side]!.q * (R - 1), centre.r + DIRECTIONS[side]!.r * (R - 1)), 0);
-  }
+  wallProps(land, plan, cx, cz, R, [...gateSides], half);
 
-  // The centrepiece, plazas: the arena's, and the capital's market.
-  grid.prop(C, { kind: plan.centrepiece });
-  const npcs: NpcData[] = [];
-  const plaza = (at: Hex, radius: number, terrain: keyof typeof T) => {
-    for (const i of disc(at, radius)) if (distC(i) < R - 1) kept(i, terrain);
-  };
-  if (plan.kind !== "village") {
-    const at = atAngleFrom(centre, (harbour ?? 0) + 150, Math.round(R * (plan.kind === "capital" ? 0.55 : 0.75)));
-    plaza(at, 3, ground.square);
-    const ai = idx(at.q, at.r);
-    grid.blocked[ai] = 1;
-    npcs.push({ id: `${plan.id}-arena`, q: at.q, r: at.r, kind: "arena", name: "The arena", text: ["The arena is closed. A sign reads: coming soon."] });
-    for (const h of ringOf(at, 3)) if ((h.q + h.r) % 2 === 0) grid.prop(idx(h.q, h.r), { kind: "pillar", style: plan.style });
-  }
-  let market: Hex | null = null;
-  if (plan.kind === "capital") {
-    market = atAngleFrom(centre, 300, Math.round(R * 0.55));
-    plaza(market, 5, ground.square);
-    for (const h of ringOf(market, 3)) if (random() < 0.4) grid.prop(idx(h.q, h.r), { kind: "stall", style: plan.style });
-    grid.prop(idx(market.q, market.r), { kind: "well", style: plan.style });
-  }
+  // --- Streets ----------------------------------------------------------------------------------------------------
 
-  // The harbour's pier, out from its gate into the water.
-  if (harbour !== null && gates.has("harbour")) {
-    const from = hexOf(gates.get("harbour")!);
-    for (let s = 1; s <= 22; s++) {
-      const h = atAngleFrom(from, harbour, s);
-      if (!inside(h.q, h.r)) break;
-      const i = idx(h.q, h.r);
-      const wet = grid.isWater(i);
-      grid.terrain[i] = T.wood;
-      grid.blocked[i] = 0;
-      grid.props.delete(i);
-      grid.use[i] = Use.Kept;
-      grid.height[i] = STEP;
-      if (wet) {
-        for (const n of around(i)) if (grid.isWater(n) && random() < 0.25) grid.prop(n, { kind: "dock" });
-      }
-      if (wet && s > 10 && !around(i).some((n) => grid.isWater(n) === false && grid.use[n] !== Use.Kept)) break;
+  const lane = 2;
+  for (const i of land.rect(cx - R + 1, cz - R + 1, cx + R - 1, cz + R - 1)) if (cheb(land.xOf(i), land.zOf(i)) >= R - lane) street(i);
+  const a = capital ? 2 : 1;
+  for (let t = -a; t <= a; t++) {
+    for (let s = -(R - 1); s <= R - 1; s++) {
+      street(I(cx + t, cz + s));
+      street(I(cx + s, cz + t));
     }
   }
+  const SQ = capital ? 15 : village ? 6 : 10;
+  for (const i of land.rect(cx - SQ, cz - SQ, cx + SQ, cz + SQ)) kept(i, ground.square);
 
-  // Building sites: every way a building can face a street, its door between them.
-  const sites: Site[] = [];
-  for (const i of disc(centre, R - 1)) {
-    if ((grid.use[i] !== Use.Street && grid.use[i] !== Use.Kept) || grid.blocked[i]) continue;
-    const p = worldOf(i);
-    for (const front of FRONT_LIST) {
-      const n = NORMALS[front];
-      let door = -1;
-      let best = 0.55;
-      for (const j of around(i)) {
-        const q = worldOf(j);
-        const dot = ((q.x - p.x) * -n.x + (q.z - p.z) * -n.z) / Math.sqrt(3);
-        if (dot > best) {
-          best = dot;
-          door = j;
-        }
-      }
-      if (door >= 0 && grid.use[door] === Use.Lot) sites.push({ street: i, door, front });
-    }
+  // Plazas off the avenues: the capital's market, the arena (towns and the capital).
+  const quadrants = shuffle([[1, -1], [-1, -1], [1, 1], [-1, 1]] as [number, number][], random).filter(([qx, qz]) => !harbour || !(Math.sign(harbour.dx) === qx || Math.sign(harbour.dz) === qz));
+  while (quadrants.length < 2) quadrants.push([1, 1]);
+  const plaza = (q: readonly [number, number], halfSize: number, along: number) => {
+    const px = cx + q[0] * (a + 1 + along + halfSize);
+    const pz = cz + q[1] * (a + 1 + halfSize);
+    for (const i of land.rect(px - halfSize, pz - halfSize, px + halfSize, pz + halfSize)) if (cheb(land.xOf(i), land.zOf(i)) < R - lane) kept(i, ground.square);
+    return [px, pz] as const;
+  };
+  const market = capital ? plaza(quadrants[0]!, 10, SQ + 4) : null;
+  const arena = village ? null : plaza(quadrants[1]!, capital ? 7 : 5, capital ? SQ + 6 : SQ + 3);
+
+  // The quarters, cut into blocks by streets.
+  const blocks: Block[] = [];
+  const cut = (b: Block) => {
+    const w = b.x1 - b.x0 + 1;
+    const h = b.z1 - b.z0 + 1;
+    const maxW = capital ? 26 : 22;
+    const maxH = capital ? 22 : 18;
+    const sw = capital && (w > 40 || h > 40) ? 3 : 2;
+    if (w > maxW && w >= h) {
+      const at = b.x0 + Math.round(w * (0.38 + random() * 0.24));
+      for (let x = at; x < at + sw; x++) for (let z = b.z0; z <= b.z1; z++) if (land.use[I(x, z)] === Use.Lot) street(I(x, z));
+      cut({ ...b, x1: at - 1 });
+      cut({ ...b, x0: at + sw });
+    } else if (h > maxH) {
+      const at = b.z0 + Math.round(h * (0.38 + random() * 0.24));
+      for (let z = at; z < at + sw; z++) for (let x = b.x0; x <= b.x1; x++) if (land.use[I(x, z)] === Use.Lot) street(I(x, z));
+      cut({ ...b, z1: at - 1 });
+      cut({ ...b, z0: at + sw });
+    } else if (w >= 5 && h >= 5) blocks.push(b);
+  };
+  const inner = R - lane - 1;
+  for (const [qx, qz] of [[1, -1], [-1, -1], [1, 1], [-1, 1]] as const) {
+    const xs = [cx + qx * (a + 1), cx + qx * inner].sort((p, q) => p - q);
+    const zs = [cz + qz * (a + 1), cz + qz * inner].sort((p, q) => p - q);
+    cut({ x0: xs[0]!, z0: zs[0]!, x1: xs[1]!, z1: zs[1]! });
   }
 
-  const buildings: Building[] = [];
-  const doorHexes = new Set<number>();
-  const fits = (site: Site, size: readonly [number, number, number], withDoor: boolean): Building | null => {
-    const [across, deep, tall] = size;
-    const n = NORMALS[site.front];
-    const along = n.x !== 0;
-    const w = along ? deep : across;
-    const d = along ? across : deep;
-    const dp = worldOf(site.door);
-    const extent = (along ? w : d) / 2;
-    const anchor = hexAtPoint(dp.x - n.x * (extent + 0.55), dp.z - n.z * (extent + 0.55));
-    if (!inside(anchor.q, anchor.r)) return null;
-    const footprint = footprintOf(anchor, w, d);
-    if (footprint.includes(site.door) || footprint.includes(site.street)) return null;
-    if (!around(site.door).some((j) => footprint.includes(j))) return null;
-    for (const f of footprint) {
-      if (grid.use[f] !== Use.Lot || distC(f) > R - 2) return null;
-      if (around(f).some((j) => doorHexes.has(j))) return null;
-    }
-    if (withDoor && around(site.door).some((j) => doorHexes.has(j))) return null;
-    const anchorIndex = idx(anchor.q, anchor.r);
-    return { use: "house", anchor: anchorIndex, front: site.front, w, d, h: tall, footprint, door: withDoor ? site.door : null, exit: site.street };
-  };
-  const place = (b: Building, use: BuildingUse, h: number): Building => {
-    const placed = { ...b, use, h };
-    for (const f of b.footprint) {
-      grid.use[f] = Use.Building;
-      grid.blocked[f] = 1;
-      grid.props.delete(f);
-    }
-    if (b.door !== null) {
-      grid.use[b.door] = Use.Door;
-      doorHexes.add(b.door);
-      grid.terrain[b.door] = T[ground.street];
-    }
-    grid.prop(b.anchor, { kind: "building", use, style: plan.style, w: round(b.w), d: round(b.d), h: round(h), front: b.front });
-    buildings.push(placed);
-    return placed;
-  };
-  /** The best site for a building near a point (and far from others of its kind). */
-  const site = (use: BuildingUse, near: Hex, spread = 6): Building | null => {
-    let best: { b: Building; score: number; size: readonly [number, number, number] } | null = null;
-    for (const s of sites) {
-      if (grid.use[s.door] !== Use.Lot) continue;
-      const sp = hexOf(s.street);
-      // Fronts toward the camera (+x, +z) are preferred, so a door and whoever stands at it are not hidden behind the building.
-      const score = hexDistance(sp.q, sp.r, near.q, near.r) + random() * spread + (s.front === "x-" || s.front === "z-" ? 8 : 0);
-      if (best && score >= best.score) continue;
-      for (const size of SIZES[use]) {
-        const b = fits(s, size, true);
-        if (b) {
-          best = { b, score, size };
-          break;
-        }
-      }
-    }
-    return best ? place(best.b, use, best.size[2] + random() * 0.4) : null;
-  };
+  // --- Buildings --------------------------------------------------------------------------------------------------
 
-  // What the town needs, in order: its inn and shops by the square, the guild and temple, the library, the smithy by
-  // a gate, houses with doors; then the rest filled in.
+  const buildings: BuildingData[] = [];
   const interiors: InteriorSpec[] = [];
-  const doors: BuiltTown["doors"] = [];
-  const name = (b: Building, id: string, title: string, kind: InteriorKind, extra: Partial<InteriorSpec> = {}) => {
-    const exit = hexOf(b.exit);
-    const door = hexOf(b.door!);
-    interiors.push({ id, name: title, kind, town: plan.id, style: plan.style, exit, door, ...extra });
-    doors.push({ q: door.q, r: door.r, interior: id });
-  };
-  const inn = site("inn", centre, 2);
-  if (!inn) throw new Error(`${plan.id}: no room for the inn`);
-  name(inn, `${plan.id}-inn`, plan.inn, "inn", { innkeeper: { name: `The keeper of ${plan.inn}`, text: plan.innkeeper }, spellTable: true });
-  vendors.forEach((v, k) => {
-    const b = site("shop", market && k % 2 === 1 ? market : centre, 4);
-    if (!b) throw new Error(`${plan.id}: no room for ${v.id}'s shop`);
-    name(b, `${v.id}-shop`, v.name, "shop", { vendor: v });
-  });
-  if (exotic) {
-    const b = site("shop", market ?? centre, 4);
-    if (!b) throw new Error(`${plan.id}: no room for the exotic wares shop`);
-    name(b, `${exotic.id}-shop`, exotic.name, "shop", { vendor: { id: exotic.id, name: exotic.name }, exotic: true });
-  }
-  if (plan.kind !== "village") {
-    const guild = site("guildhall", atAngleFrom(centre, 60, Math.round(R * 0.3)), 6);
-    if (guild) name(guild, `${plan.id}-guildhall`, plan.guild, "guildhall", { spellTable: true, resident: { name: "Guild master", text: ["Our tables are open to any mage. Build your deck in peace."] } });
-    const temple = site("temple", atAngleFrom(centre, 200, Math.round(R * 0.32)), 6);
-    if (temple) name(temple, `${plan.id}-temple`, plan.temple, "temple", { resident: { name: "Priest", text: ["Rest a while. The wells of Dominaria remember the faithful."] } });
-    const library = site(plan.style === "tolarian" ? "mage-tower" : "library", atAngleFrom(centre, 120, Math.round(R * 0.45)), 8);
-    if (library) {
-      const tower = plan.style === "tolarian";
-      name(library, `${plan.id}-${tower ? "tower" : "library"}`, tower ? `The ${plan.name} Mage's Tower` : `The ${plan.name} Library`, tower ? "tower" : "library", { resident: { name: tower ? "Archmage" : "Librarian", text: ["Every card ever printed is written down somewhere. Most of them here."] } });
+  const doors = new Set<number>();
+  const frontsOn = (i: number) => land.use[i] === Use.Street || land.use[i] === Use.Kept;
+
+  /** The footprint of a building on a block's side, `at` tiles along it, or null if it does not fit there. */
+  const fit = (b: Block, side: Side, at: number, wide: number, deep: number, doorAt: number): Footprint | null => {
+    let f: Omit<Footprint, "door">;
+    if (side.rot === 0) f = { x: b.x0 + at, z: b.z1 - deep + 1, w: wide, d: deep, rot: 0 };
+    else if (side.rot === 2) f = { x: b.x1 - at - wide + 1, z: b.z0, w: wide, d: deep, rot: 2 };
+    else if (side.rot === 1) f = { x: b.x0, z: b.z0 + at, w: deep, d: wide, rot: 1 };
+    else f = { x: b.x1 - deep + 1, z: b.z1 - at - wide + 1, w: deep, d: wide, rot: 3 };
+    if (f.x < b.x0 || f.z < b.z0 || f.x + f.w - 1 > b.x1 || f.z + f.d - 1 > b.z1) return null;
+    for (let z = f.z; z < f.z + f.d; z++) for (let x = f.x; x < f.x + f.w; x++) if (land.use[I(x, z)] !== Use.Lot) return null;
+    // Every tile along its front faces the street, so nothing of it stands back off the street behind a yard.
+    for (let k = 0; k < wide; k++) {
+      const [tx, tz] = frontTile(f, k + 0.5);
+      if (!frontsOn(I(tx, tz))) return null;
     }
-    const gate = gateHexes[0] ?? centre;
-    const smithy = site("smithy", gate, 6);
-    if (smithy) name(smithy, `${plan.id}-smithy`, `The ${plan.name} Smithy`, "smithy", { armorer: true });
-  } else {
-    const shrine = site("house", centre, 6);
-    if (shrine) name(shrine, `${plan.id}-shrine`, `The ${plan.name} Shrine`, "temple", { resident: { name: "Hermit", text: ["The road is long. Sit, and let it wait for you."] } });
-  }
-  const houses = plan.kind === "capital" ? 10 : plan.kind === "town" ? 6 : 3;
-  for (let n = 1; n <= houses; n++) {
-    const b = site("house", atAngleFrom(centre, random() * 360, Math.round(R * (0.3 + random() * 0.55))), 12);
-    if (!b) break;
-    const folk = plan.folk[(n - 1) % plan.folk.length]!;
-    name(b, `${plan.id}-house-${n}`, `A house in ${plan.name}`, "house", n <= plan.folk.length ? { resident: folk } : {});
-  }
-  if (harbour !== null && gates.has("harbour")) {
-    const at = hexOf(gates.get("harbour")!);
-    for (let n = 0; n < (plan.kind === "village" ? 1 : 3); n++) {
-      for (const s of shuffle(sites.slice(), random)) {
-        if (grid.use[s.door] !== Use.Lot) continue;
-        const sp = hexOf(s.street);
-        if (hexDistance(sp.q, sp.r, at.q, at.r) > R * 0.35) continue;
-        const b = fits(s, SIZES.warehouse[0]!, false);
-        if (b) {
-          place(b, "warehouse", 3);
-          break;
+    const door = frontTile(f, doorAt + 0.5);
+    const di = I(door[0], door[1]);
+    if (!frontsOn(di) || !land.open(di) || doors.has(di)) return null;
+    return { ...f, door };
+  };
+  const place = (f: Footprint, kind: BuildingKind, id: string, extra: { interior?: string; sign?: string } = {}): BuildingData => {
+    for (let z = f.z; z < f.z + f.d; z++) {
+      for (let x = f.x; x < f.x + f.w; x++) {
+        const i = I(x, z);
+        land.use[i] = Use.Building;
+        land.block(i);
+      }
+    }
+    const data = building(id, style, kind, f, random, extra);
+    if (extra.interior) {
+      const di = I(f.door[0], f.door[1]);
+      doors.add(di);
+      land.use[di] = Use.Door;
+    }
+    buildings.push(data);
+    return data;
+  };
+
+  const sidesOf = (b: Block): Side[] => SIDES.filter((s) => {
+    // A side faces a street if the row past it does.
+    const tiles = s.rot === 0 ? land.rect(b.x0, b.z1 + 1, b.x1, b.z1 + 1) : s.rot === 2 ? land.rect(b.x0, b.z0 - 1, b.x1, b.z0 - 1) : s.rot === 1 ? land.rect(b.x0 - 1, b.z0, b.x0 - 1, b.z1) : land.rect(b.x1 + 1, b.z0, b.x1 + 1, b.z1);
+    return tiles.filter(frontsOn).length >= tiles.length / 2;
+  });
+  const sideLength = (b: Block, s: Side) => (s.rot % 2 === 0 ? b.x1 - b.x0 + 1 : b.z1 - b.z0 + 1);
+  const sideDepth = (b: Block, s: Side) => (s.rot % 2 === 0 ? b.z1 - b.z0 + 1 : b.x1 - b.x0 + 1);
+
+  /** A town building, as near a point as a block's side lets it stand, facing south, west or east (its door seen). */
+  const special = (size: readonly [number, number], near: readonly [number, number], spread: number): Footprint | null => {
+    let best: { f: Footprint; score: number } | null = null;
+    for (const b of blocks) {
+      for (const s of sidesOf(b)) {
+        if (s.rot === 2) continue;
+        const [wide, deep0] = size;
+        const deep = Math.min(deep0, sideDepth(b, s) - 1);
+        if (deep < 5) continue;
+        const length = sideLength(b, s);
+        for (let at = 0; at + wide <= length; at++) {
+          const f = fit(b, s, at, wide, deep, Math.floor(wide / 2));
+          if (!f) continue;
+          const score = Math.hypot(f.door[0] - near[0], f.door[1] - near[1]) + (s.rot === 0 ? 0 : 5) + random() * spread;
+          if (!best || score < best.score) best = { f, score };
         }
       }
     }
+    return best?.f ?? null;
+  };
+  const addInterior = (f: Footprint, kind: BuildingKind, id: string, title: string, room: InteriorKind, extra: Partial<InteriorSpec> = {}) => {
+    place(f, kind, id, { interior: id, sign: title });
+    interiors.push({ id, name: title, kind: room, town: plan.id, style, exit: f.door, ...extra });
+  };
+
+  // The inn on the square, facing it from the north where it can.
+  const innSize = SIZE[`inn-${plan.kind}`]!;
+  const innAt = special(innSize, [cx, cz - SQ - 1], 1) ?? special([innSize[0] - 2, innSize[1] - 1], [cx, cz], 4);
+  if (!innAt) throw new Error(`${plan.id}: no room for the inn`);
+  addInterior(innAt, "inn", `${plan.id}-inn`, plan.inn, "inn", { innkeeper: { name: `The keeper of ${plan.inn}`, text: plan.innkeeper }, spellTable: true });
+
+  // The shops round the square and the market; the exotic wares shop among them.
+  spec.vendors.forEach((v, k) => {
+    const target: readonly [number, number] = market && k % 2 === 1 ? market : [cx + (k % 3 - 1) * SQ, cz + (k % 2 === 0 ? -SQ : SQ)];
+    const f = special(SIZE.shop!, target, 6);
+    if (!f) throw new Error(`${plan.id}: no room for ${v.id}'s shop`);
+    addInterior(f, "shop", `${v.id}-shop`, v.name, "shop", { vendor: v });
+  });
+  if (spec.exotic) {
+    const f = special(SIZE.exotic!, market ?? [cx, cz + SQ], 4);
+    if (!f) throw new Error(`${plan.id}: no room for the exotic wares shop`);
+    addInterior(f, "shop", `${spec.exotic.id}-shop`, spec.exotic.name, "exotic-wares", { vendor: spec.exotic });
   }
-  // The rest: rows of houses, tenements toward the middle of a big town, a warehouse now and then.
-  for (const s of shuffle(sites.slice(), random)) {
-    if (grid.use[s.door] !== Use.Lot || random() < 0.12) continue;
-    const near = distC(s.street) / R;
-    const use: BuildingUse = plan.kind !== "village" && near < 0.65 && random() < 0.5 ? "tenement" : plan.kind === "capital" && random() < 0.06 ? "warehouse" : "house";
-    const sizes = SIZES[use];
-    const size = sizes[Math.floor(random() * sizes.length)]!;
-    const b = fits(s, size, false);
-    if (b) place(b, use, size[2] + random() * 0.6);
+  const off = Math.round(R * 0.4);
+  if (!village) {
+    const guild = special(SIZE.guildhall!, [cx + off, cz - off], 8);
+    if (guild) addInterior(guild, "guildhall", `${plan.id}-guildhall`, plan.guild, "guildhall", { spellTable: true, resident: { name: "Guild master", text: ["Our tables are open to any mage. Build your deck in peace."] } });
+    const temple = special(SIZE.temple!, [cx - off, cz - off], 8);
+    if (temple) addInterior(temple, "temple", `${plan.id}-temple`, plan.temple, "temple", { resident: { name: "Priest", text: ["Rest a while. The wells of Dominaria remember the faithful."] } });
+    const tower = style === "tolarian";
+    const library = special(SIZE[tower ? "tower" : "library"]!, [cx - off, cz + off], 8);
+    if (library) {
+      const title = tower ? `The ${plan.name} Mage's Tower` : `The ${plan.name} Library`;
+      addInterior(library, tower ? "tower" : "library", `${plan.id}-${tower ? "tower" : "library"}`, title, tower ? "tower" : "library", {
+        resident: { name: tower ? "Archmage" : "Librarian", text: ["Every card ever printed is written down somewhere. Most of them here."] },
+      });
+    }
+    const gate = [...gates.values()][0]!;
+    const smithy = special(SIZE.smithy!, [land.xOf(gate), land.zOf(gate)], 10);
+    if (smithy) addInterior(smithy, "smithy", `${plan.id}-smithy`, `The ${plan.name} Smithy`, "smithy", { armorer: true });
+  } else {
+    const shrine = special(SIZE.shrine!, [cx, cz + SQ], 6);
+    if (shrine) addInterior(shrine, "temple", `${plan.id}-shrine`, `The ${plan.name} Shrine`, "temple", { resident: { name: "Hermit", text: ["The road is long. Sit, and let it wait for you."] } });
   }
 
-  // People outdoors: the quest board by the inn's door, guards in the gates, townsfolk on the streets.
-  const besideStreet = (near: number, avoid: Set<number>): number | null => {
-    const nearH = hexOf(near);
-    let best: number | null = null;
-    let bestD = Infinity;
-    for (const i of disc(nearH, 6)) {
-      if (grid.use[i] !== Use.Lot || grid.blocked[i] || avoid.has(i)) continue;
-      if (around(i).some((j) => doorHexes.has(j))) continue;
-      const openSides = around(i).filter((j) => grid.blocked[j] === 0 && grid.use[j] !== Use.Door);
-      if (!openSides.some((j) => grid.use[j] === Use.Street || grid.use[j] === Use.Kept)) continue;
-      // Never the only way between two open hexes.
-      if (openSides.length < 3 || !safeToBlock((q, r) => inside(q, r) && grid.blocked[idx(q, r)] === 0, qOf(i), rOf(i))) continue;
-      const d = hexDistance(qOf(i), rOf(i), nearH.q, nearH.r);
-      if (d < bestD) {
-        bestD = d;
-        best = i;
+  // Houses with doors, spread about the town.
+  const homes = capital ? 10 : village ? 3 : 6;
+  for (let n = 1; n <= homes; n++) {
+    const angle = random() * Math.PI * 2;
+    const reach = R * (0.35 + random() * 0.45);
+    const f = special(SIZE.house!, [cx + Math.cos(angle) * reach, cz + Math.sin(angle) * reach], 14);
+    if (!f) break;
+    const folk = plan.folk[(n - 1) % Math.max(1, plan.folk.length)];
+    addInterior(f, "house", `${plan.id}-house-${n}`, `A house in ${plan.name}`, "house", n <= plan.folk.length && folk ? { resident: folk } : {});
+  }
+
+  // The rest: rows round every block, south fronts first, then west and east, then north; tenements toward the middle of
+  // a big town, warehouses by the harbour and the gates, barns in a village.
+  const harbourGate = harbour ? outsideOf(harbour) : null;
+  let count = 0;
+  const generic = (b: Block, s: Side) => {
+    const length = sideLength(b, s);
+    const depth = sideDepth(b, s);
+    const maxDeep = depth >= 12 ? Math.floor((depth - 1) / 2) : depth - 1;
+    if (maxDeep < 4) return;
+    let at = 0;
+    while (at < length) {
+      const near = cheb(s.rot % 2 === 0 ? b.x0 + at : b.x0, s.rot % 2 === 0 ? b.z0 : b.z0 + at) / R;
+      const byHarbour = harbourGate !== null && Math.hypot(land.xOf(harbourGate) - (b.x0 + b.x1) / 2, land.zOf(harbourGate) - (b.z0 + b.z1) / 2) < R * 0.45;
+      const kind: BuildingKind = byHarbour && random() < 0.5 ? "warehouse" : !village && near < 0.6 && random() < (capital ? 0.55 : 0.3) ? "tenement" : village && random() < 0.15 ? "barn" : "house";
+      const wide = kind === "warehouse" ? between(random, 9, 12) : kind === "tenement" ? between(random, 6, 9) : kind === "barn" ? between(random, 7, 9) : between(random, 5, 8);
+      const deep = Math.min(maxDeep, kind === "warehouse" ? 7 : kind === "tenement" ? between(random, 6, 7) : between(random, 5, 6));
+      const f = deep >= 4 && at + wide <= length ? fit(b, s, at, wide, deep, between(random, 1, wide - 2)) : null;
+      if (f) {
+        place(f, kind, `${plan.id}-b${++count}`);
+        at += wide + (capital ? (random() < 0.7 ? 0 : 1) : between(random, 0, 2));
+      } else at++;
+    }
+  };
+  for (const rot of [0, 1, 3, 2]) for (const b of blocks) for (const s of sidesOf(b)) if (s.rot === rot) generic(b, s);
+
+  // What is left of the lots is yards and gardens.
+  for (const i of land.rect(cx - R, cz - R, cx + R, cz + R)) {
+    if (land.use[i] !== Use.Lot) continue;
+    land.use[i] = Use.Yard;
+    land.surface[i] = ground.yard;
+  }
+
+  // --- Outdoors: the square, lamps, wares, people -----------------------------------------------------------------
+
+  const props = land.fixtures;
+  const npcs: NpcData[] = [];
+  const reserved = new Set<number>();
+  /** Whether a tile may take something that blocks it: open paving of a street or square, never at a door, never closing a way. */
+  const free = (i: number) => {
+    if (!land.open(i) || reserved.has(i) || (land.use[i] !== Use.Street && land.use[i] !== Use.Kept)) return false;
+    const near: number[] = [];
+    if (land.n8(i, near).some((j) => doors.has(j) || land.use[j] === Use.Door || reserved.has(j))) return false;
+    return safeToBlock(land, i);
+  };
+  const stand = (i: number) => land.block(i);
+
+  // The centrepiece, filling the square's middle.
+  const centre: Record<string, { id: string; size: number }> = {
+    fountain: { id: "fountain", size: 3 },
+    statue: { id: "statue", size: 3 },
+    well: { id: "well", size: 2 },
+    crystal: { id: "crystal", size: 2 },
+    tree: { id: "giant-tree", size: 4 },
+    brazier: { id: "brazier", size: 2 },
+  };
+  const piece = centre[plan.centrepiece] ?? centre.fountain!;
+  const p0 = -Math.floor(piece.size / 2);
+  for (const i of land.rect(cx + p0, cz + p0, cx + p0 + piece.size - 1, cz + p0 + piece.size - 1)) stand(i);
+  props.push({ id: piece.id, x: cx + p0 + piece.size / 2, z: cz + p0 + piece.size / 2, ...(piece.id === "statue" || piece.id === "giant-tree" ? { args: { size: piece.size } } : {}) });
+
+  // Benches round the centrepiece, lamps at the square's corners and along the avenues.
+  for (const [dx, dz] of [[-1, 1], [1, 1], [-1, -1], [1, -1]] as const) {
+    const bx = cx + dx * (piece.size + 2);
+    const bz = cz + dz * (piece.size + 2);
+    const i = I(bx, bz);
+    if (free(i)) {
+      stand(i);
+      props.push({ id: "bench", x: bx + 0.5, z: bz + 0.5, args: { width: 1.2 } });
+    }
+    const lx = cx + dx * SQ;
+    const lz = cz + dz * SQ;
+    if (free(I(lx, lz))) {
+      stand(I(lx, lz));
+      props.push({ id: "lamp-post", x: lx + 0.5, z: lz + 0.5 });
+    }
+  }
+  for (let s = SQ + 6; s < R - lane - 1; s += 11) {
+    for (const [x, z] of [
+      [cx - a - 1 + 1, cz - s],
+      [cx + a, cz + s],
+      [cx - s, cz + a],
+      [cx + s, cz - a],
+    ] as const) {
+      // A lamp at the edge of the avenue, against the building line.
+      const i = I(x, z);
+      if (free(i) && land.n4(i).some((j) => land.use[j] === Use.Building)) {
+        stand(i);
+        props.push({ id: "lamp-post", x: x + 0.5, z: z + 0.5 });
       }
     }
-    return best;
-  };
-  const used = new Set<number>();
-  const person = (i: number | null, npc: Omit<NpcData, "q" | "r">) => {
-    if (i === null) return false;
-    grid.blocked[i] = 1;
-    grid.use[i] = Use.Kept;
-    used.add(i);
-    npcs.push({ ...npc, q: qOf(i), r: rOf(i) });
-    return true;
-  };
-  if (!person(besideStreet(inn.exit, used), { id: `${plan.id}-quest-board`, kind: "quest-board", name: plan.kind === "village" ? "Notice board" : "Quest board", text: plan.board })) {
-    throw new Error(`${plan.id}: no room for the quest board`);
   }
-  gateHexes.forEach((g, k) => {
-    const inward = idx(g.q, g.r);
-    person(besideStreet(inward, used), { id: `${plan.id}-guard-${k + 1}`, kind: "guard", name: `${plan.name} guard`, text: ["Keep to the roads. The waymarkers say how bad it gets past them."] });
-  });
-  plan.folk.forEach((folk, k) => {
-    const at = atAngleFrom(centre, k * 97 + 40, S + 2 + Math.floor(random() * Math.max(1, R * 0.3)));
-    person(besideStreet(idx(at.q, at.r), used), { id: `${plan.id}-folk-${k + 1}`, kind: "townsfolk", name: folk.name, text: folk.text });
-  });
 
-  // The caravan pitch: open paving at the edge of the market (or the square), with room all round for the wagon.
-  let pitch: { q: number; r: number } | null = null;
+  // The market: rows of stalls, wares heaped by them.
+  const goods = ["apples", "cabbages", "carrots", "bread", "fish"];
+  const stalls = (at: readonly [number, number], halfSize: number) => {
+    for (let z = at[1] - halfSize + 2; z <= at[1] + halfSize - 3; z += 5) {
+      for (let x = at[0] - halfSize + 2; x <= at[0] + halfSize - 4; x += 6) {
+        const tiles = land.rect(x, z, x + 2, z);
+        if (!tiles.every(free)) continue;
+        for (const i of tiles) stand(i);
+        props.push({ id: "market-stall", x, z: z + 0.8, args: { width: 3 } });
+        const c = I(x + 3, z);
+        if (free(c)) {
+          stand(c);
+          props.push({ id: "crate", x: x + 3.5, z: z + 0.5, args: { goods: pick(random, goods) } });
+        }
+      }
+    }
+  };
+  if (market) stalls(market, 10);
+  else if (!village) stalls([cx + Math.round(SQ / 2) + 1, cz + Math.round(SQ / 2) + 1], Math.floor(SQ / 2) - 1);
+
+  // The caravans' pitch: open paving, open all round, in the market (or the square).
+  let pitch: { x: number; z: number } | null = null;
   if (plan.caravan) {
-    const square = market ?? centre;
-    const reach = market ? 4 : S - 1;
-    const spot = disc(square, reach)
-      .filter((i) => grid.use[i] === Use.Kept && grid.blocked[i] === 0 && hexDistance(qOf(i), rOf(i), square.q, square.r) === reach && around(i).every((j) => grid.blocked[j] === 0))
-      .sort((a, b) => a - b)[0];
+    const where = market ?? [cx, cz];
+    const reach = market ? 8 : SQ - 2;
+    const options = land
+      .rect(where[0] - reach, where[1] - reach, where[0] + reach, where[1] + reach)
+      .filter((i) => land.use[i] === Use.Kept && land.open(i) && land.n8(i).every((j) => land.open(j) && land.use[j] === Use.Kept && !reserved.has(j)))
+      .sort((p, q) => Math.abs(cheb(land.xOf(q), land.zOf(q)) - 0) - Math.abs(cheb(land.xOf(p), land.zOf(p)) - 0) || p - q);
+    const spot = options.find((i) => Math.max(Math.abs(land.xOf(i) - where[0]), Math.abs(land.zOf(i) - where[1])) >= reach - 2) ?? options[0];
     if (spot === undefined) throw new Error(`${plan.id}: no room for the caravan pitch`);
-    pitch = { q: qOf(spot), r: rOf(spot) };
+    pitch = { x: land.xOf(spot), z: land.zOf(spot) };
+    for (const j of [spot, ...land.n8(spot)]) reserved.add(j);
   }
 
-  // Gardens and lamps: trees in yards away from the streets, lamps along them, banners round the square.
-  for (const i of disc(centre, R - 2)) {
-    if (grid.use[i] !== Use.Lot || grid.blocked[i]) continue;
-    const sides = around(i);
-    if (sides.some((j) => doorHexes.has(j))) continue;
-    const byStreet = sides.some((j) => grid.use[j] === Use.Street);
-    const allLot = sides.every((j) => grid.use[j] === Use.Lot || grid.use[j] === Use.Building);
-    if (allLot && random() < 0.35) grid.prop(i, { kind: plan.style === "urborg" ? "dead-tree" : plan.style === "keldon" ? "boulder" : random() < 0.5 ? "tree" : "bush" });
-    else if (byStreet && sides.filter((j) => grid.blocked[j] === 0).length >= 4 && random() < 0.05) grid.prop(i, { kind: "lamp", style: plan.style });
+  // The quest board by the inn's door.
+  const innDoor = I(innAt.door[0], innAt.door[1]);
+  const boardAt = land
+    .disc(innAt.door[0], innAt.door[1], 6)
+    .filter((i) => free(i) && land.n4(i).some((j) => land.use[j] === Use.Building))
+    .sort((p, q) => dist(land, p, innDoor) - dist(land, q, innDoor) || p - q)[0];
+  if (boardAt === undefined) throw new Error(`${plan.id}: no room for the quest board`);
+  stand(boardAt);
+  const bx = land.xOf(boardAt);
+  const bz = land.zOf(boardAt);
+  props.push({ id: "quest-board", x: bx + 0.5, z: bz + 0.5, rot: innAt.rot });
+  npcs.push({ id: `${plan.id}-quest-board`, x: bx, z: bz, kind: "quest-board", name: village ? "Notice board" : "Quest board", text: plan.board, stand: [bx + 0.5, level / 16, bz + 0.5] });
+
+  // The arena, closed: its gate on the plaza.
+  if (arena) {
+    const i = I(arena[0], arena[1]);
+    for (const j of land.rect(arena[0] - 1, arena[1] - 1, arena[0] + 1, arena[1])) stand(j);
+    props.push({ id: "arena-gate", x: arena[0] + 0.5, z: arena[1] + 0.5, rot: 0 });
+    npcs.push({ id: `${plan.id}-arena`, x: land.xOf(i), z: land.zOf(i), kind: "arena", name: "The arena", text: ["The arena is closed. A sign reads: coming soon."], stand: [arena[0] + 0.5, level / 16, arena[1] + 0.5] });
   }
-  for (const h of ringOf(centre, S + 1)) {
-    const i = idx(h.q, h.r);
-    if (grid.use[i] === Use.Lot && !grid.blocked[i] && !around(i).some((j) => doorHexes.has(j)) && random() < 0.3) grid.prop(i, { kind: "banner", style: plan.style });
+
+  // Guards in the gates, pacing the avenue inside; townsfolk about the square.
+  const figures = FOLK_FIGURES[style] ?? FOLK_FIGURES.benalish!;
+  let k = 0;
+  for (const side of SIDES.filter((s) => gateSides.has(s))) {
+    const ax = cx + side.dx * (R - lane - 2) + (side.dz !== 0 ? a : 0);
+    const az = cz + side.dz * (R - lane - 2) + (side.dx !== 0 ? a : 0);
+    const bx2 = cx + side.dx * (R - lane - 10) + (side.dz !== 0 ? a : 0);
+    const bz2 = cz + side.dz * (R - lane - 10) + (side.dx !== 0 ? a : 0);
+    if (!land.open(I(ax, az)) || !land.open(I(bx2, bz2))) continue;
+    npcs.push({
+      id: `${plan.id}-guard-${++k}`,
+      x: ax,
+      z: az,
+      kind: "guard",
+      name: `${plan.name} guard`,
+      text: ["Keep to the roads. The waymarkers say how bad it gets past them."],
+      figure: figures.guard,
+      speed: 2.2,
+      behaviour: { beat: { stops: [[ax, az], [bx2, bz2]], pause: 3.5 }, watch: 4 },
+    });
+  }
+  plan.folk.forEach((folk, n) => {
+    const angle = (n * 2.4 + 0.6) % (Math.PI * 2);
+    const home = [Math.round(cx + Math.cos(angle) * (piece.size + 4)), Math.round(cz + Math.sin(angle) * (piece.size + 4))] as const;
+    const at = land.disc(home[0], home[1], 4).filter((i) => land.open(i) && land.use[i] === Use.Kept && !reserved.has(i)).sort((p, q) => p - q)[0];
+    if (at === undefined) return;
+    npcs.push({
+      id: `${plan.id}-folk-${n + 1}`,
+      x: land.xOf(at),
+      z: land.zOf(at),
+      kind: "townsfolk",
+      name: folk.name,
+      text: folk.text,
+      figure: figures.folk[n % figures.folk.length]!,
+      speed: 1.6,
+      seed: n + 1,
+      behaviour: { wander: { home: [land.xOf(at), land.zOf(at)], reach: 4, pause: [2, 6] }, watch: 3 },
+    });
+  });
+
+  // Gardens in the yards: trees and bushes, flower beds, now and then a well or a wood pile.
+  const yardTrees = style === "urborg" ? ["dead-tree", "swamp-tree"] : style === "keldon" ? ["pine"] : style === "llanowar" ? ["tree", "great-tree"] : ["tree"];
+  for (const i of land.rect(cx - R, cz - R, cx + R, cz + R)) {
+    if (land.use[i] !== Use.Yard || !land.open(i)) continue;
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    const roll = random();
+    if (roll < 0.12) land.put(i, { id: pick(random, yardTrees), x: texel(x + 0.5), z: texel(z + 0.5), seed: between(random, 0, 15), scale: texel(0.8 + random() * 0.3) });
+    else if (roll < 0.2) land.put(i, { id: "bush", x: x + 0.5, z: z + 0.5, seed: between(random, 0, 15), ...(random() < 0.4 ? { args: { flowering: true } } : {}) });
+    else if (roll < 0.25) land.put(i, { id: "flower-bed", x: x + 0.5, z: z + 0.5 });
+    else if (roll < 0.26) land.put(i, { id: village ? "hay-bale" : "wood-pile", x: x + 0.5, z: z + 0.5 });
+  }
+
+  // The harbour's pier, out from its gate into the water, with a crate or two on it.
+  if (harbour && harbourGate !== null) {
+    const hx = land.xOf(harbourGate);
+    const hz = land.zOf(harbourGate);
+    let wet = 0;
+    let end = 0;
+    for (let s = 0; s <= 46 && wet < 9; s++) {
+      const x = hx + harbour.dx * s;
+      const z = hz + harbour.dz * s;
+      if (!land.inside(x, z)) break;
+      for (let t = -1; t <= 1; t++) {
+        const px = x + (harbour.dz !== 0 ? t : 0);
+        const pz = z + (harbour.dx !== 0 ? t : 0);
+        const i = I(px, pz);
+        if (land.isSea(i)) {
+          land.clear(i, S.planks);
+          land.use[i] = Use.Dock;
+          land.height[i] = Math.max(2, level - 2);
+        } else if (land.use[i] !== Use.Wall) {
+          land.clear(i, S.planks);
+          land.use[i] = Use.Kept;
+        }
+      }
+      if (land.isSea(I(x + harbour.dx, z + harbour.dz)) || wet > 0) wet++;
+      end = s;
+    }
+    if (end > 0) {
+      const ax = Math.min(hx, hx + harbour.dx * end) - (harbour.dz !== 0 ? 1 : 0);
+      const az = Math.min(hz, hz + harbour.dz * end) - (harbour.dx !== 0 ? 1 : 0);
+      const bx3 = Math.max(hx, hx + harbour.dx * end) + (harbour.dz !== 0 ? 1 : 0);
+      const bz3 = Math.max(hz, hz + harbour.dz * end) + (harbour.dx !== 0 ? 1 : 0);
+      props.push({ id: "pier", x: ax, z: az, args: { to: [bx3 + 1, bz3 + 1] } });
+    }
   }
 
   return {
@@ -540,37 +650,96 @@ export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, inde
       id: plan.id,
       name: plan.name,
       kind: plan.kind,
-      center: [centre.q, centre.r],
+      center: [cx, cz],
       radius: R,
-      style: plan.style,
-      ...(color ? { region: color } : {}),
+      style,
+      ...(spec.color ? { region: spec.color } : {}),
       start: plan.start,
       ...(plan.home ? { home: plan.home } : {}),
     },
     buildings,
     interiors,
-    doors,
     npcs,
     gates,
-    inn: { q: qOf(inn.exit), r: rOf(inn.exit), interior: `${plan.id}-inn` },
+    inn: { x: innAt.door[0], z: innAt.door[1], interior: `${plan.id}-inn` },
     pitch,
   };
 }
 
-const round = (n: number) => Math.round(n * 100) / 100;
+const dist = (land: Land, a: number, b: number) => Math.hypot(land.xOf(a) - land.xOf(b), land.zOf(a) - land.zOf(b));
 
-/** The building side that faces a screen angle (degrees clockwise from up). */
-export function frontToward(angle: number): Front {
-  const a = (angle * Math.PI) / 180;
-  const x = Math.cos(a) * -Math.SQRT1_2 + Math.sin(a) * Math.SQRT1_2;
-  const z = Math.cos(a) * -Math.SQRT1_2 + Math.sin(a) * -Math.SQRT1_2;
-  return Math.abs(x) > Math.abs(z) ? (x > 0 ? "x+" : "x-") : z > 0 ? "z+" : "z-";
+/**
+ * Whether blocking an open tile leaves every way past it open: its open neighbours, walked round it as the overworld
+ * walks (eight ways, no corner cut past a blocked tile), are still one run - whoever walked through it can walk round.
+ */
+export function safeToBlock(land: Land, i: number): boolean {
+  const x = land.xOf(i);
+  const z = land.zOf(i);
+  const ring: [number, number][] = [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]];
+  const open = ring.map(([dx, dz]) => land.inside(x + dx, z + dz) && land.open(land.idx(x + dx, z + dz)));
+  // Walk the ring: a corner tile joins its two sides only through itself, so runs of open tiles round the ring, each
+  // diagonal counted only where it is reached from an open side.
+  let runs = 0;
+  let any = false;
+  for (let k = 0; k < 8; k++) {
+    if (!open[k]) continue;
+    any = true;
+    const prev = (k + 7) % 8;
+    if (!open[prev]) runs++;
+  }
+  if (!any) return false;
+  if (runs === 0) return true;
+  // A corner open but both its sides closed is cut off from the rest once the middle is blocked.
+  for (let k = 0; k < 8; k += 2) if (open[k] && !open[(k + 7) % 8] && !open[(k + 1) % 8]) return false;
+  return runs <= 1;
 }
 
-function atAngleFrom(from: Hex, angle: number, steps: number): Hex {
-  const a = (angle * Math.PI) / 180;
-  const dx = Math.cos(a) * -Math.SQRT1_2 + Math.sin(a) * Math.SQRT1_2;
-  const dz = Math.cos(a) * -Math.SQRT1_2 + Math.sin(a) * -Math.SQRT1_2;
-  const { x, z } = toWorld(from);
-  return hexAtPoint(x + dx * steps * Math.sqrt(3), z + dz * steps * Math.sqrt(3));
+/** The town's walls: towers at the corners and beside each gate, and runs of wall between them, cut at chunk edges. */
+function wallProps(land: Land, plan: TownLayout, cx: number, cz: number, R: number, gateSides: readonly Side[], half: number): void {
+  const style = plan.style;
+  const args = { style, size: plan.kind };
+  const towers: [number, number][] = [
+    [cx - R, cz - R],
+    [cx + R, cz - R],
+    [cx - R, cz + R],
+    [cx + R, cz + R],
+  ];
+  for (const side of gateSides) {
+    for (const t of [-half - 1, half + 1]) towers.push(side.dx !== 0 ? [cx + side.dx * R, cz + t] : [cx + t, cz + side.dz * R]);
+  }
+  for (const [x, z] of towers) land.fixtures.push({ id: "wall-tower", x: x + 0.5, z: z + 0.5, args });
+  const isTower = (x: number, z: number) => towers.some(([tx, tz]) => tx === x && tz === z);
+  const isGate = (x: number, z: number) =>
+    gateSides.some((s) => (s.dx !== 0 ? x === cx + s.dx * R && Math.abs(z - cz) <= half : z === cz + s.dz * R && Math.abs(x - cx) <= half));
+  const runs = (face: string, tiles: [number, number][]) => {
+    let start: [number, number] | null = null;
+    let last: [number, number] | null = null;
+    const flush = () => {
+      if (start && last) land.fixtures.push({ id: "wall-run", x: start[0] + 0.5, z: start[1] + 0.5, args: { to: [last[0] + 0.5, last[1] + 0.5], face, ...args } });
+      start = null;
+      last = null;
+    };
+    for (const [x, z] of tiles) {
+      if (isTower(x, z) || isGate(x, z)) {
+        flush();
+        continue;
+      }
+      // A run stops at a chunk's edge and after 16 tiles, so each chunk draws its own.
+      if (start && (Math.floor(x / 32) !== Math.floor(start[0] / 32) || Math.floor(z / 32) !== Math.floor(start[1] / 32) || Math.abs(x - start[0]) + Math.abs(z - start[1]) >= 16)) flush();
+      if (!start) start = [x, z];
+      last = [x, z];
+    }
+    flush();
+  };
+  const line = (fixed: "x" | "z", value: number) => {
+    const out: [number, number][] = [];
+    for (let t = -R; t <= R; t++) out.push(fixed === "z" ? [cx + t, value] : [value, cz + t]);
+    return out;
+  };
+  runs("n", line("z", cz - R));
+  runs("s", line("z", cz + R));
+  runs("w", line("x", cx - R));
+  runs("e", line("x", cx + R));
 }
+
+export type { PropData };

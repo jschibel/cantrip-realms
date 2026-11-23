@@ -3,14 +3,14 @@
   "name": "The Vess Crypts",
   "theme": "crypt",
   "entrance": [
-    43,
-    505
+    311,
+    343
   ],
   "floors": [
     4,
     5
   ],
-  "tier": 4,
+  "tier": 3,
   "encounters": [
     3,
     4
