@@ -114,13 +114,16 @@ export class Stage {
   intercept: (tile: Tile) => boolean = () => false;
   /** Called each frame before the player moves (the page's input: a held button). */
   beforeTick: (dt: number) => void = () => {};
+  /** Whether the x-ray cuts through what stands in front of the player (tests compare with it off). */
+  xray = true;
   /** Whether the walk may go through doors on its own (a game paused by a dialog stops everything). */
   paused = false;
   private lastTile = "";
   private wanted: { x: number; z: number; reach: number } | null = null;
   private aheadTimer = 0;
   private readonly spots: Spots;
-  private readonly manual: boolean;
+  /** On a manual clock streaming builds a fixed number of steps a frame (tests); else milliseconds' worth. */
+  manual: boolean;
   private readonly playerSpec: FigureSpec;
   private readonly playerRandom: () => number;
 
@@ -397,7 +400,11 @@ export class Stage {
     const here = this.current;
     const reach = this.viewReach();
     here.place.setDetail(here.inside || this.rig.zoom < 2);
-    here.place.followSun(this.focus, Math.ceil(reach + 4));
+    const r = this.renderer;
+    // The view's half-size on the ground, rounded up a little so the fit changes only now and then as the window does.
+    const halfX = Math.ceil(((r.width * THREE_QUARTER.wppX) / 2) * 2) / 2;
+    const halfZ = Math.ceil(((r.height * THREE_QUARTER.wppY) / Math.sin(THREE_QUARTER.pitch) / 2) * 2) / 2;
+    here.place.followSun(this.focus, halfX, halfZ, this.viewFor(here).yaw);
     const s = here.streamer;
     if (!s) return;
     const w = this.wanted;
@@ -427,7 +434,7 @@ export class Stage {
     const r = this.renderer;
     const p = this.player.position;
     r.placeCamera();
-    aimXray(!this.current.inside && !this.transition, new THREE.Vector3(p.x, p.y + 0.75, p.z), p.y, r.camera, r.width, r.height);
+    aimXray(this.xray && !this.current.inside && !this.transition, new THREE.Vector3(p.x, p.y + 0.75, p.z), p.y, r.camera, r.width, r.height);
     r.render(this.current.place.scene);
   }
 

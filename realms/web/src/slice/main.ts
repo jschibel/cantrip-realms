@@ -3,6 +3,7 @@ import { Figure, figureSpec } from "../art/figures";
 import { seeded } from "../art/paint/pixmap";
 import { centre } from "../render/actor";
 import { HEADING_NAMES, type Heading, NAME_OF, ZOOM_EASE, type Zoom } from "../render/camera";
+import { type BenchLeg, runBench, yieldFrame } from "../render/bench";
 import { WalkInput } from "../render/pointer";
 import { StreamedWorld, WorldPlaces } from "../render/spots";
 import { Stage } from "../render/stage";
@@ -285,7 +286,7 @@ if (query.has("test")) {
     get player() {
       const player = stage.player;
       const s = screen(player.position.clone().setY(player.position.y + 0.4));
-      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z }, goal: player.goal };
+      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z }, height: player.position.y, goal: player.goal };
     },
     /** Where a tile's middle is on the page. */
     tile(x: number, z: number) {
@@ -303,7 +304,14 @@ if (query.has("test")) {
     turn,
     /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual). */
     advance(seconds: number) {
-      for (let t = 0; t < seconds - 1e-6; t += 1 / 60) stage.tick(1 / 60);
+      // A turn of the event loop between frames, as between animation frames, so a chunk's or a room's file read
+      // while walking is in by the next (never a wait on the clock).
+      return (async () => {
+        for (let t = 0; t < seconds - 1e-6; t += 1 / 60) {
+          stage.tick(1 / 60);
+          await yieldFrame();
+        }
+      })();
     },
     /**
      * Renders a frame now and returns the middle `w` by `h` of the window as it is shown - the scene's pixels at the
@@ -324,6 +332,37 @@ if (query.has("test")) {
       let s = "";
       for (let i = 0; i < data.length; i += 8192) s += String.fromCharCode(...data.subarray(i, i + 8192));
       return { width: w, height: h, rgba: btoa(s) };
+    },
+    /** The renderer's benchmark (render/bench.ts): walks the legs on the manual clock, timing every frame. */
+    bench(legs: BenchLeg[], maxFrames?: number) {
+      return runBench(stage, legs, maxFrames);
+    },
+    /** What the stage holds now: the chunks read and built, the draw calls of the last frame, the detail level, the lights. */
+    get render() {
+      const s = stage.current.streamer;
+      return {
+        loaded: s?.loadedKeys ?? [],
+        built: s?.builtKeys ?? [],
+        idle: s?.idle ?? true,
+        window: s?.window ?? null,
+        calls: renderer.stats.calls,
+        detail: stage.current.place.detail,
+        lights: stage.current.place.pooledNow.filter((l) => l !== null).length,
+        xray: stage.current.inside ? null : true,
+      };
+    },
+    /** Turns the x-ray off (or on again), to compare. */
+    set xray(on: boolean) {
+      stage.xray = on;
+    },
+    /** Where the floor is on a tile. */
+    floor(x: number, z: number) {
+      return stage.current.floorAt?.(x + 0.5, z + 0.5) ?? 0;
+    },
+    /** Walks the player to a tile by the shortest way (true if there is one). */
+    walkTo(x: number, z: number) {
+      const to = stage.reachableNear({ x, z }, 3);
+      return !!to && stage.player.goTo(to);
     },
     /** Renders a frame now and returns its scene pixels (base64 RGBA, top row first). */
     frame() {

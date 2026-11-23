@@ -24,7 +24,7 @@ import { Grid } from "../world/grid";
 import { type WorldSource, loadChunk } from "../world/load";
 import { grassField } from "./grass";
 import { buildGround } from "./ground";
-import type { Place, Section } from "./place";
+import { type Place, type Section, sortScenery } from "./place";
 import { type TileAt, banksOf, floorAt, floorGeometry } from "./terrain";
 
 // The world at scale: its chunks built as the player comes near and dropped as they go (render/place.ts sections), a
@@ -103,6 +103,9 @@ export function underOf(tileAt: TileAt, x0: number, z0: number, cols: number, ro
 export const buildingOf = (bd: ChunkData["buildings"][number]): Built => BUILDINGS.build(bd.style, bd, namedPalette(bd.palette));
 export const propOf = (p: ChunkData["props"][number]): Built => PROPS.build(p.id, p, namedPalette(p.tint));
 
+/** How long a step of building recipes runs before it gives the frame back, ms. */
+const STEP_MS = 2.5;
+
 /** A seed from a chunk's coordinates, so its grass stands where it did whenever it is built. */
 const seedOf = (cx: number, cz: number) => (((cx * 73856093) ^ (cz * 19349663)) >>> 0) % 2147483647 || 9;
 
@@ -110,7 +113,7 @@ const seedOf = (cx: number, cz: number) => (((cx * 73856093) ^ (cz * 19349663)) 
  * Builds one chunk into a section, a step at a time: each `yield` is a point where the work may stop for the frame.
  * `tileAt` reads tiles of the world as far as they are loaded (this chunk's neighbours too).
  */
-export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, section: Section, place: Place, doors: DoorSpot[]): Generator<void, void, void> {
+export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, section: Section, place: Place, doors: DoorSpot[]): Generator<string, void, void> {
   const x0 = c.cx * CHUNK;
   const z0 = c.cz * CHUNK;
   const rect = worldRect(world);
@@ -121,13 +124,14 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
   // Terrain: outlined where a terrace's edge stands in front of the ground below it (render/renderer.ts).
   (ground.material as THREE.Material).userData.terrain = true;
   section.addGround(ground);
-  yield;
+  yield "ground";
 
   const pieces: Built[] = [];
+  yield "ground-done";
   // A surface may name the rock of its own banks (`cliff`); else they are the bank rock.
   pieces.push({ model: banksOf(tileAt, x0, z0, CHUNK, CHUNK, (t) => (lookOf(t[1]) as (SurfaceLook & { cliff?: Material }) | undefined)?.cliff) });
   pieces.push(underOf(tileAt, x0, z0, CHUNK, CHUNK, (t) => lookOf(t[1])));
-  let n = 0;
+  let since = performance.now();
   for (const bd of c.buildings) {
     const built = buildingOf(bd);
     pieces.push(built);
@@ -135,16 +139,25 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
       const [fx, fz] = frontStep(bd.rot);
       doors.push({ tile: bd.door, step: [-fx, -fz], to: bd.interior, at: built.doorway });
     }
-    if (++n % 2 === 0) yield;
+    if (performance.now() - since > STEP_MS) {
+      yield "buildings";
+      since = performance.now();
+    }
   }
   for (const p of c.props) {
     pieces.push(propOf(p));
-    if (++n % 12 === 0) yield;
+    if (performance.now() - since > STEP_MS) {
+      yield "props";
+      since = performance.now();
+    }
   }
-  yield;
-  section.addScenery(pieces, `chunk:${c.cx}_${c.cz}`);
+  yield "banks+props";
+  section.addMoving(pieces);
+  for (const g of sortScenery(pieces.map((p) => p.model), `chunk:${c.cx}_${c.cz}`)) {
+    section.addMerged(g);
+    yield `merge ${g.label} (${g.models.length})`;
+  }
   for (const l of c.lights ?? []) section.addLight(l);
-  yield;
 
   // Standing grass on tufted surfaces where nothing stands, at the floor's height.
   section.addGrass(
@@ -189,7 +202,7 @@ export class ChunkStreamer {
   /** Chunks read: their data, or null where the world has none. */
   readonly data = new Map<string, ChunkData | null>();
   private readonly loading = new Map<string, Promise<void>>();
-  private readonly building = new Map<string, Generator<void, void, void>>();
+  private readonly building = new Map<string, Generator<string, void, void>>();
   private readonly built = new Set<string>();
   private readonly doorsOf = new Map<string, DoorSpot[]>();
   /** The walkable tiles over the chunks read. Remade as they change (`gridChanged` says when). */
@@ -205,6 +218,8 @@ export class ChunkStreamer {
   /** How long the last frame's building took, ms, and the longest any frame's has. */
   lastBuildMs = 0;
   worstBuildMs = 0;
+  /** The longest single step of building yet, and what it was. */
+  worstStep = { ms: 0, what: "" };
 
   constructor(
     readonly world: WorldData,
@@ -335,7 +350,7 @@ export class ChunkStreamer {
     let steps = 0;
     const more = () => (budget.steps !== undefined ? steps < budget.steps : steps === 0 || performance.now() - start < (budget.ms ?? 4));
     while (more()) {
-      let job = this.building.entries().next().value as [string, Generator<void, void, void>] | undefined;
+      let job = this.building.entries().next().value as [string, Generator<string, void, void>] | undefined;
       if (!job) {
         const next = this.pendingBuild.findIndex((k) => this.data.has(k) && this.neighboursRead(k));
         if (next < 0) break;
@@ -352,7 +367,11 @@ export class ChunkStreamer {
       }
       const [key, gen] = job;
       steps++;
-      if (gen.next().done) {
+      const t0 = performance.now();
+      const r = gen.next();
+      const took = performance.now() - t0;
+      if (took > this.worstStep.ms) this.worstStep = { ms: took, what: `${key}: ${r.done ? "grass" : r.value}` };
+      if (r.done) {
         this.building.delete(key);
         this.built.add(key);
         const c = this.data.get(key);

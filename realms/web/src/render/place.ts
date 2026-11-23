@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { type Material, type Model, meshesOf, mergeModels } from "../art/paint/builder";
+import { type Material, type Model, type ModelPart, meshesOf, mergeModels } from "../art/paint/builder";
 import type { Built, Cutaway, LightSpec } from "../art/recipe";
 import type { LightData, Rect } from "../world/format";
 import type { GrassField } from "./grass";
@@ -59,7 +59,7 @@ export class Section {
   }
 
   /** Cut-aways and flames of pieces, each their own meshes. */
-  private addMoving(pieces: readonly Built[]): void {
+  addMoving(pieces: readonly Built[]): void {
     for (const piece of pieces) {
       for (const c of piece.cutaways ?? []) {
         const full = meshesOf(c.full, "cutaway");
@@ -91,31 +91,22 @@ export class Section {
   }
 
   /**
-   * Scenery at world scale, sorted three ways before it is merged: what is tall enough to hide the player (cut by the
-   * x-ray: render/xray.ts), small props (left out at the furthest zoom), and the rest. Each kind is merged by material.
+   * Scenery at world scale, sorted three ways before it is merged (`sortScenery`): what is tall enough to hide the
+   * player (cut by the x-ray: render/xray.ts), small props (left out at the furthest zoom), and the rest. Each kind is
+   * merged by material. The streamer does the same a group at a time (`addMoving`, then `addMerged` per group).
    */
-  addScenery(pieces: readonly Built[], name: string): { tall: THREE.Group; small: THREE.Group; rest: THREE.Group } {
+  addScenery(pieces: readonly Built[], name: string): THREE.Group[] {
     this.addMoving(pieces);
-    const tall: Model[] = [];
-    const small: Model[] = [];
-    const rest: Model[] = [];
-    for (const p of pieces) {
-      const size = sizeOf(p.model);
-      if (!size) continue;
-      if (size.y > TALL) tall.push(p.model);
-      else if (size.x <= DETAIL_SIZE && size.z <= DETAIL_SIZE && size.y <= DETAIL_HEIGHT) small.push(p.model);
-      else rest.push(p.model);
-    }
-    const make = (models: Model[], label: string, cut: boolean) => {
-      const merged = mergeModels(models);
-      this.noteScrolls(merged);
-      const group = meshesOf(cut ? { parts: merged.parts.map((part) => ({ ...part, material: cuttableOf(part.material) })) } : merged, label);
-      this.add(group);
-      return group;
-    };
-    const groups = { rest: make(rest, name, false), tall: make(tall, `${name}:tall`, true), small: make(small, `${name}:small`, false) };
-    this.detail.push(groups.small);
-    return groups;
+    return sortScenery(pieces.map((p) => p.model), name).map((g) => this.addMerged(g));
+  }
+
+  /** One group of sorted scenery merged by material: tall groups take the x-ray's cut, small ones are detail. */
+  addMerged(g: SceneryGroup): THREE.Group {
+    const group = mergedMeshes(g.models, g.label, g.kind === "tall");
+    for (const m of g.models) this.noteScrolls(m);
+    this.add(group);
+    if (g.kind === "small") this.detail.push(group);
+    return group;
   }
 
   private noteScrolls(model: Model): void {
@@ -158,13 +149,114 @@ export class Section {
   }
 }
 
-function sizeOf(model: Model): THREE.Vector3 | null {
+/** A group of scenery to merge: its kind, its models, and its meshes' name. */
+export interface SceneryGroup {
+  readonly kind: "tall" | "small" | "rest";
+  readonly label: string;
+  readonly models: Model[];
+}
+
+/** A kind of scenery with more triangles than this is merged in cells of `CELL` tiles, so the view culls it finely. */
+const SPLIT_TRIANGLES = 24000;
+const CELL = 16;
+
+/**
+ * Sorts scenery models into what is tall enough to hide the player, small props, and the rest, each kind one group -
+ * or, where a kind is heavy (a forest's trees), one group a cell of 16 by 16 tiles, so what is off screen is culled
+ * in smaller pieces and no one merge is a long frame's work.
+ */
+export function sortScenery(models: readonly Model[], name: string): SceneryGroup[] {
+  const kinds: Record<SceneryGroup["kind"], { model: Model; at: THREE.Vector3; tris: number }[]> = { tall: [], small: [], rest: [] };
+  for (const m of models) {
+    const box = boxOf(m);
+    if (!box) continue;
+    const size = box.getSize(new THREE.Vector3());
+    const kind = size.y > TALL ? "tall" : size.x <= DETAIL_SIZE && size.z <= DETAIL_SIZE && size.y <= DETAIL_HEIGHT ? "small" : "rest";
+    kinds[kind].push({ model: m, at: box.getCenter(new THREE.Vector3()), tris: m.parts.reduce((n, p) => n + p.indices.length / 3, 0) });
+  }
+  const out: SceneryGroup[] = [];
+  for (const kind of ["rest", "tall", "small"] as const) {
+    const list = kinds[kind];
+    if (list.length === 0) continue;
+    const label = kind === "rest" ? name : `${name}:${kind}`;
+    if (list.reduce((n, e) => n + e.tris, 0) <= SPLIT_TRIANGLES) {
+      out.push({ kind, label, models: list.map((e) => e.model) });
+      continue;
+    }
+    const cells = new Map<string, Model[]>();
+    for (const e of list) {
+      const k = `${Math.floor(e.at.x / CELL)},${Math.floor(e.at.z / CELL)}`;
+      let c = cells.get(k);
+      if (!c) cells.set(k, (c = []));
+      c.push(e.model);
+    }
+    for (const [k, ms] of cells) out.push({ kind, label: `${label}@${k}`, models: ms });
+  }
+  return out;
+}
+
+/**
+ * Models merged straight into meshes, one a material in the order materials are first met (as `mergeModels` and
+ * `meshesOf` together make them, but into typed arrays at once: a forest's cell of trees in a few milliseconds).
+ * `cut` gives each material its x-ray twin. Casting and taking shadows as `meshesOf` does.
+ */
+export function mergedMeshes(models: readonly Model[], name: string, cut: boolean): THREE.Group {
+  const byMaterial = new Map<Material, ModelPart[]>();
+  for (const m of models) {
+    for (const part of m.parts) {
+      if (part.indices.length === 0) continue;
+      let list = byMaterial.get(part.material);
+      if (!list) byMaterial.set(part.material, (list = []));
+      list.push(part);
+    }
+  }
+  const group = new THREE.Group();
+  group.name = name;
+  for (const [material, parts] of byMaterial) {
+    let vertices = 0;
+    let indexCount = 0;
+    for (const p of parts) {
+      vertices += p.positions.length / 3;
+      indexCount += p.indices.length;
+    }
+    const positions = new Float32Array(vertices * 3);
+    const normals = new Float32Array(vertices * 3);
+    const uvs = new Float32Array(vertices * 2);
+    const indices = vertices > 65535 ? new Uint32Array(indexCount) : new Uint16Array(indexCount);
+    let v = 0;
+    let i = 0;
+    for (const p of parts) {
+      positions.set(p.positions, v * 3);
+      normals.set(p.normals, v * 3);
+      uvs.set(p.uvs, v * 2);
+      const idx = p.indices;
+      for (let k = 0; k < idx.length; k++) indices[i + k] = idx[k]! + v;
+      v += p.positions.length / 3;
+      i += idx.length;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+    geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    geometry.computeBoundingSphere();
+    const mat = cut ? cuttableOf(material) : material;
+    const mesh = new THREE.Mesh(geometry, mat);
+    const glowing = !!material.userData.glow;
+    mesh.castShadow = !glowing && !material.userData.flat;
+    mesh.receiveShadow = !glowing;
+    group.add(mesh);
+  }
+  return group;
+}
+
+function boxOf(model: Model): THREE.Box3 | null {
   const box = new THREE.Box3();
   const p = new THREE.Vector3();
   for (const part of model.parts) {
     for (let i = 0; i < part.positions.length; i += 3) box.expandByPoint(p.set(part.positions[i]!, part.positions[i + 1]!, part.positions[i + 2]!));
   }
-  return box.isEmpty() ? null : box.getSize(new THREE.Vector3());
+  return box.isEmpty() ? null : box;
 }
 
 /** One of the pooled lights: a light that takes whichever spec is nearest. */
@@ -268,33 +360,65 @@ export class Place {
   addSun(centreX: number, centreZ: number, reach: number, mapSize = 4096): void {
     const light = sunlight(this.scene, centreX, centreZ, reach);
     light.shadow.mapSize.set(mapSize, mapSize);
+    // Deep enough that what stands between the sun and a view far across the world still casts.
+    Object.assign(light.shadow.camera, { near: -80, far: 160 });
+    light.shadow.camera.updateProjectionMatrix();
     this.sun = { light, holder: light.parent!, reach };
   }
 
   /**
-   * Keeps the sun's shadows round the view: its middle moved to `focus` - in whole texels of the shadow map along the
-   * sun's own axes, so the shadows' edges never crawl as the camera follows the player - reaching `reach` each way.
+   * Keeps the sun's shadows on the view: the shadow camera fitted to the ground the view sees - `halfX` by `halfZ`
+   * tiles round `focus`, turned by the camera's `yaw` - and what stands up to `tall` high just past it, its middle at the
+   * focus moved in whole texels of the shadow map along the sun's own axes, so the shadows' edges never crawl as the
+   * camera follows the player. The fit changes only with the view's size and heading, never as it moves.
    */
-  followSun(focus: { readonly x: number; readonly z: number }, reach: number): void {
+  followSun(focus: { readonly x: number; readonly z: number }, halfX: number, halfZ: number, yaw: number, tall = 6): void {
     const sun = this.sun;
     if (!sun) return;
     const cam = sun.light.shadow.camera;
-    if (reach !== sun.reach) {
-      sun.reach = reach;
-      Object.assign(cam, { left: -reach, right: reach, top: reach, bottom: -reach });
-      cam.updateProjectionMatrix();
-    }
-    const texel = (2 * reach) / sun.light.shadow.mapSize.x;
     // The shadow camera's own axes: it looks from the light down to its target, up held to the sky.
     const dir = sun.light.position.clone().sub(sun.light.target.position).normalize();
     const right = new THREE.Vector3(0, 1, 0).cross(dir).normalize();
     const up = dir.clone().cross(right).normalize();
+    const fit = `${halfX.toFixed(2)}:${halfZ.toFixed(2)}:${yaw.toFixed(3)}`;
+    if (fit !== this.sunFit) {
+      this.sunFit = fit;
+      const c = Math.cos(yaw);
+      const s = Math.sin(yaw);
+      let l = Infinity;
+      let r = -Infinity;
+      let b = Infinity;
+      let t = -Infinity;
+      const margin = 3;
+      for (const [a, d] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+        // A corner of the view's ground, the camera's right and back turned by the yaw; and the same corner `tall` up.
+        const x = a * (halfX + margin);
+        const z = d * (halfZ + margin + tall);
+        for (const y of [0, tall]) {
+          const p = new THREE.Vector3(x * c + z * s, y, -x * s + z * c);
+          l = Math.min(l, p.dot(right));
+          r = Math.max(r, p.dot(right));
+          b = Math.min(b, p.dot(up));
+          t = Math.max(t, p.dot(up));
+        }
+      }
+      // The shadow camera stands where the light is, which is offset from the holder: the fit is about the holder.
+      const off = sun.light.position.clone();
+      Object.assign(cam, { left: l - off.dot(right), right: r - off.dot(right), bottom: b - off.dot(up), top: t - off.dot(up) });
+      cam.updateProjectionMatrix();
+      sun.reach = Math.max(r - l, t - b) / 2;
+    }
+    const cam2 = cam as THREE.OrthographicCamera;
+    const texelX = (cam2.right - cam2.left) / sun.light.shadow.mapSize.x;
+    const texelY = (cam2.top - cam2.bottom) / sun.light.shadow.mapSize.y;
     const p = new THREE.Vector3(focus.x, 0, focus.z);
     const a = p.dot(right);
     const b = p.dot(up);
-    p.addScaledVector(right, Math.round(a / texel) * texel - a).addScaledVector(up, Math.round(b / texel) * texel - b);
+    p.addScaledVector(right, Math.round(a / texelX) * texelX - a).addScaledVector(up, Math.round(b / texelY) * texelY - b);
     sun.holder.position.copy(p);
   }
+
+  private sunFit = "";
 
   get sunLight(): THREE.DirectionalLight | null {
     return this.sun?.light ?? null;

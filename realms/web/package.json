@@ -12,7 +12,8 @@
     "models": "vite-node scripts/models.ts",
     "world": "vite-node scripts/world.ts",
     "e2e": "node scripts/theme.mjs && playwright test -c e2e/playwright.config.ts",
-    "e2e:server": "node scripts/theme.mjs && playwright test -c e2e/server/playwright.config.ts"
+    "e2e:server": "node scripts/theme.mjs && playwright test -c e2e/server/playwright.config.ts",
+    "bench": "node scripts/theme.mjs && playwright test -c e2e/bench/playwright.config.ts"
   },
   "dependencies": {
     "@msgpack/msgpack": "3.1.2",
