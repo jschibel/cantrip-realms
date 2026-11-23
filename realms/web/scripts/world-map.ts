@@ -94,6 +94,44 @@ function draw(x0: number, z0: number, x1: number, z1: number, scale: number, zon
   return p;
 }
 
+/**
+ * The terraces from above: each level a band of color (the higher the lighter), the bank's foot shaded where a level
+ * stands above it to the north or west (as the sun falls), rims darker, ramps orange, water blue, everything else
+ * blocked grey.
+ */
+function relief(x0: number, z0: number, x1: number, z1: number, scale: number): Picture {
+  const p = new Picture((x1 - x0) * scale, (z1 - z0) * scale);
+  const tile = new Map<number, [number, string, number]>();
+  const key = (x: number, z: number) => z * W + x;
+  const scenery = new Set<number>();
+  for (const c of chunks) {
+    if ((c.cx + 1) * CHUNK <= x0 - 1 || c.cx * CHUNK > x1 || (c.cz + 1) * CHUNK <= z0 - 1 || c.cz * CHUNK > z1) continue;
+    c.tiles.forEach((t, k) => tile.set(key(c.cx * CHUNK + (k % CHUNK), c.cz * CHUNK + Math.floor(k / CHUNK)), t as [number, string, number]));
+    for (const pr of c.props) scenery.add(key(Math.floor(pr.x), Math.floor(pr.z)));
+    for (const b of c.buildings) for (let z = b.z; z < b.z + b.d; z++) for (let x = b.x; x < b.x + b.w; x++) scenery.add(key(x, z));
+  }
+  const bands: [number, number, number][] = ["#2f5a2a", "#4a7a36", "#6a9a44", "#8db45a", "#b2c977", "#d2d99a", "#ece9c4", "#ffffff"].map(rgb);
+  for (let z = z0; z < z1; z++) {
+    for (let x = x0; x < x1; x++) {
+      const t = tile.get(key(x, z));
+      if (!t) continue;
+      const [h, surface, flags] = t;
+      let color: [number, number, number];
+      if (["sea", "shallows", "stream", "bog", "lava"].includes(surface) && flags & 1) color = surface === "sea" ? rgb("#16304a") : rgb("#2f6488");
+      else if (flags & 4) color = rgb("#f08a24");
+      else {
+        color = bands[Math.max(0, Math.min(bands.length - 1, Math.round(h / 12)))]!;
+        const above = [tile.get(key(x, z - 1)), tile.get(key(x - 1, z))].some((n) => n && n[0] > h + 4);
+        if (above) color = color.map((v) => v * 0.6) as [number, number, number];
+        if (flags & 1) color = scenery.has(key(x, z)) ? color.map((v) => v * 0.85) as [number, number, number] : rgb("#5a4632");
+        if (h > 60 && flags & 1) color = rgb("#8a8a90");
+      }
+      p.fill((x - x0) * scale, (z - z0) * scale, scale, scale, color);
+    }
+  }
+  return p;
+}
+
 // A crop of the world for a closer look: `npm run world:map -- <out-dir> crop x0 z0 x1 z1 [scale]`.
 if (process.argv[3] === "crop") {
   const [x0, z0, x1, z1, scale] = process.argv.slice(4).map(Number);
@@ -101,6 +139,8 @@ if (process.argv[3] === "crop") {
   process.exit(0);
 }
 writeFileSync(join(out, "world.png"), draw(0, 0, W, H, 1).png());
+writeFileSync(join(out, "terraces.png"), relief(0, 0, W, H, 1).png());
+writeFileSync(join(out, "terraces-hurloon.png"), relief(420, 520, 640, 680, 3).png());
 writeFileSync(join(out, "zones.png"), draw(0, 0, W, H, 1, true).png());
 for (const t of world.towns) {
   const r = t.radius + 10;

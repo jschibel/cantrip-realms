@@ -282,27 +282,55 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
 
 The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about five seconds) writes Dominaria from
 `realms/content/dominaria/layout.json` (ported to squares) and the mob roster; `npm run world:map` draws it from above
-(`realms/web/e2e/screenshots/world2/`: world.png, zones.png, a picture of every town). The hex generator is gone.
+(`realms/web/e2e/screenshots/world2/`: world.png, zones.png, terraces.png and a close-up of the Hurloon terraces, a picture of
+every town, stretches of each kind of country). The hex generator is gone.
 
 - **Size.** 1024 by 1216 tiles from `[0, 0]`, 32 by 38 chunks (1,216 files), no `bounds`. Sized for walking at 4.2 tiles a
   second: four to five minutes north to south in a straight line; New Benalia's walls to Capashen Hold's or the elfhames'
-  40 seconds by road, to Keld two minutes with the ferry; New Benalia 193 tiles across (45 seconds), home towns 121
-  (Tolarian Academy 93), villages 45. Ferries cross in 11 to 27 seconds. The old map's shape is kept: the hex layout's
-  places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved where the old
-  map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 1,457 buildings, 146 interiors, 36 dungeons (20 mage towers), 811 spawns, 227
-  chests, 100 waymarkers, about 44,000 props, 4 ferries, 34 roads. The files come to about 20 MB.
-- **Heights** are texels: the sea at 0, the land rolling up to two or three tiles (and mountains far higher, blocked),
-  towns level, no open tile more than 4 texels above an open neighbour (`ease`, land.ts). `layout.json`'s `relief` scales it: 0 regenerates a flat world, should
-  the ground not be drawn from heights. Water tiles (sea, shallows, stream, bog, lava) are holes at their banks' height.
-- **Towns** are walled squares: a gate on every side that meets dry land (and the harbour's, with its pier), each
-  `gatehouse` and `wall-tower` and the `wall-run`s between them props (runs cut at chunk edges, 16 tiles at most);
-  avenues from the gates to the central square, a lane inside the walls, blocks between streets built round their edges,
-  every building facing its street. A building with an interior faces south, west or east (never north, away from the
-  camera), its `door` the street tile before its front at the `at` of its `door` opening. The town's own
-  buildings take their interiors' ids (`<town>-inn`, `<vendor>-shop`, `<town>-guildhall`, `-temple`,
-  `-library` or `-tower`, `-smithy`, `-house-<n>`, a village's `-shrine`); the rest are `<town>-b<n>`. Every building is given Benalia's params (ground, upper, roof, rise, chimney, wall, openings); a style
-  reads what it can.
+  40 seconds by road, to Keld two minutes with the ferry; New Benalia's square 157 tiles (its walls about 140 across, 35
+  seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
+  the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
+  where the old map had them in the sea.
+- **Counts** (seed 1997): 16 towns, 461 buildings, 139 interiors, 36 dungeons (20 mage towers), 840 spawns, 223 chests,
+  116 waymarkers, about 45,000 props, 4 ferries, 34 roads. The files come to about 20 MB.
+- **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
+  0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.
+  Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
+  are a ramp (flag `RAMP`, 4: the lower at a quarter of the way up, the upper at three quarters, so the pair is one even
+  slope); across the open country a straight two-tile ramp is cut where a bank runs straight, about one every 16 tiles of
+  bank. Every other tile at the top of a bank (its rim) is blocked, so a level is left only by a ramp; `connect` grades
+  any way it cuts, with ramps. A bridge's deck and a ford's stones are at their banks' level. Water tiles (sea,
+  shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles side by side
+  are level (a bridge's 4 texels at most) unless one is a ramp, and every ramp climbs. `RAMP` is the renderer's format
+  addition, mirrored here (format.ts and the lint accept flags 0-7).
+- **Towns** are laid out by their `form` (layout.json; towns.ts):
+  - the outline is a polygon of 9 to 13 corners round the centre, pulled in from the coast, rivers and cliffs, inside the
+    town's square (`radius` along x and z, what the server calls the town); spawns, chests and waymarkers keep out of
+    the square and its apron;
+  - a wall (`wall-run`s along each edge, cut at chunk edges and 16 tiles at most, `wall-tower`s at the corners and beside
+    the gates, a `gatehouse` in each gate, `args.kind` wall or palisade), or hedgerows, or nothing, with a gate where each
+    road arrives (each road picks the cheapest) and onto the harbour (with its `pier`);
+  - main streets jogging along x and z from the gates to the central square, a lane inside a big town's walls, lanes
+    branching at right angles off the main streets and the square (wandering in an elfhame and the Morass), meeting or
+    ending; plazas: the capital's market, a cathedral's close, the arena, a campus's courtyards;
+  - districts round seeds - market, temple close, keep (New Benalia's citadel, Capashen Hold's keep), the nobles' manors
+    (the Seven Houses), artisans by a gate, harbour, residential, outskirts toward the edge, park, orchard (rows of
+    `fruit-tree`), allotments, the Vess estate's grounds (hedges and gravestones) - each building its own way: terraces
+    along a main street, detached houses with yards toward the edge, warehouses by the water;
+  - the forms: `capital` and `city` (Benalia: dense stone, long straight stretches), `village` (hedged hamlets),
+    `elfhame` (Llanowar's: no wall, tree-houses spread among `great-tree`s, some with a `tree-platform`, winding
+    paths), `stilts` (the Morass's: boardwalks of `planks` over `bog`, houses with `params.stilts`), `clan` (Keld's:
+    longhouses deep off their paths round the great hall - the temple - in a palisade), `campus` (Tolarian: buildings
+    round grass courtyards), `estate` (the Vess manor, its grounds and outbuildings, walled);
+  - landmarks first and much bigger (kinds `keep` and `manor`; the cathedral, the great hall), then the town's own
+    buildings: the inn on a main street by a gate, the shops round the square and the market, the guildhall, temple,
+    library or tower, the smithy among the artisans, houses with interiors; then the rows. Every building faces the street
+    its door opens on; one with an interior faces south, west or east (never north, away from the camera), its `door`
+    the street tile before its front at the `at` of its `door` opening. The town's own buildings take their interiors'
+    ids (`<town>-inn`, `<vendor>-shop`, `<town>-guildhall`, `-temple`, `-library` or `-tower`, `-smithy`,
+    `-house-<n>`, a village's `-shrine`), landmarks `<town>-citadel`, `-keep`, `-manor`, `-manor-<n>`; the rest are
+    `<town>-b<n>`. Every building is given Benalia's params (ground, upper, roof, rise, chimney, wall, openings); a
+    style reads what it can.
 - **What players use but nobody walks through** - a quest board, the arena's gate, a spell table, a waystone - is an NPC
   on a blocked tile of its own with `stand` at its middle, and a prop of the same id there to draw it.
 - **Dungeon entrances** are props by theme over a blocked footprint (`args.w`, `args.d` from `x`, `z`, facing `rot`),
@@ -324,10 +352,11 @@ prints the placeholders still named. Known today and used: surfaces `grass`, `co
 - surfaces: `meadow`, `forest-floor`, `moss`, `mud`, `bog` (hole), `snow`, `ice`, `tundra`, `rock`, `scree`, `sand`, `sea`
   (hole), `shallows` (hole), `lava` (hole), `ash`, `cracked-earth`, `road`, `planks`, `phyrexian-ground`;
 - styles: `llanowar`, `urborg`, `keldon`, `tolarian` (format.ts's `STYLES`), each asked for kinds `house`, `tenement`,
-  `shop`, `inn`, `temple`, `guildhall`, `smithy`, `library`, `tower`, `warehouse`, `barn` (Benalia's too);
+  `shop`, `inn`, `temple`, `guildhall`, `smithy`, `library`, `tower`, `warehouse`, `barn`, `keep`, `manor` (Benalia's
+  too; `keep` and `manor` are new to it);
 - rooms: `inn`, `guildhall`, `temple`, `smithy`, `library`, `house`, `tower`, `exotic-wares`;
 - props, outdoors: `pine`, `dead-tree`, `great-tree`, `swamp-tree`, `mushroom`, `reeds`, `ice-rock`, `crystal`, `stump`,
-  `ruined-wall`, `wall-run`, `wall-tower`, `gatehouse`, `statue`, `well`, `giant-tree`, `quest-board`, `spell-table`,
+  `fruit-tree`, `tree-platform`, `ruined-wall`, `wall-run`, `wall-tower`, `gatehouse`, `statue`, `well`, `giant-tree`, `quest-board`, `spell-table`,
   `waystone`, `arena-gate`, `ferry-post`, `pier`, `cave-mouth`, `castle-gate`, `mage-tower`, `crypt-door`, `root-hollow`,
   `foundry-gate`, `phyrexian-portal`, `flower-bed`, `hay-bale`, `wood-pile`; indoors: `bed`, `altar`, `pew`, `anvil`,
   `forge`, `weapon-rack`, `armor-stand`, `curio-cabinet`, `planar-mirror`, `orrery`, `lectern`;

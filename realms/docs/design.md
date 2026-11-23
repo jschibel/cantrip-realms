@@ -164,7 +164,7 @@ owner may extend.
 - **The scale.** A tile is the art's: a house is five to eight tiles across, a street two to five wide. The world is
   sized for walking at 4.2 tiles a second: four to five minutes north to south in a straight line; from New Benalia's
   walls 40 seconds by road to Capashen Hold or the elfhames, a minute to the Vess estate, two to Keld with the ferry;
-  45 seconds across New Benalia; a ferry crossing 10 to 30 seconds. The Domains keep their shape: Aerona about 600
+  35 seconds across New Benalia; a ferry crossing 10 to 30 seconds. The Domains keep their shape: Aerona about 600
   tiles across, Icehaven 250, Walassa 160, the small isles 80 to 140. Waystones and ferries make the far places near.
 - **Difficulty grows with distance.** The five home towns and New Benalia are the starting areas. Around them and along
   their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
@@ -253,8 +253,8 @@ owner may extend.
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius and give chase when you come within 8 tiles, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** are big walled cities (New Benalia 193 by 193 tiles, home towns 121, Tolarian Academy 93 on its isle,
-  villages 45) with gates,
+- **Towns** are big walled cities (New Benalia about 140 tiles across within its walls, home towns about 100, villages
+  about 40), shaped by the land they stand on, with gates,
   streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
   guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
   region's towns are built in its own style: Benalish stone and banners, Tolarian domes on Walassa, the Morass's dark stilt-houses,

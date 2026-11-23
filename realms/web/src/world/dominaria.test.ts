@@ -12,7 +12,7 @@ import { PALETTES } from "../art/paint/palette";
 import { PROPS } from "../art/props";
 import { ROOMS } from "../art/rooms";
 import { SURFACES } from "../art/surfaces";
-import { type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey, frontStep, isBlocked, parseChunkKey, tierAt, townAt } from "./format";
+import { type ChunkData, type DungeonData, type InteriorData, RAMP, type WorldData, chunkKey, frontStep, isBlocked, parseChunkKey, tierAt, townAt } from "./format";
 import { type KnownArt, type UnknownKind, checkChunk, checkInterior, checkWorld, lintRealm } from "./lint";
 import { gridOfChunks } from "./load";
 
@@ -167,24 +167,36 @@ describe("Dominaria's files", () => {
     for (const d of dungeons.values()) if (d.waystone) expect([d.boss, d.tier]).toEqual([`mage-${d.id}`, Number(d.id.slice(d.id.lastIndexOf("-") + 1))]);
   });
 
-  it("are walked without a cliff: open tiles side by side differ by a quarter tile at most", () => {
+  it("are terraces: open ground level but at its ramps, a level only left by a ramp, and every ramp between two levels", () => {
     const [W, H] = world.size;
     const height = new Int16Array(W * H);
-    const open = new Uint8Array(W * H);
+    const flags = new Uint8Array(W * H);
     for (const c of chunks) {
       c.tiles.forEach((t, k) => {
         const i = (c.cz * 32 + Math.floor(k / 32)) * W + c.cx * 32 + (k % 32);
         height[i] = t[0];
-        open[i] = isBlocked(t) ? 0 : 1;
+        flags[i] = isBlocked(t) ? 1 : t[2];
       });
     }
-    let worst = 0;
+    const open = (i: number) => (flags[i]! & 1) === 0;
+    const ramp = (i: number) => (flags[i]! & RAMP) !== 0;
+    let steps = 0;
+    let lone = 0;
+    let ramps = 0;
     for (let i = 0; i < W * H; i++) {
-      if (!open[i]) continue;
-      if (i % W < W - 1 && open[i + 1]) worst = Math.max(worst, Math.abs(height[i]! - height[i + 1]!));
-      if (i + W < W * H && open[i + W]) worst = Math.max(worst, Math.abs(height[i]! - height[i + W]!));
+      if (!open(i)) continue;
+      const next = [i % W < W - 1 ? i + 1 : -1, i + W < W * H ? i + W : -1];
+      for (const j of next) if (j >= 0 && open(j) && !ramp(i) && !ramp(j) && Math.abs(height[i]! - height[j]!) > 4) steps++;
+      if (!ramp(i)) continue;
+      ramps++;
+      // A ramp climbs: along one axis, ground (or ramp) below it on one side and above it on the other.
+      const x = i % W;
+      const across = (a: number, b: number) => (height[a]! < height[i]! && height[b]! > height[i]!) || (height[a]! > height[i]! && height[b]! < height[i]!);
+      if (!(x > 0 && x < W - 1 && across(i - 1, i + 1)) && !(i >= W && i + W < W * H && across(i - W, i + W))) lone++;
     }
-    expect(worst).toBeLessThanOrEqual(4);
+    expect(steps, "open neighbours a level apart with no ramp between").toBe(0);
+    expect(ramps).toBeGreaterThan(400);
+    expect(lone, "ramps that climb nowhere").toBeLessThan(ramps * 0.02);
   });
 
   it("keep the sea unwalked but for the ferries' lanes and the causeways", () => {

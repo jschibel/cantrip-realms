@@ -3,7 +3,7 @@
 // fills a pocket nobody could reach), then the spawn points by tier, chests, and the waymarkers where the tier rises.
 
 import type { ChestData, NpcData, Region, SpawnData, Theme, WaymarkerData, Zones } from "../../src/world/format";
-import { CHUNK, chunkKey } from "../../src/world/format";
+import { BLOCKED, CHUNK, RAMP, chunkKey } from "../../src/world/format";
 import type { Footprint } from "./buildings";
 import { S } from "./ids";
 import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
@@ -233,7 +233,7 @@ export function dress(land: Land, layout: Layout): void {
  * bigger stretch - an island, a valley walled by mountains, a yard behind a row of houses - gets a way through to the
  * rest: a ford, a pass, a gap.
  */
-export function connect(land: Land, from: number): { filled: number; joined: number } {
+export function connect(land: Land, from: number, step = 12): { filled: number; joined: number } {
   const { label, tiles } = land.pieces(from);
   let filled = 0;
   let joined = 0;
@@ -291,7 +291,12 @@ export function connect(land: Land, from: number): { filled: number; joined: num
       filled++;
       continue;
     }
-    for (let i = came[reached]!; i !== -1 && label[i] !== k; i = came[i]!) {
+    const cut: number[] = [reached];
+    for (let i = came[reached]!; i !== -1; i = came[i]!) {
+      cut.push(i);
+      if (label[i] === k) break;
+    }
+    for (const i of cut.slice(1, -1)) {
       const s = land.surface[i]!;
       if (s === S.stream) {
         land.fixtures.push({ id: "stepping-stone", x: land.xOf(i) + 0.5, z: land.zOf(i) + 0.5 });
@@ -305,7 +310,22 @@ export function connect(land: Land, from: number): { filled: number; joined: num
       if (land.use[i] === Use.Yard) land.use[i] = Use.Street;
       label[i] = 0;
     }
-    // Even out the heights along the cut so it is walked without a cliff.
+    // Graded from one end's level to the other's, a ramp wherever it climbs a level (terraces, land.ts).
+    const from = land.height[cut[0]!]!;
+    const to = land.height[cut[cut.length - 1]!]!;
+    const levels = cut.map((_, k2) => (k2 === 0 ? from : k2 === cut.length - 1 ? to : Math.round((from + ((to - from) * k2) / (cut.length - 1)) / step) * step));
+    for (let k2 = 1; k2 < cut.length - 1; k2++) if ((land.flags[cut[k2]!]! & RAMP) === 0) land.height[cut[k2]!] = levels[k2]!;
+    for (let k2 = 1; k2 < cut.length; k2++) {
+      const a = cut[k2 - 1]!;
+      const b = cut[k2]!;
+      const ha = land.height[a]!;
+      const hb = land.height[b]!;
+      if (Math.abs(ha - hb) <= step / 4 || land.flags[a]! & RAMP || land.flags[b]! & RAMP) continue;
+      const [low, high] = ha < hb ? [a, b] : [b, a];
+      land.height[low] = land.height[low]! + Math.round(step / 4);
+      land.height[high] = land.height[high]! - Math.round(step / 4);
+      for (const t of [low, high]) land.flags[t] = (land.flags[t]! & ~BLOCKED) | RAMP;
+    }
     for (const i of part) label[i] = 0;
     joined++;
   }

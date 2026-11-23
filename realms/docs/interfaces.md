@@ -171,8 +171,9 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
   radius, style, region (a color, optional), start, home (a color, optional)}], inns: [{id, town, x, z, interior}] (the
   inn's door tile, outside, which is its interior's `exit`), dungeons: [{id, x, z}], roads: [{from, to, tiles: [[x, z],
   ...]}] (each road's middle line, tile by tile, edge to edge), ferries, pitches, zones, overview}`:
-  - a town is the square of tiles within `radius` of its `center` along x and along z (Chebyshev distance), its walls
-    the tiles at exactly `radius` (`inTown`, `townAt` in format.ts);
+  - a town is the square of tiles within `radius` of its `center` along x and along z (Chebyshev distance; `inTown`,
+    `townAt` in format.ts): its walls (or its edge, where it has none) are an outline inside that square, hugging the
+    land, and no spawn, chest or waymarker stands within it;
   - `ferries` are `[{id, name, from: [x, z], to: [x, z], lane: [[x, z], ...]}]`: a ferry to a far isle. `from` and `to`
     are its docks, open shore tiles with a `ferryman` NPC (`ferry` names the ferry) beside each; `lane` runs from one dock
     to the other (`lane[0]` is `from`, the last `to`), sea tiles edge to edge, open (a walk of eight-way steps with no
@@ -191,7 +192,7 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
     rows}`, a letter for each `cell`-by-`cell` square (8).
 
   `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk (conversion.md has every field): its `tiles` (`[height, surface,
-  flags]`, row by row), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
+  flags]`, row by row; flags 1 blocked, 2 bare, 4 a ramp, which is walked as any open tile), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
   `chests`, `entrances` and `waymarkers`, all in tiles but props' places, in world units. In Dominaria:
   - `npcs` stand outdoors on open tiles: townsfolk and guards who walk, ferrymen. What a player uses but nobody walks
     through - quest boards, the arena's gate, a dungeon's spell table and a mage tower's `waystone` (`tower` names it) -

@@ -3,7 +3,7 @@
 // here allocates per tile, so the whole world is a few megabytes and every pass over it is quick.
 
 import type { PropData } from "../../src/world/format";
-import { BARE, BLOCKED } from "../../src/world/format";
+import { BARE, BLOCKED, RAMP } from "../../src/world/format";
 import { fnv1a32, mulberry32 } from "../../src/random";
 import { S, WATER } from "./ids";
 
@@ -352,35 +352,146 @@ export class Heap {
 }
 
 /**
- * Eases the walked ground: no open tile stands more than `step` texels above an open neighbour (edge to edge), the
- * higher lowered, so a pass cut through a mountain or a road's bank is walked without a cliff. Blocked tiles (peaks,
- * buildings, water) keep their heights. Passes over the world both ways until nothing moves.
+ * The land as terraces, as a 16-bit RPG draws its hills and as the renderer builds them (render/terrain.ts): every
+ * height a whole number of `step`s (12 texels, three quarters of a tile), each level flat, one level at most above an
+ * open neighbour, no terrace a single tile wide (banks at least a tile apart). Where a way - a road, a street, a gate's
+ * way out - climbs a level, its two tiles across the bank become a ramp (flag RAMP, a quarter and three quarters of the
+ * way up); across the open country a straight ramp is cut where a bank runs straight, one every so often; every other
+ * tile at the top of a bank (its rim) is blocked, so a level is left only by a ramp. `connect` joins what this leaves
+ * apart, with ramps where it climbs. Blocked tiles (peaks, buildings, trees) and water are levelled too but never
+ * opened.
  */
-export function ease(land: Land, step: number): number {
+const PAVED: ReadonlySet<number> = new Set([S.road, S.dirt, S.cobbles, S.flagstones, S.planks, S.scree]);
+
+export function terraces(land: Land, step: number, seed: number): { ramps: number; rims: number } {
   const W = land.width;
   const h = land.height;
-  const open = (i: number) => (land.flags[i]! & BLOCKED) === 0;
-  // From the low ground up: a tile is final once taken off the heap, and lowers its neighbours that stand too high.
-  const heap = new Heap();
+  const water = (i: number) => land.isWater(i);
+  for (let i = 0; i < land.size; i++) h[i] = Math.round(h[i]! / step) * step;
+  // No terrace a tile wide: a tile above (or below) both its neighbours along x, or along z, comes level with them.
   const near: number[] = [];
-  for (let i = 0; i < land.size; i++) {
-    if (!open(i)) continue;
-    for (const n of land.n4(i, near)) {
-      if (open(n) && h[n]! > h[i]! + step) {
-        heap.push(i, h[i]!);
-        break;
+  for (let pass = 0; pass < 4; pass++) {
+    let moved = 0;
+    for (let i = 0; i < land.size; i++) {
+      if (water(i)) continue;
+      const x = i % W;
+      const z = (i - x) / W;
+      for (const [a, b] of [
+        [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1],
+        [z > 0 ? i - W : -1, z < land.depth - 1 ? i + W : -1],
+      ] as const) {
+        if (a < 0 || b < 0 || water(a) || water(b)) continue;
+        if (h[i]! > h[a]! && h[i]! > h[b]!) {
+          h[i] = Math.max(h[a]!, h[b]!);
+          moved++;
+        } else if (h[i]! < h[a]! && h[i]! < h[b]!) {
+          h[i] = Math.min(h[a]!, h[b]!);
+          moved++;
+        }
+      }
+    }
+    if (moved === 0) break;
+  }
+  const open = (i: number) => (land.flags[i]! & BLOCKED) === 0;
+  // A bridge's deck, a ford's stones: at their banks' level.
+  for (let pass = 0; pass < 8; pass++) {
+    for (let i = 0; i < land.size; i++) {
+      if (!water(i) || !open(i)) continue;
+      const banks = land.n4(i, near).filter((n) => open(n) && !water(n)).map((n) => h[n]!);
+      if (banks.length > 0) h[i] = Math.min(...banks);
+      else {
+        const decks = land.n4(i, near).filter((n) => open(n)).map((n) => h[n]!);
+        if (decks.length > 0) h[i] = Math.min(...decks);
       }
     }
   }
-  let lowered = 0;
-  while (heap.size > 0) {
-    const i = heap.pop();
-    for (const n of land.n4(i, near)) {
-      if (!open(n) || h[n]! <= h[i]! + step) continue;
-      h[n] = h[i]! + step;
-      lowered++;
-      heap.push(n, h[n]!);
+  for (const p of land.fixtures) {
+    if (p.id !== "bridge") continue;
+    const deck = h[land.idx(Math.min(land.width - 1, Math.floor(p.x) + 1), Math.min(land.depth - 1, Math.floor(p.z) + 1))]!;
+    (p as { args?: Record<string, unknown> }).args = { ...p.args, y: deck / 16 + 0.25 };
+  }
+  // One level at most between open neighbours: the higher comes down, from the low ground up.
+  {
+    const heap = new Heap();
+    for (let i = 0; i < land.size; i++) {
+      if (!open(i)) continue;
+      if (land.n4(i, near).some((n) => open(n) && h[n]! > h[i]! + step)) heap.push(i, h[i]!);
+    }
+    while (heap.size > 0) {
+      const i = heap.pop();
+      for (const n of land.n4(i, near)) {
+        if (!open(n) || h[n]! <= h[i]! + step) continue;
+        h[n] = h[i]! + step;
+        heap.push(n, h[n]!);
+      }
     }
   }
-  return lowered;
+  const ramp = new Uint8Array(land.size);
+  const quarter = Math.round(step / 4);
+  /** A ramp of two tiles across a bank, `low` below and `high` above it. */
+  const makeRamp = (low: number, high: number) => {
+    ramp[low] = 1;
+    ramp[high] = 1;
+  };
+  // Ways climb by ramps: each tile of a way at the top of a bank, with the way going on below it.
+  const way = (i: number) => {
+    const u = land.use[i]!;
+    if (!open(i) || water(i) || land.town[i] !== 0) return false;
+    // Kept ground is a way only where it is paved: a gate's way out, not the grass round a town's walls.
+    const paved = PAVED.has(land.surface[i]!);
+    return u === Use.Road || u === Use.Street || u === Use.Dock || u === Use.Door || (u === Use.Kept && paved);
+  };
+  for (let i = 0; i < land.size; i++) {
+    if (!way(i) || ramp[i]) continue;
+    for (const n of land.n4(i, near)) {
+      if (!way(n) || ramp[n] || h[n] !== h[i]! - step) continue;
+      makeRamp(n, i);
+      break;
+    }
+  }
+  // Across the open country, a straight ramp now and then where a bank runs straight: a tile below and a tile above,
+  // the ground going on level below the one and above the other, and level either side of each.
+  const taken = new Uint8Array(land.size);
+  const order = Array.from({ length: land.size }, (_, i) => i);
+  const random = randomFor(seed, "ramps");
+  shuffle(order, random);
+  const level = (i: number, want: number) => i >= 0 && open(i) && !water(i) && !ramp[i] && h[i] === want;
+  for (const a of order) {
+    if (taken[a] || !open(a) || water(a) || ramp[a] || land.town[a] !== 0) continue;
+    const x = a % W;
+    const z = (a - x) / W;
+    if (x < 2 || z < 2 || x > W - 3 || z > land.depth - 3) continue;
+    for (const [dx, dz] of [[0, -1], [0, 1], [-1, 0], [1, 0]] as const) {
+      const b = a + dz * W + dx;
+      const L = h[a]!;
+      if (!level(b, L + step)) continue;
+      const c = b + dz * W + dx;
+      const d = a - dz * W - dx;
+      const sides = [[dz, dx], [-dz, -dx]].flatMap(([sx, sz]) => [a + sz! * W + sx!, b + sz! * W + sx!]);
+      if (!level(c, L + step) || !level(d, L) || !level(sides[0]!, L) || !level(sides[2]!, L) || !level(sides[1]!, L + step) || !level(sides[3]!, L + step)) continue;
+      makeRamp(a, b);
+      for (const t of land.disc(x, z, 16)) taken[t] = 1;
+      break;
+    }
+  }
+  let ramps = 0;
+  for (let i = 0; i < land.size; i++) {
+    if (!ramp[i]) continue;
+    ramps++;
+    const low = land.n4(i, near).some((n) => ramp[n] && h[n]! > h[i]!);
+    h[i] = low ? h[i]! + quarter : h[i]! - quarter;
+    land.flags[i] = (land.flags[i]! & ~BLOCKED) | RAMP;
+  }
+  // Every other tile at the top of a bank is its rim: blocked, so the levels are left only by the ramps.
+  let rims = 0;
+  const rim: number[] = [];
+  for (let i = 0; i < land.size; i++) {
+    if (!open(i) || ramp[i] || water(i)) continue;
+    if (land.n4(i, near).some((n) => open(n) && !ramp[n] && h[n]! < h[i]! - quarter)) rim.push(i);
+  }
+  for (const i of rim) {
+    land.flags[i] = land.flags[i]! | BLOCKED;
+    rims++;
+  }
+  return { ramps, rims };
 }
