@@ -288,3 +288,29 @@ public sealed class NativeVerifierTests
         Assert.Null(outcome.Detail is { } detail && detail.StartsWith("The log", StringComparison.Ordinal) ? detail : null);
     }
 }
+
+/// <summary>Llanowar's boss on the native engine: Rofellos, Llanowar Emissary, dealt by the server in his hollow and verified.</summary>
+[Trait("Category", "WallClock")]
+public sealed class RofellosDuelTests
+{
+    [Fact]
+    public async Task A_duel_against_rofellos_in_the_elfhames_hollow_deals_and_verifies()
+    {
+        await using var app = new RealmApp { NativeVerifier = true };
+        Browser browser = await app.Character(1, "G");
+        RunView run = await app.EnterRun(browser, "elfhame-hollow");
+        Assert.Equal("rofellos", run.Floors[^1].Boss);
+        await app.ToFloor(run, run.Floors.Count - 1);
+        (int floor, int index) = RealmApp.BossOf(run);
+        EncounterView encounter = await RealmApp.Fight(browser, run, floor, index, "rofellos");
+        Assert.Equal("Rofellos, Llanowar Emissary", encounter.Duel.Seats[1].Name);
+        Assert.Contains("Rofellos, Llanowar Emissary", encounter.Duel.Seats[1].Deck);
+
+        // The browser's part, seat 1 played by a bot here; the server replays the log on the native host and takes it.
+        (List<string> log, IReadOnlyList<int> winners) = NativeVerifierTests.Play(encounter.Duel, new TacticalPlay(), RealmBot.Create(encounter.Seed));
+        Assert.NotEmpty(winners);
+        OutcomeView outcome = await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { encounter.Token, Log = log });
+        Assert.Equal(winners is [Duel.PlayerSeat] ? "won" : "lost", outcome.Outcome);
+        Assert.Null(outcome.Detail is { } detail && detail.StartsWith("The log", StringComparison.Ordinal) ? detail : null);
+    }
+}

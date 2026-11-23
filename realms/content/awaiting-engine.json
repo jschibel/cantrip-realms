@@ -1,4 +1,0 @@
-{
-  "comment": "Cards a mob's deck may name before the engine has them: each is being added to cantrip-rs and reaches the fork by sync. The realm server's content check and tools/realms/sample-decks.py accept these names alone past the engine, pool and legality checks, and the content check refuses a name here once the engine has it, so the entry goes with the sync. Only mob decks may hold them; no player's deck, vendor, loot or pool does.",
-  "cards": ["Rofellos, Llanowar Emissary"]
-}

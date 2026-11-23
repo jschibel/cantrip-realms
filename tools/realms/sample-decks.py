@@ -27,9 +27,7 @@ Durkwood and Verdura):
   spell-heavy decks. They are paid as their tier and start with a warden's stats and gear.
 - **Wardens**: the five dungeons' and the Portal's `*-warden` keepers (tier 4 mini-bosses), and the generic `warden-1`
   to `warden-4`, constructs keeping the mage towers and small wilderness dungeons at their tier.
-- **Bosses**: the five that unlock a color, each a legend of its region (Llanowar's, Rofellos, awaits the engine: a card
-  realms/content/awaiting-engine.json names passes the engine, pool and legality checks alone, by the facts written in
-  AWAITING_ENGINE), and the Phyrexian Portal's tier 4
+- **Bosses**: the five that unlock a color, each a legend of its region, and the Phyrexian Portal's tier 4
   Phyrexians and its capstone, the five-color praetor, whose deck is written out card by card and whose stats with its
   gear are design.md's 42 life, a hand of 9 and a maximum of 10.
 
@@ -259,7 +257,7 @@ MOBS = [
     dict(kind="boss", id="liliana", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"], model=("wizard", ["#2a2b36", "#4b2f5e", "#c9ced8"], 1.5)),
     # Keld's warlord: the pool's Keldon legend, with the Keldon Warlord.
     dict(kind="boss", id="garna", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"], model=("humanoid", ["#8f2f2f", "#2e1f17", "#f1b44c"], 1.6)),
-    # Llanowar's emissary, round his Forests: big green creatures and green ramp. He awaits the engine (AWAITING_ENGINE).
+    # Llanowar's emissary, round his Forests: big green creatures and green ramp.
     dict(kind="boss", id="rofellos", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"], model=("elf", ["#3e9a4a", "#8f6340", "#f1b44c"], 1.6)),
     # The Phyrexian Portal (the capstone): the invasion's war-machines and priests, its warden, and the praetor.
     dict(kind="portal", id="phyrexian-ravager", name="Phyrexian Ravager", creature="Phyrexian Dragon Engine", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct", "Dragon"], themes=["artifacts", "burn"], gear=["mantle-of-the-ancients", "thran-amulet"], model=("phyrexian", ["#8c909c", "#c8432c", "#2a2b36"], 1.35)),
@@ -318,18 +316,6 @@ MOBS = [
         ],
     ),
 ]
-
-# Cards a mob's deck may name before the engine has them (realms/content/awaiting-engine.json names them; they reach the
-# engine by an upstream sync, and the entry goes with it). The engine's card files don't have them yet, so their facts
-# are written here until they do - AWAITING THE ENGINE: drop an entry once content/mtg/cards has the card. They pass
-# the engine, pool and legality checks alone; every other check holds, and no deck takes one it does not name.
-AWAITING_ENGINE = {
-    "Rofellos, Llanowar Emissary": dict(
-        card={"name": "Rofellos, Llanowar Emissary", "manaCost": "{G}{G}", "type": "Legendary Creature — Elf Druid", "power": 2, "toughness": 1,
-              "oracleText": "{T}: Add {G} for each Forest you control."},
-        identity="G", vintage="legal", rarity="rare",
-    ),
-}
 
 # Mobs whose files and decks were tuned by hand: not overwritten.
 HAND_TUNED = set()
@@ -792,7 +778,7 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
     return data
 
 
-def problems_of(mob, deck, pool, prices, legality, cards, relics, gear, awaiting):
+def problems_of(mob, deck, pool, prices, legality, cards, relics, gear):
     """What is wrong with a mob and its deck, as the server and the roster's own rules judge them."""
     found = []
     pool_set = set(pool)
@@ -813,7 +799,7 @@ def problems_of(mob, deck, pool, prices, legality, cards, relics, gear, awaiting
             found.append(f"{count} copies of {name}, restricted in Vintage")
         if status not in ("legal", "restricted"):
             found.append(f"{name} is {status or 'unknown'} in Vintage")
-        if name not in pool_set and name not in awaiting:
+        if name not in pool_set:
             found.append(f"{name} is not in the {PLANE} pool")
         if name in relics:
             found.append(f"{name} is a relic")
@@ -864,18 +850,6 @@ def main():
     gear_folder = os.path.join(ROOT, "realms", "content", "gear")
     gear = {g["id"]: g for g in (load(os.path.join(gear_folder, f)) for f in sorted(os.listdir(gear_folder)) if f.endswith(".json"))}
     cards = cards_by_name()
-    # The cards awaiting the engine that awaiting-engine.json names, with their facts from AWAITING_ENGINE.
-    awaiting = set(load(os.path.join(ROOT, "realms", "content", "awaiting-engine.json"))["cards"])
-    unknown = sorted(awaiting - set(AWAITING_ENGINE))
-    if unknown:
-        sys.exit(f"sample-decks: awaiting-engine.json names {', '.join(unknown)}, whose facts AWAITING_ENGINE lacks")
-    for name in sorted(awaiting):
-        if name in cards:
-            sys.exit(f"sample-decks: the engine has {name} now: drop it from AWAITING_ENGINE and awaiting-engine.json")
-        facts = AWAITING_ENGINE[name]
-        cards[name] = facts["card"]
-        legality[name] = {"identity": facts["identity"], "legalities": {"vintage": facts["vintage"]}}
-        prices[name] = {"rarity": facts["rarity"], "gold": None}
 
     starters = {}
     for color, name in NAMES.items():
@@ -897,12 +871,12 @@ def main():
     for mob in mobs:
         if mob["id"] in HAND_TUNED:
             continue
-        missing = [n for n in [mob["creature"]] + mob["featured"] + [n for _, n in mob.get("decklist", [])] if n not in pool and n not in BASICS.values() and n not in awaiting]
+        missing = [n for n in [mob["creature"]] + mob["featured"] + [n for _, n in mob.get("decklist", [])] if n not in pool and n not in BASICS.values()]
         if missing:
             problems.append(f"{mob['id']}: plays {', '.join(missing)}, which the {PLANE} pool does not have")
             continue
         deck = mob.get("decklist") or themed(mob, pool, prices, legality, cards)
-        problems += [f"{mob['id']}: {p}" for p in problems_of(mob, deck, pool, prices, legality, cards, relics, gear, awaiting)]
+        problems += [f"{mob['id']}: {p}" for p in problems_of(mob, deck, pool, prices, legality, cards, relics, gear)]
         written.append((mob, deck))
     if problems:
         sys.exit("sample-decks: nothing written:\n  " + "\n  ".join(problems))

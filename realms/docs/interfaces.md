@@ -54,11 +54,6 @@ same way by the tools, `tools/realms/realm_cards.py`); there are no pool files:
 - the off-plane pool is every dealt card printed on no walked plane (no basic land), with its planes (perhaps none): the exotic dealers'
   wares (Vendors, below).
 
-`awaiting-engine.json`, `{comment, cards: [name]}`, names the cards a mob's deck may hold before the engine has them
-(on their way from cantrip-rs, by sync): Rofellos, Llanowar Emissary, the green boss's. The content check lets those
-names alone past the engine, pool and legality checks, and only in mob decks; it refuses a name on the list once the
-engine has it. Until then a duel against that mob can't be dealt.
-
 ### Relics (`relics.json`)
 
 ```json
@@ -146,7 +141,7 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
     `portal-warden`; tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers and the smaller dungeons of the wilds.
   - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
     Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `rofellos` (G,
-    Rofellos, Llanowar Emissary, a mono-green deck; awaiting the engine, above); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
+    Rofellos, Llanowar Emissary, a mono-green deck); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
     `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 42 life, a hand of 9, a
     maximum of 10 with its gear), whose deck the script writes out card by card.
 

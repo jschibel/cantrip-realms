@@ -138,7 +138,7 @@ public sealed class ContentTests
         foreach (Mob mob in content.Mobs.Values)
         {
             Assert.True(mob.Deck.Entries.Sum(entry => entry.Copies) >= Duel.RealmMinimumDeckSize, mob.Id);
-            Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card) || content.AwaitingEngine.Contains(entry.Card), $"{mob.Id}: {entry.Card}"));
+            Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card), $"{mob.Id}: {entry.Card}"));
             Assert.All(mob.File.Gear, gear => Assert.True(content.Gear.ContainsKey(gear) && content.Gear[gear].Emblem is null, $"{mob.Id} wears {gear}"));
             Assert.Contains(mob.File.Model.Mesh, RealmContent.MobMeshes);
             Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
@@ -296,26 +296,20 @@ public sealed class ContentTests
         {
             Assert.Equal(40, mob.Deck.Entries.Sum(entry => entry.Copies));
             List<string> problems = DeckChecks.Problems(content.Cards, [.. mob.Deck.Entries.Select(entry => new Cantrip.Decks.DeckEntry(entry.Card, entry.Copies))], identity: null);
-            Assert.Equal(mob.Deck.Entries.Where(entry => content.AwaitingEngine.Contains(entry.Card)).Select(entry => $"{entry.Card} is not a card the engine plays."), problems);
+            Assert.Empty(problems);
         }
     }
 
     [Fact]
-    public void Only_the_cards_awaiting_the_engine_pass_without_it_and_only_in_a_mobs_deck()
+    public void Llanowars_boss_is_rofellos_a_mono_green_deck_round_him_from_the_pool()
     {
-        // Rofellos, Llanowar's boss, is on his way from cantrip-rs: the list names him alone, and his deck is built round him.
         RealmContent content = RealmApp.Content;
-        Assert.Equal(["Rofellos, Llanowar Emissary"], content.AwaitingEngine);
         Mob rofellos = content.Mobs["rofellos"];
         Assert.Equal(("Rofellos, Llanowar Emissary", "G", true), (rofellos.File.Creature, rofellos.File.Unlocks, rofellos.File.Boss));
-        Assert.Contains(rofellos.Deck.Entries, entry => entry.Card == rofellos.File.Creature);
-        Assert.Equal("G", CardPool.Letters(rofellos.Deck.Entries.Where(entry => content.Cards.Catalog.ContainsKey(entry.Card)).SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
-
-        // Nowhere else: no other mob, pool, vendor or player's deck holds a card the engine lacks.
-        Assert.All(content.Mobs.Values.Where(mob => mob.Id != "rofellos"), mob => Assert.All(mob.Deck.Entries, entry => Assert.Contains(entry.Card, content.Cards.Catalog.Keys)));
-        Assert.DoesNotContain(content.Cards.Pool("dominaria"), content.AwaitingEngine.Contains);
-        Assert.DoesNotContain(content.Cards.OffPlane.Keys, content.AwaitingEngine.Contains);
-        Assert.Contains("Rofellos, Llanowar Emissary is not a card the engine plays.", DeckChecks.Problems(content.Cards, [new("Rofellos, Llanowar Emissary", 4), new("Forest", 36)], CardPool.Identity("G")));
+        Assert.Contains("Rofellos, Llanowar Emissary", content.Cards.Pool("dominaria"));
+        Assert.InRange(rofellos.Deck.Entries.Where(entry => entry.Card == rofellos.File.Creature).Sum(entry => entry.Copies), 2, 4);
+        Assert.Equal("G", CardPool.Letters(rofellos.Deck.Entries.SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
+        Assert.False(File.Exists(Path.Combine(RealmApp.Root, "realms", "content", "awaiting-engine.json")));
     }
 
     [Fact]

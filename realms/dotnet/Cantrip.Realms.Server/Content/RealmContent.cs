@@ -144,12 +144,6 @@ public sealed partial class RealmContent
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
 
-    /// <summary>
-    /// The cards a mob's deck may name before the engine has them (<c>awaiting-engine.json</c>): on their way from
-    /// cantrip-rs. No other deck, vendor, loot or pool holds one, and a card the engine has is refused on the list.
-    /// </summary>
-    public IReadOnlySet<string> AwaitingEngine { get; private set; } = new HashSet<string>(StringComparer.Ordinal);
-
     /// <summary>Every card the engine has, as the realm's card database records it (<c>cards.json</c>), by name.</summary>
     public IReadOnlyDictionary<string, CardRecord> Records { get; private set; } = new Dictionary<string, CardRecord>();
 
@@ -220,12 +214,6 @@ public sealed partial class RealmContent
             Records = byName,
             TraderPlanes = planes.Where(plane => !walked.Contains(plane.Key)).ToDictionary(plane => plane.Key, plane => plane.Value.Name, StringComparer.Ordinal),
         };
-
-        content.AwaitingEngine = ReadAwaiting(Path.Combine(realms, "awaiting-engine.json"), problems);
-        foreach (string card in content.AwaitingEngine.Where(cards.Catalog.ContainsKey))
-        {
-            problems.Add($"awaiting-engine.json: the engine has {card} now; take it off the list.");
-        }
 
         HashSet<string> seen = new(StringComparer.Ordinal);
         foreach (CardRecord record in records)
@@ -333,23 +321,6 @@ public sealed partial class RealmContent
         HashSet<string> walked = [.. planes.Where(plane => plane.Value.Walked).Select(plane => plane.Key)];
         if (walked.Count == 0) problems.Add("planes.json: no plane is walked.");
         return (planes, walked);
-    }
-
-    private static HashSet<string> ReadAwaiting(string path, List<string> problems)
-    {
-        HashSet<string> cards = new(StringComparer.Ordinal);
-        if (!System.IO.File.Exists(path)) return cards;
-        try
-        {
-            using JsonDocument file = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
-            foreach (JsonElement card in file.RootElement.GetProperty("cards").EnumerateArray()) cards.Add(card.GetString() ?? string.Empty);
-        }
-        catch (Exception problem) when (problem is JsonException or KeyNotFoundException or InvalidOperationException)
-        {
-            problems.Add($"awaiting-engine.json: {problem.Message}");
-        }
-
-        return cards;
     }
 
     /// <summary>cards.json's records: every card the engine has, as card-economy.py found it.</summary>
@@ -535,11 +506,7 @@ public sealed partial class RealmContent
 
         if (!MobMeshes.Contains(file.Model.Mesh)) problems.Add($"{where}: its model '{file.Model.Mesh}' is none of the mob meshes ({string.Join(", ", MobMeshes)}).");
         if (file.Region is { } region && (region.Length != 1 || CardPool.Color(region[0]) is null)) problems.Add($"{where}: its region '{region}' is no color's letter.");
-        if (AwaitingEngine.Contains(file.Creature))
-        {
-            if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
-        }
-        else if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
+        if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
         else if (!creature.Card.CardTypes.Any(type => type.ToString() is "Creature" or "Planeswalker")) problems.Add($"{where}: its creature {file.Creature} is no creature (or planeswalker) card.");
         else if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
         if (file.Prize < 0) problems.Add($"{where}: a prize is never less than nothing.");
@@ -553,16 +520,7 @@ public sealed partial class RealmContent
         else if (Cards.Filter(pool, file.Loot).Count == 0) problems.Add($"{where}: its loot has no card in the {pool} pool.");
         foreach (string rarity in file.Loot.Rarities.Where(rarity => !Rarities.Contains(rarity))) problems.Add($"{where}: loot rarity '{rarity}'.");
 
-        // A card awaiting the engine (awaiting-engine.json) is the one thing a mob's deck may hold that the engine lacks:
-        // past that, it is held to four copies like any.
-        HashSet<string> awaited = [.. mob.Deck.Entries.Select(entry => entry.Card).Where(AwaitingEngine.Contains)];
-        problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null)
-            .Where(problem => !awaited.Any(card => problem == $"{card} is not a card the engine plays."))
-            .Select(problem => $"{where}'s deck: {problem}"));
-        foreach (string card in awaited.Where(card => mob.Deck.Entries.Where(entry => entry.Card == card).Sum(entry => entry.Copies) > 4))
-        {
-            problems.Add($"{where}'s deck: more than four of {card}.");
-        }
+        problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null).Select(problem => $"{where}'s deck: {problem}"));
     }
 
     /// <summary>
