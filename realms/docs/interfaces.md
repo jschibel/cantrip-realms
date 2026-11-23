@@ -112,6 +112,10 @@ replaces the per-map files of the first overworld (`<plane>/maps/*.json`), which
   guildhall, temple, smithy, library, house, tower) and `exit: {q, r}`, where its door comes out in the world. Its npcs
   include the vendors (`"kind": "vendor", "vendor": "<id>"`), the armorer, the innkeeper and the spell table. An interior
   belongs to the town whose door leads into it (a vendor file's `town`, an armorer's town).
+- **Mage towers** are dungeons of theme `tower` with `"waystone": true`: beating the run's boss attunes the tower to the
+  character (`Character.Attuned: [tower ids]`, kept by the server), and its waystone stands at its entrance in the world.
+- **Spawn tiers.** Each world spawn point carries `tier`, the tier of its distance from the nearest starting area (A6),
+  and lists only mobs of that tier.
 - **Dungeons.** `dungeons/<id>.json` is `{id, name, theme: caves|castle|tower|crypt|hollow|foundry|portal, entrance:
   [q, r], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
   floor or one list for all], warden, boss, region}`. A run's layout is the browser's
@@ -123,7 +127,7 @@ replaces the per-map files of the first overworld (`<plane>/maps/*.json`), which
 A character's place is `{Space, Q, R}`: `Space` is `"world"`, an interior's id, or `"run:<run>"` for a dungeon run, and
 `Q`, `R` a hex of it. The server keeps the last reported place (`POST /api/position`, which replaces `/api/travel`): it
 checks that a world or interior place is walkable, and that a move between spaces goes through a door, an entrance or a
-recall. A lost duel sends the character to the inn they set (or their home town's), as before.
+waystone. A lost duel sends the character to the inn they set (or their home town's), as before.
 
 ### Models (`models/<id>.vox.json`)
 
@@ -194,11 +198,11 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; 409 `NotNear` away from its entrance, `Locked` |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, allowed once that floor's warden before it is beaten; 409 `WardenStands` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands at its entrance |
-| `POST /api/recall` | `{}` or `{Inn}` | `{Place, Gold}`: to the character's inn (free, once every 10 minutes; 409 `TooSoon`), or to another inn they have visited (`Inn`, for a fee; 409 `NotVisited`, `CannotAfford`) |
+| `POST /api/waystone` | `{Tower}` | `{Place}`: travel at once from an attuned tower's waystone (where the character stands) to another attuned tower's; 409 `NotNear` away from a waystone, `NotAttuned` for either tower |
 | `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
 | `POST /api/chest/open` | `{Map, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
-| `POST /api/position` | `{Space, Q, R}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a blocked hex, 409 `NoWay` for a space reached without a door, entrance or recall, `Locked` for a dungeon whose `requires` the identity lacks |
+| `POST /api/position` | `{Space, Q, R}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a blocked hex, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Map, Q, R, Stats: {Life, Hand, MaxHand},
   Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color]}`. `Id` is the player id (`discord-<id>`,

@@ -147,9 +147,17 @@ owner may extend.
 ### A6. The world — Dominaria
 - **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
   no separate travel screen and no local maps to load between. It is big (about 640 by 640 hexes) and streamed in chunks
-  as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other. A
-  hearthstone-style recall takes you to your inn once every few minutes, and an inn you have visited can send you to any
-  other you have visited, for a fee, so the size never becomes a chore.
+  as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other.
+- **Difficulty grows with distance.** The five home towns and New Argive are the starting areas. Around them and along
+  their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
+  enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
+  the tier of its distance from the nearest starting area. A dungeon takes the tier of where it stands, never less than
+  its own floor.
+- **Fast travel through mage towers.** Mage towers stand across Dominaria, a few in each region and some far out in the
+  wilds. Each is a short dungeon (the mage-tower theme, one or two floors) with a mage boss at the top. Beating the mage
+  attunes that tower's waystone to you. From any attuned tower you can travel at once to any other you have attuned:
+  your fast-travel network, which grows as you go. Towers far from the starting areas hold harder mages, so the network
+  reaches the far wilds only as you can face them.
 - **Interiors.** A building with a door has an interior: its own small scene, not part of the world map. Walking through
   the door is seamless. The door opens, the view eases into the room and the player is inside, with no loading screen and
   no jump cut, and leaving reverses it. Shops, inns, guildhalls, temples, smithies, libraries and houses have interiors.
@@ -200,10 +208,14 @@ owner may extend.
   - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
   - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears: 42 life, a starting hand of 9 and a maximum hand of 10. Its deck is the strongest the Dominaria pool allows. It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
   - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and offer, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
-- **Mobs:**
-  - About 60 types, each with a themed 40-card deck, stats and gear traits. They use the same Vanguard-object system as the player, which is what makes them harder.
+- **Mobs are Dominaria's own creatures.** Every wanderer is a real creature of the plane: a creature card the engine has,
+  printed in a Dominaria set (planes.json), drawn as that creature. Examples are a pack of Llanowar Elves, a Shivan
+  Dragon, Serra Angels, Benalish Marshals, Keldon Raiders, Urborg ghouls and Phyrexian horrors. Its deck is themed around
+  it: the creature itself, its kin and tribe, and cards that support what it does. A Llanowar Elves pack ramps into
+  Yavimaya's big creatures; a Shivan Dragon brings dragons, burn and red mana. Each has stats and gear traits, through the same
+  Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
+  (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-  - Difficulty grows with distance from your home region.
 - **Towns** are big walled cities (New Argive about 120 by 120 hexes, home towns about 80, villages about 30) with gates,
   streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
   guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
