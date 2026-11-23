@@ -1,5 +1,7 @@
 import * as THREE from "three";
-import { type Appearance, type GearLook, lookFigure, playerFigure } from "./art/figures";
+import { type Appearance, type GearLook, figureSpec, lookFigure, playerFigure } from "./art/figures";
+import { meshesOf } from "./art/paint/builder";
+import { PROPS } from "./art/props";
 import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
 import { type MinimapDot, Hud, gold } from "./hud";
@@ -13,8 +15,8 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type ChestData, type DungeonData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked } from "./world/format";
-import type { Tile } from "./world/grid";
+import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked } from "./world/format";
+import type { Grid, Tile } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
 // The overworld (tech.md, B5) on the renderer's stage (render/stage.ts): one connected world of version-2 chunks
@@ -131,6 +133,10 @@ export class Overworld {
   private travelersTimer = 0;
   private minimapTimer = 0;
   private readonly clock = new THREE.Clock();
+  /** The ferry the player rides now: its boat under them, the lane's end. */
+  private riding: { readonly ferry: FerryData; readonly boat: THREE.Group; readonly end: Tile } | null = null;
+  /** The traveling traders standing at their pitches now, by pitch: the trader, their caravan, what a click on them is. */
+  private readonly traders = new Map<string, { readonly actor: Actor; readonly caravan: THREE.Group; readonly npc: NpcData }>();
 
   constructor(
     readonly canvas: HTMLCanvasElement,
@@ -204,6 +210,12 @@ export class Overworld {
       built(key, chunk);
       this.spawnChunk(key);
     };
+    const onGrid = this.world.streamer.onGrid;
+    this.world.streamer.onGrid = (grid) => {
+      this.closeLanes(grid);
+      onGrid(grid);
+    };
+    this.closeLanes(this.world.grid);
     const dropped = this.world.streamer.onDropped;
     this.world.streamer.onDropped = (key, chunk) => {
       dropped(key, chunk);
@@ -306,6 +318,7 @@ export class Overworld {
     for (const a of this.spot.actors) out.push({ actor: a, npc: npcs.get(a.name) });
     for (const m of this.mobsHere()) out.push({ actor: m.actor, mob: m });
     for (const v of this.visitors.values()) out.push({ actor: v.actor, visitor: v });
+    if (this.inWorld) for (const t of this.traders.values()) out.push({ actor: t.actor, npc: t.npc });
     return out;
   }
 
@@ -384,7 +397,7 @@ export class Overworld {
 
   /** The stage's click, before it walks: a person, a mob or a chest is walked up to and used. */
   private clickThing(t: Tile): boolean {
-    if (this.screen !== "world") return true;
+    if (this.screen !== "world" || this.riding) return true;
     const who = this.personAt(t);
     if (who?.mob) {
       this.approach(who.mob);
@@ -703,7 +716,7 @@ export class Overworld {
         await this.waystone(npc);
         break;
       case "ferryman":
-        await this.dialog(npc.name ?? "The ferryman", npc.text ?? ["The ferry is not running today."], [{ caption: "Close", value: null, primary: true }]);
+        await this.ferryman(npc);
         break;
       case "quest-board":
       case "arena":
@@ -768,6 +781,109 @@ export class Overworld {
     } catch (e) {
       if (e instanceof ApiError && e.code === "Empty") this.say("The chest is empty.");
       else this.say(refusal(e));
+    }
+  }
+
+  // --- Ferries and traders --------------------------------------------------------------------------------------------
+
+  /** A ferry's lane is open water only to its passengers: closed to walking between its docks. */
+  private closeLanes(grid: Grid): void {
+    for (const f of this.worldData.ferries ?? []) for (const [x, z] of f.lane.slice(1, -1)) if (grid.inside(x, z)) grid.setWalkable(x, z, false);
+  }
+
+  /** The town nearest a tile, for naming a ferry's far shore. */
+  private townNear(t: readonly [number, number]): string {
+    let best: { name: string; d: number } | null = null;
+    for (const town of this.worldData.towns) {
+      const d = chebyshev({ x: town.center[0], z: town.center[1] }, { x: t[0], z: t[1] });
+      if (!best || d < best.d) best = { name: town.name, d };
+    }
+    return best?.name ?? "the far shore";
+  }
+
+  /** The ferryman (design.md A6): board, the crossing eases by at a walk, step off at the other dock. */
+  async ferryman(npc: NpcData): Promise<void> {
+    const ferry = this.worldData.ferries?.find((f) => f.id === npc.ferry);
+    if (!ferry) {
+      await this.dialog(npc.name ?? "The ferryman", npc.text ?? ["The ferry is not running today."], [{ caption: "Close", value: null, primary: true }]);
+      return;
+    }
+    const me = this.player.tile;
+    const at = (xz: readonly [number, number]) => chebyshev(me, { x: xz[0], z: xz[1] });
+    const lane = at(ferry.from) <= at(ferry.to) ? ferry.lane : [...ferry.lane].reverse();
+    const far = lane.at(-1)!;
+    const choice = await this.dialog(npc.name ?? "The ferryman", [`${ferry.name} crosses to ${this.townNear(far)}. Step aboard?`], [
+      { caption: "Cross", value: "cross" as string | null, primary: true },
+      { caption: "Stay", value: null },
+    ]);
+    if (choice !== "cross") return;
+    const dock = { x: lane[0]![0], z: lane[0]![1] };
+    const board = () => this.board(ferry, lane);
+    if (me.x === dock.x && me.z === dock.z && !this.player.moving) board();
+    else if (this.player.goTo(dock)) this.pending = { at: dock, then: board };
+    else this.say("You can't reach the dock.");
+  }
+
+  private board(ferry: FerryData, lane: readonly (readonly [number, number])[]): void {
+    const boat = meshesOf(PROPS.build("ferry", { id: "ferry", x: 0, z: 0 }).model, "ferry");
+    this.world.place.addFigure(boat);
+    const end = { x: lane.at(-1)![0], z: lane.at(-1)![1] };
+    this.riding = { ferry, boat, end };
+    this.player.walkPath(lane.slice(1).map(([x, z]) => ({ x, z })));
+    this.say(`You board ${ferry.name}.`);
+    this.stepRide();
+  }
+
+  /** Whether the player is crossing on a ferry now. */
+  get ferrying(): boolean {
+    return this.riding !== null;
+  }
+
+  /** The boat under the passenger; stepping off at the lane's end. */
+  private stepRide(): void {
+    const r = this.riding;
+    if (!r) return;
+    const p = this.player.position;
+    r.boat.position.set(p.x, p.y - 0.2, p.z);
+    r.boat.rotation.y = this.player.figure.facing;
+    if (!this.player.moving && this.player.tile.x === r.end.x && this.player.tile.z === r.end.z) {
+      r.boat.removeFromParent();
+      this.riding = null;
+      this.say(`You step off at ${this.townNear([r.end.x, r.end.z])}.`);
+      this.report(true);
+    }
+  }
+
+  /**
+   * The traveling traders (design.md A5) at their towns' pitches while the schedule has them there: the trader on the
+   * pitch, their caravan behind them, sold from as a vendor is.
+   */
+  private showTraders(): void {
+    if (!this.inWorld) return;
+    const now = this.options.now() * 1000;
+    const built = new Set(this.world.streamer.builtKeys);
+    for (const pitch of this.worldData.pitches ?? []) {
+      const key = `${pitch.town}:${pitch.x},${pitch.z}`;
+      const visit = travelerIn(this.travelers, pitch.town, now);
+      const here = this.traders.get(key);
+      const shown = !!visit && built.has(chunkKey(Math.floor(pitch.x / CHUNK), Math.floor(pitch.z / CHUNK)));
+      if (here && (!shown || here.npc.vendor !== visit?.Id)) {
+        here.actor.figure.root.removeFromParent();
+        here.caravan.removeFromParent();
+        this.traders.delete(key);
+      }
+      if (!shown || this.traders.has(key)) continue;
+      const npc: NpcData = { id: `trader-${visit!.Id}`, x: pitch.x, z: pitch.z, kind: "vendor", vendor: visit!.Id, name: visit!.Name };
+      const actor = new Actor(figureSpec("planar-trader", undefined, hash(visit!.Id)), { x: pitch.x, z: pitch.z }, this.world.grid, { watch: 4 }, visit!.Name);
+      actor.floor = this.world.floorAt ?? null;
+      actor.place({ x: pitch.x, z: pitch.z });
+      actor.figure.face(0, 1);
+      const caravan = meshesOf(PROPS.build("caravan-wagon", { id: "caravan-wagon", x: 0, z: 0, seed: hash(visit!.Id) % 7 }).model, "caravan");
+      caravan.scale.setScalar(0.7);
+      caravan.position.set(pitch.x + 0.5, actor.position.y, pitch.z - 0.45);
+      this.world.place.addFigure(caravan);
+      this.world.place.addFigure(actor.figure.root);
+      this.traders.set(key, { actor, caravan, npc });
     }
   }
 
@@ -948,6 +1064,11 @@ export class Overworld {
         p.then();
       }
       if (p && !this.player.moving && (this.player.tile.x !== p.at.x || this.player.tile.z !== p.at.z)) this.pending = null;
+      this.stepRide();
+      for (const t of this.traders.values()) {
+        t.actor.grid = this.world.grid;
+        t.actor.update(dt, this.player);
+      }
       this.relayWalk();
       if (!this.player.moving) this.report(true);
     }
@@ -962,6 +1083,7 @@ export class Overworld {
     this.minimapTimer -= dt;
     if (this.minimapTimer <= 0) {
       this.minimapTimer = 0.25;
+      this.showTraders();
       const at = this.player.position;
       if (this.inWorld && this.hud.hasWorldMap) this.hud.drawMap(this.dots(), this.attuned);
       else {
@@ -1006,4 +1128,11 @@ export class Overworld {
 function refusal(e: unknown): string {
   if (e instanceof ApiError) return e.detail || e.code;
   return e instanceof Error ? e.message : String(e);
+}
+
+/** A small seed from a name (a trader's look and caravan). */
+function hash(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return (h >>> 0) % 997;
 }
