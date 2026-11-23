@@ -7,11 +7,13 @@ section is cantrip-rs's own guidance and holds here unchanged, except where this
 
 - **Remotes.** `origin` is this fork; `upstream` is cantrip-rs, fetch-only (its push URL is `DISABLED`).
   `tools\realms\sync-upstream.cmd` merges upstream `main` into this fork's `main`.
-- **Upstream first.** Anything the engine, host, protocol or client would want without the game - a card, a
-  mechanic, per-player starting life and hand sizes, start-of-game command-zone objects, the WebAssembly engine, the
-  local bot table - is built in cantrip-rs (its own checkout, under its rules and review), lands on its `main`, and
-  reaches this fork by the sync. This fork holds only the RPG, and touches upstream files only at seams that
-  `realms/docs/tech.md` names, so the sync stays a clean merge.
+- **The game stays in this fork.** cantrip-rs is only for playing Magic in a browser and for training AI. Nothing of
+  this game's design or code goes there. The only changes allowed upstream are generic hooks that make our cards (and
+  cards like them) function and don't affect the engine's performance; the owner decides each one, so ask first.
+  Two such hooks are there now: the per-seat variant start (starting life, hand sizes, emblems in the command zone from
+  before the game) and the engine in the browser (`cantrip-wasm`, `?local`). Everything else, upstream code changed for
+  the game included, lives here only. Edits to upstream files are kept to small seams so the sync stays a clean merge.
+  Gear is "cards" in this fork whose abilities work from the command zone, built from what the engine already has.
 - **Game code** lives under `realms/`: `realms/web` (the overworld, TypeScript + three.js), `realms/dotnet` (the
   realm server and its tests), `realms/crates` (gear in the engine), `realms/content` (planes, maps, mobs, gear,
   prices), `realms/deploy`. Its tools are `tools\realms\`.

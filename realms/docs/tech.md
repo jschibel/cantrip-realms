@@ -11,30 +11,37 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
   3. Merge upstream `main` into the fork's `main` regularly, through `tools/realms/sync-upstream.cmd`.
 - **Layout:** the fork adds `realms/` (game code and content) and a few project heads. It touches upstream files only at documented seams, to keep merges clean. CLAUDE.md gets a Realms section.
 
-### B2. Upstream engine work (lands on cantrip-rs first)
-1. **Per-player game parameters** in `Setup`, the host `Deal`, `NewGame` and `RulesGameOptions`:
-   - `starting_life` sets both `Player.life` and `starting_life` (CR 103.4).
-   - `starting_hand_size` replaces the literal 7 in `turn::opening` for the opening draw and each mulligan redraw (CR 103.5). The London mulligan still bottoms the number of mulligans taken.
-   - `maximum_hand_size` is the base that `actions::maximum_hand_size` starts from (CR 402.2). Effects still override it by timestamp, as now.
-   - The defaults are unchanged, and Commander's 40 becomes a default derived from these parameters.
-2. **Start-of-game command-zone objects (Vanguard, CR 902):** `Setup.seats[i].command_objects: Vec<CardId>`, created in `Zone::COMMAND` in `Game::new` before the opening, with the same immunity as emblems (CR 114.4 / 902).
-   - This uses the existing emblem path (`ops::create_emblem`), not a parallel store.
-   - A scenario `[Seats]` section in `cantrip-script` sets life, hand sizes and command objects, so all of this can be tested.
-3. **`crates/cantrip-wasm`:** wasm-bindgen over `cantrip-host::session::Session`, speaking the same JSON-lines messages as `host.rs`. It takes a card table, so a fork can add its own definitions through the `deal_on` table hook.
-   - Built for `wasm32-unknown-unknown` with `opt-level=s` and `wasm-opt`; the brotli size is measured in this milestone.
-   - **The determinism check** is a test that plays N bench games natively and in Node/WASM and compares the state hash after every decision. It also runs the scenario corpus under WASM.
-4. **`WasmRulesHost : IRulesHost`** in a new browser-safe `Cantrip.Server.Local`, which reuses `GameSession` and `LoopbackTransport`. It calls the engine through `JSImport`, synchronously, on the main thread; decisions take microseconds.
-   - The web client gets an upstream `?local` mode: play the tactical bot with no server at all.
-   - The `PresentationBoundaryTests` and `DependencyClosureTests` allow exactly that one project, with the reason written down: a local bot game owns its engine by design.
-5. **New cards:**
-   - Importing the Dominaria sets uses the existing `import-cards` skill and the GitHub claim flow, and runs alongside everything else: DOM, DMU and DMR first, then whatever the mob and boss decks need from the classic Dominaria sets.
-   - Card coverage only limits the loot pool, so it never blocks the RPG work.
+### B2. What is upstream, and what never goes there
+cantrip-rs is only for playing Magic in a browser and for training AI. Nothing of this game's design or code goes there.
+The only changes allowed upstream are generic hooks that make our cards (and cards like them) function and don't affect
+the engine's performance, each decided by the owner. Everything else lives in this fork only. Two such hooks are upstream,
+and this fork has them by the sync:
 
-### B3. Gear in the engine (fork: `realms/crates/realms-gear`)
-- **Effect families** are written once in Rust, each a parameterised constructor of command-zone abilities built from `cantrip-mechanics` (draw, scry, tokens, mana, counters, damage, prevention, once-per-game activated abilities), never a new core brick.
-- **Item definitions** live in `realms/content/gear/*.json`. A build script generates one static `CardDef` per item from them, the way `cantrip-oracle` does, plus an extended card table for `deal_on`.
-- **The fork's WASM build** and its native **replay verifier** both link cards plus gear.
-- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated smoke scenario. Coverage uses `tools/card-coverage.cmd` on the gear crate. The no-rules-deviation bar applies in full.
+1. **A variant's start for each seat** (cantrip-rs `ac0ed3f5e`): `Setup::variant` / `SeatVariant`, and the host's
+   `NewGame` seat fields `StartingLife`, `StartingHandSize`, `MaximumHandSize` and `Emblems` (docs/host-protocol.md). A
+   seat's starting life (CR 103.4), its starting hand size, drawn for the opening hand and each mulligan (CR 103.5a), its
+   maximum hand size before any effect (CR 402.2, 902.5b), and the emblems it begins the game with in its command zone
+   (CR 902.3, 114.4). It is CR 902-style Vanguard support, and the hook gear rides on. C#: `RulesSeat.Variant`.
+   Scenarios: the `[Variant]` section.
+2. **The engine in the browser** (cantrip-rs `9e1edf71d`): `crates/cantrip-wasm`, a WebAssembly module with no imports
+   serving the host's requests (`cantrip_host::serve`), which answers byte for byte as the native host does (all
+   28,725 scenarios checked). The web client's `?local` plays the tactical bot on it with no server
+   (docs/engine-in-the-browser.md). The realm's duels run on it, and the server replays them on the native host.
+
+**Cards.** The game draws on the cards the trunk has (its own card work goes on there regardless). A card the game
+would like that the trunk lacks (a boss's namesake, say) is asked of the owner, never added here or there unasked.
+
+### B3. Gear (fork only)
+- Gear is "cards" whose abilities work from the command zone: one typeless definition per item with effects, named
+  `"<item name> (gear)"`, in this fork's card crate (new files only, so the sync never conflicts). It starts in its
+  seat's command zone through `SeatVariant` emblems. The fork's own `cantrip-native-host` and `cantrip-wasm` then know it
+  with no hook and no extra binary, and the server's verifier replays on the fork's native host.
+- **Effect families** (gear.md) are built only from what the engine already has, in fork-only code. A family that would
+  need an engine change is left out until the owner decides on a hook.
+- **Item definitions** live in `realms/content/gear/*.json` (interfaces.md). How each becomes its card is milestone 4's,
+  written up in gear.md as built.
+- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated scenario.
+  Every line is covered. The no-rules-deviation bar applies in full.
 
 ### B4. Server (fork: `realms/dotnet/Cantrip.Realms.Server`, ASP.NET Core)
 - **Auth:** reuses the `SiteSignIn` code (Discord OAuth with PKCE and a sealed cookie) with the game's own Discord application and keys. The player id is `discord-{id}`.
@@ -127,9 +134,9 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
 | # | Milestone | Where | Done when |
 |---|---|---|---|
 | 0 | The fork, the design docs (`realms/docs/design.md` = Part A, `tech.md` = Part B), and a spike of the two-layer page | fork | three.js and Uno layers swap on one page; `realmBridge` round-trips |
-| 1 | Per-player setup and Vanguard objects (B2.1–2) | upstream | scenarios for life, hand sizes and command objects; `test.cmd` passes |
-| 2 | The WASM engine and `?local` bot play (B2.3–4) | upstream | determinism check passes; a whole bot game in a browser with no server |
-| 3 | Data pipelines (B7) and the Dominaria card import (B2.5), continuing in parallel | fork + upstream | prices and pools generated; card imports keep landing |
+| 1 | Per-player setup and Vanguard objects (B2.1) | upstream (a generic hook) | scenarios for life, hand sizes and command objects; `test.cmd` passes |
+| 2 | The WASM engine and `?local` bot play (B2.2) | upstream (the owner's call) | determinism check passes; a whole bot game in a browser with no server |
+| 3 | Data pipelines (B7); the game draws on the cards the trunk has | fork | prices and pools generated; card imports keep landing |
 | 4 | `realms-gear`: about 25 effect families, the generator, scenarios | fork | every family and item covered and passing |
 | 5 | The realm server (B4): accounts, collection, decks, ante, gear, vendors, encounters, replay check, loot, presence | fork | server tests pass (B10) |
 | 6 | The overworld (B5): renderer, maps, movement, mobs, world map, HUD, map editor | fork | you can walk Dominaria and see other players |
@@ -148,7 +155,7 @@ The work runs through the existing worktree pool and agents: card agents for B2.
 ---
 
 ## B10. Verification
-- **Engine (upstream):**
+- **Engine (the upstream hooks, done):**
   - Run `tools\test.cmd` for core and host changes; the Rust workspace includes the new scenarios.
   - Run the WASM-versus-native determinism check over bench games and the scenario corpus.
 - **Gear:** `realms` scenarios for every family and item, through the corpus runner on the fork's card table, and coverage of the gear crate.
