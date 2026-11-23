@@ -31,9 +31,9 @@
   "model": {
     "mesh": "humanoid",
     "palette": [
-      "#e8e4d8",
-      "#b3b5bc",
-      "#c08a62"
+      "#3a5f8f",
+      "#f1b44c",
+      "#e8e4d8"
     ],
     "size": 1.1
   },

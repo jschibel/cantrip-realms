@@ -26,10 +26,11 @@
     ]
   },
   "model": {
-    "mesh": "ghoul",
+    "mesh": "imp",
     "palette": [
       "#8c909c",
-      "#4b2f5e"
+      "#4b2f5e",
+      "#7a1f24"
     ],
     "size": 1.0
   },

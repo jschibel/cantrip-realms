@@ -32,7 +32,8 @@
     "mesh": "drake",
     "palette": [
       "#2f5fa8",
-      "#a97fd0"
+      "#a97fd0",
+      "#c8e0f0"
     ],
     "size": 1.25
   },

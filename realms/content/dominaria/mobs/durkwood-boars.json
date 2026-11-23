@@ -29,11 +29,11 @@
     ]
   },
   "model": {
-    "mesh": "beast",
+    "mesh": "boar",
     "palette": [
-      "#2a4524",
-      "#d6ae7e",
-      "#c08a62"
+      "#6e4436",
+      "#2a1a18",
+      "#e8e4d8"
     ],
     "size": 1.3
   },

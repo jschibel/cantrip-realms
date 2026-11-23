@@ -29,11 +29,11 @@
     ]
   },
   "model": {
-    "mesh": "elf",
+    "mesh": "elf-druid",
     "palette": [
       "#2a4524",
-      "#d6ae7e",
-      "#c08a62"
+      "#8f6340",
+      "#4a2e1a"
     ],
     "size": 0.9
   },

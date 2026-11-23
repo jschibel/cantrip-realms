@@ -33,11 +33,11 @@
     ]
   },
   "model": {
-    "mesh": "construct",
+    "mesh": "golem",
     "palette": [
-      "#8c909c",
+      "#2a2b36",
       "#f1b44c",
-      "#2a2b36"
+      "#0d0f14"
     ],
     "size": 1.45
   },

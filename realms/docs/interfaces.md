@@ -92,7 +92,7 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `text` is what the item does in words: its stat lines, then its effects' rules text, as the generator writes it (it
   rewrites a `text` that differs).
 - `gold` is what an armorer sells it for; it buys at half.
-- `look` is how it shows on a character: a gear mesh of `realms/content/models` (below) and its palette.
+- `look` is how it shows on a character: a gear mesh (Models, below) and its palette.
 
 ### Mobs (`<plane>/mobs/*.json`)
 
@@ -119,7 +119,7 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `loot` filters the plane's pool for the three cards offered after a win.
 - A boss has `"boss": true` and `"unlocks": "W"`. A plane's capstone boss (`phyrexian-praetor`) has no `unlocks`: it
   ends the arc instead, and the relics drop from it.
-- `model.mesh` is a mob mesh (Models, below).
+- `model.mesh` is a mob mesh and `model.palette` its colors (Models, below).
 - `creature` is the card the mob is (design.md A6): a creature (or, for a mage, a planeswalker) card the engine plays,
   held in its deck - a wanderer's name is its creature's, and its deck holds 2 to 4 of it.
 - `region` is the region, by its color (world.json's `regions[].color`), the mob roams or belongs to; absent for a mob of
@@ -279,40 +279,64 @@ The server keeps the last reported place (`POST /api/position`):
 A lost duel sends the character to their inn, outside it in the world (world.json's `inns[].x, z`): the one they set with
 `POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Benalia), where a new character begins.
 
-### Models (`models/<id>.vox.json`)
+### Models (figures: `realms/web/src/art/figures`)
 
-What characters, mobs and gear look like: palette-indexed voxels cut into parts, meshed in the browser (greedy, at
-load) and drawn larger than life, a voxel to one and a half scene pixels (`FIGURE_SCALE`, `realms/web/src/character.ts`).
-Each color is shown as the plane's palette color nearest it, a step down or up its ramp for the light band
-(`realms/web/src/palette.ts`), so a model's colors, a mob's `model.palette` and a gear item's `look.palette` are best
-taken from the palette, and a model is a few bold areas of color rather than stripes or speckles. The format is
-`realms/web/src/voxel/format.ts`; the files are
-written by `realms/web/scripts/models.ts` (`npm run models`) and may be tuned by hand. `realms/web/models.html` shows
-them all.
+What characters, mobs and gear look like. Every figure is painted by code on the slice's rig (`art/figures/rig.ts`): a
+3D rig of boxes - legs, torso, arms, a big round head, and whatever a figure adds (wings, a tail, a second head, a
+staff) - each face painted texel by texel from ramps and packed into one picture per look, sixteen texels to a tile. A
+figure walks, stands and breathes, casts (`Figure.act("cast")`: arms up, a spark of its color over its head; a beast
+rears, its wings spread) and reaches out (`act("interact")`). A mob's, a gear item's and a body's colors are plain
+`#rrggbb`; each is made a seven-step ramp about the color (`rampOf`, darker steps cooler, lighter warmer) as the
+slice's own ramps run, so content colors are best taken from the plane's palette. A figure is never scaled: a bigger
+mob is built bigger in whole texels, so every size stays crisp. `realms/web/cast.html` (dev only) shows them all.
 
-```json
-{ "id": "helm", "kind": "gear", "voxel": 0.0625, "palette": ["$0", "$1", "#0b0c10"],
-  "parts": [{ "name": "helm", "mount": "head-top", "pivot": [0, 0, 0], "origin": [4, 4, 4], "size": [8, 7, 8], "fit": [6, 0, 6],
-              "layers": [[".000000.", "0......0", "..."], ["..."]] }] }
-```
+- **Bodies** (a character's `Body`, presence's `Look.Body`): `lithe`, `broad`, `tall`, `stocky` (`BUILDS`, `person.ts`),
+  each with its own hair: long on the lithe, cropped with a short beard on the broad, a tail on the tall, the slice
+  hero's spikes on the stocky. A body name the client does not know is drawn as `lithe`.
+- **Palettes** (`Look.Palette`, 0-5, `SKINS` in `ramps.ts`): fair with brown hair, fair with red, olive with black,
+  bronze with black, umber with dark, deep with silver. Out of range is clamped.
+- **Identity** (presence's `Other.Identity`, the character's colors in WUBRG order): the tunic and the cape in the
+  first color's cloth, trimmed in the second's (`IDENTITY`, `IDENTITY_TRIM`): white cream and gold, blue, violet, red, an
+  emerald far bluer than grass; colorless grey. The cloth is saturated, in hues the land does not use, so a character
+  stands out on any ground.
+- **Gear meshes** (a gear item's `look.mesh`; its palette's first color the stuff, its second the trim or the stone;
+  `gear.ts`): `circlet`, `crown`, `helm` (an open helm with a plume), `hood`, `hat` (a wizard's), for the head; `amulet`
+  (a chain to a stone on the chest) for the neck; `armor` (plate and pauldrons), `robe` (to the ankles), `cloak` for the
+  body; `gloves`, `gauntlets` for the hands; `boots`, `greaves` for the feet; `ring` (a band and a glowing stone, on the
+  right hand in `ring1`, the left in `ring2`); `relic` (a talisman) and `orb` (a caged light), each floating round the
+  character. An unknown mesh is worn as nothing. Until the voxel models are retired the server checks a gear look
+  against `realms/content/models` (`RealmContent.Models`, kind `gear`), which has the first nine; `crown`, `hood`, `hat`,
+  `cloak`, `gauntlets`, `greaves` and `orb` are drawn but may be named by content only once that check is a list of
+  these ids.
+- **Mob meshes** (a mob's `model.mesh`; `model.size` builds it bigger, 1 as made; `mobs.ts`): each reads its palette
+  as the colors its `slots` name, and picks its variations by the words of the mob's id and its creature's name (an
+  archer's bow, a mechanic's goggles and wrench, a Triskelion's third arm, a Leveler's tower, a fallen angel's dark
+  wings), then by a seed from the id:
+  - people: `humanoid` (a soldier: open helm, tabard over mail, spear and shield; a hood and a bow for an archer; a
+    leader's cape and sword), `knight`, `barbarian`, `elf`, `elf-druid`, `goblin`, `orc`, `minotaur`, `giant`, `ettin`
+    (two heads), `merfolk`, `vampire`, `angel`, `demon`, `imp`, `aven`, `ghoul`, `horror`, `phyrexian`, `thrull`;
+  - mages: `wizard`, `cleric`, `warlock`, `shaman`, `druid`, `artificer` (with `thrull`, `djinn`, `ape` and `dragon`
+    the twenty tower mages, no two alike);
+  - floating: `djinn`, `spirit`, `wraith`, `elemental`;
+  - big and shaggy, wooden, made: `yeti`, `ape`, `treefolk`, `construct`, `golem`;
+  - beasts: `beast` (a baloth), `boar`, `rat`, `cat`, `lhurgoyf`, `horse`, `pegasus`, `elk-rider`, `dragon`,
+    `dragon-engine`, `drake`, `bird`, `serpent`, `wurm`, `insect`;
+  - the bosses, each its own: `lyra`, `teferi`, `liliana`, `garna`, `rofellos`, `praetor`.
 
-- `kind` is `body`, `mob` or `gear`. A part's `layers[y][z]` is a row of voxels along x: `.` empty, else a palette index
-  in base 36. Parts hang from a `parent` part (bodies and mobs) or a body's attachment point, `mount` (gear), and turn
-  about their `pivot` with their `motion` (legs and arms swing, wings beat, a wurm's segments ripple).
-- `"$n"` in a palette is the n-th color of the palette the model is drawn with: a mob's `model.palette`, a gear item's
-  `look.palette`, or a body's `[skin, hair, cloth, trim, leather]` (cloth and trim from the character's identity).
-  A `$n` past the colors given takes the last one given.
-- Bodies: `body-lithe`, `body-broad`, `body-tall`, `body-stocky`, each with every attachment point (`head-top`, `brow`,
-  `neck`, `torso`, `back`, `arm-left`, `arm-right`, `hand-left`, `hand-right`, `leg-left`, `leg-right`, `foot-left`,
-  `foot-right`, `orbit`) and the size of the region there, which gear is stretched to by its `fit`.
-- Gear meshes (a gear item's `look.mesh`): `circlet`, `helm`, `amulet`, `armor`, `robe`, `gloves`, `boots`, `ring` (on the
-  right hand in `ring1`, the left in `ring2`; it glows) and `relic` (it floats beside you).
-- Mob meshes (a mob's `model.mesh`; `model.size` scales it): `humanoid` (a soldier), `ghoul`, `angel`, `drake`, `elf`,
-  `goblin`, `wurm`, `construct`, `spirit`, `phyrexian`, and `dragon`, `bird`, `beast`, `cat`, `merfolk`, `insect`,
-  `treefolk`, `serpent`, `giant`, `wizard` (a robed caster: the tower mages), `knight` (the roster names these, the look
-  agent models them). An unknown mesh is drawn as `humanoid`; a mob names only these (`RealmContent.MobMeshes`), and
-  every mob model is one of them.
+  A color a mob's palette does not give is the mesh's own (a `knight`'s fourth, its armor, is iron). Big meshes are made
+  big at size 1 (a giant, an ettin, a treefolk, a wurm, a serpent, a dragon, a baloth): `model.size` grows them from
+  there.
+
+  An unknown mesh is drawn as `humanoid`; a mob names only these (`RealmContent.MobMeshes`). The voxel model files
+  (`models/<id>.vox.json`, `realms/web/src/voxel`) are the old renderer's, retired at integration.
+- **NPC figures** (the world data's `npcs[].figure`, varied by `seed`, recolored by `palette` slots `cloth`, `trim`,
+  `skin`, `hair`; `npcs.ts`): `townsfolk-<region>` and `guard-<region>` for `benalia`, `orvada`, `caligo`, `keld`,
+  `llanowar`; `shopkeeper`, `innkeeper`, `ferryman`, `planar-trader`; and the slice's `hero`, `knight`, `grizzlegom`,
+  `goblin`, `skeleton`, `ghoul`, `townswoman`.
 - A spell table is a `spell-table` NPC; a character stands at one beside it.
+- The client draws a player as `playerFigure({body, palette, identity, slots})` and another player from presence as
+  `lookFigure(Look, Identity)`, a mob as `mobFigure(model, id, creature)`, an NPC as `figureSpec(figure, palette, seed)`;
+  `new Figure(spec)` builds any of them (`art/figures/index.ts`).
 
 ### Vendors (`<plane>/vendors/*.json`)
 

@@ -31,11 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "spirit",
+    "mesh": "djinn",
     "palette": [
       "#5b8fd6",
       "#f4ecc2",
-      "#2f5fa8"
+      "#f1b44c"
     ],
     "size": 1.25
   },

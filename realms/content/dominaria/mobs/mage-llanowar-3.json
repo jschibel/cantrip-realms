@@ -34,11 +34,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "druid",
     "palette": [
-      "#6b963e",
-      "#8f6340",
-      "#f1b44c"
+      "#3e9a4a",
+      "#f1b44c",
+      "#a97fd0"
     ],
     "size": 1.15
   },

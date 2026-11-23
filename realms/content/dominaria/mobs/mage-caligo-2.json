@@ -30,10 +30,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "thrull",
     "palette": [
       "#8c909c",
-      "#4b2f5e"
+      "#4b2f5e",
+      "#c9ced8"
     ],
     "size": 1.1
   },

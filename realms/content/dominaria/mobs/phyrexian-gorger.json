@@ -35,11 +35,11 @@
     ]
   },
   "model": {
-    "mesh": "phyrexian",
+    "mesh": "wurm",
     "palette": [
-      "#5d6646",
+      "#e8d8d0",
       "#7a1f24",
-      "#2a4524"
+      "#5a1828"
     ],
     "size": 1.4
   },

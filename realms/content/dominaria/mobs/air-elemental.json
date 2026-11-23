@@ -34,11 +34,11 @@
     ]
   },
   "model": {
-    "mesh": "spirit",
+    "mesh": "elemental",
     "palette": [
-      "#62a4c2",
-      "#f1b44c",
-      "#2a2b36"
+      "#c8e0f0",
+      "#f4ecc2",
+      "#5b8fd6"
     ],
     "size": 1.4
   },

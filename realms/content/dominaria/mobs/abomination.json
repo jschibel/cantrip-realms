@@ -33,11 +33,11 @@
     ]
   },
   "model": {
-    "mesh": "ghoul",
+    "mesh": "horror",
     "palette": [
-      "#2a2b36",
+      "#8c909c",
       "#7a1f24",
-      "#8c909c"
+      "#2a2b36"
     ],
     "size": 1.4
   },

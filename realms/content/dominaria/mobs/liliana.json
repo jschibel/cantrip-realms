@@ -34,11 +34,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "liliana",
     "palette": [
       "#2a2b36",
       "#4b2f5e",
-      "#c9ced8"
+      "#c9a46a"
     ],
     "size": 1.5
   },

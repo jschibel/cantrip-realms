@@ -35,8 +35,8 @@
   "model": {
     "mesh": "dragon",
     "palette": [
+      "#c8432c",
       "#8f2f2f",
-      "#4a3122",
       "#f1b44c"
     ],
     "size": 1.55
