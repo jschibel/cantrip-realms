@@ -1,0 +1,43 @@
+{
+  "id": "benalish-knight",
+  "name": "Benalish Knight",
+  "creature": "Benalish Knight",
+  "region": "W",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/benalish-knight.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Knight"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "knight",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

@@ -1,4 +1,4 @@
-# Phyrexian Praetor (phyrexian-praetor), the capstone boss: written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Praetor (phyrexian-praetor, Sheoldred, the Apocalypse), the capstone boss: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Sheoldred, the Apocalypse
 2 Birds of Paradise

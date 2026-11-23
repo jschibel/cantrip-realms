@@ -1,0 +1,40 @@
+{
+  "id": "fire-elemental",
+  "name": "Fire Elemental",
+  "creature": "Fire Elemental",
+  "region": "R",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/fire-elemental.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.35
+  },
+  "boss": false
+}

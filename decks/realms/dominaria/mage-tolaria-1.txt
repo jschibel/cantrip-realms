@@ -1,0 +1,16 @@
+# Fugitive Wizard (mage-tolaria-1, Fugitive Wizard), the mage of Tolaria's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Fugitive Wizard
+2 Bay Falcon
+2 Tolarian Scholar
+1 Giant Octopus
+1 Cold-Water Snapper
+1 Shoreline Ranger
+2 Repeal
+2 Counterspell
+2 Disdainful Stroke
+2 Essence Scatter
+2 Memory Lapse
+2 Miscalculation
+2 Negate
+17 Island

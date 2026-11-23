@@ -1,11 +1,12 @@
-# Portal Warden (portal-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Portal Warden (portal-warden, Phyrexian Walker), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Cut Down
-3 Bone Splinters
-2 Plague Beetle
-4 Knight of Dusk's Shadow
-2 Knight of Malice
-4 Phyrexian Dragon Engine
-2 Sheoldred, the Apocalypse
+4 Phyrexian Walker
+3 Baleful Strix
+2 Phyrexian Dragon Engine
+2 Moor Fiend
 2 Yargle, Glutton of Urborg
-17 Swamp
+2 Cityscape Leveler
+4 Go for the Throat
+4 The Mightstone and Weakstone
+4 Island
+13 Swamp

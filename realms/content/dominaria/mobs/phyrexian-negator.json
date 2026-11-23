@@ -1,6 +1,7 @@
 {
   "id": "phyrexian-negator",
   "name": "Phyrexian Negator",
+  "creature": "Crazed Skirge",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-negator.txt",
   "stats": {

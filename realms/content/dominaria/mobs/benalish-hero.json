@@ -1,0 +1,40 @@
+{
+  "id": "benalish-hero",
+  "name": "Benalish Hero",
+  "creature": "Benalish Hero",
+  "region": "W",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/benalish-hero.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Soldier"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#d8d6d0",
+      "#3a5f8f",
+      "#f1b44c"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

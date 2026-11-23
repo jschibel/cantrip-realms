@@ -1,0 +1,46 @@
+{
+  "id": "thunder-spirit",
+  "name": "Thunder Spirit",
+  "creature": "Thunder Spirit",
+  "region": "W",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/thunder-spirit.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "kjeldoran-helm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Spirit",
+      "Angel"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

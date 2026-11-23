@@ -1,6 +1,8 @@
 {
   "id": "bog-wraith",
   "name": "Bog Wraith",
+  "creature": "Bog Wraith",
+  "region": "B",
   "tier": 2,
   "deck": "decks/realms/dominaria/bog-wraith.txt",
   "stats": {
@@ -29,11 +31,11 @@
   "model": {
     "mesh": "spirit",
     "palette": [
-      "#4b2f5e",
       "#5d6646",
-      "#2a2b36"
+      "#7a1f24",
+      "#0d0f14"
     ],
-    "size": 1.05
+    "size": 1.25
   },
   "boss": false
 }

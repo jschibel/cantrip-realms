@@ -1,15 +1,15 @@
-# Bog Wraith (bog-wraith), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
+# Bog Wraith (bog-wraith, Bog Wraith), a tier 2 wanderer of Urborg: written by tools/realms/sample-decks.py; tune it by hand.
 
-2 Bog Wraith
-2 Bone Splinters
-2 Cut Down
-2 Feed the Swarm
-1 Unearth
+3 Bog Wraith
 2 Plague Beetle
 2 Knight of Dusk's Shadow
-2 Knight of Malice
-2 Cabal Evangel
-2 Lost Soul
+1 Knight of Malice
 2 Bog Raiders
+2 Lost Soul
 2 Yargle, Glutton of Urborg
+2 Feral Abomination
+1 Bone Splinters
+2 Cut Down
+2 Feed the Swarm
+2 Go for the Throat
 17 Swamp

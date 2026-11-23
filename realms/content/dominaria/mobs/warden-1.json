@@ -1,0 +1,45 @@
+{
+  "id": "warden-1",
+  "name": "Yotian Soldier",
+  "creature": "Yotian Soldier",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/warden-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "copper-amulet"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Construct",
+      "Golem",
+      "Soldier",
+      "Thopter"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "construct",
+    "palette": [
+      "#8c909c",
+      "#62a4c2",
+      "#2a2b36"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

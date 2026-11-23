@@ -1,0 +1,12 @@
+# Air Elemental (air-elemental, Air Elemental), a tier 3 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Air Elemental
+2 Flying Men
+3 Bay Falcon
+3 Soaring Drake
+2 Azure Drake
+2 Mahamoti Djinn
+3 Counterspell
+1 Disdainful Stroke
+3 Remand
+17 Island

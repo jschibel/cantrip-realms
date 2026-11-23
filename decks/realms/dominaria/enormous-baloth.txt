@@ -1,0 +1,11 @@
+# Enormous Baloth (enormous-baloth, Enormous Baloth), a tier 4 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Enormous Baloth
+2 Birds of Paradise
+3 Elvish Archers
+3 Pale Bears
+2 Magnigoth Sentry
+2 Elfhame Wurm
+3 Bushwhack
+4 Song of Freyalise
+17 Forest

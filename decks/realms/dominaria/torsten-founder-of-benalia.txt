@@ -1,0 +1,12 @@
+# Torsten, Founder of Benalia (torsten-founder-of-benalia, Torsten, Founder of Benalia), a tier 4 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Torsten, Founder of Benalia
+2 Dauntless Bodyguard
+3 Longbow Archer
+3 Benalish Knight
+2 Commander Eesha
+2 Ardent Militia
+4 Path to Exile
+3 Swords to Plowshares
+15 Plains
+2 Forest

@@ -1,0 +1,12 @@
+# Thunder Spirit (thunder-spirit, Thunder Spirit), a tier 3 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Thunder Spirit
+2 Serra Zealot
+3 Angelic Curator
+3 Tormented Angel
+2 Serra Angel
+2 Zetalpa, Primal Dawn
+3 Path to Exile
+3 Swords to Plowshares
+1 Destroy Evil
+17 Plains

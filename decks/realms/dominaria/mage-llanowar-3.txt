@@ -1,0 +1,14 @@
+# Sylvan Safekeeper (mage-llanowar-3, Sylvan Safekeeper), the mage of Llanowar's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Sylvan Safekeeper
+3 Elvish Mystic
+2 Llanowar Elves
+1 Elvish Archers
+1 Pale Bears
+1 Argothian Elder
+1 Elfhame Wurm
+1 Enormous Baloth
+3 Bushwhack
+3 Giant Growth
+3 Song of Freyalise
+17 Forest

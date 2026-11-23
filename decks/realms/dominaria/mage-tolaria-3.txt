@@ -1,0 +1,14 @@
+# Naban, Dean of Iteration (mage-tolaria-3, Naban, Dean of Iteration), the mage of Tolaria's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Naban, Dean of Iteration
+1 Fugitive Wizard
+1 Tolarian Scholar
+1 Azure Drake
+1 Serra Sphinx
+1 Mahamoti Djinn
+3 Counterspell
+3 Disdainful Stroke
+2 Essence Scatter
+3 Remand
+3 Mystic Confluence
+17 Island

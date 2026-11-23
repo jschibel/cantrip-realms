@@ -1,0 +1,38 @@
+{
+  "id": "balduvian-barbarians",
+  "name": "Balduvian Barbarians",
+  "creature": "Balduvian Barbarians",
+  "region": "R",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/balduvian-barbarians.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#c8432c",
+      "#f1b44c",
+      "#2e1f17"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

@@ -1,0 +1,41 @@
+{
+  "id": "phantom-monster",
+  "name": "Phantom Monster",
+  "creature": "Phantom Monster",
+  "region": "U",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/phantom-monster.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

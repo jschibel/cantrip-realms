@@ -1,11 +1,11 @@
-# Sanctum Warden (sanctum-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Sanctum Warden (sanctum-warden, Archangel), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Destroy Evil
-3 Mana Tithe
+4 Archangel
 2 Dauntless Bodyguard
-4 Knight of Grace
-2 Silver Knight
-4 Benalish Knight
+3 Angelic Curator
+2 Anointed Peacekeeper
 2 Serra Paragon
-2 Lyra Dawnbringer
+2 Serra Angel
+4 Path to Exile
+4 Swords to Plowshares
 17 Plains

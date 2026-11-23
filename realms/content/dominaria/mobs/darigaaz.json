@@ -1,6 +1,8 @@
 {
   "id": "darigaaz",
   "name": "Darigaaz",
+  "creature": "Rorix Bladewing",
+  "region": "R",
   "tier": 4,
   "deck": "decks/realms/dominaria/darigaaz.txt",
   "stats": {
@@ -28,7 +30,7 @@
     ]
   },
   "model": {
-    "mesh": "drake",
+    "mesh": "dragon",
     "palette": [
       "#c8432c",
       "#2e1f17",

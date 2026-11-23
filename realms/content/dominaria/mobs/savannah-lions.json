@@ -1,0 +1,42 @@
+{
+  "id": "savannah-lions",
+  "name": "Savannah Lions",
+  "creature": "Savannah Lions",
+  "region": "W",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/savannah-lions.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "kjeldoran-helm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "cat",
+    "palette": [
+      "#f2efe6",
+      "#8f6340"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

@@ -1,0 +1,14 @@
+# Dreadhorde Arcanist (mage-shiv-3, Dreadhorde Arcanist), the mage of Shiv's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Dreadhorde Arcanist
+1 Ghitu Lavarunner
+1 Phyrexian Dragon Engine
+1 Flametongue Kavu
+1 Earth Elemental
+1 Trained Orgg
+3 Chain Lightning
+2 Firebolt
+3 Lightning Axe
+3 Lightning Bolt
+3 Fiery Temper
+17 Mountain

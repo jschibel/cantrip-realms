@@ -1,11 +1,11 @@
-# Phyrexian Negator (phyrexian-negator), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Negator (phyrexian-negator, Crazed Skirge), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Cut Down
-3 Bone Splinters
-2 Plague Beetle
-4 Knight of Dusk's Shadow
-2 Knight of Malice
-4 Yotian Soldier
-2 Sheoldred, the Apocalypse
+4 Crazed Skirge
+2 Phyrexian Walker
+3 Bog Imp
+2 Dusk Imp
 2 Yargle, Glutton of Urborg
+2 Cityscape Leveler
+4 Cut Down
+4 Dismember
 17 Swamp

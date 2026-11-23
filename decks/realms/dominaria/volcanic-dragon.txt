@@ -1,0 +1,11 @@
+# Volcanic Dragon (volcanic-dragon, Volcanic Dragon), a tier 4 wanderer of Shiv: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Volcanic Dragon
+2 Monastery Swiftspear
+3 Dreadhorde Arcanist
+3 Phyrexian Dragon Engine
+2 Roc of Kher Ridges
+2 Earth Elemental
+3 Chain Lightning
+4 Lightning Bolt
+17 Mountain

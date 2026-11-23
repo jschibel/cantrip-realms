@@ -1,0 +1,12 @@
+# Bloodbraid Elf (bloodbraid-elf, Bloodbraid Elf), a tier 4 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Bloodbraid Elf
+2 Raging Goblin
+3 Elvish Archers
+3 Raging Kavu
+2 Elfhame Wurm
+2 Wirewood Guardian
+3 Chain Lightning
+4 Lightning Bolt
+9 Mountain
+8 Forest

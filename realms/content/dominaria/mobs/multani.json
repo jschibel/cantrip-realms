@@ -1,6 +1,8 @@
 {
   "id": "multani",
   "name": "Multani",
+  "creature": "Silverback Elder",
+  "region": "G",
   "tier": 4,
   "deck": "decks/realms/dominaria/multani.txt",
   "stats": {
@@ -28,7 +30,7 @@
     ]
   },
   "model": {
-    "mesh": "spirit",
+    "mesh": "treefolk",
     "palette": [
       "#3e9a4a",
       "#8f6340",

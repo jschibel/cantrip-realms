@@ -1,6 +1,7 @@
 {
   "id": "gitaxian-mindcutter",
   "name": "Gitaxian Mindcutter",
+  "creature": "Ertai Resurrected",
   "tier": 4,
   "deck": "decks/realms/dominaria/gitaxian-mindcutter.txt",
   "stats": {

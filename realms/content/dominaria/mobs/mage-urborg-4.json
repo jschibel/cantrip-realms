@@ -1,0 +1,44 @@
+{
+  "id": "mage-urborg-4",
+  "name": "Liliana of the Veil",
+  "creature": "Liliana of the Veil",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mage-urborg-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "marsh-waders",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#4b2f5e",
+      "#5d6646",
+      "#2a2b36"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

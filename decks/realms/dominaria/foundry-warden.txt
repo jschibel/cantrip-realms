@@ -1,11 +1,11 @@
-# Foundry Warden (foundry-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+# Foundry Warden (foundry-warden, Goblin Welder), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Lightning Bolt
-3 Chain Lightning
-2 Monastery Swiftspear
-4 Dreadhorde Arcanist
-2 Blood Knight
-4 Phyrexian Dragon Engine
-2 Viashino Warrior
-2 Earth Elemental
+4 Goblin Welder
+3 Goblin Engineer
+2 Goblin Chariot
+2 Goblin Berserker
+2 Kiki-Jiki, Mirror Breaker
+2 Cityscape Leveler
+4 Abrade
+4 The Mightstone and Weakstone
 17 Mountain

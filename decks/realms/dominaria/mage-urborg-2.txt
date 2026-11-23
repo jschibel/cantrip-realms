@@ -1,0 +1,16 @@
+# Vampire Hexmage (mage-urborg-2, Vampire Hexmage), the mage of Urborg's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Vampire Hexmage
+1 Plague Beetle
+2 Bog Raiders
+1 Bog Wraith
+1 Yargle, Glutton of Urborg
+1 Feral Abomination
+2 Bone Splinters
+2 Cut Down
+2 Duress
+2 Chain of Smog
+2 Feed the Swarm
+2 Go for the Throat
+2 Hymn to Tourach
+17 Swamp

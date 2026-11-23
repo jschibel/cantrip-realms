@@ -1,0 +1,16 @@
+# Trinket Mage (mage-tolaria-2, Trinket Mage), the mage of Tolaria's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Trinket Mage
+1 Ornithopter
+2 Soldevi Machinist
+1 Azure Drake
+1 Serra Sphinx
+1 Pardic Wanderer
+2 Counterspell
+2 Disdainful Stroke
+2 Essence Scatter
+2 Memory Lapse
+2 Miscalculation
+2 Negate
+2 Remand
+17 Island

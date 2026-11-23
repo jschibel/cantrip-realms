@@ -1,6 +1,7 @@
 {
   "id": "portal-warden",
   "name": "Portal Warden",
+  "creature": "Phyrexian Walker",
   "tier": 4,
   "deck": "decks/realms/dominaria/portal-warden.txt",
   "stats": {

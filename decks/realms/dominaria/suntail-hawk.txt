@@ -1,0 +1,15 @@
+# Suntail Hawk (suntail-hawk, Suntail Hawk), a tier 1 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Suntail Hawk
+2 Duskrider Falcon
+2 Mesa Pegasus
+2 Skyshroud Falcon
+2 Benalish Knight
+2 Pegasus Charger
+2 Aven Sentry
+1 Ekundu Griffin
+2 Lucent Liminid
+2 Noble Templar
+2 Mana Tithe
+2 Destroy Evil
+17 Plains

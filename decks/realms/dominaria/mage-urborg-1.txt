@@ -1,0 +1,15 @@
+# Cabal Evangel (mage-urborg-1, Cabal Evangel), the mage of Urborg's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Cabal Evangel
+2 Plague Beetle
+1 Bog Imp
+2 Bog Raiders
+2 Lost Soul
+2 Moor Fiend
+2 Mass of Ghouls
+2 Feral Abomination
+2 Bone Splinters
+2 Duress
+2 Hymn to Tourach
+2 Night's Whisper
+17 Swamp

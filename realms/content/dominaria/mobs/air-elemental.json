@@ -1,0 +1,43 @@
+{
+  "id": "air-elemental",
+  "name": "Air Elemental",
+  "creature": "Air Elemental",
+  "region": "U",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/air-elemental.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "scholars-circlet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

@@ -1,0 +1,46 @@
+{
+  "id": "torsten-founder-of-benalia",
+  "name": "Torsten, Founder of Benalia",
+  "creature": "Torsten, Founder of Benalia",
+  "region": "W",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/torsten-founder-of-benalia.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "kjeldoran-helm"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "WG",
+    "types": [],
+    "subtypes": [
+      "Soldier",
+      "Knight"
+    ],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.65
+  },
+  "boss": false
+}

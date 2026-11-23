@@ -1,0 +1,42 @@
+{
+  "id": "mage-shiv-2",
+  "name": "Pyromantic Pilgrim",
+  "creature": "Pyromantic Pilgrim",
+  "region": "R",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/mage-shiv-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "keldon-greaves",
+    "leather-cap"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#c8432c",
+      "#f1b44c",
+      "#2e1f17"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

@@ -1,0 +1,16 @@
+# Bog Imp (bog-imp, Bog Imp), a tier 1 wanderer of Urborg: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Bog Imp
+2 Plague Beetle
+1 Cabal Evangel
+2 Dusk Imp
+2 Stinkweed Imp
+1 Giant Cockroach
+2 Moor Fiend
+2 Mass of Ghouls
+2 Feral Abomination
+2 Bone Splinters
+2 Duress
+2 Hymn to Tourach
+1 Night's Whisper
+17 Swamp

@@ -1,0 +1,16 @@
+# Mother of Runes (mage-benalia-2, Mother of Runes), the mage of Benalia's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Mother of Runes
+2 Benalish Faithbonder
+2 Knight of Grace
+2 Silver Knight
+2 White Knight
+1 Yotian Medic
+1 Voice of Duty
+1 Abbey Gargoyles
+1 Noble Templar
+2 Mana Tithe
+2 Path to Exile
+2 Swords to Plowshares
+2 Destroy Evil
+17 Plains

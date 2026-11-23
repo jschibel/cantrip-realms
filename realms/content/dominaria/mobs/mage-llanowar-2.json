@@ -1,0 +1,45 @@
+{
+  "id": "mage-llanowar-2",
+  "name": "Argothian Elder",
+  "creature": "Argothian Elder",
+  "region": "G",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/mage-llanowar-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "elvish-striders",
+    "copper-amulet"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Druid",
+      "Elf"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#2a4524",
+      "#d6ae7e",
+      "#c08a62"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

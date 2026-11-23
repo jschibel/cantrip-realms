@@ -1,0 +1,40 @@
+{
+  "id": "elvish-warrior",
+  "name": "Elvish Warrior",
+  "creature": "Elvish Warrior",
+  "region": "G",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/elvish-warrior.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Elf",
+      "Warrior"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#4f7a34",
+      "#2a4524"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

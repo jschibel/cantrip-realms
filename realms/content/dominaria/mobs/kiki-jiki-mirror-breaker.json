@@ -1,0 +1,43 @@
+{
+  "id": "kiki-jiki-mirror-breaker",
+  "name": "Kiki-Jiki, Mirror Breaker",
+  "creature": "Kiki-Jiki, Mirror Breaker",
+  "region": "R",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/kiki-jiki-mirror-breaker.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "keldon-greaves",
+    "leather-cap"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "goblin",
+    "palette": [
+      "#c8432c",
+      "#f1b44c",
+      "#2e1f17"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

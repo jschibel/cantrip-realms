@@ -1,0 +1,11 @@
+# Serra Angel (serra-angel, Serra Angel), a tier 4 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Serra Angel
+2 Suntail Hawk
+3 Angelic Curator
+3 Anointed Peacekeeper
+2 Serra Paragon
+2 Archangel
+3 Path to Exile
+4 Glorious Anthem
+17 Plains

@@ -1,0 +1,13 @@
+# Urza, Lord High Artificer (mage-tolaria-4, Urza, Lord High Artificer), the mage of Tolaria's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Urza, Lord High Artificer
+1 Phyrexian Walker
+1 Soldevi Machinist
+1 Emry, Lurker of the Loch
+1 Serra Sphinx
+1 Cityscape Leveler
+4 Mana Drain
+4 Remand
+2 Mystic Confluence
+4 The Mightstone and Weakstone
+17 Island
