@@ -518,7 +518,7 @@
     [560,225,0,"mud",0],
     [560,226,0,"mud",0],
     [560,227,0,"mud",0],
-    [560,228,0,"mud",0],
+    [560,228,0,"mud",1],
     [560,229,0,"mud",0],
     [560,230,0,"mud",0],
     [560,231,-0.1,"swamp",1],
@@ -779,7 +779,7 @@
     [568,230,0,"mud",0],
     [568,231,0,"mud",0],
     [568,232,0,"mud",0],
-    [568,233,0,"mud",1],
+    [568,233,0,"mud",0],
     [568,234,0,"mud",0],
     [568,235,0,"mud",0],
     [568,236,0,"mud",0],
@@ -936,7 +936,7 @@
     [573,227,0,"mud",0],
     [573,228,0,"mud",1],
     [573,229,0,"mud",0],
-    [573,230,0,"mud",1],
+    [573,230,0,"mud",0],
     [573,231,0,"mud",0],
     [573,232,0,"mud",0],
     [573,233,0,"mud",0],
@@ -1050,7 +1050,6 @@
     {"q":562,"r":254,"kind":"bones"},
     {"q":563,"r":247,"kind":"mushroom"},
     {"q":567,"r":236,"kind":"bones"},
-    {"q":568,"r":233,"kind":"waymarker","tier":4,"style":"stone"},
     {"q":573,"r":228,"kind":"dead-tree"},
     {"q":575,"r":226,"kind":"dead-tree"}
   ],
@@ -1058,12 +1057,13 @@
   "npcs": [],
   "spawns": [
     {"id":"17_7:1","q":544,"r":235,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_7:2","q":561,"r":248,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_7:3","q":564,"r":224,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_7:4","q":567,"r":233,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"17_7:2","q":546,"r":244,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_7:3","q":561,"r":248,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_7:4","q":564,"r":224,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_7:5","q":569,"r":233,"mobs":["fallen-seraph","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"17_7:c1","q":573,"r":230,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"17_7:c1","q":560,"r":228,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

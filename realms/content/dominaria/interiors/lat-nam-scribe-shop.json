@@ -4,7 +4,7 @@
   "kind": "shop",
   "town": "lat-nam",
   "style": "tolarian",
-  "exit": {"q":344,"r":230},
+  "exit": {"q":340,"r":228},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"stone",1],

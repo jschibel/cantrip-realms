@@ -199,7 +199,7 @@
     [166,386,0,"grass",0],
     [166,387,0,"grass",1],
     [166,388,0,"moss",0],
-    [166,389,0,"moss",0],
+    [166,389,0,"moss",1],
     [166,390,0,"moss",0],
     [166,391,0,"moss",0],
     [166,392,0,"moss",1],
@@ -294,7 +294,7 @@
     [169,385,0.25,"grass",0],
     [169,386,0.25,"grass",0],
     [169,387,0.25,"moss",0],
-    [169,388,0.25,"moss",1],
+    [169,388,0.25,"moss",0],
     [169,389,0.25,"moss",0],
     [169,390,0,"moss",0],
     [169,391,0,"moss",0],
@@ -500,7 +500,7 @@
     [175,399,0,"grass",0],
     [175,400,0,"grass",1],
     [175,401,0,"grass",0],
-    [175,402,0,"grass",1],
+    [175,402,0,"grass",0],
     [175,403,0,"grass",0],
     [175,404,0,"grass",1],
     [175,405,0,"grass",0],
@@ -1167,16 +1167,16 @@
     {"id":"verdant-tower-waystone","q":181,"r":408,"kind":"waystone","tower":"verdant-tower","name":"The waystone of the Verdant Tower"}
   ],
   "spawns": [
-    {"id":"5_12:1","q":166,"r":386,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_12:2","q":173,"r":408,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_12:3","q":174,"r":392,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_12:4","q":183,"r":395,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_12:5","q":187,"r":384,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_12:6","q":189,"r":408,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_12:1","q":161,"r":413,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:2","q":168,"r":401,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:3","q":172,"r":409,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:4","q":178,"r":386,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:5","q":179,"r":398,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:6","q":190,"r":397,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_12:7","q":191,"r":386,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"5_12:c1","q":169,"r":388,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"5_12:c2","q":175,"r":402,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"5_12:c1","q":166,"r":389,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":181,"r":409,"dungeon":"verdant-tower"}

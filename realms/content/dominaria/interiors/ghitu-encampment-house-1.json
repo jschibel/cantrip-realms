@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "ghitu-encampment",
   "style": "keldon",
-  "exit": {"q":362,"r":386},
+  "exit": {"q":354,"r":373},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

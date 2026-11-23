@@ -22,5 +22,9 @@
   "warden": "tolarian-apprentice",
   "boss": "mage-lat-nam-observatory",
   "region": "U",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    412,
+    188
+  ]
 }

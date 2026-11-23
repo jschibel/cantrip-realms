@@ -1034,8 +1034,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_0:1","q":388,"r":22,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_0:2","q":391,"r":30,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_0:1","q":388,"r":22,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

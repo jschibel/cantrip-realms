@@ -95,7 +95,7 @@
     [450,26,0,"sand",0],
     [450,27,0,"sand",0],
     [450,28,0,"sand",0],
-    [450,29,0,"sand",1],
+    [450,29,0,"sand",0],
     [450,30,0,"sand",0],
     [450,31,0,"sand",0],
     [451,0,-0.2,"deep-water",1],
@@ -222,7 +222,7 @@
     [454,25,0,"grass",0],
     [454,26,0,"grass",0],
     [454,27,0,"grass",0],
-    [454,28,0,"grass",0],
+    [454,28,0,"grass",1],
     [454,29,0,"grass",0],
     [454,30,0,"grass",0],
     [454,31,0,"grass",0],
@@ -1044,11 +1044,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_0:1","q":453,"r":22,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_0:2","q":456,"r":30,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"14_0:1","q":448,"r":31,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"14_0:c1","q":450,"r":29,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"14_0:c1","q":454,"r":28,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -6,7 +6,7 @@
     [608,33,0,"sand",0],
     [608,34,0,"sand",0],
     [608,35,0,"sand",0],
-    [608,36,0.25,"sand",1],
+    [608,36,0.25,"sand",0],
     [608,37,0.25,"sand",0],
     [608,38,0.25,"grass",0],
     [608,39,0.25,"grass",0],
@@ -1049,12 +1049,10 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_1:1","q":613,"r":54,"mobs":["gitaxian-mindcutter","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"19_1:2","q":618,"r":35,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"19_1:3","q":618,"r":62,"mobs":["gitaxian-mindcutter","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"19_1:1","q":613,"r":41,"mobs":["gitaxian-mindcutter","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"19_1:2","q":613,"r":54,"mobs":["fallen-seraph","phyrexian-gorger"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"19_1:3","q":618,"r":62,"mobs":["phyrexian-horror","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"19_1:c1","q":608,"r":36,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

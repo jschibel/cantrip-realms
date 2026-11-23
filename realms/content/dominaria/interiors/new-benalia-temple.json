@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":207,"r":287},
+  "exit": {"q":205,"r":285},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

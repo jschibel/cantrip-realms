@@ -376,7 +376,8 @@ export function buildTown(grid: Grid, plan: TownPlan, index: number, centre: Hex
     for (const s of sites) {
       if (grid.use[s.door] !== Use.Lot) continue;
       const sp = hexOf(s.street);
-      const score = hexDistance(sp.q, sp.r, near.q, near.r) + random() * spread;
+      // Fronts toward the camera (+x, +z) are preferred, so a door and whoever stands at it are not hidden behind the building.
+      const score = hexDistance(sp.q, sp.r, near.q, near.r) + random() * spread + (s.front === "x-" || s.front === "z-" ? 8 : 0);
       if (best && score >= best.score) continue;
       for (const size of SIZES[use]) {
         const b = fits(s, size, true);

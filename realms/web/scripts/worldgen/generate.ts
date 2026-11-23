@@ -248,6 +248,7 @@ function dungeonData(plan: DungeonPlan, site: Site, tier: number): DungeonData {
     boss: plan.boss,
     ...(plan.region ? { region: plan.region } : {}),
     ...(plan.waystone ? { waystone: true } : {}),
+    ...(site.arrival ? { arrival: [site.arrival.q, site.arrival.r] as const } : {}),
   };
 }
 

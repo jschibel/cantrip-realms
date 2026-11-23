@@ -4,7 +4,7 @@
   "kind": "smithy",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":349,"r":416},
+  "exit": {"q":347,"r":420},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,-1,0,"stone",1],

@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "yavimaya-hollow",
   "style": "llanowar",
-  "exit": {"q":249,"r":412},
+  "exit": {"q":247,"r":408},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"moss",1],

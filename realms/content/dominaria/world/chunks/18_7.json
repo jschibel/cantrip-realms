@@ -837,7 +837,7 @@
     [602,224,0,"mud",0],
     [602,225,0,"mud",1],
     [602,226,0,"moss",0],
-    [602,227,0,"mud",1],
+    [602,227,0,"mud",0],
     [602,228,0,"mud",0],
     [602,229,0,"moss",0],
     [602,230,0,"moss",0],
@@ -1071,15 +1071,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_7:1","q":579,"r":237,"mobs":["fallen-seraph","phyrexian-horror","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_7:2","q":580,"r":226,"mobs":["fallen-seraph","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_7:3","q":590,"r":246,"mobs":["fallen-seraph","phyrexian-gorger"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_7:4","q":593,"r":231,"mobs":["fallen-seraph","phyrexian-horror","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_7:5","q":604,"r":234,"mobs":["fallen-seraph","gitaxian-mindcutter"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"18_7:1","q":578,"r":237,"mobs":["gitaxian-mindcutter","phyrexian-gorger","phyrexian-horror"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:2","q":580,"r":226,"mobs":["gitaxian-mindcutter","phyrexian-gorger","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:3","q":582,"r":254,"mobs":["fallen-seraph","phyrexian-gorger","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:4","q":593,"r":228,"mobs":["phyrexian-gorger","phyrexian-horror","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:5","q":594,"r":238,"mobs":["fallen-seraph","gitaxian-mindcutter"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:6","q":600,"r":243,"mobs":["fallen-seraph","gitaxian-mindcutter"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_7:7","q":605,"r":227,"mobs":["fallen-seraph","gitaxian-mindcutter","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"18_7:c1","q":602,"r":227,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [
     {"q":586,"r":240,"dungeon":"tomb-of-yawgmoth"}
   ]

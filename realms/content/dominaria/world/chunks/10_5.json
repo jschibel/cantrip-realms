@@ -1057,11 +1057,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_5:1","q":329,"r":169,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"10_5:2","q":329,"r":183,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"10_5:3","q":341,"r":181,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"10_5:4","q":342,"r":164,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"10_5:5","q":347,"r":187,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"10_5:1","q":323,"r":162,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:2","q":329,"r":169,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:3","q":329,"r":183,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:4","q":340,"r":163,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:5","q":340,"r":183,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:6","q":346,"r":188,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"10_5:7","q":348,"r":169,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"10_5:c1","q":322,"r":180,"gold":[50,150],"respawnSeconds":86400}

@@ -174,7 +174,7 @@
     [197,361,0.25,"grass",0],
     [197,362,0.25,"grass",0],
     [197,363,0.25,"grass",0],
-    [197,364,0.25,"grass",1],
+    [197,364,0.25,"grass",0],
     [197,365,0.25,"grass",0],
     [197,366,0,"grass",0],
     [197,367,0,"grass",0],
@@ -238,7 +238,7 @@
     [199,361,0.5,"grass",0],
     [199,362,0.5,"grass",0],
     [199,363,0.5,"grass",0],
-    [199,364,0.25,"grass",0],
+    [199,364,0.25,"grass",1],
     [199,365,0.25,"grass",0],
     [199,366,0.25,"moss",0],
     [199,367,0.25,"moss",0],
@@ -320,9 +320,9 @@
     [201,379,0.25,"grass",1],
     [201,380,0.25,"grass",1],
     [201,381,0.25,"grass",0],
-    [201,382,0.25,"grass",0],
+    [201,382,0.25,"grass",1],
     [201,383,0.25,"grass",0],
-    [202,352,0.25,"grass",0],
+    [202,352,0.25,"grass",1],
     [202,353,0.25,"grass",1],
     [202,354,0.25,"grass",0],
     [202,355,0.25,"grass",0],
@@ -533,7 +533,7 @@
     [208,368,0.25,"moss",1],
     [208,369,0.25,"moss",0],
     [208,370,0.25,"grass",0],
-    [208,371,0.25,"grass",1],
+    [208,371,0.25,"grass",0],
     [208,372,0.25,"grass",0],
     [208,373,0.25,"grass",0],
     [208,374,0.25,"grass",0],
@@ -1080,6 +1080,7 @@
     {"q":201,"r":378,"kind":"tree"},
     {"q":201,"r":379,"kind":"tree"},
     {"q":201,"r":380,"kind":"pine"},
+    {"q":202,"r":352,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":202,"r":353,"kind":"tree"},
     {"q":202,"r":364,"kind":"mushroom"},
     {"q":202,"r":371,"kind":"pine"},
@@ -1204,17 +1205,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_11:1","q":193,"r":369,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:2","q":199,"r":377,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:3","q":210,"r":368,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:4","q":214,"r":354,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:5","q":215,"r":383,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_11:6","q":221,"r":360,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_11:7","q":222,"r":370,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_11:1","q":196,"r":372,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:2","q":210,"r":368,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:3","q":214,"r":354,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:4","q":215,"r":383,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_11:5","q":222,"r":370,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"6_11:c1","q":197,"r":364,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"6_11:c2","q":208,"r":371,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"6_11:c1","q":199,"r":364,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"6_11:c2","q":201,"r":382,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

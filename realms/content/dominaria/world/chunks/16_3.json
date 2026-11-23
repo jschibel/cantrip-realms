@@ -258,7 +258,7 @@
     [519,125,0.25,"grass",0],
     [519,126,0.25,"grass",0],
     [519,127,0.5,"grass",0],
-    [520,96,0,"sand",0],
+    [520,96,0,"sand",1],
     [520,97,0,"sand",0],
     [520,98,0,"sand",0],
     [520,99,0,"sand",0],
@@ -362,7 +362,7 @@
     [523,101,0,"sand",0],
     [523,102,0.25,"sand",0],
     [523,103,0.25,"sand",0],
-    [523,104,0.25,"grass",1],
+    [523,104,0.25,"grass",0],
     [523,105,0.25,"grass",0],
     [523,106,0.25,"grass",0],
     [523,107,0.25,"sand",0],
@@ -538,7 +538,7 @@
     [528,117,0.25,"grass",0],
     [528,118,0.25,"grass",0],
     [528,119,0.25,"sand",0],
-    [528,120,0.25,"sand",1],
+    [528,120,0.25,"sand",0],
     [528,121,0.25,"sand",0],
     [528,122,0.25,"grass",0],
     [528,123,0.25,"grass",0],
@@ -626,7 +626,7 @@
     [531,109,0.25,"sand",0],
     [531,110,0.25,"sand",0],
     [531,111,0.25,"sand",0],
-    [531,112,0.25,"sand",0],
+    [531,112,0.25,"sand",1],
     [531,113,0.25,"sand",0],
     [531,114,0.25,"grass",0],
     [531,115,0.25,"grass",0],
@@ -903,7 +903,7 @@
     [540,98,0.25,"sand",0],
     [540,99,0.25,"sand",0],
     [540,100,0.25,"sand",0],
-    [540,101,0.25,"sand",1],
+    [540,101,0.25,"sand",0],
     [540,102,0.25,"grass",0],
     [540,103,0.25,"grass",0],
     [540,104,0.25,"sand",0],
@@ -1067,14 +1067,15 @@
   "spawns": [
     {"id":"16_3:1","q":515,"r":102,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"16_3:2","q":515,"r":114,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_3:3","q":524,"r":125,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_3:4","q":532,"r":103,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"16_3:5","q":533,"r":113,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3}
+    {"id":"16_3:3","q":525,"r":122,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_3:4","q":528,"r":107,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_3:5","q":531,"r":96,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_3:6","q":540,"r":104,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"16_3:7","q":543,"r":119,"mobs":["rift-elemental"],"radius":4,"respawnSeconds":600,"tier":3}
   ],
   "chests": [
-    {"id":"16_3:c1","q":523,"r":104,"gold":[180,380],"respawnSeconds":86400},
-    {"id":"16_3:c2","q":528,"r":120,"gold":[180,380],"respawnSeconds":86400},
-    {"id":"16_3:c3","q":540,"r":101,"gold":[180,380],"respawnSeconds":86400}
+    {"id":"16_3:c1","q":520,"r":96,"gold":[180,380],"respawnSeconds":86400},
+    {"id":"16_3:c2","q":531,"r":112,"gold":[180,380],"respawnSeconds":86400}
   ],
   "entrances": []
 }

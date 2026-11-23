@@ -21,5 +21,9 @@
   ],
   "warden": "gitaxian-mindcutter",
   "boss": "mage-urzas-spire",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    272,
+    88
+  ]
 }

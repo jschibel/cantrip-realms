@@ -317,7 +317,7 @@
     [361,24,0.25,"sand",0],
     [361,25,0.25,"sand",0],
     [361,26,0.25,"sand",0],
-    [361,27,0.25,"grass",1],
+    [361,27,0.25,"grass",0],
     [361,28,0.25,"grass",0],
     [361,29,0.25,"grass",0],
     [361,30,0.25,"grass",0],
@@ -380,7 +380,7 @@
     [363,23,0.25,"sand",0],
     [363,24,0.25,"sand",0],
     [363,25,0.25,"sand",0],
-    [363,26,0.25,"grass",0],
+    [363,26,0.25,"grass",1],
     [363,27,0.25,"grass",0],
     [363,28,0.25,"sand",0],
     [363,29,0.25,"sand",0],
@@ -894,7 +894,7 @@
     [379,25,0.25,"sand",0],
     [379,26,0.25,"sand",0],
     [379,27,0.25,"sand",0],
-    [379,28,0.25,"sand",0],
+    [379,28,0.25,"sand",1],
     [379,29,0.25,"sand",0],
     [379,30,0.25,"sand",0],
     [379,31,0.25,"sand",0],
@@ -1036,11 +1036,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_0:1","q":364,"r":23,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_0:2","q":372,"r":29,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_0:1","q":352,"r":25,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_0:2","q":364,"r":23,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_0:3","q":372,"r":29,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"11_0:c1","q":361,"r":27,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"11_0:c1","q":363,"r":26,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"11_0:c2","q":379,"r":28,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

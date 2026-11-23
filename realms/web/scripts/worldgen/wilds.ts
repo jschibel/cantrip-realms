@@ -23,6 +23,8 @@ export interface Site {
   readonly plan: DungeonPlan;
   readonly entrance: Hex;
   readonly waystone?: Hex;
+  /** Where waystone travel to it arrives: open ground beside its waystone. */
+  readonly arrival?: Hex;
 }
 
 /** Stands a dungeon's way in where its plan says, as near as the land allows: the structure, the hex before it. */
@@ -72,6 +74,7 @@ export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[]): Si
   grid.prop(idx(anchor.q, anchor.r), { kind: "entrance", style: plan.theme, w: round(w), d: round(d), h: tall, front, use: plan.id });
   grid.use[e] = Use.Door;
   let waystone: Hex | undefined;
+  let arrival: Hex | undefined;
   if (plan.waystone) {
     const beside = around(e)
       .filter((i) => !footprint.includes(i) && grid.blocked[i] === 0)
@@ -81,9 +84,16 @@ export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[]): Si
     if (!spot) throw new Error(`${plan.id}: no room for the waystone`);
     grid.blocked[idx(spot.q, spot.r)] = 1;
     waystone = spot;
+    const si = idx(spot.q, spot.r);
+    arrival = around(si)
+      .filter((i) => i !== e && !footprint.includes(i) && grid.blocked[i] === 0)
+      .map((i) => hexOf(i))
+      .sort((a, b) => hexDistance(a.q, a.r, at!.q, at!.r) - hexDistance(b.q, b.r, at!.q, at!.r) || a.q - b.q || a.r - b.r)
+      .find((h) => hexDistance(h.q, h.r, at!.q, at!.r) >= 1);
+    if (!arrival) throw new Error(plan.id + ": no ground beside the waystone");
     npcs.push({ id: `${plan.id}-waystone`, q: spot.q, r: spot.r, kind: "waystone", tower: plan.id, name: `The waystone of ${plan.name.replace(/^The /, "the ")}` });
   }
-  return { plan, entrance: at, ...(waystone ? { waystone } : {}) };
+  return { plan, entrance: at, ...(waystone ? { waystone } : {}), ...(arrival ? { arrival } : {}) };
 }
 
 const round = (v: number) => Math.round(v * 100) / 100;

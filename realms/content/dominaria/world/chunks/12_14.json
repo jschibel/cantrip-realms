@@ -4,10 +4,10 @@
   "tiles": [
     [384,448,0.25,"dirt",1],
     [384,449,0.25,"dirt",1],
-    [384,450,0.25,"dirt",0],
-    [384,451,0.25,"dirt",0],
+    [384,450,0.25,"dirt",1],
+    [384,451,0.25,"dirt",1],
     [384,452,0.25,"dirt",1],
-    [384,453,0.25,"dirt",1],
+    [384,453,0.25,"dirt",0],
     [384,454,0.25,"dirt",0],
     [384,455,0.25,"stone",0],
     [384,456,0.25,"dirt",0],
@@ -37,7 +37,7 @@
     [385,448,0.25,"dirt",0],
     [385,449,0.25,"dirt",0],
     [385,450,0.25,"dirt",0],
-    [385,451,0.25,"dirt",1],
+    [385,451,0.25,"dirt",0],
     [385,452,0.25,"dirt",0],
     [385,453,0.25,"dirt",0],
     [385,454,0.25,"dirt",0],
@@ -496,7 +496,7 @@
     [399,459,0.5,"rock",0],
     [399,460,0.75,"rock",1],
     [399,461,0.75,"rock",0],
-    [399,462,1,"rock",0],
+    [399,462,1,"rock",1],
     [399,463,1,"rock",0],
     [399,464,1,"rock",0],
     [399,465,1,"rock",0],
@@ -529,7 +529,7 @@
     [400,460,-0.1,"lava",1],
     [400,461,0.75,"rock",0],
     [400,462,1,"rock",0],
-    [400,463,1,"rock",1],
+    [400,463,1,"rock",0],
     [400,464,1,"rock",0],
     [400,465,1,"rock",0],
     [400,466,1,"rock",0],
@@ -989,7 +989,7 @@
     [414,472,1,"ash",0],
     [414,473,1,"ash",0],
     [414,474,1,"ash",0],
-    [414,475,1,"ash",0],
+    [414,475,1,"ash",1],
     [414,476,1,"ash",0],
     [414,477,0.75,"ash",0],
     [414,478,0.75,"ash",0],
@@ -1028,8 +1028,9 @@
     [415,479,0.75,"ash",0]
   ],
   "props": [
+    {"q":384,"r":449,"kind":"boulder"},
+    {"q":384,"r":452,"kind":"boulder"},
     {"q":384,"r":458,"kind":"wall","style":"keldon"},
-    {"q":385,"r":451,"kind":"lamp","style":"keldon"},
     {"q":385,"r":457,"kind":"wall","style":"keldon"},
     {"q":386,"r":456,"kind":"wall","style":"keldon"},
     {"q":386,"r":467,"kind":"pine"},
@@ -1088,16 +1089,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_14:1","q":388,"r":477,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:2","q":392,"r":449,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:3","q":392,"r":460,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:4","q":398,"r":478,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:5","q":403,"r":452,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:6","q":405,"r":466,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:7","q":410,"r":475,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"12_14:1","q":387,"r":461,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_14:2","q":391,"r":471,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_14:3","q":392,"r":449,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_14:4","q":400,"r":452,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_14:5","q":408,"r":466,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"12_14:c1","q":400,"r":463,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"12_14:c1","q":399,"r":462,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"12_14:c2","q":414,"r":475,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -150,7 +150,7 @@
     [580,49,0,"grass",0],
     [580,50,0,"grass",0],
     [580,51,0,"sand",0],
-    [580,52,0,"sand",0],
+    [580,52,0,"sand",1],
     [580,53,0,"sand",0],
     [580,54,0,"sand",0],
     [580,55,0,"sand",0],
@@ -388,7 +388,7 @@
     [587,63,0,"dirt",0],
     [588,32,0,"grass",0],
     [588,33,0,"grass",0],
-    [588,34,0,"grass",0],
+    [588,34,0,"grass",1],
     [588,35,0,"sand",0],
     [588,36,0,"sand",0],
     [588,37,0,"sand",0],
@@ -538,7 +538,7 @@
     [592,53,0,"grass",1],
     [592,54,0,"grass",0],
     [592,55,0,"sand",0],
-    [592,56,0,"sand",1],
+    [592,56,0,"sand",0],
     [592,57,0,"sand",0],
     [592,58,0,"sand",0],
     [592,59,0,"sand",0],
@@ -975,7 +975,7 @@
     [606,42,0.25,"sand",0],
     [606,43,0.25,"sand",0],
     [606,44,0.25,"sand",0],
-    [606,45,0.25,"sand",0],
+    [606,45,0.25,"sand",1],
     [606,46,0.25,"sand",0],
     [606,47,0,"mud",0],
     [606,48,0,"mud",0],
@@ -1057,13 +1057,13 @@
     {"id":"18_1:2","q":584,"r":36,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"18_1:3","q":589,"r":57,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"18_1:4","q":591,"r":46,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_1:5","q":599,"r":35,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_1:6","q":600,"r":52,"mobs":["gitaxian-mindcutter","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_1:7","q":602,"r":62,"mobs":["fallen-seraph","phyrexian-gorger"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_1:8","q":606,"r":40,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"18_1:5","q":600,"r":54,"mobs":["fallen-seraph","phyrexian-gorger","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_1:6","q":602,"r":38,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"18_1:c1","q":592,"r":56,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"18_1:c1","q":580,"r":52,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"18_1:c2","q":588,"r":34,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"18_1:c3","q":606,"r":45,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -135,7 +135,7 @@
     [388,34,0,"sand",0],
     [388,35,0,"sand",0],
     [388,36,0,"sand",0],
-    [388,37,0,"grass",0],
+    [388,37,0,"grass",1],
     [388,38,0,"sand",0],
     [388,39,-0.2,"deep-water",1],
     [388,40,-0.2,"deep-water",1],
@@ -723,7 +723,7 @@
     [406,46,0,"sand",0],
     [406,47,0,"sand",0],
     [406,48,0,"sand",0],
-    [406,49,0,"sand",1],
+    [406,49,0,"sand",0],
     [406,50,0,"sand",0],
     [406,51,0,"sand",0],
     [406,52,0,"sand",0],
@@ -851,7 +851,7 @@
     [410,46,0,"sand",0],
     [410,47,0,"sand",0],
     [410,48,0,"sand",0],
-    [410,49,0,"grass",0],
+    [410,49,0,"grass",1],
     [410,50,0,"grass",0],
     [410,51,0,"grass",0],
     [410,52,0,"grass",0],
@@ -1036,10 +1036,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_1:1","q":400,"r":49,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_1:1","q":397,"r":50,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_1:2","q":410,"r":45,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_1:3","q":414,"r":52,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"12_1:c1","q":406,"r":49,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"12_1:c1","q":388,"r":37,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"12_1:c2","q":410,"r":49,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":399,"r":57,"dungeon":"time-rift-academy"}

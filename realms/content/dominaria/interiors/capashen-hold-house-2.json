@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "capashen-hold",
   "style": "benalish",
-  "exit": {"q":225,"r":325},
+  "exit": {"q":253,"r":305},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],

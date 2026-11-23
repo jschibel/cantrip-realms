@@ -4,7 +4,7 @@
   "kind": "shop",
   "town": "new-argive",
   "style": "argive",
-  "exit": {"q":278,"r":348},
+  "exit": {"q":284,"r":353},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"wood",1],

@@ -204,7 +204,7 @@
     [134,519,0.5,"moss",1],
     [134,520,0.5,"moss",0],
     [134,521,0.5,"forest",0],
-    [134,522,0.5,"forest",1],
+    [134,522,0.5,"forest",0],
     [134,523,0.5,"forest",0],
     [134,524,0.5,"forest",0],
     [134,525,0.5,"forest",0],
@@ -423,7 +423,7 @@
     [141,514,0.5,"grass",1],
     [141,515,0.5,"grass",0],
     [141,516,0.5,"grass",0],
-    [141,517,0.5,"grass",0],
+    [141,517,0.5,"grass",1],
     [141,518,0.5,"grass",0],
     [141,519,0.5,"grass",1],
     [141,520,0.5,"grass",1],
@@ -535,7 +535,7 @@
     [144,530,0.25,"forest",0],
     [144,531,0.25,"forest",0],
     [144,532,0.25,"forest",0],
-    [144,533,0.25,"forest",1],
+    [144,533,0.25,"forest",0],
     [144,534,0.5,"forest",0],
     [144,535,0.5,"forest",0],
     [144,536,0.5,"forest",0],
@@ -1227,13 +1227,12 @@
     {"id":"4_16:1","q":131,"r":536,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"4_16:2","q":134,"r":517,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"4_16:3","q":141,"r":525,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_16:4","q":146,"r":538,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_16:5","q":158,"r":517,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_16:6","q":158,"r":532,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_16:4","q":142,"r":543,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_16:5","q":155,"r":515,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_16:6","q":155,"r":528,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"4_16:c1","q":134,"r":522,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"4_16:c2","q":144,"r":533,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"4_16:c1","q":141,"r":517,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

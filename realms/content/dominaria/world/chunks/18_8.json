@@ -166,7 +166,7 @@
     [581,257,0,"moss",0],
     [581,258,0,"moss",0],
     [581,259,0,"moss",0],
-    [581,260,0,"mud",1],
+    [581,260,0,"mud",0],
     [581,261,0,"mud",0],
     [581,262,0,"mud",0],
     [581,263,0,"mud",1],
@@ -402,7 +402,7 @@
     [588,269,0,"mud",0],
     [588,270,0,"mud",0],
     [588,271,0,"mud",0],
-    [588,272,0.25,"mud",0],
+    [588,272,0.25,"mud",1],
     [588,273,0.25,"mud",0],
     [588,274,0.25,"mud",0],
     [588,275,0.25,"mud",0],
@@ -471,7 +471,7 @@
     [590,274,0.25,"mud",0],
     [590,275,0.25,"mud",0],
     [590,276,0.25,"mud",0],
-    [590,277,0.25,"mud",1],
+    [590,277,0.25,"mud",0],
     [590,278,0.25,"mud",0],
     [590,279,0.25,"mud",0],
     [590,280,0.25,"mud",1],
@@ -731,7 +731,7 @@
     [598,278,0,"moss",0],
     [598,279,0,"moss",0],
     [598,280,0,"mud",0],
-    [598,281,0,"mud",0],
+    [598,281,0,"mud",1],
     [598,282,0,"mud",0],
     [598,283,0,"mud",0],
     [598,284,0,"mud",0],
@@ -1082,14 +1082,14 @@
   "npcs": [],
   "spawns": [
     {"id":"18_8:1","q":578,"r":275,"mobs":["phyrexian-gorger","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_8:2","q":585,"r":259,"mobs":["phyrexian-gorger","phyrexian-negator","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_8:3","q":585,"r":286,"mobs":["fallen-seraph","gitaxian-mindcutter","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"18_8:4","q":593,"r":266,"mobs":["phyrexian-gorger","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_8:2","q":583,"r":264,"mobs":["phyrexian-gorger","phyrexian-horror","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_8:3","q":590,"r":286,"mobs":["gitaxian-mindcutter","phyrexian-gorger","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"18_8:4","q":593,"r":266,"mobs":["phyrexian-gorger","phyrexian-negator","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"18_8:5","q":596,"r":274,"mobs":["gitaxian-mindcutter","phyrexian-horror","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"18_8:c1","q":581,"r":260,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"18_8:c2","q":590,"r":277,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"18_8:c1","q":588,"r":272,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"18_8:c2","q":598,"r":281,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

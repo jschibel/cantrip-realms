@@ -193,7 +193,7 @@
     [549,220,0,"mud",0],
     [549,221,0,"mud",0],
     [549,222,0,"mud",0],
-    [549,223,0,"mud",1],
+    [549,223,0,"mud",0],
     [550,192,-0.1,"swamp",1],
     [550,193,-0.1,"swamp",1],
     [550,194,-0.1,"swamp",1],
@@ -264,7 +264,7 @@
     [552,195,0,"mud",0],
     [552,196,0,"mud",0],
     [552,197,0,"mud",0],
-    [552,198,0,"mud",1],
+    [552,198,0,"mud",0],
     [552,199,0,"mud",0],
     [552,200,0,"mud",0],
     [552,201,0,"moss",0],
@@ -373,7 +373,7 @@
     [555,208,0,"mud",0],
     [555,209,0,"mud",0],
     [555,210,0,"mud",0],
-    [555,211,0,"mud",0],
+    [555,211,0,"mud",1],
     [555,212,0,"mud",0],
     [555,213,0,"mud",0],
     [555,214,0,"mud",0],
@@ -801,7 +801,7 @@
     [568,220,0,"mud",0],
     [568,221,0,"mud",0],
     [568,222,0,"mud",0],
-    [568,223,0,"mud",0],
+    [568,223,0,"mud",1],
     [569,192,0,"moss",0],
     [569,193,0,"mud",0],
     [569,194,0,"mud",0],
@@ -931,7 +931,7 @@
     [572,222,0,"mud",0],
     [572,223,0,"mud",0],
     [573,192,0,"mud",0],
-    [573,193,0,"mud",1],
+    [573,193,0,"mud",0],
     [573,194,0,"mud",0],
     [573,195,0,"mud",0],
     [573,196,0,"mud",0],
@@ -1089,6 +1089,7 @@
     {"q":568,"r":193,"kind":"coffin"},
     {"q":568,"r":203,"kind":"rock"},
     {"q":568,"r":206,"kind":"waymarker","tier":4,"style":"stone"},
+    {"q":568,"r":223,"kind":"waymarker","tier":4,"style":"stone"},
     {"q":569,"r":196,"kind":"dead-tree"},
     {"q":569,"r":197,"kind":"dead-tree"},
     {"q":570,"r":196,"kind":"mushroom"},
@@ -1102,15 +1103,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_6:1","q":556,"r":198,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_6:2","q":559,"r":215,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_6:3","q":565,"r":203,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"17_6:4","q":567,"r":192,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"17_6:1","q":548,"r":222,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_6:2","q":552,"r":198,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_6:3","q":553,"r":208,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_6:4","q":559,"r":215,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_6:5","q":565,"r":203,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"17_6:6","q":567,"r":192,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"17_6:c1","q":549,"r":223,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"17_6:c2","q":552,"r":198,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"17_6:c3","q":573,"r":193,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"17_6:c1","q":555,"r":211,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -22,5 +22,9 @@
   "warden": "temporal-sentinel",
   "boss": "mage-drowned-isles-tower",
   "region": "U",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    589,
+    67
+  ]
 }

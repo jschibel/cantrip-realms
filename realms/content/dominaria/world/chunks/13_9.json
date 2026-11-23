@@ -521,7 +521,7 @@
     [432,292,0,"moss",0],
     [432,293,0,"moss",0],
     [432,294,0,"mud",0],
-    [432,295,0,"mud",1],
+    [432,295,0,"mud",0],
     [432,296,0,"mud",0],
     [432,297,0,"mud",0],
     [432,298,0,"mud",0],
@@ -575,7 +575,7 @@
     [433,314,0,"mud",0],
     [433,315,0,"mud",0],
     [433,316,0,"mud",0],
-    [433,317,0,"mud",1],
+    [433,317,0,"mud",0],
     [433,318,0,"mud",0],
     [433,319,0,"mud",0],
     [434,288,0,"moss",1],
@@ -709,7 +709,7 @@
     [438,288,0.25,"moss",0],
     [438,289,0.25,"moss",0],
     [438,290,0.25,"moss",0],
-    [438,291,0.25,"moss",0],
+    [438,291,0.25,"moss",1],
     [438,292,0.25,"mud",0],
     [438,293,0.25,"mud",0],
     [438,294,0.25,"mud",0],
@@ -790,7 +790,7 @@
     [440,305,0,"moss",0],
     [440,306,0,"moss",0],
     [440,307,0,"moss",0],
-    [440,308,0,"moss",0],
+    [440,308,0,"moss",1],
     [440,309,0,"moss",0],
     [440,310,0,"moss",0],
     [440,311,0,"moss",0],
@@ -1005,7 +1005,7 @@
     [447,296,0,"mud",0],
     [447,297,0,"moss",1],
     [447,298,0,"moss",0],
-    [447,299,0,"moss",1],
+    [447,299,0,"moss",0],
     [447,300,0,"mud",0],
     [447,301,0,"mud",0],
     [447,302,0,"mud",0],
@@ -1091,16 +1091,16 @@
     {"id":"fenwatch-tower-waystone","q":444,"r":313,"kind":"waystone","tower":"fenwatch-tower","name":"The waystone of the Fenwatch Tower"}
   ],
   "spawns": [
-    {"id":"13_9:1","q":424,"r":297,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:2","q":424,"r":310,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:3","q":434,"r":311,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:4","q":435,"r":295,"mobs":["cabal-initiate","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_9:5","q":445,"r":297,"mobs":["cabal-initiate","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"13_9:1","q":418,"r":308,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:2","q":419,"r":288,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:3","q":422,"r":296,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:4","q":434,"r":311,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:5","q":435,"r":295,"mobs":["cabal-initiate","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_9:6","q":445,"r":297,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"13_9:c1","q":432,"r":295,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"13_9:c2","q":433,"r":317,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"13_9:c3","q":447,"r":299,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"13_9:c1","q":438,"r":291,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"13_9:c2","q":440,"r":308,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":445,"r":313,"dungeon":"fenwatch-tower"}

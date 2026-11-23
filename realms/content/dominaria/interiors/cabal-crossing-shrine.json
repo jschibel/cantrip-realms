@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "cabal-crossing",
   "style": "urborg",
-  "exit": {"q":520,"r":324},
+  "exit": {"q":523,"r":319},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

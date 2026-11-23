@@ -213,7 +213,7 @@
     [262,240,0.5,"meadow",0],
     [262,241,0.5,"meadow",0],
     [262,242,0.5,"meadow",0],
-    [262,243,0.5,"meadow",0],
+    [262,243,0.5,"meadow",1],
     [262,244,0.5,"meadow",0],
     [262,245,0.5,"meadow",0],
     [262,246,0.5,"meadow",0],
@@ -772,7 +772,7 @@
     [279,255,0,"meadow",0],
     [280,224,0.25,"grass",0],
     [280,225,0.25,"grass",0],
-    [280,226,0.25,"grass",0],
+    [280,226,0.25,"grass",1],
     [280,227,0.5,"grass",1],
     [280,228,0.5,"grass",0],
     [280,229,0.5,"grass",0],
@@ -784,12 +784,12 @@
     [280,235,0.5,"grass",0],
     [280,236,0.75,"hills",0],
     [280,237,0.5,"grass",0],
-    [280,238,0.5,"grass",1],
+    [280,238,0.5,"grass",0],
     [280,239,0.5,"grass",0],
     [280,240,0.5,"grass",0],
     [280,241,0.5,"grass",0],
     [280,242,0.5,"grass",1],
-    [280,243,0.25,"meadow",0],
+    [280,243,0.25,"meadow",1],
     [280,244,0.25,"meadow",0],
     [280,245,0.25,"meadow",0],
     [280,246,0.25,"meadow",0],
@@ -852,7 +852,7 @@
     [282,239,0.5,"grass",0],
     [282,240,0.5,"grass",0],
     [282,241,0.5,"grass",0],
-    [282,242,0.5,"meadow",0],
+    [282,242,0.5,"meadow",1],
     [282,243,0.5,"meadow",0],
     [282,244,0.5,"meadow",0],
     [282,245,0.25,"meadow",0],
@@ -884,7 +884,7 @@
     [283,239,0.5,"grass",0],
     [283,240,0.5,"grass",0],
     [283,241,0.5,"grass",0],
-    [283,242,0.5,"grass",1],
+    [283,242,0.5,"grass",0],
     [283,243,0.5,"meadow",0],
     [283,244,0.25,"meadow",0],
     [283,245,0.25,"meadow",0],
@@ -1021,11 +1021,11 @@
     [287,248,0,"meadow",0],
     [287,249,0,"meadow",0],
     [287,250,0,"meadow",0],
-    [287,251,0.25,"meadow",0],
+    [287,251,0.25,"meadow",1],
     [287,252,0.25,"meadow",0],
     [287,253,0.25,"meadow",1],
     [287,254,0.25,"meadow",0],
-    [287,255,0.25,"meadow",1]
+    [287,255,0.25,"meadow",0]
   ],
   "props": [
     {"q":256,"r":229,"kind":"tree"},
@@ -1069,10 +1069,11 @@
     {"q":277,"r":244,"kind":"bush"},
     {"q":279,"r":229,"kind":"boulder"},
     {"q":279,"r":232,"kind":"tree"},
+    {"q":280,"r":226,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":280,"r":227,"kind":"boulder"},
     {"q":280,"r":230,"kind":"tree"},
-    {"q":280,"r":238,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":280,"r":242,"kind":"rock"},
+    {"q":280,"r":243,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":281,"r":241,"kind":"bush"},
     {"q":281,"r":247,"kind":"tree"},
     {"q":282,"r":225,"kind":"bush"},
@@ -1087,20 +1088,21 @@
     {"q":287,"r":236,"kind":"boulder"},
     {"q":287,"r":241,"kind":"boulder"},
     {"q":287,"r":244,"kind":"tree"},
-    {"q":287,"r":253,"kind":"rock"},
-    {"q":287,"r":255,"kind":"waymarker","tier":2,"style":"stone"}
+    {"q":287,"r":251,"kind":"waymarker","tier":2,"style":"stone"},
+    {"q":287,"r":253,"kind":"rock"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
     {"id":"8_7:1","q":260,"r":228,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_7:2","q":266,"r":243,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_7:2","q":264,"r":245,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"8_7:3","q":274,"r":250,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_7:4","q":282,"r":232,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"8_7:5","q":287,"r":248,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"8_7:4","q":277,"r":237,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_7:5","q":279,"r":226,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"8_7:c1","q":283,"r":242,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"8_7:c1","q":262,"r":243,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"8_7:c2","q":282,"r":242,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":270,"r":233,"dungeon":"kjeldoran-watchtower"}

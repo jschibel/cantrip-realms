@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":497,"r":267},
+  "exit": {"q":494,"r":267},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

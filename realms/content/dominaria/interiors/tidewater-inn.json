@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "tidewater",
   "style": "tolarian",
-  "exit": {"q":501,"r":97},
+  "exit": {"q":498,"r":93},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"stone",1],

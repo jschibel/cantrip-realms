@@ -797,7 +797,7 @@
     [600,24,-0.2,"deep-water",1],
     [600,25,0,"sand",0],
     [600,26,0,"grass",0],
-    [600,27,0,"grass",1],
+    [600,27,0,"grass",0],
     [600,28,0,"grass",0],
     [600,29,0,"grass",0],
     [600,30,0,"grass",0],
@@ -1035,8 +1035,6 @@
   "spawns": [
     {"id":"18_0:1","q":601,"r":24,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"18_0:c1","q":600,"r":27,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

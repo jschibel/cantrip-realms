@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "bogwater",
   "style": "urborg",
-  "exit": {"q":414,"r":269},
+  "exit": {"q":417,"r":264},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

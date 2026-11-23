@@ -83,7 +83,7 @@
     [130,270,0,"snow",0],
     [130,271,0,"snow",0],
     [130,272,0.25,"snow",0],
-    [130,273,0.25,"snow",0],
+    [130,273,0.25,"snow",1],
     [130,274,0.5,"grass",0],
     [130,275,0.5,"grass",0],
     [130,276,0.5,"grass",0],
@@ -516,7 +516,7 @@
     [143,287,0.25,"grass",0],
     [144,256,0.25,"snow",0],
     [144,257,0.25,"snow",0],
-    [144,258,0.25,"snow",1],
+    [144,258,0.25,"snow",0],
     [144,259,0.25,"snow",0],
     [144,260,0,"grass",0],
     [144,261,0,"grass",0],
@@ -657,7 +657,7 @@
     [148,268,0.5,"grass",0],
     [148,269,0.5,"grass",0],
     [148,270,0.5,"grass",0],
-    [148,271,0.5,"grass",1],
+    [148,271,0.5,"grass",0],
     [148,272,0.5,"grass",0],
     [148,273,0.5,"grass",0],
     [148,274,0.5,"grass",0],
@@ -1101,16 +1101,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_8:1","q":132,"r":277,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_8:2","q":137,"r":265,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_8:1","q":135,"r":263,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_8:2","q":136,"r":273,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"4_8:3","q":137,"r":287,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_8:4","q":146,"r":276,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_8:5","q":155,"r":285,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_8:6","q":156,"r":265,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_8:4","q":149,"r":279,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_8:5","q":153,"r":266,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_8:6","q":155,"r":285,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"4_8:c1","q":144,"r":258,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"4_8:c2","q":148,"r":271,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"4_8:c1","q":130,"r":273,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

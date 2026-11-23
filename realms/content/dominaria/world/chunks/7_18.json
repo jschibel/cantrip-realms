@@ -462,7 +462,7 @@
     [238,585,1,"rock",0],
     [238,586,1,"rock",0],
     [238,587,1.25,"rock",0],
-    [238,588,1.25,"rock",0],
+    [238,588,1.25,"rock",1],
     [238,589,1.25,"rock",0],
     [238,590,1.25,"rock",0],
     [238,591,1,"rock",1],
@@ -529,7 +529,7 @@
     [240,588,1.25,"rock",0],
     [240,589,1.25,"rock",0],
     [240,590,1,"rock",0],
-    [240,591,1,"rock",1],
+    [240,591,1,"rock",0],
     [240,592,0.75,"rock",0],
     [240,593,0.75,"rock",0],
     [240,594,0.75,"rock",0],
@@ -958,7 +958,7 @@
     [253,601,1,"ash",0],
     [253,602,0.75,"ash",0],
     [253,603,0.25,"rock",0],
-    [253,604,0.25,"rock",0],
+    [253,604,0.25,"rock",1],
     [253,605,0.25,"rock",0],
     [253,606,-0.1,"water",1],
     [253,607,-0.1,"water",1],
@@ -1091,14 +1091,15 @@
   "npcs": [],
   "spawns": [
     {"id":"7_18:1","q":224,"r":582,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"7_18:2","q":229,"r":592,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"7_18:3","q":230,"r":603,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"7_18:2","q":230,"r":603,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"7_18:3","q":234,"r":586,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"7_18:4","q":241,"r":602,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"7_18:5","q":244,"r":578,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"7_18:6","q":247,"r":588,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"7_18:5","q":243,"r":588,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"7_18:6","q":251,"r":603,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"7_18:c1","q":240,"r":591,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"7_18:c1","q":238,"r":588,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"7_18:c2","q":253,"r":604,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

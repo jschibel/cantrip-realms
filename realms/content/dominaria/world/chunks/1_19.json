@@ -226,7 +226,7 @@
     [38,637,-0.2,"deep-water",1],
     [38,638,-0.2,"deep-water",1],
     [38,639,-0.2,"deep-water",1],
-    [39,608,0,"grass",1],
+    [39,608,0,"grass",0],
     [39,609,0,"grass",0],
     [39,610,0,"grass",0],
     [39,611,0,"sand",0],
@@ -1039,10 +1039,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"1_19:1","q":34,"r":612,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"1_19:1","q":34,"r":612,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_19:2","q":49,"r":610,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"1_19:c1","q":39,"r":608,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "lat-nam",
   "style": "tolarian",
-  "exit": {"q":343,"r":231},
+  "exit": {"q":338,"r":233},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"stone",1],

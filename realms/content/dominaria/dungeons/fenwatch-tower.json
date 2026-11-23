@@ -22,5 +22,9 @@
   "warden": "cabal-initiate",
   "boss": "mage-fenwatch-tower",
   "region": "B",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    444,
+    314
+  ]
 }

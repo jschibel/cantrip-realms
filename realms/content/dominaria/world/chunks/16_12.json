@@ -132,7 +132,7 @@
     [515,415,-0.1,"water",1],
     [516,384,0,"moss",0],
     [516,385,0,"moss",0],
-    [516,386,0,"moss",1],
+    [516,386,0,"moss",0],
     [516,387,0,"moss",0],
     [516,388,0,"moss",0],
     [516,389,0,"moss",0],
@@ -490,7 +490,7 @@
     [527,389,0,"moss",0],
     [527,390,0,"moss",0],
     [527,391,0,"moss",0],
-    [527,392,0,"moss",1],
+    [527,392,0,"moss",0],
     [527,393,0,"moss",0],
     [527,394,0.75,"ash",0],
     [527,395,0.75,"ash",0],
@@ -520,7 +520,7 @@
     [528,387,0,"moss",0],
     [528,388,0,"moss",0],
     [528,389,0,"moss",0],
-    [528,390,0,"moss",0],
+    [528,390,0,"moss",1],
     [528,391,0,"moss",0],
     [528,392,0,"moss",0],
     [528,393,0.75,"ash",0],
@@ -1070,13 +1070,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_12:1","q":513,"r":406,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_12:2","q":521,"r":391,"mobs":["fallen-seraph","phyrexian-negator","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"16_12:3","q":524,"r":400,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"16_12:1","q":515,"r":388,"mobs":["gitaxian-mindcutter","phyrexian-horror"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"16_12:2","q":520,"r":399,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"16_12:c1","q":516,"r":386,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"16_12:c2","q":527,"r":392,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"16_12:c1","q":528,"r":390,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

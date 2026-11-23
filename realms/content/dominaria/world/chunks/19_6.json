@@ -32,7 +32,7 @@
     [608,219,-0.1,"swamp",1],
     [608,220,0,"mud",0],
     [608,221,0,"mud",0],
-    [608,222,0,"mud",0],
+    [608,222,0,"mud",1],
     [608,223,0,"moss",0],
     [609,192,-0.1,"swamp",1],
     [609,193,-0.1,"swamp",1],
@@ -1043,9 +1043,9 @@
   ],
   "doors": [],
   "npcs": [],
-  "spawns": [
-    {"id":"19_6:1","q":608,"r":222,"mobs":["gitaxian-mindcutter","phyrexian-gorger","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+  "spawns": [],
+  "chests": [
+    {"id":"19_6:c1","q":608,"r":222,"gold":[300,500],"respawnSeconds":86400}
   ],
-  "chests": [],
   "entrances": []
 }

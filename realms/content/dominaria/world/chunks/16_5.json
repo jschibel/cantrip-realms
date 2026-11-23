@@ -49,7 +49,7 @@
     [513,172,0,"moss",1],
     [513,173,0,"moss",0],
     [513,174,0,"moss",1],
-    [513,175,0,"moss",0],
+    [513,175,0,"moss",1],
     [513,176,0,"mud",0],
     [513,177,0,"mud",0],
     [513,178,-0.1,"swamp",1],
@@ -494,7 +494,7 @@
     [527,169,0,"mud",0],
     [527,170,0,"mud",0],
     [527,171,0,"mud",0],
-    [527,172,0,"mud",1],
+    [527,172,0,"mud",0],
     [527,173,0,"mud",0],
     [527,174,0,"mud",0],
     [527,175,-0.1,"swamp",1],
@@ -1033,6 +1033,7 @@
     {"q":512,"r":191,"kind":"mushroom"},
     {"q":513,"r":172,"kind":"bones"},
     {"q":513,"r":174,"kind":"reeds"},
+    {"q":513,"r":175,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":514,"r":169,"kind":"dead-tree"},
     {"q":517,"r":163,"kind":"dead-tree"},
     {"q":517,"r":166,"kind":"reeds"},
@@ -1077,15 +1078,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_5:1","q":512,"r":166,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_5:2","q":517,"r":175,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_5:3","q":526,"r":160,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_5:4","q":532,"r":174,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"16_5:5","q":536,"r":181,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"16_5:6","q":538,"r":190,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"16_5:1","q":520,"r":171,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_5:2","q":526,"r":160,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_5:3","q":532,"r":174,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"16_5:4","q":536,"r":181,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"16_5:5","q":539,"r":191,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"16_5:c1","q":527,"r":172,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

@@ -309,7 +309,7 @@
     [41,432,0.25,"forest",0],
     [41,433,0.25,"forest",1],
     [41,434,0.25,"moss",0],
-    [41,435,0.25,"moss",0],
+    [41,435,0.25,"moss",1],
     [41,436,0.25,"moss",0],
     [41,437,0.25,"moss",1],
     [41,438,0.25,"moss",1],
@@ -377,7 +377,7 @@
     [43,436,0.25,"moss",0],
     [43,437,0.25,"forest",0],
     [43,438,0.25,"forest",0],
-    [43,439,0.25,"forest",1],
+    [43,439,0.25,"forest",0],
     [43,440,0.25,"forest",0],
     [43,441,0.25,"forest",0],
     [43,442,0.25,"moss",0],
@@ -947,7 +947,7 @@
     [61,430,0.5,"forest",1],
     [61,431,0.5,"forest",0],
     [61,432,0.5,"forest",0],
-    [61,433,0.5,"grass",0],
+    [61,433,0.5,"grass",1],
     [61,434,0.5,"grass",0],
     [61,435,0.5,"grass",0],
     [61,436,0.5,"grass",0],
@@ -1180,14 +1180,15 @@
     {"id":"glacial-tower-waystone","q":39,"r":424,"kind":"waystone","tower":"glacial-tower","name":"The waystone of the Glacial Tower"}
   ],
   "spawns": [
-    {"id":"1_13:1","q":39,"r":436,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_13:2","q":44,"r":446,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_13:3","q":48,"r":421,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_13:1","q":38,"r":434,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_13:2","q":41,"r":443,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_13:3","q":51,"r":417,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"1_13:4","q":55,"r":435,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"1_13:5","q":56,"r":424,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"1_13:c1","q":43,"r":439,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"1_13:c1","q":41,"r":435,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"1_13:c2","q":61,"r":433,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":39,"r":425,"dungeon":"glacial-tower"}

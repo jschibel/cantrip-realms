@@ -4,7 +4,7 @@
   "kind": "smithy",
   "town": "new-argive",
   "style": "argive",
-  "exit": {"q":263,"r":320},
+  "exit": {"q":268,"r":318},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,-1,0,"stone",1],

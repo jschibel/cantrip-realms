@@ -31,7 +31,7 @@
     [160,346,0,"grass",0],
     [160,347,0,"grass",0],
     [160,348,0,"grass",0],
-    [160,349,0,"grass",0],
+    [160,349,0,"grass",1],
     [160,350,0,"grass",0],
     [160,351,0,"grass",0],
     [161,320,0.25,"grass",0],
@@ -142,7 +142,7 @@
     [164,329,0,"grass",1],
     [164,330,0,"grass",0],
     [164,331,0,"grass",0],
-    [164,332,0,"grass",1],
+    [164,332,0,"grass",0],
     [164,333,0,"grass",0],
     [164,334,0,"grass",0],
     [164,335,0,"grass",1],
@@ -631,7 +631,7 @@
     [179,338,0.75,"hills",0],
     [179,339,0.75,"hills",0],
     [179,340,0.75,"hills",0],
-    [179,341,0.75,"hills",0],
+    [179,341,0.75,"hills",1],
     [179,342,0.75,"hills",0],
     [179,343,0.75,"hills",0],
     [179,344,0.75,"hills",0],
@@ -754,7 +754,7 @@
     [183,333,0.75,"hills",1],
     [183,334,0.75,"hills",0],
     [183,335,0.75,"hills",0],
-    [183,336,0.75,"hills",1],
+    [183,336,0.75,"hills",0],
     [183,337,0.75,"hills",0],
     [183,338,0.75,"hills",0],
     [183,339,0.75,"hills",0],
@@ -803,7 +803,7 @@
     [184,350,0.25,"grass",0],
     [184,351,0,"grass",0],
     [185,320,0.25,"grass",0],
-    [185,321,0.5,"grass",0],
+    [185,321,0.5,"grass",1],
     [185,322,0.5,"grass",0],
     [185,323,0.5,"grass",0],
     [185,324,0.75,"hills",1],
@@ -961,7 +961,7 @@
     [189,348,0.25,"grass",0],
     [189,349,-0.1,"water",1],
     [189,350,0.25,"grass",0],
-    [189,351,0.25,"grass",0],
+    [189,351,0.25,"grass",1],
     [190,320,0.5,"grass",0],
     [190,321,0.5,"grass",0],
     [190,322,0.5,"grass",0],
@@ -1086,17 +1086,18 @@
     {"id":"serran-lookout-waystone","q":191,"r":327,"kind":"waystone","tower":"serran-lookout","name":"The waystone of the Serran Lookout"}
   ],
   "spawns": [
-    {"id":"5_10:1","q":162,"r":320,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:2","q":167,"r":334,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:3","q":172,"r":342,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:4","q":175,"r":322,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:5","q":181,"r":327,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:6","q":183,"r":341,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"5_10:7","q":190,"r":345,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"5_10:1","q":162,"r":340,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:2","q":172,"r":342,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:3","q":175,"r":322,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:4","q":181,"r":327,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:5","q":183,"r":337,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"5_10:6","q":185,"r":347,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"5_10:c1","q":164,"r":332,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"5_10:c2","q":183,"r":336,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"5_10:c1","q":160,"r":349,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"5_10:c2","q":179,"r":341,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"5_10:c3","q":185,"r":321,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"5_10:c4","q":189,"r":351,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":191,"r":328,"dungeon":"serran-lookout"}

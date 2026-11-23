@@ -91,7 +91,7 @@
     [386,534,1.25,"rock",1],
     [386,535,1.25,"rock",0],
     [386,536,1,"rock",0],
-    [386,537,1,"rock",0],
+    [386,537,1,"rock",1],
     [386,538,0.75,"rock",0],
     [386,539,0.75,"rock",0],
     [386,540,0.25,"rock",0],
@@ -247,7 +247,7 @@
     [391,530,0.75,"ash",0],
     [391,531,0.75,"rock",0],
     [391,532,0.75,"rock",0],
-    [391,533,0.75,"rock",1],
+    [391,533,0.75,"rock",0],
     [391,534,0.75,"rock",0],
     [391,535,0.75,"rock",0],
     [391,536,0.75,"ash",0],
@@ -386,7 +386,7 @@
     [395,541,-0.1,"water",1],
     [395,542,-0.2,"deep-water",1],
     [395,543,-0.2,"deep-water",1],
-    [396,512,1,"ash",1],
+    [396,512,1,"ash",0],
     [396,513,1.25,"ash",0],
     [396,514,1.25,"ash",0],
     [396,515,1,"ash",0],
@@ -838,7 +838,7 @@
     [410,513,0.25,"rock",0],
     [410,514,0,"rock",0],
     [410,515,0,"rock",0],
-    [410,516,0,"rock",1],
+    [410,516,0,"rock",0],
     [410,517,0,"rock",0],
     [410,518,0,"rock",0],
     [410,519,-0.1,"lava",1],
@@ -1068,17 +1068,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_16:1","q":385,"r":540,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_16:2","q":386,"r":521,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_16:3","q":394,"r":525,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_16:4","q":396,"r":534,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_16:5","q":399,"r":513,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_16:6","q":405,"r":519,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_16:1","q":389,"r":524,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_16:2","q":393,"r":513,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_16:3","q":396,"r":534,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_16:4","q":400,"r":521,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"12_16:c1","q":391,"r":533,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"12_16:c2","q":396,"r":512,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"12_16:c3","q":410,"r":516,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"12_16:c1","q":386,"r":537,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

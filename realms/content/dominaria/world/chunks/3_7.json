@@ -1043,8 +1043,7 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_7:1","q":112,"r":253,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"3_7:2","q":126,"r":240,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"3_7:1","q":125,"r":246,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": []

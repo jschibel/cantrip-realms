@@ -26,7 +26,7 @@
     [256,85,0,"grass",0],
     [256,86,0,"grass",0],
     [256,87,0,"grass",0],
-    [256,88,0,"grass",1],
+    [256,88,0,"grass",0],
     [256,89,0,"grass",0],
     [256,90,0,"grass",0],
     [256,91,0,"grass",0],
@@ -185,7 +185,7 @@
     [261,84,0,"grass",0],
     [261,85,0,"grass",0],
     [261,86,0,"grass",0],
-    [261,87,0,"grass",0],
+    [261,87,0,"grass",1],
     [261,88,0,"snow",0],
     [261,89,0,"snow",0],
     [261,90,0,"snow",0],
@@ -734,7 +734,7 @@
     [278,89,0.25,"grass",0],
     [278,90,0.25,"grass",0],
     [278,91,0.25,"grass",0],
-    [278,92,0.25,"grass",1],
+    [278,92,0.25,"grass",0],
     [278,93,0.25,"grass",0],
     [278,94,0.25,"grass",0],
     [278,95,0.25,"grass",1],
@@ -918,7 +918,7 @@
     [284,81,0,"sand",0],
     [284,82,0,"sand",0],
     [284,83,0,"grass",0],
-    [284,84,0,"grass",0],
+    [284,84,0,"grass",1],
     [284,85,0,"grass",0],
     [284,86,0,"grass",0],
     [284,87,0,"grass",0],
@@ -1046,12 +1046,13 @@
     {"id":"urzas-spire-waystone","q":272,"r":87,"kind":"waystone","tower":"urzas-spire","name":"The waystone of Urza's Spire"}
   ],
   "spawns": [
-    {"id":"8_2:1","q":268,"r":75,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"8_2:2","q":285,"r":86,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"8_2:1","q":264,"r":88,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"8_2:2","q":268,"r":75,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"8_2:3","q":278,"r":92,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"8_2:c1","q":256,"r":88,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"8_2:c2","q":278,"r":92,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"8_2:c1","q":261,"r":87,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"8_2:c2","q":284,"r":84,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":273,"r":87,"dungeon":"urzas-spire"}

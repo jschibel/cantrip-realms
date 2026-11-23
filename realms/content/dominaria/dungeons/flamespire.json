@@ -21,5 +21,9 @@
   "warden": "foundry-construct",
   "boss": "mage-flamespire",
   "region": "R",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    250,
+    571
+  ]
 }

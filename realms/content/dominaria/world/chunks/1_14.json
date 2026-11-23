@@ -987,7 +987,7 @@
     [62,470,0,"forest",0],
     [62,471,0,"forest",0],
     [62,472,0,"forest",0],
-    [62,473,0,"grass",0],
+    [62,473,0,"grass",1],
     [62,474,0,"grass",0],
     [62,475,0,"grass",0],
     [62,476,0,"forest",0],
@@ -996,7 +996,7 @@
     [62,479,0.25,"forest",1],
     [63,448,0.25,"grass",1],
     [63,449,0.25,"grass",0],
-    [63,450,0,"grass",0],
+    [63,450,0,"grass",1],
     [63,451,0,"grass",0],
     [63,452,0,"grass",0],
     [63,453,0,"forest",0],
@@ -1155,14 +1155,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"1_14:1","q":41,"r":478,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_14:2","q":46,"r":459,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_14:3","q":53,"r":448,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_14:4","q":55,"r":464,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_14:5","q":56,"r":476,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"1_14:1","q":43,"r":455,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_14:2","q":45,"r":464,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_14:3","q":45,"r":476,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_14:4","q":55,"r":453,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_14:5","q":57,"r":474,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_14:6","q":62,"r":463,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"1_14:c1","q":45,"r":456,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"1_14:c1","q":45,"r":456,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"1_14:c2","q":62,"r":473,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"1_14:c3","q":63,"r":450,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

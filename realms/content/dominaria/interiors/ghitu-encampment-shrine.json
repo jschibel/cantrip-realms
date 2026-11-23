@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "ghitu-encampment",
   "style": "keldon",
-  "exit": {"q":360,"r":376},
+  "exit": {"q":356,"r":382},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

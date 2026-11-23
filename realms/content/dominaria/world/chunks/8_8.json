@@ -137,7 +137,7 @@
     [260,260,0.25,"grass",0],
     [260,261,0.25,"grass",0],
     [260,262,0.25,"grass",0],
-    [260,263,0.25,"grass",0],
+    [260,263,0.25,"grass",1],
     [260,264,0.25,"meadow",0],
     [260,265,0.25,"meadow",0],
     [260,266,0.25,"meadow",0],
@@ -392,7 +392,7 @@
     [268,259,0.25,"grass",0],
     [268,260,0.25,"grass",0],
     [268,261,0.25,"grass",0],
-    [268,262,0.25,"grass",1],
+    [268,262,0.25,"grass",0],
     [268,263,0.25,"grass",0],
     [268,264,0.25,"grass",0],
     [268,265,0.25,"grass",0],
@@ -901,7 +901,7 @@
     [284,256,0.25,"meadow",0],
     [284,257,0.25,"meadow",0],
     [284,258,0.25,"grass",0],
-    [284,259,0.25,"grass",0],
+    [284,259,0.25,"grass",1],
     [284,260,0.25,"grass",0],
     [284,261,0.25,"grass",0],
     [284,262,0.5,"grass",0],
@@ -915,7 +915,7 @@
     [284,270,0,"grass",0],
     [284,271,0,"grass",0],
     [284,272,0.25,"grass",0],
-    [284,273,0.25,"grass",1],
+    [284,273,0.25,"grass",0],
     [284,274,0.25,"grass",0],
     [284,275,0.25,"grass",0],
     [284,276,0.25,"grass",0],
@@ -1019,7 +1019,7 @@
     [287,278,0.25,"grass",0],
     [287,279,0.25,"grass",0],
     [287,280,0,"grass",0],
-    [287,281,0,"grass",0],
+    [287,281,0,"grass",1],
     [287,282,0,"grass",0],
     [287,283,0,"grass",0],
     [287,284,0,"grass",0],
@@ -1084,16 +1084,17 @@
   "npcs": [],
   "spawns": [
     {"id":"8_8:1","q":259,"r":270,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_8:2","q":263,"r":256,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_8:2","q":262,"r":259,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"8_8:3","q":263,"r":284,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_8:4","q":269,"r":272,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_8:5","q":272,"r":261,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"8_8:6","q":274,"r":279,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_8:4","q":270,"r":267,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_8:5","q":276,"r":287,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"8_8:6","q":277,"r":275,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"8_8:7","q":281,"r":263,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"8_8:c1","q":268,"r":262,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"8_8:c2","q":284,"r":273,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"8_8:c1","q":260,"r":263,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"8_8:c2","q":284,"r":259,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"8_8:c3","q":287,"r":281,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

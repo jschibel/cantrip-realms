@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "bogwater",
   "style": "urborg",
-  "exit": {"q":411,"r":269},
+  "exit": {"q":414,"r":263},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"wood",1],

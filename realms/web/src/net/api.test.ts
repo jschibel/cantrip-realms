@@ -20,7 +20,7 @@ describe("HttpApi", () => {
 
   it("turns a refusal into an ApiError with the server's code and words", async () => {
     vi.stubGlobal("fetch", reply(409, { Error: "NotNear", Detail: "You are too far from that spawn." }));
-    const refused = await new HttpApi("https://realm.example/").startEncounter({ Map: "m", Spawn: "s1", Mob: "x" }).catch((e: unknown) => e);
+    const refused = await new HttpApi("https://realm.example/").startEncounter({ Spawn: "s1", Mob: "x" }).catch((e: unknown) => e);
     expect(refused).toBeInstanceOf(ApiError);
     expect(refused).toMatchObject({ status: 409, code: "NotNear", detail: "You are too far from that spawn." });
   });
@@ -68,7 +68,7 @@ describe("MockApi", () => {
 
   it("caps the loot at the ante and refuses picks over it", async () => {
     const api = make();
-    const start = await api.startEncounter({ Map: "urborg-mire", Spawn: "s1", Mob: "urborg-ghoul" });
+    const start = await api.startEncounter({ Spawn: "s1", Mob: "urborg-ghoul" });
     expect(start.Duel.Cap).toBe(Math.min(start.Duel.AnteValue, start.Duel.Mob.Prize));
     api.settle(start.Token, "won");
     const result = await api.finishEncounter({ Token: start.Token, Log: [] });
@@ -84,8 +84,8 @@ describe("MockApi", () => {
   it("loses an ante card on a loss, and counts a duel never finished as lost", async () => {
     const api = make();
     const before = (await api.me())!.AnteValue;
-    const first = await api.startEncounter({ Map: "urborg-mire", Spawn: "s1", Mob: "urborg-ghoul" });
-    await api.startEncounter({ Map: "urborg-mire", Spawn: "s2", Mob: "cabal-initiate" });
+    const first = await api.startEncounter({ Spawn: "s1", Mob: "urborg-ghoul" });
+    await api.startEncounter({ Spawn: "s2", Mob: "cabal-initiate" });
     expect((await api.finishEncounter({ Token: first.Token, Log: [] })).Outcome).toBe("lost");
     expect((await api.me())!.AnteValue).toBeLessThan(before);
   });

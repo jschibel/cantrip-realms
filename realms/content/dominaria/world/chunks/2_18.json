@@ -21,7 +21,7 @@
     [64,592,0,"grass",1],
     [64,593,0,"grass",0],
     [64,594,0,"grass",0],
-    [64,595,0,"grass",0],
+    [64,595,0,"grass",1],
     [64,596,0,"forest",0],
     [64,597,0,"forest",0],
     [64,598,0,"forest",0],
@@ -447,7 +447,7 @@
     [77,602,0,"forest",1],
     [77,603,0,"forest",1],
     [77,604,0,"sand",0],
-    [77,605,0,"sand",1],
+    [77,605,0,"sand",0],
     [77,606,0,"sand",0],
     [77,607,-0.1,"water",1],
     [78,576,0,"grass",0],
@@ -770,12 +770,12 @@
     [87,605,0,"sand",0],
     [87,606,0,"sand",0],
     [87,607,-0.1,"water",1],
-    [88,576,0.5,"forest",0],
+    [88,576,0.5,"forest",1],
     [88,577,0.5,"forest",0],
     [88,578,0.5,"forest",0],
     [88,579,0.5,"forest",0],
     [88,580,0.5,"forest",0],
-    [88,581,0.5,"grass",1],
+    [88,581,0.5,"grass",0],
     [88,582,0.5,"grass",0],
     [88,583,0.5,"grass",0],
     [88,584,0.5,"grass",0],
@@ -1177,15 +1177,18 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"2_18:1","q":68,"r":579,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_18:2","q":69,"r":606,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_18:3","q":77,"r":581,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:1","q":64,"r":578,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:2","q":68,"r":586,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:3","q":73,"r":605,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"2_18:4","q":78,"r":592,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_18:5","q":83,"r":601,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_18:5","q":80,"r":580,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:6","q":84,"r":605,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:7","q":88,"r":593,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"2_18:8","q":95,"r":605,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"2_18:c1","q":77,"r":605,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"2_18:c2","q":88,"r":581,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"2_18:c1","q":64,"r":595,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"2_18:c2","q":88,"r":576,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

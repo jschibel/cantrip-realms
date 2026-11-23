@@ -21,5 +21,9 @@
   "warden": "sanctum-guardian",
   "boss": "mage-kjeldoran-beacon",
   "region": "W",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    235,
+    153
+  ]
 }

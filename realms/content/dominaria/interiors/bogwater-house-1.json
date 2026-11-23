@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "bogwater",
   "style": "urborg",
-  "exit": {"q":417,"r":263},
+  "exit": {"q":428,"r":258},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

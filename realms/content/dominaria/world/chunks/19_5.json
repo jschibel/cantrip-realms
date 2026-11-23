@@ -1034,9 +1034,7 @@
   ],
   "doors": [],
   "npcs": [],
-  "spawns": [
-    {"id":"19_5:1","q":609,"r":174,"mobs":["fallen-seraph","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": []
 }

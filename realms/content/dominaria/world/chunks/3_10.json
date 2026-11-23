@@ -79,7 +79,7 @@
     [98,330,0,"grass",0],
     [98,331,0,"grass",0],
     [98,332,0,"grass",0],
-    [98,333,0.25,"grass",1],
+    [98,333,0.25,"grass",0],
     [98,334,0.25,"grass",0],
     [98,335,0.25,"grass",0],
     [98,336,0.25,"grass",0],
@@ -254,7 +254,7 @@
     [103,345,0.5,"grass",0],
     [103,346,0.5,"grass",0],
     [103,347,0.5,"grass",0],
-    [103,348,0.5,"grass",0],
+    [103,348,0.5,"grass",1],
     [103,349,0.25,"grass",0],
     [103,350,0.25,"grass",0],
     [103,351,0,"grass",0],
@@ -751,7 +751,7 @@
     [119,330,0.75,"hills",0],
     [119,331,0.75,"hills",0],
     [119,332,0.75,"hills",0],
-    [119,333,0.75,"hills",1],
+    [119,333,0.75,"hills",0],
     [119,334,0.75,"hills",0],
     [119,335,0.75,"hills",0],
     [119,336,0.75,"hills",0],
@@ -923,7 +923,7 @@
     [124,342,0.5,"grass",0],
     [124,343,0.5,"grass",0],
     [124,344,0.5,"grass",0],
-    [124,345,0.25,"grass",1],
+    [124,345,0.25,"grass",0],
     [124,346,0.25,"grass",0],
     [124,347,0,"grass",0],
     [124,348,0,"grass",0],
@@ -937,7 +937,7 @@
     [125,324,0.75,"hills",0],
     [125,325,0.75,"hills",0],
     [125,326,0.75,"hills",0],
-    [125,327,0.75,"hills",0],
+    [125,327,0.75,"hills",1],
     [125,328,0.75,"hills",0],
     [125,329,0.75,"hills",0],
     [125,330,0.75,"hills",0],
@@ -1099,18 +1099,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_10:1","q":99,"r":330,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_10:2","q":99,"r":348,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_10:3","q":106,"r":337,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_10:4","q":113,"r":322,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_10:5","q":117,"r":332,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_10:6","q":119,"r":344,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"3_10:7","q":124,"r":321,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"3_10:1","q":98,"r":337,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_10:2","q":102,"r":344,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_10:3","q":109,"r":348,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_10:4","q":111,"r":331,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_10:5","q":118,"r":350,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_10:6","q":123,"r":334,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"3_10:7","q":124,"r":322,"mobs":["benalish-deserter"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"3_10:c1","q":98,"r":333,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"3_10:c2","q":119,"r":333,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"3_10:c3","q":124,"r":345,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"3_10:c1","q":103,"r":348,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"3_10:c2","q":125,"r":327,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

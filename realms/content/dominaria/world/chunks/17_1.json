@@ -381,7 +381,7 @@
     [555,56,0,"grass",0],
     [555,57,0,"grass",0],
     [555,58,0,"grass",0],
-    [555,59,0,"grass",1],
+    [555,59,0,"grass",0],
     [555,60,0,"grass",0],
     [555,61,0,"grass",0],
     [555,62,0,"grass",0],
@@ -499,7 +499,7 @@
     [559,46,0.25,"grass",0],
     [559,47,0.25,"grass",0],
     [559,48,0.25,"grass",0],
-    [559,49,0.25,"sand",0],
+    [559,49,0.25,"sand",1],
     [559,50,0.25,"sand",0],
     [559,51,0.25,"sand",0],
     [559,52,0.25,"sand",0],
@@ -1020,7 +1020,7 @@
     [575,55,0,"grass",0],
     [575,56,0,"grass",0],
     [575,57,0,"grass",0],
-    [575,58,0,"sand",1],
+    [575,58,0,"sand",0],
     [575,59,0,"sand",0],
     [575,60,0,"sand",0],
     [575,61,0,"sand",0],
@@ -1054,14 +1054,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_1:1","q":559,"r":43,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_1:2","q":562,"r":53,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_1:3","q":572,"r":56,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_1:4","q":573,"r":40,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_1:1","q":548,"r":63,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:2","q":556,"r":47,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:3","q":562,"r":53,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:4","q":567,"r":41,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_1:5","q":572,"r":56,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"17_1:c1","q":555,"r":59,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"17_1:c2","q":575,"r":58,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"17_1:c1","q":559,"r":49,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -509,7 +509,7 @@
     [463,88,-0.1,"water",1],
     [463,89,-0.1,"water",1],
     [463,90,0,"sand",0],
-    [463,91,0,"grass",1],
+    [463,91,0,"grass",0],
     [463,92,0,"grass",0],
     [463,93,0,"grass",0],
     [463,94,0,"grass",0],
@@ -1037,10 +1037,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_2:1","q":467,"r":89,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"14_2:1","q":467,"r":89,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_2:2","q":476,"r":95,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"14_2:c1","q":463,"r":91,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

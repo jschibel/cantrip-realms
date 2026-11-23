@@ -5,7 +5,7 @@
     [224,448,0.25,"grass",0],
     [224,449,0.25,"grass",0],
     [224,450,0.25,"grass",0],
-    [224,451,0.25,"meadow",0],
+    [224,451,0.25,"meadow",1],
     [224,452,0.25,"meadow",0],
     [224,453,0.25,"meadow",0],
     [224,454,0,"meadow",0],
@@ -142,7 +142,7 @@
     [228,457,0,"grass",0],
     [228,458,0,"grass",0],
     [228,459,0,"grass",0],
-    [228,460,0.25,"grass",1],
+    [228,460,0.25,"grass",0],
     [228,461,0.25,"moss",0],
     [228,462,0.25,"moss",0],
     [228,463,0.25,"moss",1],
@@ -778,7 +778,7 @@
     [248,453,0.25,"grass",0],
     [248,454,0.5,"grass",0],
     [248,455,0.5,"grass",0],
-    [248,456,0.5,"grass",1],
+    [248,456,0.5,"grass",0],
     [248,457,0.5,"grass",1],
     [248,458,0.5,"grass",0],
     [248,459,0.5,"grass",0],
@@ -798,7 +798,7 @@
     [248,473,0.25,"moss",1],
     [248,474,0.25,"moss",0],
     [248,475,0.75,"stone",0],
-    [248,476,0.75,"stone",1],
+    [248,476,0.75,"stone",0],
     [248,477,0.75,"stone",0],
     [248,478,0.75,"stone",0],
     [248,479,0.75,"stone",0],
@@ -876,7 +876,7 @@
     [251,455,0.5,"grass",0],
     [251,456,0.5,"grass",0],
     [251,457,0.5,"grass",0],
-    [251,458,0.5,"grass",0],
+    [251,458,0.5,"grass",1],
     [251,459,0.5,"grass",0],
     [251,460,0.5,"grass",0],
     [251,461,0.5,"grass",0],
@@ -1024,7 +1024,7 @@
     [255,475,1,"stone",0],
     [255,476,0.75,"stone",0],
     [255,477,0.75,"rock",0],
-    [255,478,1,"rock",0],
+    [255,478,1,"rock",1],
     [255,479,1,"rock",0]
   ],
   "props": [
@@ -1168,7 +1168,6 @@
     {"q":247,"r":471,"kind":"pine"},
     {"q":247,"r":475,"kind":"mushroom"},
     {"q":247,"r":478,"kind":"rock"},
-    {"q":248,"r":456,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":248,"r":457,"kind":"pine"},
     {"q":248,"r":460,"kind":"tree"},
     {"q":248,"r":463,"kind":"pine"},
@@ -1219,16 +1218,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_14:1","q":226,"r":450,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_14:2","q":230,"r":469,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_14:1","q":226,"r":458,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_14:2","q":226,"r":472,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"7_14:3","q":238,"r":453,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_14:4","q":242,"r":462,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_14:4","q":243,"r":462,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"7_14:5","q":252,"r":467,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"7_14:6","q":254,"r":451,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"7_14:c1","q":228,"r":460,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"7_14:c2","q":248,"r":476,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"7_14:c1","q":224,"r":451,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"7_14:c2","q":251,"r":458,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"7_14:c3","q":255,"r":478,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":234,"r":449,"dungeon":"elvish-hollow"}

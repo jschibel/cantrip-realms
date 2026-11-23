@@ -85,7 +85,7 @@
     [546,368,0,"mud",0],
     [546,369,0,"mud",0],
     [546,370,0,"mud",0],
-    [546,371,0,"mud",0],
+    [546,371,0,"mud",1],
     [546,372,0,"mud",0],
     [546,373,0,"mud",0],
     [546,374,0.25,"mud",0],
@@ -335,7 +335,7 @@
     [554,362,0,"moss",0],
     [554,363,0,"mud",0],
     [554,364,0,"mud",0],
-    [554,365,0,"mud",1],
+    [554,365,0,"mud",0],
     [554,366,0,"mud",0],
     [554,367,0,"mud",0],
     [554,368,-0.1,"water",1],
@@ -1059,11 +1059,12 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_11:1","q":551,"r":359,"mobs":["gitaxian-mindcutter","phyrexian-gorger","phyrexian-negator"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_11:2","q":563,"r":358,"mobs":["phyrexian-horror","phyrexian-negator","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_11:1","q":544,"r":370,"mobs":["fallen-seraph","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_11:2","q":549,"r":352,"mobs":["fallen-seraph","gitaxian-mindcutter"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"17_11:3","q":555,"r":365,"mobs":["fallen-seraph","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"17_11:c1","q":554,"r":365,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"17_11:c1","q":546,"r":371,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

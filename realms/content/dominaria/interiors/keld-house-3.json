@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":345,"r":435},
+  "exit": {"q":369,"r":444},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

@@ -567,7 +567,7 @@
     [145,402,0,"grass",1],
     [145,403,0.25,"grass",1],
     [145,404,0,"grass",0],
-    [145,405,0,"grass",1],
+    [145,405,0,"grass",0],
     [145,406,0,"grass",0],
     [145,407,0,"grass",0],
     [145,408,0,"grass",0],
@@ -627,7 +627,7 @@
     [147,398,0.25,"grass",0],
     [147,399,0.25,"grass",0],
     [147,400,0.25,"grass",0],
-    [147,401,0.25,"grass",0],
+    [147,401,0.25,"grass",1],
     [147,402,0.25,"grass",0],
     [147,403,0.25,"grass",1],
     [147,404,0,"grass",0],
@@ -996,12 +996,12 @@
     [158,415,0.25,"grass",0],
     [159,384,0.25,"moss",0],
     [159,385,0.25,"moss",0],
-    [159,386,0.25,"moss",0],
+    [159,386,0.25,"moss",1],
     [159,387,0,"moss",0],
     [159,388,0,"moss",0],
     [159,389,0,"moss",0],
     [159,390,0,"moss",1],
-    [159,391,0,"moss",1],
+    [159,391,0,"moss",0],
     [159,392,0,"moss",0],
     [159,393,0,"moss",0],
     [159,394,0,"moss",0],
@@ -1214,21 +1214,20 @@
     {"q":158,"r":405,"kind":"mushroom"},
     {"q":158,"r":406,"kind":"bush"},
     {"q":158,"r":411,"kind":"mushroom"},
-    {"q":159,"r":390,"kind":"bush"},
-    {"q":159,"r":391,"kind":"waymarker","tier":2,"style":"stone"}
+    {"q":159,"r":386,"kind":"waymarker","tier":2,"style":"stone"},
+    {"q":159,"r":390,"kind":"bush"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
     {"id":"4_12:1","q":133,"r":395,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_12:2","q":139,"r":413,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_12:3","q":141,"r":400,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_12:4","q":151,"r":388,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"4_12:5","q":156,"r":401,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"4_12:6","q":156,"r":414,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"4_12:2","q":140,"r":405,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_12:3","q":144,"r":391,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"4_12:4","q":157,"r":404,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"4_12:5","q":158,"r":390,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"4_12:c1","q":145,"r":405,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"4_12:c1","q":147,"r":401,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

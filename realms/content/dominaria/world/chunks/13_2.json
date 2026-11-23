@@ -220,7 +220,7 @@
     [422,87,0.25,"grass",0],
     [422,88,0.25,"grass",0],
     [422,89,0.25,"grass",0],
-    [422,90,0,"grass",1],
+    [422,90,0,"grass",0],
     [422,91,0,"grass",0],
     [422,92,0,"grass",0],
     [422,93,0,"grass",1],
@@ -439,7 +439,7 @@
     [429,82,0,"grass",0],
     [429,83,0,"grass",0],
     [429,84,0,"grass",0],
-    [429,85,0,"grass",0],
+    [429,85,0,"grass",1],
     [429,86,0,"grass",0],
     [429,87,0,"grass",0],
     [429,88,0,"grass",0],
@@ -768,7 +768,7 @@
     [439,91,0,"grass",0],
     [439,92,0,"grass",0],
     [439,93,0,"grass",0],
-    [439,94,0,"grass",1],
+    [439,94,0,"grass",0],
     [439,95,0,"grass",0],
     [440,64,-0.2,"deep-water",1],
     [440,65,-0.2,"deep-water",1],
@@ -1047,15 +1047,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_2:1","q":417,"r":87,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_2:1","q":420,"r":85,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"13_2:2","q":424,"r":93,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_2:3","q":428,"r":77,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_2:4","q":436,"r":80,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"13_2:5","q":441,"r":90,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"13_2:3","q":433,"r":79,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"13_2:4","q":438,"r":89,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"13_2:c1","q":422,"r":90,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"13_2:c2","q":439,"r":94,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"13_2:c1","q":429,"r":85,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

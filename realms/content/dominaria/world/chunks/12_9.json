@@ -85,7 +85,7 @@
     [386,304,0,"grass",0],
     [386,305,0,"grass",0],
     [386,306,0,"grass",0],
-    [386,307,0.25,"grass",0],
+    [386,307,0.25,"grass",1],
     [386,308,0.25,"grass",0],
     [386,309,0,"grass",0],
     [386,310,0,"grass",0],
@@ -189,7 +189,7 @@
     [389,312,0,"grass",0],
     [389,313,0,"grass",0],
     [389,314,0,"grass",0],
-    [389,315,0,"grass",1],
+    [389,315,0,"grass",0],
     [389,316,0,"grass",0],
     [389,317,0,"grass",0],
     [389,318,0,"grass",0],
@@ -230,7 +230,7 @@
     [391,289,0,"grass",0],
     [391,290,0,"grass",0],
     [391,291,0,"grass",0],
-    [391,292,0,"grass",1],
+    [391,292,0,"grass",0],
     [391,293,0,"grass",0],
     [391,294,0,"grass",0],
     [391,295,0,"grass",0],
@@ -815,7 +815,7 @@
     [409,298,0,"moss",0],
     [409,299,0,"moss",0],
     [409,300,0,"mud",0],
-    [409,301,0,"mud",0],
+    [409,301,0,"mud",1],
     [409,302,0,"mud",0],
     [409,303,0,"mud",0],
     [409,304,0,"mud",0],
@@ -1098,16 +1098,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_9:1","q":391,"r":309,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_9:2","q":392,"r":298,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_9:1","q":385,"r":310,"mobs":["benalish-deserter","ghitu-firebrand","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_9:2","q":392,"r":298,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"12_9:3","q":400,"r":315,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_9:4","q":402,"r":303,"mobs":["cabal-initiate","phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_9:5","q":405,"r":291,"mobs":["cabal-initiate","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_9:6","q":411,"r":306,"mobs":["cabal-initiate","phyrexian-scout"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"12_9:4","q":403,"r":304,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_9:5","q":407,"r":293,"mobs":["phyrexian-scout","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"12_9:c1","q":389,"r":315,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"12_9:c2","q":391,"r":292,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"12_9:c1","q":386,"r":307,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"12_9:c2","q":409,"r":301,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

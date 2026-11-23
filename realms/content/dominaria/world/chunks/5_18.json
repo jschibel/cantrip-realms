@@ -177,7 +177,7 @@
     [165,588,0,"forest",0],
     [165,589,0,"grass",0],
     [165,590,0,"grass",0],
-    [165,591,0,"grass",0],
+    [165,591,0,"grass",1],
     [165,592,0,"grass",0],
     [165,593,0,"grass",1],
     [165,594,0,"grass",0],
@@ -752,7 +752,7 @@
     [183,587,0,"meadow",0],
     [183,588,0,"meadow",0],
     [183,589,0,"forest",0],
-    [183,590,0,"forest",1],
+    [183,590,0,"forest",0],
     [183,591,0,"forest",0],
     [183,592,0,"forest",0],
     [183,593,0,"forest",0],
@@ -967,7 +967,7 @@
     [190,578,0,"forest",0],
     [190,579,0,"forest",0],
     [190,580,0,"forest",0],
-    [190,581,0,"forest",0],
+    [190,581,0,"forest",1],
     [190,582,0,"forest",0],
     [190,583,0,"meadow",1],
     [190,584,0,"meadow",0],
@@ -1158,17 +1158,18 @@
     {"id":"thran-spire-waystone","q":182,"r":604,"kind":"waystone","tower":"thran-spire","name":"The waystone of the Thran Spire"}
   ],
   "spawns": [
-    {"id":"5_18:1","q":164,"r":603,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:2","q":165,"r":588,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:3","q":173,"r":605,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:4","q":179,"r":576,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:5","q":180,"r":591,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:6","q":190,"r":593,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:7","q":191,"r":578,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"5_18:8","q":191,"r":606,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"5_18:1","q":164,"r":583,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:2","q":169,"r":599,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:3","q":171,"r":587,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:4","q":174,"r":605,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:5","q":179,"r":576,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:6","q":180,"r":591,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:7","q":187,"r":580,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"5_18:8","q":190,"r":593,"mobs":["phyrexian-gorger","yavimaya-ancient"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"5_18:c1","q":183,"r":590,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"5_18:c1","q":165,"r":591,"gold":[300,500],"respawnSeconds":86400},
+    {"id":"5_18:c2","q":190,"r":581,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":183,"r":604,"dungeon":"thran-spire"}

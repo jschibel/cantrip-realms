@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { celMaterial } from "../look";
-import type { PropKind } from "../maps/schema";
+import type { PropKind } from "../world/schema";
 
 // Scenery built from boxes, the way the spike's trees and spell table were, in the palette's colors (palette.ts). A
 // map's props are merged into one lit mesh and one glowing one (a town has hundreds of them), each box carrying its

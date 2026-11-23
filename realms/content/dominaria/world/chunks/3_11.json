@@ -610,7 +610,7 @@
     [114,381,0.75,"hills",0],
     [114,382,0.75,"hills",0],
     [114,383,0.75,"hills",0],
-    [115,352,0,"grass",0],
+    [115,352,0,"grass",1],
     [115,353,0,"grass",0],
     [115,354,0,"grass",0],
     [115,355,0,"grass",0],
@@ -882,7 +882,7 @@
     [123,365,0.5,"grass",0],
     [123,366,0.5,"grass",0],
     [123,367,0.25,"grass",0],
-    [123,368,0.25,"grass",1],
+    [123,368,0.25,"grass",0],
     [123,369,0.25,"grass",0],
     [123,370,0.25,"grass",0],
     [123,371,0.25,"grass",0],
@@ -962,7 +962,7 @@
     [125,381,0.75,"hills",0],
     [125,382,0.5,"grass",0],
     [125,383,0.5,"grass",0],
-    [126,352,0,"grass",1],
+    [126,352,0,"grass",0],
     [126,353,0.25,"grass",0],
     [126,354,0.25,"grass",0],
     [126,355,0.25,"grass",0],
@@ -1002,7 +1002,7 @@
     [127,357,0.5,"grass",0],
     [127,358,0.5,"grass",0],
     [127,359,0.5,"grass",0],
-    [127,360,0.5,"grass",0],
+    [127,360,0.5,"grass",1],
     [127,361,0.5,"grass",0],
     [127,362,0.5,"grass",0],
     [127,363,0.5,"grass",0],
@@ -1025,7 +1025,7 @@
     [127,380,0.75,"hills",0],
     [127,381,0.75,"hills",0],
     [127,382,0.5,"grass",0],
-    [127,383,0.5,"grass",0]
+    [127,383,0.5,"grass",1]
   ],
   "props": [
     {"q":97,"r":364,"kind":"tree"},
@@ -1068,6 +1068,7 @@
     {"q":113,"r":378,"kind":"tree"},
     {"q":114,"r":371,"kind":"tree"},
     {"q":114,"r":376,"kind":"bush"},
+    {"q":115,"r":352,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":115,"r":374,"kind":"tree"},
     {"q":115,"r":378,"kind":"tree"},
     {"q":116,"r":355,"kind":"boulder"},
@@ -1097,23 +1098,21 @@
     {"q":124,"r":373,"kind":"tree"},
     {"q":125,"r":362,"kind":"bush"},
     {"q":125,"r":376,"kind":"tree"},
-    {"q":126,"r":352,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":126,"r":377,"kind":"bush"},
     {"q":127,"r":374,"kind":"tree"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_11:1","q":96,"r":363,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_11:2","q":104,"r":376,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_11:3","q":106,"r":365,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_11:4","q":117,"r":360,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_11:5","q":124,"r":371,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"3_11:6","q":126,"r":382,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"3_11:1","q":102,"r":373,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_11:2","q":109,"r":381,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_11:3","q":114,"r":364,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"3_11:4","q":124,"r":371,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
     {"id":"3_11:c1","q":99,"r":373,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"3_11:c2","q":123,"r":368,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"3_11:c2","q":127,"r":360,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"3_11:c3","q":127,"r":383,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":104,"r":356,"dungeon":"benalish-barrow-caves"}

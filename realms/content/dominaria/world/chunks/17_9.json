@@ -90,7 +90,7 @@
     [546,309,0,"mud",0],
     [546,310,0,"mud",0],
     [546,311,0,"mud",0],
-    [546,312,0,"mud",1],
+    [546,312,0,"mud",0],
     [546,313,0,"mud",0],
     [546,314,0,"mud",0],
     [546,315,0,"mud",1],
@@ -363,7 +363,7 @@
     [555,294,0,"mud",0],
     [555,295,0,"mud",0],
     [555,296,0,"moss",0],
-    [555,297,0,"moss",0],
+    [555,297,0,"moss",1],
     [555,298,0,"moss",0],
     [555,299,0,"moss",0],
     [555,300,0,"mud",0],
@@ -753,7 +753,7 @@
     [567,300,0,"mud",0],
     [567,301,0,"mud",0],
     [567,302,0,"mud",0],
-    [567,303,0,"mud",1],
+    [567,303,0,"mud",0],
     [567,304,0,"mud",0],
     [567,305,-0.1,"swamp",1],
     [567,306,-0.1,"swamp",1],
@@ -1170,16 +1170,14 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_9:1","q":549,"r":304,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_9:1","q":548,"r":308,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"17_9:2","q":550,"r":293,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_9:3","q":559,"r":314,"mobs":["yawgmoth-cultist"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"17_9:4","q":561,"r":296,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"17_9:5","q":570,"r":301,"mobs":["phyrexian-gorger","phyrexian-horror","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"17_9:6","q":574,"r":289,"mobs":["fallen-seraph","gitaxian-mindcutter","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"17_9:3","q":552,"r":318,"mobs":["yawgmoth-cultist"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"17_9:4","q":567,"r":288,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"17_9:5","q":570,"r":300,"mobs":["phyrexian-negator","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"17_9:c1","q":546,"r":312,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"17_9:c2","q":567,"r":303,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"17_9:c1","q":555,"r":297,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

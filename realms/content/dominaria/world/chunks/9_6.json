@@ -100,7 +100,7 @@
     [290,223,0.5,"grass",0],
     [291,192,0,"grass",0],
     [291,193,0.25,"grass",0],
-    [291,194,0.25,"grass",0],
+    [291,194,0.25,"grass",1],
     [291,195,0.25,"grass",0],
     [291,196,0.25,"grass",0],
     [291,197,0.25,"grass",0],
@@ -146,7 +146,7 @@
     [292,205,0,"grass",0],
     [292,206,0,"grass",0],
     [292,207,0,"grass",0],
-    [292,208,0,"meadow",1],
+    [292,208,0,"meadow",0],
     [292,209,0,"meadow",0],
     [292,210,0,"meadow",0],
     [292,211,0,"meadow",0],
@@ -552,7 +552,7 @@
     [305,195,0,"grass",0],
     [305,196,0,"grass",0],
     [305,197,0,"grass",0],
-    [305,198,0,"grass",0],
+    [305,198,0,"grass",1],
     [305,199,0,"grass",0],
     [305,200,0,"grass",0],
     [305,201,0,"grass",0],
@@ -845,7 +845,7 @@
     [314,200,0,"sand",0],
     [314,201,0,"sand",0],
     [314,202,0.25,"sand",0],
-    [314,203,0,"grass",1],
+    [314,203,0,"grass",0],
     [314,204,0.25,"grass",0],
     [314,205,0.25,"sand",0],
     [314,206,0.25,"sand",0],
@@ -1007,7 +1007,7 @@
     [319,202,0.25,"grass",0],
     [319,203,0.25,"grass",1],
     [319,204,0.25,"grass",0],
-    [319,205,0.25,"grass",0],
+    [319,205,0.25,"grass",1],
     [319,206,0.25,"sand",0],
     [319,207,0.25,"sand",0],
     [319,208,0.25,"sand",0],
@@ -1021,9 +1021,9 @@
     [319,216,0,"sand",0],
     [319,217,0,"sand",0],
     [319,218,0,"sand",0],
-    [319,219,0,"sand",1],
+    [319,219,0,"sand",0],
     [319,220,0,"sand",0],
-    [319,221,0,"sand",0],
+    [319,221,0,"sand",1],
     [319,222,0,"sand",0],
     [319,223,0,"grass",0]
   ],
@@ -1062,21 +1062,22 @@
     {"q":313,"r":210,"kind":"boulder"},
     {"q":317,"r":210,"kind":"crystal"},
     {"q":319,"r":203,"kind":"boulder"},
-    {"q":319,"r":219,"kind":"waymarker","tier":2,"style":"stone"}
+    {"q":319,"r":205,"kind":"waymarker","tier":2,"style":"stone"},
+    {"q":319,"r":221,"kind":"waymarker","tier":2,"style":"stone"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_6:1","q":290,"r":201,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:2","q":295,"r":210,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:3","q":299,"r":220,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:4","q":305,"r":198,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:5","q":307,"r":208,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_6:6","q":315,"r":213,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_6:1","q":295,"r":210,"mobs":["kjeldoran-raider","serra-zealot"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:2","q":299,"r":220,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:3","q":304,"r":194,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:4","q":306,"r":205,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:5","q":313,"r":211,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_6:6","q":319,"r":218,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"9_6:c1","q":292,"r":208,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"9_6:c2","q":314,"r":203,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"9_6:c1","q":291,"r":194,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"9_6:c2","q":305,"r":198,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

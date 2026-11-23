@@ -197,7 +197,7 @@
     [230,512,0,"grass",0],
     [230,513,0,"grass",0],
     [230,514,0,"grass",0],
-    [230,515,0,"moss",0],
+    [230,515,0,"moss",1],
     [230,516,0,"moss",0],
     [230,517,0,"rock",0],
     [230,518,0,"rock",0],
@@ -218,7 +218,7 @@
     [230,533,0.25,"rock",0],
     [230,534,0.25,"rock",0],
     [230,535,0,"rock",0],
-    [230,536,0.25,"rock",1],
+    [230,536,0.25,"rock",0],
     [230,537,0.25,"rock",0],
     [230,538,0.25,"ash",1],
     [230,539,0.25,"ash",0],
@@ -348,7 +348,7 @@
     [234,535,0.5,"ash",0],
     [234,536,0.25,"ash",0],
     [234,537,0.25,"ash",0],
-    [234,538,0.25,"ash",0],
+    [234,538,0.25,"ash",1],
     [234,539,0.5,"ash",0],
     [234,540,0.5,"ash",0],
     [234,541,0.5,"ash",0],
@@ -579,7 +579,7 @@
     [241,542,0.75,"ash",0],
     [241,543,0.75,"ash",0],
     [242,512,0.75,"rock",0],
-    [242,513,0.75,"ash",1],
+    [242,513,0.75,"ash",0],
     [242,514,0.75,"ash",0],
     [242,515,0.75,"ash",0],
     [242,516,1,"ash",0],
@@ -712,7 +712,7 @@
     [246,515,0.75,"ash",0],
     [246,516,0.75,"ash",0],
     [246,517,1,"ash",0],
-    [246,518,1,"ash",0],
+    [246,518,1,"ash",1],
     [246,519,1,"ash",0],
     [246,520,1,"ash",0],
     [246,521,1,"ash",0],
@@ -1010,7 +1010,7 @@
     [255,525,1,"ash",0],
     [255,526,1,"ash",0],
     [255,527,1,"rock",0],
-    [255,528,1,"rock",1],
+    [255,528,1,"rock",0],
     [255,529,1,"ash",0],
     [255,530,1,"ash",0],
     [255,531,0.75,"ash",0],
@@ -1119,15 +1119,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_16:1","q":225,"r":541,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_16:2","q":234,"r":520,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_16:3","q":239,"r":531,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_16:4","q":250,"r":524,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_16:1","q":228,"r":528,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:2","q":235,"r":534,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:3","q":242,"r":518,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:4","q":247,"r":524,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:5","q":247,"r":535,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_16:6","q":250,"r":543,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"7_16:c1","q":230,"r":536,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"7_16:c2","q":242,"r":513,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"7_16:c3","q":255,"r":528,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"7_16:c1","q":230,"r":515,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"7_16:c2","q":234,"r":538,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"7_16:c3","q":246,"r":518,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

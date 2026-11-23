@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import type { Character } from "./character";
 import { type Hex, distance, equals, findPath, neighbors, spiral } from "./hex";
-import type { SpawnData } from "./maps/schema";
+import type { SpawnData } from "./world/schema";
 import type { MobInfo } from "./mobs";
 
-// What walks a map hex by hex: the player, the mobs, and the other players on the same map instance, each a Walker
+// What walks the ground hex by hex: the player, the mobs, and the other players in the same area, each a Walker
 // that steps along a path at a speed. Mobs think for themselves (wander near their spawn, chase the player within
 // six hexes, a little slower than the player walks); other players walk the paths the relay sends.
 
@@ -116,6 +116,8 @@ export class Mob {
     readonly info: MobInfo,
     readonly spawn: SpawnData,
     readonly epoch: number,
+    /** A dungeon run's encounter: the floor and its index (the warden's and the boss's are negative). */
+    readonly run?: { readonly floor: number; readonly index: number; readonly role: string },
   ) {}
 
   get home(): Hex {

@@ -23,9 +23,9 @@
     [480,146,0.25,"grass",0],
     [480,147,0.25,"sand",0],
     [480,148,0.25,"sand",0],
-    [480,149,0.25,"sand",1],
+    [480,149,0.25,"sand",0],
     [480,150,0.25,"sand",0],
-    [480,151,0.25,"sand",0],
+    [480,151,0.25,"sand",1],
     [480,152,0.25,"sand",0],
     [480,153,0.25,"sand",0],
     [480,154,0.25,"grass",0],
@@ -198,7 +198,7 @@
     [486,129,0,"grass",0],
     [486,130,0,"grass",0],
     [486,131,0,"grass",0],
-    [486,132,0,"grass",0],
+    [486,132,0,"grass",1],
     [486,133,0,"grass",0],
     [486,134,0,"grass",0],
     [486,135,0,"grass",0],
@@ -217,7 +217,7 @@
     [486,148,0,"grass",0],
     [486,149,0,"grass",1],
     [486,150,0,"grass",0],
-    [486,151,0,"sand",0],
+    [486,151,0,"sand",1],
     [486,152,0,"sand",0],
     [486,153,0,"sand",0],
     [486,154,0,"sand",0],
@@ -466,7 +466,7 @@
     [494,141,0,"sand",0],
     [494,142,0,"sand",0],
     [494,143,0,"sand",0],
-    [494,144,0,"sand",1],
+    [494,144,0,"sand",0],
     [494,145,0,"sand",0],
     [494,146,0,"sand",0],
     [494,147,0,"sand",0],
@@ -992,7 +992,7 @@
     [510,155,0,"mud",0],
     [510,156,0,"mud",0],
     [510,157,0,"mud",0],
-    [510,158,0,"mud",0],
+    [510,158,0,"mud",1],
     [510,159,0,"mud",0],
     [511,128,0,"sand",0],
     [511,129,0,"sand",0],
@@ -1029,7 +1029,7 @@
   ],
   "props": [
     {"q":480,"r":132,"kind":"crystal"},
-    {"q":480,"r":149,"kind":"waymarker","tier":2,"style":"stone"},
+    {"q":480,"r":151,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":481,"r":129,"kind":"boulder"},
     {"q":481,"r":135,"kind":"pine"},
     {"q":481,"r":138,"kind":"bush"},
@@ -1073,15 +1073,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_4:1","q":486,"r":132,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:2","q":487,"r":158,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:3","q":492,"r":147,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:4","q":503,"r":132,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:5","q":506,"r":141,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"15_4:6","q":508,"r":158,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"15_4:1","q":480,"r":149,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:2","q":482,"r":134,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:3","q":487,"r":158,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:4","q":492,"r":135,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:5","q":492,"r":147,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"15_4:6","q":503,"r":144,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"15_4:c1","q":494,"r":144,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"15_4:c1","q":486,"r":132,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"15_4:c2","q":486,"r":151,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"15_4:c3","q":510,"r":158,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

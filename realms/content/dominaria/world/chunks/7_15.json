@@ -131,7 +131,7 @@
     [227,510,0,"grass",1],
     [227,511,0,"grass",0],
     [228,480,0,"moss",0],
-    [228,481,0,"moss",0],
+    [228,481,0,"moss",1],
     [228,482,0,"moss",0],
     [228,483,0,"grass",0],
     [228,484,0,"grass",0],
@@ -1175,13 +1175,18 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_15:1","q":230,"r":483,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:2","q":238,"r":497,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:3","q":242,"r":506,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:4","q":243,"r":481,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:5","q":253,"r":492,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:6","q":254,"r":510,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"7_15:1","q":224,"r":499,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:2","q":230,"r":483,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:3","q":234,"r":509,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:4","q":239,"r":496,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:5","q":242,"r":481,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:6","q":247,"r":506,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:7","q":251,"r":484,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:8","q":253,"r":493,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:9","q":254,"r":510,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"7_15:c1","q":228,"r":481,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": []
 }

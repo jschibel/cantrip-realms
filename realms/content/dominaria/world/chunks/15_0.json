@@ -697,7 +697,7 @@
     [501,20,-0.2,"deep-water",1],
     [501,21,-0.2,"deep-water",1],
     [501,22,0.25,"sand",0],
-    [501,23,0.25,"sand",1],
+    [501,23,0.25,"sand",0],
     [501,24,0.5,"sand",0],
     [501,25,0.5,"sand",0],
     [501,26,0.5,"sand",0],
@@ -892,7 +892,7 @@
     [507,23,0.25,"sand",0],
     [507,24,0.25,"sand",0],
     [507,25,0.25,"sand",0],
-    [507,26,0.25,"sand",0],
+    [507,26,0.25,"sand",1],
     [507,27,0.25,"sand",0],
     [507,28,0.25,"sand",0],
     [507,29,0.5,"sand",0],
@@ -1034,11 +1034,11 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_0:1","q":496,"r":21,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"15_0:2","q":508,"r":22,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"15_0:1","q":499,"r":25,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_0:2","q":511,"r":22,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"15_0:c1","q":501,"r":23,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"15_0:c1","q":507,"r":26,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

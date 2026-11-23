@@ -11,7 +11,7 @@
     [352,102,0.25,"grass",1],
     [352,103,0.25,"grass",1],
     [352,104,0.25,"grass",0],
-    [352,105,0.25,"grass",1],
+    [352,105,0.25,"grass",0],
     [352,106,0.25,"grass",0],
     [352,107,0.25,"grass",0],
     [352,108,0,"grass",0],
@@ -239,7 +239,7 @@
     [359,106,0.25,"grass",0],
     [359,107,0,"grass",0],
     [359,108,0,"grass",0],
-    [359,109,0,"grass",0],
+    [359,109,0,"grass",1],
     [359,110,0,"grass",0],
     [359,111,0,"grass",1],
     [359,112,0,"grass",1],
@@ -500,7 +500,7 @@
     [367,111,0,"grass",0],
     [367,112,0,"grass",1],
     [367,113,0,"grass",0],
-    [367,114,0,"grass",0],
+    [367,114,0,"grass",1],
     [367,115,0,"grass",0],
     [367,116,0,"grass",0],
     [367,117,0,"grass",0],
@@ -743,7 +743,7 @@
     [375,98,0.25,"grass",0],
     [375,99,0.25,"grass",0],
     [375,100,0.25,"grass",0],
-    [375,101,0.25,"grass",1],
+    [375,101,0.25,"grass",0],
     [375,102,0.25,"grass",0],
     [375,103,0.25,"grass",0],
     [375,104,0.25,"grass",0],
@@ -1023,8 +1023,8 @@
     [383,122,0.25,"grass",0],
     [383,123,0.25,"stone",1],
     [383,124,0.25,"stone",0],
-    [383,125,0.25,"sand",1],
-    [383,126,0.25,"sand",1],
+    [383,125,0.25,"sand",0],
+    [383,126,0.25,"sand",0],
     [383,127,0.25,"sand",1]
   ],
   "props": [
@@ -1041,6 +1041,7 @@
     {"q":358,"r":98,"kind":"bush"},
     {"q":358,"r":121,"kind":"pine"},
     {"q":358,"r":125,"kind":"pine"},
+    {"q":359,"r":109,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":359,"r":111,"kind":"pine"},
     {"q":359,"r":112,"kind":"pine"},
     {"q":359,"r":119,"kind":"rock"},
@@ -1080,21 +1081,19 @@
     {"q":382,"r":106,"kind":"pine"},
     {"q":382,"r":124,"kind":"wall","style":"tolarian"},
     {"q":383,"r":123,"kind":"wall","style":"tolarian"},
-    {"q":383,"r":127,"kind":"tree"}
+    {"q":383,"r":127,"kind":"bush"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
     {"id":"11_3:1","q":353,"r":126,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
     {"id":"11_3:2","q":361,"r":109,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_3:3","q":371,"r":113,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_3:4","q":372,"r":102,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_3:5","q":374,"r":124,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"11_3:6","q":383,"r":99,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"11_3:3","q":372,"r":113,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_3:4","q":374,"r":124,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"11_3:5","q":383,"r":99,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"11_3:c1","q":352,"r":105,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"11_3:c2","q":375,"r":101,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"11_3:c1","q":367,"r":114,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

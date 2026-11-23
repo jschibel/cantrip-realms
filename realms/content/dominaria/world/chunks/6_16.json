@@ -66,7 +66,7 @@
     [193,541,0.25,"forest",1],
     [193,542,0.25,"forest",0],
     [193,543,0.25,"forest",0],
-    [194,512,0.5,"grass",1],
+    [194,512,0.5,"grass",0],
     [194,513,0.5,"grass",0],
     [194,514,0.25,"grass",0],
     [194,515,0.25,"grass",0],
@@ -96,7 +96,7 @@
     [194,539,0.25,"grass",0],
     [194,540,0.25,"forest",0],
     [194,541,0.25,"forest",0],
-    [194,542,0.25,"forest",0],
+    [194,542,0.25,"forest",1],
     [194,543,0.25,"forest",0],
     [195,512,0.5,"grass",0],
     [195,513,0.5,"grass",0],
@@ -258,7 +258,7 @@
     [199,541,0,"grass",0],
     [199,542,0,"grass",0],
     [199,543,0,"grass",0],
-    [200,512,0.5,"grass",0],
+    [200,512,0.5,"grass",1],
     [200,513,0.5,"grass",0],
     [200,514,0.5,"grass",0],
     [200,515,0.5,"grass",0],
@@ -526,7 +526,7 @@
     [208,521,0,"forest",0],
     [208,522,0,"forest",0],
     [208,523,0,"forest",0],
-    [208,524,0,"forest",0],
+    [208,524,0,"forest",1],
     [208,525,0,"moss",0],
     [208,526,0.25,"moss",0],
     [208,527,0.25,"road",0],
@@ -539,7 +539,7 @@
     [208,534,0.25,"grass",0],
     [208,535,0.25,"grass",1],
     [208,536,0.25,"grass",0],
-    [208,537,0.25,"grass",1],
+    [208,537,0.25,"grass",0],
     [208,538,0.25,"grass",0],
     [208,539,0.25,"grass",1],
     [208,540,0.25,"grass",0],
@@ -762,7 +762,7 @@
     [215,533,0,"grass",1],
     [215,534,0,"grass",0],
     [215,535,0,"grass",0],
-    [215,536,0,"grass",0],
+    [215,536,0,"grass",1],
     [215,537,0,"grass",0],
     [215,538,0,"forest",0],
     [215,539,0,"forest",0],
@@ -1023,9 +1023,9 @@
     [223,538,1.25,"mountain",1],
     [223,539,1.25,"mountain",1],
     [223,540,1.25,"mountain",1],
-    [223,541,0,"rock",1],
+    [223,541,0,"rock",0],
     [223,542,0,"ash",0],
-    [223,543,0,"ash",0]
+    [223,543,0,"ash",1]
   ],
   "props": [
     {"q":192,"r":514,"kind":"tree"},
@@ -1199,22 +1199,24 @@
     {"q":223,"r":526,"kind":"pine"},
     {"q":223,"r":529,"kind":"bush"},
     {"q":223,"r":534,"kind":"pine"},
-    {"q":223,"r":541,"kind":"waymarker","tier":3,"style":"stone"}
+    {"q":223,"r":543,"kind":"waymarker","tier":3,"style":"stone"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
     {"id":"6_16:1","q":192,"r":516,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_16:2","q":200,"r":521,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_16:3","q":201,"r":539,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_16:2","q":200,"r":536,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"6_16:3","q":201,"r":518,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"6_16:4","q":212,"r":526,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"6_16:5","q":213,"r":541,"mobs":["krosan-beast"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_16:6","q":220,"r":529,"mobs":["krosan-beast"],"radius":4,"respawnSeconds":600,"tier":3},
-    {"id":"6_16:7","q":222,"r":514,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"6_16:5","q":212,"r":541,"mobs":["krosan-beast"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_16:6","q":222,"r":542,"mobs":["krosan-beast"],"radius":4,"respawnSeconds":600,"tier":3},
+    {"id":"6_16:7","q":223,"r":513,"mobs":["multani-guard","yavimaya-wurm"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"6_16:c1","q":194,"r":512,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"6_16:c2","q":208,"r":537,"gold":[180,380],"respawnSeconds":86400}
+    {"id":"6_16:c1","q":194,"r":542,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"6_16:c2","q":200,"r":512,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"6_16:c3","q":208,"r":524,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"6_16:c4","q":215,"r":536,"gold":[180,380],"respawnSeconds":86400}
   ],
   "entrances": []
 }

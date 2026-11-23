@@ -55,7 +55,7 @@
     [353,50,0,"grass",0],
     [353,51,0,"grass",0],
     [353,52,0,"grass",0],
-    [353,53,0,"grass",1],
+    [353,53,0,"grass",0],
     [353,54,0,"sand",0],
     [353,55,-0.2,"deep-water",1],
     [353,56,-0.2,"deep-water",1],
@@ -173,7 +173,7 @@
     [357,40,0,"grass",0],
     [357,41,0,"grass",0],
     [357,42,0,"grass",0],
-    [357,43,0,"grass",0],
+    [357,43,0,"grass",1],
     [357,44,0,"grass",0],
     [357,45,0,"grass",0],
     [357,46,0,"grass",1],
@@ -612,7 +612,7 @@
     [370,63,0,"sand",0],
     [371,32,0,"sand",0],
     [371,33,0,"grass",0],
-    [371,34,0,"grass",1],
+    [371,34,0,"grass",0],
     [371,35,0,"grass",0],
     [371,36,0,"sand",0],
     [371,37,0,"sand",0],
@@ -1053,15 +1053,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_1:1","q":358,"r":34,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_1:2","q":362,"r":41,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_1:1","q":353,"r":49,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"11_1:2","q":354,"r":36,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"11_1:3","q":370,"r":44,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_1:4","q":379,"r":33,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"11_1:5","q":383,"r":41,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"11_1:4","q":383,"r":41,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"11_1:c1","q":353,"r":53,"gold":[300,500],"respawnSeconds":86400},
-    {"id":"11_1:c2","q":371,"r":34,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"11_1:c1","q":357,"r":43,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

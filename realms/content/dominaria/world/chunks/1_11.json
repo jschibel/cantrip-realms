@@ -469,7 +469,7 @@
     [46,368,0.25,"snow",0],
     [46,369,0.25,"snow",0],
     [46,370,0.25,"snow",0],
-    [46,371,0.25,"snow",1],
+    [46,371,0.25,"snow",0],
     [46,372,0,"snow",0],
     [46,373,0,"snow",0],
     [46,374,0,"snow",0],
@@ -726,7 +726,7 @@
     [54,369,0.25,"grass",1],
     [54,370,0.25,"grass",0],
     [54,371,0.25,"grass",0],
-    [54,372,0.25,"grass",0],
+    [54,372,0.25,"grass",1],
     [54,373,0.25,"grass",0],
     [54,374,0.25,"grass",0],
     [54,375,0,"grass",0],
@@ -1102,15 +1102,16 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"1_11:1","q":40,"r":366,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_11:2","q":42,"r":383,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_11:1","q":35,"r":365,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_11:2","q":41,"r":373,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
     {"id":"1_11:3","q":45,"r":354,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_11:4","q":49,"r":372,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_11:5","q":52,"r":361,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"1_11:6","q":62,"r":373,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"1_11:4","q":47,"r":381,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_11:5","q":52,"r":368,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_11:6","q":58,"r":352,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"1_11:7","q":62,"r":373,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"1_11:c1","q":46,"r":371,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"1_11:c1","q":54,"r":372,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -638,7 +638,7 @@
     [83,281,0.25,"grass",1],
     [83,282,0.25,"grass",0],
     [83,283,0.25,"grass",0],
-    [83,284,0.25,"grass",0],
+    [83,284,0.25,"grass",1],
     [83,285,0.25,"grass",0],
     [83,286,0.25,"snow",0],
     [83,287,0,"snow",1],
@@ -754,7 +754,7 @@
     [87,269,0.25,"sand",0],
     [87,270,0.25,"sand",0],
     [87,271,0.25,"grass",0],
-    [87,272,0.25,"meadow",1],
+    [87,272,0.25,"meadow",0],
     [87,273,0.25,"meadow",0],
     [87,274,0.5,"meadow",0],
     [87,275,0.5,"meadow",0],
@@ -1061,10 +1061,10 @@
   "npcs": [],
   "spawns": [
     {"id":"2_8:1","q":80,"r":276,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"2_8:2","q":89,"r":279,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"2_8:2","q":88,"r":280,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"2_8:c1","q":87,"r":272,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"2_8:c1","q":83,"r":284,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

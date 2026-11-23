@@ -115,7 +115,7 @@
     [291,174,0,"road",0],
     [291,175,0,"grass",0],
     [291,176,0,"grass",0],
-    [291,177,0,"grass",0],
+    [291,177,0,"grass",1],
     [291,178,0,"grass",0],
     [291,179,0,"grass",0],
     [291,180,0,"sand",0],
@@ -315,7 +315,7 @@
     [297,182,0,"sand",0],
     [297,183,0,"sand",0],
     [297,184,0,"sand",0],
-    [297,185,0,"sand",1],
+    [297,185,0,"sand",0],
     [297,186,0,"grass",0],
     [297,187,0.25,"grass",0],
     [297,188,0.25,"sand",0],
@@ -842,7 +842,7 @@
     [314,165,0,"grass",0],
     [314,166,0,"grass",0],
     [314,167,0,"grass",0],
-    [314,168,0,"grass",0],
+    [314,168,0,"grass",1],
     [314,169,0,"sand",0],
     [314,170,0,"sand",0],
     [314,171,0,"grass",0],
@@ -935,7 +935,7 @@
     [317,162,0,"grass",1],
     [317,163,0,"grass",0],
     [317,164,0,"sand",0],
-    [317,165,0,"sand",1],
+    [317,165,0,"sand",0],
     [317,166,0,"sand",0],
     [317,167,0,"sand",0],
     [317,168,0,"sand",0],
@@ -1014,7 +1014,7 @@
     [319,177,0,"grass",0],
     [319,178,0,"grass",0],
     [319,179,0,"grass",0],
-    [319,180,0,"grass",0],
+    [319,180,0,"grass",1],
     [319,181,0,"grass",0],
     [319,182,0,"grass",0],
     [319,183,0,"grass",1],
@@ -1025,7 +1025,7 @@
     [319,188,0,"grass",0],
     [319,189,0,"sand",0],
     [319,190,0,"sand",0],
-    [319,191,0,"sand",1]
+    [319,191,0,"sand",0]
   ],
   "props": [
     {"q":288,"r":170,"kind":"reeds"},
@@ -1063,25 +1063,26 @@
     {"q":317,"r":162,"kind":"boulder"},
     {"q":318,"r":190,"kind":"boulder"},
     {"q":319,"r":173,"kind":"waymarker","tier":2,"style":"banner"},
+    {"q":319,"r":180,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":319,"r":183,"kind":"bush"},
     {"q":319,"r":185,"kind":"boulder"},
-    {"q":319,"r":187,"kind":"rock"},
-    {"q":319,"r":191,"kind":"waymarker","tier":2,"style":"stone"}
+    {"q":319,"r":187,"kind":"rock"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_5:1","q":294,"r":183,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:1","q":292,"r":184,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
     {"id":"9_5:2","q":295,"r":172,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:3","q":300,"r":189,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:4","q":306,"r":165,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:5","q":311,"r":172,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:6","q":316,"r":191,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"9_5:7","q":318,"r":176,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"9_5:3","q":298,"r":161,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:4","q":298,"r":189,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:5","q":306,"r":165,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:6","q":310,"r":172,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:7","q":315,"r":178,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"9_5:8","q":315,"r":191,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"9_5:c1","q":297,"r":185,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"9_5:c2","q":317,"r":165,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"9_5:c1","q":291,"r":177,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"9_5:c2","q":314,"r":168,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

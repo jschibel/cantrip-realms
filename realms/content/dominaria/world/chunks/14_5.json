@@ -18,7 +18,7 @@
     [448,173,0.25,"grass",0],
     [448,174,0.25,"grass",0],
     [448,175,0.25,"grass",0],
-    [448,176,0,"sand",1],
+    [448,176,0,"sand",0],
     [448,177,0,"sand",0],
     [448,178,-0.1,"water",1],
     [448,179,-0.1,"water",1],
@@ -365,7 +365,7 @@
     [459,168,0,"grass",0],
     [459,169,0,"grass",0],
     [459,170,0,"grass",0],
-    [459,171,0,"sand",1],
+    [459,171,0,"sand",0],
     [459,172,0,"sand",0],
     [459,173,0,"sand",0],
     [459,174,0,"grass",0],
@@ -398,7 +398,7 @@
     [460,169,0,"grass",0],
     [460,170,0,"grass",0],
     [460,171,0,"sand",0],
-    [460,172,0,"sand",0],
+    [460,172,0,"sand",1],
     [460,173,0,"grass",0],
     [460,174,0,"grass",0],
     [460,175,0,"grass",0],
@@ -833,7 +833,7 @@
     [473,188,0,"mud",0],
     [473,189,0,"mud",0],
     [473,190,0,"mud",0],
-    [473,191,0,"mud",0],
+    [473,191,0,"mud",1],
     [474,160,0,"grass",0],
     [474,161,0,"grass",0],
     [474,162,0,"grass",0],
@@ -977,7 +977,7 @@
     [478,172,0,"moss",0],
     [478,173,0,"moss",0],
     [478,174,0,"moss",0],
-    [478,175,0,"moss",1],
+    [478,175,0,"moss",0],
     [478,176,0,"mud",0],
     [478,177,0,"mud",0],
     [478,178,0,"mud",1],
@@ -1030,7 +1030,6 @@
   "props": [
     {"q":448,"r":160,"kind":"crystal"},
     {"q":448,"r":169,"kind":"bush"},
-    {"q":448,"r":176,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":449,"r":161,"kind":"pine"},
     {"q":449,"r":166,"kind":"bush"},
     {"q":451,"r":162,"kind":"bush"},
@@ -1065,6 +1064,7 @@
     {"q":470,"r":170,"kind":"bush"},
     {"q":470,"r":173,"kind":"boulder"},
     {"q":472,"r":162,"kind":"crystal"},
+    {"q":473,"r":191,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":474,"r":184,"kind":"mushroom"},
     {"q":475,"r":163,"kind":"pine"},
     {"q":475,"r":179,"kind":"dead-tree"},
@@ -1083,17 +1083,17 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_5:1","q":451,"r":188,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:2","q":452,"r":170,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"14_5:3","q":462,"r":175,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:4","q":464,"r":164,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:5","q":465,"r":183,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:6","q":475,"r":171,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"14_5:7","q":476,"r":160,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"14_5:1","q":450,"r":174,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_5:2","q":455,"r":160,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"14_5:3","q":456,"r":186,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:4","q":462,"r":175,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:5","q":467,"r":190,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:6","q":473,"r":171,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:7","q":476,"r":160,"mobs":["academy-automaton","time-drifter"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_5:8","q":477,"r":179,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"14_5:c1","q":459,"r":171,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"14_5:c2","q":478,"r":175,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"14_5:c1","q":460,"r":172,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

@@ -22,5 +22,9 @@
   ],
   "warden": "kjeldoran-raider",
   "boss": "mage-argive-spire",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    303,
+    242
+  ]
 }

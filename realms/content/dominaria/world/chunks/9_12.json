@@ -489,7 +489,7 @@
     [303,388,0,"meadow",0],
     [303,389,0,"meadow",0],
     [303,390,0,"meadow",0],
-    [303,391,0,"meadow",0],
+    [303,391,0,"meadow",1],
     [303,392,0,"meadow",0],
     [303,393,0,"meadow",0],
     [303,394,0,"meadow",0],
@@ -722,7 +722,7 @@
     [310,397,0.25,"rock",0],
     [310,398,0.25,"rock",0],
     [310,399,0.25,"rock",0],
-    [310,400,0.5,"stone",1],
+    [310,400,0.5,"stone",0],
     [310,401,0.25,"stone",0],
     [310,402,0.25,"stone",0],
     [310,403,1.5,"mountain",1],
@@ -916,7 +916,7 @@
     [316,399,0.5,"stone",0],
     [316,400,0.75,"stone",0],
     [316,401,0.75,"stone",0],
-    [316,402,0.75,"stone",0],
+    [316,402,0.75,"stone",1],
     [316,403,0.75,"stone",0],
     [316,404,0.75,"stone",0],
     [316,405,2,"mountain",1],
@@ -1089,16 +1089,18 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_12:1","q":288,"r":387,"mobs":["coral-merfolk","goblin-warband","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:2","q":289,"r":415,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:3","q":299,"r":393,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:4","q":299,"r":404,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:5","q":303,"r":414,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:6","q":314,"r":390,"mobs":["ghitu-firebrand","goblin-warband","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"9_12:7","q":316,"r":402,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"9_12:1","q":292,"r":407,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:2","q":296,"r":384,"mobs":["cabal-initiate","llanowar-elves-pack","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:3","q":300,"r":395,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:4","q":300,"r":414,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:5","q":307,"r":384,"mobs":["coral-merfolk","ghitu-firebrand"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:6","q":308,"r":402,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:7","q":314,"r":390,"mobs":["ghitu-firebrand","goblin-warband","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"9_12:8","q":319,"r":398,"mobs":["ghitu-firebrand","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"9_12:c1","q":310,"r":400,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"9_12:c1","q":303,"r":391,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"9_12:c2","q":316,"r":402,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

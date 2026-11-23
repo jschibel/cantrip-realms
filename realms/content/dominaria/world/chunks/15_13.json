@@ -43,7 +43,7 @@
     [481,422,2.25,"mountain",1],
     [481,423,2.25,"mountain",1],
     [481,424,1,"rock",0],
-    [481,425,1,"rock",0],
+    [481,425,1,"rock",1],
     [481,426,1,"rock",0],
     [481,427,1,"rock",1],
     [481,428,1,"rock",0],
@@ -83,7 +83,7 @@
     [482,430,0.75,"rock",0],
     [482,431,0.75,"rock",0],
     [482,432,0.5,"rock",0],
-    [482,433,0.5,"rock",1],
+    [482,433,0.5,"rock",0],
     [482,434,0.75,"rock",0],
     [482,435,0.75,"rock",0],
     [482,436,0.75,"rock",0],
@@ -1066,12 +1066,13 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_13:1","q":488,"r":421,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"15_13:2","q":496,"r":424,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"15_13:3","q":508,"r":419,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"15_13:1","q":487,"r":422,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_13:2","q":488,"r":436,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_13:3","q":496,"r":424,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"15_13:4","q":509,"r":417,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"15_13:c1","q":482,"r":433,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"15_13:c1","q":481,"r":425,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

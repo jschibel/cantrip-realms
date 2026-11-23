@@ -59,7 +59,7 @@
     [193,406,0.25,"grass",0],
     [193,407,0.25,"grass",1],
     [193,408,0.25,"grass",0],
-    [193,409,0,"grass",0],
+    [193,409,0,"grass",1],
     [193,410,0,"grass",0],
     [193,411,0,"grass",0],
     [193,412,0,"grass",0],
@@ -106,7 +106,7 @@
     [195,389,0.25,"grass",0],
     [195,390,0,"grass",0],
     [195,391,0,"grass",0],
-    [195,392,0,"grass",1],
+    [195,392,0,"grass",0],
     [195,393,0,"grass",0],
     [195,394,0,"grass",0],
     [195,395,0,"grass",1],
@@ -585,7 +585,7 @@
     [210,388,0,"grass",0],
     [210,389,0,"grass",0],
     [210,390,0,"grass",0],
-    [210,391,0,"grass",0],
+    [210,391,0,"grass",1],
     [210,392,0.25,"grass",0],
     [210,393,0.25,"grass",0],
     [210,394,0.25,"grass",0],
@@ -719,7 +719,7 @@
     [214,394,0.25,"grass",0],
     [214,395,0.25,"grass",0],
     [214,396,0.25,"grass",0],
-    [214,397,0.25,"grass",1],
+    [214,397,0.25,"grass",0],
     [214,398,0.25,"grass",0],
     [214,399,0.25,"grass",0],
     [214,400,0.5,"grass",0],
@@ -1179,17 +1179,16 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_12:1","q":194,"r":397,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:2","q":202,"r":406,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:3","q":203,"r":386,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:4","q":208,"r":414,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:5","q":209,"r":394,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:6","q":214,"r":401,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"6_12:7","q":220,"r":407,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"6_12:1","q":198,"r":402,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_12:2","q":203,"r":386,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_12:3","q":208,"r":414,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_12:4","q":209,"r":395,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_12:5","q":216,"r":399,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"6_12:6","q":223,"r":410,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"6_12:c1","q":195,"r":392,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"6_12:c2","q":214,"r":397,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"6_12:c1","q":193,"r":409,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"6_12:c2","q":210,"r":391,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

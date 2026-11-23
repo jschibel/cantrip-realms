@@ -83,7 +83,7 @@
     [450,430,0.75,"rock",0],
     [450,431,0.75,"rock",0],
     [450,432,0.75,"rock",0],
-    [450,433,1,"rock",1],
+    [450,433,1,"rock",0],
     [450,434,1,"rock",0],
     [450,435,1,"rock",1],
     [450,436,1,"rock",0],
@@ -276,7 +276,7 @@
     [456,431,1,"rock",0],
     [456,432,1,"rock",0],
     [456,433,1,"ash",0],
-    [456,434,1,"ash",0],
+    [456,434,1,"ash",1],
     [456,435,2.25,"mountain",1],
     [456,436,2.25,"mountain",1],
     [456,437,1,"ash",1],
@@ -507,7 +507,7 @@
     [463,438,0.75,"ash",1],
     [463,439,0.75,"ash",0],
     [463,440,0.75,"ash",0],
-    [463,441,0.75,"rock",1],
+    [463,441,0.75,"rock",0],
     [463,442,0.75,"rock",0],
     [463,443,0.75,"rock",0],
     [463,444,0.75,"rock",0],
@@ -714,7 +714,7 @@
     [470,421,1,"rock",0],
     [470,422,1,"rock",0],
     [470,423,1,"rock",0],
-    [470,424,1,"rock",1],
+    [470,424,1,"rock",0],
     [470,425,1,"rock",0],
     [470,426,2.25,"mountain",1],
     [470,427,2.25,"mountain",1],
@@ -988,7 +988,7 @@
     [478,439,0.25,"rock",0],
     [478,440,0.25,"rock",0],
     [478,441,0.25,"rock",0],
-    [478,442,0.25,"rock",0],
+    [478,442,0.25,"rock",1],
     [478,443,0.25,"rock",0],
     [478,444,-0.1,"water",1],
     [478,445,-0.1,"water",1],
@@ -1045,6 +1045,7 @@
     {"q":454,"r":440,"kind":"pine"},
     {"q":455,"r":442,"kind":"rock"},
     {"q":456,"r":425,"kind":"rock"},
+    {"q":456,"r":434,"kind":"waymarker","tier":4,"style":"stone"},
     {"q":456,"r":437,"kind":"boulder"},
     {"q":456,"r":442,"kind":"rock"},
     {"q":457,"r":423,"kind":"boulder"},
@@ -1073,7 +1074,6 @@
     {"q":468,"r":417,"kind":"rock"},
     {"q":468,"r":422,"kind":"pine"},
     {"q":468,"r":443,"kind":"rock"},
-    {"q":470,"r":424,"kind":"waymarker","tier":4,"style":"stone"},
     {"q":470,"r":434,"kind":"pine"},
     {"q":471,"r":416,"kind":"boulder"},
     {"q":472,"r":437,"kind":"pine"},
@@ -1093,15 +1093,13 @@
   "npcs": [],
   "spawns": [
     {"id":"14_13:1","q":456,"r":432,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_13:2","q":462,"r":437,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_13:3","q":464,"r":446,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_13:4","q":468,"r":425,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_13:5","q":476,"r":445,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_13:6","q":479,"r":434,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"14_13:2","q":463,"r":441,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"14_13:3","q":466,"r":416,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"14_13:4","q":469,"r":426,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"14_13:5","q":479,"r":434,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"14_13:c1","q":450,"r":433,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"14_13:c2","q":463,"r":441,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"14_13:c1","q":478,"r":442,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"q":452,"r":418,"dungeon":"old-forge"}

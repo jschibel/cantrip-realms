@@ -169,7 +169,7 @@
     [229,356,0.5,"grass",0],
     [229,357,0.5,"grass",0],
     [229,358,0.5,"meadow",0],
-    [229,359,0.5,"meadow",1],
+    [229,359,0.5,"meadow",0],
     [229,360,0.5,"grass",0],
     [229,361,0.5,"grass",0],
     [229,362,0.25,"grass",0],
@@ -360,7 +360,7 @@
     [235,355,0.5,"grass",0],
     [235,356,0.5,"grass",0],
     [235,357,0.5,"grass",0],
-    [235,358,0.5,"grass",0],
+    [235,358,0.5,"grass",1],
     [235,359,0.25,"grass",0],
     [235,360,0.25,"grass",0],
     [235,361,0,"grass",0],
@@ -503,7 +503,7 @@
     [239,370,0,"grass",0],
     [239,371,0,"grass",0],
     [239,372,0,"grass",0],
-    [239,373,0,"grass",1],
+    [239,373,0,"grass",0],
     [239,374,0,"grass",0],
     [239,375,0,"grass",0],
     [239,376,0,"grass",1],
@@ -688,7 +688,7 @@
     [245,363,0,"grass",0],
     [245,364,0,"grass",0],
     [245,365,0,"grass",0],
-    [245,366,0,"grass",0],
+    [245,366,0,"grass",1],
     [245,367,0,"grass",0],
     [245,368,0,"grass",0],
     [245,369,0,"grass",0],
@@ -1025,7 +1025,7 @@
     [255,380,0,"grass",0],
     [255,381,0,"grass",0],
     [255,382,0,"grass",0],
-    [255,383,0,"grass",0]
+    [255,383,0,"grass",1]
   ],
   "props": [
     {"q":224,"r":355,"kind":"pine"},
@@ -1132,16 +1132,18 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_11:1","q":231,"r":379,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_11:2","q":235,"r":356,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_11:3","q":242,"r":361,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_11:4","q":247,"r":367,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_11:5","q":253,"r":378,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"7_11:6","q":254,"r":354,"mobs":["benalish-deserter","goblin-warband"],"radius":4,"respawnSeconds":600,"tier":1}
+    {"id":"7_11:1","q":224,"r":358,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:2","q":228,"r":376,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:3","q":234,"r":361,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:4","q":239,"r":374,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:5","q":247,"r":359,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:6","q":250,"r":367,"mobs":["ghitu-firebrand","urborg-ghoul"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"7_11:7","q":253,"r":378,"mobs":["elvish-scout","llanowar-elves-pack"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"7_11:c1","q":229,"r":359,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"7_11:c2","q":239,"r":373,"gold":[50,150],"respawnSeconds":86400}
+    {"id":"7_11:c1","q":235,"r":358,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"7_11:c2","q":245,"r":366,"gold":[50,150],"respawnSeconds":86400},
+    {"id":"7_11:c3","q":255,"r":383,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": []
 }

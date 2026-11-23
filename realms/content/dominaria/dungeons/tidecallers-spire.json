@@ -21,5 +21,9 @@
   "warden": "rift-elemental",
   "boss": "mage-tidecallers-spire",
   "region": "U",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    332,
+    100
+  ]
 }

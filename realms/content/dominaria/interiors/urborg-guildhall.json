@@ -4,7 +4,7 @@
   "kind": "guildhall",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":500,"r":236},
+  "exit": {"q":503,"r":236},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-4,-1,0,"wood",1],

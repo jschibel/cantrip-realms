@@ -201,7 +201,7 @@
     [422,356,0,"moss",0],
     [422,357,0,"moss",0],
     [422,358,0,"moss",0],
-    [422,359,0,"moss",0],
+    [422,359,0,"moss",1],
     [422,360,0,"moss",0],
     [422,361,0,"rock",0],
     [422,362,0,"rock",0],
@@ -217,7 +217,7 @@
     [422,372,0,"stone",0],
     [422,373,0,"stone",0],
     [422,374,0,"stone",0],
-    [422,375,0,"stone",0],
+    [422,375,0,"stone",1],
     [422,376,0.25,"stone",0],
     [422,377,0.25,"rock",0],
     [422,378,0.25,"rock",0],
@@ -333,7 +333,7 @@
     [426,360,0,"moss",0],
     [426,361,0,"moss",0],
     [426,362,0,"moss",0],
-    [426,363,0,"mud",1],
+    [426,363,0,"mud",0],
     [426,364,0,"mud",0],
     [426,365,0,"stone",0],
     [426,366,0,"stone",0],
@@ -353,7 +353,7 @@
     [426,380,0,"stone",0],
     [426,381,0,"stone",0],
     [426,382,0,"stone",0],
-    [426,383,0.25,"stone",1],
+    [426,383,0.25,"stone",0],
     [427,352,0,"moss",0],
     [427,353,0,"moss",0],
     [427,354,0,"moss",0],
@@ -380,7 +380,7 @@
     [427,375,0,"stone",0],
     [427,376,0,"rock",0],
     [427,377,0,"rock",0],
-    [427,378,0,"stone",0],
+    [427,378,0,"stone",1],
     [427,379,0,"stone",0],
     [427,380,0,"stone",0],
     [427,381,0,"stone",0],
@@ -1051,6 +1051,7 @@
     {"q":421,"r":366,"kind":"rock"},
     {"q":421,"r":368,"kind":"rock"},
     {"q":422,"r":367,"kind":"rock"},
+    {"q":422,"r":375,"kind":"waymarker","tier":2,"style":"stone"},
     {"q":423,"r":374,"kind":"rock"},
     {"q":423,"r":381,"kind":"brazier"},
     {"q":424,"r":354,"kind":"dead-tree"},
@@ -1118,16 +1119,15 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_11:1","q":416,"r":373,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_11:2","q":418,"r":362,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_11:3","q":426,"r":374,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_11:4","q":430,"r":360,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_11:5","q":434,"r":378,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
-    {"id":"13_11:6","q":444,"r":359,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2}
+    {"id":"13_11:1","q":425,"r":361,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_11:2","q":426,"r":374,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_11:3","q":437,"r":366,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_11:4","q":438,"r":353,"mobs":["bog-wraith","phyrexian-plaguelord"],"radius":4,"respawnSeconds":600,"tier":2},
+    {"id":"13_11:5","q":445,"r":383,"mobs":["keldon-raider","shivan-drake"],"radius":4,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"13_11:c1","q":426,"r":363,"gold":[100,250],"respawnSeconds":86400},
-    {"id":"13_11:c2","q":426,"r":383,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"13_11:c1","q":422,"r":359,"gold":[100,250],"respawnSeconds":86400},
+    {"id":"13_11:c2","q":427,"r":378,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": []
 }

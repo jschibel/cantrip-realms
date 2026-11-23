@@ -762,7 +762,7 @@
     [247,117,0.5,"meadow",0],
     [247,118,0.5,"meadow",0],
     [247,119,0.25,"meadow",0],
-    [247,120,0.25,"meadow",1],
+    [247,120,0.25,"meadow",0],
     [247,121,0.25,"meadow",0],
     [247,122,0.25,"meadow",0],
     [247,123,0.25,"grass",0],
@@ -1102,11 +1102,9 @@
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_3:1","q":241,"r":127,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"7_3:2","q":245,"r":116,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"7_3:1","q":243,"r":119,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"7_3:2","q":251,"r":125,"mobs":["fallen-seraph"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"7_3:c1","q":247,"r":120,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": []
 }

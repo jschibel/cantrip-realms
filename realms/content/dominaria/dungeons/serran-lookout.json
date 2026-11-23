@@ -22,5 +22,9 @@
   "warden": "benalish-deserter",
   "boss": "mage-serran-lookout",
   "region": "W",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    192,
+    327
+  ]
 }

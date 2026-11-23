@@ -111,7 +111,7 @@
     [451,458,1,"ash",0],
     [451,459,1.25,"ash",0],
     [451,460,1.25,"rock",0],
-    [451,461,1.25,"rock",0],
+    [451,461,1.25,"rock",1],
     [451,462,1.25,"rock",0],
     [451,463,1.25,"rock",0],
     [451,464,1,"rock",1],
@@ -1063,8 +1063,11 @@
   "npcs": [],
   "spawns": [
     {"id":"14_14:1","q":449,"r":475,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"14_14:2","q":459,"r":460,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"14_14:2","q":458,"r":457,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"14_14:3","q":469,"r":450,"mobs":["flame-elemental","phyrexian-ravager"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"14_14:c1","q":451,"r":461,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": []
 }

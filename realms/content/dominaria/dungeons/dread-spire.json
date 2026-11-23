@@ -21,5 +21,9 @@
   "warden": "yawgmoth-cultist",
   "boss": "mage-dread-spire",
   "region": "B",
-  "waystone": true
+  "waystone": true,
+  "arrival": [
+    565,
+    141
+  ]
 }

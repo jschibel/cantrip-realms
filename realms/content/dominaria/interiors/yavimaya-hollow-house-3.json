@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "yavimaya-hollow",
   "style": "llanowar",
-  "exit": {"q":235,"r":414},
+  "exit": {"q":235,"r":420},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"moss",1],

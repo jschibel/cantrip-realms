@@ -17,7 +17,7 @@
     [384,76,0.5,"grass",0],
     [384,77,0.5,"grass",0],
     [384,78,0.5,"grass",0],
-    [384,79,0.5,"grass",1],
+    [384,79,0.5,"grass",0],
     [384,80,0.5,"grass",0],
     [384,81,0.5,"grass",0],
     [384,82,0.5,"grass",0],
@@ -553,7 +553,7 @@
     [401,68,0,"sand",0],
     [401,69,0,"sand",0],
     [401,70,0,"grass",0],
-    [401,71,0,"grass",0],
+    [401,71,0,"grass",1],
     [401,72,0,"grass",0],
     [401,73,0,"grass",0],
     [401,74,0,"sand",0],
@@ -581,11 +581,11 @@
     [402,64,0,"sand",0],
     [402,65,0,"sand",0],
     [402,66,0,"sand",0],
-    [402,67,0,"sand",1],
+    [402,67,0,"sand",0],
     [402,68,0,"sand",0],
     [402,69,0,"sand",0],
-    [402,70,0,"grass",0],
-    [402,71,0,"grass",1],
+    [402,70,0,"grass",1],
+    [402,71,0,"grass",0],
     [402,72,0,"grass",0],
     [402,73,0,"grass",0],
     [402,74,0,"sand",0],
@@ -1043,20 +1043,19 @@
     {"q":395,"r":68,"kind":"pillar"},
     {"q":396,"r":75,"kind":"pine"},
     {"q":397,"r":70,"kind":"boulder"},
-    {"q":402,"r":71,"kind":"waymarker","tier":4,"style":"stone"},
+    {"q":401,"r":71,"kind":"waymarker","tier":4,"style":"stone"},
     {"q":411,"r":95,"kind":"dock"}
   ],
   "doors": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_2:1","q":385,"r":87,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_2:2","q":389,"r":66,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
-    {"id":"12_2:3","q":390,"r":76,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
-    {"id":"12_2:4","q":405,"r":67,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"12_2:1","q":388,"r":68,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_2:2","q":388,"r":79,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1},
+    {"id":"12_2:3","q":402,"r":65,"mobs":["gitaxian-mindcutter","temporal-sentinel"],"radius":4,"respawnSeconds":600,"tier":4},
+    {"id":"12_2:4","q":406,"r":74,"mobs":["coral-merfolk","tolarian-apprentice"],"radius":4,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
-    {"id":"12_2:c1","q":384,"r":79,"gold":[50,150],"respawnSeconds":86400},
-    {"id":"12_2:c2","q":402,"r":67,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"12_2:c1","q":402,"r":70,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": []
 }

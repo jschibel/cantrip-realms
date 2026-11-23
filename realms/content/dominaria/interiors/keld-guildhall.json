@@ -4,7 +4,7 @@
   "kind": "guildhall",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":358,"r":433},
+  "exit": {"q":357,"r":433},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-4,-1,0,"wood",1],
