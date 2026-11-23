@@ -14,10 +14,11 @@ interface RunState {
 
 export const run = (page: Page) => realm<RunState | null>(page, "run");
 
-/** Walks a floor toward a tile, never onto its ways (walking onto one is using it). */
+/** Walks a floor toward a tile, never clicking its ways (a click on one, or its doorway, is using it). */
 export async function walkInside(page: Page, goal: Tile, near = 1): Promise<void> {
   const r = await run(page);
-  const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).map((t) => `${t.x},${t.z}`));
+  // Each way, and the doorway past it (a step north: a click there goes through too).
+  const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).flatMap((t) => [`${t.x},${t.z}`, `${t.x},${t.z - 1}`]));
   await walkTo(page, goal, near, (t) => stops.has(`${t.x},${t.z}`));
 }
 

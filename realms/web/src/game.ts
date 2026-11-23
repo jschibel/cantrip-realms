@@ -299,10 +299,19 @@ export class Overworld {
     if (spot.inside && !this.roomNpcs.has(spot.id)) void this.places.read(spot.id).then((d) => this.roomNpcs.set(spot.id, d.npcs), () => {});
     this.stepped(this.player.tile, true);
     if (spot.id.startsWith("run:")) return;
-    void this.api.position(placeOf(this.spaceId, this.player.tile)).catch(() => {});
-    this.presence?.send({ Type: "Enter", Space: this.spaceId });
-    this.presence?.send({ Type: "Move", From: [this.player.tile.x, this.player.tile.z], Path: [], Speed: PLAYER_SPEED });
-    this.lastSent = "";
+    // The relay lets one into a place the server has them in: the place is told first, then the relay.
+    const space = this.spaceId;
+    const at = this.player.tile;
+    this.lastReported = `${space}:${at.x},${at.z}`;
+    void this.api
+      .position(placeOf(space, at))
+      .catch(() => {})
+      .then(() => {
+        if (this.spaceId !== space) return;
+        this.presence?.send({ Type: "Enter", Space: space });
+        this.presence?.send({ Type: "Move", From: [at.x, at.z], Path: [], Speed: PLAYER_SPEED });
+        this.lastSent = "";
+      });
     if (!first && spot.inside) this.say(`${spot.title}.`);
   }
 

@@ -135,7 +135,7 @@ test("players near each other see each other walk through the real relay, in the
   await other(alice.page, "Bob");
   await other(bob.page, "Alice");
   const inside = await playerTile(alice.page);
-  const open = (await realm<string[]>(alice.page, "openTiles"))
+  const open = (await alice.page.evaluate(() => (globalThis as any).realmTest.openTiles(12) as string[]))
     .map((k) => k.split(",").map(Number) as [number, number])
     .filter(([x, z]) => chebyshev({ x, z }, inside) === 2 && z < inside.z)
     .sort((a, b) => a[0] - b[0] || a[1] - b[1])[0]!;
