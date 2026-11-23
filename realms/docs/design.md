@@ -145,9 +145,30 @@ owner may extend.
 - **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Urborg Ghouls" for gold or gear).
 
 ### A6. The world — Dominaria
-- **Structure in the Fallout style:**
-  - A **world map** for travel between locations. A marker moves along roads or cross-country, and random-encounter rolls happen as you travel.
-  - **Local maps** — towns, wilderness and dungeon floors — are isometric hex grids that you walk by clicking. You move in real time.
+- **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
+  no separate travel screen and no local maps to load between. It is big (about 640 by 640 hexes) and streamed in chunks
+  as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other. A
+  hearthstone-style recall takes you to your inn once every few minutes, and an inn you have visited can send you to any
+  other you have visited, for a fee, so the size never becomes a chore.
+- **Interiors.** A building with a door has an interior: its own small scene, not part of the world map. Walking through
+  the door is seamless. The door opens, the view eases into the room and the player is inside, with no loading screen and
+  no jump cut, and leaving reverses it. Shops, inns, guildhalls, temples, smithies, libraries and houses have interiors.
+- **Dungeons** are not on the world map. A dungeon's entrance stands in the world (a cave mouth, a castle gate, a tower
+  door); stepping in starts a **single-player instance generated in the browser**, new each run, that no other player
+  sees. Each dungeon has a theme that fits the land it is in:
+
+  | Theme | Where | Layout |
+  |---|---|---|
+  | Caves | mountains and hills (Keld, Shiv) | winding caverns, chasms, underground lakes |
+  | Castle | plains and farmland (Benalia) | keep, halls, courtyards, battlements |
+  | Mage tower | coasts and islands (Tolaria) | round floors climbing upward, libraries, time-rift rooms |
+  | Crypt | swamps (Urborg) | catacombs, ossuaries, flooded tombs |
+  | Root hollow | forests (Llanowar, Yavimaya) | organic tunnels through living roots, glades under the canopy |
+  | Foundry | volcanic land (Shiv) | forges, lava channels, gantries |
+  | Phyrexian Portal | the capstone | the praetor's realm |
+
+  A dungeon's content (its theme, its floors, its mobs by tier and its boss) is data. The layout is the generator's,
+  from a seed the server hands out for the run (B4).
 - **Geography:** five regions placed around a central hub in **WUBRG wheel order**, so ally colors are neighbors and enemy colors are across the map.
 
   | Color | Region | Home town | Dungeon | Suggested boss |
@@ -159,36 +180,44 @@ owner may extend.
   | G | Llanowar and Yavimaya | Llanowar | the Heart of Yavimaya | Multani |
 
   - The hub is **New Argive**, a neutral capital with the most vendors.
-  - Each region also has one village and 3–4 wilderness maps.
+  - Each region also has a village or two, and wilderness between them.
   - The bosses are suggestions and are kept to cards that are implemented.
-- **Dungeons:**
-  - 3–5 floors each.
-  - Mobs don't respawn while you are inside, and each floor's mini-boss stays cleared once beaten, so progress is saved floor by floor.
-  - The entrance antechamber has a spell table.
-  - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss traits.
+- **Dungeon runs:**
+  - 3–5 floors each, generated anew each run. Each floor ends at a stair guarded by a floor warden. The boss waits on the
+    last floor.
+  - Within a run, beaten mobs stay beaten, and the run remembers the floor reached until it ends. Leaving, or losing a duel,
+    ends the run; the next run is a new layout from the first floor.
+  - The entrance has a spell table.
+  - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
+    traits. Smaller dungeons dot the wilderness (a cave, a ruined watchtower) for lower tiers.
 - **Bosses:**
   - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
   - You can fight them again each week for loot.
   - **Capstone:** once all five colors are unlocked, the Phyrexian Portal opens. A five-color praetor boss ends the Dominaria arc, and later planes come in as data packs.
 - **The Phyrexian Portal** (the capstone dungeon):
-  - It stands on the world map just south of New Argive, on its own road from the hub, and belongs to no region.
-  - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then the world map shows it sealed and can't enter it, and the server refuses to let a character stand on any of its floors or start a duel there.
+  - Its entrance stands just south of New Argive, on its own road from the hub, and belongs to no region.
+  - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then its gate stays shut, and the server refuses to start a run of it.
   - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
   - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears: 42 life, a starting hand of 9 and a maximum hand of 10. Its deck is the strongest the Dominaria pool allows. It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
   - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and offer, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
 - **Mobs:**
   - About 60 types, each with a themed 40-card deck, stats and gear traits. They use the same Vanguard-object system as the player, which is what makes them harder.
-  - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. They respawn 10 minutes after you leave the map.
+  - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
   - Difficulty grows with distance from your home region.
-- **Towns** have:
-  - an inn, where you respawn and set your home;
-  - a spell table;
-  - 2–4 card vendors (New Argive has 8);
-  - an armorer;
-  - a quest board;
-  - a PvP arena, locked with a "coming soon" sign until Part B9.
+- **Towns** are big walled cities (New Argive about 120 by 120 hexes, home towns about 80, villages about 30) with gates,
+  streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
+  guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
+  region's towns are built in its own style: Benalish stone and banners, Tolarian domes, Urborg's dark stilt-houses,
+  Keldon longhouses, Llanowar's tree-houses.
+  - **Vendors work inside their shops**, the armorer inside the smithy, the innkeeper inside the inn. A shop's sign says
+    what it trades in.
+  - An **inn**, where you respawn and set your home. The spell table is inside it, and another is in the mages' guild.
+  - A **quest board** outside the inn.
+  - A **PvP arena**, locked with a "coming soon" sign until Part B9.
 - **Story:** after the Phyrexian invasion, Dominaria's five color-wells are held by guardians. The player is a mage who must earn each well's attunement. The tone is light, with the story text on quest boards and NPC barks. The owner can rewrite it; it is all data.
-- **Social:** you see other players walking on the same map instance, with their gear and their identity pips. Clicking a player shows their loadout. There is no chat in v1 (it would need moderation); there is an emote wheel. Each instance holds 40 players, and another instance opens when one is full.
+- **Social:** you see the other players near you in the world (those in the chunks around you), with their gear and
+  their identity pips, and those in the same interior. Dungeons are single-player. Clicking a player shows their
+  loadout. There is no chat in v1 (it would need moderation); there is an emote wheel.
 
 ### A7. IP stance
 - This is unofficial fan content under the Wizards Fan Content Policy: free, no paywall, with the required notice.

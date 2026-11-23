@@ -60,17 +60,32 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Static files:** the world bundle, the Uno client, the engine `.wasm`, the models and the card art are all static, with hashed names, `immutable` caching and brotli, served from a CDN (B8). The server serves only the API and the WebSocket.
 
 ### B5. The overworld client (fork: `realms/web/`, TypeScript + Vite + three.js, pinned)
-- **The retro 3D look:**
-  - Orthographic dimetric isometric camera (2:1).
-  - The scene is drawn to a **low-resolution target**, about 1/3 of device pixels and integer-scaled, then upscaled with nearest-neighbor filtering.
-  - Lighting is stepped toon shading through a **per-plane 48-color palette** (a lookup table), with a Bayer dither in the shadow steps and 1-pixel outlines from depth and normal edges.
-  - **The camera snaps to the texel grid**, so nothing shimmers. Effects are billboards drawn at the same pixel scale.
+- **The pixel-art look**, one idea carried through: the world is drawn small and shown in big, clean pixels.
+  - Orthographic dimetric isometric camera (2:1), which **snaps to the texel grid**, so nothing shimmers.
+  - The scene is drawn to a **low-resolution target**, about 1/3 of device pixels and integer-scaled, then upscaled with
+    nearest-neighbor filtering.
+  - **Flat cel shading:** two or three light bands per surface, each a palette color (the per-plane palette as a lookup).
+    **No dithering**, no noise, no gradients: areas of one color read as areas of one color.
+  - **Outlines on what you look at, not on the ground:** characters, mobs, props and buildings have a 1-pixel dark outline,
+    and terrain has none (its hexes join without seams, and height steps show by their side faces' darker band).
+  - **Characters stand out:** they are drawn larger than life against the scenery, in saturated identity colors that the
+    terrain palette doesn't use, with a clear silhouette and a soft ring on the ground under the player. They are never
+    lost in the scene.
+  - Effects are billboards at the same pixel scale.
 - **Assets:** **voxel models stored as data** (`realms/content/models/*.vox.json`), written by generator scripts and tuned by hand.
   - The browser greedy-meshes them when they load (`src/voxel/mesher.ts`) into vertex-colored meshes in the palette's colors, shared between every character drawn alike; they are small enough that no build step is needed.
   - Characters are segmented rigs (head, torso, arms, legs) with idle, walk, cast and interact animations. Each slot's gear is a voxel piece hung on an attachment point of the body. Mobs are base models with palette swaps (ten so far).
   - Audio: CC0 chiptune tracks and SFX generated with jsfxr.
-- **Maps:** hex JSON (`realms/content/dominaria/maps/*.json`, interfaces.md) holding height, terrain, props, exits, spawn points, chests and NPCs. They are produced by a seeded generator plus hand-placed set pieces (`scripts/maps.ts`, `npm run maps`), edited in a dev-only in-browser map editor (`?editor`), linted by `validateMap`, and drawn as a prism per hex with the scenery merged into one mesh.
-- **Play:** click-to-move with A* over hexes; local mob AI (wander, chase); the world-map travel screen with encounter rolls; NPC interaction; the HUD and minimap; and other players animated from relayed paths.
+- **The world:** one connected map streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and dungeons"),
+  written by a seeded generator with hand-placed set pieces (`scripts/world.ts`), edited in the dev-only editor
+  (`?editor`), and linted. Chunks near the player are built (a prism per hex, the scenery merged per chunk) and those far
+  away are dropped.
+- **Interiors:** a door's interior is its own scene. Entering is seamless: the door opens, the camera eases in, the
+  world fades behind a short iris and the room fades in around the player at its door (about 400 ms in all, never a
+  loading screen; the next interiors near the player are built ahead). Leaving reverses it.
+- **Dungeons:** generated in the browser from the run's seed (`src/dungeon/`), one generator per theme, exactly the
+  encounters the server's run names (interfaces.md). Single-player, never replicated.
+- **Play:** click-to-move with A* over hexes; local mob AI (wander, chase); doors, entrances and stairs; recall to an inn; NPC interaction; the HUD and minimap; and other players near you animated from relayed paths.
 - **The HUD and menus that show no cards** are DOM and CSS built on **the client's Theme tokens and fonts**. A script generates `theme.css` from `Theme.cs`, so the two can't drift.
 - **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against `MockApi`, the API in memory, with presence passed between the browser's own tabs; the card layer's stand-in panels (`?cards=stub`, the offline default) answer its screens. `?at=`, `?now=`, `?wander=0`, `?mobs=0` and `?encounters=` force a state for tests and development (src/main.ts).
 - **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name, the way `cantripTest` does. `npm test` runs vitest; `npm run e2e` runs the Playwright suite (`e2e/`) against the offline overworld with real clicks. `npm run e2e:server` runs `e2e/server/` against the real realm server instead: it starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins (`?server=`), signs in, makes a character, walks, asks for a vendor's screen and starts an encounter through the API (the card layer's stand-in records the duel), and has two players see each other walk through the relay.
