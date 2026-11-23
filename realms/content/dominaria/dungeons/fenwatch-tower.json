@@ -1,0 +1,26 @@
+{
+  "id": "fenwatch-tower",
+  "name": "The Fenwatch Tower",
+  "theme": "tower",
+  "entrance": [
+    445,
+    313
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "urborg-ghoul",
+    "cabal-initiate"
+  ],
+  "warden": "cabal-initiate",
+  "boss": "mage-fenwatch-tower",
+  "region": "B",
+  "waystone": true
+}

@@ -1,0 +1,25 @@
+{
+  "id": "urzas-spire",
+  "name": "Urza's Spire",
+  "theme": "tower",
+  "entrance": [
+    273,
+    87
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "temporal-sentinel",
+    "fallen-seraph"
+  ],
+  "warden": "gitaxian-mindcutter",
+  "boss": "mage-urzas-spire",
+  "waystone": true
+}

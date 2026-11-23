@@ -1,0 +1,25 @@
+{
+  "id": "goblin-warrens",
+  "name": "The Goblin Warrens",
+  "theme": "caves",
+  "entrance": [
+    290,
+    448
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "goblin-warband",
+    "ghitu-firebrand"
+  ],
+  "warden": "keldon-raider",
+  "boss": "shivan-drake",
+  "region": "R"
+}

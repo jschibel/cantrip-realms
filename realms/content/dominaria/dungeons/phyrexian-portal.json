@@ -1,0 +1,34 @@
+{
+  "id": "phyrexian-portal",
+  "name": "The Phyrexian Portal",
+  "theme": "portal",
+  "entrance": [
+    389,
+    345
+  ],
+  "requires": "WUBRG",
+  "floors": [
+    4,
+    4
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "phyrexian-ravager",
+      "phyrexian-negator",
+      "phyrexian-gorger"
+    ],
+    [
+      "phyrexian-ravager",
+      "gitaxian-mindcutter",
+      "phyrexian-negator",
+      "phyrexian-gorger"
+    ]
+  ],
+  "warden": "portal-warden",
+  "boss": "phyrexian-praetor"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "shivan-foundry",
+  "name": "The Shivan Foundry",
+  "theme": "foundry",
+  "entrance": [
+    381,
+    518
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "keldon-raider",
+      "shivan-drake",
+      "foundry-construct"
+    ],
+    [
+      "foundry-construct",
+      "flame-elemental"
+    ]
+  ],
+  "warden": "foundry-warden",
+  "boss": "darigaaz",
+  "region": "R"
+}

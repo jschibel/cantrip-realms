@@ -1,0 +1,26 @@
+{
+  "id": "drowned-isles-tower",
+  "name": "The Tower of the Drowned Isles",
+  "theme": "tower",
+  "entrance": [
+    590,
+    66
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "gitaxian-mindcutter",
+    "temporal-sentinel"
+  ],
+  "warden": "temporal-sentinel",
+  "boss": "mage-drowned-isles-tower",
+  "region": "U",
+  "waystone": true
+}

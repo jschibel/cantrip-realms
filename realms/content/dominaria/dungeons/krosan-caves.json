@@ -1,0 +1,25 @@
+{
+  "id": "krosan-caves",
+  "name": "The Krosan Caves",
+  "theme": "caves",
+  "entrance": [
+    91,
+    432
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "yavimaya-wurm",
+    "multani-guard"
+  ],
+  "warden": "yavimaya-wurm",
+  "boss": "krosan-beast",
+  "region": "G"
+}

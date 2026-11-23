@@ -1,0 +1,25 @@
+{
+  "id": "fen-caves",
+  "name": "The Fen Caves",
+  "theme": "caves",
+  "entrance": [
+    499,
+    340
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "bog-wraith",
+    "phyrexian-plaguelord"
+  ],
+  "warden": "phyrexian-plaguelord",
+  "boss": "yawgmoth-cultist",
+  "region": "B"
+}

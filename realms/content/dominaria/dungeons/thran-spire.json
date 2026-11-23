@@ -1,0 +1,25 @@
+{
+  "id": "thran-spire",
+  "name": "The Thran Spire",
+  "theme": "tower",
+  "entrance": [
+    183,
+    604
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "flame-elemental",
+    "phyrexian-ravager"
+  ],
+  "warden": "phyrexian-gorger",
+  "boss": "mage-thran-spire",
+  "waystone": true
+}

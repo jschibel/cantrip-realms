@@ -1,0 +1,26 @@
+{
+  "id": "argive-spire",
+  "name": "The Argive Spire",
+  "theme": "tower",
+  "entrance": [
+    304,
+    241
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "phyrexian-scout",
+    "benalish-deserter",
+    "tolarian-apprentice"
+  ],
+  "warden": "kjeldoran-raider",
+  "boss": "mage-argive-spire",
+  "waystone": true
+}

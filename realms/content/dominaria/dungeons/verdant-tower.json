@@ -1,0 +1,26 @@
+{
+  "id": "verdant-tower",
+  "name": "The Verdant Tower",
+  "theme": "tower",
+  "entrance": [
+    181,
+    409
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "llanowar-elves-pack",
+    "elvish-scout"
+  ],
+  "warden": "elvish-scout",
+  "boss": "mage-verdant-tower",
+  "region": "G",
+  "waystone": true
+}

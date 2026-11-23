@@ -1,0 +1,25 @@
+{
+  "id": "lat-nam-watchtower",
+  "name": "The Drowned Watchtower",
+  "theme": "castle",
+  "entrance": [
+    324,
+    122
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "academy-automaton",
+    "time-drifter"
+  ],
+  "warden": "academy-automaton",
+  "boss": "rift-elemental",
+  "region": "U"
+}

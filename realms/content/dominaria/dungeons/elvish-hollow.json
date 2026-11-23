@@ -1,0 +1,25 @@
+{
+  "id": "elvish-hollow",
+  "name": "The Elvish Hollow",
+  "theme": "hollow",
+  "entrance": [
+    234,
+    449
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "llanowar-elves-pack",
+    "elvish-scout"
+  ],
+  "warden": "multani-guard",
+  "boss": "yavimaya-wurm",
+  "region": "G"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "flamespire",
+  "name": "The Flamespire",
+  "theme": "tower",
+  "entrance": [
+    251,
+    570
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "foundry-construct"
+  ],
+  "warden": "foundry-construct",
+  "boss": "mage-flamespire",
+  "region": "R",
+  "waystone": true
+}

@@ -1,0 +1,32 @@
+{
+  "id": "heart-of-yavimaya",
+  "name": "The Heart of Yavimaya",
+  "theme": "hollow",
+  "entrance": [
+    69,
+    538
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "yavimaya-wurm",
+      "multani-guard",
+      "krosan-beast"
+    ],
+    [
+      "krosan-beast",
+      "yavimaya-ancient"
+    ]
+  ],
+  "warden": "heart-warden",
+  "boss": "multani",
+  "region": "G"
+}

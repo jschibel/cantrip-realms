@@ -1,0 +1,25 @@
+{
+  "id": "riptide-sea-caves",
+  "name": "The Riptide Sea Caves",
+  "theme": "caves",
+  "entrance": [
+    417,
+    198
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "coral-merfolk",
+    "tolarian-apprentice"
+  ],
+  "warden": "time-drifter",
+  "boss": "academy-automaton",
+  "region": "U"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "pyre-tower",
+  "name": "The Pyre Tower",
+  "theme": "tower",
+  "entrance": [
+    383,
+    395
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "ghitu-firebrand",
+    "goblin-warband"
+  ],
+  "warden": "ghitu-firebrand",
+  "boss": "mage-pyre-tower",
+  "region": "R",
+  "waystone": true
+}

@@ -1,0 +1,32 @@
+{
+  "id": "tomb-of-yawgmoth",
+  "name": "The Tomb of Yawgmoth",
+  "theme": "crypt",
+  "entrance": [
+    586,
+    240
+  ],
+  "floors": [
+    4,
+    5
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "bog-wraith",
+      "phyrexian-plaguelord",
+      "yawgmoth-cultist"
+    ],
+    [
+      "yawgmoth-cultist",
+      "phyrexian-horror"
+    ]
+  ],
+  "warden": "tomb-warden",
+  "boss": "sheoldred",
+  "region": "B"
+}

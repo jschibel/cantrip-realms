@@ -1,0 +1,32 @@
+{
+  "id": "time-rift-academy",
+  "name": "The Time-Rift Academy",
+  "theme": "tower",
+  "entrance": [
+    399,
+    57
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "academy-automaton",
+      "time-drifter",
+      "rift-elemental"
+    ],
+    [
+      "rift-elemental",
+      "temporal-sentinel"
+    ]
+  ],
+  "warden": "rift-warden",
+  "boss": "teferi",
+  "region": "U"
+}

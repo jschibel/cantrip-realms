@@ -1,0 +1,25 @@
+{
+  "id": "gaeas-spire",
+  "name": "Gaea's Spire",
+  "theme": "tower",
+  "entrance": [
+    161,
+    569
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "krosan-beast"
+  ],
+  "warden": "krosan-beast",
+  "boss": "mage-gaeas-spire",
+  "region": "G",
+  "waystone": true
+}

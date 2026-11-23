@@ -1,0 +1,25 @@
+{
+  "id": "kjeldoran-watchtower",
+  "name": "The Ruined Kjeldoran Watchtower",
+  "theme": "castle",
+  "entrance": [
+    270,
+    233
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "benalish-deserter",
+    "phyrexian-scout"
+  ],
+  "warden": "kjeldoran-raider",
+  "boss": "serra-zealot",
+  "region": "W"
+}

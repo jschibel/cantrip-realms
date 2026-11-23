@@ -1,0 +1,25 @@
+{
+  "id": "drowned-barrow",
+  "name": "The Drowned Barrow",
+  "theme": "crypt",
+  "entrance": [
+    449,
+    230
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "urborg-ghoul",
+    "cabal-initiate"
+  ],
+  "warden": "bog-wraith",
+  "boss": "phyrexian-plaguelord",
+  "region": "B"
+}

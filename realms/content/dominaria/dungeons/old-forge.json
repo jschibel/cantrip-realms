@@ -1,0 +1,25 @@
+{
+  "id": "old-forge",
+  "name": "The Old Ghitu Forge",
+  "theme": "foundry",
+  "entrance": [
+    452,
+    418
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "keldon-raider",
+    "shivan-drake"
+  ],
+  "warden": "shivan-drake",
+  "boss": "foundry-construct",
+  "region": "R"
+}
