@@ -144,7 +144,7 @@ owner may extend.
   - There is no trading between players.
 - **Wares from other planes.** Until other planes can be explored, cards printed only beyond Dominaria come in a
   slow, small trickle, through two kinds of exotic dealer and nowhere else:
-  - **Exotic wares shops** in the biggest towns (New Benalia, and one more), inside like any shop. Each shows at most 6
+  - **Exotic wares shops** in the biggest towns (New Benalia and Capashen Hold), inside like any shop. Each shows at most 6
     off-plane cards and gains one new card every 6 hours; a card not sold within 3 days leaves.
   - **Traveling vendors from other planes:** planeswalker traders whose caravan visits one of the big towns for a few
     hours each day, by a schedule the server keeps and everyone sees. They rotate through New Benalia, Capashen Hold, the
@@ -165,7 +165,7 @@ owner may extend.
   their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
   enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
   the tier of its distance from the nearest starting area. A dungeon takes the tier of where it stands, never less than
-  its own floor.
+  its own floor; a mage tower keeps its circle's tier (its mage's and its mobs') wherever it stands.
   **The tiers are visible:** the regional map shows each area's tier as a tinted band, with a legend, and marks the towers and
   dungeons with theirs. Waymarker stones stand where the tier changes on the land, and the HUD names the area you are in
   and its tier, and warns as you cross into a harder one.
@@ -203,8 +203,8 @@ owner may extend.
   | — | the hub | **New Benalia**, the capital that holds sway over most of Aerona | south-central Aerona, plains | — | — |
   | W | Benalia | Capashen Hold, a Benalish town | southern Aerona: plains, farmland, river valleys | a Benalish castle (castle) | Lyra Dawnbringer |
   | G | Llanowar | the elfhames of Llanowar | the great forest south-east of Benalia, across the Suder River | a root hollow under the elfhames (hollow) | Rofellos, Llanowar Emissary: a mono-green deck of big creatures and ramp round him |
-  | B | the Caligo Morass and Amjad | the Vess estate's village | the Morass, a Benalian forest the Cabal turned to fetid swamp, in Aerona's north-west; and Amjad, a dark realm on Shanodin's island | the Vess crypts (crypt) | Liliana Vess, at her ancestral home |
-  | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | a Keldon warlord legend the engine has |
+  | B | the Caligo Morass and Amjad | the Vess estate's village | the Morass, a Benalian forest the Cabal turned to fetid swamp, in Aerona's north-west; and Amjad, a dark realm on Shanodin's island | the Vess crypts (crypt) | Liliana Vess (Liliana of the Veil), at her ancestral home |
+  | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | Garna, Bloodfist of Keld |
   | U | Orvada | the Tolarian Academy on Walassa | Orvada's isles, Walassa and Denawa, off Aerona's coast | the academy's tower (tower) | Teferi |
 
   - **Aerona** is split north from south by the **Hurloon Mountains**, home of the minotaurs. North of them are the

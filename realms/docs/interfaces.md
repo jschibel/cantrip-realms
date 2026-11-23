@@ -103,19 +103,19 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 
 ```json
 {
-  "id": "phyrexian-scout",
-  "name": "Phyrexian Scout",
+  "id": "llanowar-elves",
+  "name": "Llanowar Elves",
+  "creature": "Llanowar Elves",
+  "region": "G",
   "tier": 1,
-  "deck": "decks/realms/dominaria/phyrexian-scout.txt",
+  "deck": "decks/realms/dominaria/llanowar-elves.txt",
   "stats": { "life": 20, "hand": 7, "maxHand": 7 },
   "gear": [],
   "prize": 100,
   "goldRange": [20, 60],
-  "loot": { "pool": "dominaria", "colors": "B", "types": [], "subtypes": ["Phyrexian"], "rarities": ["common", "uncommon"] },
-  "model": { "mesh": "humanoid", "palette": ["#8c909c", "#7a1f24"], "size": 1.15 },
-  "boss": false,
-  "creature": "Llanowar Elves",
-  "region": "G"
+  "loot": { "pool": "dominaria", "colors": "G", "types": [], "subtypes": ["Elf", "Druid"], "rarities": ["common"] },
+  "model": { "mesh": "elf", "palette": ["#2a4524", "#d6ae7e", "#c08a62"], "size": 0.9 },
+  "boss": false
 }
 ```
 
@@ -152,18 +152,21 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 
 ### The world, interiors and dungeons (`<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`)
 
-Design.md A6: one connected world, interiors entered through doors, and dungeons generated in the browser. This section
-replaces the per-map files of the first overworld (`<plane>/maps/*.json`), which the world's generator retires.
+Design.md A6: one connected world, interiors entered through doors, and dungeons generated in the browser (the first
+overworld's per-map files are gone). The server starts on the generated world; its tests also keep a small world of the
+same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py`).
 
 - **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains): its landmasses (`center`,
   `radius`, `wobble`, `stretch`, `turn`), `bays` and `archipelagos`; its `regions` (`{id, name, color or null, biome:
   heartland|plains|coast|swamp|mountains|volcanic|forest|tundra|waste, style, at, weight, minTier, areas: [4 names]}`,
   every hex the region's whose `at` is nearest by its `weight`, `minTier` the least tier of its wilds); `mountains`,
   `rivers` and `lakes`; the `towns` (`{id, name, kind, region, style, at, radius, inn, innkeeper, board, folk, centrepiece,
-  start, home, temple, guild, exotic, caravan}`); the `roads` between towns, dungeons and ferry docks (`ferry:<id>:from`,
+  start, home, temple, guild, exotic, caravan}`, `exotic` the id of the town's exotic wares vendor, whose shop is
+  `<vendor>-shop`); the `roads` between towns, dungeons and ferry docks (`ferry:<id>:from`,
   `ferry:<id>:to`); the `dungeons` (as `dungeons/<id>.json` below, at a place, their mobs, warden and boss mob ids or asked
   of the roster: `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`); and the `ferries` (`{id, name, from,
-  to}`). Places are axial hexes. The world generator reads it; nothing else does.
+  to}`). Places are axial hexes. The world generator reads it, and the server tests' world takes its towns' and
+  dungeons' ids from it.
 - **The world.** `world/world.json` holds `{size: [width, height], chunk: 32, seed, regions: [{color, name, hexes}] (each
   colored region and how many hexes of land it has), towns: [{id, name, kind: capital|town|village, center: [q, r],
   radius, style, region (a color, optional), start, home (a color, optional)}], inns: [{id, town, q, r, interior}] (the
@@ -218,8 +221,8 @@ replaces the per-map files of the first overworld (`<plane>/maps/*.json`), which
   stand in one town at most.
 - **Mage towers** are dungeons of theme `tower` with `"waystone": true`: beating the run's boss attunes the tower to the
   character (`Character.Attuned: [tower ids]`, kept by the server), and its waystone stands at its entrance in the world.
-  A tower's id is `<region>-<tier>` (regions `benalia`, `llanowar`, `caligo`, `keld`, `orvada`, tiers 1-4) and its boss
-  `mage-<tower>`.
+  A tower's id is `<region>-<tier>` (regions `benalia`, `llanowar`, `caligo`, `keld`, `orvada`, tiers 1-4), its boss
+  `mage-<tower>`, and its `tier` its circle's wherever it stands (any other dungeon takes at least its zone's tier).
 - **Spawn tiers.** Each world spawn point carries `tier`, the tier of the zone it stands in (world.json's `zones`: the
   tier of its distance from the nearest starting area, and at least its region's `minTier`), and lists only mobs of that
   tier and of its region where the roster has them.
@@ -289,13 +292,14 @@ them all.
 ### Vendors (`<plane>/vendors/*.json`)
 
 ```json
-{ "id": "argive-goblin-trader", "name": "Grizzlegom's Goblins", "town": "new-argive",
+{ "id": "argive-goblin-trader", "name": "Grizzlegom's Goblins", "town": "new-benalia",
   "specialty": { "subtypes": ["Goblin"] }, "purse": 50000 }
 ```
 
 `specialty` is any of `colors` (a color identity the card's is within), `types`, `subtypes`, `rarities`, `names` (a theme
 listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it. `town` is a town of
-world.json; every vendor keeps a shop there: a `vendor` NPC of an interior of that town names it.
+world.json; every vendor keeps a shop there, the interior `<vendor>-shop`: a `vendor` NPC of an interior of that town
+names it.
 
 **Wares from other planes** (design.md A5) come only through the exotic dealers, who deal in the off-plane pool alone,
 and no other vendor deals in it:
@@ -304,17 +308,22 @@ and no other vendor deals in it:
   it was printed on. A trader's plane is any plane of `planes.json` not walked (the traders' are Ravnica, Zendikar,
   Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet, Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim and
   Strixhaven).
-- An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (New Benalia's and Keld's): its stock
+- An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (`new-benalia-exotic-wares` and
+  `capashen-hold-exotic-wares`, layout.json's towns' `exotic`): its stock
   is off-plane cards within its `specialty`; it shows at most 6 cards, gains one at each six-hour mark of the clock (00, 06,
   12, 18 UTC) while it shows fewer, lets a card go unsold after 3 days, and is created with 6 that leave six hours apart.
   It buys off-plane cards of its specialty at half; a card sold to it stays until bought, and while it shows 6 it buys
   nothing (409 `VendorFull`).
-- A **traveling trader** is a vendor with `"trader": {plane, towns: [town ids], hour, hours}` and no `town`: on Unix day
+- A **traveling trader** is a vendor `<plane>-trader` (fifteen) with `"trader": {plane, towns: [town ids], hour, hours}`
+  and no `town`, and keeps no shop: on Unix day
   `d` (UTC) its caravan is in `towns[d mod towns.length]` from `hour` o'clock UTC for `hours` hours (within the day), a
   schedule of the date alone. Each visit brings 3 cards of its plane's off-plane cards, which leave with it; it buys any
   off-plane card at half, and that card too leaves with it. It trades only while its caravan is in the character's town:
   the character in the world within the town's radius, or in a building of the town (409 `NotNear` otherwise). The
-  traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy.
+  traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy
+  (`new-benalia`, `capashen-hold`, `llanowar`, `keld`, `tolarian-academy`), each with a pitch (world.json's `pitches`)
+  where the overworld stands a trader's caravan while its visit lasts; their hours are set so that one caravan at a time
+  is in a town.
 
 The server reads all of this at start and refuses to start on content that does not hold together: one plane has a world;
 every mob, interior, dungeon and vendor a place names is there (spawns' mobs of the spawn's tier and no boss, doors'
@@ -353,7 +362,6 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (its first open neighbour in hex.ts's order of directions that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, Q, R}}`: travel at once from an attuned tower's waystone (the character in the world on or beside its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
-| `GET /api/travelers` | | `{Visits: [{Vendor, Name, Plane, Town, Until}]}`: the traveling vendors from other planes in town now, by the server's schedule (design.md A5): the trader's vendor id (its `vendor` screen), the planeswalker's name, their plane, the town (world.json's `pitches[].town`) and when they leave (UTC ISO-8601) |
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
 | `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
@@ -424,6 +432,11 @@ player with no character is 404 `NoCharacter`.
   the same in the browser and in the replay, even where both are asked at once.
 - Sign-in: `GET /signin` (Discord), then `/home`, which passes the player on to the world client. A server started with
   `REALMS_DEV_SIGNIN=1` also takes `POST /dev/signin {Id, Name}`, signing in as `dev-<Id>`: development and tests only.
+  Such a server alone also takes two calls for tests, on the signed-in cookie, that arrange what play would take long to
+  reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, Q, R}` puts
+  the character at once on an open hex of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
+  {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
+  their logs, so the card layer's stand-in counts as a win. Never in production.
 
 ## The card layer (`window.postMessage`)
 

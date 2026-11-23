@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { at, entity, openNear, realm, waitReady, world } from "../realm";
+import { entity, openNear, realm, waitReady, world } from "../realm";
 
 // Both layers on one page against the real realm server (playwright.config.ts here): the overworld frames the real card
 // layer - the web client's ?realm page, on an origin of its own - and a duel started in the world is dealt and played on
@@ -62,10 +62,12 @@ test("a duel started in the world is played in the real card layer, and its log 
   const made = await page.request.post(new URL("api/character", SERVER).toString(), { data: { Name: "Cass", Body: "lithe", Palette: 0, Color: "W" } });
   expect(made.ok(), await made.text()).toBe(true);
 
-  // By a spawn of the wilds near New Benalia; the card layer boots behind the world meanwhile. (At integration: the
-  // server takes a place only walked to, so the test walks there from the inn.)
+  // By a spawn of the wilds near New Benalia, where the test puts the character (POST /dev/place, test-only); the card
+  // layer boots behind the world meanwhile.
   const spawn = spawnNear("new-benalia");
-  await page.goto(query(`&at=${at(openNear(spawn, 6))}`));
+  const placed = await page.request.post(new URL("dev/place", SERVER).toString(), { data: { Space: "world", Q: openNear(spawn, 6).q, R: openNear(spawn, 6).r } });
+  expect(placed.ok(), await placed.text()).toBe(true);
+  await page.goto(query());
   await waitReady(page);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
 

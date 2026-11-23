@@ -24,7 +24,8 @@ public sealed class Encounters(
     DecksAndGear decks,
     IDuelVerifier verifier,
     RealmDice dice,
-    TimeProvider time)
+    TimeProvider time,
+    DevVerdicts devVerdicts)
 {
     /// <summary>How far past its wander radius a mob gives chase (design.md A6).</summary>
     public const int ChaseRadius = 6;
@@ -222,7 +223,8 @@ public sealed class Encounters(
 
         Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
         IReadOnlyList<string> log = request.Log ?? [];
-        DuelVerdict verdict = await Task.Run(() => verifier.Verify(spec, log)).ConfigureAwait(false);
+        // A development server's test may have set the verdict (POST /dev/verdict); else the log is replayed.
+        DuelVerdict verdict = devVerdicts.For(player) ?? await Task.Run(() => verifier.Verify(spec, log)).ConfigureAwait(false);
         if (!verdict.PlayerWon)
         {
             string detail = verdict.Accepted ? (verdict.Winners.Count == 0 ? "A draw." : "The mob won.") : $"The log was not a game of this duel: {verdict.Problem}";

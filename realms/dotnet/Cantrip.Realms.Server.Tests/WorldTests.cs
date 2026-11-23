@@ -75,6 +75,37 @@ public sealed class PlacesTests
     }
 
     [Fact]
+    public async Task A_development_server_places_a_character_and_judges_its_duels_as_a_test_says()
+    {
+        // Only with REALMS_DEV_SIGNIN=1 (as RealmApp runs), for the end-to-end suites: POST /dev/place and /dev/verdict.
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1);
+        await browser.Ok<object>(HttpMethod.Post, "/dev/place", new { Space = "benalia-white-goods-shop", Q = 0, R = 0 });
+        await At(browser, "benalia-white-goods-shop", new Hex(0, 0));
+        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = World, Q = 26, R = 5 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = "run:1", Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+
+        // The fake verifier says every log is a win; a verdict set says otherwise for this player alone, until cleared.
+        MapSpawn spawn = RealmApp.SpawnOf(1);
+        async Task<string> Fight(Browser who)
+        {
+            await who.Put(World, spawn.At);
+            app.Time.Advance(TimeSpan.FromSeconds(spawn.RespawnSeconds));
+            string mob = Spawns.MobOf(who.Player, World, spawn.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds), spawn.Mobs);
+            EncounterView encounter = await who.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn = spawn.Id, Mob = mob });
+            return (await RealmApp.Finish(who, encounter.Token)).Outcome;
+        }
+
+        Browser other = await app.Character(2);
+        await browser.Ok<object>(HttpMethod.Post, "/dev/verdict", new { Outcome = "lost" });
+        Assert.Equal("lost", await Fight(browser));
+        Assert.Equal("won", await Fight(other));
+        await browser.Ok<object>(HttpMethod.Post, "/dev/verdict", new { Outcome = (string?)null });
+        Assert.Equal("won", await Fight(browser));
+        await browser.Refused(HttpMethod.Post, "/dev/verdict", new { Outcome = "drawn" }, HttpStatusCode.BadRequest, "BadRequest");
+    }
+
+    [Fact]
     public async Task A_building_is_entered_through_its_door_and_left_through_it()
     {
         await using var app = new RealmApp();

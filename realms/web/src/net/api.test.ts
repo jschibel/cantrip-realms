@@ -70,7 +70,7 @@ describe("MockApi", () => {
 
   it("caps the loot at the ante and refuses picks over it", async () => {
     const api = make();
-    const start = await api.startEncounter({ Spawn: "s1", Mob: "urborg-ghoul" });
+    const start = await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
     expect(start.Duel.Cap).toBe(Math.min(start.Duel.AnteValue, start.Duel.Mob.Prize));
     api.settle(start.Token, "won");
     const result = await api.finishEncounter({ Token: start.Token, Log: [] });
@@ -86,8 +86,8 @@ describe("MockApi", () => {
   it("loses an ante card on a loss, and counts a duel never finished as lost", async () => {
     const api = make();
     const before = (await api.me())!.AnteValue;
-    const first = await api.startEncounter({ Spawn: "s1", Mob: "urborg-ghoul" });
-    await api.startEncounter({ Spawn: "s2", Mob: "cabal-initiate" });
+    const first = await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
+    await api.startEncounter({ Spawn: "s2", Mob: "bog-imp" });
     expect((await api.finishEncounter({ Token: first.Token, Log: [] })).Outcome).toBe("lost");
     expect((await api.me())!.AnteValue).toBeLessThan(before);
   });

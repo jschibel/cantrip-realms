@@ -21,6 +21,7 @@ public static class RealmServer
         services.AddSingleton(_ => new RealmDice());
         services.AddSingleton<IDuelVerifier>(_ => new NativeDuelVerifier());
         services.AddSingleton<PresenceHub>();
+        services.AddSingleton<DevVerdicts>();
         options.Database.Register(services);
         services.AddScoped<Characters>();
         services.AddScoped<DecksAndGear>();
@@ -81,6 +82,7 @@ public static class RealmServer
         app.MapHealthChecks("/healthz");
         app.MapRealmSignIn(options);
         app.MapRealmApi();
+        app.MapRealmDevApi(options);
         app.MapPresence();
     }
 }
