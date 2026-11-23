@@ -17,7 +17,7 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked } from "./world/format";
+import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, townAt } from "./world/format";
 import type { Grid, Tile } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
@@ -370,7 +370,13 @@ export class Overworld {
   /** A thing used from beside it on a tile (a spell table, a quest board, the arena's gate, a waystone). */
   private objectAt(t: Tile): NpcData | undefined {
     const list = this.inWorld ? (this.world.streamer.data.get(chunkKey(Math.floor(t.x / CHUNK), Math.floor(t.z / CHUNK)))?.npcs ?? []) : (this.roomNpcs.get(this.spot.id) ?? []);
-    return list.find((n) => OBJECT_KINDS.has(n.kind) && n.x === t.x && n.z === t.z);
+    // On the tile; else a thing standing over the tile north of it on the page, or whose face juts onto the one south.
+    // (Not over a door or a way in: that is the door's.)
+    for (const dz of this.stage.doorAt(t) ? [0] : [0, 1, -1]) {
+      const found = list.find((n) => OBJECT_KINDS.has(n.kind) && n.x === t.x && n.z === t.z + dz);
+      if (found) return found;
+    }
+    return undefined;
   }
 
   private chestAt(t: Tile): ChestData | undefined {
@@ -398,6 +404,7 @@ export class Overworld {
     if (who?.npc) return who.npc.name ?? who.npc.kind;
     if (who?.visitor) return who.visitor.name;
     const thing = this.objectAt(t);
+    if (thing?.kind === "waystone") return `${thing.name ?? "A waystone"} (${this.attuned.includes(thing.tower ?? "") ? "attuned" : "dormant"})`;
     if (thing) return thing.name ?? thing.kind;
     if (this.chestAt(t)) return "A chest";
     const door = this.stage.doorAt(t);
@@ -488,7 +495,7 @@ export class Overworld {
   /** On every step: the area and its tier, and now and then where the player is. */
   private stepped(t: Tile, arriving = false): void {
     if (this.inWorld) {
-      const town = this.worldData.towns.find((tw) => Math.hypot(t.x - tw.center[0], t.z - tw.center[1]) <= tw.radius);
+      const town = townAt(this.worldData.towns, t.x, t.z);
       const z = this.worldData.zones;
       const [ox, oz] = this.worldData.origin ?? [0, 0];
       const zone = z.areas[z.grid[Math.floor((t.z - oz) / z.cell)]?.[Math.floor((t.x - ox) / z.cell)] ?? -1];
@@ -709,7 +716,7 @@ export class Overworld {
   /** The town of the place the player is in: a room's own, or the town round them in the world. */
   private townHere(): string {
     const p = this.player.tile;
-    return this.worldData.towns.find((t) => Math.hypot(p.x - t.center[0], p.z - t.center[1]) <= t.radius)?.id ?? this.spot.id;
+    return townAt(this.worldData.towns, p.x, p.z)?.id ?? this.spot.id;
   }
 
   async talk(npc: NpcData, actor?: Actor): Promise<void> {

@@ -116,7 +116,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
           return { name: a.name, kind: n?.kind ?? "npc", id: n?.vendor ?? n?.id ?? a.name, tile: a.tile, moving: a.moving, ...at(a.position, 0.6) };
         }),
         ...o.traderActors.map(({ actor, npc }) => ({ name: npc.name ?? npc.id, kind: npc.kind, id: npc.vendor ?? npc.id, tile: actor.tile, moving: actor.moving, ...at(actor.position, 0.6) })),
-        ...things.filter((n) => OBJECT_KINDS.has(n.kind)).map((n) => ({ name: n.name ?? n.kind, kind: n.kind, id: n.tower ?? n.id, tile: { x: n.x, z: n.z }, ...at(centre({ x: n.x, z: n.z }, floor(n.x, n.z)), 0.5) })),
+        ...things.filter((n) => OBJECT_KINDS.has(n.kind)).map((n) => ({ name: n.name ?? n.kind, kind: n.kind, id: n.tower ?? n.id, tile: { x: n.x, z: n.z }, ...at(centre({ x: n.x, z: n.z }, floor(n.x, n.z)), 0.15) })),
         ...markers.map((w) => ({ name: `Tier ${w.tier}`, kind: "waymarker", id: `${w.x},${w.z}`, tier: w.tier, tile: { x: w.x, z: w.z }, ...at(centre({ x: w.x, z: w.z }, floor(w.x, w.z)), 0.8) })),
         ...chests.map((c) => ({ name: "A chest", kind: "chest", id: c.id, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.3) })),
         ...o.spot.doors.map((d) => ({ name: d.name, kind: d.kind ?? "door", id: d.to, to: d.to, tile: d.tile, ...at(centre(d.tile, floor(d.tile.x, d.tile.z)), 0) })),
@@ -158,7 +158,23 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     pathTo(x: number, z: number) {
       const o = live();
       if (!o) return null;
-      return o.spot.grid.path(o.player.tile, { x, z }) ?? null;
+      const grid = o.spot.grid;
+      // A blocked tile (a board, a table): the way to the nearest open tile beside it.
+      if (!grid.walkable(x, z)) {
+        let best: { x: number; z: number; path: { x: number; z: number }[] } | null = null;
+        for (let dz = -2; dz <= 2; dz++)
+          for (let dx = -2; dx <= 2; dx++) {
+            if (!grid.walkable(x + dx, z + dz)) continue;
+            const path = grid.path(o.player.tile, { x: x + dx, z: z + dz });
+            if (path && (!best || path.length < best.path.length)) best = { x: x + dx, z: z + dz, path };
+          }
+        return best?.path ?? null;
+      }
+      return grid.path(o.player.tile, { x, z }) ?? null;
+    },
+    /** What a click on a tile does (the stage's own handling of it), without finding the tile on the page first. */
+    clickTile(x: number, z: number) {
+      live()?.stage.clickTile({ x, z });
     },
     /** A dungeon run under way: its floor, and the floor's ways (`up`, `down`, `wayOut`) as tiles. */
     get run() {

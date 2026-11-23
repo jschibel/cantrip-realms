@@ -48,7 +48,7 @@ test("game: the street, into the shop, its vendor's wares, and back out", async 
   expect(await realm<{ id: string; kind: string }>(page, "space")).toMatchObject({ id: "shop", kind: "interior" });
   expect(await realm<string[]>(page, "api").then((calls: any) => calls.filter((c: any) => c.name === "position").at(-1)?.body)).toMatchObject({ Space: "shop", X: expect.any(Number), Z: expect.any(Number) });
   // Grizzlegom, behind his counter: walked up to and talked to.
-  const vendor = (await entities(page)).find((e) => e.kind === "npc" && e.name === "Grizzlegom")!;
+  const vendor = (await entities(page)).find((e) => e.kind === "vendor" && e.name === "Grizzlegom")!;
   await page.mouse.click(vendor.x, vendor.y);
   await advance(page, 4);
   const requests = await realm<{ screen: string }[]>(page, "layer.requests");

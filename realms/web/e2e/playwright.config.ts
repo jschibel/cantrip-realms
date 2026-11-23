@@ -12,15 +12,6 @@ export default defineConfig({
   testIgnore: [
     "server/**",
     "bench/**",
-    // The game page's suites written for the hex world (Dominaria on hexes, positions as q, r): the page runs on the
-    // renderer's stage over a version-2 world now (game.spec.ts), and integration ports these to the generated
-    // Domains on squares (realms/docs/conversion.md, "The renderer at world scale"). The same for the tests marked
-    // fixme in look, screens and screenshots.
-    "duel.spec.ts",
-    "dungeons.spec.ts",
-    "interiors.spec.ts",
-    "travel.spec.ts",
-    "world.spec.ts",
   ],
   timeout: 60_000,
   expect: { timeout: 15_000 },
