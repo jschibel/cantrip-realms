@@ -874,7 +874,7 @@ export function ford(seed = 132): Pixmap {
 
 // --- Roads ---------------------------------------------------------------------------------------------------------------
 
-/** A cart track: packed dirt, rutted and hoof-printed, puddles in the hollows, a little grass on its crown. */
+/** A cart track: packed dirt, rutted and hoof-printed, pebbles, darker hollows. */
 export function cartTrack(seed = 133): Pixmap {
   const p = new Pixmap(SIZE, SIZE);
   const d = C.DIRT;
@@ -897,23 +897,8 @@ export function cartTrack(seed = 133): Pixmap {
     p.set(x + 2, y - 1, d[1]!);
     p.set(x, y + 1, d[5]!);
   }
-  // A couple of puddles in the ruts, the sky in them: small ragged ovals, dark at their near rim.
-  for (let k = 0; k < 2; k++) {
-    const cx = Math.floor(random() * SIZE);
-    const cy = Math.floor(random() * SIZE);
-    const rx = 3 + random() * 3;
-    const ry = 1.5 + random() * 1.2;
-    for (let dy = -3; dy <= 3; dy++) {
-      for (let dx = -7; dx <= 7; dx++) {
-        const d = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) + (hash2(cx + dx, cy + dy, seed) - 0.5) * 0.4;
-        if (d > 1) continue;
-        p.set(cx + dx, cy + dy, dy < -ry * 0.4 ? d1(d) : hash2(dx, dy, seed + 2) < 0.12 ? C.WATER[5]! : C.WATER[2]!);
-      }
-    }
-  }
-  function d1(d: number): Rgb {
-    return d > 0.7 ? C.DIRT[1]! : C.WATER[3]!;
-  }
+  // Ruts' darker hollows (no standing water: it repeats every four tiles too plainly on a long road).
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (fbm(x, y, 16, SIZE, seed + 5) < 0.24 && hash2(x, y, seed + 9) < 0.5) p.set(x, y, d[2]!);
   for (let k = 0; k < 20; k++) pebble(p, Math.floor(random() * SIZE), Math.floor(random() * SIZE), d[4]!, d[5]!, d[1]!, random() < 0.5);
   return p;
 }

@@ -195,7 +195,7 @@ export function defineBiomes(define: Define): void {
   }));
 
   // --- Roads ---------------------------------------------------------------------------------------------------------
-  define("cart-track", "a cart track: rutted dirt, hoofprints, puddles", {}, () => ({ picture: G.cartTrack(), priority: PRIORITY.track + 0.05 }));
+  define("cart-track", "a cart track: rutted dirt, hoofprints, pebbles", {}, () => ({ picture: G.cartTrack(), priority: PRIORITY.track + 0.05 }));
   define("setts", "setts: squared stone blocks in courses, a dressed street", { stone: C.COBBLE }, (p) => ({ picture: G.setts(ramp(p, "stone")), priority: PRIORITY.cobbles + 0.05 }));
   define("marble-paving", "marble paving, veined, inlaid with azure (Tolaria)", { stone: R.MARBLE }, (p) => ({ picture: G.marblePaving(ramp(p, "stone")), priority: PRIORITY.paving }));
   define("mud-track", "a muddy track: churned mud, puddles, straw thrown down", {}, () => ({ picture: G.mudTrack(), priority: PRIORITY.track }));
