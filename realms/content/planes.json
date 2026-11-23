@@ -1,0 +1,21 @@
+{
+  "comment": "The planes of Cantrip Realms (realms/docs/design.md, A6) and the Scryfall set codes of each: a card printed in one of a plane's sets is in that plane's pool (tools/realms/card-economy.py). Universes Beyond sets are left out of every price and pool; printings with the triangle security stamp are too, wherever they are.",
+  "planes": {
+    "dominaria": {
+      "name": "Dominaria",
+      "sets": [
+        "lea", "leb", "2ed", "3ed", "4ed", "5ed", "7ed", "chr",
+        "atq", "leg", "drk", "fem", "ice", "all", "csp",
+        "mir", "vis", "wth",
+        "usg", "ulg", "uds",
+        "inv", "pls", "apc",
+        "ody", "tor", "jud", "ons", "lgn", "scg",
+        "tsp", "tsb", "plc", "fut", "tsr",
+        "dom", "dmu", "dmc", "dmr", "bro", "brr", "brc"
+      ]
+    }
+  },
+  "universes_beyond_sets": [
+    "ltr", "ltc", "40k", "who", "pip", "acr", "fin", "fic", "fca", "spm", "spe", "tla", "tle", "rex", "bot", "slx"
+  ]
+}
