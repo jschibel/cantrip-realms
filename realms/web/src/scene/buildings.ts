@@ -18,16 +18,16 @@ interface Look {
 }
 
 const LOOKS: Record<string, Look> = {
-  argive: { wall: "#d8d6d0", wall2: "#b3b5bc", roof: "#8f3b22", roof2: "#6b2a1a", trim: "#6b4630", banner: "#f1b44c", stone: "#8c909c" },
-  benalish: { wall: "#f2efe6", wall2: "#d8d6d0", roof: "#7a1f24", roof2: "#5a1418", trim: "#b3b5bc", banner: "#f4ecc2", stone: "#b3b5bc" },
-  tolarian: { wall: "#d8d6d0", wall2: "#93c8dc", roof: "#3f80a3", roof2: "#2b5d80", trim: "#f2efe6", banner: "#5b8fd6", stone: "#8c909c" },
-  urborg: { wall: "#4a3122", wall2: "#3b3c4a", roof: "#2a2b36", roof2: "#1d1e26", trim: "#6b7080", banner: "#4b2f5e", stone: "#3b3c4a" },
-  keldon: { wall: "#8f6340", wall2: "#6b4630", roof: "#5a3528", roof2: "#3b2418", trim: "#c8432c", banner: "#c8432c", stone: "#4f5363" },
-  llanowar: { wall: "#b5855a", wall2: "#8f6340", roof: "#2a4524", roof2: "#3a5f2c", trim: "#4a3122", banner: "#3e9a4a", stone: "#6b7080" },
+  argive: { wall: "#bcbfc9", wall2: "#979cab", roof: "#85382c", roof2: "#5a2420", trim: "#73472b", banner: "#ffc94a", stone: "#757b8c" },
+  benalish: { wall: "#e0e0e3", wall2: "#bcbfc9", roof: "#85382c", roof2: "#5a2420", trim: "#979cab", banner: "#fff8de", stone: "#979cab" },
+  tolarian: { wall: "#bcbfc9", wall2: "#84bfd3", roof: "#33739a", roof2: "#22557c", trim: "#e0e0e3", banner: "#3f62e8", stone: "#757b8c" },
+  urborg: { wall: "#4d2f1f", wall2: "#3e4252", roof: "#2e3140", roof2: "#1b1d26", trim: "#575c6e", banner: "#7a32b0", stone: "#3e4252" },
+  keldon: { wall: "#73472b", wall2: "#4d2f1f", roof: "#4d2f1f", roof2: "#2e1c14", trim: "#ad5238", banner: "#e02a3a", stone: "#575c6e" },
+  llanowar: { wall: "#c08b55", wall2: "#9a663c", roof: "#285a3a", roof2: "#3b7a45", trim: "#4d2f1f", banner: "#1fbf62", stone: "#757b8c" },
 };
 
 /** The colors of the tiers, on waymarkers, the regional map and the HUD: 1 green to 4 red. */
-export const TIER_COLORS: readonly string[] = ["#8c909c", "#3e9a4a", "#e0c040", "#e07a30", "#c8302c"];
+export const TIER_COLORS: readonly string[] = ["#979cab", "#1fbf62", "#ffc94a", "#f58a3a", "#e02a3a"];
 
 const lookOf = (style: string | undefined): Look => LOOKS[style ?? "argive"] ?? LOOKS.argive!;
 
@@ -61,58 +61,58 @@ export function buildStructure(b: Boxes, prop: PropData, tint: PropTint, random:
     case "tower":
       return prop.style ? townTower(b, lookOf(prop.style)) : buildProp(b, "tower", tint, random);
     case "lamp": {
-      b.box(0.1, 1.5, 0.1, "#2a2b36", 0, 0.75, 0);
-      b.box(0.3, 0.3, 0.3, "#f1b44c", 0, 1.6, 0, { glow: true });
-      b.box(0.36, 0.06, 0.36, "#2a2b36", 0, 1.78, 0);
+      b.box(0.1, 1.5, 0.1, "#2e3140", 0, 0.75, 0);
+      b.box(0.3, 0.3, 0.3, "#ffc94a", 0, 1.6, 0, { glow: true });
+      b.box(0.36, 0.06, 0.36, "#2e3140", 0, 1.78, 0);
       return;
     }
     case "dock":
-      b.box(0.22, 1.2, 0.22, "#6b4630", 0, 0.1, 0);
-      b.box(0.3, 0.08, 0.3, "#4a3122", 0, 0.72, 0);
+      b.box(0.22, 1.2, 0.22, "#73472b", 0, 0.1, 0);
+      b.box(0.3, 0.08, 0.3, "#4d2f1f", 0, 0.72, 0);
       return;
     case "counter":
-      b.box(1.5, 0.75, 0.8, "#6b4630", 0, 0.38, 0);
-      b.box(1.6, 0.08, 0.9, "#8f6340", 0, 0.78, 0);
-      b.box(0.25, 0.15, 0.25, "#f1b44c", 0.3, 0.9, 0, { glow: random() < 0.3 });
+      b.box(1.5, 0.75, 0.8, "#73472b", 0, 0.38, 0);
+      b.box(1.6, 0.08, 0.9, "#9a663c", 0, 0.78, 0);
+      b.box(0.25, 0.15, 0.25, "#ffc94a", 0.3, 0.9, 0, { glow: random() < 0.3 });
       return;
     case "shelf":
-      b.box(1.5, 1.6, 0.5, "#4a3122", 0, 0.8, 0);
+      b.box(1.5, 1.6, 0.5, "#4d2f1f", 0, 0.8, 0);
       for (const y of [0.45, 0.9, 1.35]) {
-        b.box(0.3, 0.25, 0.3, ["#c8432c", "#5b8fd6", "#f1b44c", "#3e9a4a"][Math.floor(random() * 4)]!, -0.4, y, 0.1);
-        b.box(0.35, 0.2, 0.3, ["#b3b5bc", "#a97fd0", "#8f6340"][Math.floor(random() * 3)]!, 0.35, y, 0.1);
+        b.box(0.3, 0.25, 0.3, ["#ad5238", "#5296b5", "#ffc94a", "#1fbf62"][Math.floor(random() * 4)]!, -0.4, y, 0.1);
+        b.box(0.35, 0.2, 0.3, ["#bcbfc9", "#8e82c8", "#9a663c"][Math.floor(random() * 3)]!, 0.35, y, 0.1);
       }
       return;
     case "bookshelf":
-      b.box(1.5, 2.0, 0.5, "#4a3122", 0, 1.0, 0);
-      for (const y of [0.35, 0.8, 1.25, 1.7]) for (let x = -0.55; x <= 0.56; x += 0.22) b.box(0.18, 0.32, 0.36, ["#7a1f24", "#1d3f5c", "#3a5f2c", "#6b4630", "#4b2f5e"][Math.floor(random() * 5)]!, x, y, 0.05);
+      b.box(1.5, 2.0, 0.5, "#4d2f1f", 0, 1.0, 0);
+      for (const y of [0.35, 0.8, 1.25, 1.7]) for (let x = -0.55; x <= 0.56; x += 0.22) b.box(0.18, 0.32, 0.36, ["#85382c", "#173a5c", "#43722c", "#73472b", "#5e5294"][Math.floor(random() * 5)]!, x, y, 0.05);
       return;
     case "bed":
-      b.box(1.0, 0.4, 1.6, "#6b4630", 0, 0.2, 0);
-      b.box(0.9, 0.12, 1.4, "#d8d6d0", 0, 0.46, 0.05);
-      b.box(0.9, 0.14, 0.4, "#f2efe6", 0, 0.5, -0.55);
-      b.box(0.9, 0.1, 0.9, "#7a1f24", 0, 0.54, 0.25);
+      b.box(1.0, 0.4, 1.6, "#73472b", 0, 0.2, 0);
+      b.box(0.9, 0.12, 1.4, "#e0e0e3", 0, 0.46, 0.05);
+      b.box(0.9, 0.14, 0.4, "#f2f7f8", 0, 0.5, -0.55);
+      b.box(0.9, 0.1, 0.9, "#85382c", 0, 0.54, 0.25);
       return;
     case "table":
-      b.box(1.1, 0.08, 1.1, "#8f6340", 0, 0.7, 0);
-      b.box(0.15, 0.7, 0.15, "#4a3122", 0, 0.35, 0);
-      b.box(0.15, 0.2, 0.15, "#f1b44c", 0.2, 0.84, 0.1, { glow: true });
-      for (const [x, z] of [[0.7, 0], [-0.7, 0]] as const) b.box(0.35, 0.45, 0.35, "#6b4630", x, 0.22, z);
+      b.box(1.1, 0.08, 1.1, "#9a663c", 0, 0.7, 0);
+      b.box(0.15, 0.7, 0.15, "#4d2f1f", 0, 0.35, 0);
+      b.box(0.15, 0.2, 0.15, "#ffc94a", 0.2, 0.84, 0.1, { glow: true });
+      for (const [x, z] of [[0.7, 0], [-0.7, 0]] as const) b.box(0.35, 0.45, 0.35, "#73472b", x, 0.22, z);
       return;
     case "hearth":
-      b.box(1.6, 1.4, 0.7, "#6b7080", 0, 0.7, 0);
-      b.box(0.9, 0.6, 0.2, "#1a1c24", 0, 0.35, 0.3);
-      b.box(0.6, 0.35, 0.15, "#e86a3a", 0, 0.25, 0.35, { glow: true });
-      b.box(0.5, 1.6, 0.5, "#4f5363", 0, 2.0, -0.1);
+      b.box(1.6, 1.4, 0.7, "#757b8c", 0, 0.7, 0);
+      b.box(0.9, 0.6, 0.2, "#1b1d26", 0, 0.35, 0.3);
+      b.box(0.6, 0.35, 0.15, "#f58a3a", 0, 0.25, 0.35, { glow: true });
+      b.box(0.5, 1.6, 0.5, "#575c6e", 0, 2.0, -0.1);
       return;
     case "pew":
-      b.box(1.5, 0.45, 0.45, "#6b4630", 0, 0.23, 0);
-      b.box(1.5, 0.5, 0.1, "#4a3122", 0, 0.65, -0.2);
+      b.box(1.5, 0.45, 0.45, "#73472b", 0, 0.23, 0);
+      b.box(1.5, 0.5, 0.1, "#4d2f1f", 0, 0.65, -0.2);
       return;
     case "forge":
-      b.box(1.4, 0.9, 1.2, "#3b3c4a", 0, 0.45, 0);
-      b.box(1.0, 0.25, 0.8, "#e86a3a", 0, 0.95, 0, { glow: true });
-      b.box(0.6, 2.0, 0.6, "#4f5363", 0, 2.0, -0.3);
-      b.box(0.3, 0.3, 0.3, "#f1b44c", 0, 1.15, 0.1, { glow: true });
+      b.box(1.4, 0.9, 1.2, "#2e3140", 0, 0.45, 0);
+      b.box(1.0, 0.25, 0.8, "#f58a3a", 0, 0.95, 0, { glow: true });
+      b.box(0.6, 2.0, 0.6, "#575c6e", 0, 2.0, -0.3);
+      b.box(0.3, 0.3, 0.3, "#ffc94a", 0, 1.15, 0.1, { glow: true });
       return;
     default:
       return buildProp(b, prop.kind as Parameters<typeof buildProp>[1], tint, random);
@@ -131,7 +131,7 @@ function building(b: Boxes, p: PropData, random: () => number): void {
   const onFront = (across: number, y: number, sw: number, sh: number, color: string, glow = false, out = 0.06) =>
     b.box(Math.abs(ax) > 0 ? sw : 0.08, sh, Math.abs(az) > 0 ? sw : 0.08, color, nx * (extentFront + out) + ax * across, y, nz * (extentFront + out) + az * across, { glow });
   const windows = (y: number, lit: number) => {
-    for (let a = -extentAcross + 0.8; a <= extentAcross - 0.8; a += 1.2) if (Math.abs(a) > 0.6) onFront(a, y, 0.4, 0.45, random() < lit ? "#f1b44c" : "#1a1c24", false);
+    for (let a = -extentAcross + 0.8; a <= extentAcross - 0.8; a += 1.2) if (Math.abs(a) > 0.6) onFront(a, y, 0.4, 0.45, random() < lit ? "#ffc94a" : "#1b1d26", false);
   };
   if (p.use === "mage-tower") {
     // A tall stack, narrowing, a pointed roof, windows glowing up it.
@@ -139,19 +139,19 @@ function building(b: Boxes, p: PropData, random: () => number): void {
     b.box(r, h * 0.55, r, look.wall, 0, h * 0.275, 0);
     b.box(r * 0.85, h * 0.3, r * 0.85, look.wall2, 0, h * 0.7, 0);
     for (let k = 0; k < 4; k++) b.box(r * (0.95 - k * 0.22), 0.5, r * (0.95 - k * 0.22), k % 2 ? look.roof2 : look.roof, 0, h * 0.85 + k * 0.45, 0);
-    for (let y = 1; y < h * 0.8; y += 1.4) onFront(0, y, 0.35, 0.6, "#a97fd0", true);
+    for (let y = 1; y < h * 0.8; y += 1.4) onFront(0, y, 0.35, 0.6, "#8e82c8", true);
     return;
   }
   switch (p.style) {
     case "urborg": {
       // On stilts above the mud.
       const lift = 0.8;
-      for (const [x, z] of [[-w / 2 + 0.2, -d / 2 + 0.2], [w / 2 - 0.2, -d / 2 + 0.2], [-w / 2 + 0.2, d / 2 - 0.2], [w / 2 - 0.2, d / 2 - 0.2]] as const) b.box(0.22, lift, 0.22, "#2e1f17", x, lift / 2, z);
+      for (const [x, z] of [[-w / 2 + 0.2, -d / 2 + 0.2], [w / 2 - 0.2, -d / 2 + 0.2], [-w / 2 + 0.2, d / 2 - 0.2], [w / 2 - 0.2, d / 2 - 0.2]] as const) b.box(0.22, lift, 0.22, "#2e1c14", x, lift / 2, z);
       b.box(w + 0.2, 0.15, d + 0.2, look.trim, 0, lift, 0);
       b.box(w * 0.92, h * 0.6, d * 0.92, look.wall, 0, lift + h * 0.3, 0);
       b.box(w, 0.3, d, look.roof, 0, lift + h * 0.6 + 0.1, 0);
       b.box(w * 0.6, 0.35, d * 0.6, look.roof2, 0, lift + h * 0.6 + 0.4, 0);
-      onFront(0, lift + 0.5, 0.5, 0.35, random() < 0.4 ? "#a97fd0" : "#1a1c24", true, 0.0);
+      onFront(0, lift + 0.5, 0.5, 0.35, random() < 0.4 ? "#8e82c8" : "#1b1d26", true, 0.0);
       break;
     }
     case "keldon": {
@@ -168,13 +168,13 @@ function building(b: Boxes, p: PropData, random: () => number): void {
     case "llanowar": {
       // A tree-house: the trunk, the house up in the boughs, the canopy over it.
       const lift = 1.4;
-      b.box(0.8, lift + h * 0.4, 0.8, "#4a3122", 0, (lift + h * 0.4) / 2, 0);
+      b.box(0.8, lift + h * 0.4, 0.8, "#4d2f1f", 0, (lift + h * 0.4) / 2, 0);
       b.box(w * 0.85, 0.15, d * 0.85, look.trim, 0, lift, 0);
       b.box(w * 0.7, h * 0.5, d * 0.7, look.wall, 0, lift + h * 0.25, 0);
       b.box(w * 1.05, 0.6, d * 1.05, look.roof, 0, lift + h * 0.5 + 0.3, 0);
       b.box(w * 0.75, 0.55, d * 0.75, look.roof2, 0, lift + h * 0.5 + 0.8, 0);
       b.box(w * 0.4, 0.4, d * 0.4, look.roof, 0, lift + h * 0.5 + 1.2, 0);
-      onFront(0, lift + h * 0.25, 0.5, 0.4, random() < 0.5 ? "#f1b44c" : "#1a1c24", true, -w * 0.15);
+      onFront(0, lift + h * 0.25, 0.5, 0.4, random() < 0.5 ? "#ffc94a" : "#1b1d26", true, -w * 0.15);
       break;
     }
     case "tolarian": {
@@ -213,19 +213,19 @@ function building(b: Boxes, p: PropData, random: () => number): void {
       const bz = -nz * (extentFront - 1);
       b.box(1.4, h * 1.4, 1.4, look.wall2, bx, h * 0.7, bz);
       for (let k = 0; k < 3; k++) b.box(1.3 - k * 0.4, 0.5, 1.3 - k * 0.4, look.roof, bx, h * 1.4 + k * 0.45, bz);
-      b.box(0.2, 0.5, 0.2, "#f1b44c", bx, h * 1.4 + 1.5, bz, { glow: true });
+      b.box(0.2, 0.5, 0.2, "#ffc94a", bx, h * 1.4 + 1.5, bz, { glow: true });
       break;
     }
     case "inn":
       // A hanging sign by the door.
-      onFront(extentAcross * 0.6, h * 0.55, 0.7, 0.45, "#8f6340", false, 0.4);
-      onFront(extentAcross * 0.6, h * 0.55, 0.4, 0.2, "#f1b44c", true, 0.46);
+      onFront(extentAcross * 0.6, h * 0.55, 0.7, 0.45, "#9a663c", false, 0.4);
+      onFront(extentAcross * 0.6, h * 0.55, 0.4, 0.2, "#ffc94a", true, 0.46);
       break;
     case "smithy": {
       const cx = -ax * (extentAcross - 0.6);
       const cz = -az * (extentAcross - 0.6);
       b.box(0.7, h * 1.5, 0.7, look.stone, cx, h * 0.75, cz);
-      b.box(0.4, 0.25, 0.4, "#e86a3a", cx, h * 1.5 + 0.1, cz, { glow: true });
+      b.box(0.4, 0.25, 0.4, "#f58a3a", cx, h * 1.5 + 0.1, cz, { glow: true });
       break;
     }
     case "shop":
@@ -237,7 +237,7 @@ function building(b: Boxes, p: PropData, random: () => number): void {
       onFront(extentAcross - 0.5, h * 0.55, 0.4, 1.2, look.banner);
       break;
     case "library":
-      for (let a = -extentAcross + 1; a <= extentAcross - 1; a += 1.4) onFront(a, h * 0.4, 0.3, 1.1, "#5b8fd6", true, 0.05);
+      for (let a = -extentAcross + 1; a <= extentAcross - 1; a += 1.4) onFront(a, h * 0.4, 0.3, 1.1, "#5296b5", true, 0.05);
       break;
     default:
       break;
@@ -255,69 +255,69 @@ function entrance(b: Boxes, p: PropData): void {
     b.box(Math.abs(ax) > 0 ? sw : 0.1, sh, Math.abs(az) > 0 ? sw : 0.1, color, nx * (extentFront + 0.04), sh / 2, nz * (extentFront + 0.04), { glow });
   switch (p.style) {
     case "caves":
-      b.box(w, h * 0.7, d, "#5a5e6e", 0, h * 0.35, 0);
-      b.box(w * 0.7, h * 0.4, d * 0.7, "#4f5363", -0.3, h * 0.85, 0.2);
-      b.box(w * 0.4, h * 0.3, d * 0.4, "#6b7080", 0.4, h * 1.1, -0.3);
-      mouth(1.4, 1.5, "#0d0f14");
+      b.box(w, h * 0.7, d, "#575c6e", 0, h * 0.35, 0);
+      b.box(w * 0.7, h * 0.4, d * 0.7, "#575c6e", -0.3, h * 0.85, 0.2);
+      b.box(w * 0.4, h * 0.3, d * 0.4, "#757b8c", 0.4, h * 1.1, -0.3);
+      mouth(1.4, 1.5, "#0b0c10");
       break;
     case "castle":
-      b.box(w * 0.8, h * 0.7, d * 0.8, "#b3b5bc", 0, h * 0.35, 0);
+      b.box(w * 0.8, h * 0.7, d * 0.8, "#bcbfc9", 0, h * 0.35, 0);
       for (const [x, z] of [[-w / 2 + 0.6, -d / 2 + 0.6], [w / 2 - 0.6, -d / 2 + 0.6], [-w / 2 + 0.6, d / 2 - 0.6], [w / 2 - 0.6, d / 2 - 0.6]] as const) {
-        b.box(1.2, h, 1.2, "#d8d6d0", x, h / 2, z);
-        b.box(1.4, 0.3, 1.4, "#8c909c", x, h + 0.15, z);
+        b.box(1.2, h, 1.2, "#e0e0e3", x, h / 2, z);
+        b.box(1.4, 0.3, 1.4, "#979cab", x, h + 0.15, z);
       }
-      for (let k = -2; k <= 2; k++) b.box(0.35, 0.35, 0.35, "#d8d6d0", ax * k * 0.8 + nx * (extentFront - 0.6), h * 0.7 + 0.17, az * k * 0.8 + nz * (extentFront - 0.6));
-      mouth(1.4, 1.9, "#1a1c24");
-      b.box(0.5, 0.8, 0.05, "#f4ecc2", ax * 1.4 + nx * (extentFront + 0.1), h * 0.5, az * 1.4 + nz * (extentFront + 0.1));
+      for (let k = -2; k <= 2; k++) b.box(0.35, 0.35, 0.35, "#e0e0e3", ax * k * 0.8 + nx * (extentFront - 0.6), h * 0.7 + 0.17, az * k * 0.8 + nz * (extentFront - 0.6));
+      mouth(1.4, 1.9, "#1b1d26");
+      b.box(0.5, 0.8, 0.05, "#fff8de", ax * 1.4 + nx * (extentFront + 0.1), h * 0.5, az * 1.4 + nz * (extentFront + 0.1));
       break;
     case "tower": {
       const r = Math.min(w, d);
-      b.box(r, h * 0.7, r, "#8c909c", 0, h * 0.35, 0);
-      b.box(r * 0.85, h * 0.25, r * 0.85, "#b3b5bc", 0, h * 0.82, 0);
-      for (let k = 0; k < 4; k++) b.box(r * (0.95 - k * 0.22), 0.55, r * (0.95 - k * 0.22), k % 2 ? "#2b5d80" : "#4b2f5e", 0, h * 0.95 + k * 0.5, 0);
-      b.box(0.3, 0.3, 0.3, "#a97fd0", 0, h * 0.95 + 2.2, 0, { glow: true });
-      for (let y = 2; y < h * 0.8; y += 1.6) b.box(Math.abs(ax) > 0 ? 0.35 : 0.08, 0.6, Math.abs(az) > 0 ? 0.35 : 0.08, "#a97fd0", nx * (r / 2 + 0.05), y, nz * (r / 2 + 0.05), { glow: true });
-      mouth(1.0, 1.6, "#1a1c24");
+      b.box(r, h * 0.7, r, "#979cab", 0, h * 0.35, 0);
+      b.box(r * 0.85, h * 0.25, r * 0.85, "#bcbfc9", 0, h * 0.82, 0);
+      for (let k = 0; k < 4; k++) b.box(r * (0.95 - k * 0.22), 0.55, r * (0.95 - k * 0.22), k % 2 ? "#22557c" : "#5e5294", 0, h * 0.95 + k * 0.5, 0);
+      b.box(0.3, 0.3, 0.3, "#8e82c8", 0, h * 0.95 + 2.2, 0, { glow: true });
+      for (let y = 2; y < h * 0.8; y += 1.6) b.box(Math.abs(ax) > 0 ? 0.35 : 0.08, 0.6, Math.abs(az) > 0 ? 0.35 : 0.08, "#8e82c8", nx * (r / 2 + 0.05), y, nz * (r / 2 + 0.05), { glow: true });
+      mouth(1.0, 1.6, "#1b1d26");
       break;
     }
     case "crypt":
-      b.box(w, h * 0.65, d, "#4f5363", 0, h * 0.33, 0);
-      for (let k = 0; k < 3; k++) b.box(w * (1 - k * 0.3), 0.3, d * (1 - k * 0.3), "#3b3c4a", 0, h * 0.65 + k * 0.3, 0);
-      for (const s of [-1, 1]) b.box(0.4, h * 0.65, 0.4, "#6b7080", ax * s * 0.9 + nx * (extentFront + 0.2), h * 0.33, az * s * 0.9 + nz * (extentFront + 0.2));
-      mouth(1.1, 1.5, "#0d0f14");
-      b.box(0.3, 0.3, 0.3, "#a97fd0", nx * (extentFront + 0.3), h * 0.75, nz * (extentFront + 0.3), { glow: true });
+      b.box(w, h * 0.65, d, "#575c6e", 0, h * 0.33, 0);
+      for (let k = 0; k < 3; k++) b.box(w * (1 - k * 0.3), 0.3, d * (1 - k * 0.3), "#2e3140", 0, h * 0.65 + k * 0.3, 0);
+      for (const s of [-1, 1]) b.box(0.4, h * 0.65, 0.4, "#757b8c", ax * s * 0.9 + nx * (extentFront + 0.2), h * 0.33, az * s * 0.9 + nz * (extentFront + 0.2));
+      mouth(1.1, 1.5, "#0b0c10");
+      b.box(0.3, 0.3, 0.3, "#8e82c8", nx * (extentFront + 0.3), h * 0.75, nz * (extentFront + 0.3), { glow: true });
       break;
     case "hollow":
       for (const s of [-1, 1]) {
-        b.box(1.0, h * 0.8, 1.0, "#4a3122", ax * s * 1.2, h * 0.4, az * s * 1.2);
-        b.box(0.6, 0.6, 1.6, "#4a3122", ax * s * 1.7, 0.3, az * s * 1.7);
+        b.box(1.0, h * 0.8, 1.0, "#4d2f1f", ax * s * 1.2, h * 0.4, az * s * 1.2);
+        b.box(0.6, 0.6, 1.6, "#4d2f1f", ax * s * 1.7, 0.3, az * s * 1.7);
       }
-      b.box(w, h * 0.3, d, "#2a4524", 0, h * 0.95, 0);
-      b.box(w * 0.7, h * 0.3, d * 0.7, "#3a5f2c", 0, h * 1.2, 0);
-      b.box(1.8, 0.6, 1.2, "#4a3122", 0, h * 0.75, 0);
-      mouth(1.4, 1.6, "#0d0f14");
+      b.box(w, h * 0.3, d, "#2f5424", 0, h * 0.95, 0);
+      b.box(w * 0.7, h * 0.3, d * 0.7, "#43722c", 0, h * 1.2, 0);
+      b.box(1.8, 0.6, 1.2, "#4d2f1f", 0, h * 0.75, 0);
+      mouth(1.4, 1.6, "#0b0c10");
       break;
     case "foundry":
-      b.box(w, h * 0.75, d, "#3b3c4a", 0, h * 0.38, 0);
-      b.box(w + 0.1, 0.2, d + 0.1, "#c8432c", 0, h * 0.75, 0);
+      b.box(w, h * 0.75, d, "#2e3140", 0, h * 0.38, 0);
+      b.box(w + 0.1, 0.2, d + 0.1, "#ad5238", 0, h * 0.75, 0);
       for (const s of [-1, 1]) {
-        b.box(0.8, h * 1.4, 0.8, "#4f5363", ax * s * (w / 4) - nx * 0.8, h * 0.7, az * s * (d / 4) - nz * 0.8);
-        b.box(0.5, 0.3, 0.5, "#e86a3a", ax * s * (w / 4) - nx * 0.8, h * 1.45, az * s * (d / 4) - nz * 0.8, { glow: true });
+        b.box(0.8, h * 1.4, 0.8, "#575c6e", ax * s * (w / 4) - nx * 0.8, h * 0.7, az * s * (d / 4) - nz * 0.8);
+        b.box(0.5, 0.3, 0.5, "#f58a3a", ax * s * (w / 4) - nx * 0.8, h * 1.45, az * s * (d / 4) - nz * 0.8, { glow: true });
       }
-      mouth(1.6, 1.6, "#e86a3a", true);
+      mouth(1.6, 1.6, "#f58a3a", true);
       break;
     case "portal":
       for (const s of [-1, 1]) {
-        b.box(0.7, h, 0.7, "#2a2b36", ax * s * (w / 2 - 0.4), h / 2, az * s * (w / 2 - 0.4));
-        b.box(0.3, 1.2, 0.3, "#b3b5bc", ax * s * (w / 2 - 0.4), h + 0.6, az * s * (w / 2 - 0.4));
+        b.box(0.7, h, 0.7, "#2e3140", ax * s * (w / 2 - 0.4), h / 2, az * s * (w / 2 - 0.4));
+        b.box(0.3, 1.2, 0.3, "#bcbfc9", ax * s * (w / 2 - 0.4), h + 0.6, az * s * (w / 2 - 0.4));
       }
-      b.box(Math.abs(ax) > 0 ? w : 0.7, 0.6, Math.abs(az) > 0 ? w : 0.7, "#2a2b36", 0, h, 0);
-      b.box(Math.abs(ax) > 0 ? w - 1.4 : 0.15, h - 0.4, Math.abs(az) > 0 ? w - 1.4 : 0.15, "#a97fd0", 0, (h - 0.4) / 2, 0, { glow: true });
-      b.box(w * 0.5, 0.3, d * 0.5, "#7a1f24", -nx * 1, 0.15, -nz * 1);
+      b.box(Math.abs(ax) > 0 ? w : 0.7, 0.6, Math.abs(az) > 0 ? w : 0.7, "#2e3140", 0, h, 0);
+      b.box(Math.abs(ax) > 0 ? w - 1.4 : 0.15, h - 0.4, Math.abs(az) > 0 ? w - 1.4 : 0.15, "#8e82c8", 0, (h - 0.4) / 2, 0, { glow: true });
+      b.box(w * 0.5, 0.3, d * 0.5, "#85382c", -nx * 1, 0.15, -nz * 1);
       break;
     default:
-      b.box(w, h, d, "#6b7080", 0, h / 2, 0);
-      mouth(1.2, 1.6, "#0d0f14");
+      b.box(w, h, d, "#757b8c", 0, h / 2, 0);
+      mouth(1.2, 1.6, "#0b0c10");
   }
 }
 
@@ -352,12 +352,12 @@ function innerWall(b: Boxes, p: PropData): void {
 export function waymarker(b: Boxes, tier: number, banner: boolean): void {
   const color = TIER_COLORS[tier] ?? TIER_COLORS[0]!;
   if (banner) {
-    b.box(0.12, 2.4, 0.12, "#4a3122", 0, 1.2, 0);
+    b.box(0.12, 2.4, 0.12, "#4d2f1f", 0, 1.2, 0);
     b.box(0.9, 1.1, 0.06, color, 0.48, 1.75, 0);
-    for (let k = 0; k < tier; k++) b.box(0.14, 0.14, 0.08, "#f2efe6", 0.25 + k * 0.17, 1.7, 0.04, { glow: true });
-    b.box(1.0, 0.1, 0.1, "#f1b44c", 0.5, 2.32, 0);
+    for (let k = 0; k < tier; k++) b.box(0.14, 0.14, 0.08, "#f2f7f8", 0.25 + k * 0.17, 1.7, 0.04, { glow: true });
+    b.box(1.0, 0.1, 0.1, "#ffc94a", 0.5, 2.32, 0);
   } else {
-    b.box(0.7, 1.5, 0.5, "#8c909c", 0, 0.75, 0);
+    b.box(0.7, 1.5, 0.5, "#979cab", 0, 0.75, 0);
     b.box(0.74, 0.3, 0.54, color, 0, 1.45, 0);
     for (let k = 0; k < tier; k++) b.box(0.14, 0.14, 0.06, color, 0, 0.3 + k * 0.25, 0.27, { glow: true });
   }
