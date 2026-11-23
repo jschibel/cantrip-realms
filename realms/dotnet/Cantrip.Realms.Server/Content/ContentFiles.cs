@@ -259,6 +259,9 @@ public sealed class MapNpc
     /// <summary>The vendor a <c>vendor</c> NPC is.</summary>
     public string? Vendor { get; init; }
 
+    /// <summary>The mage tower a <c>waystone</c> NPC is the waystone of (a dungeon with a waystone).</summary>
+    public string? Tower { get; init; }
+
     public Tile At => new(X, Z);
 }
 

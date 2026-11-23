@@ -403,4 +403,32 @@ public sealed class WaystoneTests
         await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "benalia-1" });
         Assert.Equal(1, new Tile((await browser.Me()).X, (await browser.Me()).Z).DistanceTo(benalia));
     }
+
+    [Fact]
+    public async Task On_the_generated_world_a_waystone_is_used_from_beside_it_away_from_the_door()
+    {
+        // The Domains' waystone stands on a blocked tile two to one side of its tower's entrance, and is used from any
+        // open tile round it, as the overworld talks to any NPC: three tiles from the door, say.
+        await using var app = new RealmApp { OnGenerated = true };
+        Browser browser = await app.Character(1);
+        RealmContent content = RealmApp.Generated;
+        RealmWorld world = content.World;
+        Tile entrance = content.Dungeons["benalia-1"].File.At;
+        Tile waystone = Assert.Single(world.WaystonesOf("benalia-1"));
+        Assert.Contains(world.Npcs, npc => npc.Kind == RealmSpace.Waystone && npc.Tower == "benalia-1" && npc.At == waystone);
+        Tile stand = Tile.Steps.Select(waystone.Plus).Where(world.Walkable).OrderByDescending(tile => tile.DistanceTo(entrance)).First();
+        Assert.True(stand.DistanceTo(entrance) > 1, $"{stand} is beside the entrance {entrance}");
+        Assert.All(content.Dungeons.Values.Where(dungeon => dungeon.File.Waystone), tower => Assert.NotEmpty(world.WaystonesOf(tower.Id)));
+
+        await app.Store(async db =>
+        {
+            db.Attuned.AddRange(new AttunedRow { PlayerId = browser.Player, Tower = "benalia-1" }, new AttunedRow { PlayerId = browser.Player, Tower = "orvada-2" });
+            await db.SaveChangesAsync();
+        });
+        await browser.Put(World, new Tile(stand.X + 3 * (stand.X - waystone.X), stand.Z + 3 * (stand.Z - waystone.Z)));
+        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Put(World, stand);
+        WaystoneView travelled = await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" });
+        Assert.Equal(1, new Tile(travelled.Place.X, travelled.Place.Z).DistanceTo(content.Dungeons["orvada-2"].File.At));
+    }
 }

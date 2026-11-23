@@ -33,6 +33,9 @@ public abstract class RealmSpace
 
     public const string SpellTable = "spell-table";
 
+    /// <summary>A mage tower's waystone (an NPC of the world beside its entrance, naming its <c>tower</c>).</summary>
+    public const string Waystone = "waystone";
+
     /// <summary>
     /// Whether one step of a walk is taken (the rule of <c>realms/web/src/world/grid.ts</c>, exactly): to one of the eight
     /// tiles round, which is walkable, and diagonally only where both tiles it passes between are walkable too - a walk
@@ -116,6 +119,7 @@ public sealed class RealmWorld : RealmSpace
     private readonly Dictionary<Tile, string> _entrances = [];
     private readonly List<MapNpc> _npcs = [];
     private readonly List<Tile> _spellTables = [];
+    private readonly Dictionary<string, List<Tile>> _waystones = new(StringComparer.Ordinal);
 
     public RealmWorld(WorldFile file, string plane)
     {
@@ -162,6 +166,9 @@ public sealed class RealmWorld : RealmSpace
     public override IReadOnlyList<MapNpc> Npcs => _npcs;
 
     public override IReadOnlyList<Tile> SpellTables => _spellTables;
+
+    /// <summary>The tiles a mage tower's <c>waystone</c> NPCs stand on (none for a dungeon without one).</summary>
+    public IReadOnlyList<Tile> WaystonesOf(string tower) => _waystones.TryGetValue(tower, out List<Tile>? tiles) ? tiles : [];
 
     /// <summary>The chunk a tile is in.</summary>
     public (int Cx, int Cz) ChunkOf(Tile at) => (FloorDiv(at.X, Chunk), FloorDiv(at.Z, Chunk));
@@ -252,6 +259,11 @@ public sealed class RealmWorld : RealmSpace
 
         _npcs.AddRange(chunk.Npcs);
         _spellTables.AddRange(chunk.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At));
+        foreach (MapNpc waystone in chunk.Npcs.Where(npc => npc.Kind == Waystone && npc.Tower is not null))
+        {
+            if (!_waystones.TryGetValue(waystone.Tower!, out List<Tile>? tiles)) _waystones[waystone.Tower!] = tiles = [];
+            tiles.Add(waystone.At);
+        }
     }
 }
 

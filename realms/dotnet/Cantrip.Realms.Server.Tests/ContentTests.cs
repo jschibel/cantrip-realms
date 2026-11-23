@@ -455,12 +455,13 @@ public sealed class ContentTests
             Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"hurloon-minotaur\"]", StringComparison.Ordinal));
 
             // In the world: a spawn on the rock holding nobody, a spawn of the wrong tier, a door into no building, a dungeon
-            // sealed to colors that are none, and one whose boss is nobody; a chunk that says it is another, a tile flagged
-            // with no flag there is, and a chunk a tile short.
+            // sealed to colors that are none, and one whose boss is nobody; a waystone of a dungeon with none; a chunk that
+            // says it is another, a tile flagged with no flag there is, and a chunk a tile short.
             string chunk = Path.Combine(places, "world", "chunks", "0_0.json");
             string tier1 = RealmApp.SpawnOf(1).Id;
             Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"x\":10,\"z\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"x\":26,\"z\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
             Edit(Path.Combine(places, "world", "chunks", "-1_1.json"), json => json.Replace("\"cx\":-1,", "\"cx\":7,", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "world", "chunks", "0_3.json"), json => json.Replace("\"tower\":\"benalia-1\"", "\"tower\":\"hurloon-caves\"", StringComparison.Ordinal));
             Edit(Path.Combine(places, "world", "chunks", "3_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0]", "\"tiles\":[[0,\"grass\",8]", StringComparison.Ordinal));
             Edit(Path.Combine(places, "world", "chunks", "2_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0],", "\"tiles\":[", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
@@ -484,6 +485,7 @@ public sealed class ContentTests
             Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon hurloon-caves: its boss 'x", StringComparison.Ordinal));
             Assert.Contains("chunks/-1_1.json: it says it is chunk 7_1, but its name is -1_1.", refused.Problems);
+            Assert.Contains("the world: benalia-1-waystone is a waystone, but 'hurloon-caves' is no mage tower of the world with a waystone.", refused.Problems);
             Assert.Contains("chunks/3_3.json: tile 0 is [height (whole texels), surface, flags 0-7], not [0,\"grass\",8].", refused.Problems);
             Assert.Contains("chunks/2_3.json: a chunk is 1024 tiles (32 by 32, row by row), not 1023.", refused.Problems);
         }

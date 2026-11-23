@@ -138,7 +138,7 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         RealmDungeon to = content.Dungeons.GetValueOrDefault(request.Tower ?? string.Empty) is { File.Waystone: true } tower
             ? tower
             : throw Refusal.NotFound(Codes.NotThere, $"There is no mage tower '{request.Tower}' with a waystone.");
-        RealmDungeon from = content.Dungeons.Values.Where(dungeon => dungeon.File.Waystone && Characters.Beside(row, dungeon.File.At)).OrderBy(dungeon => dungeon.Id, StringComparer.Ordinal).FirstOrDefault()
+        RealmDungeon from = content.Dungeons.Values.Where(dungeon => dungeon.File.Waystone && AtWaystone(row, dungeon)).OrderBy(dungeon => dungeon.Id, StringComparer.Ordinal).FirstOrDefault()
             ?? throw Refusal.Conflict(Codes.NotNear, "A waystone is used standing at it, beside a mage tower's door.");
         HashSet<string> attuned = [.. await db.Attuned.Where(stored => stored.PlayerId == player).Select(stored => stored.Tower).ToListAsync().ConfigureAwait(false)];
         foreach (RealmDungeon end in new[] { from, to }.Where(end => !attuned.Contains(end.Id)))
@@ -150,6 +150,13 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         await characters.Place(player, RealmContent.WorldSpace, at).ConfigureAwait(false);
         return new WaystoneView(new PlaceView(RealmContent.WorldSpace, at.X, at.Z));
     }
+
+    /// <summary>
+    /// Whether a character stands at a tower's waystone: in the world on or beside one of its <c>waystone</c> NPCs' tiles
+    /// (the client talks to an NPC from any tile round it), or on or beside the tower's entrance.
+    /// </summary>
+    private bool AtWaystone(PlayerRow row, RealmDungeon tower) =>
+        Characters.Beside(row, tower.File.At) || content.World.WaystonesOf(tower.Id).Any(at => Characters.Beside(row, at));
 
     /// <summary>
     /// Where a character stands coming out of a dungeon or a waystone: the first tile a step from its entrance (in

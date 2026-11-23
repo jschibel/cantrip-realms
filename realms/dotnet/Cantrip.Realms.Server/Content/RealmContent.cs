@@ -681,6 +681,11 @@ public sealed partial class RealmContent
             {
                 problems.Add($"{where}: {npc.Id} is a vendor, but '{npc.Vendor}' is no vendor of this town.");
             }
+
+            if (npc.Kind == RealmSpace.Waystone && (space is not RealmWorld || npc.Tower is null || !Dungeons.TryGetValue(npc.Tower, out RealmDungeon? tower) || !tower.File.Waystone))
+            {
+                problems.Add($"{where}: {npc.Id} is a waystone, but '{npc.Tower}' is no mage tower of the world with a waystone.");
+            }
         }
 
         foreach (Tile table in space.SpellTables.Where(table => !space.Has(table)))
