@@ -1,0 +1,1 @@
+{"id":"keld-2","name":"The Keld Tower (2)","theme":"tower","waystone":true,"floors":[1,2],"tier":2,"encounters":[1,2],"mobs":["keldon-warlord","orcish-artillery","talruum-minotaur"],"warden":"warden-2","boss":"mage-keld-2","region":"R","entrance":[80,84]}

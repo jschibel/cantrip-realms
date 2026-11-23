@@ -1,0 +1,44 @@
+{
+  "id": "lost-soul",
+  "name": "Lost Soul",
+  "creature": "Lost Soul",
+  "region": "B",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/lost-soul.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [
+      "Minion",
+      "Spirit",
+      "Cleric"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#8c909c",
+      "#4b2f5e"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

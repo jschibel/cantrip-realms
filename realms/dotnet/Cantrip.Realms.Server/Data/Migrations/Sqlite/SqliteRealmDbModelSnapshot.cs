@@ -395,6 +395,9 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("Purse")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long>("Visit")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.ToTable("vendors", (string)null);

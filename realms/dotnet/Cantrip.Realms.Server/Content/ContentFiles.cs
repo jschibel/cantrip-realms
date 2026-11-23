@@ -126,6 +126,76 @@ public sealed class RelicEntry
     public double Chance { get; init; }
 }
 
+/// <summary>
+/// A card of the realm's card database (<c>realms/content/cards.json</c>, written by <c>tools/realms/card-economy.py</c>):
+/// where it comes from and has been printed, its price, legality and identity, its types for vendor specialties, and
+/// whether it is Universes Beyond or a relic.
+/// </summary>
+public sealed class CardRecord
+{
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>The plane of its first printing; <see cref="Multiverse"/> when that printing places it on none; null unprinted.</summary>
+    public string? Origin { get; init; }
+
+    /// <summary>Every plane it has been printed on.</summary>
+    public IReadOnlyList<string> Planes { get; init; } = [];
+
+    /// <summary>Its paper set codes, oldest first.</summary>
+    public IReadOnlyList<string> Sets { get; init; } = [];
+
+    public decimal? Usd { get; init; }
+
+    public string? Rarity { get; init; }
+
+    /// <summary>Its list price; null for a card with no paper price, which nobody deals in.</summary>
+    public long? Gold { get; init; }
+
+    /// <summary><c>legal</c>, <c>restricted</c>, <c>banned</c> or <c>not_legal</c> in Vintage.</summary>
+    public string Vintage { get; init; } = "not_legal";
+
+    /// <summary>Its color identity, WUBRG letters.</summary>
+    public string Identity { get; init; } = string.Empty;
+
+    public IReadOnlyList<string> Types { get; init; } = [];
+
+    public IReadOnlyList<string> Subtypes { get; init; } = [];
+
+    public bool UniversesBeyond { get; init; }
+
+    public bool Relic { get; init; }
+
+    /// <summary>
+    /// Whether a vendor or loot may deal in it (design.md A5, A3a): legal or restricted in Vintage, priced, not Universes
+    /// Beyond, and no relic. A walked plane's pool is these printed on it; the off-plane pool these printed on none.
+    /// </summary>
+    public bool Dealt => Vintage is "legal" or "restricted" && Gold is not null && !UniversesBeyond && !Relic;
+
+    public const string Multiverse = "multiverse";
+}
+
+/// <summary><c>realms/content/cards.json</c>.</summary>
+public sealed class CardsFile
+{
+    public IReadOnlyList<CardRecord> Cards { get; init; } = [];
+}
+
+/// <summary>A plane of <c>realms/content/planes.json</c>: its name, its sets, and whether a character walks it.</summary>
+public sealed class PlaneEntry
+{
+    public string Name { get; init; } = string.Empty;
+
+    public bool Walked { get; init; }
+
+    public IReadOnlyList<string> Sets { get; init; } = [];
+}
+
+/// <summary><c>realms/content/planes.json</c>.</summary>
+public sealed class PlanesFile
+{
+    public IReadOnlyDictionary<string, PlaneEntry> Planes { get; init; } = new Dictionary<string, PlaneEntry>();
+}
+
 /// <summary><c>realms/content/relics.json</c>.</summary>
 public sealed class RelicsFile
 {
@@ -385,13 +455,38 @@ public sealed class VendorFile
 
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>The town map it trades in.</summary>
+    /// <summary>The town it keeps its shop in; none for a traveling trader, whose caravan moves (<see cref="Trader"/>).</summary>
     public string Town { get; init; } = string.Empty;
 
     public CardFilter Specialty { get; init; } = new();
 
     /// <summary>The purse it is created with.</summary>
     public long Purse { get; init; }
+
+    /// <summary>An exotic wares shop (design.md A5): it deals only in off-plane cards, a few at a time.</summary>
+    public bool Exotic { get; init; }
+
+    /// <summary>A traveling trader from another plane (design.md A5): its plane and its caravan's round; null for a shop.</summary>
+    public TraderRound? Trader { get; init; }
+}
+
+/// <summary>
+/// A traveling trader's plane and round (design.md A5, "Wares from other planes"): on day <c>d</c> (the Unix day, UTC) its
+/// caravan is in <c>Towns[d mod Towns.Count]</c> from <see cref="Hour"/> o'clock UTC for <see cref="Hours"/> hours.
+/// </summary>
+public sealed class TraderRound
+{
+    /// <summary>Its home plane: a trader plane of planes.json, whose off-plane cards it brings.</summary>
+    public string Plane { get; init; } = string.Empty;
+
+    /// <summary>The towns its caravan visits, a day each, in turn.</summary>
+    public IReadOnlyList<string> Towns { get; init; } = [];
+
+    /// <summary>The hour of the day (UTC, 0 to 23) its caravan comes in.</summary>
+    public int Hour { get; init; }
+
+    /// <summary>How many hours its caravan stays: within the day.</summary>
+    public int Hours { get; init; }
 }
 
 

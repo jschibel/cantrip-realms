@@ -1,0 +1,42 @@
+{
+  "id": "elven-riders",
+  "name": "Elven Riders",
+  "creature": "Elven Riders",
+  "region": "G",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/elven-riders.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Elf"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#4f7a34",
+      "#2a4524"
+    ],
+    "size": 1.35
+  },
+  "boss": false
+}

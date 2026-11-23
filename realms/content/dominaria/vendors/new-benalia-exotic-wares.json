@@ -1,0 +1,8 @@
+{
+  "id": "new-benalia-exotic-wares",
+  "name": "Wares from Beyond",
+  "town": "new-benalia",
+  "specialty": {},
+  "purse": 50000,
+  "exotic": true
+}

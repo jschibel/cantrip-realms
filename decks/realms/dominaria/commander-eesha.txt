@@ -3,10 +3,10 @@
 4 Commander Eesha
 2 Suntail Hawk
 3 Duskrider Falcon
-3 Standing Troops
-2 Serra Angel
-2 Zetalpa, Primal Dawn
-3 Path to Exile
+3 Thunder Spirit
+2 Dragonstalker
+2 Akron Legionnaire
 3 Swords to Plowshares
-1 Destroy Evil
+1 Deadly Riposte
+3 Destroy Evil
 17 Plains

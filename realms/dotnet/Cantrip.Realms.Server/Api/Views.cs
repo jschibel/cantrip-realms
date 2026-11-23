@@ -58,7 +58,20 @@ public sealed record DeckCheckView(IReadOnlyList<string> Problems, long AnteValu
 
 public sealed record LoadoutChange(IReadOnlyDictionary<string, long?>? Slots);
 
-public sealed record VendorInfo(string Id, string Name, string Town, CardFilter Specialty);
+/// <summary>
+/// A vendor: its id and name, the town it trades in (a trader's caravan's now, empty between visits), its specialty, its
+/// kind (<c>shop</c>, <c>exotic</c> or <c>trader</c>) and a trader's home plane.
+/// </summary>
+public sealed record VendorInfo(string Id, string Name, string Town, CardFilter Specialty, string Kind, string? Plane);
+
+/// <summary>A caravan's visit: its town, and when it comes and goes.</summary>
+public sealed record VisitView(string Town, DateTimeOffset From, DateTimeOffset Until);
+
+/// <summary>A traveling trader: its plane, the visit it is on now (null between visits) and its next.</summary>
+public sealed record TravelerView(string Id, string Name, string Plane, string PlaneName, VisitView? Visit, VisitView Next);
+
+/// <summary>Every traveling trader's schedule (<c>GET /api/travelers</c>).</summary>
+public sealed record TravelersView(IReadOnlyList<TravelerView> Travelers);
 
 public sealed record StockView(string Name, long Gold, int Count, DateTimeOffset? Until);
 

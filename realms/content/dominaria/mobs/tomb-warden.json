@@ -1,7 +1,7 @@
 {
   "id": "tomb-warden",
   "name": "Tomb Warden",
-  "creature": "Tombstalker",
+  "creature": "Zombie Master",
   "region": "B",
   "tier": 4,
   "deck": "decks/realms/dominaria/tomb-warden.txt",
@@ -23,7 +23,10 @@
     "pool": "dominaria",
     "colors": "B",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Zombie",
+      "Skeleton"
+    ],
     "rarities": [
       "uncommon",
       "rare",
@@ -31,7 +34,7 @@
     ]
   },
   "model": {
-    "mesh": "giant",
+    "mesh": "ghoul",
     "palette": [
       "#2a2b36",
       "#7a1f24",

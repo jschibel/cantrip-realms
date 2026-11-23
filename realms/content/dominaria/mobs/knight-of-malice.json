@@ -23,7 +23,9 @@
     "pool": "dominaria",
     "colors": "B",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Knight"
+    ],
     "rarities": [
       "common",
       "uncommon",

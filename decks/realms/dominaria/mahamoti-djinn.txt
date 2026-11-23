@@ -1,11 +1,11 @@
-# Mahamoti Djinn (mahamoti-djinn, Mahamoti Djinn), a tier 4 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+# Mahamoti Djinn (mahamoti-djinn, Mahamoti Djinn), a tier 4 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Mahamoti Djinn
-2 Flying Men
+2 Aven Envoy
 3 Bay Falcon
-3 Soaring Drake
+3 Tempest Djinn
 2 Azure Drake
 2 Air Elemental
 4 Mana Drain
-3 Remand
+3 Force Void
 17 Island

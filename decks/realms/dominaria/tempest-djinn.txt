@@ -1,0 +1,11 @@
+# Tempest Djinn (tempest-djinn, Tempest Djinn), a tier 4 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Tempest Djinn
+2 Aven Envoy
+3 Bay Falcon
+3 Azure Drake
+2 Air Elemental
+2 Mahamoti Djinn
+4 Mana Drain
+3 Force Void
+17 Island

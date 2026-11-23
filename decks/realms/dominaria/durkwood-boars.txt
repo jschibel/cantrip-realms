@@ -1,0 +1,16 @@
+# Durkwood Boars (durkwood-boars, Durkwood Boars), a tier 1 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Durkwood Boars
+2 Defiant Elf
+2 Ashcoat Bear
+1 Elvish Warrior
+1 Goliath Beetle
+2 Warthog
+2 Argothian Swine
+2 Elfhame Wurm
+2 Giant Warthog
+1 Havenwood Wurm
+2 Titanic Bulvox
+2 Giant Growth
+2 Foxfire
+17 Forest

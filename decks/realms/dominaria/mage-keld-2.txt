@@ -1,0 +1,16 @@
+# Pyromantic Pilgrim (mage-keld-2, Pyromantic Pilgrim), the mage of Keld's tier 2 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Pyromantic Pilgrim
+1 Ghitu Lavarunner
+2 Dwarven Forge-Chanter
+1 Flametongue Kavu
+1 Earth Elemental
+1 Dragon Mage
+2 Chain Lightning
+2 Firebolt
+2 Lava Dart
+2 Lightning Axe
+2 Shock
+2 Vertigo
+2 Flare
+17 Mountain

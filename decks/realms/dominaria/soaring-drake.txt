@@ -1,0 +1,16 @@
+# Soaring Drake (soaring-drake, Soaring Drake), a tier 1 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Soaring Drake
+2 Aven Envoy
+2 Bay Falcon
+1 Storm Crow
+2 Wing Commando
+2 Keeneye Aven
+1 Pendrell Drake
+2 Homarid Warrior
+2 Shoreline Ranger
+2 Force Spike
+2 Counterspell
+2 Essence Scatter
+1 Flash Counter
+17 Island

@@ -2,12 +2,11 @@
 
 4 Cityscape Leveler
 1 Ornithopter
-2 Reconstructed Thopter
-2 Yotian Soldier
-1 Lodestone Golem
-1 Venser's Sliver
-1 Myr Battlesphere
-4 Mana Drain
-3 Remand
+2 Battering Ram
+2 Dragon Engine
+2 Su-Chi
+1 Adarkar Sentinel
+3 Goblin Firebomb
+4 Aeolipile
 4 The Mightstone and Weakstone
 17 Island

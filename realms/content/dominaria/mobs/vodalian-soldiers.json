@@ -1,0 +1,41 @@
+{
+  "id": "vodalian-soldiers",
+  "name": "Vodalian Soldiers",
+  "creature": "Vodalian Soldiers",
+  "region": "U",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/vodalian-soldiers.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Merfolk",
+      "Soldier"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "merfolk",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2",
+      "#2f5fa8"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

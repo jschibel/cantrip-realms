@@ -2,11 +2,11 @@
 
 4 Ertai Resurrected
 2 Phyrexian Walker
-3 Knight of Dusk's Shadow
-2 Tolarian Scholar
-2 Yargle, Glutton of Urborg
-2 Cityscape Leveler
-4 Thoughtseize
-4 Dismember
-4 Island
-13 Swamp
+3 Zuran Enchanter
+2 Raven Guild Initiate
+2 Abomination
+2 Phyrexian Fleshgorger
+4 Mana Drain
+4 Mind Ravel
+10 Island
+7 Swamp

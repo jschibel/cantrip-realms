@@ -23,7 +23,10 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Lhurgoyf",
+      "Beast"
+    ],
     "rarities": [
       "uncommon",
       "rare",

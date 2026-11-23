@@ -16,6 +16,16 @@ public sealed record Mob(MobFile File, string Plane, DeckList Deck)
 public sealed record Vendor(VendorFile File, string Plane)
 {
     public string Id => File.Id;
+
+    /// <summary>What kind of dealer it is: <see cref="Shop"/> (Dominaria's own), <see cref="ExoticShop"/> or <see cref="Traveler"/>.</summary>
+    public string Kind => File.Trader is not null ? Traveler : File.Exotic ? ExoticShop : Shop;
+
+    /// <summary>Whether it deals in off-plane cards alone: an exotic wares shop or a traveling trader.</summary>
+    public bool Exotic => Kind != Shop;
+
+    public const string Shop = "shop";
+    public const string ExoticShop = "exotic";
+    public const string Traveler = "trader";
 }
 
 /// <summary>Content that does not hold together: everything found wrong with it, one line each.</summary>
@@ -134,6 +144,18 @@ public sealed partial class RealmContent
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
 
+    /// <summary>
+    /// The cards a mob's deck may name before the engine has them (<c>awaiting-engine.json</c>): on their way from
+    /// cantrip-rs. No other deck, vendor, loot or pool holds one, and a card the engine has is refused on the list.
+    /// </summary>
+    public IReadOnlySet<string> AwaitingEngine { get; private set; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>Every card the engine has, as the realm's card database records it (<c>cards.json</c>), by name.</summary>
+    public IReadOnlyDictionary<string, CardRecord> Records { get; private set; } = new Dictionary<string, CardRecord>();
+
+    /// <summary>The planes of planes.json not walked yet, whose traders bring their cards (design.md A5): id to name.</summary>
+    public IReadOnlyDictionary<string, string> TraderPlanes { get; private set; } = new Dictionary<string, string>();
+
     /// <summary>The relics (design.md A3a), in <c>relics.json</c>'s order.</summary>
     public IReadOnlyList<RelicEntry> Relics { get; private set; } = [];
 
@@ -168,43 +190,57 @@ public sealed partial class RealmContent
         string realms = Path.Combine(root, "realms", "content");
         List<string> problems = [];
 
-        Dictionary<string, CardPrice> prices = CardPool.ReadPrices(Path.Combine(realms, "prices.json"));
+        // The realm's card database (cards.json, tools/realms/card-economy.py) and the planes (planes.json); the pools are
+        // views of the database, computed here (CardRecord.Dealt): a walked plane's every card dealt in printed on it, and
+        // the off-plane pool every such card printed on no walked plane.
+        (Dictionary<string, PlaneEntry> planes, HashSet<string> walked) = ReadPlanes(Path.Combine(realms, "planes.json"), problems);
+        List<CardRecord> records = ReadCards(Path.Combine(realms, "cards.json"), problems);
         List<RelicEntry> relics = ReadRelics(Path.Combine(realms, "relics.json"), problems);
         HashSet<string> relicNames = new(relics.Select(relic => relic.Card), StringComparer.Ordinal);
-        Dictionary<string, IReadOnlyList<string>> pools = new(StringComparer.Ordinal);
-        foreach (string file in Directory.EnumerateFiles(Path.Combine(realms, "pools"), "*.json").Order(StringComparer.Ordinal))
+        Dictionary<string, CardPrice> prices = new(StringComparer.Ordinal);
+        Dictionary<string, IReadOnlyList<string>> pools = walked.ToDictionary(plane => plane, _ => (IReadOnlyList<string>)new List<string>(), StringComparer.Ordinal);
+        Dictionary<string, IReadOnlyList<string>> offPlane = new(StringComparer.Ordinal);
+        foreach (CardRecord record in records)
         {
-            using JsonDocument pool = JsonDocument.Parse(System.IO.File.ReadAllBytes(file));
-            pools[pool.RootElement.GetProperty("plane").GetString() ?? Path.GetFileNameWithoutExtension(file)] =
-                [.. pool.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString() ?? string.Empty)];
+            if (record.Gold is { } gold && record.Usd is { } usd && record.Rarity is { } rarity)
+            {
+                prices[record.Name] = new CardPrice(gold, usd, rarity, record.Vintage, record.Identity);
+            }
+
+            if (!record.Dealt) continue;
+            foreach (string plane in record.Planes.Where(walked.Contains)) ((List<string>)pools[plane]).Add(record.Name);
+            if (!record.Planes.Any(walked.Contains)) offPlane[record.Name] = record.Planes;
         }
 
-        var cards = new CardPool(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices, pools, relicNames);
-        var content = new RealmContent(root, cards) { Relics = relics };
-
-        foreach ((string name, CardPrice price) in prices)
+        Dictionary<string, CardRecord> byName = records.GroupBy(record => record.Name, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        var cards = new CardPool(CardPool.WithRealmLegality(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), byName), prices, pools, relicNames, offPlane);
+        var content = new RealmContent(root, cards)
         {
-            if (!Pricing.Surcharge.ContainsKey(price.Rarity))
-            {
-                problems.Add($"prices.json: {name} has rarity '{price.Rarity}'.");
-            }
-            else if (price.Gold != Pricing.ListPrice(price.Usd, price.Rarity))
-            {
-                problems.Add($"prices.json: {name} is {price.Gold} gold, but ${price.Usd} at {price.Rarity} lists at {Pricing.ListPrice(price.Usd, price.Rarity)}.");
-            }
+            Relics = relics,
+            Records = byName,
+            TraderPlanes = planes.Where(plane => !walked.Contains(plane.Key)).ToDictionary(plane => plane.Key, plane => plane.Value.Name, StringComparer.Ordinal),
+        };
+
+        content.AwaitingEngine = ReadAwaiting(Path.Combine(realms, "awaiting-engine.json"), problems);
+        foreach (string card in content.AwaitingEngine.Where(cards.Catalog.ContainsKey))
+        {
+            problems.Add($"awaiting-engine.json: the engine has {card} now; take it off the list.");
         }
 
-        foreach ((string plane, IReadOnlyList<string> pool) in pools)
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        foreach (CardRecord record in records)
         {
-            foreach (string name in pool.Where(name => !cards.Catalog.ContainsKey(name)))
-            {
-                problems.Add($"pools/{plane}.json: {name} is not a card the engine plays.");
-            }
-
-            foreach (string name in pool.Where(relicNames.Contains))
-            {
-                problems.Add($"pools/{plane}.json: {name} is a relic, which is in no pool (design.md A3a).");
-            }
+            string where = $"cards.json: {record.Name}";
+            if (!seen.Add(record.Name)) problems.Add($"{where} has two records.");
+            if (!cards.Catalog.ContainsKey(record.Name)) problems.Add($"{where} is not a card the engine plays.");
+            if (record.Vintage is not ("legal" or "restricted" or "banned" or "not_legal")) problems.Add($"{where}: vintage '{record.Vintage}' is none of legal, restricted, banned, not_legal.");
+            if (record.Identity.Any(letter => CardPool.Color(letter) is null)) problems.Add($"{where}: identity '{record.Identity}' is not colors' letters.");
+            foreach (string plane in record.Planes.Where(plane => !planes.ContainsKey(plane))) problems.Add($"{where}: '{plane}' is no plane of planes.json.");
+            if (record.Origin is { } origin && origin != CardRecord.Multiverse && !planes.ContainsKey(origin)) problems.Add($"{where}: its origin '{origin}' is no plane of planes.json.");
+            if (record.Relic != relicNames.Contains(record.Name)) problems.Add($"{where}: relic is {(record.Relic ? "true" : "false")}, but relics.json {(record.Relic ? "lists no such relic" : "lists it")}.");
+            if ((record.Gold is null) != (record.Usd is null) || (record.Gold is null) != (record.Rarity is null)) problems.Add($"{where}: a price is its usd, rarity and gold, all or none.");
+            else if (record.Rarity is { } rarity && !Pricing.Surcharge.ContainsKey(rarity)) problems.Add($"{where} has rarity '{rarity}'.");
+            else if (record.Gold is { } gold && gold != Pricing.ListPrice(record.Usd!.Value, record.Rarity!)) problems.Add($"{where} is {gold} gold, but ${record.Usd} at {record.Rarity} lists at {Pricing.ListPrice(record.Usd!.Value, record.Rarity!)}.");
         }
 
         content.Models = ReadModels(Path.Combine(realms, "models"), problems);
@@ -216,7 +252,7 @@ public sealed partial class RealmContent
         List<RealmWorld> worlds = [];
         Dictionary<string, Vendor> vendors = new(StringComparer.Ordinal);
         Dictionary<string, IReadOnlyDictionary<string, DeckList>> starters = new(StringComparer.Ordinal);
-        foreach (string plane in pools.Keys)
+        foreach (string plane in walked.Order(StringComparer.Ordinal))
         {
             string folder = Path.Combine(realms, plane);
             foreach ((string file, MobFile mob) in Read<MobFile>(Path.Combine(folder, "mobs"), problems))
@@ -278,6 +314,56 @@ public sealed partial class RealmContent
         content.Check(problems);
 
         return problems.Count == 0 ? content : throw new RealmContentException(problems);
+    }
+
+    /// <summary>planes.json's planes, and the walked ones among them (<c>"walked": true</c>), which have pools.</summary>
+    private static (Dictionary<string, PlaneEntry> Planes, HashSet<string> Walked) ReadPlanes(string path, List<string> problems)
+    {
+        Dictionary<string, PlaneEntry> planes = new(StringComparer.Ordinal);
+        try
+        {
+            planes = JsonSerializer.Deserialize<PlanesFile>(System.IO.File.ReadAllBytes(path), Json)?.Planes
+                .ToDictionary(plane => plane.Key, plane => plane.Value, StringComparer.Ordinal) ?? planes;
+        }
+        catch (Exception problem) when (problem is JsonException or IOException)
+        {
+            problems.Add($"planes.json: {problem.Message}");
+        }
+
+        HashSet<string> walked = [.. planes.Where(plane => plane.Value.Walked).Select(plane => plane.Key)];
+        if (walked.Count == 0) problems.Add("planes.json: no plane is walked.");
+        return (planes, walked);
+    }
+
+    private static HashSet<string> ReadAwaiting(string path, List<string> problems)
+    {
+        HashSet<string> cards = new(StringComparer.Ordinal);
+        if (!System.IO.File.Exists(path)) return cards;
+        try
+        {
+            using JsonDocument file = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
+            foreach (JsonElement card in file.RootElement.GetProperty("cards").EnumerateArray()) cards.Add(card.GetString() ?? string.Empty);
+        }
+        catch (Exception problem) when (problem is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            problems.Add($"awaiting-engine.json: {problem.Message}");
+        }
+
+        return cards;
+    }
+
+    /// <summary>cards.json's records: every card the engine has, as card-economy.py found it.</summary>
+    private static List<CardRecord> ReadCards(string path, List<string> problems)
+    {
+        try
+        {
+            return [.. JsonSerializer.Deserialize<CardsFile>(System.IO.File.ReadAllBytes(path), Json)?.Cards ?? []];
+        }
+        catch (Exception problem) when (problem is JsonException or IOException)
+        {
+            problems.Add($"cards.json: {problem.Message}");
+            return [];
+        }
     }
 
     private static List<RelicEntry> ReadRelics(string path, List<string> problems)
@@ -388,7 +474,22 @@ public sealed partial class RealmContent
             string where = $"vendor {vendor.Id}";
             if (string.IsNullOrWhiteSpace(vendor.File.Name)) problems.Add($"{where}: no name.");
             if (vendor.File.Purse < 0) problems.Add($"{where}: a purse is never less than nothing.");
-            if (Cards.Filter(vendor.Plane, vendor.File.Specialty).Count == 0) problems.Add($"{where}: its specialty has no card in the {vendor.Plane} pool.");
+            if (vendor.File.Trader is { } round)
+            {
+                if (vendor.File.Exotic) problems.Add($"{where}: a trader is not a shop as well.");
+                if (!TraderPlanes.ContainsKey(round.Plane)) problems.Add($"{where}: its plane '{round.Plane}' is no trader's plane of planes.json.");
+                else if (Cards.OffPlaneFilter(new CardFilter(), round.Plane).Count < Economy.Travelers.Brought) problems.Add($"{where}: the {round.Plane} off-plane cards are fewer than a caravan brings.");
+                if (round.Towns.Count == 0) problems.Add($"{where}: its caravan visits no town.");
+                if (round.Hour is < 0 or > 23 || round.Hours < 1 || round.Hour + round.Hours > 24) problems.Add($"{where}: its caravan comes at an hour of the day (0 to 23) and stays some hours within it.");
+            }
+            else if (vendor.File.Exotic)
+            {
+                if (Cards.OffPlaneFilter(vendor.File.Specialty).Count == 0) problems.Add($"{where}: its specialty has no off-plane card.");
+            }
+            else if (Cards.Filter(vendor.Plane, vendor.File.Specialty).Count == 0)
+            {
+                problems.Add($"{where}: its specialty has no card in the {vendor.Plane} pool.");
+            }
         }
 
         CheckPlaces(problems);
@@ -434,7 +535,11 @@ public sealed partial class RealmContent
 
         if (!MobMeshes.Contains(file.Model.Mesh)) problems.Add($"{where}: its model '{file.Model.Mesh}' is none of the mob meshes ({string.Join(", ", MobMeshes)}).");
         if (file.Region is { } region && (region.Length != 1 || CardPool.Color(region[0]) is null)) problems.Add($"{where}: its region '{region}' is no color's letter.");
-        if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
+        if (AwaitingEngine.Contains(file.Creature))
+        {
+            if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
+        }
+        else if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
         else if (!creature.Card.CardTypes.Any(type => type.ToString() is "Creature" or "Planeswalker")) problems.Add($"{where}: its creature {file.Creature} is no creature (or planeswalker) card.");
         else if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
         if (file.Prize < 0) problems.Add($"{where}: a prize is never less than nothing.");
@@ -448,7 +553,16 @@ public sealed partial class RealmContent
         else if (Cards.Filter(pool, file.Loot).Count == 0) problems.Add($"{where}: its loot has no card in the {pool} pool.");
         foreach (string rarity in file.Loot.Rarities.Where(rarity => !Rarities.Contains(rarity))) problems.Add($"{where}: loot rarity '{rarity}'.");
 
-        problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null).Select(problem => $"{where}'s deck: {problem}"));
+        // A card awaiting the engine (awaiting-engine.json) is the one thing a mob's deck may hold that the engine lacks:
+        // past that, it is held to four copies like any.
+        HashSet<string> awaited = [.. mob.Deck.Entries.Select(entry => entry.Card).Where(AwaitingEngine.Contains)];
+        problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null)
+            .Where(problem => !awaited.Any(card => problem == $"{card} is not a card the engine plays."))
+            .Select(problem => $"{where}'s deck: {problem}"));
+        foreach (string card in awaited.Where(card => mob.Deck.Entries.Where(entry => entry.Card == card).Sum(entry => entry.Copies) > 4))
+        {
+            problems.Add($"{where}'s deck: more than four of {card}.");
+        }
     }
 
     /// <summary>
@@ -510,7 +624,12 @@ public sealed partial class RealmContent
         CheckNpcs(world, "the world", problems);
         CheckChests(world, world.Chests, "the world", problems);
 
-        foreach (Vendor vendor in Vendors.Values)
+        foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is { } round))
+        {
+            foreach (string town in vendor.File.Trader!.Towns.Where(town => !Towns.ContainsKey(town))) problems.Add($"vendor {vendor.Id}: its caravan visits '{town}', which is no town of the world.");
+        }
+
+        foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is null))
         {
             string where = $"vendor {vendor.Id}";
             if (!Towns.ContainsKey(vendor.File.Town)) problems.Add($"{where}: its town '{vendor.File.Town}' is no town of the world.");

@@ -51,7 +51,7 @@ public sealed class PlacesTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        RealmInterior inn = RealmApp.Content.Interiors["new-argive-inn"];
+        RealmInterior inn = RealmApp.Content.Interiors["new-benalia-inn"];
         Hex door = inn.Doors[0];
         Hex exit = inn.File.Exit!.At;
 
@@ -64,7 +64,7 @@ public sealed class PlacesTests
         await browser.Refused(HttpMethod.Post, "/api/position", new { Space = inn.Id, Q = 9, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
 
         // Not straight into another building, nor out anywhere but its exit.
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "new-argive-smithy", Q = 0, R = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "new-benalia-smithy", Q = 0, R = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
         await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = 60, R = 60 }, HttpStatusCode.Conflict, Codes.NoWay);
         await browser.Position(World, exit);
         await At(browser, World, exit);
@@ -111,9 +111,9 @@ public sealed class PlacesTests
         await browser.Refused(HttpMethod.Post, "/api/inn", new { }, HttpStatusCode.Conflict, Codes.NotNear);
         await browser.Inside("benalia-white-goods-shop");
         await browser.Refused(HttpMethod.Post, "/api/inn", new { }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Inside("new-benalia-inn");
+        await browser.Inside("new-argive-inn");
         InnView home = await browser.Ok<InnView>(HttpMethod.Post, "/api/inn", new { });
-        Assert.Equal(RealmApp.Inn("new-benalia").Id, home.Inn);
+        Assert.Equal(RealmApp.Inn("new-argive").Id, home.Inn);
         Assert.Equal(home.Inn, (await browser.Me()).Inn);
 
         MapSpawn spawn = RealmApp.SpawnOf(1);
@@ -121,7 +121,7 @@ public sealed class PlacesTests
         string mob = Spawns.MobOf(browser.Player, World, spawn.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds), spawn.Mobs);
         EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn = spawn.Id, Mob = mob });
         Assert.Equal("lost", (await RealmApp.Finish(browser, encounter.Token)).Outcome);
-        await At(browser, World, RealmApp.Inn("new-benalia").At);
+        await At(browser, World, RealmApp.Inn("new-argive").At);
     }
 }
 
@@ -130,7 +130,7 @@ public sealed class DungeonTests
 {
     private const string World = RealmContent.WorldSpace;
     private const string Caves = "keldon-caves";
-    private const string Sanctum = "serras-fallen-sanctum";
+    private const string Sanctum = "benalish-castle";
 
     [Fact]
     public async Task A_run_holds_every_encounter_its_dungeon_allows()
@@ -159,7 +159,7 @@ public sealed class DungeonTests
 
             // Entering again ends the run before: one live run a character.
             Assert.Equal(1, await app.Store(db => db.Runs.CountAsync(row => row.PlayerId == browser.Player && row.State == RunRow.Live)));
-            await browser.Put(World, RealmApp.Inn("new-argive").At);
+            await browser.Put(World, RealmApp.Inn("new-benalia").At);
         }
     }
 
@@ -186,7 +186,7 @@ public sealed class DungeonTests
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, one.Index, one.Mob }, HttpStatusCode.Conflict, Codes.TooSoon);
 
         // Out of the run (as an arranged move would put them), its encounters are not near.
-        await browser.Put(World, RealmApp.Inn("new-argive").At);
+        await browser.Put(World, RealmApp.Inn("new-benalia").At);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, first.Encounters[^1].Index, first.Encounters[^1].Mob }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
@@ -228,7 +228,7 @@ public sealed class DungeonTests
         Assert.Equal("lost", (await RealmApp.Finish(browser, duel.Token)).Outcome);
 
         CharacterView me = await browser.Me();
-        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
         RunRow row = await app.Store(db => db.Runs.AsNoTracking().SingleAsync(stored => stored.Id == run.Run));
         Assert.Equal(RunRow.Ended, row.State);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = first.Encounters.Count, Mob = "warden-2" }, HttpStatusCode.Conflict, Codes.NotThere);
@@ -283,7 +283,7 @@ public sealed class WaystoneTests
         RunEncounter guard = run.Floors[0].Encounters[0];
         await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, guard.Index, guard.Mob)).Token);
         Assert.Empty((await browser.Me()).Attuned);
-        RunView sanctum = await app.EnterRun(browser, "serras-fallen-sanctum");
+        RunView sanctum = await app.EnterRun(browser, "benalish-castle");
         (int floor, int index) = RealmApp.BossOf(sanctum);
         await app.ToFloor(sanctum, floor);
         await RealmApp.Finish(browser, (await RealmApp.Fight(browser, sanctum, floor, index, "lyra-dawnbringer")).Token);
@@ -307,28 +307,28 @@ public sealed class WaystoneTests
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         Hex benalia = RealmApp.Content.Dungeons["benalia-1"].File.At;
-        Hex tolaria = RealmApp.Content.Dungeons["tolaria-2"].File.At;
+        Hex tolaria = RealmApp.Content.Dungeons["orvada-2"].File.At;
 
-        await browser.Put(World, RealmApp.Inn("new-argive").At);
-        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "tolaria-2" }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Put(World, RealmApp.Inn("new-benalia").At);
+        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" }, HttpStatusCode.Conflict, Codes.NotNear);
         await browser.Put(World, RealmApp.Beside(World, benalia));
-        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "tolaria-2" }, HttpStatusCode.Conflict, Codes.NotAttuned);
+        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" }, HttpStatusCode.Conflict, Codes.NotAttuned);
         await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "keldon-caves" }, HttpStatusCode.NotFound, Codes.NotThere);
 
         await BeatTheMage(app, browser, "benalia-1");
         await browser.Ok<object>(HttpMethod.Post, "/api/dungeon/leave", new { Run = (await app.Store(db => db.Runs.Where(row => row.State == RunRow.Live).Select(row => row.Id).SingleAsync())) });
-        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "tolaria-2" }, HttpStatusCode.Conflict, Codes.NotAttuned);
-        await BeatTheMage(app, browser, "tolaria-2");
+        await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" }, HttpStatusCode.Conflict, Codes.NotAttuned);
+        await BeatTheMage(app, browser, "orvada-2");
         await browser.Put(World, RealmApp.Beside(World, benalia));
 
         // Across the world in one call, beside the other tower's door, and walked on from there.
-        WaystoneView travelled = await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "tolaria-2" });
+        WaystoneView travelled = await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" });
         Assert.Equal(World, travelled.Place.Space);
         Hex there = new(travelled.Place.Q, travelled.Place.R);
         Assert.Equal(1, there.DistanceTo(tolaria));
         CharacterView me = await browser.Me();
         Assert.Equal((World, there), (me.Space, new Hex(me.Q, me.R)));
-        Assert.Equal(["benalia-1", "tolaria-2"], me.Attuned);
+        Assert.Equal(["benalia-1", "orvada-2"], me.Attuned);
         await browser.Position(World, new Hex(there.Q + 1, there.R));
 
         // And back.

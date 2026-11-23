@@ -24,12 +24,14 @@ OUT = os.path.join(HERE, "dominaria")
 CHUNK = 32
 CHUNKS = 4
 
-REGIONS = [("W", "Benalia", "benalia"), ("U", "Tolaria", "tolaria"), ("B", "Urborg", "urborg"), ("R", "Shiv", "shiv"), ("G", "Llanowar", "llanowar")]
+# The Domains' five regions (design.md A6): their colors, names and ids.
+REGIONS = [("W", "Benalia", "benalia"), ("U", "Orvada", "orvada"), ("B", "Caligo", "caligo"), ("R", "Keld", "keld"), ("G", "Llanowar", "llanowar")]
 
-# The towns: their kinds and centers. New Argive is the capital, in chunk 0_0.
+# The towns: their kinds and centers. New Benalia, the hub, is the capital, in chunk 0_0; the rest are every town a
+# vendor names.
 TOWNS = {
-    "new-argive": ("New Argive", "capital", (16, 16), 10, "argive"),
-    "new-benalia": ("New Benalia", "town", (48, 16), 8, "benalish"),
+    "new-benalia": ("New Benalia", "capital", (16, 16), 10, "benalish"),
+    "new-argive": ("New Argive", "town", (48, 16), 8, "argive"),
     "tolarian-academy": ("Tolarian Academy", "town", (80, 16), 8, "tolarian"),
     "urborg": ("Urborg", "town", (112, 16), 8, "urborg"),
     "keld": ("Keld", "town", (16, 48), 8, "keldon"),
@@ -40,7 +42,7 @@ TOWNS = {
     "lat-nam": ("Lat-Nam", "village", (48, 80), 5, "tolarian"),
     "yavimaya-hollow": ("Yavimaya Hollow", "village", (80, 80), 5, "llanowar"),
 }
-SMITHIES = ["new-argive", "new-benalia"]
+SMITHIES = ["new-benalia", "new-argive"]
 
 # Where each door of a town stands, from its center: the inn's first, then a smithy's, then one shop a vendor.
 DOOR_OFFSETS = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, 3), (3, -3), (-2, -2), (2, 2), (-4, 2), (4, -2), (-1, 4), (1, -4)]
@@ -48,12 +50,14 @@ DOOR_OFFSETS = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, 3), (3, -3), (-2, -2), (2
 # The wall of rock nobody walks through: chunk 0_0, q 26, r 2 to 12.
 ROCK = {(26, r) for r in range(2, 13)}
 
+# The five regions' dungeons (design.md A6, "Geography: the Domains"), each with its warden and the boss who unlocks its
+# color: the boss is the mob of the region's color with "boss": true and that "unlocks".
 REGION_DUNGEONS = [
-    ("serras-fallen-sanctum", "Serra's Fallen Sanctum", "castle", "W", "sanctum-warden", "lyra-dawnbringer", (40, 112)),
-    ("time-rift-academy", "The Time-Rift Academy", "tower", "U", "rift-warden", "teferi", (56, 112)),
-    ("tomb-of-yawgmoth", "The Tomb of Yawgmoth", "crypt", "B", "tomb-warden", "sheoldred", (72, 112)),
-    ("shivan-foundry", "The Shivan Foundry", "foundry", "R", "foundry-warden", "darigaaz", (88, 112)),
-    ("heart-of-yavimaya", "The Heart of Yavimaya", "hollow", "G", "heart-warden", "multani", (104, 112)),
+    ("benalish-castle", "The Benalish Castle", "castle", "W", "sanctum-warden", (40, 112)),
+    ("academy-tower", "The Tower of the Tolarian Academy", "tower", "U", "rift-warden", (56, 112)),
+    ("vess-crypts", "The Vess Crypts", "crypt", "B", "tomb-warden", (72, 112)),
+    ("keldon-fortress", "The Keldon Fortress", "caves", "R", "foundry-warden", (88, 112)),
+    ("elfhame-hollow", "The Hollow under the Elfhames", "hollow", "G", "heart-warden", (104, 112)),
 ]
 PORTAL = ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger", "gitaxian-mindcutter"]
 
@@ -116,7 +120,7 @@ def main():
         if town in SMITHIES:
             dq, dr = next(doors)
             interior(f"{town}-smithy", f"{name} Smithy", "smithy", (cq + dq, cr + dr), [{"id": "armorer", "kind": "armorer", "q": 0, "r": -2}])
-        for vendor in (v for v in vendors if v["town"] == town):
+        for vendor in (v for v in vendors if v.get("town") == town):
             dq, dr = next(doors)
             interior(f"{vendor['id']}-shop", vendor["name"], "shop", (cq + dq, cr + dr), [{"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "q": 0, "r": -2}])
         chunk_of(cq, cr)["npcs"].append({"id": f"{town}-board", "kind": "quest-board", "q": cq + 1, "r": cr + 3})
@@ -139,7 +143,8 @@ def main():
         return sorted(m["id"] for m in mobs.values() if not m.get("boss") and m["tier"] == tier and not m["id"].startswith("mage-")
                       and "warden" not in m["id"] and m["id"] not in PORTAL and (color is None or m.get("region") == color))
 
-    for id, name, theme, color, warden, boss, at in REGION_DUNGEONS:
+    for id, name, theme, color, warden, at in REGION_DUNGEONS:
+        boss = next(m["id"] for m in mobs.values() if m.get("boss") and m.get("unlocks") == color)
         tables = [wanderers(3, color) or wanderers(3), wanderers(4, color) or wanderers(4)]
         dungeon({"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [2, 4], "mobs": tables,
                  "warden": warden, "boss": boss, "region": color}, at)

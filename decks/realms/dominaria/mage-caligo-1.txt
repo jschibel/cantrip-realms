@@ -1,0 +1,17 @@
+# Cabal Evangel (mage-caligo-1, Cabal Evangel), the mage of the Caligo Morass's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Cabal Evangel
+1 Initiates of the Ebon Hand
+1 Order of the Ebon Hand
+2 Lost Soul
+1 Moor Fiend
+1 Mass of Ghouls
+1 Feral Abomination
+2 Bone Splinters
+2 Duress
+2 Hymn to Tourach
+2 Terror
+2 Dark Banishing
+2 Mind Ravel
+2 Touch of Death
+17 Swamp

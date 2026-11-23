@@ -1,0 +1,11 @@
+# Fallen Angel (fallen-angel, Fallen Angel), a tier 4 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Fallen Angel
+2 Will-o'-the-Wisp
+3 Black Knight
+3 Hypnotic Specter
+2 Derelor
+2 Yawgmoth Demon
+4 Cut Down
+3 Go for the Throat
+17 Swamp

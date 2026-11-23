@@ -3,10 +3,10 @@
 4 Arrogant Wurm
 2 Defiant Elf
 3 Elvish Archers
-3 Goliath Beetle
+3 Branchsnap Lorian
 2 Argothian Swine
 2 Havenwood Wurm
-1 Giant Growth
-3 Rancor
+3 Audacity
+1 Rancor
 3 Song of Freyalise
 17 Forest

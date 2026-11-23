@@ -1,0 +1,41 @@
+{
+  "id": "durkwood-boars",
+  "name": "Durkwood Boars",
+  "creature": "Durkwood Boars",
+  "region": "G",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/durkwood-boars.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Boar",
+      "Beast"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "beast",
+    "palette": [
+      "#2a4524",
+      "#d6ae7e",
+      "#c08a62"
+    ],
+    "size": 1.3
+  },
+  "boss": false
+}

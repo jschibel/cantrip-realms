@@ -1,0 +1,12 @@
+# Guardian of New Benalia (guardian-of-new-benalia, Guardian of New Benalia), a tier 3 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Guardian of New Benalia
+2 Dauntless Bodyguard
+3 Benalish Knight
+3 Commander Eesha
+2 Serra Redeemer
+2 Akron Legionnaire
+1 Shield Wall
+3 Glorious Anthem
+3 Angelic Voices
+17 Plains

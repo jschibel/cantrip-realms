@@ -1,7 +1,7 @@
 # Heart Warden (heart-warden, Wirewood Guardian), a tier 4 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Wirewood Guardian
-2 Elvish Mystic
+2 Fyndhorn Elves
 3 Elvish Archers
 2 Elvish Ranger
 2 Magnigoth Sentry

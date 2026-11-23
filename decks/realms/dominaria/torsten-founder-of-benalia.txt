@@ -5,8 +5,8 @@
 3 Longbow Archer
 3 Benalish Knight
 2 Commander Eesha
-2 Ardent Militia
-4 Path to Exile
-3 Swords to Plowshares
+2 Serra Redeemer
+3 Great Defender
+4 Glorious Anthem
 15 Plains
 2 Forest

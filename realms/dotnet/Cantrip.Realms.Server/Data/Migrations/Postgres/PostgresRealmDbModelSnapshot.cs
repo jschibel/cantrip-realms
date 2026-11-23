@@ -402,6 +402,9 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("Purse")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("Visit")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.ToTable("vendors", (string)null);

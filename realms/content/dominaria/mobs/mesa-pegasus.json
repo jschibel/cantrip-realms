@@ -1,0 +1,38 @@
+{
+  "id": "mesa-pegasus",
+  "name": "Mesa Pegasus",
+  "creature": "Mesa Pegasus",
+  "region": "W",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mesa-pegasus.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "bird",
+    "palette": [
+      "#d8d6d0",
+      "#3a5f8f",
+      "#f1b44c"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

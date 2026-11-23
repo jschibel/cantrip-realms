@@ -1,14 +1,14 @@
-# Sylvan Safekeeper (mage-llanowar-3, Sylvan Safekeeper), the mage of Llanowar's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+# Verduran Enchantress (mage-llanowar-3, Verduran Enchantress), the mage of Llanowar's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Sylvan Safekeeper
-3 Elvish Mystic
-2 Llanowar Elves
-1 Elvish Archers
-1 Pale Bears
-1 Argothian Elder
+4 Verduran Enchantress
+1 Woodland Druid
+1 Citanul Druid
+1 Elder Druid
 1 Elfhame Wurm
 1 Enormous Baloth
-3 Bushwhack
-3 Giant Growth
+3 Audacity
+3 Exploration
+2 Living Artifact
 3 Song of Freyalise
+3 Forbidden Lore
 17 Forest

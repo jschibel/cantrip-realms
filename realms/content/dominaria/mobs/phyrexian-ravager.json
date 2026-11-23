@@ -22,7 +22,12 @@
     "pool": "dominaria",
     "colors": "BR",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Phyrexian",
+      "Horror",
+      "Construct",
+      "Dragon"
+    ],
     "rarities": [
       "uncommon",
       "rare",

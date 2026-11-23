@@ -1,0 +1,41 @@
+{
+  "id": "mage-caligo-2",
+  "name": "Thrull Wizard",
+  "creature": "Thrull Wizard",
+  "region": "B",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/mage-caligo-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "urborg-bone-charm"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#8c909c",
+      "#4b2f5e"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

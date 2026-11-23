@@ -20,7 +20,10 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Elf",
+      "Druid"
+    ],
     "rarities": [
       "common"
     ]

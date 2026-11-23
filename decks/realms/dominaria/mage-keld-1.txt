@@ -1,0 +1,17 @@
+# Brothers of Fire (mage-keld-1, Brothers of Fire), the mage of Keld's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Brothers of Fire
+1 Ghitu Lavarunner
+1 Blazing Effigy
+2 Dwarven Forge-Chanter
+1 Coalition Warbrute
+1 Reckless Wurm
+1 Blitz Automaton
+2 Disintegrate
+2 Firebolt
+2 Lava Dart
+2 Shock
+2 Incinerate
+2 Lightning Strike
+2 Flare
+17 Mountain

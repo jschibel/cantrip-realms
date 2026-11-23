@@ -22,7 +22,11 @@
     "pool": "dominaria",
     "colors": "B",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wraith",
+      "Spirit",
+      "Shade"
+    ],
     "rarities": [
       "common",
       "uncommon"

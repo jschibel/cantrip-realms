@@ -1,0 +1,15 @@
+# Nebuchadnezzar (mage-caligo-3, Nebuchadnezzar), the mage of the Caligo Morass's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Nebuchadnezzar
+1 Fugitive Wizard
+1 Zuran Enchanter
+1 Raven Guild Initiate
+1 Ertai Resurrected
+1 Yawgmoth Demon
+3 Cut Down
+3 Go for the Throat
+3 Terror
+2 Dark Banishing
+3 Essence Vortex
+6 Island
+11 Swamp

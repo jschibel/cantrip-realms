@@ -23,7 +23,9 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Wurm"
+    ],
     "rarities": [
       "common",
       "uncommon",

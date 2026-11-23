@@ -1,12 +1,12 @@
-# Air Elemental (air-elemental, Air Elemental), a tier 3 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+# Air Elemental (air-elemental, Air Elemental), a tier 3 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Air Elemental
-2 Flying Men
+2 Aven Envoy
 3 Bay Falcon
-3 Soaring Drake
+3 Tempest Djinn
 2 Azure Drake
 2 Mahamoti Djinn
-3 Counterspell
-1 Disdainful Stroke
-3 Remand
+3 Force Spike
+1 Counterspell
+3 Force Void
 17 Island

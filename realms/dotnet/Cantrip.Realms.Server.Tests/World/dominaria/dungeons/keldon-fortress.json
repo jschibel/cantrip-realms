@@ -1,0 +1,1 @@
+{"id":"keldon-fortress","name":"The Keldon Fortress","theme":"caves","floors":[3,5],"tier":4,"encounters":[2,4],"mobs":[["frost-giant","marton-stromgald","two-headed-giant-of-foriys"],["karplusan-yeti","rorix-bladewing","shivan-dragon"]],"warden":"foundry-warden","boss":"garna","region":"R","entrance":[88,112]}

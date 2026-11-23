@@ -13,10 +13,51 @@ content files (as `content/mtg/cards/*.json` is). Gold is an integer. Times are 
 Everything here is data, read by the server at start and by the overworld at build time (`realms/web` imports what it
 draws). Ids are kebab-case and never reused.
 
-### Planes and pools
+### Cards, planes and pools (`cards.json`, `planes.json`)
 
-- `planes.json`, `prices.json`, `pools/<plane>.json`: `tools/realms/card-economy.py` (the card economy, design.md A5).
-  A relic is priced but in no pool.
+The realm's own card database, in this fork only: `cards.json`, written by `tools/realms/card-economy.py` from Scryfall's
+default-cards file, one record per card the engine has, in name order, a record a line:
+
+```json
+{ "source": "...", "surcharge": {"common": 0.5, "uncommon": 1.0, "rare": 5.0, "mythic": 10.0}, "cards": [
+{"name":"Llanowar Elves","origin":"dominaria","planes":["dominaria"],"sets":["lea","leb","2ed","..."],"usd":0.19,
+ "rarity":"common","gold":69,"vintage":"legal","identity":"G","types":["Creature"],"subtypes":["Elf","Druid"],
+ "universesBeyond":false,"relic":false}
+] }
+```
+
+- `origin` is the plane of the card's first paper printing, by release date; `"multiverse"` when that printing places it
+  on no plane; null for a card never printed on paper. `planes` are every plane it has been printed on, in planes.json's
+  order; `sets` its paper set codes, oldest first.
+- A printing places its card on its set's plane (planes.json's `planes[].sets`), except in a set of one of
+  `reprintSetTypes` (core sets after Beta, Masters, Commander, Secret Lair, promos, ...), where only the card's own first
+  printing does, and only when a plane lists that set (Alpha and Beta, and Dominaria's Commander decks, are
+  Dominaria's). Sets of many planes (`ignoredSets`, each with why) place none, and Universes Beyond printings
+  (`universesBeyondSets`, or the triangle security stamp) are left out of every price and plane. Every expansion and
+  draft-innovation set Scryfall lists is placed, ignored or known as Universes Beyond: the script refuses to write while
+  one is not, so a new set can't slip in unplaced.
+- `usd` is the median TCGplayer market price of its paper printings (the lower middle of an even number, so a real
+  printing's), `rarity` that printing's, `gold` the list price, `round(100 x (usd + surcharge))` (design.md A5); all three
+  null for a card with no paper price.
+- `vintage` is its Vintage legality (`legal`, `restricted`, `banned`, `not_legal`) and `identity` its color identity
+  (WUBRG letters), Scryfall's: the realm deals by them - its pools, its deck checks and `/api/catalog`'s legalities and
+  identities - in place of `content/mtg/legality.json`, which lags the cards the engine has.
+- `types` and `subtypes` are its front face's, for vendor specialties: the engine's own (the catalog's) agree.
+- `universesBeyond` marks a card printed only in Universes Beyond, `relic` one of `relics.json`.
+
+A card is **dealt** - in reach of vendors, loot and starter decks - when it is legal or restricted in Vintage, priced,
+not Universes Beyond and no relic. **The pools are views of `cards.json`, computed by the server as it loads** (and the
+same way by the tools, `tools/realms/realm_cards.py`); there are no pool files:
+
+- a walked plane's pool (planes.json's `"walked": true`: Dominaria) is every dealt card printed on it but the basic
+  lands, which are free (design.md A1);
+- the off-plane pool is every dealt card printed on no walked plane (no basic land), with its planes (perhaps none): the exotic dealers'
+  wares (Vendors, below).
+
+`awaiting-engine.json`, `{comment, cards: [name]}`, names the cards a mob's deck may hold before the engine has them
+(on their way from cantrip-rs, by sync): Rofellos, Llanowar Emissary, the green boss's. The content check lets those
+names alone past the engine, pool and legality checks, and only in mob decks; it refuses a name on the list once the
+engine has it. Until then a duel against that mob can't be dealt.
 
 ### Relics (`relics.json`)
 
@@ -92,18 +133,22 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `tools/realms/sample-decks.py` writes the whole roster and its decks (design.md A3, A6), each deck built round its
   creature - the creature, its kin, the cards that support what it does - and by tier: its prize (tier 1 100 gold, 2 300,
   3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can buy, and stats-only gear.
-  The roster's ids:
-  - **Wanderers**, about fifteen a tier for tiers 1-4, three of each region a tier: a real creature card each, its id
-    the card's name in kebab-case (`llanowar-elves`, `serra-angel`, `volcanic-dragon`).
-  - **Mages**: a mage tower's id is `<region>-<tier>` (regions `benalia`, `tolaria`, `urborg`, `shiv`, `llanowar`; tiers
-    1-4: `benalia-1` ... `llanowar-4`), and its boss is `mage-<tower>` (`mage-benalia-1`): a wizard, cleric, artificer or
-    planeswalker of the region, of the tower's tier, `"boss": false`.
-  - **Wardens**: each region dungeon's and the Portal's (`sanctum-warden`, `rift-warden`, `tomb-warden`,
-    `foundry-warden`, `heart-warden`, `portal-warden`, tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers
-    and the smaller dungeons of the wilds.
-  - **Bosses**: the five who unlock a color (`lyra-dawnbringer`, `teferi`, `sheoldred`, `darigaaz`, `multani`), the
-    Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`, `phyrexian-gorger`,
-    `gitaxian-mindcutter`), and the capstone's praetor, whose deck the script writes out card by card.
+  The roster's ids (the Domains, design.md A6):
+  - **Wanderers**, fifteen a tier for tiers 1-4, three of each region a tier: a real creature card each that fits its
+    region (Benalish knights and Sursi pegasi, Orvada's merfolk and drakes, the Morass's bog creatures and Amjad's
+    horrors, Hurloon minotaurs, Ironclaw orcs and Keldon and Foriys giants, Llanowar's elves), its id the card's name in
+    kebab-case (`llanowar-elves`, `serra-angel`, `shivan-dragon`, `two-headed-giant-of-foriys`).
+  - **Mages**: a mage tower's id is `<region>-<tier>` (regions `benalia` W, `orvada` U, `caligo` B, `keld` R, `llanowar`
+    G; tiers 1-4: `benalia-1` ... `llanowar-4`), and its boss is `mage-<tower>` (`mage-orvada-4`, Urza): a wizard,
+    cleric, shaman, artificer or planeswalker of the region, of the tower's tier, `"boss": false`.
+  - **Wardens**: the region dungeons' and the Portal's (`sanctum-warden` Benalia's, `rift-warden` the academy's,
+    `tomb-warden` the Vess crypts', `foundry-warden` the Keldon fortress's, `heart-warden` the elfhames' hollow's,
+    `portal-warden`; tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers and the smaller dungeons of the wilds.
+  - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
+    Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `rofellos` (G,
+    Rofellos, Llanowar Emissary, a mono-green deck; awaiting the engine, above); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
+    `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 42 life, a hand of 9, a
+    maximum of 10 with its gear), whose deck the script writes out card by card.
 
 ### The world, interiors and dungeons (`<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`)
 
@@ -252,12 +297,34 @@ them all.
 listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it. `town` is a town of
 world.json; every vendor keeps a shop there: a `vendor` NPC of an interior of that town names it.
 
+**Wares from other planes** (design.md A5) come only through the exotic dealers, who deal in the off-plane pool alone,
+and no other vendor deals in it:
+
+- The off-plane pool is the view of `cards.json` above: every dealt card printed on no walked plane, each with the planes
+  it was printed on. A trader's plane is any plane of `planes.json` not walked (the traders' are Ravnica, Zendikar,
+  Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet, Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim and
+  Strixhaven).
+- An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (New Benalia's and Keld's): its stock
+  is off-plane cards within its `specialty`; it shows at most 6 cards, gains one at each six-hour mark of the clock (00, 06,
+  12, 18 UTC) while it shows fewer, lets a card go unsold after 3 days, and is created with 6 that leave six hours apart.
+  It buys off-plane cards of its specialty at half; a card sold to it stays until bought, and while it shows 6 it buys
+  nothing (409 `VendorFull`).
+- A **traveling trader** is a vendor with `"trader": {plane, towns: [town ids], hour, hours}` and no `town`: on Unix day
+  `d` (UTC) its caravan is in `towns[d mod towns.length]` from `hour` o'clock UTC for `hours` hours (within the day), a
+  schedule of the date alone. Each visit brings 3 cards of its plane's off-plane cards, which leave with it; it buys any
+  off-plane card at half, and that card too leaves with it. It trades only while its caravan is in the character's town:
+  the character in the world within the town's radius, or in a building of the town (409 `NotNear` otherwise). The
+  traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy.
+
 The server reads all of this at start and refuses to start on content that does not hold together: one plane has a world;
 every mob, interior, dungeon and vendor a place names is there (spawns' mobs of the spawn's tier and no boss, doors'
 interiors, entrances' dungeons as world.json places them, dungeons' mobs, wardens and bosses, vendor NPCs of the vendor's
-town, inns' towns); every hex a character is put on or meets something at is open (inns, exits, entrances, spawns);
-every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every vendor keeps a shop; every relic
-is a card from a boss and in no pool; and every `requires` is colors' letters (`ContentTests`).
+town, inns' towns, traders' towns); every hex a character is put on or meets something at is open (inns, exits,
+entrances, spawns); every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
+somewhere; every relic is a card from a boss and in no pool; the off-plane pool shares no card with any pool, its cards
+are legal and priced and its tags are planes; every record of cards.json is a card the engine has, priced by the formula, its
+relic flag relics.json's; every trader's plane is a plane not walked with cards to bring; and
+every `requires` is colors' letters (`ContentTests`).
 
 ## The realm server's API (`/api`)
 
@@ -275,7 +342,8 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/deck/check` | `{Main, Ante}` | `{Problems: [...], AnteValue}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands, and the ante's worth |
 | `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` (a relic in the ante is one) |
 | `PUT /api/loadout` | `{Slots: {slot: gearInstanceId or null}}` | the `Character`; 422 `IllegalLoadout` with `Problems` |
-| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`; a visit is counted; 404 `NoVendor` |
+| `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty, Kind, Plane}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`: `Kind` is `shop`, `exotic` or `trader`, `Plane` a trader's home plane (else null), `Town` a trader's caravan's town now; a visit is counted; 404 `NoVendor`, 409 `NotNear` |
+| `GET /api/travelers` | | `{Travelers: [{Id, Name, Plane, PlaneName, Visit: {Town, From, Until} or null, Next: {Town, From, Until}}]}`: every traveling trader, in id order, the visit its caravan is on now (null between visits) and the next to begin |
 | `POST /api/vendor/{id}/buy` | `{Name}` | `{Gold, Collection}`; 409 `SoldOut`, `CannotAfford` |
 | `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `Relic` (a relic is never sold, whatever the vendor), `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |

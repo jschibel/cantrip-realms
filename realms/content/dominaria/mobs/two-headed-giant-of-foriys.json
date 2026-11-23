@@ -1,0 +1,42 @@
+{
+  "id": "two-headed-giant-of-foriys",
+  "name": "Two-Headed Giant of Foriys",
+  "creature": "Two-Headed Giant of Foriys",
+  "region": "R",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/two-headed-giant-of-foriys.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots",
+    "leather-cap"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "giant",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

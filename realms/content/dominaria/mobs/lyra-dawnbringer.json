@@ -23,7 +23,9 @@
     "pool": "dominaria",
     "colors": "W",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Angel"
+    ],
     "rarities": [
       "rare",
       "mythic"

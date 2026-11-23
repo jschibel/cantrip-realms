@@ -202,7 +202,7 @@ owner may extend.
   |---|---|---|---|---|---|
   | — | the hub | **New Benalia**, the capital that holds sway over most of Aerona | south-central Aerona, plains | — | — |
   | W | Benalia | Capashen Hold, a Benalish town | southern Aerona: plains, farmland, river valleys | a Benalish castle (castle) | Lyra Dawnbringer |
-  | G | Llanowar | the elfhames of Llanowar | the great forest south-east of Benalia, across the Suder River | a root hollow under the elfhames (hollow) | Freyalise or Molimo, Maro-Sorcerer, by what the engine has |
+  | G | Llanowar | the elfhames of Llanowar | the great forest south-east of Benalia, across the Suder River | a root hollow under the elfhames (hollow) | Rofellos, Llanowar Emissary: a mono-green deck of big creatures and ramp round him |
   | B | the Caligo Morass and Amjad | the Vess estate's village | the Morass, a Benalian forest the Cabal turned to fetid swamp, in Aerona's north-west; and Amjad, a dark realm on Shanodin's island | the Vess crypts (crypt) | Liliana Vess, at her ancestral home |
   | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | a Keldon warlord legend the engine has |
   | U | Orvada | the Tolarian Academy on Walassa | Orvada's isles, Walassa and Denawa, off Aerona's coast | the academy's tower (tower) | Teferi |

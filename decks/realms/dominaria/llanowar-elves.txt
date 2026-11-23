@@ -1,16 +1,17 @@
 # Llanowar Elves (llanowar-elves, Llanowar Elves), a tier 1 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Llanowar Elves
-1 Defiant Elf
-2 Elvish Mystic
 2 Elvish Warrior
-2 Thornweald Archer
+1 Thornweald Archer
 2 Elvish Ranger
 1 Nessian Courser
 2 Magnigoth Sentry
 2 Elfhame Wurm
 1 Panther Warriors
-2 Primordial Wurm
-2 Havenwood Wurm
+1 Primordial Wurm
 2 Wirewood Guardian
+2 Gaea's Touch
+2 Rampant Growth
+1 Foxfire
+2 Grow from the Ashes
 17 Forest

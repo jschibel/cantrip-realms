@@ -1,0 +1,16 @@
+# Bog Raiders (bog-raiders, Bog Raiders), a tier 1 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Bog Raiders
+2 Plague Beetle
+2 Cyclopean Mummy
+1 Walking Dead
+2 Legions of Lim-Dûl
+2 Moor Fiend
+1 Murk Dwellers
+2 Mass of Ghouls
+2 Anurid Murkdiver
+1 Bone Splinters
+2 Terror
+2 Dark Banishing
+2 Touch of Death
+17 Swamp

@@ -63,7 +63,7 @@ public sealed class VerifierPartsTests
             return new DuelSeat(content.File.Name, [.. content.Deck.Entries.SelectMany(entry => Enumerable.Repeat(entry.Card, entry.Copies))], [], null, [], 20, 7, 7, []);
         }
 
-        return new Duel([Seat("benalish-hero"), Seat("scathe-zombies")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Scathe Zombies", 1, 100), 0, 0);
+        return new Duel([Seat("benalish-hero"), Seat("bog-raiders")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Bog Raiders", 1, 100), 0, 0);
     }
 }
 
@@ -155,7 +155,7 @@ public sealed class NativeVerifierTests
         CharacterView me = await browser.Ok<CharacterView>(HttpMethod.Put, "/api/loadout", new { Slots = new Dictionary<string, long?> { ["head"] = worn[0], ["body"] = worn[1] } });
 
         // The warden of Serra's sanctum, who wears plate and a pendant of its own.
-        RunView run = await app.EnterRun(browser, "serras-fallen-sanctum");
+        RunView run = await app.EnterRun(browser, "benalish-castle");
         RunFloor first = run.Floors[0];
         Assert.Equal("sanctum-warden", first.Warden);
         EncounterView encounter = await RealmApp.Fight(browser, run, 0, first.Encounters.Count, first.Warden!);

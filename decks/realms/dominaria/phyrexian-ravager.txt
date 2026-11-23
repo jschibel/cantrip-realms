@@ -2,11 +2,10 @@
 
 4 Phyrexian Dragon Engine
 2 Phyrexian Walker
-3 Goblin Engineer
-2 Moor Fiend
-2 Yargle, Glutton of Urborg
+3 Priest of Yawgmoth
+2 Su-Chi
+2 Abomination
 2 Cityscape Leveler
-4 Abrade
-4 The Mightstone and Weakstone
-6 Swamp
-11 Mountain
+4 Aeolipile
+4 Rocket Launcher
+17 Swamp

@@ -1,13 +1,13 @@
-# Karn, Scion of Urza (mage-llanowar-4, Karn, Scion of Urza), the mage of Llanowar's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+# Silverback Elder (mage-llanowar-4, Silverback Elder), the mage of Llanowar's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Karn, Scion of Urza
-1 Phyrexian Walker
-3 Elvish Archers
-2 Yotian Soldier
-1 Magnigoth Sentry
-1 Elfhame Wurm
-1 Cityscape Leveler
-4 Chromatic Star
-2 Mind Stone
-4 The Mightstone and Weakstone
+4 Silverback Elder
+1 Birds of Paradise
+1 Barbary Apes
+1 Gorilla Warrior
+1 Erhnam Djinn
+1 Enormous Baloth
+4 Audacity
+4 Bushwhack
+2 Gaea's Touch
+4 Song of Freyalise
 17 Forest

@@ -1,0 +1,18 @@
+{
+  "id": "eldraine-trader",
+  "name": "Sir Edrin of Ardenvale",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "eldraine",
+    "towns": [
+      "keld",
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold",
+      "llanowar"
+    ],
+    "hour": 10,
+    "hours": 4
+  }
+}

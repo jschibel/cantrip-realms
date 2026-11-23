@@ -1,0 +1,18 @@
+{
+  "id": "lorwyn-trader",
+  "name": "Fennick Thistledown",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "lorwyn",
+    "towns": [
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold"
+    ],
+    "hour": 14,
+    "hours": 4
+  }
+}

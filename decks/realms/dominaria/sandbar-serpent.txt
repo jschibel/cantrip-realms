@@ -1,0 +1,16 @@
+# Sandbar Serpent (sandbar-serpent, Sandbar Serpent), a tier 2 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Sandbar Serpent
+2 Aven Envoy
+2 Bay Falcon
+1 Storm Crow
+2 Devouring Deep
+1 Soaring Drake
+2 Azure Drake
+1 Cold-Water Snapper
+2 Tolarian Terror
+2 Force Spike
+2 Pongify
+2 Force Void
+1 Psionic Blast
+17 Island

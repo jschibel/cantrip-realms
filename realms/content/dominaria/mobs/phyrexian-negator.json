@@ -1,7 +1,7 @@
 {
   "id": "phyrexian-negator",
   "name": "Phyrexian Negator",
-  "creature": "Crazed Skirge",
+  "creature": "Gallowbraid",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-negator.txt",
   "stats": {
@@ -22,7 +22,12 @@
     "pool": "dominaria",
     "colors": "B",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Phyrexian",
+      "Horror",
+      "Imp",
+      "Demon"
+    ],
     "rarities": [
       "uncommon",
       "rare",

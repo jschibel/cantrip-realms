@@ -19,7 +19,7 @@ namespace Cantrip.Realms.Server;
 ///                                origin the API answers from a browser, with the signed-in cookie
 /// REALMS_DEV_SIGNIN              1 lets anyone sign in as any id, with no Discord: development and tests only
 /// REALMS_MIGRATE                 0 leaves the database's schema alone at start; by default the migrations are applied
-/// REALMS_START_TOWN              the town new characters start in, at its inn; new-argive by default
+/// REALMS_START_TOWN              the town new characters start in, at its inn; new-benalia by default
 /// REALMS_PLACES                  where each plane's world, interiors and dungeons are read from instead of
 ///                                realms/content (a folder of &lt;plane&gt;/world, ...): a test world
 /// REALMS_WALKING_SPEED           the fastest walk presence relays, in hexes a second; 4 by default
@@ -56,7 +56,7 @@ public sealed class RealmOptions
     public bool Migrate { get; init; } = true;
 
     /// <summary>The town a new character starts in, at its inn.</summary>
-    public string StartTown { get; init; } = "new-argive";
+    public string StartTown { get; init; } = "new-benalia";
 
     /// <summary>Where the planes' world, interiors and dungeons are read from instead of realms/content; null for there.</summary>
     public string? Places { get; init; }
@@ -87,7 +87,7 @@ public sealed class RealmOptions
             Migrate = Setting("MIGRATE") is not ("0" or "false"),
             WalkingSpeed = Setting("WALKING_SPEED") is { } speed ? double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture) : 4.0,
             InstanceSize = Setting("INSTANCE_SIZE") is { } size ? int.Parse(size, System.Globalization.CultureInfo.InvariantCulture) : 40,
-            StartTown = Setting("START_TOWN") ?? "new-argive",
+            StartTown = Setting("START_TOWN") ?? "new-benalia",
             Places = Setting("PLACES"),
         };
     }

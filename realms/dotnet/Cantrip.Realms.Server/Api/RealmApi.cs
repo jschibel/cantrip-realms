@@ -76,6 +76,9 @@ public static class RealmApi
         api.MapPost("/vendor/{id}/sell", async (HttpContext context, Vendors vendors, string id, CardTrade body) =>
             Results.Ok(await vendors.Sell(Player(context), id, body).ConfigureAwait(false)));
 
+        api.MapGet("/travelers", (RealmContent content, TimeProvider time) =>
+            Results.Ok(Travelers.View(content, time.GetUtcNow().ToUnixTimeMilliseconds())));
+
         api.MapGet("/armorer/{town}", (Armorers armorers, string town) =>
             Results.Ok(new ArmorerView(armorers.Stock(town))));
 

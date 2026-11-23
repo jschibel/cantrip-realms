@@ -14,7 +14,7 @@ public sealed class EncounterTests
 {
     private const string World = RealmContent.WorldSpace;
 
-    /// <summary>A tier 1 spawn near New Argive, of every tier 1 wanderer, so that the mob there changes from epoch to epoch.</summary>
+    /// <summary>A tier 1 spawn near New Benalia, of every tier 1 wanderer, so that the mob there changes from epoch to epoch.</summary>
     private static readonly string Spawn = RealmApp.SpawnOf(1).Id;
 
     /// <summary>The mob the spawn holds for a player now.</summary>
@@ -158,7 +158,7 @@ public sealed class EncounterTests
         MapSpawn spawn = RealmApp.Content.World.Spawn(Spawn)!;
         await browser.Put(World, RealmApp.Away(spawn.At, spawn.Radius + 9));
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Inside("new-argive-inn");
+        await browser.Inside("new-benalia-inn");
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
@@ -281,7 +281,7 @@ public sealed class EncounterTests
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
         CharacterView me = await browser.Me();
         Assert.Equal(gold, me.Gold);
-        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
     }
 
     private static async Task AssertOneAnteCardLost(Browser browser, IReadOnlyDictionary<string, int> before, string[] anted)
@@ -321,7 +321,7 @@ public sealed class EncounterTests
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn = RealmApp.SpawnOf(2).Id, Mob = RealmApp.SpawnOf(2).Mobs[0] }, HttpStatusCode.Conflict, Codes.Unfinished);
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
         CharacterView me = await browser.Me();
-        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
         await browser.Refused(HttpMethod.Post, "/api/encounter/finish", new { first.Token, Log = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
         Assert.Empty(app.Verifier.Checked);
     }
@@ -341,7 +341,7 @@ public sealed class EncounterTests
         // Looking at the character settles it.
         CharacterView me = await browser.Me();
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
         string state = await app.Store(db => db.Duels.Where(duel => duel.Token == encounter.Token).Select(duel => duel.State).SingleAsync());
         Assert.Equal(DuelRow.Lost, state);
     }

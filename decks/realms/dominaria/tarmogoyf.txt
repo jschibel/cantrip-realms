@@ -2,10 +2,10 @@
 
 4 Tarmogoyf
 2 Timber Wolves
-3 Pale Bears
-2 Magnigoth Sentry
-3 Elfhame Wurm
+3 Branchsnap Lorian
+2 Erhnam Djinn
+3 Silverback Elder
 2 Enormous Baloth
-4 Giant Growth
-3 Song of Freyalise
+3 Giant Growth
+4 Forbidden Lore
 17 Forest
