@@ -136,10 +136,11 @@ function propBoard(id: string, title: string, ids: readonly string[], ground: st
     }
     const line = !("rect" in fp);
     const ax = line ? x + 1 : x + cw / 2;
-    const az = line ? z + 0.5 : z + Math.max(1.5, fd / 2 + 0.5);
-    const args = to ? { ...info.sample.args, to: [ax + to[0], az + to[1]] } : info.sample.args;
+    const az = line ? z + 0.5 : "rect" in fp ? z + 0.5 - fp.rect[1] : z + 1.5;
+    const gate = info.sample.args?.gate as [number, number] | undefined;
+    const args = to ? { ...info.sample.args, to: [ax + to[0], az + to[1]], ...(gate ? { gate: [az + gate[0], az + gate[1]] } : {}) } : info.sample.args;
     props.push({ ...info.sample, id: pid, x: ax, z: az, ...(args ? { args } : {}) });
-    labels.push({ text: pid, x: line ? x + cw / 2 : ax, z: z + cd - 0.9 });
+    labels.push({ text: pid, x: line ? ax + (to ? to[0] / 2 : 0) : ax, z: line ? az + (to ? Math.max(0, to[1]) : 0) + 0.9 : az + ("rect" in fp ? fp.rect[3] : 0) + 0.6 });
     x += cw;
     rowDepth = Math.max(rowDepth, cd);
   }
