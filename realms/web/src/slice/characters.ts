@@ -286,6 +286,7 @@ export class Figure {
     this.lean.rotation.set(-angle, yaw, 0, "YXZ");
     this.lean.scale.y = Math.cos(pitch) / Math.cos(pitch - angle);
     this.yaw = yaw;
+    this.turn.rotation.y = this.facing - yaw;
   }
 
   /** Turns to face a direction on the ground (x, z), smoothly. */

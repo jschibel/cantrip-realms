@@ -12,7 +12,8 @@ import { normalMaterialFor } from "./material";
 //   walls facing you. The camera is pitched 45 degrees and its image drawn at 1/sin 45 vertically, so a floor's texel
 //   and a south-facing wall's texel are both exactly one pixel: tiles are 16 by 16 pixels on screen and nothing is
 //   foreshortened, the way those games' tiles are, while the scene stays a true 3D scene (light, shadows, depth).
-// - Isometric: 2:1 dimetric, a tile 32 pixels across and 16 high.
+// - Isometric: 2:1 dimetric, a tile 26 pixels across and 13 high - drawn a little smaller than the three-quarter view's
+//   tiles, so the street shows about half as much again round the player.
 //
 // A second pass draws every surface's facing; the post pass uses it and the depth to draw a soft outline in the
 // darkened color of whatever stands in front of something farther, and a bright line on convex edges - the stepped,
@@ -31,7 +32,9 @@ export interface View {
 }
 
 export const THREE_QUARTER: Omit<View, "scale"> = { yaw: 0, pitch: Math.PI / 4, wppX: 1 / 16, wppY: Math.SQRT1_2 / 16 };
-export const ISOMETRIC: Omit<View, "scale"> = { yaw: Math.PI / 4, pitch: Math.PI / 6, wppX: Math.SQRT2 / 32, wppY: Math.SQRT2 / 32 };
+/** The isometric tile's width in pixels: 26 shows (32/26)^2, about 1.5 times, the street a 32-pixel tile would. */
+export const ISO_TILE = 26;
+export const ISOMETRIC: Omit<View, "scale"> = { yaw: Math.PI / 4, pitch: Math.PI / 6, wppX: Math.SQRT2 / ISO_TILE, wppY: Math.SQRT2 / ISO_TILE };
 
 export function blendViews(a: View, b: View, t: number): View {
   const k = t * t * (3 - 2 * t);
@@ -119,6 +122,12 @@ export class SliceRenderer {
   /** The iris: its centre in the world and its radius in scene pixels; null when open. */
   iris: { at: THREE.Vector3; radius: number } | null = null;
   fade = 0;
+  /**
+   * Whether the camera snaps to whole pixels. It does at rest and while it follows the player; while it turns from one
+   * view to the other it glides, so the turn has no steps in it, and snaps again once it has settled. The pixels stay
+   * crisp either way: the target is still drawn small and shown in whole pixels.
+   */
+  snap = true;
 
   private readonly color: THREE.WebGLRenderTarget;
   private readonly normals: THREE.WebGLRenderTarget;
@@ -221,11 +230,12 @@ export class SliceRenderer {
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
     const across = this.focus.dot(right);
     const along = this.focus.dot(up);
-    this.camera.position
-      .copy(this.focus)
-      .addScaledVector(right, Math.round(across / v.wppX) * v.wppX - across)
-      .addScaledVector(up, Math.round(along / v.wppY) * v.wppY - along)
-      .addScaledVector(back, DISTANCE);
+    this.camera.position.copy(this.focus).addScaledVector(back, DISTANCE);
+    if (this.snap) {
+      this.camera.position
+        .addScaledVector(right, Math.round(across / v.wppX) * v.wppX - across)
+        .addScaledVector(up, Math.round(along / v.wppY) * v.wppY - along);
+    }
     this.camera.updateMatrixWorld();
   }
 

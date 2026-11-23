@@ -66,13 +66,48 @@ for (const scene of ["street", "shop", "crypt"] as const) {
   });
 }
 
-test("slice: the street switches between its two outside cameras", async ({ page }) => {
-  await open(page, "outside=iso&still");
-  expect(await slice<string>(page, "outside")).toBe("iso");
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: join(out, "street-iso.png") });
+interface CameraView {
+  readonly yaw: number;
+  readonly pitch: number;
+  readonly snapped: boolean;
+}
+
+/** Waits for the camera to settle, then says which view it settled in. */
+async function settledView(page: Page): Promise<"iso" | "34"> {
+  await expect.poll(() => slice<boolean>(page, "cameraSettled"), { timeout: 10_000 }).toBe(true);
+  const v = await slice<CameraView>(page, "view");
+  expect(v.snapped, "snapped to whole pixels once settled").toBe(true);
+  if (Math.abs(v.yaw - Math.PI / 4) < 1e-6 && Math.abs(v.pitch - Math.PI / 6) < 1e-6) return "iso";
+  expect(v.yaw).toBeCloseTo(0, 6);
+  expect(v.pitch).toBeCloseTo(Math.PI / 4, 6);
+  return "34";
+}
+
+test("slice: the street's camera turns between its two views, by key and by button, and is remembered", async ({ page }) => {
+  await open(page, "still");
+  expect(await settledView(page)).toBe("34");
+
+  // V: the camera eases round - part-way through it is neither view - and settles isometric.
   await page.keyboard.press("v");
-  await expect.poll(() => slice<string>(page, "outside")).toBe("34");
+  expect(await slice<string>(page, "outside")).toBe("iso");
+  await page.waitForTimeout(250);
+  const mid = await slice<CameraView>(page, "view");
+  expect(mid.yaw > 0 && mid.yaw < Math.PI / 4, "mid-turn").toBe(true);
+  expect(await settledView(page)).toBe("iso");
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: join(out, "street-iso.png") });
+
+  // The choice outlasts the visit.
+  await open(page, "still");
+  expect(await slice<string>(page, "outside")).toBe("iso");
+  expect(await settledView(page)).toBe("iso");
+
+  // The on-screen button turns it back.
+  const button = page.locator("[data-test='slice:camera']");
+  await expect(button).toContainText("isometric");
+  await button.click();
+  expect(await settledView(page)).toBe("34");
+  await expect(button).toContainText("three-quarter");
 });
 
 test("slice: through the shop's door and back out, by clicking", async ({ page }) => {
@@ -188,6 +223,29 @@ const clips: readonly { name: string; query: string; to: Point; seconds: number;
   { name: "shop-walk", query: "scene=shop", to: { x: 3, y: 6 }, seconds: 1.2, then: { x: 9, y: 4 }, thenSeconds: 1.8 },
   { name: "crypt-walk", query: "scene=crypt", to: { x: 4, y: 5 }, seconds: 1.2, then: { x: 10, y: 5 }, thenSeconds: 2.0 },
 ];
+
+test("slice clip: street-camera-toggle", async ({ page }) => {
+  test.skip(!shots, "pictures only with SLICE_SHOTS");
+  test.setTimeout(240_000);
+  // Walking along the street while the camera turns to isometric and back, at 20 frames a second of game time.
+  await open(page, "manual&nohud&outside=34&at=10,12");
+  await advance(page, 0.5);
+  const target = await tileOnPage(page, 18, 12);
+  await page.mouse.click(target.x, target.y);
+  const frames: Frame[] = [];
+  const record = async (seconds: number) => {
+    for (let t = 0; t < seconds - 1e-6; t += 0.05) {
+      await advance(page, 0.05);
+      frames.push(await readFrame(page));
+    }
+  };
+  await record(0.3);
+  await page.keyboard.press("v");
+  await record(1.0);
+  await page.keyboard.press("v");
+  await record(1.0);
+  writeFileSync(join(out, "street-camera-toggle.gif"), gifOf(frames, { w: 288, h: 180 }, 2, 5));
+});
 
 for (const c of clips) {
   test(`slice clip: ${c.name}`, async ({ page }) => {
