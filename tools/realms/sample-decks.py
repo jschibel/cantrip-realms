@@ -38,7 +38,8 @@ tier sets the rarities a deck may hold and how many copies its best cards get.
 
 A mob's file follows its tier (design.md A3): its prize (T1 100 gold, T2 300, T3 800, T4 2,000, a boss 6,000), its gold
 range, its loot - its colors' cards of the rarities whose prices fit under its prize - its stats and stats-only gear,
-and its model. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
+and its model. A mob file's model (realms/web/src/art/figures: its mesh, chosen for what its creature is, its palette
+and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
 relics, colors, ids, meshes, gear) and writes nothing if any fails. The same inputs give the same files. They are a
 start: mobs' decks are tuned by hand later (tech.md B7); a mob listed in HAND_TUNED is left alone.
 """
@@ -89,12 +90,23 @@ CREATURE_COPIES = {1: 2, 2: 3, 3: 4, 4: 4, "boss": 4}
 # A deck's 23 spells: how many are creatures and how many other spells, and the highest mana value of those others.
 SHAPES = {"wanderer": (16, 7, 4), "portal": (15, 8, 5), "mage": (9, 14, 6), "warden": (15, 8, 5), "boss": (15, 8, 5)}
 
-# The mob meshes of realms/content/models a mob may be drawn with, the first ten there today.
-MESHES = {
-    "humanoid", "ghoul", "angel", "drake", "elf", "goblin", "wurm", "construct", "spirit", "phyrexian",
-    "dragon", "bird", "beast", "cat", "merfolk", "insect", "treefolk", "serpent", "giant", "wizard", "knight",
-}
-# A creature's mesh by its types, the first that matches.
+# The mob meshes a mob may be drawn with: the server's list (RealmContent.MobMeshes, the figures' meshes of
+# realms/web/src/art/figures), read from its source so the two never differ.
+SERVER_CONTENT = os.path.join(ROOT, "realms", "dotnet", "Cantrip.Realms.Server", "Content", "RealmContent.cs")
+
+
+def server_mob_meshes():
+    with open(SERVER_CONTENT, encoding="utf-8") as f:
+        source = f.read()
+    found = re.search(r"MobMeshes \{ get; \} = new HashSet<string>\(StringComparer\.Ordinal\)\s*\{(.*?)\};", source, re.S)
+    if found is None:
+        sys.exit(f"sample-decks: no MobMeshes in {os.path.relpath(SERVER_CONTENT, ROOT)}")
+    return set(re.findall(r'"([a-z0-9-]+)"', found.group(1)))
+
+
+MESHES = server_mob_meshes()
+# A model is chosen only for a mob that has none yet: a mob file's `model` (its mesh, palette and size, chosen for what
+# its creature is) is always kept as it is. A new mob's mesh is by its creature's types, the first that matches.
 MESH_BY_TYPE = [
     ("phyrexian", ["Phyrexian"]),
     ("angel", ["Angel"]),
@@ -102,20 +114,46 @@ MESH_BY_TYPE = [
     ("drake", ["Drake", "Wyvern"]),
     ("wurm", ["Wurm"]),
     ("merfolk", ["Merfolk"]),
+    ("vampire", ["Vampire"]),
+    ("minotaur", ["Minotaur"]),
+    ("demon", ["Demon"]),
+    ("imp", ["Imp"]),
+    ("pegasus", ["Pegasus"]),
+    ("aven", ["Aven"]),
     ("elf", ["Elf"]),
-    ("goblin", ["Goblin", "Kobold", "Orc"]),
+    ("orc", ["Orc"]),
+    ("goblin", ["Goblin", "Kobold"]),
     ("treefolk", ["Treefolk"]),
     ("serpent", ["Serpent", "Leviathan", "Octopus", "Fish", "Turtle"]),
-    ("giant", ["Giant", "Ogre", "Minotaur", "Orgg", "Demon"]),
+    ("ettin", ["Ettin"]),
+    ("giant", ["Giant", "Ogre", "Orgg"]),
     ("insect", ["Insect", "Spider"]),
     ("cat", ["Cat"]),
-    ("bird", ["Bird", "Griffin", "Pegasus", "Gargoyle"]),
-    ("ghoul", ["Zombie", "Skeleton", "Horror", "Imp"]),
+    ("bird", ["Bird", "Griffin", "Gargoyle"]),
+    ("thrull", ["Thrull"]),
+    ("horror", ["Horror"]),
+    ("ghoul", ["Zombie", "Skeleton"]),
     ("knight", ["Knight"]),
-    ("construct", ["Construct", "Golem", "Myr", "Thopter", "Wall"]),
-    ("spirit", ["Spirit", "Elemental", "Illusion", "Djinn", "Wraith", "Shade", "Sphinx"]),
-    ("beast", ["Beast", "Bear", "Boar", "Ape", "Elephant", "Hippo", "Rhino", "Wolf", "Lhurgoyf", "Dinosaur", "Kavu", "Lizard", "Frog", "Yeti", "Rat"]),
-    ("wizard", ["Wizard", "Cleric", "Druid", "Artificer"]),
+    ("barbarian", ["Barbarian", "Berserker"]),
+    ("golem", ["Golem"]),
+    ("construct", ["Construct", "Myr", "Thopter", "Wall"]),
+    ("djinn", ["Djinn"]),
+    ("wraith", ["Wraith", "Shade"]),
+    ("elemental", ["Elemental"]),
+    ("spirit", ["Spirit", "Illusion", "Sphinx"]),
+    ("yeti", ["Yeti"]),
+    ("ape", ["Ape"]),
+    ("boar", ["Boar"]),
+    ("rat", ["Rat"]),
+    ("lhurgoyf", ["Lhurgoyf"]),
+    ("horse", ["Horse"]),
+    ("beast", ["Beast", "Bear", "Elephant", "Hippo", "Rhino", "Wolf", "Dinosaur", "Kavu", "Lizard", "Frog"]),
+    ("cleric", ["Cleric"]),
+    ("druid", ["Druid"]),
+    ("shaman", ["Shaman"]),
+    ("warlock", ["Warlock"]),
+    ("artificer", ["Artificer"]),
+    ("wizard", ["Wizard"]),
 ]
 # Each region's colors, a mob's palette by its id among them; the colorless ones for constructs of no region.
 PALETTES = {
@@ -189,7 +227,7 @@ MOBS = [
     wanderer("Knight of Malice", 3, "B", lean=["Knight"], themes=["firststrike", "removal"]),
     wanderer("Abomination", 3, "B", lean=["Horror"], themes=["removal", "discard"]),
     wanderer("Eater of the Dead", 3, "B", lean=["Horror", "Zombie"], themes=["graveyard", "removal"]),
-    wanderer("Sengir Vampire", 4, "B", lean=["Vampire"], themes=["flyers", "removal"], model=("humanoid", None, None)),
+    wanderer("Sengir Vampire", 4, "B", lean=["Vampire"], themes=["flyers", "removal"]),
     wanderer("Fallen Angel", 4, "B", lean=["Angel", "Demon"], themes=["flyers", "removal"]),
     wanderer("Tombstalker", 4, "B", lean=["Demon", "Horror"], themes=["landwalk", "removal"]),
     # Keld and Icehaven (R): Hurloon minotaurs, Ironclaw orcs and Keldon raiders near home, Foriys's giants and Parma's
@@ -197,12 +235,12 @@ MOBS = [
     wanderer("Hurloon Minotaur", 1, "R", lean=["Minotaur", "Giant"], themes=["burn"]),
     wanderer("Ironclaw Orcs", 1, "R", lean=["Orc"], themes=["burn", "haste"]),
     wanderer("Balduvian Barbarians", 1, "R", lean=["Barbarian", "Warrior"], themes=["haste", "burn"]),
-    wanderer("Keldon Warlord", 2, "R", lean=["Barbarian", "Warrior", "Berserker"], themes=["haste", "burn"], model=("humanoid", None, None)),
+    wanderer("Keldon Warlord", 2, "R", lean=["Barbarian", "Warrior", "Berserker"], themes=["haste", "burn"]),
     wanderer("Talruum Minotaur", 2, "R", lean=["Minotaur"], themes=["haste", "burn"]),
     wanderer("Orcish Artillery", 2, "R", lean=["Orc"], themes=["burn"]),
     wanderer("Two-Headed Giant of Foriys", 3, "R", lean=["Giant"], themes=["trample", "burn"]),
     wanderer("Frost Giant", 3, "R", lean=["Giant", "Yeti"], themes=["big", "burn"]),
-    wanderer("Márton Stromgald", 3, "R", lean=["Knight", "Barbarian", "Warrior"], themes=["pump", "burn"], model=("knight", None, None)),
+    wanderer("Márton Stromgald", 3, "R", lean=["Knight", "Barbarian", "Warrior"], themes=["pump", "burn"]),
     wanderer("Shivan Dragon", 4, "R", lean=["Dragon"], themes=["burn", "flyers"]),
     wanderer("Rorix Bladewing", 4, "R", lean=["Dragon"], themes=["haste", "burn"]),
     wanderer("Karplusan Yeti", 4, "R", lean=["Yeti", "Giant"], themes=["removal", "burn"]),
@@ -239,32 +277,32 @@ MOBS = [
     mage("llanowar", 1, "Woodland Druid", lean=["Druid", "Elf"], themes=["ramp", "pump"]),
     mage("llanowar", 2, "Argothian Elder", lean=["Druid", "Elf"], themes=["ramp", "big"]),
     mage("llanowar", 3, "Verduran Enchantress", lean=["Druid"], themes=["enchantments", "pump"]),
-    mage("llanowar", 4, "Silverback Elder", lean=["Shaman", "Ape"], themes=["big", "ramp"], model=("beast", ["#3e9a4a", "#8f6340", "#f1b44c"], 1.3)),
+    mage("llanowar", 4, "Silverback Elder", lean=["Shaman", "Ape"], themes=["big", "ramp"]),
     # The dungeons' floor wardens (tier 4 mini-bosses), and the generic wardens of the towers and wilderness dungeons.
-    dict(kind="warden", id="sanctum-warden", name="Sanctum Warden", creature="Archangel", region="W", lean=["Angel", "Knight"], themes=["flyers", "vigilance"], gear=["benalish-plate", "silver-pendant"], model=("angel", ["#f1b44c", "#f2efe6", "#93c8dc"], 1.35)),
-    dict(kind="warden", id="rift-warden", name="Rift Warden", creature="Zephid", region="U", lean=["Illusion", "Wizard", "Drake", "Sphinx"], themes=["counters", "flyers"], gear=["tolarian-robe", "tolarian-circlet"], model=("spirit", ["#2f5fa8", "#a97fd0", "#f4ecc2"], 1.3)),
-    dict(kind="warden", id="tomb-warden", name="Tomb Warden", creature="Zombie Master", region="B", lean=["Zombie", "Skeleton"], themes=["removal", "landwalk"], gear=["chain-hauberk", "thran-amulet"], model=("ghoul", ["#2a2b36", "#7a1f24", "#8c909c"], 1.35)),
-    dict(kind="warden", id="foundry-warden", name="Foundry Warden", creature="Orcish Mechanics", region="R", artifacts=True, lean=["Orc", "Artificer", "Construct", "Golem"], themes=["artifacts", "burn"], gear=["benalish-plate", "silver-pendant"], model=("goblin", ["#2a2b36", "#c8432c", "#f1b44c"], 1.4)),
-    dict(kind="warden", id="heart-warden", name="Heart Warden", creature="Wirewood Guardian", region="G", lean=["Elf", "Treefolk", "Wurm", "Elemental"], themes=["big", "ramp"], gear=["benalish-plate", "silver-pendant"], model=("treefolk", ["#2a4524", "#f1b44c", "#3e9a4a"], 1.45)),
+    dict(kind="warden", id="sanctum-warden", name="Sanctum Warden", creature="Archangel", region="W", lean=["Angel", "Knight"], themes=["flyers", "vigilance"], gear=["benalish-plate", "silver-pendant"]),
+    dict(kind="warden", id="rift-warden", name="Rift Warden", creature="Zephid", region="U", lean=["Illusion", "Wizard", "Drake", "Sphinx"], themes=["counters", "flyers"], gear=["tolarian-robe", "tolarian-circlet"]),
+    dict(kind="warden", id="tomb-warden", name="Tomb Warden", creature="Zombie Master", region="B", lean=["Zombie", "Skeleton"], themes=["removal", "landwalk"], gear=["chain-hauberk", "thran-amulet"]),
+    dict(kind="warden", id="foundry-warden", name="Foundry Warden", creature="Orcish Mechanics", region="R", artifacts=True, lean=["Orc", "Artificer", "Construct", "Golem"], themes=["artifacts", "burn"], gear=["benalish-plate", "silver-pendant"]),
+    dict(kind="warden", id="heart-warden", name="Heart Warden", creature="Wirewood Guardian", region="G", lean=["Elf", "Treefolk", "Wurm", "Elemental"], themes=["big", "ramp"], gear=["benalish-plate", "silver-pendant"]),
     dict(kind="warden", id="warden-1", name="Yotian Soldier", creature="Yotian Soldier", tier=1, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Soldier", "Thopter"], themes=["artifacts", "defenders"]),
     dict(kind="warden", id="warden-2", name="Obsianus Golem", creature="Obsianus Golem", tier=2, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Thopter"], themes=["artifacts"]),
     dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
     dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"]),
     # The five bosses, each unlocking its color: its region's legend the pool has.
-    dict(kind="boss", id="lyra-dawnbringer", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"], model=("angel", ["#f2efe6", "#f1b44c", "#93c8dc"], 1.6)),
-    dict(kind="boss", id="teferi", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"], model=("wizard", ["#5b8fd6", "#f1b44c", "#f2efe6"], 1.4)),
+    dict(kind="boss", id="lyra-dawnbringer", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="teferi", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"]),
     # Liliana Vess at her family's estate in the Morass: the pool's one Liliana.
-    dict(kind="boss", id="liliana", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"], model=("wizard", ["#2a2b36", "#4b2f5e", "#c9ced8"], 1.5)),
+    dict(kind="boss", id="liliana", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"]),
     # Keld's warlord: the pool's Keldon legend, with the Keldon Warlord.
-    dict(kind="boss", id="garna", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"], model=("humanoid", ["#8f2f2f", "#2e1f17", "#f1b44c"], 1.6)),
+    dict(kind="boss", id="garna", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"]),
     # Llanowar's emissary, round his Forests: big green creatures and green ramp.
-    dict(kind="boss", id="rofellos", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"], model=("elf", ["#3e9a4a", "#8f6340", "#f1b44c"], 1.6)),
+    dict(kind="boss", id="rofellos", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"]),
     # The Phyrexian Portal (the capstone): the invasion's war-machines and priests, its warden, and the praetor.
-    dict(kind="portal", id="phyrexian-ravager", name="Phyrexian Ravager", creature="Phyrexian Dragon Engine", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct", "Dragon"], themes=["artifacts", "burn"], gear=["mantle-of-the-ancients", "thran-amulet"], model=("phyrexian", ["#8c909c", "#c8432c", "#2a2b36"], 1.35)),
-    dict(kind="portal", id="phyrexian-negator", name="Phyrexian Negator", creature="Gallowbraid", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Imp", "Demon"], themes=["removal", "discard"], gear=["serran-vestments", "thran-amulet"], model=("phyrexian", ["#2a2b36", "#7a1f24", "#b3b5bc"], 1.4)),
-    dict(kind="portal", id="gitaxian-mindcutter", name="Gitaxian Mindcutter", creature="Ertai Resurrected", tier=4, colors="UB", artifacts=True, prefer="B", lean=["Phyrexian", "Wizard", "Horror"], themes=["counters", "discard"], gear=["serran-vestments", "sages-circlet"], model=("phyrexian", ["#5b8fd6", "#b3b5bc", "#0d0f14"], 1.3)),
-    dict(kind="portal", id="phyrexian-gorger", name="Phyrexian Gorger", creature="Phyrexian Fleshgorger", tier=4, colors="BG", artifacts=True, prefer="B", lean=["Phyrexian", "Beast", "Horror", "Wurm"], themes=["removal", "big"], gear=["mantle-of-the-ancients", "silver-pendant"], model=("phyrexian", ["#5d6646", "#7a1f24", "#2a4524"], 1.4)),
-    dict(kind="warden", id="portal-warden", name="Portal Warden", creature="Yawgmoth Demon", colors="UBR", artifacts=True, prefer="B", lean=["Phyrexian", "Construct", "Horror", "Golem"], themes=["artifacts", "removal"], gear=["mantle-of-the-ancients", "thran-amulet", "sages-circlet"], model=("phyrexian", ["#b3b5bc", "#c8432c", "#0d0f14"], 1.5)),
+    dict(kind="portal", id="phyrexian-ravager", name="Phyrexian Ravager", creature="Phyrexian Dragon Engine", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct", "Dragon"], themes=["artifacts", "burn"], gear=["mantle-of-the-ancients", "thran-amulet"]),
+    dict(kind="portal", id="phyrexian-negator", name="Phyrexian Negator", creature="Gallowbraid", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Imp", "Demon"], themes=["removal", "discard"], gear=["serran-vestments", "thran-amulet"]),
+    dict(kind="portal", id="gitaxian-mindcutter", name="Gitaxian Mindcutter", creature="Ertai Resurrected", tier=4, colors="UB", artifacts=True, prefer="B", lean=["Phyrexian", "Wizard", "Horror"], themes=["counters", "discard"], gear=["serran-vestments", "sages-circlet"]),
+    dict(kind="portal", id="phyrexian-gorger", name="Phyrexian Gorger", creature="Phyrexian Fleshgorger", tier=4, colors="BG", artifacts=True, prefer="B", lean=["Phyrexian", "Beast", "Horror", "Wurm"], themes=["removal", "big"], gear=["mantle-of-the-ancients", "silver-pendant"]),
+    dict(kind="warden", id="portal-warden", name="Portal Warden", creature="Yawgmoth Demon", colors="UBR", artifacts=True, prefer="B", lean=["Phyrexian", "Construct", "Horror", "Golem"], themes=["artifacts", "removal"], gear=["mantle-of-the-ancients", "thran-amulet", "sages-circlet"]),
     dict(
         kind="boss",
         id="phyrexian-praetor",
@@ -275,7 +313,6 @@ MOBS = [
         # 42 life, a hand of 9 and a maximum of 10 with its gear (design.md A6): it starts from what the gear leaves.
         totals=(42, 9, 10),
         gear=["mantle-of-the-ancients", "crown-of-the-ages", "thran-amulet"],
-        model=("phyrexian", ["#f2efe6", "#7a1f24", "#0d0f14"], 1.9),
         # Five colors on the ten original duals and five fetches, round Sheoldred, the Apocalypse (the pool's one
         # praetor): the best creatures, removal and card advantage of each color the pool holds.
         decklist=[
@@ -688,8 +725,9 @@ def deck_key(mob):
     return "boss" if mob["kind"] == "boss" else mob["tier"]
 
 
-def normalize(mob, cards, legality):
-    """A roster entry with its defaults filled in: id, name, tier, colors, lean, artifacts, gear and model."""
+def normalize(mob, cards, legality, models):
+    """A roster entry with its defaults filled in: id, name, tier, colors, lean, artifacts, gear and model - the model its
+    mob file has (`models`, by id) wherever it has one, which is never changed here."""
     mob = dict(mob)
     creature = mob["creature"]
     card = cards.get(creature)
@@ -714,19 +752,18 @@ def normalize(mob, cards, legality):
     if "gear" not in mob:
         level = mob["tier"] - 1 if mob["kind"] == "wanderer" else mob["tier"] + 1
         mob["gear"] = GEAR[region or "C"][level]
-    mesh, palette, size = mob.get("model") or (None, None, None)
-    if mesh is None:
-        types = subtypes_of(card)
-        mesh = "wizard" if mob["kind"] == "mage" else next((m for m, kinds in MESH_BY_TYPE if any(t in types for t in kinds)), "humanoid")
-        if mesh == "humanoid" and "Artifact" in card["type"]:
-            mesh = "construct"
-    if palette is None:
-        choices = PALETTES[region or "C"]
-        palette = choices[zlib.crc32(mob["id"].encode("utf-8")) % len(choices)]
-    if size is None:
-        mv = mana_value(card.get("manaCost"))
-        size = 1.0 + 0.05 * mob["tier"] if mob["kind"] == "mage" else min(1.9, max(0.8, 0.8 + 0.1 * mv + 0.05 * (mob["tier"] - 1)))
-    mob["model"] = (mesh, palette, round(size, 2))
+    if mob["id"] in models:
+        mob["model"] = models[mob["id"]]
+        return mob
+    types = subtypes_of(card)
+    mesh = next((m for m, kinds in MESH_BY_TYPE if any(t in types for t in kinds)), "wizard" if mob["kind"] == "mage" else "humanoid")
+    if mesh == "humanoid" and "Artifact" in card["type"]:
+        mesh = "construct"
+    choices = PALETTES[region or "C"]
+    palette = choices[zlib.crc32(mob["id"].encode("utf-8")) % len(choices)]
+    mv = mana_value(card.get("manaCost"))
+    size = 1.0 + 0.05 * mob["tier"] if mob["kind"] == "mage" else min(1.9, max(0.8, 0.8 + 0.1 * mv + 0.05 * (mob["tier"] - 1)))
+    mob["model"] = {"mesh": mesh, "palette": palette, "size": round(size, 2)}
     return mob
 
 
@@ -758,7 +795,6 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
     if "totals" in mob:
         worn = [gear[g]["stats"] for g in mob["gear"]]
         life, hand, max_hand = (mob["totals"][i] - sum(w[k] for w in worn) for i, k in enumerate(("life", "hand", "maxHand")))
-    mesh, palette, size = mob["model"]
     data = {"id": mob["id"], "name": mob["name"], "creature": mob["creature"]}
     if mob.get("region"):
         data["region"] = mob["region"]
@@ -770,7 +806,7 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
         "prize": PRIZE[key],
         "goldRange": GOLD[key],
         "loot": loot(mob, pool, prices, legality, cards),
-        "model": {"mesh": mesh, "palette": palette, "size": size},
+        "model": mob["model"],
         "boss": mob["kind"] == "boss",
     })
     if mob.get("unlocks"):
@@ -819,12 +855,12 @@ def problems_of(mob, deck, pool, prices, legality, cards, relics, gear):
         found.append(f"its region {mob['region']} is no color")
     if not 1 <= mob["tier"] <= 4:
         found.append(f"its tier {mob['tier']} is not 1-4")
-    mesh, palette, size = mob["model"]
+    mesh, palette, size = (mob["model"].get(key) for key in ("mesh", "palette", "size"))
     if mesh not in MESHES:
         found.append(f"its mesh {mesh} is not a mob mesh")
-    if not 2 <= len(palette) <= 3 or not all(re.fullmatch(r"#[0-9a-f]{6}", p) for p in palette):
-        found.append(f"its palette {palette} is not two or three #rrggbb colors")
-    if not 0.8 <= size <= 1.9:
+    if not isinstance(palette, list) or not palette or not all(isinstance(p, str) and re.fullmatch(r"#[0-9a-f]{6}", p) for p in palette):
+        found.append(f"its palette {palette} is not #rrggbb colors")
+    if not isinstance(size, (int, float)) or not 0.8 <= size <= 1.9:
         found.append(f"its size {size} is not 0.8-1.9")
     slots = []
     for item in mob["gear"]:
@@ -855,7 +891,16 @@ def main():
     for color, name in NAMES.items():
         starters[name] = build(color, ["common", "uncommon"], pool, prices, legality, cards)
 
-    mobs = [normalize(mob, cards, legality) for mob in MOBS]
+    # Each mob file's model, kept as it is: models are chosen for what each creature is (realms/web/src/art/figures),
+    # and this script chooses one only for a mob that has no file yet.
+    mob_folder = os.path.join(ROOT, "realms", "content", PLANE, "mobs")
+    models = {}
+    for entry in sorted(os.listdir(mob_folder)):
+        if entry.endswith(".json"):
+            model = load(os.path.join(mob_folder, entry)).get("model")
+            if model is not None:
+                models[entry[: -len(".json")]] = model
+    mobs = [normalize(mob, cards, legality, models) for mob in MOBS]
     problems = []
     ids = [mob["id"] for mob in mobs]
     for mob_id in sorted(set(i for i in ids if ids.count(i) > 1)):
@@ -885,7 +930,6 @@ def main():
         write(os.path.join(ROOT, "realms", "content", PLANE, "starters", f"{name}.txt"),
               f"# The {name} starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.\n\n", deck)
 
-    mob_folder = os.path.join(ROOT, "realms", "content", PLANE, "mobs")
     deck_folder = os.path.join(ROOT, "decks", "realms", PLANE)
     for mob, deck in written:
         deck_path = f"decks/realms/{PLANE}/{mob['id']}.txt"
