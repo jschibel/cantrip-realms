@@ -285,7 +285,7 @@ export class Overworld {
     this.area = null;
     for (const v of this.visitors.values()) v.actor.figure.root.removeFromParent();
     this.visitors.clear();
-    this.hud.showPlace(spot === this.world ? (this.worldData.regions[0]?.name ?? "The world") : spot.title);
+    if (spot !== this.world) this.hud.showPlace(spot.title);
     if (spot.inside && !this.roomNpcs.has(spot.id)) void this.places.read(spot.id).then((d) => this.roomNpcs.set(spot.id, d.npcs), () => {});
     this.stepped(this.player.tile, true);
     if (spot.id.startsWith("run:")) return;
@@ -504,6 +504,8 @@ export class Overworld {
         const was = this.area;
         this.area = area;
         this.hud.showArea(area.name, area.tier);
+        // Over the map, the region the area is of (the colored domains; the neutral lands by their own name).
+        this.hud.showPlace(this.worldData.regions.find((r) => r.color === area.region)?.name ?? area.name);
         if (!arriving && area.tier > 0 && (!was || area.tier > was.tier)) {
           this.say(`You cross into ${area.name}: tier ${area.tier}.${was && was.tier > 0 ? " The wilds grow harder." : ""}`);
           this.hud.flashArea();

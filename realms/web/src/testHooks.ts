@@ -53,6 +53,11 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const s = live()?.world.streamer;
       return s ? { loaded: s.loadedKeys, built: s.builtKeys } : null;
     },
+    /** Whether the world has read and built everything round the view (nothing streaming). */
+    get streamed() {
+      const o = live();
+      return !o || !o.inWorld || o.world.streamer.idle;
+    },
     get travelers() {
       return game()?.travelers.map((t) => ({ ...t })) ?? [];
     },

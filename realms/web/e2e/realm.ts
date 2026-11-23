@@ -250,6 +250,15 @@ export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean
     ring = next;
   }
   if (best) return best;
+  // Shut in (a tree's tile in a wood, a rock): the nearest open tile at all.
+  for (let r = 1; r < 60; r++) {
+    for (let dz = -r; dz <= r; dz++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const t = { x: target.x + dx, z: target.z + dz };
+        if (Math.max(Math.abs(dx), Math.abs(dz)) === r && open(t)) return t;
+      }
+    }
+  }
   throw new Error(`nowhere open near ${target.x},${target.z}`);
 }
 

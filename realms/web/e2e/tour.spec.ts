@@ -20,8 +20,11 @@ mkdirSync(out, { recursive: true });
 
 /** Lets the view settle (streaming, the camera's easing) on the manual clock, the pointer out of the way. */
 async function settle(page: Page, seconds = 2): Promise<void> {
-  await page.mouse.move(2, 2);
+  // The pointer over the HUD's character panel: off the world, so no tooltip.
+  await page.mouse.move(60, 40);
   await advance(page, seconds);
+  await until(page, () => realm<boolean>(page, "streamed"), "the view streamed", 30);
+  await advance(page, 0.2);
 }
 
 const shot = (page: Page, name: string) => page.screenshot({ path: join(out, `${name}.png`) });
@@ -77,7 +80,8 @@ test("tour: an interior of each kind", async ({ page }) => {
     // Walked into through its door, as a player comes in.
     const door = doorOf(id);
     await openRealm(page, { at: at(openNear(door, 2)), extra: "&mobs=0&heading=front&zoom=0" });
-    await clickEntity(page, (e) => e.kind === "door" && e.to === id, `the door of ${id}`);
+    // The stage's click on the door tile (from some headings a roof stands over it on the page).
+    await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [door.x, door.z] as const);
     await waitSpace(page, id);
     await settle(page, 1.5);
     await shot(page, `interior-${kind}`);

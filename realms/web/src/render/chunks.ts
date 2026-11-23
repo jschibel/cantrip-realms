@@ -321,7 +321,19 @@ export class ChunkStreamer {
    */
   want(x: number, z: number, reach: StreamReach): void {
     for (const k of this.chunksNear(x, z, reach.load)) if (!this.data.has(k)) void this.read(k);
-    const near = this.chunksNear(x, z, reach.build).filter((k) => !this.built.has(k) && !this.building.has(k));
+    const wanted = this.chunksNear(x, z, reach.build);
+    // A chunk is built once its eight neighbours are read: read those of every chunk wanted for building, which the load
+    // reach (measured to the nearest point of each chunk) does not always take in at a corner.
+    for (const k of wanted) {
+      const { cx, cz } = parseChunkKey(k)!;
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const n = chunkKey(cx + dx, cz + dz);
+          if (this.insideWorld(cx + dx, cz + dz) && !this.data.has(n)) void this.read(n);
+        }
+      }
+    }
+    const near = wanted.filter((k) => !this.built.has(k) && !this.building.has(k));
     const centre = (k: string) => {
       const { cx, cz } = parseChunkKey(k)!;
       return Math.hypot((cx + 0.5) * CHUNK - x, (cz + 0.5) * CHUNK - z);
