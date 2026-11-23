@@ -37,7 +37,8 @@ export const PORTAL: ThemeDef = {
         }
         continue;
       }
-      // A pylon and an altar or a vat on each island, off its middle.
+      // The island's heart glows green; a pylon and an altar or a vat stand off its middle.
+      plan.light(glowLight([isl.x + 0.5, 2.2, isl.z + 0.5], [0.45, 1, 0.5], 6, 6.5), 30);
       const options: [number, number][] = [[isl.x - 2, isl.z - 1], [isl.x + 2, isl.z - 1], [isl.x - 1, isl.z + 2], [isl.x + 1, isl.z - 2]];
       let n = 0;
       for (const [x, z] of options) {
@@ -50,9 +51,10 @@ export const PORTAL: ThemeDef = {
       }
     }
     // Violet ichor-glow from below the islands' edges, the void's only light.
-    alongWalls(ctx, 0.03, (x, z) => {
-      plan.light(glowLight([x + 0.5, 0.6, z + 0.5], [0.8, 0.4, 1], 2.5, 3.5), 12);
-      return { id: "dungeon-crystal", x: x + 0.5, z: z + 0.5, seed: x + z, args: { hue: "violet", size: 0.7 } };
-    });
+    alongWalls(ctx, 0.09, (x, z) => {
+      const violet = (x + z) % 3 !== 0;
+      plan.light(glowLight([x + 0.5, 0.7, z + 0.5], violet ? [0.8, 0.4, 1] : [0.45, 1, 0.5], 3.5, 4), 16);
+      return { id: "dungeon-crystal", x: x + 0.5, z: z + 0.5, seed: x + z, args: { hue: violet ? "violet" : "green", size: 0.6 + ((x * 7 + z) % 4) * 0.12 } };
+    }, (x, z) => plan.surface[plan.index(x, z)] !== "dungeon-crystal");
   },
 };

@@ -217,13 +217,24 @@ export function lava(seed = 48): Pixmap {
 
 /** Still black water with a cold glint: a flooded tomb, an underground lake. */
 export function darkWater(seed = 49): Pixmap {
-  const p = T.water(seed);
-  for (let y = 0; y < p.height; y++) {
-    for (let x = 0; x < p.width; x++) {
-      const c = p.get(x, y);
-      const i = C.WATER.indexOf(c);
-      p.set(x, y, i <= 2 ? C.WATER[1]! : i === 3 ? C.WATER[2]! : i === 4 ? C.WATER[3]! : C.WATER[5]!);
+  const w = C.WATER;
+  const p = new Pixmap(32, 32);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const n = fbm(x, y * 2, 8, 32, seed);
+      p.set(x, y, n < 0.42 ? w[1]! : n < 0.66 ? w[2]! : w[3]!);
     }
+  }
+  // Ripples: lit dashes with a pale crest, and glints.
+  const random = seeded(seed);
+  for (let k = 0; k < 22; k++) {
+    const x = Math.floor(random() * 32);
+    const y = Math.floor(random() * 32);
+    const len = 3 + Math.floor(random() * 4);
+    for (let i = 0; i < len; i++) p.set(x + i, y, w[4]!);
+    for (let i = 1; i < len - 1; i++) p.set(x + i, y - 1, w[5]!);
+    p.set(x + len, y + 1, w[2]!);
+    if (random() < 0.45) p.set(x + 1, y - 2, w[6]!);
   }
   return p;
 }
@@ -239,13 +250,17 @@ export function caveRock(seed = 51): Pixmap {
   const random = seeded(seed);
   for (let y = 0; y < 32; y++) {
     for (let x = 0; x < 32; x++) {
-      const n = fbm(x * 0.6, y * 1.6, 8, 32, seed);
-      let c = n < 0.3 ? CAVE[2]! : n < 0.5 ? CAVE[3]! : n < 0.7 ? CAVE[4]! : CAVE[5]!;
+      // Lumps of rock: lit on their upper left, shadowed under, in no courses.
+      const n = fbm(x, y, 6, 32, seed);
+      const up = fbm(x - 1, y - 1, 6, 32, seed);
+      let c = n < 0.32 ? CAVE[2]! : n < 0.55 ? CAVE[3]! : n < 0.75 ? CAVE[4]! : CAVE[5]!;
+      if (up > n + 0.05) c = CAVE[1]!;
+      else if (n > up + 0.05) c = CAVE[Math.min(6, CAVE.indexOf(c) + 1)]!;
       if (hash2(x, y, seed) < 0.04) c = CAVE[1]!;
       p.set(x, y, c);
     }
   }
-  for (let k = 0; k < 6; k++) crack(p, Math.floor(random() * 32), Math.floor(random() * 32), 3 + Math.floor(random() * 4), CAVE[0]!, random);
+  for (let k = 0; k < 9; k++) crack(p, Math.floor(random() * 32), Math.floor(random() * 32), 3 + Math.floor(random() * 5), CAVE[0]!, random, CAVE[5]!);
   return p;
 }
 
@@ -256,8 +271,8 @@ export function caveTop(seed = 57): Pixmap {
     for (let x = 0; x < 32; x++) {
       const n = fbm(x, y, 8, 32, seed);
       const m = fbm(x + 1, y + 1, 8, 32, seed);
-      let c = n < 0.35 ? CAVE[1]! : n < 0.55 ? CAVE[2]! : CAVE[3]!;
-      if (n > m + 0.03) c = CAVE[4]!;
+      let c = n < 0.4 ? CAVE[0]! : n < 0.62 ? CAVE[1]! : CAVE[2]!;
+      if (n > m + 0.03) c = CAVE[3]!;
       p.set(x, y, c);
     }
   }

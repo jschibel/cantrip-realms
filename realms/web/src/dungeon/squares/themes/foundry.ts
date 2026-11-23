@@ -33,7 +33,7 @@ export const FOUNDRY: ThemeDef = {
     }
     // A lava channel down each middle hall, laid before the ways through, which cross it.
     const withChannels = list.map((h, k) => {
-      if (k === 0 || k === list.length - 1) return h;
+      if (k === list.length - 1) return h;
       const cx = h.x + 1;
       for (let z = h.z - h.hd; z <= h.z + h.hd; z++) for (const x of [cx, cx + 1]) plan.fill(x, z, LAVA);
       return { ...h, channel: { x: cx, z0: h.z - 1, z1: h.z + 1 } };
@@ -80,7 +80,7 @@ export const FOUNDRY: ThemeDef = {
     // The lava's glow along each channel, and rails along the gantries.
     for (const h of list) {
       if (!h.channel) continue;
-      for (let z = h.z - h.hd; z <= h.z + h.hd; z += 3) plan.light(glowLight([h.channel.x + 1, 0.8, z + 0.5], [1, 0.45, 0.15], 6, 5), 32);
+      for (let z = h.z - h.hd; z <= h.z + h.hd; z += 3) plan.light(glowLight([h.channel.x + 1, 0.8, z + 0.5], [1, 0.45, 0.15], 7, 5.5), 34);
       const { x, z0, z1 } = h.channel;
       plan.put({ id: "railings", x, z: z0 + 0.06, args: { to: [x + 2, z0 + 0.06] } });
       plan.put({ id: "railings", x, z: z1 + 0.94, args: { to: [x + 2, z1 + 0.94] } });
