@@ -123,7 +123,10 @@ export function wilderness(spec: WildSpec): MapData {
       break;
     }
     case "coast": {
-      const a = b.random() * Math.PI * 2;
+      // The sea lies away from the ways out, so the roads come in over land.
+      const x = spec.links.reduce((sum, l) => sum + Math.cos(l.angle), 0);
+      const z = spec.links.reduce((sum, l) => sum + Math.sin(l.angle), 0);
+      const a = Math.atan2(-z, -x) + (b.random() - 0.5) * 0.6;
       for (const cell of b.all) {
         const along = Math.cos(a) * (1.5 * cell.hex.q) + Math.sin(a) * (Math.sqrt(3) * (cell.hex.r + cell.hex.q / 2));
         if (along > b.radius * 0.95) Object.assign(cell, { terrain: "deep-water", height: -0.2, blocked: true });

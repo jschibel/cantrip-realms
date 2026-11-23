@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 import { at, entity, mapData, openNear, openRealm, realm } from "./realm";
 
-// A picture of each kind of place, for looking at (realms/web/e2e/screenshots/): a town, the hub, a village, the
-// wilderness, a dungeon floor and a boss's hall, a travel encounter, the world map and character creation. Not
-// compared against anything: the other tests check behaviour; these are for eyes.
+// A picture of each kind of place, for looking at: a town, the hub, a village, the wilderness, a dungeon floor and a
+// boss's hall, a travel encounter, the world map, character creation and the map editor. Not compared against
+// anything - the other tests check behaviour; these are for eyes, and that each place loads. They are written to
+// test-results/screenshots, or to the committed e2e/screenshots when REALM_SCREENSHOTS is set.
 
-const out = join(dirname(fileURLToPath(import.meta.url)), "screenshots");
+const here = dirname(fileURLToPath(import.meta.url));
+const out = process.env.REALM_SCREENSHOTS ? join(here, "screenshots") : join(here, "..", "test-results", "screenshots");
 mkdirSync(out, { recursive: true });
 
 async function settle(page: Page): Promise<void> {
