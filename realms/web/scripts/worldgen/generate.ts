@@ -21,7 +21,7 @@ import {
   chunkKey,
 } from "../../src/world/format";
 import { S, SURFACES } from "./ids";
-import { Land, Use } from "./land";
+import { Land, Use, ease } from "./land";
 import type { DungeonLayout, Layout } from "./layout";
 import { Roads } from "./roads";
 import { buildInterior } from "./rooms";
@@ -114,6 +114,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   const capital = towns.find((t) => t.data.kind === "capital") ?? towns[0]!;
   const joined = connect(land, land.idx(capital.inn.x, capital.inn.z));
   log(`connect: ${joined.filled} pockets filled, ${joined.joined} stretches joined`);
+  log(`ease: ${ease(land, 4)} tiles lowered`);
 
   const starts: number[] = [];
   for (let i = 0; i < land.size; i++) {

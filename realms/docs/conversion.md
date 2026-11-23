@@ -293,7 +293,7 @@ The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about five
 - **Counts** (seed 1997): 16 towns, 1,457 buildings, 146 interiors, 36 dungeons (20 mage towers), 811 spawns, 227
   chests, 100 waymarkers, about 44,000 props, 4 ferries, 34 roads. The files come to about 20 MB.
 - **Heights** are texels: the sea at 0, the land rolling up to two or three tiles (and mountains far higher, blocked),
-  towns level, roads eased to two texels a step. `layout.json`'s `relief` scales it: 0 regenerates a flat world, should
+  towns level, no open tile more than 4 texels above an open neighbour (`ease`, land.ts). `layout.json`'s `relief` scales it: 0 regenerates a flat world, should
   the ground not be drawn from heights. Water tiles (sea, shallows, stream, bog, lava) are holes at their banks' height.
 - **Towns** are walled squares: a gate on every side that meets dry land (and the harbour's, with its pier), each
   `gatehouse` and `wall-tower` and the `wall-run`s between them props (runs cut at chunk edges, 16 tiles at most);

@@ -167,6 +167,26 @@ describe("Dominaria's files", () => {
     for (const d of dungeons.values()) if (d.waystone) expect([d.boss, d.tier]).toEqual([`mage-${d.id}`, Number(d.id.slice(d.id.lastIndexOf("-") + 1))]);
   });
 
+  it("are walked without a cliff: open tiles side by side differ by a quarter tile at most", () => {
+    const [W, H] = world.size;
+    const height = new Int16Array(W * H);
+    const open = new Uint8Array(W * H);
+    for (const c of chunks) {
+      c.tiles.forEach((t, k) => {
+        const i = (c.cz * 32 + Math.floor(k / 32)) * W + c.cx * 32 + (k % 32);
+        height[i] = t[0];
+        open[i] = isBlocked(t) ? 0 : 1;
+      });
+    }
+    let worst = 0;
+    for (let i = 0; i < W * H; i++) {
+      if (!open[i]) continue;
+      if (i % W < W - 1 && open[i + 1]) worst = Math.max(worst, Math.abs(height[i]! - height[i + 1]!));
+      if (i + W < W * H && open[i + W]) worst = Math.max(worst, Math.abs(height[i]! - height[i + W]!));
+    }
+    expect(worst).toBeLessThanOrEqual(4);
+  });
+
   it("keep the sea unwalked but for the ferries' lanes and the causeways", () => {
     const lanes = new Set(world.ferries.flatMap((f) => f.lane.map(([x, z]) => `${x},${z}`)));
     const wet: string[] = [];

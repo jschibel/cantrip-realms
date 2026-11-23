@@ -347,3 +347,37 @@ export class Heap {
     return top;
   }
 }
+
+/**
+ * Eases the walked ground: no open tile stands more than `step` texels above an open neighbour (edge to edge), the
+ * higher lowered, so a pass cut through a mountain or a road's bank is walked without a cliff. Blocked tiles (peaks,
+ * buildings, water) keep their heights. Passes over the world both ways until nothing moves.
+ */
+export function ease(land: Land, step: number): number {
+  const W = land.width;
+  const h = land.height;
+  const open = (i: number) => (land.flags[i]! & BLOCKED) === 0;
+  // From the low ground up: a tile is final once taken off the heap, and lowers its neighbours that stand too high.
+  const heap = new Heap();
+  const near: number[] = [];
+  for (let i = 0; i < land.size; i++) {
+    if (!open(i)) continue;
+    for (const n of land.n4(i, near)) {
+      if (open(n) && h[n]! > h[i]! + step) {
+        heap.push(i, h[i]!);
+        break;
+      }
+    }
+  }
+  let lowered = 0;
+  while (heap.size > 0) {
+    const i = heap.pop();
+    for (const n of land.n4(i, near)) {
+      if (!open(n) || h[n]! <= h[i]! + step) continue;
+      h[n] = h[i]! + step;
+      lowered++;
+      heap.push(n, h[n]!);
+    }
+  }
+  return lowered;
+}
