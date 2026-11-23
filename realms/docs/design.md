@@ -153,6 +153,9 @@ owner may extend.
   enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
   the tier of its distance from the nearest starting area. A dungeon takes the tier of where it stands, never less than
   its own floor.
+  **The tiers are visible:** the regional map shows each area's tier as a tinted band, with a legend, and marks the towers and
+  dungeons with theirs. Waymarker stones stand where the tier changes on the land, and the HUD names the area you are in
+  and its tier, and warns as you cross into a harder one.
 - **Fast travel through mage towers.** Mage towers stand across Dominaria, a few in each region and some far out in the
   wilds. Each is a short dungeon (the mage-tower theme, one or two floors) with a mage boss at the top. Beating the mage
   attunes that tower's waystone to you. From any attuned tower you can travel at once to any other you have attuned:
