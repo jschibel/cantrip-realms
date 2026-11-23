@@ -1,0 +1,27 @@
+{
+  "id": "boots-of-the-march",
+  "name": "Boots of the March",
+  "slot": "feet",
+  "rarity": "uncommon",
+  "gold": 1200,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "extra-land-on-turn",
+      "turn": 2
+    }
+  ],
+  "text": "During your second turn, you may play an additional land.",
+  "look": {
+    "mesh": "boots",
+    "palette": [
+      "#3d5a3a",
+      "#b39a5f"
+    ]
+  },
+  "unique": false
+}

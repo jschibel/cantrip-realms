@@ -1,0 +1,15 @@
+# The red starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
+
+2 Monastery Swiftspear
+2 Wall of Earth
+2 Blood Knight
+2 Roc Hunter
+2 Wall of Heat
+2 Wall of Stone
+2 Coalition Warbrute
+2 Earth Elemental
+2 Chain Lightning
+2 Firebolt
+2 Lightning Axe
+1 Shock
+17 Mountain

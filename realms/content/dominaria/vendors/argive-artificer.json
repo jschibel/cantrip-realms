@@ -1,0 +1,11 @@
+{
+  "id": "argive-artificer",
+  "name": "Argivian Artifacts",
+  "town": "new-argive",
+  "specialty": {
+    "types": [
+      "Artifact"
+    ]
+  },
+  "purse": 50000
+}

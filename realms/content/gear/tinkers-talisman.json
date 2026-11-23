@@ -1,0 +1,27 @@
+{
+  "id": "tinkers-talisman",
+  "name": "Tinker's Talisman",
+  "slot": "relic",
+  "rarity": "uncommon",
+  "gold": 1500,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "once-per-game-scry",
+      "count": 2
+    }
+  ],
+  "text": "{1}: Scry 2. Activate only once each game.",
+  "look": {
+    "mesh": "talisman",
+    "palette": [
+      "#c9a46a",
+      "#4a7fbf"
+    ]
+  },
+  "unique": false
+}

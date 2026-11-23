@@ -1,0 +1,36 @@
+{
+  "id": "benalish-deserter",
+  "name": "Benalish Deserter",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/benalish-deserter.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#d8c9a3",
+      "#6b5a3a"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

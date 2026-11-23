@@ -1,0 +1,13 @@
+<Project>
+
+  <!-- Cantrip Realms' .NET projects take cantrip-rs's own settings (dotnet/Directory.Build.props): nullable, analyzers at
+       the latest level, code style enforced in the build, warnings as errors, invariant globalization. They are outside
+       that folder, so they import it here rather than copy it, and only the framework differs: the realm server is an
+       ASP.NET Core app on the newest runtime. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\dotnet\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

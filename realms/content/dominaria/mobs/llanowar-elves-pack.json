@@ -1,0 +1,36 @@
+{
+  "id": "llanowar-elves-pack",
+  "name": "Llanowar Elves",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/llanowar-elves-pack.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#4f7f3a",
+      "#a87f4a"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

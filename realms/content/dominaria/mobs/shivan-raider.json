@@ -1,0 +1,38 @@
+{
+  "id": "shivan-raider",
+  "name": "Shivan Raider",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/shivan-raider.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "copper-ring"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#a8432f",
+      "#3a2a20"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

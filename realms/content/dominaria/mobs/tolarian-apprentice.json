@@ -1,0 +1,36 @@
+{
+  "id": "tolarian-apprentice",
+  "name": "Tolarian Apprentice",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/tolarian-apprentice.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#2f5fa8",
+      "#d8dce4"
+    ],
+    "size": 0.95
+  },
+  "boss": false
+}

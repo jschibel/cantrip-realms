@@ -1,0 +1,27 @@
+{
+  "id": "ring-of-thorns",
+  "name": "Ring of Thorns",
+  "slot": "ring",
+  "rarity": "uncommon",
+  "gold": 1000,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "opponent-starting-life",
+      "amount": -2
+    }
+  ],
+  "text": "Each opponent starts the game with 2 less life.",
+  "look": {
+    "mesh": "ring",
+    "palette": [
+      "#3f6b2f",
+      "#8f2f2f"
+    ]
+  },
+  "unique": false
+}

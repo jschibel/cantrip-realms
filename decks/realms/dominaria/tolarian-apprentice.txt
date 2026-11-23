@@ -1,0 +1,15 @@
+# tolarian-apprentice: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Aven Envoy
+2 Bay Falcon
+2 Storm Crow
+2 Zephyr Falcon
+2 Glacial Wall
+2 Soaring Drake
+2 Keeneye Aven
+2 Cold-Water Snapper
+2 Miscalculation
+2 Counterspell
+2 Disdainful Stroke
+1 Memory Lapse
+17 Island

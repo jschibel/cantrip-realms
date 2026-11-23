@@ -1,0 +1,38 @@
+{
+  "id": "kjeldoran-raider",
+  "name": "Kjeldoran Raider",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/kjeldoran-raider.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#c9ced8",
+      "#3a5f8f"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

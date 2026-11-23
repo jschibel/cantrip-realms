@@ -1,0 +1,9 @@
+{
+  "id": "argive-white-goods",
+  "name": "Serra's Almoner",
+  "town": "new-argive",
+  "specialty": {
+    "colors": "W"
+  },
+  "purse": 50000
+}

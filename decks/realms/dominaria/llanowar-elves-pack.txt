@@ -1,0 +1,15 @@
+# llanowar-elves-pack: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Defiant Elf
+2 Elvish Warrior
+2 Thornweald Archer
+2 Ashcoat Bear
+2 Elvish Ranger
+2 Nessian Courser
+2 Carnivorous Plant
+2 Elfhame Wurm
+2 Fog
+2 Symbiosis
+2 Primordial Wurm
+1 Elvish Lookout
+17 Forest
