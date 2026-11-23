@@ -824,7 +824,7 @@ defineMob({
       name: "elemental",
       build: b,
       skin: cl,
-      ownHead: { faces: { front: layer(puff(0), eyes(b.head[0], b.head[1] - 4, { color: SPIRIT_EYE }), (p) => p.hline(Math.floor(b.head[0] / 2) - 2, b.head[1] - 2, 4, at(shadow!, 2))), back: puff(1), left: puff(2), right: puff(3), top: puff(4) } },
+      ownHead: { faces: { front: layer(puff(0), eyes(b.head[0], b.head[1] - 4, { color: at(shadow!, 1) }), (p) => p.hline(Math.floor(b.head[0] / 2) - 2, b.head[1] - 2, 4, at(shadow!, 2))), back: puff(1), left: puff(2), right: puff(3), top: puff(4) } },
       top: { style: "robe", ramp: cl, trim: cl },
       sleeves: "long",
       belt: null,

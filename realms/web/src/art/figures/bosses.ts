@@ -200,14 +200,25 @@ defineMob({
     const crown: PartSpec[] = [-2, -1, 0, 1, 2].map((i) => horn(`crown.${i + 2}`, "head", [i * 2.2, h - 2, -1], [2, 6 + (2 - Math.abs(i)) * 2, 2], P, [-0.25, -i * 0.3]));
     const abdomen: V3 = [k(12, s / 1.25), k(8, s / 1.25), k(14, s / 1.25)];
     const legs: PartSpec[] = [];
+    // Each leg rises out from the body to a knee, then reaches down and out to the ground, as a spider's does: the front
+    // pair fanned forward, the back pair back. Thighs and shins hang from the body apiece (a tilt is about x then z), the
+    // knee where the thigh ends; the shins step.
+    const upper = k(9, s / 1.25);
+    const rise = 1.0;
+    const reach = 0.3;
     [-1, 0, 1].forEach((row, i) => {
       for (const side of [1, -1] as const) {
         const n = `leg.${i}${side > 0 ? "l" : "r"}`;
-        legs.push(part(n, [2, k(9, s / 1.25), 2], [side * (abdomen[0] / 2 - 1), abdomen[1] - 1, row * (abdomen[2] / 3)], side > 0 ? [0, 0, -1] : [-2, 0, -1], solid(D, 3, rows(0, 1, at(P, 4))), at(D, 3), { parent: "abdomen", tilt: [0, side * -1.1], motion: { kind: "leg", phase: (i % 2 === 0) === side > 0 ? 0 : Math.PI, amount: 0.35 } }));
-        legs.push(part(`${n}.shin`, [2, legH + abdomen[1], 2], [0, k(9, s / 1.25), 0], [-1, -(legH + abdomen[1]), -1], { front: layer(cloth(P, 4), rows(0, 0, at(D, 2))), left: cloth(P, 3), right: cloth(P, 3), back: cloth(P, 3), top: cloth(P, 5, false), bottom: cloth(D, 1, false) }, at(P, 4), { parent: n, tilt: [0, side * 1.1], round: 0 }));
+        const fan = row * 0.55;
+        const hip: V3 = [side * (abdomen[0] / 2 - 1), abdomen[1] - 1, row * (abdomen[2] / 3)];
+        const knee: V3 = [hip[0] + side * upper * Math.sin(rise), hip[1] + upper * Math.cos(rise) * Math.cos(fan), hip[2] + upper * Math.cos(rise) * Math.sin(fan)];
+        const spread = row * 0.3;
+        const shin = Math.round((legH + knee[1]) / (Math.cos(reach) * Math.cos(spread)));
+        legs.push(part(n, [2, upper, 2], hip, [-1, 0, -1], solid(D, 3, rows(0, 1, at(P, 4))), at(D, 3), { parent: "abdomen", tilt: [fan, -side * rise], round: 0 }));
+        legs.push(part(`${n}.shin`, [3, shin, 3], knee, [-1.5, -shin, -1.5], { front: layer(cloth(P, 4), rows(0, 0, at(D, 2)), rows(shin - 2, shin - 1, at(D, 2))), left: cloth(P, 3), right: cloth(P, 3), back: cloth(P, 3), top: cloth(P, 5, false), bottom: cloth(D, 1, false) }, at(P, 4), { parent: "abdomen", tilt: [-spread, side * reach], round: 0, motion: { kind: "leg", phase: (i % 2 === 0) === side > 0 ? 0 : Math.PI, amount: 0.25 } }));
       }
     });
-    const tail = chain({ name: "tail", parent: "abdomen", at: [0, abdomen[1] - 1, -abdomen[2] / 2 + 1], count: 6, first: [4, 4, 5], last: [2, 2, 4], faces: (i) => allSides(layer(plates(P, 2, 4), rows(0, 0, at(sinew!, 3)))), fill: at(P, 4), droop: -0.5, sway: 0.15, axis: "x", rate: 1.6 });
+    const tail = chain({ name: "tail", parent: "abdomen", at: [0, abdomen[1] - 1, -abdomen[2] / 2 + 1], count: 6, first: [4, 4, 5], last: [2, 2, 4], faces: (i) => allSides(layer(plates(P, 2, 4), rows(0, 0, at(sinew!, 3)))), fill: at(P, 4), droop: -0.32, sway: 0.15, axis: "x", rate: 1.6 });
     const sting = horn("sting", "tail.5", [0, 0, -3.5], [2, 5, 2], sinew!, [-2.2, 0]);
     return person({
       name: "praetor",

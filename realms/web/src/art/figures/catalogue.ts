@@ -141,8 +141,8 @@ export const CAST_SETS: Readonly<Record<string, CastSet>> = {
   bosses: {
     title: "Bosses",
     perPage: 6,
-    columns: 6,
-    spacing: 5,
+    columns: 3,
+    spacing: 6,
     entries: once(() => mobFiles.filter((m) => m.boss || BOSS_IDS.includes(m.model.mesh)).map((m) => ({ id: `boss-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature) }))),
   },
   mages: {

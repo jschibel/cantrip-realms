@@ -127,8 +127,11 @@ class Registry<R> { define(id, about, recipe, palette?, check?); has(id); get(id
 - `SURFACES` (art/surfaces): `defineSurface(id, about, palette, (palette) => {picture, priority, hole?, under?,
   tufts?})`; `SURFACES.look(id, palette?)`. Ids: `grass` (tufts 3), `cobbles`, `flagstones`, `dirt`, `straw`,
   `furrows`, `wheat`, `stream` (a hole, water under), `floorboards`, `hearthstone`, `crypt-floor`.
-- `FIGURES` (art/figures): `defineFigure(id, about, palette, (palette) => FigureSpec)`; `figureSpec(id, palette?)`.
-  Ids: `hero`, `knight`, `grizzlegom`, `goblin`, `skeleton`, `ghoul`, `townswoman`.
+- `FIGURES` (art/figures): `defineFigure(id, about, palette, (palette, seed) => FigureSpec, seeded?)`;
+  `figureSpec(id, palette?, seed?)`. Ids: the slice's `hero`, `knight`, `grizzlegom`, `goblin`, `skeleton`, `ghoul`,
+  `townswoman`, and (phase 2, seeded) `townsfolk-<region>` and `guard-<region>` for `benalia`, `orvada`, `caligo`, `keld`,
+  `llanowar`, `shopkeeper`, `innkeeper`, `ferryman`, `planar-trader`. Mobs, players and gear are their own registries
+  beside it (see "Characters" below).
 
 ### Figure specs (art/figures/rig.ts)
 
@@ -234,7 +237,13 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
   its side walls as camera cut-aways), its own light (a fill, a sky), `doorway` and `bounds`. The furniture is props
   (`indoors.ts`), the fires' light the interior's `lights`. Import it from `art/rooms/index.ts`.
 - **A figure:** a function of a palette in `art/figures/cast.ts` (or a file of its own) returning a `FigureSpec`, then
-  `defineFigure(id, about, palette, spec)` in `art/figures/index.ts`.
+  `defineFigure(id, about, palette, spec)` in `art/figures/index.ts`. Most are a `Person` (person.ts) - a description
+  of build, skin, hair, headgear, clothes and what is held - rather than parts by hand.
+- **A mob mesh:** `defineMob({id, about, slots, palette, build})` in `art/figures/mobs-people.ts`, `mobs-beasts.ts` or
+  `bosses.ts`; add its id to `RealmContent.MobMeshes` (the server) and to interfaces.md "Models". `npm test` builds every
+  mesh at several sizes and every mob of the content in its own colors.
+- **A gear part:** `define({id, about, slot, palette, wear})` in `art/figures/gear.ts`, `wear` changing the wearer's
+  description; interfaces.md "Models" lists them.
 - **A palette:** add it to `PALETTES` (`art/paint/palette.ts`) by name; the world data names it.
 - Every id the sample world names must lint: `npm test` runs `art/registries.test.ts` (the lint with the art's ids) and
   `world/world2.test.ts` (the format, the loader, the sample).
@@ -266,6 +275,34 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
   the door's step from the data.
 - `render/assemble.ts` puts all loaded chunks in one `Place`; the chunk manager should keep `Place` per chunk (or
   `addPieces` per chunk) and use `assembleWorld`'s per-chunk loop as its model.
+
+## Characters (phase 2, as built)
+
+The Characters agent's `art/figures` (interfaces.md "Models" is the reference):
+
+- **The rig** (rig.ts) gained part motions (`motion`: a quadruped's `leg`s in diagonal pairs, `wing`s that beat, a
+  `tail` or a body of segments that sways, `bob`, an `orbit`ing relic, a cast's `spark`), `glow`ing parts, `hover`, a
+  walking `lean`, a shadow's `footprint` (tiles; the Actor's `blobShadow(0.42)` should take `spec.footprint ?? 0.42`),
+  and two actions: `figure.act("cast" | "interact", seconds?)` and `figure.acting`. The slice's seven figures use none of
+  it and move exactly as before.
+- **Players:** `playerFigure({body, palette, identity, slots})` (player.ts), and `lookFigure(Look, Identity)` for presence
+  (`Look` as relayed; ring slots `ring1`/`ring2`). Integration replaces character.ts's voxel bodies with these.
+- **Mobs:** `mobFigure(model, id, creature)` (mobs.ts): the client should pass the mob's id and its `creature` (the card's
+  name, from the mob file), which choose variations. `mobs.ts` (the old `mobInfo`) needs `creature` added to `MobInfo`.
+- **NPCs:** the World agent's generator may name the NPC figures above with a `seed` each (and a `palette` of `cloth`,
+  `trim`, `skin`, `hair`). The slice page still calls `figureSpec(n.figure, palette)` without the seed: integration
+  passes `n.seed`.
+- **Content:** every mob of `realms/content/dominaria/mobs` has a new `model` (mesh and palette; sizes kept), chosen for
+  what its creature is (Hurloon Minotaur a `minotaur`, Mesa Pegasus a `pegasus`, Sengir Vampire a `vampire`, the
+  bosses their own). `tools/realms/sample-decks.py` writes these files and still holds the old meshes (`MESHES`,
+  `MESH_BY_TYPE`, `PALETTES` and its `model=` overrides): **before it is run again, its owner must give it the new
+  models** (the table is in the mob files as they are now), or it will write the old ones back.
+- **Server (a minimal change in the Server agent's module):** `RealmContent.MobMeshes` lists the new mob meshes.
+  The gear check still reads `realms/content/models` (gear models); the new gear parts (`crown`, `hood`, `hat`,
+  `cloak`, `gauntlets`, `greaves`, `orb`) can be named by content once that check is a list, as MobMeshes is.
+- **The cast page:** `realms/web/cast.html?set=bodies|identities|gear|parts|creatures|roster|bosses|mages|npcs`, with
+  `heading`, `zoom`, `face=front|angle|side`, `walk`, `act=cast|interact`, `ground`; `e2e/figures.spec.ts` renders every
+  page, `FIGURE_SHOTS=1` writes its pictures to `e2e/screenshots/figures`.
 
 ## The server (`realms/dotnet`)
 
