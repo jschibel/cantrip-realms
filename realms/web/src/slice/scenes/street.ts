@@ -1,13 +1,13 @@
 import * as THREE from "three";
-import * as C from "../colors";
-import { goblin, knight, townswoman } from "../characters";
-import { MeshBuilder } from "../geometry";
-import { Grid } from "../grid";
-import { buildGround } from "../ground";
-import { grassField } from "../grass";
-import * as P from "../props";
-import * as T from "../textures";
-import { Actor, type Door, type SliceScene, blockArea, sunlight } from "../world";
+import * as C from "../../art/paint/colors";
+import { goblin, knight, townswoman } from "../../art/figures/rig";
+import { MeshBuilder } from "../../art/paint/builder";
+import { Grid } from "../../world/grid";
+import { buildGround } from "../../render/ground";
+import { grassField } from "../../render/grass";
+import * as P from "../../art/props/props";
+import * as T from "../../art/paint/textures";
+import { Actor, type Door, type SliceScene, blockArea, sunlight } from "../actor";
 
 // New Benalia, one street of it, on square tiles: Benalish houses of limestone and whitewash under red and slate roofs,
 // blue-and-gold banners, Grizzlegom's Goblins with its green shop front and hanging sign, a cobbled street with lamps,

@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { type Face, type Material, MeshBuilder, sides, tiled } from "../geometry";
-import { Grid } from "../grid";
-import { PX } from "../props";
+import { type Face, type Material, MeshBuilder, sides, tiled } from "../../art/paint/builder";
+import { Grid } from "../../world/grid";
+import { PX } from "../../art/props/props";
 
 // The shell of a room seen as a 16-bit RPG shows one, from the south looking north: the back wall standing full height
 // facing you, the side walls as thick blocks whose tops you look down on, and the front wall cut down low so nothing in

@@ -1,15 +1,15 @@
 import * as THREE from "three";
-import { goblin } from "../characters";
-import * as C from "../colors";
-import { MeshBuilder, fitted, sides, tiled } from "../geometry";
-import { buildGround } from "../ground";
-import { flat, material, surfaces } from "../kit";
-import * as Pic from "../pictures";
-import { Pixmap } from "../pixmap";
-import * as P from "../props";
-import { PX } from "../props";
-import * as T from "../textures";
-import { Actor, type Door, type SliceScene, blockArea } from "../world";
+import { goblin } from "../../art/figures/rig";
+import * as C from "../../art/paint/colors";
+import { MeshBuilder, fitted, sides, tiled } from "../../art/paint/builder";
+import { buildGround } from "../../render/ground";
+import { flat, material, surfaces } from "../../art/paint/materials";
+import * as Pic from "../../art/paint/pictures";
+import { Pixmap } from "../../art/paint/pixmap";
+import * as P from "../../art/props/props";
+import { PX } from "../../art/props/props";
+import * as T from "../../art/paint/textures";
+import { Actor, type Door, type SliceScene, blockArea } from "../actor";
 import { cutFor, pointLight, roomGrid, roomShell, windowLight } from "./room";
 
 // Inside Grizzlegom's Goblins: a goblin's trading post in a Benalish house. Floorboards and a red rug; along the back

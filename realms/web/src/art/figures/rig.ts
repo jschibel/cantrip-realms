@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import * as C from "./colors";
-import { MeshBuilder, fitted } from "./geometry";
-import { lit, textureOf } from "./material";
-import { Pixmap, type Rgb } from "./pixmap";
-import { sprite } from "./sprite";
+import * as C from "../paint/colors";
+import { MeshBuilder, fitted } from "../paint/builder";
+import { lit, textureOf } from "../../render/lighting";
+import { Pixmap, type Rgb } from "../paint/pixmap";
+import { sprite } from "../paint/sprite";
 
 // The slice's people and creatures: chunky figures with 16-bit RPG proportions - a big head, two and a half heads tall -
 // built as 3D rigs of boxes (legs, torso, arms, head, and whatever a figure adds: a helm's plume, a goblin's ears, a

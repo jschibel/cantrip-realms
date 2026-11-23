@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ghoul, goblin, hero, knight, skeleton, townswoman } from "./characters";
+import { ghoul, goblin, hero, knight, skeleton, townswoman } from "../figures/rig";
 import * as C from "./colors";
 import * as P from "./pictures";
 import type { Pixmap } from "./pixmap";

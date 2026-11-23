@@ -1,5 +1,5 @@
 import * as C from "./colors";
-import { crack, fbm, valueNoise } from "./paint";
+import { crack, fbm, valueNoise } from "./procedural";
 import { Pixmap, type Rgb, hash2, seeded } from "./pixmap";
 import { sprite } from "./sprite";
 

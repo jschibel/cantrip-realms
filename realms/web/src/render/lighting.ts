@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { Pixmap } from "./pixmap";
+import type { Pixmap } from "../art/paint/pixmap";
 
 // Materials for the slice: textures painted by code shown texel for texel, lit in a few stepped bands.
 //

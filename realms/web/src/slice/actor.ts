@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { Figure, type FigureSpec } from "./characters";
-import { Grid, type Tile } from "./grid";
-import { blobShadow } from "./props";
+import { Figure, type FigureSpec } from "../art/figures/rig";
+import { Grid, type Tile } from "../world/grid";
+import { blobShadow } from "../art/props/props";
 
 // What a scene of the slice is - a 3D scene on a square grid, its doors, the figures in it - and the figures' walking:
 // along a path of tiles at a steady pace, turning to face where they go, and (for those that live there) idling and

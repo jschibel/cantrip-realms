@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import * as C from "./colors";
-import { bandShader, textureOf } from "./material";
-import { Pixmap, seeded } from "./pixmap";
-import { sprite } from "./sprite";
+import * as C from "../art/paint/colors";
+import { bandShader, textureOf } from "./lighting";
+import { Pixmap, seeded } from "../art/paint/pixmap";
+import { sprite } from "../art/paint/sprite";
 
 // Grass that stands up: small cards of painted tufts scattered over the grass tiles, swaying in the wind - the touch that
 // makes a 3D pixel-art field read as more than a painted floor. Each card takes the ground's own facing (straight up)

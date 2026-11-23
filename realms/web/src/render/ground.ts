@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { bandShader, lit, textureOf } from "./material";
-import { Pixmap } from "./pixmap";
+import { bandShader, lit, textureOf } from "./lighting";
+import { Pixmap } from "../art/paint/pixmap";
 
 // The ground of a scene on square tiles: one mesh over every tile, and a shader that paints each texel from its tile's
 // surface - grass, cobbles, flagstones, boards - read from a small map of the tiles. Where two surfaces meet, the one

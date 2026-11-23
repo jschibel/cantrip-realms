@@ -1,5 +1,5 @@
 import * as C from "./colors";
-import { cellAt, crack, fbm, jitteredPoints, paintCells, pebble, tuft, valueNoise, voronoi } from "./paint";
+import { cellAt, crack, fbm, jitteredPoints, paintCells, pebble, tuft, valueNoise, voronoi } from "./procedural";
 import { Pixmap, type Rgb, hash2, seeded } from "./pixmap";
 
 // The slice's tiling surfaces, painted by code at 16 texels to a tile: grass with tufts and flowers, cobbles,

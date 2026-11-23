@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { type Material, type Face, fitted, tiled } from "./geometry";
-import { type LitOptions, glow, lit, textureOf } from "./material";
+import { type Material, type Face, fitted, tiled } from "./builder";
+import { type LitOptions, glow, lit, textureOf } from "../../render/lighting";
 import type { Pixmap } from "./pixmap";
 import * as T from "./textures";
 import * as C from "./colors";

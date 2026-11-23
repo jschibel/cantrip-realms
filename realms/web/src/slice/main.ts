@@ -1,11 +1,11 @@
 import * as THREE from "three";
-import { Figure, ghoul, goblin, hero, knight, skeleton, townswoman } from "./characters";
-import { seeded } from "./pixmap";
-import { SliceRenderer, THREE_QUARTER, type View, blendViews } from "./renderer";
+import { Figure, ghoul, goblin, hero, knight, skeleton, townswoman } from "../art/figures/rig";
+import { seeded } from "../art/paint/pixmap";
+import { SliceRenderer, THREE_QUARTER, type View, blendViews } from "../render/renderer";
 import { buildCrypt } from "./scenes/crypt";
 import { buildShop } from "./scenes/shop";
 import { buildStreet } from "./scenes/street";
-import { Actor, type Door, type SceneId, type SliceScene, centre } from "./world";
+import { Actor, type Door, type SceneId, type SliceScene, centre } from "./actor";
 
 // The art slice (slice.html): New Benalia's street, Grizzlegom's Goblins inside, and a crypt below the churchyard, in
 // the 3D pixel-art look - a real 3D scene drawn small and shown in big pixels, on square tiles, seen as a 16-bit RPG

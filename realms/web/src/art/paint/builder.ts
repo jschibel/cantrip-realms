@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { TEXELS } from "./material";
+import { TEXELS } from "../../render/lighting";
 
 // Low-poly shapes authored by code - boxes, gable roofs, cylinders, blobs - textured at one texel density. A face is
 // either tiled from a repeating texture anchored to the world grid (a wall's stones, a floor's planks: so they line up

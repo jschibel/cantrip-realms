@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import * as C from "./colors";
-import { type BoxFaces, type Face, type Material, MeshBuilder, fitted, sides, tiled } from "./geometry";
-import { flat, material, surfaces } from "./kit";
-import * as P from "./pictures";
-import { Pixmap } from "./pixmap";
-import * as T from "./textures";
+import * as C from "../paint/colors";
+import { type BoxFaces, type Face, type Material, MeshBuilder, fitted, sides, tiled } from "../paint/builder";
+import { flat, material, surfaces } from "../paint/materials";
+import * as P from "../paint/pictures";
+import { Pixmap } from "../paint/pixmap";
+import * as T from "../paint/textures";
 
 // The things scenes are furnished with, built by code from boxes, roofs, cylinders and blobs on a MeshBuilder: Benalish
 // houses (a limestone ground floor, a timber-framed upper floor, a tiled roof with a ridge and a chimney), doors,

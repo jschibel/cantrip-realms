@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { normalMaterialFor } from "./material";
+import { normalMaterialFor } from "./lighting";
 
 // The slice's renderer: a real 3D scene drawn small and shown in big, clean pixels.
 //
