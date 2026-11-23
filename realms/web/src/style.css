@@ -1,0 +1,117 @@
+/* The overworld's chrome, in the card client's colors and faces (theme.css, made from its Theme.cs). */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--window);
+  color: var(--fg);
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+#world {
+  position: fixed;
+  left: 0;
+  top: 0;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+#hud-character {
+  left: 16px;
+  top: 16px;
+  min-width: 180px;
+}
+
+#hud-character .name {
+  font-family: "Beleren", serif;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#hud-character .stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  color: var(--fg-soft);
+}
+
+#hud-character .stats b,
+#hud-character .gold b {
+  color: var(--fg);
+}
+
+#hud-character .gold {
+  margin-top: 4px;
+  color: var(--accent);
+}
+
+.pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--control-border);
+  display: inline-block;
+}
+
+.pip-w { background: #f4ecc2; }
+.pip-u { background: #5b8fd6; }
+.pip-b { background: #4b2f5e; }
+.pip-r { background: #c8432c; }
+.pip-g { background: #3e9a4a; }
+
+#hud-layer {
+  right: 16px;
+  top: 16px;
+  color: var(--fg-soft);
+}
+
+#hud-layer[data-state="ready"] { color: var(--ready); }
+#hud-layer[data-state="open"] { color: var(--accent); }
+
+#hud-message {
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  max-width: min(640px, calc(100% - 32px));
+  text-align: center;
+}
+
+/* The card layer: booted hidden, shown over everything while a card screen is open. */
+.card-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  z-index: 10;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card-layer[data-open="true"] {
+  visibility: visible;
+  pointer-events: auto;
+}

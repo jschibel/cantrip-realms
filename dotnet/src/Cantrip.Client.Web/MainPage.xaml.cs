@@ -132,7 +132,7 @@ public sealed partial class MainPage : Page
         // Not a reimplementation of the wire protocol - this is Cantrip.Client/Cantrip.Protocol
         // themselves, compiled into this browser-wasm build and talking to a real Cantrip.Server.Host
         // over a real WebSocket.
-        _ = ClientConfig.Decks ? OpenDeckEditorAsync() : ConnectToServerAsync();
+        _ = ClientConfig.Realm ? StartRealmAsync() : ClientConfig.Decks ? OpenDeckEditorAsync() : ConnectToServerAsync();
         StartTestState();
     }
 
@@ -235,6 +235,12 @@ public sealed partial class MainPage : Page
             Grid.SetRowSpan(_deckPanel, 3);
             Grid.SetColumnSpan(_deckPanel, 2);
             Root.Children.Add(_deckPanel);
+        }
+
+        // Cantrip Realms' card layer, for a page framed over its overworld (?realm; MainPage.Realm.cs).
+        if (ClientConfig.Realm)
+        {
+            BuildRealmLayer();
         }
 
         // The advisor's panel, for a page at the advisor's table (?advisor=) and no other (MainPage.Advisor.cs).

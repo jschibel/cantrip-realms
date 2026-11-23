@@ -1,3 +1,25 @@
+# Cantrip Realms (this fork)
+
+This repository is **Cantrip Realms**, https://github.com/jschibel/cantrip-realms: an overworld RPG built around the
+Cantrip duel engine, forked from https://github.com/cantrip-rs/cantrip-rs. The game is `realms/` - its design in
+`realms/docs/design.md`, its build, tests, deployment and milestones in `realms/docs/tech.md`. Everything below this
+section is cantrip-rs's own guidance and holds here unchanged, except where this section says otherwise.
+
+- **Remotes.** `origin` is this fork; `upstream` is cantrip-rs, fetch-only (its push URL is `DISABLED`).
+  `tools\realms\sync-upstream.cmd` merges upstream `main` into this fork's `main`.
+- **Upstream first.** Anything the engine, host, protocol or client would want without the game - a card, a
+  mechanic, per-player starting life and hand sizes, start-of-game command-zone objects, the WebAssembly engine, the
+  local bot table - is built in cantrip-rs (its own checkout, under its rules and review), lands on its `main`, and
+  reaches this fork by the sync. This fork holds only the RPG, and touches upstream files only at seams that
+  `realms/docs/tech.md` names, so the sync stays a clean merge.
+- **Game code** lives under `realms/`: `realms/web` (the overworld, TypeScript + three.js), `realms/dotnet` (the
+  realm server and its tests), `realms/crates` (gear in the engine), `realms/content` (planes, maps, mobs, gear,
+  prices), `realms/deploy`. Its tools are `tools\realms\`.
+- **Gear is held to the engine's bar.** Equipment is engine content: every rule above about no rules deviations,
+  scenarios and coverage applies to it exactly as to a card.
+- **Commits** go to this fork's `origin` and are pushed as soon as they are made; the "Commits go to GitHub" section
+  below describes cantrip-rs.
+
 # Cantrip
 
 A Magic-like rules engine, server and web client. The rules engine is Rust: the Cargo workspace at the repository root

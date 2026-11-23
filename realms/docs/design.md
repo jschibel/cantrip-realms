@@ -1,0 +1,172 @@
+# Cantrip Realms - game design
+
+The game as players see it: every rule, number and place. `tech.md` is how it is built.
+
+## Why
+
+The goal is a browser RPG in the spirit of the 1997 MTG overworld games. You walk an isometric world with click-to-move travel in the style of Fallout 1/2. You collect cards and gear and win duels against monsters to grow a collection and unlock colors. Every fight is a real Magic duel played by the Cantrip engine in the existing Cantrip table UI. The first plane is Dominaria; there is no Universes Beyond. Duels against the computer run entirely in the player's browser. The server owns the economy (collections, gold, vendors) and replicates only other players' positions and looks. PvE comes first; the PvP duel zone and ladders are designed now but built last.
+
+What the game is built on:
+- **Engine.** The engine is native-only. `cantrip-native-host` (stdin/stdout JSON lines, `crates/cantrip-host`) runs behind `IRulesHost` / `NativeRulesHost` in `dotnet/src/Cantrip.Server`.
+  - `IRulesHost` is synchronous, and `Cantrip.Server` is plain .NET with no ASP.NET.
+  - `Cantrip.Client.Embedded` (`HostAndPlay.cs`, `LoopbackTransport.cs`) already runs table and client in one process.
+- **Game setup.** `cantrip_rules::Setup` (`crates/cantrip-rules/src/lib.rs:540`) has no life or hand fields.
+  - Life is `Player::starting(20)` (`cantrip-state/src/state.rs:541`).
+  - The opening hand is a literal 7 in `turn::opening` (`cantrip-rules/src/turn.rs:398-476`).
+  - Maximum hand size is `actions::maximum_hand_size` (`actions.rs:8674`), a fixed 7 plus effects.
+  - Emblems exist (`ops::create_emblem`), but nothing puts command-zone objects into the game before turn 1.
+- **Bots.** The tactical bot (`dotnet/src/Cantrip.Client/Tactics/TacticalPlay`) is a pure client that already runs in a browser tab and plays any decklist. The draft bot's `DeckBuilder` builds decks from pools.
+- **Client.** The client is Uno WASM drawn with Skia (`dotnet/src/Cantrip.Client.Web`).
+  - Its colors come from `Theme.cs`: window `#111318`, panel `#1d2127`, text `#e8eaee`, gold `#f1b44c`. Its fonts are Beleren and MPlantin.
+  - The deck editor (`MainPage.Decks.cs`, `?decks`) has search, columns, legality and limited-pool mode, all filtered through `Cantrip.Decks.DeckRules.Fits`, which already handles color identity.
+- **Server and data.**
+  - The server is Kestrel with raw WebSockets and MessagePack (`Cantrip.Protocol`).
+  - Storage is JSON files (`EventStore`, `--data`), sign-in is Discord OAuth (`Cantrip.Discord/SiteSignIn.cs`), and art comes from `Cantrip.Art` at `/art/{size}/{slug}.webp`.
+- **Card data.** There are 8,322 cards implemented. There is no rarity, set or price data, though `tools/maintenance/scryfall.py` caches the Scryfall bulk files. DOM is about 12% implemented and DMU about 19%.
+
+The owner's decisions:
+- **Repo:** a public GitHub fork `jschibel/cantrip-realms` of `cantrip-rs/cantrip-rs`.
+- **Upstream first:** the WASM engine, per-player starting stats, start-of-game command-zone objects and any new cards land on cantrip-rs `main` under its rules and are merged into the fork. The fork holds only the RPG.
+- **Rarity surcharge:** +$0.50 common, +$1 uncommon, +$5 rare, +$10 mythic, added to the price of the median-priced printing.
+- **Hosting:** somewhere else, independent of the current cantrip-rs.dev server and its deploy. The game is designed to be provider-neutral (B8) and reuses none of that host's configuration.
+
+
+
+
+### A1. Character
+- **Creation:** you pick a name, a body (4 voxel bodies × 6 skin and hair palettes) and **one starting color**: W, U, B, R or G.
+- **Color identity** works like Commander's: every deck card's identity must be within the character's identity, and colorless cards are always allowed. The check reuses `DeckRules.Within` and `IdentityOf`.
+- **Base stats:**
+
+  | Stat | Base | Allowed range with gear |
+  |---|---|---|
+  | Starting life | 20 | 10–40 |
+  | Starting hand size | 7 | 4–9 |
+  | Maximum hand size | 7 | 4–10 |
+
+  The range limits are loadout validation and never reach the engine.
+- **Progression** comes from the collection, gear and unlocked colors. There are no XP levels; your power is what you own and how you combine it.
+- **Starting kit:**
+  - A 40-card starter deck in your color, built from the Dominaria pool (commons and uncommons).
+  - 10 extra commons, 2,000 gold, and common gear in 3 slots.
+  - Free, unlimited basic lands of your identity's colors. Basics are never part of the collection, and Wastes are always available.
+
+### A2. Decks, the spell table and the ante
+- **Deck rules:**
+  - At least 40 cards, no maximum.
+  - At most 4 copies of any non-basic card; cards restricted in Vintage are limited to 1.
+  - The card pool is implemented cards that are legal or restricted in Vintage, minus Universes Beyond printings. That rule also removes the ante cards, conspiracies and Un-cards.
+- **The spell table** is where you edit your deck and your ante. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the ante.
+- **The ante slot** holds 0–10 cards from the collection, outside the deck, like a sideboard. A copy can't be in both the deck and the ante.
+  - Ante value is the sum of the cards' list prices.
+  - It is shown on the HUD, and the duel splash shows it beside the prize cap.
+
+### A3. Duels and rewards
+- **Starting a duel:**
+  - A wandering mob that reaches your hex, or one you click, starts a duel.
+  - The splash shows the mob's name, its tier, its stats and gear traits, three cards from its deck, your ante value, the prize cap and its gold range. Then the table opens.
+  - The mob's seat is played by the tactical bot in your tab.
+  - The duel is a single game. Who plays first is decided at random, as CR 103.1 says.
+- **Prize cap** = min(your ante value, the mob's prize value).
+  - Mob prize values by tier: T1 $1, T2 $3, T3 $8, T4 $20, boss $60.
+  - With an empty ante the cap is $0: you still get gold, but no cards.
+- **Winning:**
+  - Gold is rolled from the tier and is **not** limited by the ante. Base ranges: T1 20–60, T2 50–150, T3 120–300, T4 250–600, boss 1,500.
+  - You are **offered 3 cards** from the mob's loot table, and you take **any subset whose total value fits under the cap**. At least one offered card always fits.
+  - Gear drops with a chance of 10% / 15% / 20% / 30% by tier, and bosses always drop one.
+- **Losing:**
+  - **A random card from your ante is lost**, chosen uniformly. It is gone; it does not go to a vendor.
+  - You are returned to the **nearest town's inn**.
+  - Gold is not lost.
+- **Conceding** counts as a loss.
+- **Leaving mid-duel:** the duel's log is saved locally and resumes on reload. A duel that is never finished counts as lost when you start your next encounter, or after 24 hours.
+
+### A4. Equipment (gear)
+- **Eight fixed slots:** Head, Neck, Body, Hands, Feet, Ring ×2 and Relic.
+- **What gear is in the game:** each worn item becomes a Vanguard-style object in your command zone from the start of the game. It can't be targeted, removed or interacted with, and it can do anything a card can do. Its stat lines change the setup values.
+- **Effect families allowed in each slot** (this is where balance comes from):
+
+  | Slot | Effect families |
+  |---|---|
+  | Head (circlets, helms) | starting hand, maximum hand, card selection (scry, surveil, draw at a set time) |
+  | Neck (amulets) | mana (extra mana on turn N, a one-shot cost reduction, color fixing), maximum hand |
+  | Body (armor, robes) | starting life, protection (prevent damage on turn N, life gain triggers) |
+  | Hands (gloves) | combat (your first creature each game gets +1/+1 counters, a once-per-game ping), start-of-game tokens |
+  | Feet (boots) | tempo (an extra land drop on turn N, haste for your first creature), starting life |
+  | Rings ×2 | color-keyed mana or cost effects (the color must be in your identity to work), disruption (the opponent discards on turn N, the opponent starts with less life) |
+  | Relic (talismans) | one activated ability, once per game, from the command zone; start-of-game permanents; disruption |
+
+- **Point budget:** every effect has a point cost, and items may have negative lines that refund points, as Vanguard cards trade one stat for another.
+  - Budget by rarity: common ≤3, uncommon ≤5, rare ≤8, mythic ≤12. Boss uniques go to 14 and come with a drawback.
+  - Starting costs: +1 life = 1, +1 starting hand = 6, +1 maximum hand = 2, "draw a card at the beginning of your draw step on turn 3" = 3, and so on.
+  - The balance lab (C5) re-fits these costs from measured win-rate changes.
+- **Items are a fixed catalogue** with no random rolls: about 30 per slot, about 240 in total, plus 15 boss uniques.
+  - Each item is a definition with a name, slot, rarity, stat lines, effect lines and a look (its voxel mesh and palette).
+  - You can own duplicates.
+  - The armorer buys gear at half its gold price.
+- **Gear sources:** loot drops, chests, armorers in towns (6–10 items, rotating daily), and quest bounties.
+- **Gear changes your look:** each slot's item has its own mesh on your character, and that look is what other players see.
+
+### A5. Economy
+- **Gold:** 1 gold = $0.01. A card's list price = round(100 × (median USD over its paper printings + rarity surcharge)).
+  - The rarity is that of the median-priced printing.
+  - Prices are the non-foil TCGplayer market price; if a printing has none, the foil price, then the etched price.
+  - The data comes from Scryfall's default-cards bulk file, which carries TCGplayer prices. A card with no paper price is left out of loot and vendors.
+- **Vendors** are global, shared server-side state.
+  - Each has a **specialty**: a color, a card type (artifacts, lands, enchantments), a creature type (Goblins, Knights, Elves…), a theme (instants and sorceries, Dominaria-legends), or a rarity tier ("curio dealer").
+  - It only buys and sells cards that match its specialty.
+  - It **sells** at list price and **buys** at 50%, paid from a **finite purse**.
+  - Purse: it starts with 50,000 g. Every hour it gains 2,000 g + 300 g × the unique players who visited in the past hour, up to a 500,000 g ceiling.
+  - Stock:
+    - 12 seeded cards when it is created.
+    - **3 random new cards each hour** from its specialty pool; one not sold within 24 hours leaves.
+    - Cards players sell stay until bought, up to 60. When that is full the vendor buys nothing more.
+  - A card a player sells shows up at full price for everyone.
+  - There is no trading between players.
+- **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Urborg Ghouls" for gold or gear).
+
+### A6. The world — Dominaria
+- **Structure in the Fallout style:**
+  - A **world map** for travel between locations. A marker moves along roads or cross-country, and random-encounter rolls happen as you travel.
+  - **Local maps** — towns, wilderness and dungeon floors — are isometric hex grids that you walk by clicking. You move in real time.
+- **Geography:** five regions placed around a central hub in **WUBRG wheel order**, so ally colors are neighbors and enemy colors are across the map.
+
+  | Color | Region | Home town | Dungeon | Suggested boss |
+  |---|---|---|---|---|
+  | W | Benalia | New Benalia | Serra's Fallen Sanctum | Lyra Dawnbringer, angel deck |
+  | U | Tolaria | Tolarian Academy | the Time-Rift Academy | Teferi, control deck |
+  | B | Urborg | Urborg | the Tomb of Yawgmoth | Sheoldred, the Apocalypse |
+  | R | Shiv | Keld and Shiv | the Shivan Foundry | Darigaaz, dragons |
+  | G | Llanowar and Yavimaya | Llanowar | the Heart of Yavimaya | Multani |
+
+  - The hub is **New Argive**, a neutral capital with the most vendors.
+  - Each region also has one village and 3–4 wilderness maps.
+  - The bosses are suggestions and are kept to cards that are implemented.
+- **Dungeons:**
+  - 3–5 floors each.
+  - Mobs don't respawn while you are inside, and each floor's mini-boss stays cleared once beaten, so progress is saved floor by floor.
+  - The entrance antechamber has a spell table.
+  - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss traits.
+- **Bosses:**
+  - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
+  - You can fight them again each week for loot.
+  - **Capstone:** once all five colors are unlocked, the Phyrexian Portal opens. A five-color praetor boss ends the Dominaria arc, and later planes come in as data packs.
+- **Mobs:**
+  - About 60 types, each with a themed 40-card deck, stats and gear traits. They use the same Vanguard-object system as the player, which is what makes them harder.
+  - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. They respawn 10 minutes after you leave the map.
+  - Difficulty grows with distance from your home region.
+- **Towns** have:
+  - an inn, where you respawn and set your home;
+  - a spell table;
+  - 2–4 card vendors (New Argive has 8);
+  - an armorer;
+  - a quest board;
+  - a PvP arena, locked with a "coming soon" sign until Part B9.
+- **Story:** after the Phyrexian invasion, Dominaria's five color-wells are held by guardians. The player is a mage who must earn each well's attunement. The tone is light, with the story text on quest boards and NPC barks. The owner can rewrite it; it is all data.
+- **Social:** you see other players walking on the same map instance, with their gear and their identity pips. Clicking a player shows their loadout. There is no chat in v1 (it would need moderation); there is an emote wheel. Each instance holds 40 players, and another instance opens when one is full.
+
+### A7. IP stance
+- This is unofficial fan content under the Wizards Fan Content Policy: free, no paywall, with the required notice.
+- Plane, character and card names are Magic's. Nothing is taken from the 1997 game: no names, maps, characters or art. Nothing is taken from Fallout beyond the camera and movement style.
+
+---

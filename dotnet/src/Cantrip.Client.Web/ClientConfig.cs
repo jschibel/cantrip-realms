@@ -37,6 +37,7 @@ public static class ClientConfig
         Test = query.ContainsKey("test");
         CardSheet = query.ContainsKey("cardsheet");
         Decks = query.ContainsKey("decks");
+        Realm = query.ContainsKey("realm");
         // The advisor's table (MainPage.Advisor.cs): its API, beside a table of its own; never a real table's page.
         Advisor = query.GetValueOrDefault("advisor") is { Length: > 0 } advisor && Uri.TryCreate(advisor, UriKind.Absolute, out Uri? api) ? api : null;
         DeckId = query.GetValueOrDefault("deck") is { Length: > 0 } deck ? deck : null;
@@ -112,6 +113,12 @@ public static class ClientConfig
     /// deck editor).
     /// </summary>
     public static bool Decks { get; }
+
+    /// <summary>
+    /// Whether this page is Cantrip Realms' card layer (<c>?realm</c>): framed over the overworld, showing the card screens
+    /// it asks for and joining no table of its own (<see cref="MainPage"/>'s realm layer, <see cref="RealmBridge"/>).
+    /// </summary>
+    public static bool Realm { get; }
 
     /// <summary>
     /// The advisor's API (<c>?advisor=http://localhost:5390/advisor</c>), for a page at the advisor's own table

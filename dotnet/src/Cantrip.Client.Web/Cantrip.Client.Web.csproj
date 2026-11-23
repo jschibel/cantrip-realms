@@ -63,6 +63,11 @@
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\FullScreen.js" />
   </ItemGroup>
 
+  <!-- Cantrip Realms (this fork): the bridge to the overworld that frames a ?realm page (RealmBridge.cs). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\Realm.js" />
+  </ItemGroup>
+
   <!-- Card frames, icons, fonts and the frame template, from the tracked content files. -->
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\content\res\frames\retro\*.png" LogicalName="frame_%(Filename)%(Extension)" />

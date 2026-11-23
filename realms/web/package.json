@@ -1,0 +1,22 @@
+{
+  "name": "cantrip-realms-web",
+  "private": true,
+  "type": "module",
+  "description": "Cantrip Realms' overworld: the isometric, pixel-rendered world the card layer opens over.",
+  "scripts": {
+    "theme": "node scripts/theme.mjs",
+    "dev": "node scripts/theme.mjs && vite",
+    "build": "node scripts/theme.mjs && tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.170.0",
+    "typescript": "5.7.2",
+    "vite": "6.0.3",
+    "vitest": "2.1.8"
+  }
+}
