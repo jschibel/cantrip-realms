@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "B",
   "radius": 16,
+  "inn": {"map":"bogwater","q":0,"r":-3},
   "exits": [
     {"q":-5,"r":-11,"to":"world"},
     {"q":10,"r":-16,"to":"bogwater"}

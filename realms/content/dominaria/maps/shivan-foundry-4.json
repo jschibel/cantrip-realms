@@ -5,6 +5,7 @@
   "region": "R",
   "floor": 4,
   "radius": 13,
+  "inn": {"map":"keld","q":-2,"r":4},
   "exits": [
     {"q":-1,"r":-9,"to":"shivan-foundry-3"}
   ],

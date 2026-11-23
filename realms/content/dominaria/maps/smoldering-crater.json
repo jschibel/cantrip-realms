@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "R",
   "radius": 16,
+  "inn": {"map":"ghitu-encampment","q":-1,"r":3},
   "exits": [
     {"q":14,"r":-16,"to":"world"},
     {"q":16,"r":0,"to":"ghitu-encampment"}

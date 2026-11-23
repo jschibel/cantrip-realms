@@ -99,9 +99,12 @@ export class GameMap {
     return this.respawn();
   }
 
-  /** Where a player wakes after losing a duel here, or starts out: the inn, or inside the first exit. */
+  /**
+   * Where a player starts out on this map with nowhere else to be: its own inn (a town's or village's), or inside the
+   * first exit. A beaten player wakes at the inn the map names, which may be another map's (`data.inn.map`).
+   */
   respawn(): Hex {
-    if (this.data.inn) return hex(this.data.inn.q, this.data.inn.r);
+    if (this.data.inn && this.data.inn.map === undefined) return hex(this.data.inn.q, this.data.inn.r);
     const first = this.data.exits[0];
     if (first) return this.besides(hex(first.q, first.r)) ?? hex(first.q, first.r);
     return [...this.tiles.values()].find((t) => !t.blocked)?.hex ?? hex(0, 0);

@@ -5,7 +5,7 @@ import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
 import type { GameMap } from "./maps/gameMap";
-import { nearestInn, worldLocation } from "./maps/graph";
+import { worldLocation } from "./maps/graph";
 import { loadMap } from "./maps/load";
 import type { NpcData } from "./maps/schema";
 import { mobInfo } from "./mobs";
@@ -484,8 +484,10 @@ export class Overworld {
       this.paused = false;
     } else {
       await this.refresh();
-      const inn = (await nearestInn(this.map.id, (id) => loadMap(id).then((map) => map.data))) ?? "new-argive";
-      await this.enter(inn);
+      // The inn this map names (its own, or its nearest town's), as the server moved the character there.
+      const inn = this.map.data.inn;
+      if (inn) await this.enter(inn.map ?? this.map.id, { at: hex(inn.q, inn.r) });
+      else await this.enter(this.data.Map, { at: hex(this.data.Q, this.data.R) });
       this.say(`You lost the duel, and wake at the inn in ${this.map.name}.`);
     }
   }

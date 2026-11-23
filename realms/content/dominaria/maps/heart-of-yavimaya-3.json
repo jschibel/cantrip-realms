@@ -5,6 +5,7 @@
   "region": "G",
   "floor": 3,
   "radius": 13,
+  "inn": {"map":"llanowar","q":0,"r":4},
   "exits": [
     {"q":8,"r":3,"to":"heart-of-yavimaya-2"}
   ],

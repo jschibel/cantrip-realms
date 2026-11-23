@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findPath, hex } from "../hex";
 import { GameMap } from "./gameMap";
-import { nearestInn, worldLocation } from "./graph";
+import { innOf, worldLocation } from "./graph";
 import { type MapData, validateMap } from "./schema";
 
 // The content lint for Dominaria's maps: every file is a good map, the maps join up, and the world is as design.md
@@ -51,14 +51,16 @@ describe("Dominaria's maps", () => {
     }
   });
 
-  it("wakes a beaten player at an inn from every map", async () => {
+  it("name, on every map, the inn a beaten player wakes at: their own town's, or the nearest town's", async () => {
     for (const map of maps.values()) {
-      if (map.kind === "world") continue;
-      const encounter = map.exits.every((e) => e.to === "world") && map.kind === "wilderness" && !(await worldLocation(map.id, load));
-      if (encounter) continue;
-      const inn = await nearestInn(map.id, load);
-      expect(inn, map.id).not.toBeNull();
-      expect(maps.get(inn!)!.inn).toBeDefined();
+      if (map.kind === "world") {
+        expect(map.inn).toBeUndefined();
+        continue;
+      }
+      expect(map.inn, map.id).toEqual(await innOf(map.id, load));
+      const town = maps.get(map.inn!.map ?? map.id)!;
+      expect(["town", "village"], map.id).toContain(town.kind);
+      expect(town.inn).toEqual({ q: map.inn!.q, r: map.inn!.r });
     }
   });
 
