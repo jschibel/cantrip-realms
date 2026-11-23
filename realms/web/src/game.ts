@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { figureSpec } from "./art/figures";
+import { type Appearance, type GearLook, lookFigure, playerFigure } from "./art/figures";
 import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
 import { type MinimapDot, Hud, gold } from "./hud";
+import { surfaceColor } from "./surfaceColors";
 import { mobInfo } from "./mobs";
 import { ApiError, type Character as CharacterData, type Place as ApiPlace, type RealmApi, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
@@ -12,7 +13,7 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type ChestData, type DungeonData, type NpcData, type SpawnData, type WorldData, chunkKey, isBlocked } from "./world/format";
+import { CHUNK, type ChestData, type DungeonData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked } from "./world/format";
 import type { Tile } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
@@ -89,29 +90,18 @@ const store = (key: string, value: string): void => {
   }
 };
 
-/** A character's tile, whichever names its fields carry (X/Z, or the older Q/R). */
-export function tileOfCharacter(c: CharacterData): Tile {
-  const xz = c as unknown as { X?: number; Z?: number };
-  return { x: xz.X ?? c.Q, z: xz.Z ?? c.R };
+/** A character's tile. */
+export const tileOfCharacter = (c: CharacterData): Tile => ({ x: c.X, z: c.Z });
+
+/** A position for the API: `{Space, X, Z}`. */
+const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z: t.z });
+
+/** How a character looks (art/figures/player.ts): body, palette, identity and the looks of what they wear. */
+export function appearanceOf(c: CharacterData): Appearance {
+  const slots: Record<string, GearLook> = {};
+  for (const [slot, worn] of Object.entries(c.Loadout)) if (worn) slots[slot] = { mesh: worn.Gear.Look.Mesh, palette: worn.Gear.Look.Palette };
+  return { body: c.Body, palette: c.Palette, identity: c.Identity, slots };
 }
-
-/** A position for the API: `{Space, X, Z}`, with the older field names beside them while both are spoken. */
-const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z: t.z, Q: t.x, R: t.z }) as unknown as ApiPlace;
-
-/** The minimap's color of a surface. */
-const SURFACE_COLORS: Readonly<Record<string, string>> = {
-  grass: "#4f8a3c",
-  cobbles: "#8a8790",
-  flagstones: "#a49c8c",
-  dirt: "#8c6a44",
-  straw: "#c9b267",
-  furrows: "#6e5134",
-  wheat: "#c7a94a",
-  stream: "#3d6fb8",
-  floorboards: "#7a5434",
-  hearthstone: "#77716a",
-  "crypt-floor": "#4a4552",
-};
 
 export class Overworld {
   readonly hud: Hud;
@@ -150,8 +140,11 @@ export class Overworld {
     readonly options: Options,
     readonly source: WorldSource,
     readonly worldData: WorldData,
+    /** The world's dungeons (`dungeons/<id>.json`), by id. */
+    dungeons: ReadonlyMap<string, DungeonData> = new Map(),
   ) {
-    this.hud = new Hud(layer);
+    this.hud = new Hud(layer, worldData, dungeons);
+    this.dungeons = dungeons;
     layer.onChange = () => this.hud.showLayer();
     this.hud.showLayer();
     if (presence) presence.onMessage = (m) => this.hear(m);
@@ -230,7 +223,7 @@ export class Overworld {
     const heading = this.options.heading ?? HEADING_NAMES[stored(HEADING_KEY) ?? ""] ?? 0;
     const zoomed = Number(stored(ZOOM_KEY) ?? "x");
     const zoom = this.options.zoom ?? (zoomed === 0 || zoomed === 1 || zoomed === 2 ? zoomed : 0);
-    this.stage = new Stage(this.canvas, { heading, zoom, spot, start: tile, player: figureSpec("hero"), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
+    this.stage = new Stage(this.canvas, { heading, zoom, spot, start: tile, player: playerFigure(appearanceOf(data)), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
     this.stage.onArrive = (s) => this.arrived(s);
     this.stage.onTile = (t) => this.stepped(t);
     this.stage.intercept = (t) => this.clickThing(t);
@@ -254,7 +247,10 @@ export class Overworld {
     const looks = JSON.stringify(this.data.Loadout) !== JSON.stringify(data.Loadout);
     this.data = data;
     this.hud.showCharacter(data);
-    if (looks) this.sendLook();
+    if (looks) {
+      this.sendLook();
+      this.stage.dress(playerFigure(appearanceOf(data)));
+    }
   }
 
   private sendLook(): void {
@@ -348,6 +344,12 @@ export class Overworld {
     return null;
   }
 
+  /** A thing used from beside it on a tile (a spell table, a quest board, the arena's gate, a waystone). */
+  private objectAt(t: Tile): NpcData | undefined {
+    const list = this.inWorld ? (this.world.streamer.data.get(chunkKey(Math.floor(t.x / CHUNK), Math.floor(t.z / CHUNK)))?.npcs ?? []) : (this.roomNpcs.get(this.spot.id) ?? []);
+    return list.find((n) => OBJECT_KINDS.has(n.kind) && n.x === t.x && n.z === t.z);
+  }
+
   private chestAt(t: Tile): ChestData | undefined {
     if (!this.inWorld) return undefined;
     const c = this.world.streamer.data.get(chunkKey(Math.floor(t.x / CHUNK), Math.floor(t.z / CHUNK)));
@@ -359,7 +361,7 @@ export class Overworld {
     if (!t) return "none";
     const who = this.personAt(t);
     if (who?.mob) return "attack";
-    if (who?.npc) return "talk";
+    if (who?.npc || this.objectAt(t)) return "talk";
     if (this.chestAt(t)) return "open";
     if (this.stage.doorAt(t)) return "exit";
     return this.spot.grid.walkable(t.x, t.z) ? "walk" : "none";
@@ -372,6 +374,8 @@ export class Overworld {
     if (who?.mob) return `${who.mob.info.name} - ${who.mob.info.boss ? "boss" : `tier ${who.mob.spawn.tier || who.mob.info.tier}`}`;
     if (who?.npc) return who.npc.name ?? who.npc.kind;
     if (who?.visitor) return who.visitor.name;
+    const thing = this.objectAt(t);
+    if (thing) return thing.name ?? thing.kind;
     if (this.chestAt(t)) return "A chest";
     const door = this.stage.doorAt(t);
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
@@ -389,6 +393,11 @@ export class Overworld {
     if (who?.npc) {
       const npc = who.npc;
       this.walkBeside(who.actor, () => void this.talk(npc, who.actor));
+      return true;
+    }
+    const thing = this.objectAt(t);
+    if (thing) {
+      this.walkBeside({ tile: t } as Actor, () => void this.talk(thing));
       return true;
     }
     const chest = this.chestAt(t);
@@ -535,8 +544,8 @@ export class Overworld {
 
   // --- Dungeon runs ------------------------------------------------------------------------------------------------------
 
-  /** The dungeons of the world's data that the game knows of, by id (a version-2 world lists them in world.json). */
-  readonly dungeons = new Map<string, DungeonData>();
+  /** The dungeons of the world, by id. */
+  readonly dungeons: ReadonlyMap<string, DungeonData>;
 
   private async enterRun(id: string): Promise<Arrival> {
     const dungeon = this.dungeons.get(id);
@@ -661,11 +670,13 @@ export class Overworld {
         this.say("You close your spellbook.");
         break;
       case "vendor":
+        this.player.figure.act("interact");
         this.say(`${npc.name ?? "The vendor"} shows you their wares.`);
         await this.openCards("vendor", { id: npc.vendor ?? npc.id, name: npc.name ?? npc.vendor ?? npc.id });
         await this.refresh();
         break;
       case "armorer": {
+        this.player.figure.act("interact");
         this.say("The armorer lays out the day's gear.");
         const town = this.townHere();
         await this.openCards("gear", { armorer: town, name: `the armorer of ${this.worldData.towns.find((t) => t.id === town)?.name ?? here}` });
@@ -723,8 +734,8 @@ export class Overworld {
     const choice = await this.dialog(npc.name ?? "A waystone", ["The waystone hums. Where to?"], [...others.map((d) => ({ caption: d.name, value: d.id as string | null })), { caption: "Stay", value: null, primary: true }]);
     if (!choice) return;
     try {
-      const place = (await this.api.waystone({ Tower: choice })).Place as unknown as { X?: number; Z?: number; Q: number; R: number };
-      await this.jump(this.toWorld({ x: place.X ?? place.Q, z: place.Z ?? place.R }));
+      const place = (await this.api.waystone({ Tower: choice })).Place;
+      await this.jump(this.toWorld({ x: place.X, z: place.Z }));
       this.say(`The waystone carries you to ${this.dungeons.get(choice)?.name ?? choice}.`);
     } catch (e) {
       this.say(refusal(e));
@@ -773,6 +784,9 @@ export class Overworld {
     const m = mob.actor.position;
     mob.actor.figure.face(p.x - m.x, p.z - m.z);
     this.player.figure.face(m.x - p.x, m.z - p.z);
+    // Both raise their hands to cast as the duel begins.
+    this.player.figure.act("cast");
+    mob.actor.figure.act("cast");
     this.say(`The ${mob.info.name} attacks!`);
     const run = this.run;
     let start;
@@ -841,7 +855,7 @@ export class Overworld {
       case "Other": {
         this.visitors.get(message.Player)?.actor.figure.root.removeFromParent();
         const from = { x: message.At[0], z: message.At[1] };
-        const actor = new Actor(figureSpec("hero"), this.spot.grid.walkable(from.x, from.z) ? from : this.player.tile, this.spot.grid, {}, message.Name);
+        const actor = new Actor(lookFigure(message.Look, message.Identity), this.spot.grid.walkable(from.x, from.z) ? from : this.player.tile, this.spot.grid, {}, message.Name);
         actor.floor = this.spot.floorAt ?? null;
         actor.place(actor.tile);
         this.spot.place.addFigure(actor.figure.root);
@@ -853,6 +867,23 @@ export class Overworld {
       case "Moved": {
         const visitor = this.visitors.get(message.Player);
         if (visitor) this.walkVisitor(visitor, message.From, message.Path, message.Speed, message.Since);
+        break;
+      }
+      case "Looked": {
+        // Another player put on or took off gear: the same walk, dressed anew.
+        const v = this.visitors.get(message.Player);
+        if (!v) break;
+        const old = v.actor;
+        const actor = new Actor(lookFigure(message.Look, v.identity), old.tile, this.spot.grid, {}, v.name);
+        actor.floor = old.floor;
+        actor.place(old.tile);
+        actor.position.copy(old.position);
+        actor.figure.root.position.copy(old.position);
+        actor.speed = old.speed;
+        if (old.moving) actor.walkPath(old.remaining);
+        old.figure.root.removeFromParent();
+        this.spot.place.addFigure(actor.figure.root);
+        this.visitors.set(message.Player, { ...v, actor });
         break;
       }
       case "Emoted":
@@ -932,18 +963,22 @@ export class Overworld {
     if (this.minimapTimer <= 0) {
       this.minimapTimer = 0.25;
       const at = this.player.position;
-      const tileAt = this.inWorld ? this.world.streamer.tileAt : null;
-      this.hud.drawSquares(
-        (x, z) => {
-          if (tileAt) {
-            const t = tileAt(x, z);
-            return t && t[1] ? (isBlocked(t) && t[1] !== "stream" ? "#2e3140" : (SURFACE_COLORS[t[1]] ?? "#5a6a50")) : null;
-          }
-          return this.spot.grid.walkable(x, z) ? "#7a5434" : null;
-        },
-        { x: at.x, z: at.z },
-        this.dots(),
-      );
+      if (this.inWorld && this.hud.hasWorldMap) this.hud.drawMap(this.dots(), this.attuned);
+      else {
+        const tileAt = this.inWorld ? this.world.streamer.tileAt : null;
+        this.hud.drawSquares(
+          this.spaceId,
+          (x, z) => {
+            if (tileAt) {
+              const t = tileAt(x, z);
+              return t && t[1] ? (isBlocked(t) && !t[1].match(/^(stream|sea|shallows|bog|lava)$/) ? "#2e3140" : surfaceColor(t[1])) : null;
+            }
+            return this.spot.grid.walkable(x, z) ? "#7a5434" : null;
+          },
+          { x: at.x, z: at.z },
+          this.dots(),
+        );
+      }
     }
   }
 

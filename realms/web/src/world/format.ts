@@ -49,6 +49,13 @@ export const NPC_KINDS = [
 ] as const;
 export type NpcKind = (typeof NPC_KINDS)[number];
 
+/**
+ * The kinds that are things, not people: a spell table, a quest board, the arena's gate, a waystone. Each stands on a
+ * blocked tile of its own (`stand` its middle) with a prop of its id drawing it there; it has no figure, and is used by a
+ * click on its tile from beside it.
+ */
+export const OBJECT_KINDS: ReadonlySet<NpcKind> = new Set<NpcKind>(["spell-table", "quest-board", "arena", "waystone"]);
+
 /** What an interior is: the room recipe (art/rooms) that lays it out. */
 export const INTERIOR_KINDS = ["shop", "inn", "guildhall", "temple", "smithy", "library", "house", "tower", "exotic-wares", "crypt"] as const;
 export type InteriorKind = (typeof INTERIOR_KINDS)[number];

@@ -1,5 +1,4 @@
-import { FIGURES, figureSpec } from "./art/figures";
-import type { FigureSpec } from "./art/figures/rig";
+import { mobFigure } from "./art/figures";
 import type { MobInfo } from "./mobs";
 import { Actor } from "./render/actor";
 import type { SpawnData } from "./world/format";
@@ -19,14 +18,6 @@ const CHASE_SPEED = 2.6;
 /** Tiles apart, as the server measures nearness: the most of the two axes (a diagonal step is one). */
 export const chebyshev = (a: Tile, b: Tile): number => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
 
-/** A mob's figure: its model's mesh if the figures have it, else the nearest likeness by its words. */
-export function mobFigure(info: MobInfo): FigureSpec {
-  const mesh = info.model.mesh;
-  if (FIGURES.has(mesh)) return figureSpec(mesh);
-  const guess = /skelet|bone|lich|dead/.test(info.id) ? "skeleton" : /ghoul|zombie|ghast/.test(info.id) ? "ghoul" : /knight|soldier|guard/.test(info.id) ? "knight" : "goblin";
-  return figureSpec(guess);
-}
-
 /** A spawn point's mob, walking the world. */
 export class Mob {
   /** Seconds until it next picks somewhere to wander, or may engage again. */
@@ -44,7 +35,7 @@ export class Mob {
   ) {}
 
   static make(info: MobInfo, spawn: SpawnData, epoch: number, grid: Grid, floor: ((x: number, z: number) => number) | null, run?: Mob["run"]): Mob {
-    const actor = new Actor(mobFigure(info), { x: spawn.x, z: spawn.z }, grid, {}, info.name);
+    const actor = new Actor(mobFigure(info.model, info.id, info.creature), { x: spawn.x, z: spawn.z }, grid, {}, info.name);
     actor.floor = floor;
     actor.place({ x: spawn.x, z: spawn.z });
     actor.speed = WANDER_SPEED;

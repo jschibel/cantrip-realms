@@ -8,6 +8,6 @@ export default defineConfig({
   build: {
     target: "es2022",
     assetsInlineLimit: 0,
-    rollupOptions: { input: { main: "index.html", models: "models.html", slice: "slice.html" } },
+    rollupOptions: { input: { main: "index.html", slice: "slice.html" } },
   },
 });

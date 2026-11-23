@@ -1,14 +1,14 @@
 import * as THREE from "three";
-import { BODIES, type Body, CLOTH, Character, type ManaColor, SKIN_PALETTES } from "../character";
-import { HEX_SIZE, spiral, toWorld } from "../hex";
+import { BODY_NAMES as BODIES, type BodyName as Body, Figure, IDENTITY, type ManaColor, SKINS, playerFigure } from "../art/figures";
 import { type Character as CharacterData, ApiError, type RealmApi } from "../net/api";
-import { celMaterial, lightOutdoors } from "../look";
-import { DOMINARIA } from "../palette";
-import { PixelRenderer } from "../render";
+import { assembleWorld } from "../render/assemble";
+import { PixelRenderer } from "../render/renderer";
+import { THREE_QUARTER } from "../render/view";
+import type { ChunkData, TileData, WorldData } from "../world/format";
 
 // Character creation (design.md, A1): a name, one of four bodies in one of six skin and hair palettes, and the one
-// color you start in - which picks your home region and town. The mage you are making turns on a hex of grass beside
-// the choices, drawn by the same pixel renderer as the world.
+// color you start in - which picks your home region and town. The mage you are making turns on a patch of grass beside
+// the choices, drawn by the same pixel renderer and figures as the world (art/figures/player.ts).
 
 const COLORS: readonly { color: ManaColor; name: string; home: string }[] = [
   { color: "W", name: "White", home: "Capashen Hold, in Benalia" },
@@ -18,7 +18,9 @@ const COLORS: readonly { color: ManaColor; name: string; home: string }[] = [
   { color: "G", name: "Green", home: "the elfhames of Llanowar" },
 ];
 
-const BODY_NAMES: Record<Body, string> = { lithe: "Lithe", broad: "Broad", tall: "Tall", stocky: "Stocky" };
+const BODY_LABELS: Record<Body, string> = { lithe: "Lithe", broad: "Broad", tall: "Tall", stocky: "Stocky" };
+
+const css = (rgb: number): string => `#${rgb.toString(16).padStart(6, "0")}`;
 
 export function createCharacter(api: RealmApi): Promise<CharacterData> {
   const root = document.createElement("div");
@@ -48,42 +50,42 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
   const name = root.querySelector<HTMLInputElement>("input")!;
   const problem = root.querySelector<HTMLElement>("[data-problem]")!;
 
-  // The preview: hexes of grass and the mage on them, turning.
+  // The preview: a patch of grass and the mage on it, turning, as the world draws them.
   const canvas = root.querySelector<HTMLCanvasElement>(".create-preview canvas")!;
   const box = root.querySelector<HTMLElement>(".create-preview")!;
-  const pixels = new PixelRenderer(canvas, DOMINARIA, () => ({ width: box.clientWidth || 220, height: box.clientHeight || 280 }));
-  pixels.camera.zoom = 2;
-  pixels.camera.updateProjectionMatrix();
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#1d2127");
-  const prism = new THREE.CylinderGeometry(HEX_SIZE * 1.004, HEX_SIZE * 1.004, 0.5, 6, 1, false, Math.PI / 2);
-  const grass = celMaterial({ color: "#43722c", outlined: false, ground: true });
-  for (const h of spiral({ q: 0, r: 0 }, 1)) {
-    const tile = new THREE.Mesh(prism, grass);
-    const { x, z } = toWorld(h);
-    tile.position.set(x, -0.25, z);
-    tile.receiveShadow = true;
-    scene.add(tile);
-  }
-  lightOutdoors(scene, 4);
-  let mage = Character.player("You", { body, palette, identity: [color], slots: {} });
-  scene.add(mage.root);
+  const pixels = new PixelRenderer(canvas, { ...THREE_QUARTER, scale: 4 }, () => ({ width: box.clientWidth || 220, height: box.clientHeight || 280 }));
+  const tiles: TileData[] = Array.from({ length: 32 * 32 }, () => [0, "grass", 0] as TileData);
+  const patch: ChunkData = { cx: 0, cz: 0, tiles, props: [], buildings: [], npcs: [], spawns: [], chests: [], entrances: [], waymarkers: [] };
+  const lawn = { size: [32, 32], chunk: 32, tile: 1, regions: [], towns: [], inns: [], dungeons: [], roads: [], ferries: [], pitches: [], zones: { cell: 16, cols: 0, rows: 0, areas: [], grid: [] }, overview: { cell: 8, legend: {}, rows: [] } } as unknown as WorldData;
+  const place = assembleWorld(lawn, [patch]).place;
+  pixels.focus.set(16, 1.0, 16.5);
+  let mage = new Figure(playerFigure({ body, palette, identity: color, slots: {} }));
+  const stand = (f: Figure) => {
+    f.root.position.set(16, 0, 16.5);
+    f.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
+    place.addFigure(f.root);
+  };
+  stand(mage);
   const restyle = () => {
-    scene.remove(mage.root);
-    mage.dispose();
-    mage = Character.player("You", { body, palette, identity: [color], slots: {} });
-    scene.add(mage.root);
+    place.removeFigure(mage.root);
+    mage = new Figure(playerFigure({ body, palette, identity: color, slots: {} }));
+    stand(mage);
     root.querySelector<HTMLElement>("[data-hint=color]")!.textContent = `Your home is ${COLORS.find((c) => c.color === color)!.home}; every mage begins in New Benalia.`;
   };
   let running = true;
   const clock = new THREE.Clock();
+  let time = 0;
   const spin = () => {
     if (!running) return;
     const seconds = Math.min(clock.getDelta(), 0.1);
-    mage.root.rotation.y += seconds * 0.8;
-    mage.animate(seconds, false);
-    pixels.lookAt(new THREE.Vector3(0, 1.1, 0));
-    pixels.render(scene);
+    time += seconds;
+    mage.face(Math.sin(time * 0.8), Math.cos(time * 0.8));
+    mage.update(seconds, 0);
+    const view = pixels.view;
+    mage.setLean((25 * Math.PI) / 180, view.pitch, view.yaw);
+    place.update(time, view.yaw, view.yaw);
+    pixels.resize();
+    pixels.render(place.scene);
     requestAnimationFrame(spin);
   };
 
@@ -103,15 +105,15 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
       host.appendChild(button);
     });
   };
-  group("body", BODIES, (b, el) => (el.textContent = BODY_NAMES[b]), (b) => (body = b), (b) => b);
+  group("body", BODIES, (b, el) => (el.textContent = BODY_LABELS[b]), (b) => (body = b), (b) => b);
   group(
     "palette",
-    SKIN_PALETTES.map((_, i) => i),
+    SKINS.map((_, i) => i),
     (i, el) => {
-      const p = SKIN_PALETTES[i]!;
+      const p = SKINS[i]!;
       el.title = p.name;
       el.className = "swatch";
-      el.style.background = `linear-gradient(135deg, ${p.skin} 55%, ${p.hair} 55%)`;
+      el.style.background = `linear-gradient(135deg, ${css(p.skin[4]!)} 55%, ${css(p.hair[3]!)} 55%)`;
     },
     (i) => (palette = i),
     (i) => String(i),
@@ -123,7 +125,7 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
       el.className = "color";
       el.innerHTML = `<span class="pip pip-${c.color.toLowerCase()}"></span>`;
       el.append(c.name);
-      el.style.setProperty("--cloth", CLOTH[c.color].cloth);
+      el.style.setProperty("--cloth", css(IDENTITY[c.color][3]!));
     },
     (c) => (color = c.color),
     (c) => c.color,

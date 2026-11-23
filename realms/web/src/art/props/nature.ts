@@ -841,7 +841,7 @@ function fruit(b: MeshBuilder, x: number, y: number, z: number, rx: number, ry: 
   if (FAR) return;
   const random = seeded(seed * 31 + 7);
   const colors = [C.RED[3]!, C.RED[4]!, C.GOLD[4]!];
-  for (let k = 0; k < 11; k++) {
+  for (let k = 0; k < 8; k++) {
     const a = (random() - 0.5) * Math.PI * 1.6;
     const e = (random() - 0.3) * 1.1;
     const fx = x + Math.sin(a) * Math.cos(e) * rx;
@@ -869,7 +869,7 @@ tree(
 prop(
   "tree-platform",
   "an elfhame's platform: a ring of planks round a great tree's trunk at x, z, args.height up (2.5), on struts, a railing round it and a ladder up its south side",
-  { category: "tree", biomes: ["llanowar"], footprint: centred(1, 1), sample: { args: { height: 2.5 } } },
+  { category: "street", biomes: ["llanowar"], footprint: centred(1, 1), sample: { args: { height: 2.5 } } },
   (b, p) => {
     const h = num(p, "height", 2.5);
     const { x, z } = p;

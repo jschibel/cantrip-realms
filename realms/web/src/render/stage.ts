@@ -124,7 +124,7 @@ export class Stage {
   private readonly spots: Spots;
   /** On a manual clock streaming builds a fixed number of steps a frame (tests); else milliseconds' worth. */
   manual: boolean;
-  private readonly playerSpec: FigureSpec;
+  private playerSpec: FigureSpec;
   private readonly playerRandom: () => number;
 
   constructor(canvas: HTMLCanvasElement, o: StageOptions) {
@@ -150,6 +150,20 @@ export class Stage {
     a.floor = spot.floorAt ?? null;
     if (spot.floorAt) a.place(tile);
     return a;
+  }
+
+  /** Dresses the player anew (gear put on or taken off): the same place, tile, spot and facing, a new figure. */
+  dress(spec: FigureSpec): void {
+    this.playerSpec = spec;
+    const was = this.player;
+    const next = this.makePlayer(was.tile, this.current);
+    next.speed = was.speed;
+    next.position.copy(was.position);
+    next.figure.root.position.copy(was.position);
+    next.figure.face(Math.sin(was.figure.facing), Math.cos(was.figure.facing));
+    this.current.place.removeFigure(was.figure.root);
+    this.current.place.addFigure(next.figure.root);
+    this.player = next;
   }
 
   /** A place's view: the rig's, for the place. */
@@ -251,6 +265,7 @@ export class Stage {
   startDoor(door: StageDoor): void {
     this.pendingDoor = null;
     this.rig.halt();
+    this.player.figure.act("interact");
     this.player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
     this.transition = { door, from: this.renderer.view, t: 0, phase: "in", focusFrom: this.focus.clone(), arrival: null };
     const from = this.current;

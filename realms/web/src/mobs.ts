@@ -2,11 +2,13 @@
 // models. A map may name a mob whose file the server's content has not written yet; such a mob is shown with a look
 // guessed from its id - a stand-in for display only, never for anything of value, which the server owns.
 
-import type { MobModel } from "./character";
+import type { MobModel } from "./art/figures";
 
 export interface MobInfo {
   readonly id: string;
   readonly name: string;
+  /** The card the mob is (its file's `creature`): it picks the figure's variations with the id (art/figures/mobs.ts). */
+  readonly creature: string;
   readonly tier: number;
   readonly prize: number;
   readonly goldRange: readonly [number, number];
@@ -19,6 +21,7 @@ export interface MobInfo {
 interface MobFile {
   readonly id: string;
   readonly name: string;
+  readonly creature?: string;
   readonly tier: number;
   readonly prize: number;
   readonly goldRange: readonly [number, number];
@@ -46,11 +49,11 @@ function guess(id: string): MobInfo {
   const name = id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const found = GUESSES.find(([pattern]) => pattern.test(id));
   const [mesh, palette, size] = found ? [found[1], found[2], found[3]] : ["humanoid", ["#8c909c", "#7a1f24", "#4a3122"] as const, undefined];
-  return { id, name, tier: 1, prize: 100, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
+  return { id, name, creature: name, tier: 1, prize: 100, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
 }
 
 export function mobInfo(id: string): MobInfo {
   const file = byId.get(id);
   if (!file) return guess(id);
-  return { ...file, boss: file.boss ?? false, known: true };
+  return { ...file, creature: file.creature ?? file.name, boss: file.boss ?? false, known: true };
 }

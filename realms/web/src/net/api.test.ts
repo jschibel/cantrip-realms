@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
-import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/content";
+import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/realm";
 import { MockApi, travelersAt } from "./mockApi";
 
 describe("HttpApi", () => {
@@ -30,7 +30,7 @@ describe("HttpApi", () => {
     // As Cantrip.Realms.Server's CharacterView serialises (interfaces.md, the Character bullet).
     const plate = { Id: "padded-jerkin", Name: "Padded Jerkin", Slot: "body", Rarity: "common", Gold: 300, Stats: { Life: 3, Hand: 0, MaxHand: 0 }, Effects: [], Text: "", Look: { Mesh: "armor", Palette: ["#8a6a43", "#5a4630"], Size: null }, Unique: false, Emblem: null };
     const sent = {
-      Id: "dev-1", Name: "Ann", Body: "broad", Palette: 2, Identity: "WU", Gold: 2000, AnteValue: 150, Space: "world", Q: 311, R: 325,
+      Id: "dev-1", Name: "Ann", Body: "broad", Palette: 2, Identity: "WU", Gold: 2000, AnteValue: 150, Space: "world", X: 311, Z: 325,
       Stats: { Life: 23, Hand: 7, MaxHand: 7 },
       Loadout: { head: null, neck: null, body: { InstanceId: 4, Gear: plate }, hands: null, feet: null, ring1: null, ring2: null, relic: null },
       Gear: [{ InstanceId: 4, Gear: plate }],
@@ -64,7 +64,7 @@ describe("MockApi", () => {
   it("starts a character with the kit of design.md A1 outside the start town's inn", async () => {
     const me = (await make().me())!;
     const inn = innOf(WORLD.towns.find((t) => t.kind === "capital")!.id);
-    expect(me).toMatchObject({ Name: "Tester", Identity: "B", Gold: 2000, Space: "world", Q: inn.q, R: inn.r });
+    expect(me).toMatchObject({ Name: "Tester", Identity: "B", Gold: 2000, Space: "world", X: inn.x, Z: inn.z });
     expect(Object.values(me.Loadout).filter((worn) => worn)).toHaveLength(3);
   });
 
@@ -102,10 +102,10 @@ describe("MockApi", () => {
     const api = make();
     const dungeon = [...DUNGEONS.values()].find((d) => !d.requires && d.floors[0] >= 2)!;
     await expect(api.enterDungeon({ Dungeon: dungeon.id })).rejects.toMatchObject({ code: "NotNear" });
-    await api.position({ Space: "world", Q: dungeon.entrance[0], R: dungeon.entrance[1] });
+    await api.position({ Space: "world", X: dungeon.entrance[0], Z: dungeon.entrance[1] });
     const run = await api.enterDungeon({ Dungeon: dungeon.id });
     expect(run.Floors.length).toBeGreaterThanOrEqual(dungeon.floors[0]);
-    expect((await api.me())!).toMatchObject({ Space: `run:${run.Run}`, Q: 0, R: 0 });
+    expect((await api.me())!).toMatchObject({ Space: `run:${run.Run}`, X: 0, Z: 0 });
     const first = run.Floors[0]!;
     expect(first.Warden).toBe(dungeon.warden);
     expect(run.Floors.at(-1)!.Boss).toBe(dungeon.boss);
@@ -117,14 +117,14 @@ describe("MockApi", () => {
     await api.leaveDungeon({ Run: run.Run });
     const out = (await api.me())!;
     expect(out.Space).toBe("world");
-    expect(Math.max(Math.abs(out.Q - dungeon.entrance[0]), Math.abs(out.R - dungeon.entrance[1]))).toBeLessThanOrEqual(1);
+    expect(Math.max(Math.abs(out.X - dungeon.entrance[0]), Math.abs(out.Z - dungeon.entrance[1]))).toBeLessThanOrEqual(1);
   });
 
   it("attunes a mage tower when its mage is beaten, and travels between attuned waystones", async () => {
     const towers = [...DUNGEONS.values()].filter((d) => d.waystone && d.floors[1] === 1);
     const [tower, other] = [towers[0]!, [...DUNGEONS.values()].find((d) => d.waystone && d.id !== towers[0]!.id)!];
     const api = new MockApi(7, { name: "Tester", body: "lithe", palette: 0, color: "W" }, [other.id]);
-    await api.position({ Space: "world", Q: tower.entrance[0], R: tower.entrance[1] });
+    await api.position({ Space: "world", X: tower.entrance[0], Z: tower.entrance[1] });
     await expect(api.waystone({ Tower: other.id })).rejects.toMatchObject({ code: "NotAttuned" });
     const run = await api.enterDungeon({ Dungeon: tower.id });
     const top = run.Floors[0]!;
@@ -135,7 +135,7 @@ describe("MockApi", () => {
     await api.leaveDungeon({ Run: run.Run });
     const { Place } = await api.waystone({ Tower: other.id });
     expect(Place.Space).toBe("world");
-    expect(Math.max(Math.abs(Place.Q - other.entrance[0]), Math.abs(Place.R - other.entrance[1]))).toBeLessThanOrEqual(1);
+    expect(Math.max(Math.abs(Place.X - other.entrance[0]), Math.abs(Place.Z - other.entrance[1]))).toBeLessThanOrEqual(1);
   });
 });
 

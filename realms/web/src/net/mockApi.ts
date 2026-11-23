@@ -2,11 +2,11 @@
 // chests that behave as interfaces.md says the server's do, so the whole overworld can be played and tested with no
 // server. Nothing here is the economy - the server owns that - and the cards and gear in it are a small stand-in set.
 
-import type { Body, ManaColor, Slot } from "../character";
-import { distance, hex } from "../hex";
+import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
 import { mobInfo } from "../mobs";
 import { mulberry32 } from "../random";
-import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown } from "../world/content";
+import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
+import type { DungeonData } from "../world/format";
 
 const INNS = WORLD.inns;
 
@@ -173,8 +173,8 @@ export class MockApi implements RealmApi {
       Gold: 2000,
       AnteValue: 0,
       Space: "world",
-      Q: inn.q,
-      R: inn.r,
+      X: inn.x,
+      Z: inn.z,
       Stats: { Life: 20 + 3 + 2, Hand: 7, MaxHand: 7 + 1 },
       Loadout: { head: owned[0], neck: null, body: owned[1], hands: null, feet: owned[2], ring1: null, ring2: null, relic: null },
       Gear: owned,
@@ -360,7 +360,7 @@ export class MockApi implements RealmApi {
       // A lost duel ends any run, and the character wakes at the inn of their home town.
       if (encounter.run) this.runs.get(encounter.run.id)!.live = false;
       const inn = innOf(this.inn ?? startTown().id);
-      this.update({ Space: "world", Q: inn.q, R: inn.r });
+      this.update({ Space: "world", X: inn.x, Z: inn.z });
     }
     return encounter.result;
   }
@@ -390,7 +390,7 @@ export class MockApi implements RealmApi {
 
   async position(body: Place): Promise<void> {
     this.log("position", body);
-    if (this.character) this.update({ Space: body.Space, Q: body.Q, R: body.R });
+    if (this.character) this.update({ Space: body.Space, X: body.X, Z: body.Z });
   }
 
   async setInn(): Promise<{ Inn: string }> {
@@ -415,7 +415,7 @@ export class MockApi implements RealmApi {
     const dungeon = DUNGEONS.get(body.Dungeon);
     if (!dungeon) throw new ApiError(404, "NotThere", `No dungeon ${body.Dungeon}.`);
     if (dungeon.requires && ![...dungeon.requires].every((l) => c.Identity.includes(l))) throw new ApiError(409, "Locked", `${dungeon.name} is sealed.`);
-    if (c.Space !== "world" || distance(hex(c.Q, c.R), hex(dungeon.entrance[0], dungeon.entrance[1])) > 2) throw new ApiError(409, "NotNear", `You are not at ${dungeon.name}.`);
+    if (c.Space !== "world" || tilesApart([c.X, c.Z], dungeon.entrance) > 1) throw new ApiError(409, "NotNear", `You are not at ${dungeon.name}.`);
     const between = (low: number, high: number) => low + Math.floor(this.random() * (high - low + 1));
     const count = between(dungeon.floors[0], dungeon.floors[1]);
     const lists = Array.isArray(dungeon.mobs[0]) ? (dungeon.mobs as string[][]) : [dungeon.mobs as string[]];
@@ -431,7 +431,7 @@ export class MockApi implements RealmApi {
     const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors };
     for (const other of this.runs.values()) other.live = false;
     this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
-    this.update({ Space: `run:${id}`, Q: 0, R: 0 });
+    this.update({ Space: `run:${id}`, X: 0, Z: 0 });
     return run;
   }
 
@@ -450,21 +450,28 @@ export class MockApi implements RealmApi {
     if (!live) throw new ApiError(404, "NotThere", "No such run.");
     live.live = false;
     const d = DUNGEONS.get(live.dungeon)!;
-    const out = await besideEntrance(hex(d.entrance[0], d.entrance[1]));
-    this.update({ Space: "world", Q: out.q, R: out.r });
+    const [x, z] = await besideEntrance(d.entrance);
+    this.update({ Space: "world", X: x, Z: z });
+  }
+
+  /** Whether a tile is at a tower's waystone, as the server reckons it: beside its entrance, or beside the stone. */
+  private async atWaystone(at: readonly [number, number], tower: DungeonData): Promise<boolean> {
+    if (tilesApart(at, tower.entrance) <= 1) return true;
+    return (await waystoneTiles(tower)).some((w) => tilesApart(at, w) <= 1);
   }
 
   async waystone(body: { Tower: string }): Promise<{ Place: Place }> {
     this.log("waystone", body);
     const c = this.need();
-    const here = [...DUNGEONS.values()].find((d) => d.waystone && c.Space === "world" && distance(hex(c.Q, c.R), hex(d.entrance[0], d.entrance[1])) <= 1);
+    let here: DungeonData | undefined;
+    for (const d of DUNGEONS.values()) if (!here && d.waystone && c.Space === "world" && (await this.atWaystone([c.X, c.Z], d))) here = d;
     if (!here) throw new ApiError(409, "NotNear", "You are not at a waystone.");
     const there = DUNGEONS.get(body.Tower);
     if (!there?.waystone) throw new ApiError(404, "NotThere", "No such tower.");
     if (!this.attuned.includes(here.id) || !this.attuned.includes(there.id)) throw new ApiError(409, "NotAttuned", "That waystone is not attuned to you.");
-    const out = await besideEntrance(hex(there.entrance[0], there.entrance[1]));
-    const place = { Space: "world", Q: out.q, R: out.r };
-    this.update({ Space: "world", Q: place.Q, R: place.R });
+    const [x, z] = await besideEntrance(there.entrance);
+    const place = { Space: "world", X: x, Z: z };
+    this.update(place);
     return { Place: place };
   }
 

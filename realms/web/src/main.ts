@@ -3,7 +3,7 @@ import "./style.css";
 import "./theme.css";
 import { CardLayer, type CardScreens } from "./cardLayer";
 import { StubCardLayer } from "./cardStub";
-import { BODIES, type Body, type ManaColor } from "./character";
+import { BODY_NAMES, type BodyName as Body, type ManaColor } from "./art/figures";
 import { Overworld, type Start } from "./game";
 import { bindInput } from "./input";
 import { HttpApi, type RealmApi } from "./net/api";
@@ -13,8 +13,8 @@ import { HEADING_NAMES, type Zoom } from "./render/camera";
 import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
 import { publishTestHooks } from "./testHooks";
-import { DUNGEONS } from "./world/content";
 import { type WorldSource, globSource, loadWorld } from "./world/load";
+import { DOMINARIA, DUNGEONS } from "./world/realm";
 
 // The overworld page (tech.md, B5-B6), drawn by the renderer's stage (render/stage.ts) over a version-2 world. Its
 // query says where everything comes from:
@@ -22,8 +22,8 @@ import { type WorldSource, globSource, loadWorld } from "./world/load";
 //                   MockApi and presence goes between this browser's tabs.
 //   ?cards=<url>    the card layer to frame (also VITE_CARD_LAYER_URL); "stub" for the stand-in panels, which offline
 //                   play uses unless told otherwise. It is told the realm server (its ?api=), which it calls itself.
-//   ?world=slice|large   which version-2 world: the slice's street (fixtures/slice-world, the default until the
-//                   generated Domains are written in version 2) or the renderer's large synthetic one.
+//   ?world=slice|large   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
+//                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
 //   ?test           publishes globalThis.realmTest; ?manual holds the clock until a test advances it.
 // and, for development and tests, forces a state rather than waiting on chance:
 //   ?at=world:x,z | <town> | <interior>  start there (a town at its middle); ?heading=left|front|right, ?zoom=0..2;
@@ -41,7 +41,9 @@ const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 void boot();
 
 async function worldSource(): Promise<WorldSource> {
-  if (query.get("world") === "large") return (await import("../fixtures/large-world/source")).largeSource();
+  const which = query.get("world");
+  if (which === "large") return (await import("../fixtures/large-world/source")).largeSource();
+  if (which !== "slice") return DOMINARIA;
   return globSource(
     () => import("../fixtures/slice-world/world.json"),
     import.meta.glob("../fixtures/slice-world/chunks/*.json", { import: "default" }),
@@ -57,7 +59,7 @@ async function boot(): Promise<void> {
 
   const preset = query.get("name");
   const color = (query.get("color") ?? "W").toUpperCase() as ManaColor;
-  const body = (BODIES as readonly string[]).includes(query.get("body") ?? "") ? (query.get("body") as Body) : "lithe";
+  const body = (BODY_NAMES as readonly string[]).includes(query.get("body") ?? "") ? (query.get("body") as Body) : "lithe";
   const attuned = (query.get("attuned") ?? "").split(",").filter((t) => DUNGEONS.get(t)?.waystone);
   const api: RealmApi = offline
     ? new MockApi(1, preset ? { name: preset, body, palette: Number(query.get("palette") ?? 0) % 6, color } : undefined, attuned)
@@ -94,6 +96,7 @@ async function boot(): Promise<void> {
     },
     source,
     world,
+    source === DOMINARIA ? DUNGEONS : new Map(),
   );
   const start = parseAt(query.get("at"), world.towns);
   // The start is the game's to make; input binds to its stage once it stands.

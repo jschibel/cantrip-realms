@@ -2,7 +2,7 @@
 // shapes, PascalCase as on the wire, and an HTTP client. `MockApi` (mockApi.ts) is the same API in memory, for
 // playing and testing the overworld with no server (?offline).
 
-import type { Body, ManaColor, Slot } from "../character";
+import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
 
 export type GearSlot = "head" | "neck" | "body" | "hands" | "feet" | "ring" | "relic";
 export type Rarity = "common" | "uncommon" | "rare" | "mythic";
@@ -18,7 +18,7 @@ export interface Gear {
   /** The item's abilities, as its file has them (camelCase): the gear crate's to read. */
   readonly Effects: readonly Record<string, unknown>[];
   readonly Text: string;
-  /** How it shows on a character: a gear mesh of realms/content/models and its palette. */
+  /** How it shows on a character: a gear part of art/figures/gear.ts and its palette. */
   readonly Look: { readonly Mesh: string; readonly Palette: readonly string[] };
   readonly Unique: boolean;
   /** The engine's emblem for the item, `"<name> (gear)"`, or null for an item with no effects. */
@@ -45,8 +45,9 @@ export interface Character {
   readonly AnteValue: number;
   /** The space of the character's place (interfaces.md, "Places"): "world", an interior's id, or "run:<run>". */
   readonly Space: string;
-  readonly Q: number;
-  readonly R: number;
+  /** The tile the character stands on in its space (x east, z south). */
+  readonly X: number;
+  readonly Z: number;
   readonly Stats: { readonly Life: number; readonly Hand: number; readonly MaxHand: number };
   /** What each of the eight slots holds, null when empty. */
   readonly Loadout: Readonly<Partial<Record<Slot, GearInstance | null>>>;
@@ -133,8 +134,8 @@ export interface EncounterResult {
 /** A place (interfaces.md, "Places"). */
 export interface Place {
   readonly Space: string;
-  readonly Q: number;
-  readonly R: number;
+  readonly X: number;
+  readonly Z: number;
 }
 
 /** A dungeon run's floor: its encounters, its warden and boss (null where it has none). */

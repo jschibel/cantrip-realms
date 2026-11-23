@@ -124,6 +124,8 @@ export class PixelRenderer {
   constructor(
     readonly canvas: HTMLCanvasElement,
     view: View,
+    /** The size to fill, in CSS pixels: the window's by default (the game, the galleries); a box's for a preview. */
+    readonly area?: () => { readonly width: number; readonly height: number },
   ) {
     this.view = view;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
@@ -170,8 +172,9 @@ export class PixelRenderer {
 
   /** Fits the target to the window at the view's zoom: an even number of scene pixels each way, the canvas over them. */
   resize(): void {
-    const cssWidth = window.innerWidth;
-    const cssHeight = window.innerHeight;
+    const box = this.area?.();
+    const cssWidth = box?.width ?? window.innerWidth;
+    const cssHeight = box?.height ?? window.innerHeight;
     const scale = this.view.scale;
     const even = (n: number) => Math.max(2, Math.ceil(n / 2) * 2);
     const width = even(cssWidth / scale);
@@ -188,6 +191,7 @@ export class PixelRenderer {
     const shownHeight = height * scale;
     this.canvas.style.width = `${shownWidth}px`;
     this.canvas.style.height = `${shownHeight}px`;
+    if (box) return;
     this.canvas.style.left = `${Math.round((cssWidth - shownWidth) / 2)}px`;
     this.canvas.style.top = `${Math.round((cssHeight - shownHeight) / 2)}px`;
   }

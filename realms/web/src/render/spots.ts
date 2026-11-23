@@ -3,7 +3,7 @@ import { figureSpec } from "../art/figures";
 import { namedPalette } from "../art/paint/palette";
 import { seeded } from "../art/paint/pixmap";
 import type { ChunkData, InteriorData, NpcData, Rect, WorldData, XZ } from "../world/format";
-import { frontStep, viewBounds } from "../world/format";
+import { OBJECT_KINDS, frontStep, viewBounds } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
 import { type WorldSource, gridOfInterior, loadInterior } from "../world/load";
 import { Actor, behaviourOf } from "./actor";
@@ -18,7 +18,7 @@ import type { Arrival, Spot, Spots, StageDoor } from "./stage";
 
 /** The figure an NPC is drawn as: its look, its manner and its pace, as the data says. */
 export function npcActor(n: NpcData, grid: Grid, floor: ((x: number, z: number) => number) | null = null): Actor {
-  const spec = figureSpec(n.figure ?? "townswoman", n.palette ? namedPalette(n.palette) : undefined);
+  const spec = figureSpec(n.figure ?? "townswoman", n.palette ? namedPalette(n.palette) : undefined, n.seed ?? 0);
   const a = new Actor(spec, { x: n.x, z: n.z }, grid, behaviourOf(n.behaviour), n.name ?? n.id, n.seed !== undefined ? seeded(n.seed) : Math.random);
   a.floor = floor;
   if (floor) a.place({ x: n.x, z: n.z });
@@ -46,7 +46,7 @@ export class StreamedWorld implements Spot {
     readonly title: string,
     readonly start: Tile,
     /** Makes the figures of a chunk's NPCs (none: the page stands its own). */
-    private readonly peopleOf: ((chunk: ChunkData, grid: Grid, floor: (x: number, z: number) => number) => Actor[]) | null = (c, g, f) => c.npcs.map((n) => npcActor(n, g, f)),
+    private readonly peopleOf: ((chunk: ChunkData, grid: Grid, floor: (x: number, z: number) => number) => Actor[]) | null = (c, g, f) => c.npcs.filter((n) => !OBJECT_KINDS.has(n.kind)).map((n) => npcActor(n, g, f)),
   ) {
     this.bounds = viewBounds(world);
     this.place = openAir(world, start.x, start.z, 40);
@@ -86,7 +86,7 @@ export class StreamedWorld implements Spot {
 export function roomSpot(room: InteriorData, outTo: string): Spot {
   const built = assembleInterior(room);
   const grid = gridOfInterior(room);
-  const actors = room.npcs.map((n) => npcActor(n, grid));
+  const actors = room.npcs.filter((n) => !OBJECT_KINDS.has(n.kind)).map((n) => npcActor(n, grid));
   for (const a of actors) built.place.addFigure(a.figure.root);
   const doors: StageDoor[] = [{ name: `door:${outTo}`, tile: { x: room.entry[0], z: room.entry[1] }, step: [0, 1], to: outTo, at: new THREE.Vector3(...built.doorway), kind: "leave" }];
   return { id: room.id, title: room.name, inside: true, turns: true, place: built.place, grid, doors, actors, start: { x: room.entry[0], z: room.entry[1] - 1 }, bounds: built.bounds };
