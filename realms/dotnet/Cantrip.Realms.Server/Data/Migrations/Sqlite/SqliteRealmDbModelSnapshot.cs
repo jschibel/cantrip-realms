@@ -258,16 +258,16 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("PlacedAt")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Q")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("R")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Space")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("X")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Z")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

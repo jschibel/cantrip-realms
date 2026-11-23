@@ -19,7 +19,7 @@ public sealed class Chests(RealmDb db, RealmContent content, Characters characte
             throw Refusal.NotFound(Codes.NoSuchPlace, "There is no such chest.");
         }
 
-        if (row.Space != space.Id || new Hex(row.Q, row.R).DistanceTo(chest.At) > 1)
+        if (row.Space != space.Id || new Tile(row.X, row.Z).DistanceTo(chest.At) > 1)
         {
             throw Refusal.Conflict(Codes.NotNear, "You are not at that chest.");
         }

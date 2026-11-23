@@ -406,7 +406,7 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         PlayerRow row = await characters.Require(player).ConfigureAwait(false);
         if (vendor.File.Trader is { } round)
         {
-            string? here = row.Space == RealmContent.WorldSpace ? content.TownAt(new Hex(row.Q, row.R))?.Id : content.Interiors.GetValueOrDefault(row.Space)?.Town?.Id;
+            string? here = row.Space == RealmContent.WorldSpace ? content.TownAt(new Tile(row.X, row.Z))?.Id : content.Interiors.GetValueOrDefault(row.Space)?.Town?.Id;
             if (Travelers.Current(round, Now) is not { } visit || visit.Town != here)
             {
                 throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name}'s caravan is not in your town now.");

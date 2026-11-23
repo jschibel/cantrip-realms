@@ -22,7 +22,7 @@ namespace Cantrip.Realms.Server;
 /// REALMS_START_TOWN              the town new characters start in, at its inn; new-benalia by default
 /// REALMS_PLACES                  where each plane's world, interiors and dungeons are read from instead of
 ///                                realms/content (a folder of &lt;plane&gt;/world, ...): a test world
-/// REALMS_WALKING_SPEED           the fastest walk presence relays, in hexes a second; 4 by default
+/// REALMS_WALKING_SPEED           the fastest walk presence relays, in tiles a second; 5 by default
 /// REALMS_INSTANCE_SIZE           the most players in one layer of an area of the world, or one instance of an interior;
 ///                                40 by default (design.md A6)
 /// CANTRIP_NATIVE_HOST            the native engine host that checks duels (cantrip-rs's own setting)
@@ -61,8 +61,14 @@ public sealed class RealmOptions
     /// <summary>Where the planes' world, interiors and dungeons are read from instead of realms/content; null for there.</summary>
     public string? Places { get; init; }
 
-    /// <summary>The fastest a character walks, in hexes a second: presence refuses a faster walk.</summary>
-    public double WalkingSpeed { get; init; } = 4.0;
+    /// <summary>
+    /// The fastest a character walks, in tiles a second along the walk (a diagonal step the square root of 2): presence refuses a
+    /// faster walk, and a reported place farther than this allows.
+    /// </summary>
+    public double WalkingSpeed { get; init; } = DefaultWalkingSpeed;
+
+    /// <summary>The walking speed unless set: above the overworld's (the slice walks the player at 4.2 tiles a second).</summary>
+    public const double DefaultWalkingSpeed = 5.0;
 
     /// <summary>The most players one layer of an area of the world, or one instance of an interior, holds (design.md A6).</summary>
     public int InstanceSize { get; init; } = 40;
@@ -85,7 +91,7 @@ public sealed class RealmOptions
             Cards = Setting("CARDS") is { } cards ? new Uri(cards) : null,
             DevSignIn = Setting("DEV_SIGNIN") is "1" or "true",
             Migrate = Setting("MIGRATE") is not ("0" or "false"),
-            WalkingSpeed = Setting("WALKING_SPEED") is { } speed ? double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture) : 4.0,
+            WalkingSpeed = Setting("WALKING_SPEED") is { } speed ? double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture) : DefaultWalkingSpeed,
             InstanceSize = Setting("INSTANCE_SIZE") is { } size ? int.Parse(size, System.Globalization.CultureInfo.InvariantCulture) : 40,
             StartTown = Setting("START_TOWN") ?? "new-benalia",
             Places = Setting("PLACES"),

@@ -15,10 +15,10 @@ public sealed class PlacesTests
 {
     private const string World = RealmContent.WorldSpace;
 
-    private static async Task<CharacterView> At(Browser browser, string space, Hex at)
+    private static async Task<CharacterView> At(Browser browser, string space, Tile at)
     {
         CharacterView me = await browser.Me();
-        Assert.Equal((space, at), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((space, at), (me.Space, new Tile(me.X, me.Z)));
         return me;
     }
 
@@ -27,26 +27,33 @@ public sealed class PlacesTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Put(World, new Hex(40, 40));
+        await browser.Put(World, new Tile(40, 40));
 
-        // A step, at once (within the slack), is taken; ten hexes at once are not, but are after the walk's time.
-        await browser.Position(World, new Hex(42, 40));
-        await At(browser, World, new Hex(42, 40));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = 52, R = 40 }, HttpStatusCode.Conflict, Codes.NoWay);
+        // A step, at once (within the slack of 2 tiles), is taken, diagonally as well; ten tiles at once are not, but are after
+        // the walk's time (5 tiles a second). Tiles apart are counted by the most of the two axes: (42, 42) is 2 from (40, 40).
+        await browser.Position(World, new Tile(42, 40));
+        await At(browser, World, new Tile(42, 40));
+        await browser.Position(World, new Tile(40, 42));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 50, Z = 49 }, HttpStatusCode.Conflict, Codes.NoWay);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 52, Z = 40 }, HttpStatusCode.Conflict, Codes.NoWay);
         app.Time.Advance(TimeSpan.FromSeconds(2));
-        await browser.Position(World, new Hex(52, 40));
-        await At(browser, World, new Hex(52, 40));
+        await browser.Position(World, new Tile(52, 40));
+        await At(browser, World, new Tile(52, 40));
 
-        // The rock, off the world's edge, and a place that is none.
-        await browser.Put(World, new Hex(25, 5));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = 26, R = 5 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await browser.Put(World, new Hex(0, 0));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = -1, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "benalish-meadow", Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await At(browser, World, new Hex(0, 0));
+        // The rock, off the world's edge, and a place that is none; and the west chunks, at negative x, walked into.
+        await browser.Put(World, new Tile(25, 5));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 26, Z = 5 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Put(World, new Tile(0, 0));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 0, Z = -1 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "benalish-meadow", X = 0, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await At(browser, World, new Tile(0, 0));
+        await browser.Position(World, new Tile(-2, 1));
+        await At(browser, World, new Tile(-2, 1));
+        await browser.Put(World, new Tile(-32, 0));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = -33, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
     }
 
-    [Fact]
+    [GeneratedWorldFact]
     public async Task On_the_generated_world_a_character_starts_outside_new_benalias_inn_walks_and_goes_in()
     {
         // The server as it starts with no REALMS_PLACES: the Domains, realms/content/dominaria/world.
@@ -58,12 +65,13 @@ public sealed class PlacesTests
         Assert.Equal(start.Id, me.Inn);
 
         // A step along the street, and in through the inn's door, which is beside where they stand.
-        Hex step = Hex.Directions.Select(d => new Hex(start.At.Q + d.Q, start.At.R + d.R)).First(h => content.World.Walkable(h) && !content.World.Doors.ContainsKey(h));
+        Tile step = Tile.Steps.Select(start.At.Plus).First(tile => content.World.CanStep(start.At, tile) && !content.World.Doors.ContainsKey(tile));
         await browser.Position(World, step);
         await browser.Position(World, start.At);
         RealmInterior inn = content.Interiors[start.Id];
         Assert.Equal("new-benalia", inn.Town?.Id);
-        Hex inside = Enumerable.Range(-4, 9).SelectMany(q => Enumerable.Range(-4, 9).Select(r => new Hex(q, r))).OrderBy(h => h.DistanceTo(new Hex(0, 0))).First(inn.Walkable);
+        Tile entry = inn.File.EntryAt!.Value;
+        Tile inside = inn.Walkable(new Tile(entry.X, entry.Z - 1)) ? new Tile(entry.X, entry.Z - 1) : entry;
         await browser.Position(inn.Id, inside);
         await At(browser, inn.Id, inside);
         await browser.Ok<InnView>(HttpMethod.Post, "/api/inn", new { });
@@ -80,10 +88,10 @@ public sealed class PlacesTests
         // Only with REALMS_DEV_SIGNIN=1 (as RealmApp runs), for the end-to-end suites: POST /dev/place and /dev/verdict.
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Ok<object>(HttpMethod.Post, "/dev/place", new { Space = "benalia-white-goods-shop", Q = 0, R = 0 });
-        await At(browser, "benalia-white-goods-shop", new Hex(0, 0));
-        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = World, Q = 26, R = 5 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = "run:1", Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Ok<object>(HttpMethod.Post, "/dev/place", new { Space = "benalia-white-goods-shop", X = 0, Z = 0 });
+        await At(browser, "benalia-white-goods-shop", new Tile(0, 0));
+        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = World, X = 26, Z = 5 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Refused(HttpMethod.Post, "/dev/place", new { Space = "run:1", X = 0, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
 
         // The fake verifier says every log is a win; a verdict set says otherwise for this player alone, until cleared.
         MapSpawn spawn = RealmApp.SpawnOf(1);
@@ -111,20 +119,20 @@ public sealed class PlacesTests
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         RealmInterior inn = RealmApp.Content.Interiors["new-benalia-inn"];
-        Hex door = inn.Doors[0];
-        Hex exit = inn.File.Exit!.At;
+        Tile door = inn.Doors[0];
+        Tile exit = inn.File.ExitAt!.Value;
 
         // From the street far off, no; from beside its door, in; within the building, a walk; not off its floor.
         await browser.Put(World, RealmApp.Away(door, 3));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = inn.Id, Q = 0, R = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = inn.Id, X = 0, Z = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
         await browser.Put(World, RealmApp.Beside(World, door));
-        await browser.Position(inn.Id, new Hex(0, 0));
-        await browser.Position(inn.Id, new Hex(1, 0));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = inn.Id, Q = 9, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await browser.Position(inn.Id, new Tile(0, 0));
+        await browser.Position(inn.Id, new Tile(1, 0));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = inn.Id, X = 9, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
 
         // Not straight into another building, nor out anywhere but its exit.
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "new-benalia-smithy", Q = 0, R = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = 60, R = 60 }, HttpStatusCode.Conflict, Codes.NoWay);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = "new-benalia-smithy", X = 0, Z = 0 }, HttpStatusCode.Conflict, Codes.NoWay);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 60, Z = 60 }, HttpStatusCode.Conflict, Codes.NoWay);
         await browser.Position(World, exit);
         await At(browser, World, exit);
     }
@@ -137,16 +145,16 @@ public sealed class PlacesTests
         Browser other = await app.Character(2);
         RunView run = await app.EnterRun(browser, "hurloon-caves");
         string space = RealmContent.RunSpace(run.Run);
-        await At(browser, space, new Hex(0, 0));
+        await At(browser, space, new Tile(0, 0));
 
-        // Inside, any hex of the browser's layout; out, only by leaving.
-        await browser.Position(space, new Hex(17, -4));
-        await At(browser, space, new Hex(17, -4));
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, Q = 24, R = 57 }, HttpStatusCode.Conflict, Codes.NoWay);
+        // Inside, any tile of the browser's layout; out, only by leaving.
+        await browser.Position(space, new Tile(17, -4));
+        await At(browser, space, new Tile(17, -4));
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = 24, Z = 57 }, HttpStatusCode.Conflict, Codes.NoWay);
 
         // Another player can't report themselves into it, nor anyone into a run that is none.
-        await other.Refused(HttpMethod.Post, "/api/position", new { Space = space, Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await other.Refused(HttpMethod.Post, "/api/position", new { Space = "run:nothing", Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await other.Refused(HttpMethod.Post, "/api/position", new { Space = space, X = 0, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
+        await other.Refused(HttpMethod.Post, "/api/position", new { Space = "run:nothing", X = 0, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
     }
 
     [Fact]
@@ -154,9 +162,9 @@ public sealed class PlacesTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Put("benalish-meadow", new Hex(3, 3));
-        await browser.Position(World, new Hex(90, 90));
-        await At(browser, World, new Hex(90, 90));
+        await browser.Put("benalish-meadow", new Tile(3, 3));
+        await browser.Position(World, new Tile(90, 90));
+        await At(browser, World, new Tile(90, 90));
     }
 
     [Fact]
@@ -287,7 +295,7 @@ public sealed class DungeonTests
         Assert.Equal("lost", (await RealmApp.Finish(browser, duel.Token)).Outcome);
 
         CharacterView me = await browser.Me();
-        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
         RunRow row = await app.Store(db => db.Runs.AsNoTracking().SingleAsync(stored => stored.Id == run.Run));
         Assert.Equal(RunRow.Ended, row.State);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = first.Encounters.Count, Mob = "warden-2" }, HttpStatusCode.Conflict, Codes.NotThere);
@@ -303,10 +311,10 @@ public sealed class DungeonTests
         await browser.Refused(HttpMethod.Post, "/api/dungeon/leave", new { Run = "nothing" }, HttpStatusCode.NotFound, Codes.NotThere);
         await browser.Ok<object>(HttpMethod.Post, "/api/dungeon/leave", new { run.Run });
 
-        Hex entrance = RealmApp.Content.Dungeons[Caves].File.At;
+        Tile entrance = RealmApp.Content.Dungeons[Caves].File.At;
         CharacterView me = await browser.Me();
         Assert.Equal(World, me.Space);
-        Assert.Equal(1, new Hex(me.Q, me.R).DistanceTo(entrance));
+        Assert.Equal(1, new Tile(me.X, me.Z).DistanceTo(entrance));
         await browser.Refused(HttpMethod.Post, "/api/dungeon/leave", new { run.Run }, HttpStatusCode.Conflict, Codes.NotThere);
 
         // The next run is a new one, from the first floor.
@@ -365,8 +373,8 @@ public sealed class WaystoneTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        Hex benalia = RealmApp.Content.Dungeons["benalia-1"].File.At;
-        Hex tolaria = RealmApp.Content.Dungeons["orvada-2"].File.At;
+        Tile benalia = RealmApp.Content.Dungeons["benalia-1"].File.At;
+        Tile tolaria = RealmApp.Content.Dungeons["orvada-2"].File.At;
 
         await browser.Put(World, RealmApp.Inn("new-benalia").At);
         await browser.Refused(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" }, HttpStatusCode.Conflict, Codes.NotNear);
@@ -383,16 +391,16 @@ public sealed class WaystoneTests
         // Across the world in one call, beside the other tower's door, and walked on from there.
         WaystoneView travelled = await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "orvada-2" });
         Assert.Equal(World, travelled.Place.Space);
-        Hex there = new(travelled.Place.Q, travelled.Place.R);
+        Tile there = new(travelled.Place.X, travelled.Place.Z);
         Assert.Equal(1, there.DistanceTo(tolaria));
         CharacterView me = await browser.Me();
-        Assert.Equal((World, there), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((World, there), (me.Space, new Tile(me.X, me.Z)));
         Assert.Equal(["benalia-1", "orvada-2"], me.Attuned);
-        await browser.Position(World, new Hex(there.Q + 1, there.R));
+        await browser.Position(World, new Tile(there.X + 1, there.Z));
 
         // And back.
         await browser.Put(World, there);
         await browser.Ok<WaystoneView>(HttpMethod.Post, "/api/waystone", new { Tower = "benalia-1" });
-        Assert.Equal(1, new Hex((await browser.Me()).Q, (await browser.Me()).R).DistanceTo(benalia));
+        Assert.Equal(1, new Tile((await browser.Me()).X, (await browser.Me()).Z).DistanceTo(benalia));
     }
 }

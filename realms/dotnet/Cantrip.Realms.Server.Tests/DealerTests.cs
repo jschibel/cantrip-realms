@@ -163,7 +163,7 @@ public sealed class DealerTests
         // Not from another town, nor from the wilds.
         await browser.Put(World, elsewhere.At);
         await browser.Refused(HttpMethod.Get, VendorPath(trader.Id), null, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Put(World, new Hex(120, 120));
+        await browser.Put(World, new Tile(120, 120));
         await browser.Refused(HttpMethod.Get, VendorPath(trader.Id), null, HttpStatusCode.Conflict, Codes.NotNear);
 
         // In its town, in the street or in a building of it: three cards of its plane, leaving when the caravan does.

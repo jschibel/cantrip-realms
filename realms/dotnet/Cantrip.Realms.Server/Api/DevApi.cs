@@ -11,7 +11,7 @@ namespace Cantrip.Realms.Server;
 /// in production: what an end-to-end suite driving a real server needs to arrange that playing would take too long to
 /// reach (realms/docs/interfaces.md, the sign-in bullet).
 /// <list type="bullet">
-/// <item><c>POST /dev/place {Space, Q, R}</c> puts the signed-in character at once on an open hex of the world or an interior,
+/// <item><c>POST /dev/place {Space, X, Z}</c> puts the signed-in character at once on an open tile of the world or an interior,
 /// as a test arranges where it starts; 422 <c>NoSuchPlace</c> for any other.</item>
 /// <item><c>POST /dev/verdict {Outcome}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>, instead
 /// of replaying their logs on the engine, so a stand-in card layer's win counts; <c>null</c> replays them again.</item>
@@ -48,10 +48,10 @@ public static class DevApi
         {
             string player = RealmSignIn.PlayerId(context)!;
             await characters.Require(player).ConfigureAwait(false);
-            var at = new Hex(body.Q, body.R);
+            var at = new Tile(body.X, body.Z);
             if (content.Space(body.Space) is not { } space || !space.Walkable(at))
             {
-                throw Refusal.Unprocessable(Codes.NoSuchPlace, "A character is placed on an open hex of the world or an interior.");
+                throw Refusal.Unprocessable(Codes.NoSuchPlace, "A character is placed on an open tile of the world or an interior.");
             }
 
             await characters.Place(player, space.Id, at).ConfigureAwait(false);

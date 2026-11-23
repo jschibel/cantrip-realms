@@ -49,7 +49,7 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             await End(player, "Another run began.").ConfigureAwait(false);
             db.Runs.Add(run);
             await db.SaveChangesAsync().ConfigureAwait(false);
-            await characters.Place(player, RealmContent.RunSpace(run.Id), new Hex(0, 0)).ConfigureAwait(false);
+            await characters.Place(player, RealmContent.RunSpace(run.Id), new Tile(0, 0)).ConfigureAwait(false);
             await transaction.CommitAsync().ConfigureAwait(false);
         }
 
@@ -146,23 +146,24 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             throw Refusal.Conflict(Codes.NotAttuned, $"{end.File.Name}'s waystone is not attuned to you: beat its mage first.");
         }
 
-        Hex at = Outside(to);
+        Tile at = Outside(to);
         await characters.Place(player, RealmContent.WorldSpace, at).ConfigureAwait(false);
-        return new WaystoneView(new PlaceView(RealmContent.WorldSpace, at.Q, at.R));
+        return new WaystoneView(new PlaceView(RealmContent.WorldSpace, at.X, at.Z));
     }
 
     /// <summary>
-    /// Where a character stands coming out of a dungeon or a waystone: the first open neighbour of its entrance (in hex.ts's
-    /// order of directions) that is no door or entrance itself, else the entrance.
+    /// Where a character stands coming out of a dungeon or a waystone: the first tile a step from its entrance (in
+    /// <see cref="Tile.Steps"/>'s order: south, east, west, north, then the diagonals) that is no door or entrance itself,
+    /// else the entrance.
     /// </summary>
-    public Hex Outside(RealmDungeon dungeon)
+    public Tile Outside(RealmDungeon dungeon)
     {
         ArgumentNullException.ThrowIfNull(dungeon);
-        Hex entrance = dungeon.File.At;
+        Tile entrance = dungeon.File.At;
         RealmWorld world = content.World;
-        return Hex.Directions.Select(step => new Hex(entrance.Q + step.Q, entrance.R + step.R))
-            .Where(hex => world.Walkable(hex) && !world.Entrances.ContainsKey(hex) && !world.Doors.ContainsKey(hex))
-            .Cast<Hex?>().FirstOrDefault() ?? entrance;
+        return Tile.Steps.Select(entrance.Plus)
+            .Where(tile => world.CanStep(entrance, tile) && !world.Entrances.ContainsKey(tile) && !world.Doors.ContainsKey(tile))
+            .Cast<Tile?>().FirstOrDefault() ?? entrance;
     }
 
     /// <summary>Ends a player's live run, if they have one.</summary>

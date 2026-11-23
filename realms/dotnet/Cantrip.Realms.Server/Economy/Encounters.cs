@@ -121,7 +121,7 @@ public sealed class Encounters(
             throw Refusal.Conflict(Codes.NotThere, $"'{request.Mob}' does not spawn there.");
         }
 
-        if (row.Space != RealmContent.WorldSpace || new Hex(row.Q, row.R).DistanceTo(spawn.At) > spawn.Radius + ChaseRadius + Slack)
+        if (row.Space != RealmContent.WorldSpace || new Tile(row.X, row.Z).DistanceTo(spawn.At) > spawn.Radius + ChaseRadius + Slack)
         {
             throw Refusal.Conflict(Codes.NotNear, $"You are too far from where {mob.File.Name} roams.");
         }

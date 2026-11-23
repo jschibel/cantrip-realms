@@ -1,19 +1,21 @@
 """The realm server's test world (realms/docs/interfaces.md, "The world, interiors and dungeons"): a small but real
-Dominaria, in the files the world generator (realms/web/scripts/world.ts) writes, for the server's tests to walk until -
-and beside - the generated world.
+Dominaria in version 2 of the world data (realms/docs/conversion.md, "The world data, version 2": square tiles, the
+types of realms/web/src/world/format.ts), for the server's tests to walk until - and beside - the generated world.
 
     python realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py
 
 Writes realms/dotnet/Cantrip.Realms.Server.Tests/World/dominaria/{world/world.json, world/chunks/*.json,
-interiors/*.json, dungeons/*.json}: four by four chunks of 32 hexes (q and r 0 to 127), open grass but for a wall of
-rock in chunk 0_0; the Domains' towns (layout.json's ids and names) the vendors keep shops in and the traders'
-caravans visit, each with an inn (its innkeeper and a spell table inside) and a shop for each of its vendors, New
-Benalia and Capashen Hold a smithy with an armorer too, and a spell table in New Benalia's square; spawns of every
-tier, each listing the roster's wanderers of that tier; the five region dungeons, the Phyrexian Portal, the Hurloon
-caves, and a mage tower for each region and tier with its mage at the top (layout.json's ids, the roster's bosses,
-wardens and mages); and two chests. Every mob
-of realms/content/dominaria/mobs is met somewhere, as the server's content check asks. The same roster gives the same
-files.
+interiors/*.json, dungeons/*.json}: five by four chunks of 32 tiles - x from -32 to 127 (origin [-32, 0]: the west
+chunks are -1_0 to -1_3) and z from 0 to 127 - open grass but for a wall of rock at x 26, z 2 to 12, and the buildings,
+whose footprints are blocked and bare. The Domains' towns (layout.json's ids, names and styles) the vendors keep shops
+in and the traders' caravans visit, each a street between two rows of buildings: an inn (its innkeeper and a spell table
+inside, a dais by the hearth), a shop for each of its vendors (an exotic one's kind exotic-wares), New Benalia and
+Capashen Hold a smithy with an armorer too, a quest board, a spell table in New Benalia's street and a pitch in each
+traders' town. Spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
+Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage at the top and its waystone
+(layout.json's ids, the roster's bosses, wardens and mages), each with a spell table beside its entrance; a ferry; and
+three chests, one in the west chunks. Every mob of realms/content/dominaria/mobs is met somewhere, as the server's
+content check asks. The same roster gives the same files.
 """
 
 import json
@@ -24,7 +26,15 @@ ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
 CONTENT = os.path.join(ROOT, "realms", "content", "dominaria")
 OUT = os.path.join(HERE, "dominaria")
 CHUNK = 32
-CHUNKS = 4
+# The chunks written: cx from -1 to 3, cz from 0 to 3.
+CHUNKS_X = range(-1, 4)
+CHUNKS_Z = range(0, 4)
+ORIGIN = (CHUNKS_X[0] * CHUNK, CHUNKS_Z[0] * CHUNK)
+SIZE = (len(CHUNKS_X) * CHUNK, len(CHUNKS_Z) * CHUNK)
+
+# Tile flags (format.ts): 1 blocked, 2 bare.
+BLOCKED = 1
+BARE = 2
 
 # The Domains' five regions (design.md A6): their colors, names and ids.
 REGIONS = [("W", "Benalia", "benalia"), ("U", "Orvada", "orvada"), ("B", "Caligo", "caligo"), ("R", "Keld", "keld"), ("G", "Llanowar", "llanowar")]
@@ -47,11 +57,15 @@ PLACES = {
 RADII = {"capital": 10, "town": 8, "village": 5}
 SMITHIES = ["new-benalia", "capashen-hold"]
 
-# Where each door of a town stands, from its center: the inn's first, then a smithy's, then one shop a vendor.
-DOOR_OFFSETS = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, 3), (3, -3), (-2, -2), (2, 2), (-4, 2), (4, -2), (-1, 4), (1, -4)]
+# A town is a street running east and west through its center (z - 1 to z + 1), between two rows of buildings three
+# tiles wide and two deep, their doors on the street; two more rows stand behind them. A slot is where a building's door
+# is, from the center, and which way it faces (rot 0 south, 2 north); its footprint is the three tiles round its door's
+# x, behind the door. The inn takes the first slot, then a smithy's, then a shop a vendor, nearest the center first.
+SLOTS = [(dx, dz, rot) for dz, rot in ((-2, 0), (2, 2), (-6, 0), (6, 2)) for dx in (0, -4, 4)] + \
+        [(dx, dz, rot) for dz, rot in ((-2, 0), (2, 2), (-6, 0), (6, 2)) for dx in (-8, 8)]
 
-# The wall of rock nobody walks through: chunk 0_0, q 26, r 2 to 12.
-ROCK = {(26, r) for r in range(2, 13)}
+# The wall of rock nobody walks through: x 26, z 2 to 12.
+ROCK = {(26, z) for z in range(2, 13)}
 
 # The five regions' dungeons (design.md A6, "Geography: the Domains"), by layout.json's ids, names and themes, each
 # with its warden and the boss who unlocks its color: the boss is the mob of the region's color with "boss": true and
@@ -64,6 +78,11 @@ REGION_DUNGEONS = [
     ("elfhame-hollow", "G", "heart-warden", (104, 112)),
 ]
 PORTAL = ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger", "gitaxian-mindcutter"]
+
+# An interior: a floor of W by D tiles, and a sill row past it (the front wall's, nothing to walk); the exit's gap in the
+# front wall is two tiles wide, its east tile the entry.
+ROOM_W, ROOM_D = 7, 5
+ENTRY = (4, ROOM_D - 1)
 
 
 def load(path):
@@ -78,10 +97,6 @@ def write(path, data):
         f.write("\n")
 
 
-def disc(radius):
-    return [(q, r) for q in range(-radius, radius + 1) for r in range(-radius, radius + 1) if max(abs(q), abs(r), abs(q + r)) <= radius]
-
-
 def main():
     layout = load(os.path.join(CONTENT, "layout.json"))
     plans = {t["id"]: t for t in layout["towns"]}
@@ -89,67 +104,142 @@ def main():
     mobs = {m["id"]: m for m in (load(os.path.join(CONTENT, "mobs", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "mobs"))) if f.endswith(".json"))}
     vendors = [load(os.path.join(CONTENT, "vendors", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "vendors"))) if f.endswith(".json")]
 
-    chunks = {(cq, cr): {"tiles": [], "props": [], "doors": [], "npcs": [], "spawns": [], "chests": [], "entrances": []} for cq in range(CHUNKS) for cr in range(CHUNKS)}
+    chunks = {(cx, cz): {"cx": cx, "cz": cz, "tiles": None, "props": [], "buildings": [], "npcs": [], "spawns": [], "chests": [],
+                         "entrances": [], "waymarkers": []} for cx in CHUNKS_X for cz in CHUNKS_Z}
+    # Every tile: [height (texels), surface, flags].
+    ground = {(x, z): [0, "grass", 0] for x in range(ORIGIN[0], ORIGIN[0] + SIZE[0]) for z in range(ORIGIN[1], ORIGIN[1] + SIZE[1])}
+    taken = {}
 
-    def chunk_of(q, r):
-        return chunks[(q // CHUNK, r // CHUNK)]
+    def chunk_of(x, z):
+        return chunks[(x // CHUNK, z // CHUNK)]
 
-    for q in range(CHUNK * CHUNKS):
-        for r in range(CHUNK * CHUNKS):
-            chunk_of(q, r)["tiles"].append([q, r, 0, "rock" if (q, r) in ROCK else "grass", 1 if (q, r) in ROCK else 0])
+    def take(x, z, what):
+        if (x, z) in taken:
+            raise SystemExit(f"make-world: {what} at ({x}, {z}) stands where {taken[(x, z)]} does")
+        if (x, z) not in ground:
+            raise SystemExit(f"make-world: {what} at ({x}, {z}) is off the world")
+        taken[(x, z)] = what
+
+    def block(x, z, what, surface="grass", flags=BLOCKED | BARE):
+        take(x, z, what)
+        ground[(x, z)] = [0, surface, flags]
+
+    for x, z in sorted(ROCK):
+        block(x, z, "the rock", "rock", BLOCKED)
 
     interiors = {}
     inns = []
     towns = []
+    pitches = []
 
-    def interior(id, name, kind, door, npcs):
-        q, r = door
-        chunk_of(q, r)["doors"].append({"q": q, "r": r, "interior": id})
+    def room(id, name, kind, town, style, exit, npcs, dais=False):
+        tiles = []
+        blocked = {(n["x"], n["z"]) for n in npcs}
+        for z in range(ROOM_D + 1):
+            for x in range(ROOM_W):
+                if z == ROOM_D:
+                    tiles.append([0, "", BLOCKED])
+                elif (x, z) in blocked:
+                    tiles.append([0, "floorboards", BLOCKED | BARE])
+                else:
+                    tiles.append([3 if dais and (x, z) == (0, 1) else 0, "hearthstone" if dais and (x, z) == (0, 1) else "floorboards", 0])
         interiors[id] = {
             "id": id,
             "name": name,
             "kind": kind,
-            "tiles": [[a, b, 0, "floor", 0] for a, b in disc(3)],
+            "town": town,
+            "style": style,
+            "w": ROOM_W,
+            "d": ROOM_D,
+            "area": [0, 0, ROOM_W, ROOM_D + 1],
+            "tiles": tiles,
             "props": [],
             "npcs": npcs,
-            "exit": {"q": q, "r": r + 1},
+            "entry": list(ENTRY),
+            "exit": list(exit),
         }
+
+    def building(id, town, style, kind, slot, center, interior=None, sign=None):
+        dx, dz, rot = slot
+        door = (center[0] + dx, center[1] + dz)
+        back = -1 if rot == 0 else 1
+        footprint = [(door[0] + fx, door[1] + back * depth) for fx in (-1, 0, 1) for depth in (1, 2)]
+        for x, z in footprint:
+            block(x, z, f"building {id}")
+        take(*door, f"the door of {id}")
+        ground[door] = [0, "cobbles", 0]
+        x0 = door[0] - 1
+        z0 = door[1] - 2 if rot == 0 else door[1] + 1
+        entry = {"id": id, "style": style, "kind": kind, "x": x0, "z": z0, "w": 3, "d": 2, "rot": rot, "door": list(door)}
+        if interior:
+            entry["interior"] = interior
+        if sign:
+            entry["sign"] = sign
+        chunk_of(x0, z0)["buildings"].append(entry)
+        return door
 
     named = {v["town"] for v in vendors if v.get("town")} | {t for v in vendors if v.get("trader") for t in v["trader"]["towns"]}
     missing = sorted(named - set(PLACES))
     if missing:
         raise SystemExit(f"make-world: no place for the towns {', '.join(missing)}")
-    for town, (cq, cr) in PLACES.items():
+    traded = {t for v in vendors if v.get("trader") for t in v["trader"]["towns"]}
+    for town, (cx, cz) in PLACES.items():
         plan = plans[town]
         name, kind, style = plan["name"], plan["kind"], plan["style"]
         radius = RADII[kind]
-        towns.append({"id": town, "name": name, "kind": kind, "center": [cq, cr], "radius": radius, "style": style})
-        doors = iter(DOOR_OFFSETS)
-        dq, dr = next(doors)
-        interior(f"{town}-inn", f"The {name} Inn", "inn", (cq + dq, cr + dr), [
-            {"id": "innkeeper", "kind": "innkeeper", "q": 0, "r": -2},
-            {"id": "spell-table", "kind": "spell-table", "q": 1, "r": -1},
-        ])
-        inns.append({"id": f"{town}-inn", "town": town, "q": cq, "r": cr + 2})
+        towns.append({"id": town, "name": name, "kind": kind, "center": [cx, cz], "radius": radius, "style": style, "start": town == "new-benalia"})
+        slots = iter(s for s in SLOTS if max(abs(s[0]) + 1, abs(s[1]) + 2) <= radius)
+
+        def next_slot():
+            try:
+                return next(slots)
+            except StopIteration:
+                raise SystemExit(f"make-world: {town} has no room for another building")
+
+        for x in range(cx - radius, cx + radius + 1):
+            for z in (cz - 1, cz, cz + 1):
+                if (x, z) in ground and (x, z) not in taken:
+                    ground[(x, z)] = [0, "cobbles", 0]
+
+        door = building(f"{town}-inn", town, style, "house", next_slot(), (cx, cz), f"{town}-inn", f"The {name} Inn")
+        room(f"{town}-inn", f"The {name} Inn", "inn", town, style, door, [
+            {"id": "innkeeper", "kind": "innkeeper", "x": 3, "z": 1},
+            {"id": "spell-table", "kind": "spell-table", "x": 5, "z": 1},
+        ], dais=True)
+        # A character wakes in the street, a step out from the inn's door.
+        inns.append({"id": f"{town}-inn", "town": town, "x": door[0], "z": door[1] + 1, "interior": f"{town}-inn"})
         if town in SMITHIES:
-            dq, dr = next(doors)
-            interior(f"{town}-smithy", f"{name} Smithy", "smithy", (cq + dq, cr + dr), [{"id": "armorer", "kind": "armorer", "q": 0, "r": -2}])
+            door = building(f"{town}-smithy", town, style, "shop", next_slot(), (cx, cz), f"{town}-smithy", f"{name} Smithy")
+            room(f"{town}-smithy", f"{name} Smithy", "smithy", town, style, door, [{"id": "armorer", "kind": "armorer", "x": 3, "z": 1}])
         # A shop for each vendor of the town, an exotic wares shop's as any; a traveling trader keeps none.
         for vendor in (v for v in vendors if v.get("town") == town):
-            dq, dr = next(doors)
-            interior(f"{vendor['id']}-shop", vendor["name"], "shop", (cq + dq, cr + dr), [{"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "q": 0, "r": -2}])
-        chunk_of(cq, cr)["npcs"].append({"id": f"{town}-board", "kind": "quest-board", "q": cq + 1, "r": cr + 3})
+            shop = f"{vendor['id']}-shop"
+            door = building(shop, town, style, "shop", next_slot(), (cx, cz), shop, vendor["name"])
+            room(shop, vendor["name"], "exotic-wares" if vendor.get("exotic") else "shop", town, style, door,
+                 [{"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "x": 3, "z": 1}])
+        block(cx + 2, cz, f"{town}'s quest board", "cobbles")
+        chunk_of(cx + 2, cz)["npcs"].append({"id": f"{town}-board", "kind": "quest-board", "x": cx + 2, "z": cz})
+        if town in traded:
+            take(cx - 2, cz, f"{town}'s pitch")
+            pitches.append({"town": town, "x": cx - 2, "z": cz})
 
-    # A spell table in New Benalia's square, in the world.
-    chunks[(0, 0)]["props"].append({"kind": "spell-table", "q": 18, "r": 12})
+    # A spell table in New Benalia's street, in the world.
+    block(19, 16, "New Benalia's spell table", "cobbles")
+    chunks[(0, 0)]["npcs"].append({"id": "new-benalia-spell-table", "kind": "spell-table", "x": 19, "z": 16})
 
     dungeons = []
 
     def dungeon(data, entrance):
-        q, r = entrance
-        data["entrance"] = [q, r]
-        chunk_of(q, r)["entrances"].append({"q": q, "r": r, "dungeon": data["id"]})
-        chunk_of(q, r - 1)["props"].append({"kind": "spell-table", "q": q, "r": r - 1})
+        x, z = entrance
+        data["entrance"] = [x, z]
+        take(x, z, f"the entrance of {data['id']}")
+        ground[(x, z)] = [0, "flagstones", 0]
+        chunk_of(x, z)["entrances"].append({"x": x, "z": z, "dungeon": data["id"]})
+        block(x, z - 1, f"the spell table of {data['id']}", "flagstones")
+        chunk_of(x, z - 1)["npcs"].append({"id": f"{data['id']}-spell-table", "kind": "spell-table", "x": x, "z": z - 1})
+        if data.get("waystone"):
+            block(x - 1, z - 1, f"the waystone of {data['id']}", "flagstones")
+            chunk_of(x - 1, z - 1)["npcs"].append({"id": f"{data['id']}-waystone", "kind": "waystone", "tower": data["id"], "x": x - 1, "z": z - 1})
         dungeons.append(data)
 
     placed = set()
@@ -180,7 +270,7 @@ def main():
             tower = f"{region}-{tier}"
             dungeon({"id": tower, "name": dungeon_plans[tower]["name"], "theme": "tower", "waystone": True, "floors": [1, 2],
                      "tier": tier, "encounters": [1, 2], "mobs": wanderers(tier, color) or wanderers(tier), "warden": f"warden-{tier}",
-                     "boss": f"mage-{region}-{tier}", "region": color}, (8 + 24 * i, 64 + 10 * tier))
+                     "boss": f"mage-{region}-{tier}", "region": color}, (4 + 24 * i, 92 + 8 * tier))
 
     for d in dungeons:
         tables = d["mobs"] if d["mobs"] and isinstance(d["mobs"][0], list) else [d["mobs"]]
@@ -192,28 +282,54 @@ def main():
     counts = {}
     for tier, places in spawn_places.items():
         held = wanderers(tier)
-        for q, r in places:
-            key = (q // CHUNK, r // CHUNK)
+        for x, z in places:
+            take(x, z, f"a spawn of tier {tier}")
+            key = (x // CHUNK, z // CHUNK)
             counts[key] = counts.get(key, 0) + 1
-            chunk_of(q, r)["spawns"].append({"id": f"{key[0]}_{key[1]}:{counts[key]}", "q": q, "r": r, "mobs": held, "radius": 3,
-                                              "respawnSeconds": 600, "tier": tier})
+            chunk_of(x, z)["spawns"].append({"id": f"{key[0]}_{key[1]}:{counts[key]}", "x": x, "z": z, "mobs": held, "radius": 3,
+                                             "respawnSeconds": 600, "tier": tier})
         placed.update(held)
 
-    chunks[(0, 0)]["chests"].append({"id": "0_0:1", "q": 6, "r": 28, "gold": [50, 500], "respawnSeconds": 86400})
-    chunks[(1, 1)]["chests"].append({"id": "1_1:1", "q": 40, "r": 40, "gold": [50, 500], "respawnSeconds": 3600})
+    for id, (x, z), gold, respawn in (("0_0:1", (6, 28), [50, 500], 86400), ("1_1:1", (40, 40), [50, 500], 3600), ("-1_0:1", (-6, 10), [20, 80], 3600)):
+        take(x, z, f"chest {id}")
+        chunk_of(x, z)["chests"].append({"id": id, "x": x, "z": z, "gold": gold, "respawnSeconds": respawn})
+
+    # A ferry along the east edge: docks at z 4 and z 28, its lane straight between them.
+    ferry_from, ferry_to = (124, 4), (124, 28)
+    lane = [[124, z] for z in range(ferry_from[1], ferry_to[1] + 1)]
+    for x, z in lane:
+        take(x, z, "the ferry's lane")
+        ground[(x, z)] = [0, "dirt", 0]
+    for (x, z), end in ((ferry_from, "from"), (ferry_to, "to")):
+        block(x + 1, z, f"the ferryman at {end}", "dirt")
+        chunk_of(x + 1, z)["npcs"].append({"id": f"test-ferry-{end}", "kind": "ferryman", "ferry": "test-ferry", "x": x + 1, "z": z})
+    ferries = [{"id": "test-ferry", "name": "The Test Ferry", "from": list(ferry_from), "to": list(ferry_to), "lane": lane}]
 
     unplaced = sorted(set(mobs) - placed)
     if unplaced:
         raise SystemExit(f"make-world: no place holds {', '.join(unplaced)}")
 
+    for (cx, cz), chunk in chunks.items():
+        chunk["tiles"] = [ground[(cx * CHUNK + x, cz * CHUNK + z)] for z in range(CHUNK) for x in range(CHUNK)]
+
+    # The tier zones, a chunk a cell: tier 1 by New Benalia, rising with distance; and the overview, a letter a chunk.
+    areas = [{"id": f"tier-{t}", "name": f"Tier {t}", "region": "W", "tier": t} for t in range(1, 5)]
     world = {
-        "size": [CHUNK * CHUNKS, CHUNK * CHUNKS],
+        "size": list(SIZE),
+        "origin": list(ORIGIN),
         "chunk": CHUNK,
-        "regions": [{"color": c, "name": n, "hexes": []} for c, n, _ in REGIONS],
+        "tile": 1,
+        "seed": 1,
+        "regions": [{"color": c, "name": n, "tiles": 0} for c, n, _ in REGIONS],
         "towns": towns,
         "inns": inns,
-        "dungeons": [{"id": d["id"], "q": d["entrance"][0], "r": d["entrance"][1]} for d in dungeons],
+        "dungeons": [{"id": d["id"], "x": d["entrance"][0], "z": d["entrance"][1]} for d in dungeons],
         "roads": [],
+        "ferries": ferries,
+        "pitches": pitches,
+        "zones": {"cell": CHUNK, "cols": len(CHUNKS_X), "rows": len(CHUNKS_Z), "areas": areas,
+                  "grid": [[min(3, max(abs(cx), cz)) for cx in CHUNKS_X] for cz in CHUNKS_Z]},
+        "overview": {"cell": CHUNK, "legend": {"G": "grass"}, "rows": ["G" * len(CHUNKS_X) for _ in CHUNKS_Z]},
     }
 
     for folder in ("world/chunks", "interiors", "dungeons"):
@@ -223,8 +339,8 @@ def main():
                 if name.endswith(".json"):
                     os.remove(os.path.join(path, name))
     write(os.path.join(OUT, "world", "world.json"), world)
-    for (cq, cr), chunk in chunks.items():
-        write(os.path.join(OUT, "world", "chunks", f"{cq}_{cr}.json"), chunk)
+    for (cx, cz), chunk in chunks.items():
+        write(os.path.join(OUT, "world", "chunks", f"{cx}_{cz}.json"), chunk)
     for id, data in interiors.items():
         write(os.path.join(OUT, "interiors", f"{id}.json"), data)
     for data in dungeons:

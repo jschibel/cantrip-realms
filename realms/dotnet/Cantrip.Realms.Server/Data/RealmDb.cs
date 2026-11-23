@@ -25,13 +25,13 @@ public sealed class PlayerRow
 
     /// <summary>
     /// The space the character last reported standing in (interfaces.md, "Places"): <c>world</c>, an interior's id, or
-    /// <c>run:&lt;id&gt;</c> - and the hex of it.
+    /// <c>run:&lt;id&gt;</c> - and the tile of it, <see cref="X"/> east and <see cref="Z"/> south.
     /// </summary>
     public string Space { get; set; } = string.Empty;
 
-    public int Q { get; set; }
+    public int X { get; set; }
 
-    public int R { get; set; }
+    public int Z { get; set; }
 
     /// <summary>When the character was last put somewhere: the walk to the next report starts then.</summary>
     public long PlacedAt { get; set; }

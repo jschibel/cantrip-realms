@@ -265,16 +265,16 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("PlacedAt")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Q")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("R")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Space")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Z")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

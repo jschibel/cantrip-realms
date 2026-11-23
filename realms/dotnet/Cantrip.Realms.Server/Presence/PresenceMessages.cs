@@ -3,8 +3,8 @@ using MessagePack;
 namespace Cantrip.Realms.Server.Presence;
 
 // The presence protocol (realms/docs/interfaces.md, "Presence"): MessagePack, one message a WebSocket frame. Each frame is a
-// union, [key, {Field: value, ...}] - the fields by name, as the overworld reads them - with the keys below. A hex is
-// [q, r]; a time is Unix milliseconds on the server's clock.
+// union, [key, {Field: value, ...}] - the fields by name, as the overworld reads them - with the keys below. A tile is
+// [x, z]; a time is Unix milliseconds on the server's clock.
 
 /// <summary>What a client sends.</summary>
 [Union(0, typeof(EnterMessage))]
@@ -20,7 +20,7 @@ public sealed class EnterMessage : PresenceClientMessage
     public string Space { get; set; } = string.Empty;
 }
 
-/// <summary>Walks a path: from a hex, through each hex of the path in turn, at a speed in hexes a second.</summary>
+/// <summary>Walks a path: from a tile, through each tile of the path in turn (each a step of eight ways), at a speed in tiles a second.</summary>
 [MessagePackObject(true)]
 public sealed class MoveMessage : PresenceClientMessage
 {

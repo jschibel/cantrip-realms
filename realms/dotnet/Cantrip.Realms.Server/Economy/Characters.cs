@@ -69,8 +69,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             Color = color,
             Gold = StartingGold,
             Space = RealmContent.WorldSpace,
-            Q = inn.Q,
-            R = inn.R,
+            X = inn.X,
+            Z = inn.Z,
             PlacedAt = now,
             Inn = inn.Id,
             CreatedAt = now,
@@ -142,8 +142,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             row.Gold,
             ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count),
             row.Space,
-            row.Q,
-            row.R,
+            row.X,
+            row.Z,
             InnOf(row).Id,
             StatsView.Of(Stats(loadout.Values.OfType<GearInstance>().Select(instance => instance.Gear))),
             loadout,
@@ -198,22 +198,23 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         return new CollectionView(new SortedDictionary<string, int>(rows.ToDictionary(row => row.Name, row => row.Count), StringComparer.Ordinal));
     }
 
-    /// <summary>How many hexes past what walking allows a report may be: the character walked on as it was sent.</summary>
+    /// <summary>How many tiles past what walking allows a report may be: the character walked on as it was sent.</summary>
     public const int Slack = 2;
 
     /// <summary>
     /// Records where a character is (<c>POST /api/position</c>, interfaces.md "Places"). A place of the world or an interior
-    /// is a hex nobody is kept off, and is reached from the last by walking - no farther than the walking speed allows in
-    /// the time since - or through a door: into an interior from beside a door of it, out of one beside its exit. A dungeon
-    /// run is entered and left by its own calls, and its places are the browser's, so within a live run of theirs any hex
-    /// is taken; a waystone is travelled by its own call.
+    /// is a tile nobody is kept off, and is reached from the last by walking - no farther, in tiles (<see cref="Tile.Distance"/>,
+    /// which no walk of eight-way steps beats), than the walking speed allows in the time since - or through a door: into an
+    /// interior from on or beside a door of it, out of one on or beside its exit. A dungeon run is entered and left by its own
+    /// calls, and its places are the browser's, so within a live run of theirs any tile is taken; a waystone is travelled by
+    /// its own call.
     /// </summary>
     public async Task Position(string player, PlaceView request)
     {
         ArgumentNullException.ThrowIfNull(request);
         PlayerRow row = await Require(player).ConfigureAwait(false);
-        var at = new Hex(request.Q, request.R);
-        var here = new Hex(row.Q, row.R);
+        var at = new Tile(request.X, request.Z);
+        var here = new Tile(row.X, row.Z);
         long now = Now;
 
         if (RealmContent.RunOf(request.Space) is { } run)
@@ -234,7 +235,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             if (inRun) throw Refusal.Conflict(Codes.NoWay, "Leave the dungeon first.");
             if (content.Space(row.Space) is null)
             {
-                // Where they were is gone - a run since ended, a place the content no longer has: any open hex will do.
+                // Where they were is gone - a run since ended, a place the content no longer has: any open tile will do.
             }
             else if (row.Space == space.Id)
             {
@@ -248,7 +249,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
                     throw Refusal.Conflict(Codes.NoWay, $"{into.File.Name} is entered through its door.");
                 }
             }
-            else if (content.Interiors.GetValueOrDefault(row.Space) is not { File.Exit: { } exit } || exit.At.DistanceTo(at) > 1)
+            else if (content.Interiors.GetValueOrDefault(row.Space) is not { File.ExitAt: { } exit } || exit.DistanceTo(at) > 1)
             {
                 throw Refusal.Conflict(Codes.NoWay, "A building is left through its door.");
             }
@@ -260,19 +261,19 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         }
 
         row.Space = request.Space!;
-        row.Q = request.Q;
-        row.R = request.R;
+        row.X = request.X;
+        row.Z = request.Z;
         row.PlacedAt = now;
         await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
     /// <summary>Puts a character somewhere at once: through a waystone, out of a dungeon, back at the inn.</summary>
-    public async Task Place(string player, string space, Hex at)
+    public async Task Place(string player, string space, Tile at)
     {
         await db.Players.Where(row => row.Id == player).ExecuteUpdateAsync(set => set
             .SetProperty(row => row.Space, space)
-            .SetProperty(row => row.Q, at.Q)
-            .SetProperty(row => row.R, at.R)
+            .SetProperty(row => row.X, at.X)
+            .SetProperty(row => row.Z, at.Z)
             .SetProperty(row => row.PlacedAt, Now)).ConfigureAwait(false);
     }
 
@@ -291,7 +292,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     {
         PlayerRow row = await Require(player).ConfigureAwait(false);
         if (content.Interiors.GetValueOrDefault(row.Space) is not { File.Kind: "inn", Town: { } town } interior
-            || content.Inns.Values.Where(inn => inn.Town == town.Id).MinBy(inn => interior.File.Exit is { } exit ? inn.At.DistanceTo(exit.At) : 0) is not { } home)
+            || content.Inns.Values.Where(inn => inn.Town == town.Id).MinBy(inn => interior.File.ExitAt is { } exit ? inn.At.DistanceTo(exit) : 0) is not { } home)
         {
             throw Refusal.Conflict(Codes.NotNear, "A home is set inside a town's inn.");
         }
@@ -327,11 +328,11 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         }
     }
 
-    /// <summary>Whether a character stands in the world on or beside a hex.</summary>
-    public static bool Beside(PlayerRow row, Hex at)
+    /// <summary>Whether a character stands in the world on or beside a tile: on it or one of the eight round it.</summary>
+    public static bool Beside(PlayerRow row, Tile at)
     {
         ArgumentNullException.ThrowIfNull(row);
-        return row.Space == RealmContent.WorldSpace && new Hex(row.Q, row.R).DistanceTo(at) <= 1;
+        return row.Space == RealmContent.WorldSpace && new Tile(row.X, row.Z).DistanceTo(at) <= 1;
     }
 
     public bool IsBasic(string card) => content.Cards.Catalog.TryGetValue(card, out var known) && CardPool.IsBasic(known);
@@ -340,7 +341,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     public bool AtSpellTable(PlayerRow row)
     {
         ArgumentNullException.ThrowIfNull(row);
-        return content.Space(row.Space) is { } space && space.SpellTables.Any(table => table.DistanceTo(new Hex(row.Q, row.R)) <= 1);
+        return content.Space(row.Space) is { } space && space.SpellTables.Any(table => table.DistanceTo(new Tile(row.X, row.Z)) <= 1);
     }
 
     /// <summary>Adds copies of a card to a character's collection (or takes them, with a negative count).</summary>
