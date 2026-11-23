@@ -171,13 +171,17 @@ A lost duel sends the character to their inn, outside it in the world (world.jso
 ### Models (`models/<id>.vox.json`)
 
 What characters, mobs and gear look like: palette-indexed voxels cut into parts, meshed in the browser (greedy, at
-load) and drawn at about one voxel to a scene pixel. The format is `realms/web/src/voxel/format.ts`; the files are
+load) and drawn larger than life, a voxel to one and a half scene pixels (`FIGURE_SCALE`, `realms/web/src/character.ts`).
+Each color is shown as the plane's palette color nearest it, a step down or up its ramp for the light band
+(`realms/web/src/palette.ts`), so a model's colors, a mob's `model.palette` and a gear item's `look.palette` are best
+taken from the palette, and a model is a few bold areas of color rather than stripes or speckles. The format is
+`realms/web/src/voxel/format.ts`; the files are
 written by `realms/web/scripts/models.ts` (`npm run models`) and may be tuned by hand. `realms/web/models.html` shows
 them all.
 
 ```json
-{ "id": "helm", "kind": "gear", "voxel": 0.0625, "palette": ["$0", "$1", "#0d0f14"],
-  "parts": [{ "name": "helm", "mount": "head-top", "pivot": [0, 0, 0], "origin": [4, 4, 4], "size": [8, 7, 8],
+{ "id": "helm", "kind": "gear", "voxel": 0.0625, "palette": ["$0", "$1", "#0b0c10"],
+  "parts": [{ "name": "helm", "mount": "head-top", "pivot": [0, 0, 0], "origin": [4, 4, 4], "size": [8, 7, 8], "fit": [6, 0, 6],
               "layers": [[".000000.", "0......0", "..."], ["..."]] }] }
 ```
 

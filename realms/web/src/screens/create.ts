@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { BODIES, type Body, CLOTH, Character, type ManaColor, SKIN_PALETTES } from "../character";
 import { HEX_SIZE, spiral, toWorld } from "../hex";
 import { type Character as CharacterData, ApiError, type RealmApi } from "../net/api";
+import { celMaterial, lightOutdoors } from "../look";
 import { DOMINARIA } from "../palette";
 import { PixelRenderer } from "../render";
 
@@ -47,26 +48,24 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
   const name = root.querySelector<HTMLInputElement>("input")!;
   const problem = root.querySelector<HTMLElement>("[data-problem]")!;
 
-  // The preview: a hex of grass and the mage on it, turning.
+  // The preview: hexes of grass and the mage on them, turning.
   const canvas = root.querySelector<HTMLCanvasElement>(".create-preview canvas")!;
   const box = root.querySelector<HTMLElement>(".create-preview")!;
   const pixels = new PixelRenderer(canvas, DOMINARIA, () => ({ width: box.clientWidth || 220, height: box.clientHeight || 280 }));
-  pixels.camera.zoom = 3;
+  pixels.camera.zoom = 2;
   pixels.camera.updateProjectionMatrix();
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#1d2127");
-  const prism = new THREE.CylinderGeometry(HEX_SIZE * 0.999, HEX_SIZE * 0.999, 0.5, 6, 1, false, Math.PI / 2);
+  const prism = new THREE.CylinderGeometry(HEX_SIZE * 1.004, HEX_SIZE * 1.004, 0.5, 6, 1, false, Math.PI / 2);
+  const grass = celMaterial({ color: "#43722c", outlined: false, ground: true });
   for (const h of spiral({ q: 0, r: 0 }, 1)) {
-    const tile = new THREE.Mesh(prism, new THREE.MeshToonMaterial({ color: (h.q + h.r) % 2 === 0 ? "#5a8538" : "#4f7a34" }));
+    const tile = new THREE.Mesh(prism, grass);
     const { x, z } = toWorld(h);
     tile.position.set(x, -0.25, z);
     tile.receiveShadow = true;
     scene.add(tile);
   }
-  const sun = new THREE.DirectionalLight("#fff2d6", 2.2);
-  sun.position.set(-6, 10, 6);
-  sun.castShadow = true;
-  scene.add(sun, new THREE.HemisphereLight("#c6e5ee", "#434c36", 1.1));
+  lightOutdoors(scene, 4);
   let mage = Character.player("You", { body, palette, identity: [color], slots: {} });
   scene.add(mage.root);
   const restyle = () => {
@@ -83,7 +82,7 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
     const seconds = Math.min(clock.getDelta(), 0.1);
     mage.root.rotation.y += seconds * 0.8;
     mage.animate(seconds, false);
-    pixels.lookAt(new THREE.Vector3(0, 0.7, 0));
+    pixels.lookAt(new THREE.Vector3(0, 1.1, 0));
     pixels.render(scene);
     requestAnimationFrame(spin);
   };

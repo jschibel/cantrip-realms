@@ -2,7 +2,7 @@
   "id": "amulet",
   "kind": "gear",
   "voxel": 0.0625,
-  "palette": ["$0", "$1", "#0d0f14"],
+  "palette": ["$0", "$1", "#0b0c10"],
   "parts": [
     {
       "name": "pendant",

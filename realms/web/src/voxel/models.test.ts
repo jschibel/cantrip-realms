@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BODIES, Character, SLOTS } from "../character";
+import { BODIES, Character, FIGURE_SCALE, SLOTS } from "../character";
 import type { VoxModel } from "./format";
 import { allModels, getModel, mountsOf, validateModel } from "./models";
 
@@ -61,11 +61,12 @@ describe("voxel models", () => {
 });
 
 describe("characters", () => {
-  it("stands a player about a person's height, wearing a piece of gear in every slot", () => {
+  it("stands a player a person's height drawn larger than life, wearing a piece of gear in every slot", () => {
     for (const body of BODIES) {
       const c = Character.player("Test", { body, palette: 2, identity: ["U", "R"], slots: {} });
-      expect(c.height).toBeGreaterThan(1.1);
-      expect(c.height).toBeLessThan(1.8);
+      expect(c.height / FIGURE_SCALE).toBeGreaterThan(1.1);
+      expect(c.height / FIGURE_SCALE).toBeLessThan(1.8);
+      expect(c.height).toBeGreaterThan(1.6);
       const before = countMeshes(c);
       for (const slot of SLOTS) {
         const mesh = { head: "helm", neck: "amulet", body: "armor", hands: "gloves", feet: "boots", ring1: "ring", ring2: "ring", relic: "relic" }[slot];
