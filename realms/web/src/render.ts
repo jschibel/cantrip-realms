@@ -1,10 +1,12 @@
 import * as THREE from "three";
-import { type Palette, toRgb } from "./palette";
+import { type Palette, colorsOf, hexToRgb, shadeOf } from "./palette";
 
-// The overworld's look (tech.md, B5): the scene is drawn small - a few screen pixels to each of its own - and every
-// pixel is then put through a post pass that dithers it to the plane's palette and outlines silhouettes, before the
-// canvas is scaled up with no smoothing. The camera is orthographic and dimetric (a 2:1 pixel slope, as isometric
-// pixel art is drawn) and moves only in whole pixels, so nothing shimmers as it follows the player.
+// The overworld's look (tech.md, B5): one idea, big clean pixels. The scene is drawn small - a few screen pixels to
+// each of its own - and the canvas is scaled up with no smoothing. Every lit surface writes its palette color and its
+// light band (look.ts); the post pass shows each pixel as its ramp's color for that band, and draws a one-pixel dark
+// outline round what you look at - characters, mobs, props and buildings - and never on the ground. Nothing is mixed,
+// dithered or blurred. The camera is orthographic and dimetric (a 2:1 pixel slope, as isometric pixel art is drawn) and
+// moves only in whole pixels, so nothing shimmers as it follows the player.
 
 /** World units each of the scene's pixels covers: a hex, two units across, is 32 pixels wide. */
 export const WORLD_PER_PIXEL = 1 / 16;
@@ -13,6 +15,22 @@ export const WORLD_PER_PIXEL = 1 / 16;
 const PITCH = Math.atan(0.5);
 const YAW = Math.PI / 4;
 const DISTANCE = 60;
+const NEAR = 1;
+const FAR = 200;
+
+/** How the look's two open choices are set: light bands per surface, and the outline's color. */
+export interface LookOptions {
+  /** Three bands (shadow, shade, lit) or two (shade, lit). */
+  readonly bands: 2 | 3;
+  /** The palette's near-black, or the darkest color of the outlined thing's own ramp. */
+  readonly outline: "dark" | "ramp";
+}
+
+/** The look's options, from the page's query (?bands=2, ?outline=ramp) for comparing them; three bands, dark lines. */
+export function lookOptions(search = typeof window === "undefined" ? "" : window.location.search): LookOptions {
+  const query = new URLSearchParams(search);
+  return { bands: query.get("bands") === "2" ? 2 : 3, outline: query.get("outline") === "ramp" ? "ramp" : "dark" };
+}
 
 const POST_VERTEX = /* glsl */ `
 varying vec2 vUv;
@@ -24,48 +42,76 @@ void main() {
 const POST_FRAGMENT = /* glsl */ `
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
-uniform sampler2D tPalette;
+// The palette, one color to a texel in row 0; below it, what each is drawn as: row 1 in shadow, 2 in shade, 3 lit, and
+// row 4 the darkest of its ramp (for a ramp-colored outline).
+uniform sampler2D tShades;
 uniform float paletteSize;
 uniform vec2 resolution;
-uniform float dither;
-uniform float depthEdge;
+uniform float depthRange;
+uniform vec3 outlineColor;
+uniform float rampOutline;
 varying vec2 vUv;
 
-const float BAYER[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
-
-vec3 nearest(vec3 color) {
+/** The index of the palette color nearest a color. */
+float nearestIndex(vec3 color) {
   float best = 1e9;
-  vec3 pick = vec3(0.0);
-  for (int i = 0; i < 64; i++) {
+  float pick = 0.0;
+  for (int i = 0; i < 128; i++) {
     if (float(i) >= paletteSize) break;
-    vec3 candidate = texture2D(tPalette, vec2((float(i) + 0.5) / paletteSize, 0.5)).rgb;
+    vec3 candidate = texture2D(tShades, vec2((float(i) + 0.5) / paletteSize, 0.1)).rgb;
     vec3 d = color - candidate;
     float distance = dot(d * d, vec3(0.30, 0.59, 0.11));
     if (distance < best) {
       best = distance;
-      pick = candidate;
+      pick = float(i);
     }
   }
   return pick;
 }
 
+vec3 shade(float index, float row) {
+  return texture2D(tShades, vec2((index + 0.5) / paletteSize, (row + 0.5) / 5.0)).rgb;
+}
+
+/** A pixel's code from its alpha: 1 is unlit; otherwise its band, and whether it is outlined. */
+bool isRaw(float a) { return a > 0.99; }
+float codeOf(float a) { return floor(a * 16.0 + 0.5) - 1.0; }
+bool isOutlined(float a) { return !isRaw(a) && codeOf(a) >= 4.0; }
+
 void main() {
-  vec2 pixel = floor(vUv * resolution);
-  vec3 color = texture2D(tColor, vUv).rgb;
-  float depth = texture2D(tDepth, vUv).r;
-
-  // A pixel whose neighbour is much farther away is on the silhouette of something nearer: outline it.
+  vec4 here = texture2D(tColor, vUv);
+  float depth = texture2D(tDepth, vUv).r * depthRange;
   vec2 step = 1.0 / resolution;
-  float farther = 0.0;
-  farther = max(farther, texture2D(tDepth, vUv + vec2(step.x, 0.0)).r - depth);
-  farther = max(farther, texture2D(tDepth, vUv - vec2(step.x, 0.0)).r - depth);
-  farther = max(farther, texture2D(tDepth, vUv + vec2(0.0, step.y)).r - depth);
-  farther = max(farther, texture2D(tDepth, vUv - vec2(0.0, step.y)).r - depth);
 
-  int index = int(mod(pixel.x, 4.0)) + int(mod(pixel.y, 4.0)) * 4;
-  float threshold = BAYER[index] / 16.0 - 0.5;
-  vec3 shaded = farther > depthEdge ? color * 0.35 : color + threshold * dither;
-  gl_FragColor = vec4(nearest(shaded), 1.0);
+  // An outline pixel is next to an outlined thing that is in front of it: outside that thing's silhouette, on whatever
+  // is behind - the ground (which may rise a little toward the camera at a figure's feet), or another thing well
+  // behind. The ground itself never makes an outline.
+  bool outlined = isOutlined(here.a);
+  float nearestFront = 1e9;
+  vec3 source = vec3(0.0);
+  vec2 offsets[4] = vec2[4](vec2(step.x, 0.0), vec2(-step.x, 0.0), vec2(0.0, step.y), vec2(0.0, -step.y));
+  for (int i = 0; i < 4; i++) {
+    vec4 there = texture2D(tColor, vUv + offsets[i]);
+    if (!isOutlined(there.a)) continue;
+    float d = texture2D(tDepth, vUv + offsets[i]).r * depthRange;
+    bool front = outlined ? depth - d > 0.45 : d < depth + 0.3;
+    if (front && d < nearestFront) {
+      nearestFront = d;
+      source = there.rgb;
+    }
+  }
+  if (nearestFront < 1e8) {
+    gl_FragColor = vec4(rampOutline > 0.5 ? shade(nearestIndex(source), 4.0) : outlineColor, 1.0);
+    return;
+  }
+
+  float index = nearestIndex(here.rgb);
+  if (isRaw(here.a)) {
+    gl_FragColor = vec4(shade(index, 0.0), 1.0);
+    return;
+  }
+  float band = mod(codeOf(here.a), 4.0);
+  gl_FragColor = vec4(shade(index, 1.0 + band), 1.0);
 }`;
 
 export class PixelRenderer {
@@ -87,6 +133,7 @@ export class PixelRenderer {
     palette: Palette,
     /** The CSS size to fill: the window's, unless given (a preview canvas). */
     private readonly fit: () => { width: number; height: number } = () => ({ width: window.innerWidth, height: window.innerHeight }),
+    look: LookOptions = lookOptions(),
   ) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(1);
@@ -94,7 +141,7 @@ export class PixelRenderer {
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 200);
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, NEAR, FAR);
     this.camera.rotation.order = "YXZ";
     this.camera.rotation.set(-PITCH, YAW, 0);
 
@@ -104,18 +151,20 @@ export class PixelRenderer {
       depthTexture: new THREE.DepthTexture(1, 1, THREE.FloatType),
     });
 
-    const rgb = toRgb(palette);
-    const texels = new Uint8Array(palette.length * 4);
-    for (let i = 0; i < palette.length; i++) {
-      texels[i * 4] = Math.round(rgb[i * 3]! * 255);
-      texels[i * 4 + 1] = Math.round(rgb[i * 3 + 1]! * 255);
-      texels[i * 4 + 2] = Math.round(rgb[i * 3 + 2]! * 255);
-      texels[i * 4 + 3] = 255;
-    }
-    const paletteTexture = new THREE.DataTexture(texels, palette.length, 1, THREE.RGBAFormat);
-    paletteTexture.magFilter = THREE.NearestFilter;
-    paletteTexture.minFilter = THREE.NearestFilter;
-    paletteTexture.needsUpdate = true;
+    // The shade table: the palette in row 0, then each color in shadow, shade and lit, then its ramp's darkest.
+    const colors = colorsOf(palette);
+    const texels = new Uint8Array(colors.length * 5 * 4);
+    colors.forEach(({ color, ramp, at }, i) => {
+      const rows = [color, shadeOf(ramp, at, 0, look.bands), shadeOf(ramp, at, 1, look.bands), shadeOf(ramp, at, 2, look.bands), ramp[0]!];
+      rows.forEach((hex, row) => {
+        const o = (row * colors.length + i) * 4;
+        texels.set([...hexToRgb(hex), 255], o);
+      });
+    });
+    const shades = new THREE.DataTexture(texels, colors.length, 5, THREE.RGBAFormat);
+    shades.magFilter = THREE.NearestFilter;
+    shades.minFilter = THREE.NearestFilter;
+    shades.needsUpdate = true;
 
     this.post = new THREE.ShaderMaterial({
       vertexShader: POST_VERTEX,
@@ -123,12 +172,13 @@ export class PixelRenderer {
       uniforms: {
         tColor: { value: this.target.texture },
         tDepth: { value: this.target.depthTexture },
-        tPalette: { value: paletteTexture },
-        paletteSize: { value: palette.length },
+        tShades: { value: shades },
+        paletteSize: { value: colors.length },
         resolution: { value: new THREE.Vector2(1, 1) },
-        dither: { value: 0.09 },
-        // Depth runs 0-1 from the camera's near plane to its far one: an edge is a step of half a world unit.
-        depthEdge: { value: 0.5 / (200 - 1) },
+        // Depth runs 0-1 from the camera's near plane to its far one, linearly (the camera is orthographic).
+        depthRange: { value: FAR - NEAR },
+        outlineColor: { value: new THREE.Color(palette.outline) },
+        rampOutline: { value: look.outline === "ramp" ? 1 : 0 },
       },
       depthTest: false,
       depthWrite: false,

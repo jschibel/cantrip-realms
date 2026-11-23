@@ -2,6 +2,7 @@ import * as THREE from "three";
 import "./style.css";
 import "./theme.css";
 import { type Appearance, BODIES, Character, type GearLook, type ManaColor, SKIN_PALETTES, type Slot } from "./character";
+import { celMaterial, lightOutdoors } from "./look";
 import { DOMINARIA } from "./palette";
 import { PixelRenderer } from "./render";
 
@@ -18,18 +19,13 @@ const walking = !query.has("still");
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const pixels = new PixelRenderer(canvas, DOMINARIA);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#93c8dc");
+scene.background = new THREE.Color("#84bfd3");
 
-const ground = new THREE.Mesh(new THREE.BoxGeometry(80, 1, 80), new THREE.MeshToonMaterial({ color: "#5a8538" }));
+const ground = new THREE.Mesh(new THREE.BoxGeometry(80, 1, 80), celMaterial({ color: "#43722c", outlined: false, ground: true }));
 ground.position.y = -0.5;
 ground.receiveShadow = true;
 scene.add(ground);
-const sun = new THREE.DirectionalLight("#fff2d6", 2.2);
-sun.position.set(-18, 30, 10);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, far: 90 });
-scene.add(sun, sun.target, new THREE.HemisphereLight("#c6e5ee", "#434c36", 1.1));
+lightOutdoors(scene, 30);
 
 // Rows run across the screen: the camera looks along (1, 0, 1) turned, so "right" on screen is (1, 0, -1) on the ground.
 const right = new THREE.Vector3(1, 0, -1).normalize();
@@ -84,21 +80,22 @@ if (one) {
     const c = Character.mob(one, { mesh: one, palette });
     return { c, turn };
   });
-  row(0, views.map((v) => v.c), 3.2, walking);
+  row(0, views.map((v) => v.c), 4.4, walking);
   views.forEach((v) => (v.c.root.rotation.y = Math.PI / 4 + v.turn));
 } else if (only === "bodies") {
-  row(-0.5, bodies.slice(0, 12), 1.3, false);
-  row(0.5, bodies.slice(12), 1.3, false);
+  row(-0.5, bodies.slice(0, 12), 1.9, false);
+  row(0.5, bodies.slice(12), 1.9, false);
 } else if (only === "gear") {
-  row(0, geared, 1.6, false);
+  row(0, geared, 2.4, false);
 } else if (only === "mobs") {
-  row(-0.5, mobs.slice(0, 5), 3, walking);
-  row(0.5, mobs.slice(5), 3, walking);
+  row(-0.5, mobs.slice(0, 5), 4.4, walking);
+  row(0.5, mobs.slice(5), 4.4, walking);
 } else {
-  row(-1.5, bodies.slice(0, 12), 1.3, false);
-  row(-0.5, bodies.slice(12), 1.3, false);
-  row(0.5, geared, 1.6, false);
-  row(1.6, mobs, 2.6, walking);
+  row(-2.1, bodies.slice(0, 12), 1.9, false);
+  row(-1.15, bodies.slice(12), 1.9, false);
+  row(-0.1, geared, 2.4, false);
+  row(1.05, mobs.slice(0, 5), 4.4, walking);
+  row(2.15, mobs.slice(5), 4.4, walking);
 }
 
 window.addEventListener("resize", () => pixels.resize());

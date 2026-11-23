@@ -2,13 +2,14 @@
   "id": "circlet",
   "kind": "gear",
   "voxel": 0.0625,
-  "palette": ["$0", "$1", "#0d0f14"],
+  "palette": ["$0", "$1", "#0b0c10"],
   "parts": [
     {
       "name": "band",
       "mount": "head-top",
       "pivot": [0, 0, 0],
       "origin": [4, 3, 4],
+      "fit": [6, 0, 6],
       "size": [8, 2, 8],
       "layers": [
         [

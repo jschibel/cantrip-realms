@@ -72,13 +72,16 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
     terrain palette doesn't use, with a clear silhouette and a soft ring on the ground under the player. They are never
     lost in the scene.
   - Effects are billboards at the same pixel scale.
+  - Where it lives: the cel materials, light and band thresholds in `src/look.ts`, the ramps in `src/palette.ts`, the
+    post pass (bands to colors, outlines) in `src/render.ts`. Two choices are left open for comparing on any page:
+    `?bands=2` (lit and shade only) and `?outline=ramp` (outlines in the darkest of the outlined thing's own ramp).
 - **Assets:** **voxel models stored as data** (`realms/content/models/*.vox.json`), written by generator scripts and tuned by hand.
   - The browser greedy-meshes them when they load (`src/voxel/mesher.ts`) into vertex-colored meshes in the palette's colors, shared between every character drawn alike; they are small enough that no build step is needed.
   - Characters are segmented rigs (head, torso, arms, legs) with idle, walk, cast and interact animations. Each slot's gear is a voxel piece hung on an attachment point of the body. Mobs are base models with palette swaps (ten so far).
   - Audio: CC0 chiptune tracks and SFX generated with jsfxr.
 - **The world:** one connected map streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and dungeons"),
-  written by a seeded generator with hand-placed set pieces (`scripts/world.ts`), edited in the dev-only editor
-  (`?editor`), and linted. Chunks near the player are built (a prism per hex, the scenery merged per chunk) and those far
+  made offline by a seeded generator with hand-placed set pieces (`scripts/world.ts`), checked in, and linted. Nobody
+  edits the map in the game: there is no map editor, for players or for admins. Chunks near the player are built (a prism per hex, the scenery merged per chunk) and those far
   away are dropped.
 - **Interiors:** a door's interior is its own scene. Entering is seamless: the door opens, the camera eases in, the
   world fades behind a short iris and the room fades in around the player at its door (about 400 ms in all, never a
@@ -148,7 +151,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 | 3 | Data pipelines (B7); the game draws on the cards the trunk has | fork | prices and pools generated |
 | 4 | Gear in the engine (B3): the effect families, the generator, scenarios | fork | every family and item covered and passing |
 | 5 | The realm server (B4): accounts, collection, decks, ante, gear, vendors, encounters, replay check, loot, presence | fork | server tests pass (B10) |
-| 6 | The overworld (B5): renderer, maps, movement, mobs, world map, HUD, map editor | fork | you can walk Dominaria and see other players |
+| 6 | The overworld (B5): renderer, the world, movement, mobs, HUD | fork | you can walk Dominaria and see other players |
 | 7 | Card screens in `?realm` (B6): duel, spell table, vendor, loot, gear | fork | the whole loop plays end to end in a browser |
 | 8 | Content: 50 maps, 60 mobs and decks, 5 dungeons with bosses plus the capstone, 255 gear items, vendors, quests, story text, models, audio | fork | content lint passes; every mob deck is legal and plays in the bot lab |
 | 9 | Balance and economy: balance lab, economy simulation, difficulty tuning | fork | gear costs fitted; vendor purse and stock stay steady in the simulation |
