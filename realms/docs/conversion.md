@@ -85,7 +85,7 @@ The world calls the renderer with a scene of chunks, figures, doors and lights:
 `tuft`, `pebble`, `crack` (procedural.ts); `sprite`, `mirror` (sprite.ts: pixel art as text); the tiling textures
 (textures.ts, 64 by 64 = four tiles, seamless, seeded) and pictures of single things (pictures.ts); `material(name,
 paint, options)` made once by name, `painted(name, ramp, usual, paint)` named for its ramp when it is not the usual one,
-`flat(color)`, and `stock` - the walls, roofs, timber and foliage, each taking a ramp (materials.ts); `MeshBuilder`
+`flat(color)`, and `stock` - the walls, roofs, timber and foliage, those painted from a ramp taking one (materials.ts); `MeshBuilder`
 (`box`, `roundedBox`, `gableRoof`, `cylinder`, `ring`, `blob`, `decal`, `card`, `quad`, `polygon`, `at(x, y, z, turn,
 draw)`), faces `tiled` (from the world's grid) or `fitted` (one picture), and `Model` - geometry by material in world
 coordinates - with `model()`, `add(model)`, `mergeModels`, `meshesOf` (builder.ts).
