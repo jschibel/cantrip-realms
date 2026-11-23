@@ -12,7 +12,6 @@ import { ARCANE_EYE, OIL_EYE, type Paint, type PartSpec } from "./rig";
 // round him, Liliana's veil and violet eyes, Garna's axes and war paint, Rofellos's crown of branches, Sheoldred on her
 // legs of a spider with a scorpion's tail. A boss's mesh is its own id; its palette recolors it like any mob's.
 
-const GOLD = full(C.GOLD);
 const IRON = full(C.IRON);
 const WOOD = full(C.WOOD);
 const BONE = full(C.BONE);

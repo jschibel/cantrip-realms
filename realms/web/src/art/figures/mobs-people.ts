@@ -1,13 +1,13 @@
 import * as C from "../paint/colors";
 import type { Ramp } from "../paint/palette";
 import { chain, horn, wings } from "./anatomy";
-import { cloth, hairAll, layer, rows, stamp } from "./faces";
+import { cloth, layer, rows } from "./faces";
 import type { Held } from "./held";
 import { choose, defineMob } from "./mobs";
 import { type V3, allSides, bark, cutTo, eyes, feathers, flipX, fur, glowing, part, plates, pointUp, ragged, solid, speckle, stone } from "./paints";
-import { BUILDS, type Build, type HairStyle, type Person, person, scaled } from "./person";
+import { type Build, type HairStyle, person, scaled } from "./person";
 import { SKINS, at, full, rampOf } from "./ramps";
-import { ARCANE_EYE, BLOOD_EYE, EMBER_EYE, GHOUL_EYE, HOLY_LIGHT, OIL_EYE, SPIRIT_EYE, type FigureSpec, type Paint, type PartSpec } from "./rig";
+import { ARCANE_EYE, BLOOD_EYE, EMBER_EYE, GHOUL_EYE, OIL_EYE, SPIRIT_EYE, type FigureSpec, type Paint, type PartSpec } from "./rig";
 
 // The roster's people and everything built like one (mobs.ts): soldiers, knights, archers, barbarians, elves, goblins,
 // orcs, minotaurs, giants, merfolk, vampires, angels, demons and imps, the aven, ghouls and horrors, Phyrexians, the
@@ -20,7 +20,6 @@ const GOLD = full(C.GOLD);
 const WOOD = full(C.WOOD);
 const DARK = full(C.DARKWOOD);
 const BONE = full(C.BONE);
-const WHITE = full(C.CLOTH_WHITE);
 const SLATE = full(C.SLATE);
 
 /** A human's skin and hair, from the seed (the six palettes a player may have). */
@@ -419,7 +418,7 @@ defineMob({
       build: b,
       skin: skin!,
       face: { eyes: EMBER_EYE, mouth: "fangs", brow: true, blush: false },
-      horns: { ramp: hornR!, size: 1.4 },
+      horns: { ramp: hornR!, size: 2.2 },
       top: { style: "bare", ramp: skin! },
       sleeves: "none",
       legs: skin!,
@@ -595,7 +594,6 @@ defineMob({
       p.vline(Math.floor(w / 2) - 1, 1, h - 2, at(P, 2));
       for (let x = 2; x < w - 2; x += 2) p.put(x, h - 2, at(dark!, 3));
     });
-    const sinewP: Paint = layer(cloth(sinew!, 3), (p) => { for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) if ((x * 3 + y) % 5 === 0) p.put(x, y, at(sinew!, 5)); });
     const mage = has(id, "mindcutter", "ertai");
     return person({
       name: "phyrexian",

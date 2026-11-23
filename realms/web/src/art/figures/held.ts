@@ -40,6 +40,11 @@ const FIRE = full(C.FIRE);
  * reaching up (and out to the figure's own side, `side` 1 left and -1 right, for blades that show their face).
  */
 export function heldParts(item: Held, arm: string, size: V3, side: 1 | -1): PartSpec[] {
+  // Every item hangs from the hand: its first part on the arm, the rest on that.
+  return itemParts(item, arm, size, side).map((p) => (p.parent ? p : { ...p, parent: arm }));
+}
+
+function itemParts(item: Held, arm: string, size: V3, side: 1 | -1): PartSpec[] {
   const [, ah, ad] = size;
   const hand: V3 = [0, -ah + 2, ad / 2];
   const n = `${arm}.${item.kind}`;

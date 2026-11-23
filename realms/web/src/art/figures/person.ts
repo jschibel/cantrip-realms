@@ -445,8 +445,8 @@ function headgearParts(g: Headgear, w: number, h: number, d: number): PartSpec[]
       const tall = g.crown ? 3 : 2;
       const band: Paint = g.crown ? layer(cloth(r, 4), rows(tall - 1, tall - 1, at(r, 2)), cutTo((x, y) => y > 0 || x % 3 === 1)) : layer(cloth(r, 4), rows(0, 0, at(r, 6)), rows(1, 1, at(r, 3)));
       return [
-        part("circlet", [w + 1, tall, d + 1], [0, h - 4, 0], [-(w + 1) / 2, 0, -(d + 1) / 2 - 0.25], { front: band, back: band, left: band, right: band, top: ring, bottom: ring }, at(r, 4), { parent: "head", round: 0.4 }),
-        part("circlet.gem", [2, 2, 1], [0, h - 4, d / 2 + 0.6], [-1, 0, -0.5], { front: layer(cloth(gem, 4), (p) => p.put(0, 0, at(gem, 6))) }, at(gem, 4), { parent: "head", round: 0 }),
+        part("circlet", [w + 1, tall, d + 1], [0, h - 3, 0], [-(w + 1) / 2, 0, -(d + 1) / 2 - 0.15], { front: band, back: band, left: band, right: band, top: ring, bottom: ring }, at(r, 4), { parent: "head", round: 0.4 }),
+        part("circlet.gem", [2, 2, 1], [0, h - 3, d / 2 + 0.5], [-1, 0, -0.5], { front: layer(cloth(gem, 4), (p) => p.put(0, 0, at(gem, 6))) }, at(gem, 4), { parent: "head", round: 0 }),
       ];
     }
     case "wide": {

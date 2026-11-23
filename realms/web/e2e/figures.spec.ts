@@ -160,7 +160,7 @@ test("figures: casting and reaching out", async ({ page }) => {
 /** Walking on the spot, at ten frames a second of game time: the people, and the beasts turned to show their gait. */
 for (const [name, query, w, h] of [
   ["bodies-walk", "set=bodies&per=8&walk&nolabels", 300, 110],
-  ["creatures-walk", "set=creatures&per=6&walk&nolabels", 300, 120],
+  ["creatures-walk", "set=creatures&page=1&per=6&walk&face=side&nolabels", 300, 120],
   ["bosses-walk", "set=bosses&walk&nolabels", 320, 120],
 ] as const) {
   test(`figures: ${name}`, async ({ page }) => {

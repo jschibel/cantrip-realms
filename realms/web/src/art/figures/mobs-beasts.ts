@@ -2,9 +2,8 @@ import * as C from "../paint/colors";
 import type { Ramp } from "../paint/palette";
 import { type WingSpec, chain, horn, legs4, wings } from "./anatomy";
 import { cloth, layer, rows } from "./faces";
-import { choose, defineMob } from "./mobs";
-import { has } from "./mobs-people";
-import { type V3, allSides, bark, cutTo, eyes, feathers, flipX, fur, glowing, part, plates, pointUp, scales, solid, speckle } from "./paints";
+import { defineMob } from "./mobs";
+import { type V3, allSides, cutTo, eyes, feathers, flipX, fur, part, plates, pointUp, scales, solid, speckle } from "./paints";
 import { type Person, person, scaled } from "./person";
 import { at, full, rampOf } from "./ramps";
 import { EMBER_EYE, type FigureSpec, GHOUL_EYE, HEAD, OIL_EYE, type Paint, type PartFaces, type PartSpec } from "./rig";
@@ -14,7 +13,6 @@ import { EMBER_EYE, type FigureSpec, GHOUL_EYE, HEAD, OIL_EYE, type Paint, type 
 // A four-legged beast is a body on four legs (anatomy.ts `legs4`), a head on the front of it (on a neck for the tall
 // ones), a tail of segments behind; sizes are whole texels, grown by the mob's size.
 
-const IRON = full(C.IRON);
 const BONE = full(C.BONE);
 const GOLD = full(C.GOLD);
 const k = (v: number, s: number) => Math.max(1, Math.round(v * s));
