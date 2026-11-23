@@ -3,7 +3,7 @@ import { BARE, BLOCKED, CHUNK, RAMP, chunkKey } from "../../src/world/format";
 import type { WorldSource } from "../../src/world/load";
 import shopTemplate from "../slice-world/interiors/shop.json";
 
-// A large synthetic world for the renderer's tests and its benchmark (render/, slice.html?world=large): 8 by 8 chunks
+// A large synthetic world for the renderer's tests and its benchmark (render/, the game page ?world=large): 8 by 8 chunks
 // (256 tiles square) of mixed country made by code from a seed, the same every time - a dense walled-less town of
 // Benalish houses and shops (some with rooms behind their doors), streets and a market with lamps; a deep forest; hills
 // of terraces with ramps up them and a ruin on top; a lake with its shore; fields; dirt roads between them; and

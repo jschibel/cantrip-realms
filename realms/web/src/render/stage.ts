@@ -12,9 +12,8 @@ import { aimXray } from "./xray";
 // The stage: what every page that shows the world runs each frame - the camera rig and its three headings and stepped
 // zoom, the place the player is in and the figures in it, walking and the doors between places with the doorway's iris
 // and the camera's easing, the world's chunks streamed round the view, the sun's shadows kept round it, the x-ray
-// through whatever stands in front of the player, and the furthest zoom's level of detail. The slice (slice/main.ts)
-// and the game (game.ts) are pages over it: they say what the places are (`Spots`), what a click on something means,
-// and what the HUD shows.
+// through whatever stands in front of the player, and the furthest zoom's level of detail. The game (game.ts) is the page
+// over it: it says what the places are (`Spots`), what a click on something means, and what the HUD shows.
 
 /** A way from one place to another: stand on `tile` and step `step` to go through to `to`; `at` is the doorway. */
 export interface StageDoor {

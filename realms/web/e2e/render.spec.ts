@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 
-// The renderer at world scale (src/render/), on the large synthetic world (fixtures/large-world, slice.html?world=large)
+// The renderer at world scale (src/render/), on the large synthetic world (fixtures/large-world, the game page ?world=large)
 // and on the manual clock: chunks streamed in and out as the player crosses their borders, the camera turned and zoomed
 // while walking, a door into a room and back out at every heading, the x-ray through what stands in front of the player,
 // the furthest zoom's level of detail, and the way up a terrace's ramp. With RENDER_SHOTS=1 the pictures go to
@@ -16,10 +16,23 @@ mkdirSync(out, { recursive: true });
 const hooks = <T>(page: Page, read: string): Promise<T> =>
   page.evaluate((r) => r.split(".").reduce((o: any, k) => o?.[k], (globalThis as any).sliceTest), read) as Promise<T>;
 
+
+/** The game page (index.html) offline, on the slice's street or another test world, with the slice's query: its scene=,
+ * at=x,z, heading=, zoom=, still and nohud as the game page takes them. */
+function gamePage(query: string, world: string): string {
+  const q = new URLSearchParams(query);
+  const out = new URLSearchParams(`test&manual&offline&name=Tester&mobs=0&world=${world}`);
+  const scene = q.get("scene");
+  const at = q.get("at");
+  if (scene && scene !== "street") out.set("at", at ? `${scene}:${at}` : scene);
+  else if (at) out.set("at", `world:${at}`);
+  for (const [k, v] of q) if (k !== "scene" && k !== "at") out.set(k, v);
+  return `/?${out.toString().replace(/=(&|$)/g, "$1")}`;
+}
 async function open(page: Page, query: string): Promise<string[]> {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(`/slice.html?test&manual&world=large&${query}`);
+  await page.goto(gamePage(query, "large"));
   await page.waitForFunction(() => (globalThis as any).sliceTest?.ready === true, undefined, { timeout: 60_000 });
   return errors;
 }

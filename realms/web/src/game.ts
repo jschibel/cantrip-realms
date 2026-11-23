@@ -44,6 +44,8 @@ export interface Options {
   /** The camera's heading and outdoor zoom to start at (else what was last used). */
   readonly heading?: Heading;
   readonly zoom?: Zoom;
+  /** The townsfolk stand still (tests, screenshots). */
+  readonly still?: boolean;
 }
 
 /** What a click on a tile would do, for the cursor. */
@@ -162,6 +164,12 @@ export class Overworld {
     if (presence) presence.onMessage = (m) => this.hear(m);
     window.addEventListener("resize", () => this.stage?.resize());
     document.querySelector<HTMLButtonElement>("[data-test='hud:gear']")?.addEventListener("click", () => void this.openGear());
+    // The camera's buttons: a heading either way, a zoom step in or out (refused where the place does not allow it).
+    const button = (name: string, act: () => void) => document.querySelector<HTMLButtonElement>(`[data-test='hud:${name}']`)?.addEventListener("click", act);
+    button("turn-left", () => this.turn(-1));
+    button("turn-right", () => this.turn(1));
+    button("zoom-in", () => this.zoomBy(-1));
+    button("zoom-out", () => this.zoomBy(1));
   }
 
   say(text: string): void {
@@ -242,6 +250,7 @@ export class Overworld {
     const zoomed = Number(stored(ZOOM_KEY) ?? "x");
     const zoom = this.options.zoom ?? (zoomed === 0 || zoomed === 1 || zoomed === 2 ? zoomed : 0);
     this.stage = new Stage(this.canvas, { heading, zoom, spot, start: tile, player: playerFigure(appearanceOf(data)), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
+    this.stage.still = !!this.options.still;
     this.stage.onArrive = (s) => this.arrived(s);
     this.stage.onTile = (t) => this.stepped(t);
     this.stage.intercept = (t) => this.clickThing(t);
@@ -282,6 +291,7 @@ export class Overworld {
   /** On arriving in a place: its name, the server and the relay told, the people there. */
   private arrived(spot: Spot, first = false): void {
     this.pending = null;
+    this.showCamera();
     this.area = null;
     for (const v of this.visitors.values()) v.actor.figure.root.removeFromParent();
     this.visitors.clear();
@@ -1186,11 +1196,27 @@ export class Overworld {
   /** Steps the camera's heading, kept for the next visit. */
   turn(step: -1 | 1): void {
     if (this.stage.turn(step)) store(HEADING_KEY, NAME_OF[this.stage.rig.heading]);
+    this.showCamera();
   }
 
   /** Steps the outdoor zoom, kept for the next visit. */
   zoomBy(step: -1 | 1): void {
     if (this.stage.zoomBy(step)) store(ZOOM_KEY, String(this.stage.rig.zoom));
+    this.showCamera();
+  }
+
+  /** The camera's buttons, each disabled where its step is refused (past 45 degrees, a room that does not turn, indoors' zoom). */
+  private showCamera(): void {
+    const set = (name: string, disabled: boolean) => {
+      const b = document.querySelector<HTMLButtonElement>(`[data-test='hud:${name}']`);
+      if (b) b.disabled = disabled;
+    };
+    const here = this.stage.current;
+    const rig = this.stage.rig;
+    set("turn-left", !here.turns || rig.heading === -1);
+    set("turn-right", !here.turns || rig.heading === 1);
+    set("zoom-in", here.inside || rig.zoom === 0);
+    set("zoom-out", here.inside || rig.zoom === rig.maxZoom());
   }
 }
 

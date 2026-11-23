@@ -113,7 +113,8 @@ button.primary:hover { filter: brightness(1.08); }
 #hud-place { padding: 8px; text-align: center; }
 #hud-place-name { font-family: "Beleren", serif; font-size: 14px; margin-bottom: 6px; color: var(--fg); }
 #hud-minimap { width: 168px; height: 168px; image-rendering: pixelated; display: block; border-radius: 4px; pointer-events: auto; cursor: zoom-in; }
-#hud-actions { padding: 6px; display: flex; gap: 6px; }
+#hud-actions { padding: 6px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 160px; }
+#hud-actions button:disabled { opacity: 0.35; cursor: default; }
 
 #hud-message {
   left: 50%;
@@ -310,3 +311,4 @@ button.primary:hover { filter: brightness(1.08); }
   text-shadow: 0 0 2px #000, 0 0 3px #000, 1px 1px 0 #000;
   white-space: nowrap;
 }
+body.nohud #hud, body.nohud #notice { display: none; }

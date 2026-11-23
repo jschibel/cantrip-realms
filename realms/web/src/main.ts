@@ -24,7 +24,8 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 //                   play uses unless told otherwise. It is told the realm server (its ?api=), which it calls itself.
 //   ?world=slice|large   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
 //                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
-//   ?test           publishes globalThis.realmTest; ?manual holds the clock until a test advances it.
+//   ?test           publishes globalThis.realmTest (and sliceTest); ?manual holds the clock until a test advances it;
+//                   ?still stands the townsfolk still, ?nohud hides the HUD (pictures).
 // and, for development and tests, forces a state rather than waiting on chance:
 //   ?at=world:x,z | <town> | <dungeon> | <interior>  start there (a town at its middle, a dungeon outside its entrance); ?heading=left|front|right, ?zoom=0..2;
 //   ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home, ?mobs=0 leaves them out;
@@ -93,12 +94,16 @@ async function boot(): Promise<void> {
       manual: query.has("manual"),
       heading: HEADING_NAMES[query.get("heading") ?? ""],
       zoom: zoom === 0 || zoom === 1 || zoom === 2 ? (zoom as Zoom) : undefined,
+      still: query.has("still"),
     },
     source,
     world,
     source === DOMINARIA ? DUNGEONS : new Map(),
   );
-  const start = await parseAt(query.get("at"), world.towns, source);
+  // Another world than Dominaria (a test's): the character's place is Dominaria's, so start at its start town.
+  const town = world.towns.find((t) => t.start) ?? world.towns[0];
+  const start = (await parseAt(query.get("at"), world.towns, source)) ?? (source !== DOMINARIA && town ? { space: "world", tile: { x: town.center[0], z: town.center[1] } } : undefined);
+  if (query.has("nohud")) document.body.classList.add("nohud");
   // The start is the game's to make; input binds to its stage once it stands.
   const started = game.start(character, start);
   await started;

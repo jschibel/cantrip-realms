@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 import { type GifFrame, encodeGif } from "./gif";
 
-// The art slice (slice.html): New Benalia's street, Grizzlegom's Goblins inside it, and the crypt under the churchyard,
+// The art slice (the game page ?world=slice; slice.html once): New Benalia's street, Grizzlegom's Goblins inside it, and the crypt under the churchyard,
 // in the 3D pixel-art look on square tiles. The smoke tests load each scene and check it draws, and walk through the
 // shop's door and back with real clicks. With SLICE_SHOTS=1 they also write the slice's pictures for the owner to
 // judge - each scene, the street at each of the camera's three headings, a room from a corner, a walking clip of each
@@ -24,13 +24,26 @@ interface Point {
 const slice = <T>(page: Page, read: string): Promise<T> =>
   page.evaluate((r) => r.split(".").reduce((o: any, k) => o?.[k], (globalThis as any).sliceTest), read) as Promise<T>;
 
+/** The game page (index.html) offline, on the slice's street or another test world, with the slice's query: its scene=,
+ * at=x,z, heading=, zoom=, still and nohud as the game page takes them. */
+function gamePage(query: string, world: string): string {
+  const q = new URLSearchParams(query);
+  const out = new URLSearchParams(`test&manual&offline&name=Tester&mobs=0&world=${world}`);
+  const scene = q.get("scene");
+  const at = q.get("at");
+  if (scene && scene !== "street") out.set("at", at ? `${scene}:${at}` : scene);
+  else if (at) out.set("at", `world:${at}`);
+  for (const [k, v] of q) if (k !== "scene" && k !== "at") out.set(k, v);
+  return `/?${out.toString().replace(/=(&|$)/g, "$1")}`;
+}
+
 /**
  * Opens the slice on its manual clock (?manual): the game stands still until a test advances it (sliceTest.advance), so
  * no test waits on the wall clock - what moves, moves by exactly the game time the test gives it.
  */
 async function open(page: Page, query: string): Promise<void> {
-  await page.goto(`/slice.html?test&manual&${query}`);
-  await page.waitForFunction(() => (globalThis as any).sliceTest?.ready === true, undefined, { timeout: 30_000 });
+  await page.goto(gamePage(query, "slice"));
+  await page.waitForFunction(() => (globalThis as any).sliceTest?.ready === true, undefined, { timeout: 60_000 });
 }
 
 const tileOnPage = (page: Page, x: number, z: number) => page.evaluate(([tx, tz]) => (globalThis as any).sliceTest.tile(tx, tz) as Point, [x, z] as const);
@@ -106,14 +119,14 @@ test("slice: the camera turns 45 degrees either way and no further, by key and b
   // A third step the same way is refused: it never goes past 45 degrees.
   await page.keyboard.press("e");
   expect(await settledHeading(page)).toBe("right");
-  await expect(page.locator("[data-test='slice:turn-right']")).toBeDisabled();
+  await expect(page.locator("[data-test='hud:turn-right']")).toBeDisabled();
 
   // The heading outlasts the visit.
   await open(page, "still");
   expect(await settledHeading(page)).toBe("right");
 
   // The buttons step it back to the front and on to the left; Q past the left is refused.
-  const left = page.locator("[data-test='slice:turn-left']");
+  const left = page.locator("[data-test='hud:turn-left']");
   await left.click();
   expect(await settledHeading(page)).toBe("front");
   await left.click();
@@ -307,11 +320,11 @@ test("slice: the outdoor zoom steps out and in by wheel, keys and buttons, holds
   expect(await settledZoom(page)).toEqual({ step: 2, scale: 1 });
   await page.keyboard.press("-");
   expect(await settledZoom(page)).toEqual({ step: 2, scale: 1 });
-  await expect(page.locator("[data-test='slice:zoom-out']")).toBeDisabled();
+  await expect(page.locator("[data-test='hud:zoom-out']")).toBeDisabled();
   // The wheel up, then the plus button: back in to the closest.
   await page.mouse.wheel(0, -120);
   expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
-  await page.locator("[data-test='slice:zoom-in']").click();
+  await page.locator("[data-test='hud:zoom-in']").click();
   expect(await settledZoom(page)).toEqual({ step: 0, scale: 3 });
   await page.keyboard.press("-");
   expect(await settledZoom(page)).toEqual({ step: 1, scale: 2 });
@@ -334,13 +347,13 @@ test("slice: the outdoor zoom steps out and in by wheel, keys and buttons, holds
       await page.keyboard.press("-");
       await page.mouse.wheel(0, 120);
       expect(await settledZoom(page)).toEqual({ step: 1, scale: 4 });
-      await expect(page.locator("[data-test='slice:zoom-out']")).toBeDisabled();
+      await expect(page.locator("[data-test='hud:zoom-out']")).toBeDisabled();
     }
   }
 });
 
 test("slice: out through the west gate into open country, and back", async ({ page }) => {
-  await open(page, "still&at=4,12&zoom=1");
+  await open(page, "still&nohud&at=4,12&zoom=1");
   // Just outside the gate, then on west: the gate is open, the country beyond walkable as one place with the town.
   const gate = await tileOnPage(page, -3, 12);
   await page.mouse.click(gate.x, gate.y);
@@ -351,10 +364,11 @@ test("slice: out through the west gate into open country, and back", async ({ pa
   await advance(page, 3);
   expect((await playerOf(page)).tile).toEqual({ x: -10, z: 13 });
   expect(await slice<string>(page, "scene")).toBe("street");
-  const back = await tileOnPage(page, 3, 12);
+  // Back to where the walk began (the game page talks to a person clicked, so the way back is to a clear tile).
+  const back = await tileOnPage(page, 4, 12);
   await page.mouse.click(back.x, back.y);
-  await advance(page, 4);
-  expect((await playerOf(page)).tile).toEqual({ x: 3, z: 12 });
+  await advance(page, 5);
+  expect((await playerOf(page)).tile).toEqual({ x: 4, z: 12 });
 });
 
 test.describe("slice pictures at 1080p", () => {

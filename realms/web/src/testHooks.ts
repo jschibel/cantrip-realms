@@ -4,7 +4,7 @@ import type { Overworld } from "./game";
 import { identityOf } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
-import { yieldFrame } from "./render/bench";
+import { type BenchLeg, runBench, yieldFrame } from "./render/bench";
 import { NAME_OF } from "./render/camera";
 import { CHUNK, OBJECT_KINDS, areaAt, chunkKey } from "./world/format";
 import type { WalkInput } from "./render/pointer";
@@ -177,6 +177,11 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       }
       return grid.path(o.player.tile, { x, z }) ?? null;
     },
+    /** The renderer's benchmark (render/bench.ts) on the game's stage: walks the legs, timing every frame. */
+    bench(legs: BenchLeg[], maxFrames?: number) {
+      const o = live();
+      return o ? runBench(o.stage, legs, maxFrames) : Promise.resolve([]);
+    },
     /** What a click on a tile does (the stage's own handling of it), without finding the tile on the page first. */
     clickTile(x: number, z: number) {
       live()?.stage.clickTile({ x, z });
@@ -210,6 +215,130 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
         o.tick(1 / 60);
         await yieldFrame();
       }
+    },
+  };
+
+  // The art slice's hooks (sliceTest, as slice.html published them before the game page took its place), over the game's
+  // stage: the stage's own view of the camera, the player, the place and its doors, for the suites of the renderer and
+  // of walking, turning and zooming (e2e/slice.spec.ts, render.spec.ts).
+  const stage = () => live()?.stage ?? null;
+  const screenOf = (p: THREE.Vector3) => stage()!.toScreen(p);
+  const floorOf = (x: number, z: number) => stage()?.current.floorAt?.(x + 0.5, z + 0.5) ?? 0;
+  Object.defineProperty(g, "sliceStage", { get: () => stage(), configurable: true });
+  g.sliceTest = {
+    get ready() {
+      return game()?.screen === "world";
+    },
+    /** The place: "street" for the world, else the room's id. */
+    get scene() {
+      const s = stage();
+      return s ? (s.current.id === "world" ? "street" : s.current.id) : null;
+    },
+    get heading() {
+      const s = stage();
+      return s ? NAME_OF[s.rig.heading] : null;
+    },
+    get view() {
+      const r = stage()!.renderer;
+      return { yaw: r.view.yaw, pitch: r.view.pitch, snapped: r.snap, scale: r.view.scale };
+    },
+    get dragging() {
+      return input()?.dragging ?? false;
+    },
+    get cameraSettled() {
+      const s = stage()!;
+      return s.rig.settled && s.transition === null;
+    },
+    get zoom() {
+      const s = stage()!;
+      return { step: s.rig.zoom, scale: s.renderer.view.scale, steps: s.rig.maxZoom() + 1 };
+    },
+    zoomBy(step: -1 | 1) {
+      game()?.zoomBy(step);
+    },
+    turn(step: -1 | 1) {
+      game()?.turn(step);
+    },
+    get transitioning() {
+      return stage()?.transition !== null;
+    },
+    get player() {
+      const p = stage()!.player;
+      const at = screenOf(p.position.clone().setY(p.position.y + 0.4));
+      return { tile: p.tile, moving: p.moving, x: at.x, y: at.y, at: { x: p.position.x, z: p.position.z }, height: p.position.y, goal: p.goal };
+    },
+    tile(x: number, z: number) {
+      return screenOf(centre({ x, z }, floorOf(x, z)));
+    },
+    walkable(x: number, z: number) {
+      return stage()?.current.grid.walkable(x, z) ?? false;
+    },
+    get entities() {
+      const s = stage();
+      if (!s) return [];
+      return [
+        ...s.current.doors.map((d) => ({ name: d.name, kind: "door", to: d.to === "world" ? "street" : d.to, tile: d.tile, ...screenOf(centre(d.tile, floorOf(d.tile.x, d.tile.z))) })),
+        ...s.current.actors.map((a) => ({ name: a.name, kind: "figure", tile: a.tile, moving: a.moving, ...screenOf(a.position.clone().setY(a.position.y + 0.4)) })),
+      ];
+    },
+    advance(seconds: number) {
+      return (g.realmTest as { advance(s: number): Promise<void> }).advance(seconds);
+    },
+    shown(w: number, h: number) {
+      const s = stage()!;
+      s.render();
+      const canvas = s.renderer.canvas;
+      const rect = canvas.getBoundingClientRect();
+      const out = document.createElement("canvas");
+      out.width = w;
+      out.height = h;
+      const c = out.getContext("2d")!;
+      c.imageSmoothingEnabled = false;
+      c.fillStyle = "#000";
+      c.fillRect(0, 0, w, h);
+      c.drawImage(canvas, rect.left - (window.innerWidth - w) / 2, rect.top - (window.innerHeight - h) / 2, rect.width, rect.height);
+      const data = c.getImageData(0, 0, w, h).data;
+      let t = "";
+      for (let i = 0; i < data.length; i += 8192) t += String.fromCharCode(...data.subarray(i, i + 8192));
+      return { width: w, height: h, rgba: btoa(t) };
+    },
+    bench(legs: BenchLeg[], maxFrames?: number) {
+      const s = stage();
+      return s ? runBench(s, legs, maxFrames) : Promise.resolve([]);
+    },
+    get render() {
+      const s = stage()!;
+      const st = s.current.streamer;
+      return {
+        loaded: st?.loadedKeys ?? [],
+        built: st?.builtKeys ?? [],
+        idle: st?.idle ?? true,
+        window: st?.window ?? null,
+        calls: s.renderer.stats.calls,
+        detail: s.current.place.detail,
+        lights: s.current.place.pooledNow.filter((l) => l !== null).length,
+        xray: s.current.inside ? null : true,
+      };
+    },
+    set xray(on: boolean) {
+      const s = stage();
+      if (s) s.xray = on;
+    },
+    floor(x: number, z: number) {
+      return floorOf(x, z);
+    },
+    walkTo(x: number, z: number) {
+      const s = stage();
+      const to = s?.reachableNear({ x, z }, 3);
+      return !!to && s!.player.goTo(to);
+    },
+    frame() {
+      const s = stage()!;
+      s.render();
+      const { width, height, rgba } = s.renderer.readFrame(s.current.place.scene);
+      let t = "";
+      for (let i = 0; i < rgba.length; i += 8192) t += String.fromCharCode(...rgba.subarray(i, i + 8192));
+      return { width, height, rgba: btoa(t) };
     },
   };
 }
