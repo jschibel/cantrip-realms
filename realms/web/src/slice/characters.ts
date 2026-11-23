@@ -51,8 +51,6 @@ export interface FigureSpec {
 }
 
 const PX = 1 / 16;
-/** How far figures lean back from the three-quarter camera. */
-const LEAN = (25 * Math.PI) / 180;
 
 // --- Painting helpers -------------------------------------------------------------------------------------------
 
@@ -215,6 +213,8 @@ export class Figure {
   private readonly turn = new THREE.Group();
   /** Leans the whole figure back from the camera (see `setLean`). */
   private readonly lean = new THREE.Group();
+  /** The camera's turn the lean is made about, taken back off the figure's facing. */
+  private yaw = 0;
   private readonly joints = new Map<string, Joint>();
   private phase = 0;
   private time = Math.random() * 10;
@@ -276,16 +276,16 @@ export class Figure {
   }
 
   /**
-   * The sprite cheat, in 3D. A 16-bit RPG draws its map from above but its people from the front; seen from the
-   * three-quarter camera a 3D figure shows the whole top of its head instead. So, in that view, a figure leans back from
-   * the camera by `angle` about its feet and is squashed upright by just enough that its front still shows one texel to
-   * a pixel - and its top shrinks to a sliver, as a sprite's does. `amount` (0-1) blends it in, so it eases with the
-   * camera; the isometric view needs none.
+   * The sprite cheat, in 3D. A 16-bit RPG draws its map from above but its people from the front; seen from above, a 3D
+   * figure shows the whole top of its head instead. So a figure leans back from the camera by `angle`, about its feet
+   * and the camera's horizontal axis, and is squashed along its own height by just enough that its front still shows
+   * one texel to a pixel (cos pitch / cos(pitch - angle)) - and its top shrinks to a sliver, as a sprite's does. The
+   * camera's pitch and turn are passed in, so the lean follows the camera through a doorway's easing.
    */
-  setLean(amount: number, angle = LEAN): void {
-    const a = angle * amount;
-    this.lean.rotation.x = -a;
-    this.lean.scale.y = 1 / (Math.cos(a) + Math.sin(a));
+  setLean(angle: number, pitch: number, yaw: number): void {
+    this.lean.rotation.set(-angle, yaw, 0, "YXZ");
+    this.lean.scale.y = Math.cos(pitch) / Math.cos(pitch - angle);
+    this.yaw = yaw;
   }
 
   /** Turns to face a direction on the ground (x, z), smoothly. */
@@ -302,7 +302,7 @@ export class Figure {
     let delta = this.targetFacing - this.facing;
     delta = Math.atan2(Math.sin(delta), Math.cos(delta));
     this.facing += delta * Math.min(1, dt * 14);
-    this.turn.rotation.y = this.facing;
+    this.turn.rotation.y = this.facing - this.yaw;
 
     // Two steps a cycle; a cycle every 0.56 s at walking pace.
     this.phase += dt * (speed > 0.1 ? Math.max(1.6, speed) * 3.2 : 0);

@@ -261,18 +261,23 @@ function frame(now: number): void {
   requestAnimationFrame(frame);
 }
 
-/** How much of the three-quarter view's figure lean applies: all of it looking north, none looking from a corner. */
-function leanAmount(): number {
-  return Math.max(0, 1 - Math.abs(renderer.view.yaw) / (Math.PI / 4));
+/**
+ * How far figures lean back from the camera (characters.ts, setLean): 25 degrees from the three-quarter view, 15 from
+ * the isometric, and in between while the camera eases from one to the other.
+ */
+function leanAngle(): number {
+  const t = Math.min(1, Math.max(0, (renderer.view.pitch - Math.PI / 6) / (Math.PI / 4 - Math.PI / 6)));
+  return ((15 + 10 * t) * Math.PI) / 180;
 }
 
 function tick(dt: number): void {
   time += dt;
-  const lean = leanAmount();
-  player.figure.setLean(lean);
-  for (const a of current.actors) a.figure.setLean(lean);
+  const lean = leanAngle();
+  const { pitch, yaw } = renderer.view;
+  player.figure.setLean(lean, pitch, yaw);
+  for (const a of current.actors) a.figure.setLean(lean, pitch, yaw);
   for (const f of cast) {
-    f.setLean(lean);
+    f.setLean(lean, pitch, yaw);
     f.update(dt, query.get("cast") === "walk" ? 3 : 0);
   }
   player.update(dt);

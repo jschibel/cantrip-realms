@@ -4,6 +4,7 @@ import { goblin, knight, townswoman } from "../characters";
 import { MeshBuilder } from "../geometry";
 import { Grid } from "../grid";
 import { buildGround } from "../ground";
+import { grassField } from "../grass";
 import * as P from "../props";
 import * as T from "../textures";
 import { Actor, type Door, type SliceScene, blockArea, sunlight } from "../world";
@@ -184,6 +185,14 @@ export function buildStreet(seed = 1): SliceScene {
 
   scene.add(b.build("street"));
   sunlight(scene, 20, 13, 34);
+  // Grass standing up off the lawns and verges, wherever one can walk on grass (and all over the wood beyond).
+  const field = grassField(W + 2 * MARGIN_X, H + 2 * MARGIN_Z, { x: -MARGIN_X, z: -MARGIN_Z }, (x, z) => {
+    const mx = x - MARGIN_X;
+    const mz = z - MARGIN_Z;
+    const ch = MAP[mz]?.[mx];
+    return ch === undefined ? true : ch === "g" && grid.walkable(mx, mz);
+  });
+  scene.add(field.mesh);
 
   const doors: Door[] = [
     { name: "door:shop", tile: { x: 13, z: 10 }, step: [0, -1], to: "shop", arrive: { x: 6, z: 6 }, arriveFacing: [0, -1], at: new THREE.Vector3(13.5, 1, 10) },
@@ -212,6 +221,7 @@ export function buildStreet(seed = 1): SliceScene {
     start: { x: 13, z: 12 },
     bounds: [0, 0, W, H],
     update(_dt, time) {
+      field.time.value = time;
       // Water moves a whole texel at a time.
       waterMap.offset.set(Math.floor(time * 3) / 32, Math.floor(time * 5) / 32);
       fall.offset.set(0, -Math.floor(time * 14) / 16);
