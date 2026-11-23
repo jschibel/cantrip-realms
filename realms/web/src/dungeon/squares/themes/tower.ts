@@ -81,6 +81,13 @@ export const TOWER: ThemeDef = {
         for (const [x, z] of [[C - 1, C - 1], [C + 1, C + 1], [C + 1, C - 1], [C - 1, C + 1]] as const) if (ctx.free(x, z)) plan.block(x, z, { id: "dungeon-crystal", x: x + 0.5, z: z + 0.5, seed: x + z, args: { hue: "blue", size: 1.3 } });
       }
     }
+    if (!ctx.last) {
+      // Braziers round the ring corridor, against its outer wall.
+      for (let k = 0; k < 6; k++) {
+        const [x, z] = around(8.2, (k / 6) * Math.PI * 2 + 0.3);
+        if (ctx.free(x, z) && plan.block(x, z, { id: "brazier", x: x + 0.5, z: z + 0.5 })) plan.light(fireLight([x + 0.5, 1.5, z + 0.8], 7.5, k), 36);
+      }
+    }
     if (ctx.last) {
       // The hall's ring of pillars, braziers between some.
       for (let k = 0; k < 12; k++) {
