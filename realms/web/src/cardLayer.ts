@@ -9,6 +9,20 @@ export interface Closed {
   readonly screen: Screen;
   /** How it closed: for a duel `won` or `lost`; otherwise `closed`, or `dismissed` / `replaced` when cut short. */
   readonly outcome: string;
+  /** What the screen hands back, if anything: a duel's `log`, a loot pick's `picks`. */
+  readonly result?: Readonly<Record<string, unknown>>;
+}
+
+/** The card screens, wherever they come from: the framed card layer, or the stand-in for when it is absent. */
+export interface CardScreens {
+  readonly isReady: boolean;
+  /** The screen open now, or null. */
+  readonly openScreen: Screen | null;
+  /** Every screen asked for, in order, with what it was opened on (for tests: realmTest.layer). */
+  readonly requests: readonly { readonly screen: Screen; readonly args: Readonly<Record<string, unknown>> }[];
+  /** Called whenever the layer's state changes, for the HUD. */
+  onChange: () => void;
+  open(screen: Screen, args?: Record<string, unknown>): Promise<Closed>;
 }
 
 interface Waiting {
@@ -16,13 +30,14 @@ interface Waiting {
   readonly done: (closed: Closed) => void;
 }
 
-export class CardLayer {
+export class CardLayer implements CardScreens {
   readonly frame: HTMLIFrameElement;
   private readonly origin: string;
   private ready = false;
   private readonly readyWaiters: (() => void)[] = [];
   private readonly waiting = new Map<number, Waiting>();
   private nextId = 1;
+  readonly requests: { screen: Screen; args: Record<string, unknown> }[] = [];
 
   /** Called whenever the layer's state changes, for the HUD. */
   onChange: () => void = () => {};
@@ -54,6 +69,7 @@ export class CardLayer {
 
   /** Opens a card screen over the world, and resolves when it closes, with how. */
   async open(screen: Screen, args: Record<string, unknown> = {}): Promise<Closed> {
+    this.requests.push({ screen, args });
     await this.whenReady();
     const id = this.nextId++;
     return new Promise<Closed>((resolve) => {
@@ -77,7 +93,7 @@ export class CardLayer {
     if (e.origin !== this.origin || e.source !== this.frame.contentWindow) {
       return;
     }
-    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string };
+    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string; result?: Record<string, unknown> };
     if (message?.realm !== 1) {
       return;
     }
@@ -91,7 +107,7 @@ export class CardLayer {
         const waiting = message.id === undefined ? undefined : this.waiting.get(message.id);
         if (waiting) {
           this.waiting.delete(message.id!);
-          waiting.done({ screen: waiting.screen, outcome: message.outcome ?? "closed" });
+          waiting.done({ screen: waiting.screen, outcome: message.outcome ?? "closed", result: message.result });
         }
         if (this.waiting.size === 0) {
           this.frame.dataset.open = "false";

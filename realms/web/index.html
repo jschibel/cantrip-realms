@@ -6,12 +6,23 @@
     <title>Cantrip Realms</title>
   </head>
   <body>
-    <canvas id="world"></canvas>
-    <div id="hud">
+    <canvas id="world" data-cursor="none"></canvas>
+    <div id="hud" hidden>
       <div id="hud-character" class="panel"></div>
-      <div id="hud-layer" class="panel pill"></div>
+      <div id="hud-side">
+        <div id="hud-layer" class="panel pill"></div>
+        <div id="hud-place" class="panel">
+          <div id="hud-place-name"></div>
+          <canvas id="hud-minimap" width="144" height="144"></canvas>
+        </div>
+        <div id="hud-actions" class="panel">
+          <button data-test="hud:gear">Gear</button>
+        </div>
+      </div>
       <div id="hud-message" class="panel"></div>
     </div>
+    <div id="screens"></div>
+    <div id="notice">Cantrip Realms is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. &copy;Wizards of the Coast LLC.</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
