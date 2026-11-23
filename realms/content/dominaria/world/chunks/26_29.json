@@ -106,7 +106,7 @@
   ],
   "npcs": [
     {"id":"steelleaf-glade-quest-board","x":843,"z":939,"kind":"quest-board","name":"Notice board","text":["The ferry to Shanodin sails from the east shore."],"stand":[843.5,0.5625,939.5]},
-    {"id":"steelleaf-glade-folk-1","x":846,"z":948,"kind":"townsfolk","name":"Old druid","text":["Past the glade the forest is older than the elves, and less forgiving."],"figure":"elf","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[846,948],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"steelleaf-glade-folk-1","x":846,"z":948,"kind":"townsfolk","name":"Old druid","text":["Past the glade the forest is older than the elves, and less forgiving."],"figure":"townsfolk-llanowar","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[846,948],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

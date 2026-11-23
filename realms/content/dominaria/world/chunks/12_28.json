@@ -88,7 +88,7 @@
     {"id":"capashen-hold-b2","style":"benalish","kind":"house","x":388,"z":897,"w":5,"d":6,"rot":0,"params":{"ground":2.3125,"upper":1.75,"roof":"tile","rise":1.5625,"chimney":2.9375,"wall":"plaster","openings":[{"at":2.5,"kind":"door"},{"at":2.5,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"capashen-hold-guard-3","x":389,"z":904,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[389,904],[381,904]],"pause":3.5},"watch":4}}
+    {"id":"capashen-hold-guard-3","x":389,"z":904,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[389,904],[381,904]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
     {"id":"12_28:1","x":413,"z":898,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}

@@ -121,7 +121,7 @@
   ],
   "npcs": [
     {"id":"llanowar-quest-board","x":704,"z":839,"kind":"quest-board","name":"Quest board","text":["Bounty: the wurm eating the north orchard.","The Steel Leaf ride at dawn. Stay off the trails."],"stand":[704.5,0.375,839.5]},
-    {"id":"llanowar-folk-2","x":730,"z":859,"kind":"townsfolk","name":"Wurm herder","text":["They're gentle, really. Just very, very large."],"figure":"elf","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[730,859],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"llanowar-folk-2","x":730,"z":859,"kind":"townsfolk","name":"Wurm herder","text":["They're gentle, really. Just very, very large."],"figure":"townsfolk-llanowar","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[730,859],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

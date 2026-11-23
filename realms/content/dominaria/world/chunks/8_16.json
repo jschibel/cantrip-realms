@@ -100,7 +100,7 @@
     {"id":"sursi-b5","style":"benalish","kind":"house","x":264,"z":534,"w":5,"d":5,"rot":1,"params":{"ground":2.375,"upper":1.6875,"roof":"tile","rise":1.5,"wall":"plaster","openings":[{"at":0.5,"kind":"door"},{"at":0.5,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"sursi-folk-1","x":266,"z":518,"kind":"townsfolk","name":"Pegasus groom","text":["The herds fly the cliffs at dusk. Don't stand under them."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[266,518],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"sursi-folk-1","x":266,"z":518,"kind":"townsfolk","name":"Pegasus groom","text":["The herds fly the cliffs at dusk. Don't stand under them."],"figure":"townsfolk-benalia","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[266,518],"reach":4,"pause":[2,6]},"watch":3}},
     {"id":"sursi-quest-board","x":260,"z":536,"kind":"quest-board","name":"Notice board","text":["The ferry to Stahaan sails from the west cliffs. The minotaurs do not welcome visitors."],"stand":[260.5,1,536.5]}
   ],
   "spawns": [],

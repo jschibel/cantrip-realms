@@ -833,3 +833,71 @@ prop(
   needs({ to: "point" }),
 );
 
+
+// --- The towns' own trees: orchards, and the elfhames' platforms ------------------------------------------------------------
+
+/** Fruit hung round a crown's near side: a few seeded dots of red and gold (none on the far stand-in). */
+function fruit(b: MeshBuilder, x: number, y: number, z: number, rx: number, ry: number, seed: number): void {
+  if (FAR) return;
+  const random = seeded(seed * 31 + 7);
+  const colors = [C.RED[3]!, C.RED[4]!, C.GOLD[4]!];
+  for (let k = 0; k < 11; k++) {
+    const a = (random() - 0.5) * Math.PI * 1.6;
+    const e = (random() - 0.3) * 1.1;
+    const fx = x + Math.sin(a) * Math.cos(e) * rx;
+    const fz = z + Math.cos(a) * Math.cos(e) * rx;
+    const fy = y + Math.sin(e) * ry;
+    const c = flatColor(colors[k % colors.length]!);
+    b.box(fx - 0.06, fy - 0.06, fz - 0.06, fx + 0.06, fy + 0.06, fz + 0.06, sides(c));
+  }
+}
+const flatColor = (c: Rgb) => fitted(material(`fruit:${c.toString(16)}`, () => new Pixmap(2, 2, c)));
+
+tree(
+  "fruit-tree",
+  "a small fruit tree of a town's orchard: an oak's shape, low and round, hung with red and gold fruit, at x, z; scale (0.7), seed its crown",
+  TREE_INFO(["town", "farmland", "plains"]),
+  (b, p, pal) => {
+    const q = { ...p, scale: p.scale ?? 0.7 };
+    oakOf(b, q, pal);
+    const s = s1(q);
+    fruit(b, q.x, 2.65 * s, q.z, 1.35 * s, 0.95 * s, sd(q));
+  },
+  { leaves: C.LEAF, bark: C.WOOD },
+);
+
+prop(
+  "tree-platform",
+  "an elfhame's platform: a ring of planks round a great tree's trunk at x, z, args.height up (2.5), on struts, a railing round it and a ladder up its south side",
+  { category: "tree", biomes: ["llanowar"], footprint: centred(1, 1), sample: { args: { height: 2.5 } } },
+  (b, p) => {
+    const h = num(p, "height", 2.5);
+    const { x, z } = p;
+    const wood = bark(R.ELFWOOD, "smooth");
+    const deck = fitted(material("tree-platform-deck", () => {
+      const q = new Pixmap(16, 16);
+      for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) q.set(i, j, j % 4 === 0 ? C.WOOD[1]! : hash2(i, j, 3) < 0.1 ? C.WOOD[2]! : C.WOOD[3]!);
+      return q;
+    }));
+    // The deck: an octagon of boards round the trunk, struts under it to the trunk.
+    b.cylinder(x, z, h - 0.14, h, 1.35, 8, { mat: wood }, deck);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
+      limb(b, [x + Math.sin(a) * 0.35, h - 1.1, z + Math.cos(a) * 0.35], [x + Math.sin(a) * 1.15, h - 0.14, z + Math.cos(a) * 1.15], 0.06, 0.05, wood, 4);
+    }
+    // The railing: posts round the rim and a rail along them, open at the ladder.
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
+      if (Math.abs(Math.sin(a)) < 0.45 && Math.cos(a) > 0) continue;
+      const px = x + Math.sin(a) * 1.25;
+      const pz = z + Math.cos(a) * 1.25;
+      limb(b, [px, h, pz], [px, h + 0.55, pz], 0.035, 0.035, wood, 4);
+      const n = (k + 1) / 8 * Math.PI * 2 + Math.PI / 8;
+      if (Math.abs(Math.sin(n)) < 0.45 && Math.cos(n) > 0) continue;
+      limb(b, [px, h + 0.55, pz], [x + Math.sin(n) * 1.25, h + 0.55, z + Math.cos(n) * 1.25], 0.03, 0.03, wood, 4);
+    }
+    // The ladder up the south side.
+    for (const dx of [-0.22, 0.22]) limb(b, [x + dx, 0, z + 1.45], [x + dx, h + 0.4, z + 1.3], 0.035, 0.035, wood, 4);
+    for (let y = 0.35; y < h; y += 0.35) b.box(x - 0.22, y - 0.025, z + 1.42 - (y / h) * 0.15, x + 0.22, y + 0.025, z + 1.47 - (y / h) * 0.15, sides(tiled(wood)));
+  },
+);

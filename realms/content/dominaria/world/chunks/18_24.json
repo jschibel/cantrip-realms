@@ -67,7 +67,7 @@
   ],
   "buildings": [],
   "npcs": [
-    {"id":"new-benalia-guard-2","x":579,"z":768,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[579,768],[571,768]],"pause":3.5},"watch":4}}
+    {"id":"new-benalia-guard-2","x":579,"z":768,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[579,768],[571,768]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

@@ -85,10 +85,10 @@
     {"id":"new-benalia-b76","style":"benalish","kind":"tenement","x":529,"z":721,"w":6,"d":5,"rot":1,"params":{"ground":2.625,"upper":1.8125,"roof":"tile","rise":1.75,"chimney":1.5625,"wall":"plaster","openings":[{"at":0.5,"kind":"door"},{"at":0.5,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"new-benalia-folk-3","x":527,"z":727,"kind":"townsfolk","name":"Merchant","text":["More vendors here than anywhere in the Domains, and a shop of wares from other planes."],"figure":"townswoman","speed":1.6,"seed":3,"behaviour":{"wander":{"home":[527,727],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"new-benalia-folk-5","x":519,"z":728,"kind":"townsfolk","name":"Caravan master","text":["The planeswalkers' caravans come and go. Watch the market square."],"figure":"townswoman","speed":1.6,"seed":5,"behaviour":{"wander":{"home":[519,728],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"new-benalia-folk-2","x":517,"z":732,"kind":"townsfolk","name":"Town crier","text":["Hear ye! Phyrexian stragglers in every Domain! Arm yourselves with cards!"],"figure":"townsman","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[517,732],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"new-benalia-folk-1","x":528,"z":734,"kind":"townsfolk","name":"Benalish herald","text":["Every road in Aerona leads to New Benalia. Most of them come back."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[528,734],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"new-benalia-folk-3","x":527,"z":727,"kind":"townsfolk","name":"Merchant","text":["More vendors here than anywhere in the Domains, and a shop of wares from other planes."],"figure":"townsfolk-benalia","speed":1.6,"seed":3,"behaviour":{"wander":{"home":[527,727],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"new-benalia-folk-5","x":519,"z":728,"kind":"townsfolk","name":"Caravan master","text":["The planeswalkers' caravans come and go. Watch the market square."],"figure":"townsfolk-benalia","speed":1.6,"seed":5,"behaviour":{"wander":{"home":[519,728],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"new-benalia-folk-2","x":517,"z":732,"kind":"townsfolk","name":"Town crier","text":["Hear ye! Phyrexian stragglers in every Domain! Arm yourselves with cards!"],"figure":"townsfolk-benalia","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[517,732],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"new-benalia-folk-1","x":528,"z":734,"kind":"townsfolk","name":"Benalish herald","text":["Every road in Aerona leads to New Benalia. Most of them come back."],"figure":"townsfolk-benalia","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[528,734],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

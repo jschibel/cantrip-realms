@@ -89,7 +89,7 @@
     {"id":"capashen-hold-b20","style":"benalish","kind":"warehouse","x":334,"z":895,"w":12,"d":8,"rot":2,"params":{"ground":3.0625,"upper":0,"roof":"slate","rise":1.9375,"wall":"plaster","openings":[{"at":1.25,"kind":"window"},{"at":3.25,"kind":"window"},{"at":5.25,"kind":"window"},{"at":7.25,"kind":"window"},{"at":10.5,"kind":"door"}]}}
   ],
   "npcs": [
-    {"id":"capashen-hold-folk-2","x":342,"z":873,"kind":"townsfolk","name":"Old pilgrim","text":["Serra's angels guard the fallen keep still, but not for her."],"figure":"townsman","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[342,873],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"capashen-hold-folk-2","x":342,"z":873,"kind":"townsfolk","name":"Old pilgrim","text":["Serra's angels guard the fallen keep still, but not for her."],"figure":"townsfolk-benalia","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[342,873],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

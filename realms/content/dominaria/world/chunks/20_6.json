@@ -87,9 +87,9 @@
   ],
   "npcs": [
     {"id":"keldon-watch-quest-board","x":655,"z":197,"kind":"quest-board","name":"Notice board","text":["The ferry to Foriys sails from the south shore."],"stand":[655.5,0.75,197.5]},
-    {"id":"keldon-watch-folk-1","x":668,"z":199,"kind":"townsfolk","name":"Lookout","text":["From up here you can see the waste smoking. The Portal is out there."],"figure":"townsman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[668,199],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"keldon-watch-guard-2","x":651,"z":204,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"humanoid","speed":2.2,"behaviour":{"beat":{"stops":[[651,204],[657,202]],"pause":3.5},"watch":4}},
-    {"id":"keldon-watch-guard-1","x":656,"z":213,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"humanoid","speed":2.2,"behaviour":{"beat":{"stops":[[656,213],[659,208]],"pause":3.5},"watch":4}}
+    {"id":"keldon-watch-folk-1","x":668,"z":199,"kind":"townsfolk","name":"Lookout","text":["From up here you can see the waste smoking. The Portal is out there."],"figure":"townsfolk-keld","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[668,199],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"keldon-watch-guard-2","x":651,"z":204,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[651,204],[657,202]],"pause":3.5},"watch":4}},
+    {"id":"keldon-watch-guard-1","x":656,"z":213,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[656,213],[659,208]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

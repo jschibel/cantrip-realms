@@ -85,7 +85,7 @@
     {"id":"cabal-crossing-inn","style":"urborg","kind":"inn","x":447,"z":478,"w":7,"d":10,"rot":1,"door":[446,485],"interior":"cabal-crossing-inn","sign":"The Rotten Plank","params":{"ground":2.8125,"upper":1.875,"roof":"slate","rise":1.875,"chimney":6.6875,"wall":"limestone","openings":[{"at":1.25,"kind":"window"},{"at":1.25,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"},{"at":5.25,"kind":"window"},{"at":5.25,"kind":"windowUp"},{"at":7.5,"kind":"door"},{"at":7.5,"kind":"sign"},{"at":7.5,"kind":"windowUp"},{"at":8.625,"kind":"lamp"}],"stilts":true}}
   ],
   "npcs": [
-    {"id":"cabal-crossing-folk-1","x":444,"z":468,"kind":"townsfolk","name":"Lantern keeper","text":["Keep the lantern lit and the dead keep their distance. Usually."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[444,468],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"cabal-crossing-folk-1","x":444,"z":468,"kind":"townsfolk","name":"Lantern keeper","text":["Keep the lantern lit and the dead keep their distance. Usually."],"figure":"townsfolk-caligo","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[444,468],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

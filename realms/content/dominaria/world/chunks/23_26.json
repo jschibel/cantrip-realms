@@ -121,7 +121,7 @@
     {"id":"llanowar-b6","style":"llanowar","kind":"house","x":754,"z":857,"w":6,"d":5,"rot":3,"params":{"ground":2.4375,"upper":0,"roof":"tile","rise":1.6875,"wall":"plaster","openings":[{"at":2.5,"kind":"door"}]}}
   ],
   "npcs": [
-    {"id":"llanowar-folk-1","x":743,"z":861,"kind":"townsfolk","name":"Elvish ranger","text":["Across the Suder the forest begins, and it does not end politely."],"figure":"elf","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[743,861],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"llanowar-folk-1","x":743,"z":861,"kind":"townsfolk","name":"Elvish ranger","text":["Across the Suder the forest begins, and it does not end politely."],"figure":"townsfolk-llanowar","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[743,861],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

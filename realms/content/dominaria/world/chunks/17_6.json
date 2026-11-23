@@ -97,8 +97,8 @@
     {"id":"keld-dragons-hoard-shop","style":"keldon","kind":"shop","x":568,"z":215,"w":8,"d":6,"rot":0,"door":[569,221],"interior":"keld-dragons-hoard-shop","sign":"The Dragon's Hoard","params":{"ground":2.75,"upper":1.5625,"roof":"slate","rise":1.625,"chimney":5.6875,"wall":"limestone","openings":[{"at":1.5,"kind":"shopDoor"},{"at":1.5,"kind":"sign"},{"at":1.5,"kind":"windowUp"},{"at":3.25,"kind":"display"},{"at":3.25,"kind":"windowUp"},{"at":5.25,"kind":"display"},{"at":5.25,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"keld-folk-2","x":551,"z":219,"kind":"townsfolk","name":"Skald","text":["Past the waste lie the Domains. Past Parma lies nothing."],"figure":"townswoman","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[551,219],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"keld-folk-1","x":560,"z":220,"kind":"townsfolk","name":"Keldon warrior","text":["Fight me. No? Then fight the giants, they're asking for it."],"figure":"townsman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[560,220],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"keld-folk-2","x":551,"z":219,"kind":"townsfolk","name":"Skald","text":["Past the waste lie the Domains. Past Parma lies nothing."],"figure":"townsfolk-keld","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[551,219],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"keld-folk-1","x":560,"z":220,"kind":"townsfolk","name":"Keldon warrior","text":["Fight me. No? Then fight the giants, they're asking for it."],"figure":"townsfolk-keld","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[560,220],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

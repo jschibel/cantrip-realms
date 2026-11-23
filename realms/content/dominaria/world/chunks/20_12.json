@@ -92,8 +92,8 @@
     {"id":"foriys-shrine","style":"keldon","kind":"temple","x":646,"z":397,"w":6,"d":7,"rot":1,"door":[645,398],"interior":"foriys-shrine","sign":"The Foriys Shrine","params":{"ground":3.875,"upper":0,"roof":"tile","rise":2.625,"wall":"limestone","openings":[{"at":0.5625,"kind":"banner"},{"at":1.5,"kind":"door"},{"at":3.25,"kind":"window"},{"at":5.25,"kind":"window"},{"at":6.4375,"kind":"banner"}]}}
   ],
   "npcs": [
-    {"id":"foriys-folk-1","x":653,"z":384,"kind":"townsfolk","name":"Giant's herald","text":["The giants argue with themselves. Both heads usually lose."],"figure":"townsman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[653,384],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"foriys-guard-1","x":644,"z":399,"kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"humanoid","speed":2.2,"behaviour":{"beat":{"stops":[[644,399],[648,395]],"pause":3.5},"watch":4}}
+    {"id":"foriys-folk-1","x":653,"z":384,"kind":"townsfolk","name":"Giant's herald","text":["The giants argue with themselves. Both heads usually lose."],"figure":"townsfolk-keld","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[653,384],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"foriys-guard-1","x":644,"z":399,"kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[644,399],[648,395]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

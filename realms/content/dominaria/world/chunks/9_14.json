@@ -79,7 +79,7 @@
     {"id":"vess-estate-b1","style":"urborg","kind":"barn","x":314,"z":450,"w":6,"d":5,"rot":1,"params":{"ground":2.8125,"upper":0,"roof":"tile","rise":2.0625,"wall":"plaster","openings":[{"at":2.5,"kind":"door"}]}}
   ],
   "npcs": [
-    {"id":"vess-estate-guard-2","x":312,"z":452,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[312,452],[312,444]],"pause":3.5},"watch":4}}
+    {"id":"vess-estate-guard-2","x":312,"z":452,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[312,452],[312,444]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

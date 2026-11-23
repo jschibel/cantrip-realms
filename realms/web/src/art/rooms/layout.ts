@@ -518,7 +518,7 @@ const inn: Layout = (plan, spec, keeper) => {
   const tz = d - 3;
   if (plan.take(tx, tz, tx + 2, tz + 1)) {
     plan.add({ id: "spell-desk", x: tx + 1, z: tz + 0.5 });
-    plan.npcs.push({ id: `${spec.id}-spell-table`, x: tx + (west ? 0 : 1), z: tz, kind: "spell-table", name: "Spell table" });
+    plan.npcs.push({ id: `${spec.id}-spell-table`, x: tx + (west ? 0 : 1), z: tz, kind: "spell-table", name: "Spell table", stand: [tx + (west ? 0 : 1) + 0.5, 0, tz + 0.5] });
   }
   // Tables in the middle; in a tavern, a game of cards in the other front corner.
   let placed = 0;
@@ -564,7 +564,7 @@ const guildhall: Layout = (plan, spec, keeper) => {
   const sx = plan.chance(0.5) ? 1 : w - 3;
   if (plan.take(sx, d - 2, sx + 2, d - 1)) {
     plan.add({ id: "spell-desk", x: sx + 1, z: d - 1.5 });
-    plan.npcs.push({ id: `${spec.id}-spell-table`, x: sx + (sx < w / 2 ? 1 : 0), z: d - 2, kind: "spell-table", name: "Spell table" });
+    plan.npcs.push({ id: `${spec.id}-spell-table`, x: sx + (sx < w / 2 ? 1 : 0), z: d - 2, kind: "spell-table", name: "Spell table", stand: [sx + (sx < w / 2 ? 1 : 0) + 0.5, 0, d - 1.5] });
   }
   keeper({ id: `${spec.id}-guildmaster`, x: tx + tw, z: 2, kind: "townsfolk", name: "Guildmaster", behaviour: { rest: [-1, 0], watch: 5 } });
   for (const x of [0, w - 1]) {

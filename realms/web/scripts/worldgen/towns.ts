@@ -23,6 +23,7 @@ import { type Footprint, building } from "./buildings";
 import { type BuildingKind, S } from "./ids";
 import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
 import type { Form, TownLayout } from "./layout";
+import { REGION_OF_STYLE } from "./rooms";
 
 export interface InteriorSpec {
   readonly id: string;
@@ -37,6 +38,8 @@ export interface InteriorSpec {
   readonly innkeeper?: { readonly name: string; readonly text: readonly string[] };
   readonly spellTable?: boolean;
   readonly resident?: { readonly name: string; readonly text: readonly string[] };
+  /** The footprint of the building it is behind, world units across its front and deep (the room is sized from it). */
+  readonly building?: { readonly w: number; readonly d: number };
 }
 
 export interface BuiltTown {
@@ -320,15 +323,10 @@ const GROUNDS: Record<string, Ground> = {
   argive: { lot: S.grass, street: S.cobbles, lane: S.cobbles, square: S.flagstones, yard: S.grass },
 };
 
-/** Who keeps a town's gates and walks its square, by its style (art/figures; townsman, elf, wizard and humanoid are placeholders). */
-const FOLK_FIGURES: Record<string, { guard: string; folk: readonly string[] }> = {
-  benalish: { guard: "knight", folk: ["townswoman", "townsman"] },
-  llanowar: { guard: "elf", folk: ["elf", "elf", "townswoman"] },
-  urborg: { guard: "knight", folk: ["townswoman", "townsman"] },
-  keldon: { guard: "humanoid", folk: ["townsman", "townswoman", "humanoid"] },
-  tolarian: { guard: "wizard", folk: ["wizard", "townswoman", "townsman"] },
-  argive: { guard: "knight", folk: ["townswoman", "townsman"] },
-};
+/** Who keeps a town's gates and walks its square, by its style: the region's guards and townsfolk (art/figures/npcs.ts). */
+const FOLK_FIGURES: Record<string, { guard: string; folk: readonly string[] }> = Object.fromEntries(
+  Object.entries(REGION_OF_STYLE).map(([style, region]) => [style, { guard: `guard-${region}`, folk: [`townsfolk-${region}`] }]),
+);
 
 /** Lights along a main street, by style. */
 const STREET_LIGHT: Record<string, string | null> = { benalish: "lamp-post", tolarian: "lamp-post", keldon: "brazier", urborg: "brazier", llanowar: null, argive: "lamp-post" };
@@ -766,7 +764,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   };
   const addInterior = (f: Footprint, kind: BuildingKind, id: string, title: string, room: InteriorKind, extra: Partial<InteriorSpec> = {}) => {
     place(f, kind, id, { interior: id, sign: title });
-    interiors.push({ id, name: title, kind: room, town: plan.id, style, exit: f.door, ...extra });
+    interiors.push({ id, name: title, kind: room, town: plan.id, style, exit: f.door, building: f.rot % 2 === 0 ? { w: f.w, d: f.d } : { w: f.d, d: f.w }, ...extra });
   };
   /** A plaza of `w` by `d` lots beside a street, as near a point as it fits. */
   const plaza = (w: number, d: number, near: readonly [number, number], surface: number): [number, number] | null => {
@@ -1061,6 +1059,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
         name: `${plan.name} guard`,
         text: ["Keep to the roads. The waymarkers say how bad it gets past them."],
         figure: figures.guard,
+        seed: k,
         speed: 2.2,
         behaviour: { beat: { stops, pause: 3.5 }, watch: 4 },
       });

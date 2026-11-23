@@ -100,7 +100,7 @@
     {"id":"new-benalia-manor-5","style":"benalish","kind":"manor","x":528,"z":767,"w":12,"d":10,"rot":0,"params":{"ground":3.0625,"upper":2.125,"roof":"slate","rise":2.4375,"chimney":4.3125,"wall":"limestone","openings":[{"at":0.5625,"kind":"bannerUp"},{"at":1.25,"kind":"window"},{"at":1.25,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"},{"at":6.5,"kind":"door"},{"at":6.5,"kind":"windowUp"},{"at":7.625,"kind":"lamp"},{"at":9.25,"kind":"window"},{"at":9.25,"kind":"windowUp"},{"at":11.4375,"kind":"bannerUp"}]}}
   ],
   "npcs": [
-    {"id":"new-benalia-folk-4","x":521,"z":737,"kind":"townsfolk","name":"Old soldier","text":["Past the Hurloons the wilds turn hard. The waymarkers say how hard."],"figure":"townsman","speed":1.6,"seed":4,"behaviour":{"wander":{"home":[521,737],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"new-benalia-folk-4","x":521,"z":737,"kind":"townsfolk","name":"Old soldier","text":["Past the Hurloons the wilds turn hard. The waymarkers say how hard."],"figure":"townsfolk-benalia","speed":1.6,"seed":4,"behaviour":{"wander":{"home":[521,737],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

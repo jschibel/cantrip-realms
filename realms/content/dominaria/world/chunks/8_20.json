@@ -126,7 +126,7 @@
     {"id":"avenant-inn","style":"benalish","kind":"inn","x":265,"z":663,"w":7,"d":10,"rot":1,"door":[264,671],"interior":"avenant-inn","sign":"The Bent Bow","params":{"ground":2.875,"upper":1.8125,"roof":"slate","rise":1.875,"chimney":9.125,"wall":"plaster","openings":[{"at":1.25,"kind":"window"},{"at":1.25,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"},{"at":5.25,"kind":"window"},{"at":5.25,"kind":"windowUp"},{"at":8.5,"kind":"door"},{"at":8.5,"kind":"sign"},{"at":8.5,"kind":"windowUp"},{"at":9.375,"kind":"lamp"}]}}
   ],
   "npcs": [
-    {"id":"avenant-folk-1","x":261,"z":655,"kind":"townsfolk","name":"Archer","text":["Avenant's arrows fly true. Avenant's ale, less so."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[261,655],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"avenant-folk-1","x":261,"z":655,"kind":"townsfolk","name":"Archer","text":["Avenant's arrows fly true. Avenant's ale, less so."],"figure":"townsfolk-benalia","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[261,655],"reach":4,"pause":[2,6]},"watch":3}},
     {"id":"avenant-quest-board","x":264,"z":669,"kind":"quest-board","name":"Notice board","text":["Archers wanted for the Hurloon passes."],"stand":[264.5,0.375,669.5]}
   ],
   "spawns": [],

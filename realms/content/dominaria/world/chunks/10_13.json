@@ -89,7 +89,7 @@
     {"id":"vess-estate-b13","style":"urborg","kind":"house","x":333,"z":437,"w":5,"d":8,"rot":2,"params":{"ground":2.4375,"upper":1.8125,"roof":"tile","rise":1.75,"wall":"limestone","openings":[{"at":1.25,"kind":"window"},{"at":1.25,"kind":"windowUp"},{"at":4.5,"kind":"door"},{"at":4.5,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"vess-estate-folk-1","x":342,"z":416,"kind":"townsfolk","name":"Gravedigger","text":["The Morass was a forest once. The trees remember."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[342,416],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"vess-estate-folk-1","x":342,"z":416,"kind":"townsfolk","name":"Gravedigger","text":["The Morass was a forest once. The trees remember."],"figure":"townsfolk-caligo","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[342,416],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

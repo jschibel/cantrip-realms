@@ -145,7 +145,7 @@
   ],
   "npcs": [
     {"id":"verdura-grove-quest-board","x":482,"z":1094,"kind":"quest-board","name":"Notice board","text":["The druids ask that you leave the wood as you found it."],"stand":[482.5,0.5,1094.5]},
-    {"id":"verdura-grove-folk-1","x":481,"z":1107,"kind":"townsfolk","name":"Druid","text":["Verdura grows back faster than you can cut it."],"figure":"elf","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[481,1107],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"verdura-grove-folk-1","x":481,"z":1107,"kind":"townsfolk","name":"Druid","text":["Verdura grows back faster than you can cut it."],"figure":"townsfolk-llanowar","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[481,1107],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [
     {"id":"15_34:1","x":509,"z":1089,"mobs":["sengir-vampire","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}

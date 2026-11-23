@@ -82,8 +82,8 @@
   ],
   "npcs": [
     {"id":"tolarian-academy-arena","x":127,"z":645,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[127.5,0.4375,645.5]},
-    {"id":"tolarian-academy-folk-2","x":115,"z":666,"kind":"townsfolk","name":"Fisher","text":["The causeway floods at high tide. Walk quickly."],"figure":"townswoman","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[115,666],"reach":4,"pause":[2,6]},"watch":3}},
-    {"id":"tolarian-academy-folk-1","x":124,"z":667,"kind":"townsfolk","name":"Lecturer","text":["We rebuilt the Academy on Walassa. The old one is best not spoken of."],"figure":"wizard","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[124,667],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"tolarian-academy-folk-2","x":115,"z":666,"kind":"townsfolk","name":"Fisher","text":["The causeway floods at high tide. Walk quickly."],"figure":"townsfolk-orvada","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[115,666],"reach":4,"pause":[2,6]},"watch":3}},
+    {"id":"tolarian-academy-folk-1","x":124,"z":667,"kind":"townsfolk","name":"Lecturer","text":["We rebuilt the Academy on Walassa. The old one is best not spoken of."],"figure":"townsfolk-orvada","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[124,667],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

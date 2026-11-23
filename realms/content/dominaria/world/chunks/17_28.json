@@ -97,7 +97,7 @@
   ],
   "npcs": [
     {"id":"serras-rest-quest-board","x":565,"z":910,"kind":"quest-board","name":"Notice board","text":["Ferry to Verdura at the south dock."],"stand":[565.5,0.625,910.5]},
-    {"id":"serras-rest-folk-1","x":574,"z":924,"kind":"townsfolk","name":"Shepherd","text":["The angels used to bless the flocks. Now they take them."],"figure":"townswoman","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[574,924],"reach":4,"pause":[2,6]},"watch":3}}
+    {"id":"serras-rest-folk-1","x":574,"z":924,"kind":"townsfolk","name":"Shepherd","text":["The angels used to bless the flocks. Now they take them."],"figure":"townsfolk-benalia","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[574,924],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
   "chests": [],

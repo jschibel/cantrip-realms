@@ -107,7 +107,7 @@
     {"id":"capashen-hold-b5","style":"benalish","kind":"tenement","x":350,"z":860,"w":4,"d":4,"rot":0,"params":{"ground":2.4375,"upper":1.6875,"roof":"tile","rise":1.625,"chimney":1.25,"wall":"plaster","openings":[{"at":1.25,"kind":"window"},{"at":1.25,"kind":"windowUp"},{"at":3.5,"kind":"door"},{"at":3.5,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"capashen-hold-guard-2","x":330,"z":834,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[330,834],[330,842]],"pause":3.5},"watch":4}}
+    {"id":"capashen-hold-guard-2","x":330,"z":834,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[330,834],[330,842]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],
