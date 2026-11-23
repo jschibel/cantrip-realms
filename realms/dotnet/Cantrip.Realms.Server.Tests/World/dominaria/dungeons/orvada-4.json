@@ -1,1 +1,1 @@
-{"id":"orvada-4","name":"The Orvadan Tower of the Fourth Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":4,"encounters":[1,2],"mobs":["mahamoti-djinn","sibilant-spirit","tempest-djinn"],"warden":"warden-4","boss":"mage-orvada-4","region":"U","entrance":[32,104]}
+{"id":"orvada-4","name":"The Orvadan Tower of the Fourth Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":4,"encounters":[1,2],"mobs":["mahamoti-djinn","sibilant-spirit","tempest-djinn"],"warden":"warden-4","boss":"mage-orvada-4","region":"U","entrance":[28,124]}

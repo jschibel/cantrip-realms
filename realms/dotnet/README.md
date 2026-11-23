@@ -71,7 +71,7 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin`, and the tests' `POST /dev/place` and `/dev/verdict` (interfaces.md) - never in production | off |
 | `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-benalia` |
 | `REALMS_PLACES` | where each plane's world, interiors and dungeons are read from instead of `realms/content` (a folder of `<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`) | `realms/content` |
-| `REALMS_WALKING_SPEED` | presence's fastest walk, hexes a second | `4` |
+| `REALMS_WALKING_SPEED` | the fastest walk, tiles a second (a diagonal step the square root of 2): presence's walks and reported places | `5` |
 | `REALMS_INSTANCE_SIZE` | players in one layer of an area of the world (within two chunks), or one instance of an interior | `40` |
 | `CANTRIP_NATIVE_HOST` | the native engine host (cantrip-rs's setting) | `target/cards`, `release` or `debug` |
 
@@ -84,12 +84,16 @@ dotnet test realms\dotnet\Cantrip.Realms.sln --filter "Category!=WallClock"
 ```
 
 runs everything but the native engine's whole games, against a fake clock and a fake duel verifier, over the roster,
-gear and vendors of `realms/content` and the tests' own small world (`Cantrip.Realms.Server.Tests/World`: four by four
-chunks, the Domains' towns the vendors keep shops in and the traders visit, with their inns and shops, spawns of every
-tier, the region dungeons, the Portal, the Hurloon caves and the twenty mage towers, by `layout.json`'s ids).
-`World/make-world.py` writes it from the layout, the roster and the vendors; run it after any of them changes. The
-content checks run over the generated world too (`RealmApp.Generated`), since the server starts on it, and a server
-test plays on it (`new RealmApp { OnGenerated = true }`). The duel verifier's
+gear and vendors of `realms/content` and the tests' own small world (`Cantrip.Realms.Server.Tests/World`, in version 2
+of the world data, square tiles: five by four chunks from x -32, the Domains' towns the vendors keep shops in and the
+traders visit, with their inns and shops, spawns of every tier, the region dungeons, the Portal, the Hurloon caves and
+the twenty mage towers, by `layout.json`'s ids, a ferry and the traders' pitches). `World/make-world.py` writes it from
+the layout, the roster and the vendors; run it after any of them changes. The content checks run over the generated
+world too (`RealmApp.Generated`), since the server starts on it, and a server test plays on it (`new RealmApp {
+OnGenerated = true }`); those tests (`[GeneratedWorldFact]`) are skipped while `realms/content/dominaria/world` is still
+the hex world. Walking is checked against the golden vectors of `realms/content/walk-vectors.json` (`WalkTests`), which
+`tools/realms/walk-vectors.ts` writes from the overworld's A* (`node --experimental-transform-types
+tools/realms/walk-vectors.ts`) and the overworld's tests check too. The duel verifier's
 own tests play whole duels on the native engine (build it first, as above):
 
 ```

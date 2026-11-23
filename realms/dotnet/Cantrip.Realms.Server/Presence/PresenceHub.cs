@@ -9,13 +9,14 @@ namespace Cantrip.Realms.Server.Presence;
 /// takes the first layer whose players within that distance number fewer than forty, so a crowd spreads over layers. In an
 /// interior, a player sees everyone in the same instance of it, forty to an instance. A dungeon run is single-player and
 /// shares nothing. Players see each other walk, change their look and emote; nothing else is shared. The server checks
-/// every walk against the space (on it, nothing blocked, each step to a neighbour), against where the player last was (a
-/// walk starts at most one hex from there) and against a walking speed, then relays it to those who see the player;
-/// clients animate the walks themselves. Time is the injected <see cref="TimeProvider"/>'s.
+/// every walk against the space (on it, nothing blocked, each step to one of the eight tiles round and never cutting the
+/// corner of a blocked tile, as <see cref="RealmSpace.CanStep"/> says), against where the player last was (a walk starts
+/// on or beside that tile) and against a walking speed, then relays it to those who see the player; clients animate the
+/// walks themselves. Time is the injected <see cref="TimeProvider"/>'s.
 /// </summary>
 public sealed partial class PresenceHub(RealmContent content, RealmOptions options, TimeProvider time)
 {
-    /// <summary>The longest path one walk may be.</summary>
+    /// <summary>The longest path one walk may be, in steps (tiles after its first).</summary>
     public const int LongestPath = 256;
 
     /// <summary>The most walks a player starts in a second.</summary>
@@ -68,13 +69,13 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
     }
 
     /// <summary>Whether two chunks are near enough for players in them to see each other.</summary>
-    public static bool Near((int Cq, int Cr) a, (int Cq, int Cr) b) => Math.Abs(a.Cq - b.Cq) <= AreaChunks && Math.Abs(a.Cr - b.Cr) <= AreaChunks;
+    public static bool Near((int Cx, int Cz) a, (int Cx, int Cz) b) => Math.Abs(a.Cx - b.Cx) <= AreaChunks && Math.Abs(a.Cz - b.Cz) <= AreaChunks;
 
     /// <summary>
-    /// Puts a player in a space at a hex: in the world, on the first layer with room around them; in an interior, in its
+    /// Puts a player in a space at a tile: in the world, on the first layer with room around them; in an interior, in its
     /// first instance with room. They are welcomed with everyone they see, and each of those is told of them.
     /// </summary>
-    public void Enter(Member member, string space, Hex at)
+    public void Enter(Member member, string space, Tile at)
     {
         ArgumentNullException.ThrowIfNull(member);
         lock (_gate)
@@ -187,20 +188,20 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
             }
 
             long now = Now;
-            Hex here = member.Where(now);
+            Tile here = member.Where(now);
             if (Problem(member, space, move, here, now) is { } problem)
             {
-                member.Send(new RefusedMessage { Reason = problem, At = [here.Q, here.R] });
+                member.Send(new RefusedMessage { Reason = problem, At = [here.X, here.Z] });
                 return;
             }
 
-            member.From = new Hex(move.From[0], move.From[1]);
-            member.Path = [.. move.Path.Select(step => new Hex(step[0], step[1]))];
+            member.From = new Tile(move.From[0], move.From[1]);
+            member.Path = [.. move.Path.Select(step => new Tile(step[0], step[1]))];
             member.Speed = move.Path.Length == 0 ? 0 : move.Speed;
             member.Since = now;
             member.Moves.Enqueue(now);
 
-            var moved = new MovedMessage { Player = member.Id, From = [member.From.Q, member.From.R], Path = Path(member.Path), Speed = member.Speed, Since = now };
+            var moved = new MovedMessage { Player = member.Id, From = [member.From.X, member.From.Z], Path = Path(member.Path), Speed = member.Speed, Since = now };
             if (space is not RealmWorld world)
             {
                 foreach (Member other in member.Seen) other.Send(moved);
@@ -230,31 +231,31 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         }
     }
 
-    private string? Problem(Member member, RealmSpace space, MoveMessage move, Hex here, long now)
+    private string? Problem(Member member, RealmSpace space, MoveMessage move, Tile here, long now)
     {
-        if (move.From is not [int q, int r] || move.Path.Any(step => step is not [_, _]))
+        if (move.From is not [int x, int z] || move.Path.Any(step => step is not [_, _]))
         {
-            return "A hex is [q, r].";
+            return "A tile is [x, z].";
         }
 
-        if (move.Path.Length > LongestPath) return $"A walk is at most {LongestPath} hexes.";
+        if (move.Path.Length > LongestPath) return $"A walk is at most {LongestPath} steps.";
         while (member.Moves.Count > 0 && member.Moves.Peek() <= now - 1000) member.Moves.Dequeue();
         if (member.Moves.Count >= MovesPerSecond) return "Too many walks at once.";
 
-        var from = new Hex(q, r);
+        var from = new Tile(x, z);
         if (!space.Walkable(from)) return "Nobody can stand there.";
         if (from.DistanceTo(here) > 1) return "A walk starts where you are.";
         if (move.Path.Length > 0 && (double.IsNaN(move.Speed) || move.Speed <= 0 || move.Speed > options.WalkingSpeed))
         {
-            return $"Nobody walks faster than {options.WalkingSpeed} hexes a second.";
+            return $"Nobody walks faster than {options.WalkingSpeed} tiles a second.";
         }
 
-        Hex previous = from;
+        Tile previous = from;
         foreach (int[] step in move.Path)
         {
-            var next = new Hex(step[0], step[1]);
-            if (next.DistanceTo(previous) != 1) return "Each step of a walk is to a neighbouring hex.";
-            if (!space.Walkable(next)) return "The walk leaves the place or crosses something nobody can.";
+            var next = new Tile(step[0], step[1]);
+            if (next.DistanceTo(previous) != 1) return "Each step of a walk is to one of the eight tiles round.";
+            if (!space.CanStep(previous, next)) return "The walk leaves the place, crosses something nobody can, or cuts a corner.";
             previous = next;
         }
 
@@ -320,13 +321,13 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         Name = member.Name,
         Identity = member.Identity,
         Look = member.Look,
-        At = [member.From.Q, member.From.R],
+        At = [member.From.X, member.From.Z],
         Path = Path(member.Path),
         Speed = member.Speed,
         Since = member.Since,
     };
 
-    private static int[][] Path(IReadOnlyList<Hex> path) => [.. path.Select(step => new[] { step.Q, step.R })];
+    private static int[][] Path(IReadOnlyList<Tile> path) => [.. path.Select(step => new[] { step.X, step.Z })];
 
     /// <summary>One instance of an interior.</summary>
     public sealed class Instance(string space, int number)
@@ -362,14 +363,14 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         public Instance? Instance { get; set; }
 
         /// <summary>In the world, the chunk their walk ends in, which who they see is judged from.</summary>
-        public (int Cq, int Cr) Area { get; set; }
+        public (int Cx, int Cz) Area { get; set; }
 
         /// <summary>The players who see this one, and whom this one sees.</summary>
         public HashSet<Member> Seen { get; } = [];
 
-        public Hex From { get; set; }
+        public Tile From { get; set; }
 
-        public IReadOnlyList<Hex> Path { get; set; } = [];
+        public IReadOnlyList<Tile> Path { get; set; } = [];
 
         public double Speed { get; set; }
 
@@ -381,12 +382,23 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
 
         public void Send(PresenceServerMessage message) => send(message);
 
-        /// <summary>Where the player is at a moment: as far along their walk as its speed has taken them.</summary>
-        public Hex Where(long now)
+        /// <summary>
+        /// Where the player is at a moment: the last tile of their walk its speed has brought them to, the walk's length
+        /// counted along it - a straight step 1 tile, a diagonal one the square root of 2 - as the overworld walks it.
+        /// </summary>
+        public Tile Where(long now)
         {
             if (Path.Count == 0 || Speed <= 0) return Path.Count == 0 ? From : Path[^1];
-            long walked = (long)Math.Floor(Math.Max(0, now - Since) / 1000.0 * Speed);
-            return walked <= 0 ? From : walked >= Path.Count ? Path[^1] : Path[(int)walked - 1];
+            double walked = Math.Max(0, now - Since) / 1000.0 * Speed;
+            Tile at = From;
+            foreach (Tile next in Path)
+            {
+                walked -= at.StepLength(next);
+                if (walked < 0) break;
+                at = next;
+            }
+
+            return at;
         }
     }
 }

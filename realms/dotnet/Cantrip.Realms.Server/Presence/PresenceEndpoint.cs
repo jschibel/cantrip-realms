@@ -141,7 +141,7 @@ public static class PresenceEndpoint
             switch (message)
             {
                 case EnterMessage enter:
-                    // The space the character last reported standing in (/api/position), at the hex they reported: the world
+                    // The space the character last reported standing in (/api/position), at the tile they reported: the world
                     // or an interior, never a dungeon run, which nobody else sees.
                     using (IServiceScope scope = scopes.CreateScope())
                     {
@@ -149,11 +149,11 @@ public static class PresenceEndpoint
                             .SingleAsync(stored => stored.Id == row.Id, cancel).ConfigureAwait(false);
                         if (now.Space != enter.Space || content.Space(now.Space) is null)
                         {
-                            member.Send(new RefusedMessage { Reason = "You are not there, or nobody else is.", At = [now.Q, now.R] });
+                            member.Send(new RefusedMessage { Reason = "You are not there, or nobody else is.", At = [now.X, now.Z] });
                             break;
                         }
 
-                        hub.Enter(member, now.Space, new Hex(now.Q, now.R));
+                        hub.Enter(member, now.Space, new Tile(now.X, now.Z));
                     }
 
                     break;

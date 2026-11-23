@@ -4,69 +4,127 @@ namespace Cantrip.Realms.Server.Content;
 
 /// <summary>
 /// A space a character stands in (interfaces.md, "Places"): the world, or an interior. A dungeon run's space is the
-/// browser's own layout, which the server does not walk.
+/// browser's own layout, which the server does not walk. Its tiles are squares, walked eight ways (<see cref="CanStep"/>).
 /// </summary>
 public abstract class RealmSpace
 {
     /// <summary>The space's id: <see cref="RealmContent.World"/>, or the interior's.</summary>
     public abstract string Id { get; }
 
-    /// <summary>Whether someone may stand on a hex: it is a tile of the space and not blocked.</summary>
-    public abstract bool Walkable(Hex at);
+    /// <summary>Whether someone may stand on a tile: it is a tile of the space, has a surface and is not blocked.</summary>
+    public abstract bool Walkable(Tile at);
 
-    /// <summary>Whether a hex is a tile of the space, blocked or not.</summary>
-    public abstract bool Has(Hex at);
+    /// <summary>Whether a tile is a tile of the space, blocked or not.</summary>
+    public abstract bool Has(Tile at);
+
+    /// <summary>A tile's floor height in texels (a sixteenth of a tile); 0 off the space.</summary>
+    public abstract int HeightAt(Tile at);
+
+    /// <summary>Whether nothing grows up off a tile (flag 2, bare: no standing grass under a tree or a house).</summary>
+    public abstract bool IsBare(Tile at);
 
     /// <summary>The space's people and places a player uses: vendors, armorers, innkeepers, spell tables.</summary>
     public abstract IReadOnlyList<MapNpc> Npcs { get; }
 
-    /// <summary>The hexes a spell table stands on (design.md A2): a <c>spell-table</c> prop or NPC.</summary>
-    public abstract IReadOnlyList<Hex> SpellTables { get; }
+    /// <summary>The tiles a spell table stands on (design.md A2): its <c>spell-table</c> NPCs'.</summary>
+    public abstract IReadOnlyList<Tile> SpellTables { get; }
 
     public abstract MapChest? Chest(string id);
 
     public const string SpellTable = "spell-table";
 
-    /// <summary>A spell table among scenery: a prop <c>{kind: "spell-table", q, r}</c>.</summary>
-    internal static IEnumerable<Hex> SpellTablesAmong(IEnumerable<JsonElement> props)
+    /// <summary>
+    /// Whether one step of a walk is taken (the rule of <c>realms/web/src/world/grid.ts</c>, exactly): to one of the eight
+    /// tiles round, which is walkable, and diagonally only where both tiles it passes between are walkable too - a walk
+    /// never cuts the corner of a blocked tile.
+    /// </summary>
+    public bool CanStep(Tile from, Tile to) =>
+        from.DistanceTo(to) == 1 && Walkable(to)
+        && (!from.IsDiagonalTo(to) || (Walkable(new Tile(to.X, from.Z)) && Walkable(new Tile(from.X, to.Z))));
+
+    /// <summary>Whether a walk is one: from a tile, each tile of the path a step (<see cref="CanStep"/>) from the one before.</summary>
+    public bool IsWalk(Tile from, IEnumerable<Tile> path)
     {
-        foreach (JsonElement prop in props)
+        ArgumentNullException.ThrowIfNull(path);
+        Tile previous = from;
+        foreach (Tile next in path)
         {
-            if (prop.ValueKind == JsonValueKind.Object
-                && prop.TryGetProperty("kind", out JsonElement kind) && kind.ValueKind == JsonValueKind.String && kind.GetString() == SpellTable
-                && prop.TryGetProperty("q", out JsonElement q) && q.TryGetInt32(out int pq)
-                && prop.TryGetProperty("r", out JsonElement r) && r.TryGetInt32(out int pr))
-            {
-                yield return new Hex(pq, pr);
-            }
+            if (!CanStep(previous, next)) return false;
+            previous = next;
         }
+
+        return true;
+    }
+
+    // A tile as kept: none (no tile of the space), open or blocked, and whether it is bare.
+    private protected const byte None = 0;
+    private protected const byte Open = 1;
+    private protected const byte Blocked = 2;
+    private protected const byte Bare = 4;
+
+    /// <summary>
+    /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (conversion.md): the floor's height in whole texels,
+    /// a surface id or <c>""</c> (nothing: never walked), and flags 1 blocked and 2 bare. Each into a state byte and a
+    /// height, at the index it has in the list.
+    /// </summary>
+    private protected static void ReadTiles(IReadOnlyList<JsonElement> tiles, byte[] states, short[] heights, string where, List<string> problems)
+    {
+        for (int i = 0; i < tiles.Count && i < states.Length; i++)
+        {
+            if (!TryTile(tiles[i], out short height, out string surface, out int flags))
+            {
+                problems.Add($"{where}: tile {i} is [height (whole texels), surface, flags 0-3], not {tiles[i].GetRawText()}.");
+                continue;
+            }
+
+            bool blocked = (flags & 1) != 0 || surface.Length == 0;
+            states[i] = (byte)((blocked ? Blocked : Open) | ((flags & 2) != 0 ? Bare : 0));
+            heights[i] = height;
+        }
+    }
+
+    /// <summary>A tile on the wire, <c>[height, surface, flags]</c>.</summary>
+    internal static bool TryTile(JsonElement tile, out short height, out string surface, out int flags)
+    {
+        height = 0;
+        surface = string.Empty;
+        flags = 0;
+        if (tile.ValueKind != JsonValueKind.Array || tile.GetArrayLength() != 3
+            || !tile[0].TryGetInt16(out height) || tile[1].ValueKind != JsonValueKind.String
+            || !tile[2].TryGetInt32(out flags) || flags is < 0 or > 3)
+        {
+            return false;
+        }
+
+        surface = tile[1].GetString()!;
+        return true;
     }
 }
 
 /// <summary>
-/// The world (design.md A6): one map streamed in chunks of <see cref="Chunk"/> hexes a side. Chunk (cq, cr) holds the
-/// hexes with floor(q / chunk) = cq and floor(r / chunk) = cr. Each tile is kept as a byte - none, open or blocked - so the
-/// whole world (about 640 by 640) is a few hundred kilobytes.
+/// The world (design.md A6): <c>size</c> tiles from <c>origin</c>, streamed in chunks of <see cref="Chunk"/> tiles a
+/// side. Chunk (cx, cz) holds the tiles with floor(x / chunk) = cx and floor(z / chunk) = cz, and may be negative. Each
+/// tile is kept as a state byte and a height, so the whole world (640 by 640) is about a megabyte. A tile past the world's
+/// edge, or of a chunk with no file, is none of the world's.
 /// </summary>
 public sealed class RealmWorld : RealmSpace
 {
-    private const byte None = 0;
-    private const byte Open = 1;
-    private const byte Blocked = 2;
-
-    private readonly Dictionary<(int, int), byte[]> _cells = [];
+    private readonly Dictionary<(int, int), (byte[] States, short[] Heights)> _cells = [];
     private readonly Dictionary<string, MapSpawn> _spawns = new(StringComparer.Ordinal);
     private readonly Dictionary<string, MapChest> _chests = new(StringComparer.Ordinal);
-    private readonly Dictionary<Hex, string> _doors = [];
-    private readonly Dictionary<Hex, string> _entrances = [];
+    private readonly Dictionary<Tile, string> _doors = [];
+    private readonly Dictionary<Tile, string> _entrances = [];
     private readonly List<MapNpc> _npcs = [];
-    private readonly List<Hex> _spellTables = [];
+    private readonly List<Tile> _spellTables = [];
 
     public RealmWorld(WorldFile file, string plane)
     {
+        ArgumentNullException.ThrowIfNull(file);
         File = file;
         Plane = plane;
         Chunk = file.Chunk;
+        (X0, Z0) = file.Origin is [int x, int z] ? (x, z) : (0, 0);
+        (Width, Height) = file.Size is [int w, int h] ? (w, h) : (0, 0);
     }
 
     public WorldFile File { get; }
@@ -74,82 +132,97 @@ public sealed class RealmWorld : RealmSpace
     /// <summary>The plane the world is.</summary>
     public string Plane { get; }
 
-    /// <summary>A chunk's side in hexes.</summary>
+    /// <summary>A chunk's side in tiles.</summary>
     public int Chunk { get; }
+
+    /// <summary>The world's first tile (its <c>origin</c>) and its size in tiles.</summary>
+    public int X0 { get; }
+
+    public int Z0 { get; }
+
+    public int Width { get; }
+
+    public int Height { get; }
 
     public override string Id => RealmContent.WorldSpace;
 
-    /// <summary>The chunks read, by (cq, cr).</summary>
-    public IReadOnlyCollection<(int Cq, int Cr)> Chunks => _cells.Keys;
+    /// <summary>The chunks read, by (cx, cz).</summary>
+    public IReadOnlyCollection<(int Cx, int Cz)> Chunks => _cells.Keys;
 
     public IReadOnlyCollection<MapSpawn> Spawns => _spawns.Values;
 
     public IReadOnlyCollection<MapChest> Chests => _chests.Values;
 
-    /// <summary>Every door, by its hex: the interior it enters.</summary>
-    public IReadOnlyDictionary<Hex, string> Doors => _doors;
+    /// <summary>Every door with an interior, by its tile: the interior it enters.</summary>
+    public IReadOnlyDictionary<Tile, string> Doors => _doors;
 
-    /// <summary>Every dungeon entrance, by its hex: the dungeon it enters.</summary>
-    public IReadOnlyDictionary<Hex, string> Entrances => _entrances;
+    /// <summary>Every dungeon entrance, by its tile: the dungeon it enters.</summary>
+    public IReadOnlyDictionary<Tile, string> Entrances => _entrances;
 
     public override IReadOnlyList<MapNpc> Npcs => _npcs;
 
-    public override IReadOnlyList<Hex> SpellTables => _spellTables;
+    public override IReadOnlyList<Tile> SpellTables => _spellTables;
 
-    /// <summary>The chunk a hex is in.</summary>
-    public (int Cq, int Cr) ChunkOf(Hex at) => (FloorDiv(at.Q, Chunk), FloorDiv(at.R, Chunk));
+    /// <summary>The chunk a tile is in.</summary>
+    public (int Cx, int Cz) ChunkOf(Tile at) => (FloorDiv(at.X, Chunk), FloorDiv(at.Z, Chunk));
 
     private static int FloorDiv(int value, int divisor) => value >= 0 ? value / divisor : -((-value + divisor - 1) / divisor);
 
-    private byte Cell(Hex at)
+    /// <summary>Whether a tile is within the world's <c>size</c> from its <c>origin</c>.</summary>
+    public bool Inside(Tile at) => at.X >= X0 && at.Z >= Z0 && at.X < X0 + Width && at.Z < Z0 + Height;
+
+    private (byte State, short Height) Cell(Tile at)
     {
-        (int cq, int cr) = ChunkOf(at);
-        return _cells.TryGetValue((cq, cr), out byte[]? cells) ? cells[((at.R - cr * Chunk) * Chunk) + (at.Q - cq * Chunk)] : None;
+        if (!Inside(at)) return (None, 0);
+        (int cx, int cz) = ChunkOf(at);
+        if (!_cells.TryGetValue((cx, cz), out var cells)) return (None, 0);
+        int index = ((at.Z - cz * Chunk) * Chunk) + (at.X - cx * Chunk);
+        return (cells.States[index], cells.Heights[index]);
     }
 
-    public override bool Walkable(Hex at) => Cell(at) == Open;
+    public override bool Walkable(Tile at) => (Cell(at).State & 3) == Open;
 
-    public override bool Has(Hex at) => Cell(at) != None;
+    public override bool Has(Tile at) => Cell(at).State != None;
+
+    public override int HeightAt(Tile at) => Cell(at).Height;
+
+    public override bool IsBare(Tile at) => (Cell(at).State & Bare) != 0;
 
     public MapSpawn? Spawn(string id) => _spawns.GetValueOrDefault(id);
 
     public override MapChest? Chest(string id) => _chests.GetValueOrDefault(id);
 
     /// <summary>
-    /// Reads a chunk's file into the world: its tiles, and the doors, entrances, NPCs, spawns, chests and spell tables in
-    /// it. What does not hold together is a problem, and what can't be read is left out.
+    /// Reads a chunk's file into the world: its tiles, and the doors (its buildings' with an interior), entrances, NPCs,
+    /// spawns, chests and spell tables in it. What does not hold together is a problem, and what can't be read is left out.
     /// </summary>
-    internal void Add(int cq, int cr, ChunkFile chunk, string where, List<string> problems)
+    internal void Add(int cx, int cz, ChunkFile chunk, string where, List<string> problems)
     {
-        if (!_cells.TryAdd((cq, cr), new byte[Chunk * Chunk]))
+        if ((chunk.Cx is { } fileCx && fileCx != cx) || (chunk.Cz is { } fileCz && fileCz != cz))
         {
-            problems.Add($"{where}: a second file for chunk {cq}_{cr}.");
+            problems.Add($"{where}: it says it is chunk {chunk.Cx}_{chunk.Cz}, but its name is {cx}_{cz}.");
+        }
+
+        if (chunk.Tiles.Count != Chunk * Chunk)
+        {
+            problems.Add($"{where}: a chunk is {Chunk * Chunk} tiles ({Chunk} by {Chunk}, row by row), not {chunk.Tiles.Count}.");
             return;
         }
 
-        byte[] cells = _cells[(cq, cr)];
-        foreach (JsonElement tile in chunk.Tiles)
+        if (!_cells.TryAdd((cx, cz), (new byte[Chunk * Chunk], new short[Chunk * Chunk])))
         {
-            if (!RealmContent.TryTile(tile, out Hex at, out bool blocked))
-            {
-                problems.Add($"{where}: a tile is [q, r, height, terrain, blocked]: {tile.GetRawText()}.");
-                continue;
-            }
-
-            if (ChunkOf(at) != (cq, cr))
-            {
-                problems.Add($"{where}: the tile at {at} is in chunk {ChunkOf(at).Cq}_{ChunkOf(at).Cr}, not this one.");
-                continue;
-            }
-
-            int index = ((at.R - cr * Chunk) * Chunk) + (at.Q - cq * Chunk);
-            if (cells[index] != None) problems.Add($"{where}: two tiles at {at}.");
-            cells[index] = blocked ? Blocked : Open;
+            problems.Add($"{where}: a second file for chunk {cx}_{cz}.");
+            return;
         }
 
-        foreach (MapDoor door in chunk.Doors)
+        (byte[] states, short[] heights) = _cells[(cx, cz)];
+        ReadTiles(chunk.Tiles, states, heights, where, problems);
+
+        foreach (MapBuilding building in chunk.Buildings)
         {
-            if (!_doors.TryAdd(door.At, door.Interior)) problems.Add($"{where}: two doors at {door.At}.");
+            if (building.Interior is not { } interior) continue;
+            if (building.DoorAt is not { } door) problems.Add($"{where}: building {building.Id} leads into {interior} through no door [x, z].");
+            else if (!_doors.TryAdd(door, interior)) problems.Add($"{where}: two doors at {door}.");
         }
 
         foreach (MapEntrance entrance in chunk.Entrances)
@@ -159,17 +232,17 @@ public sealed class RealmWorld : RealmSpace
 
         foreach (MapSpawn spawn in chunk.Spawns)
         {
-            string prefix = $"{cq}_{cr}:";
+            string prefix = $"{cx}_{cz}:";
             if (!spawn.Id.StartsWith(prefix, StringComparison.Ordinal) || spawn.Id.Length == prefix.Length || !spawn.Id[prefix.Length..].All(char.IsAsciiDigit))
             {
-                problems.Add($"{where}: spawn '{spawn.Id}' is not \"{cq}_{cr}:<n>\", its chunk and a number.");
+                problems.Add($"{where}: spawn '{spawn.Id}' is not \"{cx}_{cz}:<n>\", its chunk and a number.");
             }
             else if (!_spawns.TryAdd(spawn.Id, spawn))
             {
                 problems.Add($"{where}: a second spawn '{spawn.Id}'.");
             }
 
-            if (ChunkOf(spawn.At) != (cq, cr)) problems.Add($"{where}: spawn {spawn.Id} stands at {spawn.At}, outside its chunk.");
+            if (ChunkOf(spawn.At) != (cx, cz)) problems.Add($"{where}: spawn {spawn.Id} stands at {spawn.At}, outside its chunk.");
         }
 
         foreach (MapChest chest in chunk.Chests)
@@ -178,15 +251,19 @@ public sealed class RealmWorld : RealmSpace
         }
 
         _npcs.AddRange(chunk.Npcs);
-        _spellTables.AddRange(SpellTablesAmong(chunk.Props).Concat(chunk.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At)));
+        _spellTables.AddRange(chunk.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At));
     }
 }
 
-/// <summary>An interior (interfaces.md, "Interiors"): a small scene of its own tiles, entered through a door of the world.</summary>
+/// <summary>
+/// An interior (interfaces.md, "Interiors"): a room of its own tiles, its floor <c>w</c> by <c>d</c> from (0, 0), its
+/// tiles over its <c>area</c> (by default the floor), entered through a door of the world.
+/// </summary>
 public sealed class RealmInterior : RealmSpace
 {
-    private readonly Dictionary<Hex, bool> _tiles = [];
-    private readonly List<Hex> _spellTables;
+    private readonly byte[] _states;
+    private readonly short[] _heights;
+    private readonly List<Tile> _spellTables;
 
     public RealmInterior(InteriorFile file, string plane, string where, List<string> problems)
     {
@@ -194,13 +271,16 @@ public sealed class RealmInterior : RealmSpace
         ArgumentNullException.ThrowIfNull(problems);
         File = file;
         Plane = plane;
-        foreach (JsonElement tile in file.Tiles)
-        {
-            if (!RealmContent.TryTile(tile, out Hex at, out bool blocked)) problems.Add($"{where}: a tile is [q, r, height, terrain, blocked]: {tile.GetRawText()}.");
-            else if (!_tiles.TryAdd(at, blocked)) problems.Add($"{where}: two tiles at {at}.");
-        }
+        (X0, Z0, X1, Z1) = file.Area is [int x0, int z0, int x1, int z1] ? (x0, z0, x1, z1) : (0, 0, file.W, file.D);
+        if (file.Area is not null and not [_, _, _, _]) problems.Add($"{where}: its area is [x0, z0, x1, z1].");
+        if (file.W <= 0 || file.D <= 0) problems.Add($"{where}: its floor is some tiles wide (w) and deep (d).");
+        int count = X1 > X0 && Z1 > Z0 ? (X1 - X0) * (Z1 - Z0) : 0;
+        _states = new byte[count];
+        _heights = new short[count];
+        if (file.Tiles.Count != count) problems.Add($"{where}: its tiles cover its area, {count} of them row by row, not {file.Tiles.Count}.");
+        else ReadTiles(file.Tiles, _states, _heights, where, problems);
 
-        _spellTables = [.. SpellTablesAmong(file.Props).Concat(file.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At))];
+        _spellTables = [.. file.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At)];
     }
 
     public InteriorFile File { get; }
@@ -209,19 +289,36 @@ public sealed class RealmInterior : RealmSpace
 
     public override string Id => File.Id;
 
+    /// <summary>The rectangle of its tiles: x from <see cref="X0"/> to <see cref="X1"/> (excluded), likewise z.</summary>
+    public int X0 { get; }
+
+    public int Z0 { get; }
+
+    public int X1 { get; }
+
+    public int Z1 { get; }
+
     /// <summary>The town whose door leads into it; null for a building in the wilds.</summary>
     public TownEntry? Town { get; internal set; }
 
     /// <summary>The world's doors into it.</summary>
-    public IReadOnlyList<Hex> Doors { get; internal set; } = [];
+    public IReadOnlyList<Tile> Doors { get; internal set; } = [];
 
-    public override bool Walkable(Hex at) => _tiles.TryGetValue(at, out bool blocked) && !blocked;
+    private int Index(Tile at) => at.X >= X0 && at.Z >= Z0 && at.X < X1 && at.Z < Z1 ? ((at.Z - Z0) * (X1 - X0)) + (at.X - X0) : -1;
 
-    public override bool Has(Hex at) => _tiles.ContainsKey(at);
+    private byte State(Tile at) => Index(at) is var i and >= 0 && i < _states.Length ? _states[i] : None;
+
+    public override bool Walkable(Tile at) => (State(at) & 3) == Open;
+
+    public override bool Has(Tile at) => State(at) != None;
+
+    public override int HeightAt(Tile at) => Index(at) is var i and >= 0 && i < _heights.Length ? _heights[i] : 0;
+
+    public override bool IsBare(Tile at) => (State(at) & Bare) != 0;
 
     public override IReadOnlyList<MapNpc> Npcs => File.Npcs;
 
-    public override IReadOnlyList<Hex> SpellTables => _spellTables;
+    public override IReadOnlyList<Tile> SpellTables => _spellTables;
 
     public override MapChest? Chest(string id) => File.Chests.FirstOrDefault(chest => chest.Id == id);
 }

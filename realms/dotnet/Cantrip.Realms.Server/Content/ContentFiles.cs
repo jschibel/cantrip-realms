@@ -202,22 +202,24 @@ public sealed class RelicsFile
     public IReadOnlyList<RelicEntry> Relics { get; init; } = [];
 }
 
-// The world, its interiors and its dungeons (interfaces.md, "The world, interiors and dungeons"), as the world generator
-// (realms/web/scripts/world.ts) writes them.
+// The world, its interiors and its dungeons, in version 2 of the world data (realms/docs/conversion.md, "The world data,
+// version 2"; the types are realms/web/src/world/format.ts): square tiles, every position [x, z] in tiles or an entity's
+// fields x and z, x east and z south. The server reads what it checks places against and leaves the rest - surfaces'
+// looks, props, buildings but their doors, lights - to the overworld.
 
 /// <summary>A spawn point of the world: the mobs that may stand there, all of its tier, and how they wander and come back.</summary>
 public sealed class MapSpawn
 {
-    /// <summary><c>"&lt;cq&gt;_&lt;cr&gt;:&lt;n&gt;"</c>: its chunk and its number there, unique across the world.</summary>
+    /// <summary><c>"&lt;cx&gt;_&lt;cz&gt;:&lt;n&gt;"</c>: its chunk and its number there, unique across the world.</summary>
     public string Id { get; init; } = string.Empty;
 
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
     public IReadOnlyList<string> Mobs { get; init; } = [];
 
-    /// <summary>How far from the spawn point its mobs wander.</summary>
+    /// <summary>How far from the spawn point its mobs wander, in tiles.</summary>
     public int Radius { get; init; }
 
     public int RespawnSeconds { get; init; }
@@ -225,31 +227,31 @@ public sealed class MapSpawn
     /// <summary>The tier of its distance from the nearest starting area (design.md A6): every mob of it is of this tier.</summary>
     public int Tier { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
 public sealed class MapChest
 {
     public string Id { get; init; } = string.Empty;
 
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
     public IReadOnlyList<long> Gold { get; init; } = [];
 
     public int RespawnSeconds { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
 public sealed class MapNpc
 {
     public string Id { get; init; } = string.Empty;
 
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
     /// <summary><c>vendor</c>, <c>armorer</c>, <c>innkeeper</c>, <c>spell-table</c>, or another the overworld draws.</summary>
     public string Kind { get; init; } = string.Empty;
@@ -257,53 +259,49 @@ public sealed class MapNpc
     /// <summary>The vendor a <c>vendor</c> NPC is.</summary>
     public string? Vendor { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
-/// <summary>A door of the world: walking onto it enters the interior it names.</summary>
-public sealed class MapDoor
+/// <summary>
+/// A building of the world (a chunk's <c>buildings</c>): the server reads only its door - the walkable tile in front of
+/// it - and the interior walking through it enters (none: a door only painted).
+/// </summary>
+public sealed class MapBuilding
 {
-    public int Q { get; init; }
+    public string Id { get; init; } = string.Empty;
 
-    public int R { get; init; }
+    /// <summary><c>[x, z]</c>, or none for a building without a door.</summary>
+    public IReadOnlyList<int>? Door { get; init; }
 
-    public string Interior { get; init; } = string.Empty;
+    public string? Interior { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile? DoorAt => Door is [int x, int z] ? new Tile(x, z) : null;
 }
 
 /// <summary>A dungeon's entrance in the world: a cave mouth, a castle gate, a tower door.</summary>
 public sealed class MapEntrance
 {
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
     public string Dungeon { get; init; } = string.Empty;
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
-/// <summary>A hex of a place, <c>{q, r}</c>.</summary>
-public sealed class MapHex
-{
-    public int Q { get; init; }
-
-    public int R { get; init; }
-
-    public Hex At => new(Q, R);
-}
-
-/// <summary>A chunk of the world (<c>world/chunks/&lt;cq&gt;_&lt;cr&gt;.json</c>).</summary>
+/// <summary>A chunk of the world (<c>world/chunks/&lt;cx&gt;_&lt;cz&gt;.json</c>).</summary>
 public sealed class ChunkFile
 {
-    /// <summary>Each <c>[q, r, height, terrain, blocked]</c>, in the world's hexes.</summary>
+    /// <summary>The chunk's coordinates, as its file's name has them.</summary>
+    public int? Cx { get; init; }
+
+    public int? Cz { get; init; }
+
+    /// <summary><c>chunk * chunk</c> tiles, each <c>[height (texels), surface, flags]</c>, row by row: z, then x.</summary>
     public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
 
-    /// <summary>Scenery, the overworld's to draw; the server reads only its spell tables (<c>{kind: "spell-table", q, r}</c>).</summary>
-    public IReadOnlyList<JsonElement> Props { get; init; } = [];
-
-    public IReadOnlyList<MapDoor> Doors { get; init; } = [];
+    public IReadOnlyList<MapBuilding> Buildings { get; init; } = [];
 
     public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
 
@@ -324,27 +322,29 @@ public sealed class TownEntry
     /// <summary><c>town</c>, <c>village</c> or <c>capital</c>.</summary>
     public string Kind { get; init; } = string.Empty;
 
+    /// <summary><c>[x, z]</c>.</summary>
     public IReadOnlyList<int> Center { get; init; } = [];
 
+    /// <summary>Its walls stand this many tiles from its center: a tile within it (<see cref="Tile.Distance"/>) is the town's.</summary>
     public int Radius { get; init; }
 
     public string? Style { get; init; }
 
-    public Hex At => Center is [int q, int r] ? new Hex(q, r) : default;
+    public Tile At => Center is [int x, int z] ? new Tile(x, z) : default;
 }
 
-/// <summary>An inn of the world, at the hex outside its door where a character whose home it is wakes after a lost duel.</summary>
+/// <summary>An inn of the world, at the tile outside its door where a character whose home it is wakes after a lost duel.</summary>
 public sealed class InnEntry
 {
     public string Id { get; init; } = string.Empty;
 
     public string Town { get; init; } = string.Empty;
 
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
 /// <summary>Where a dungeon stands in the world (<c>world.json</c>'s <c>dungeons</c>).</summary>
@@ -352,14 +352,42 @@ public sealed class DungeonPlace
 {
     public string Id { get; init; } = string.Empty;
 
-    public int Q { get; init; }
+    public int X { get; init; }
 
-    public int R { get; init; }
+    public int Z { get; init; }
 
-    public Hex At => new(Q, R);
+    public Tile At => new(X, Z);
 }
 
-/// <summary>A region of the world: its color and name (its hexes are the overworld's to shade).</summary>
+/// <summary>A traveling vendor's pitch in a town's market square: the tile their caravan's trader stands on.</summary>
+public sealed class PitchEntry
+{
+    public string Town { get; init; } = string.Empty;
+
+    public int X { get; init; }
+
+    public int Z { get; init; }
+
+    public Tile At => new(X, Z);
+}
+
+/// <summary>A ferry to a far isle: its docks, and the lane a passenger walks between them.</summary>
+public sealed class FerryEntry
+{
+    public string Id { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary><c>[x, z]</c>.</summary>
+    public IReadOnlyList<int> From { get; init; } = [];
+
+    public IReadOnlyList<int> To { get; init; } = [];
+
+    /// <summary>Tile by tile from <see cref="From"/> to <see cref="To"/>, each <c>[x, z]</c>.</summary>
+    public IReadOnlyList<IReadOnlyList<int>> Lane { get; init; } = [];
+}
+
+/// <summary>A region of the world: its color and name (its tiles are the overworld's to shade).</summary>
 public sealed class RegionEntry
 {
     public string Color { get; init; } = string.Empty;
@@ -367,13 +395,23 @@ public sealed class RegionEntry
     public string Name { get; init; } = string.Empty;
 }
 
-/// <summary><c>world/world.json</c>: the world's size and chunking, its regions, towns, inns and dungeons.</summary>
+/// <summary><c>world/world.json</c>: the world's tiles and chunking, its regions, towns, inns, dungeons, pitches and ferries.</summary>
 public sealed class WorldFile
 {
+    /// <summary><c>[width, height]</c> in tiles, from <see cref="Origin"/>.</summary>
     public IReadOnlyList<int> Size { get; init; } = [];
 
-    /// <summary>A chunk's side in hexes: chunk (cq, cr) holds the hexes with floor(q / chunk) = cq and floor(r / chunk) = cr.</summary>
+    /// <summary>The world's first tile, <c>[x, z]</c>; none for <c>[0, 0]</c>.</summary>
+    public IReadOnlyList<int>? Origin { get; init; }
+
+    /// <summary>A chunk's side in tiles: chunk (cx, cz) holds the tiles with floor(x / chunk) = cx and floor(z / chunk) = cz.</summary>
     public int Chunk { get; init; } = 32;
+
+    /// <summary>World units along a tile's side: 1.</summary>
+    public double Tile { get; init; } = 1;
+
+    /// <summary>Where the camera keeps its view, <c>[x0, z0, x1, z1]</c>: the overworld's; the server walks every open tile of the world.</summary>
+    public IReadOnlyList<int>? Bounds { get; init; }
 
     public IReadOnlyList<RegionEntry> Regions { get; init; } = [];
 
@@ -382,29 +420,52 @@ public sealed class WorldFile
     public IReadOnlyList<InnEntry> Inns { get; init; } = [];
 
     public IReadOnlyList<DungeonPlace> Dungeons { get; init; } = [];
+
+    public IReadOnlyList<PitchEntry> Pitches { get; init; } = [];
+
+    public IReadOnlyList<FerryEntry> Ferries { get; init; } = [];
 }
 
-/// <summary>An interior (<c>interiors/&lt;id&gt;.json</c>): a small scene of its own, entered through a door of the world.</summary>
+/// <summary>
+/// An interior (<c>interiors/&lt;id&gt;.json</c>): a room behind a door of the world. Its floor is <see cref="W"/> by
+/// <see cref="D"/> tiles from (0, 0); <see cref="Tiles"/> cover <see cref="Area"/> (default the floor) row by row.
+/// </summary>
 public sealed class InteriorFile
 {
     public string Id { get; init; } = string.Empty;
 
     public string Name { get; init; } = string.Empty;
 
-    /// <summary><c>shop</c>, <c>inn</c>, <c>guildhall</c>, <c>temple</c>, <c>smithy</c>, <c>library</c>, <c>house</c> or <c>tower</c>.</summary>
+    /// <summary><c>shop</c>, <c>inn</c>, <c>guildhall</c>, <c>temple</c>, <c>smithy</c>, <c>library</c>, <c>house</c>, <c>tower</c>, <c>exotic-wares</c> or <c>crypt</c>.</summary>
     public string Kind { get; init; } = string.Empty;
 
-    /// <summary>Each <c>[q, r, height, terrain, blocked]</c>, in the interior's own hexes.</summary>
-    public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
+    /// <summary>The town it says it is in: when given, the town its doors stand in.</summary>
+    public string? Town { get; init; }
 
-    public IReadOnlyList<JsonElement> Props { get; init; } = [];
+    public int W { get; init; }
+
+    public int D { get; init; }
+
+    /// <summary><c>[x0, z0, x1, z1]</c> (x1 and z1 excluded), the tiles' rectangle; none for the floor's.</summary>
+    public IReadOnlyList<int>? Area { get; init; }
+
+    /// <summary>Each <c>[height (texels), surface, flags]</c>, row by row over <see cref="Area"/>.</summary>
+    public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
 
     public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
 
+    /// <summary>Chests inside (the server's own field: <c>{id, x, z, gold, respawnSeconds}</c>, as a chunk's).</summary>
     public IReadOnlyList<MapChest> Chests { get; init; } = [];
 
-    /// <summary>Where its door comes out in the world.</summary>
-    public MapHex? Exit { get; init; }
+    /// <summary>Its own tile at the door, <c>[x, z]</c>: stepping onto it leaves.</summary>
+    public IReadOnlyList<int> Entry { get; init; } = [];
+
+    /// <summary>The world tile one comes out on, <c>[x, z]</c>: the door tile of the building that leads in.</summary>
+    public IReadOnlyList<int> Exit { get; init; } = [];
+
+    public Tile? EntryAt => Entry is [int x, int z] ? new Tile(x, z) : null;
+
+    public Tile? ExitAt => Exit is [int x, int z] ? new Tile(x, z) : null;
 }
 
 /// <summary>A dungeon (<c>dungeons/&lt;id&gt;.json</c>): its theme, floors, mobs, warden and boss; the layout is the browser's.</summary>
@@ -417,6 +478,7 @@ public sealed class DungeonFile
     /// <summary><c>caves</c>, <c>castle</c>, <c>tower</c>, <c>crypt</c>, <c>hollow</c>, <c>foundry</c> or <c>portal</c>.</summary>
     public string Theme { get; init; } = string.Empty;
 
+    /// <summary><c>[x, z]</c>, the world tile walked onto to enter.</summary>
     public IReadOnlyList<int> Entrance { get; init; } = [];
 
     /// <summary>The colors, as letters, a character's identity must hold to enter; null for a dungeon open to everyone.</summary>
@@ -445,7 +507,7 @@ public sealed class DungeonFile
     /// <summary>A mage tower's: beating its boss attunes its waystone, at its entrance, to the character.</summary>
     public bool Waystone { get; init; }
 
-    public Hex At => Entrance is [int q, int r] ? new Hex(q, r) : default;
+    public Tile At => Entrance is [int x, int z] ? new Tile(x, z) : default;
 }
 
 /// <summary>A card vendor (<c>realms/content/&lt;plane&gt;/vendors/*.json</c>).</summary>

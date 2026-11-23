@@ -204,17 +204,17 @@ public sealed class RelicTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1, "W");
-        Hex gate = RealmApp.Content.Dungeons[Portal].File.At;
-        Hex outside = RealmApp.Beside(RealmContent.WorldSpace, gate);
+        Tile gate = RealmApp.Content.Dungeons[Portal].File.At;
+        Tile outside = RealmApp.Beside(RealmContent.WorldSpace, gate);
         await browser.Put(RealmContent.WorldSpace, outside);
 
         // Its gate stays shut: no run, and no stepping onto it.
         await browser.Refused(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal }, HttpStatusCode.Conflict, Codes.Locked);
-        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = RealmContent.WorldSpace, gate.Q, gate.R }, HttpStatusCode.Conflict, Codes.Locked);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = RealmContent.WorldSpace, gate.X, gate.Z }, HttpStatusCode.Conflict, Codes.Locked);
         await Unlock(app, browser, "UBR");
         await browser.Refused(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal }, HttpStatusCode.Conflict, Codes.Locked);
         CharacterView me = await browser.Me();
-        Assert.Equal((RealmContent.WorldSpace, outside), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal((RealmContent.WorldSpace, outside), (me.Space, new Tile(me.X, me.Z)));
         Assert.Empty(await app.Store(db => db.Runs.ToListAsync()));
 
         await Unlock(app, browser, "G");

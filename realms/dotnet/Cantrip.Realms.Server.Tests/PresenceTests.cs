@@ -49,21 +49,21 @@ public sealed class PresenceTests
         }
     }
 
-    /// <summary>A character standing at a hex of a space (the world unless named), connected.</summary>
-    private static async Task<Walker> Connect(RealmApp app, ulong id, int q, int r, string space = World)
+    /// <summary>A character standing at a tile of a space (the world unless named), connected.</summary>
+    private static async Task<Walker> Connect(RealmApp app, ulong id, int x, int z, string space = World)
     {
         Browser browser = await app.Character(id, name: $"Walker {id}");
-        await browser.Put(space, new Hex(q, r));
+        await browser.Put(space, new Tile(x, z));
         WebSocketClient client = app.Server.CreateWebSocketClient();
         client.ConfigureRequest = request => request.Headers.Cookie = browser.Cookie;
         return new Walker(await client.ConnectAsync(new Uri(app.Server.BaseAddress, PresenceEndpoint.Route), CancellationToken.None));
     }
 
-    private static int[][] Path(params (int Q, int R)[] steps) => [.. steps.Select(step => new[] { step.Q, step.R })];
+    private static int[][] Path(params (int X, int Z)[] steps) => [.. steps.Select(step => new[] { step.X, step.Z })];
 
-    /// <summary>A walk along the q axis, one hex at a time, from a hex (not in the path) to another.</summary>
-    private static int[][] Along(int fromQ, int toQ, int r) =>
-        [.. Enumerable.Range(1, Math.Abs(toQ - fromQ)).Select(step => new[] { fromQ + (Math.Sign(toQ - fromQ) * step), r })];
+    /// <summary>A walk along the x axis, one tile at a time, from a tile (not in the path) to another.</summary>
+    private static int[][] Along(int fromX, int toX, int z) =>
+        [.. Enumerable.Range(1, Math.Abs(toX - fromX)).Select(step => new[] { fromX + (Math.Sign(toX - fromX) * step), z })];
 
     [Fact]
     public void A_frame_is_the_union_the_overworld_writes_byte_for_byte()
@@ -117,7 +117,7 @@ public sealed class PresenceTests
     }
 
     [Fact]
-    public async Task A_walk_that_leaves_the_ground_or_is_too_fast_or_starts_elsewhere_is_refused()
+    public async Task A_walk_that_leaves_the_ground_cuts_a_corner_or_is_too_fast_or_starts_elsewhere_is_refused()
     {
         await using var app = new RealmApp();
         await using Walker ann = await Connect(app, 1, 25, 5);
@@ -129,7 +129,7 @@ public sealed class PresenceTests
         RefusedMessage blocked = await ann.Next<RefusedMessage>();
         Assert.Equal(new[] { 25, 5 }, blocked.At);
 
-        // Two hexes in one step; off the edge of the world; faster than walking; from three hexes away.
+        // Two tiles in one step; off the edge of the world; faster than walking; from three tiles away.
         await ann.Send(new MoveMessage { From = [25, 5], Path = Path((25, 7)), Speed = 3 });
         Assert.Equal(new[] { 25, 5 }, (await ann.Next<RefusedMessage>()).At);
         await ann.Send(new MoveMessage { From = [25, 5], Path = [.. Enumerable.Range(1, 7).Select(step => new[] { 25, 5 - step })], Speed = 3 });
@@ -138,6 +138,15 @@ public sealed class PresenceTests
         Assert.Contains("faster", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
         await ann.Send(new MoveMessage { From = [22, 5], Path = Path((22, 6)), Speed = 3 });
         Assert.Equal(new[] { 25, 5 }, (await ann.Next<RefusedMessage>()).At);
+
+        // Down the rock's west side and round its foot: cutting the corner of its last tile, (26, 12), is refused; walking
+        // round it is taken, a diagonal step clear of it too (nothing comes back but the refused emote after it).
+        int[][] down = [.. Enumerable.Range(6, 7).Select(z => new[] { 25, z })];
+        await ann.Send(new MoveMessage { From = [25, 5], Path = [.. down, [26, 13]], Speed = 3 });
+        Assert.Contains("cuts a corner", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
+        await ann.Send(new MoveMessage { From = [25, 5], Path = [.. down, [25, 13], [26, 13], [27, 14]], Speed = 3 });
+        await ann.Send(new EmoteMessage { Emote = "bad emote!" });
+        Assert.Equal("That emote can't be made now.", (await ann.Next<RefusedMessage>()).Reason);
     }
 
     [Fact]
@@ -148,18 +157,19 @@ public sealed class PresenceTests
         await ann.Send(new EnterMessage { Space = World });
         await ann.Next<WelcomeMessage>();
 
-        // South-west at two hexes a second.
+        // A step south, then south-west at two tiles a second: a diagonal step is the square root of 2 tiles long.
         await ann.Send(new MoveMessage { From = [10, 10], Path = Path((10, 11), (9, 12), (8, 13), (7, 14), (6, 15), (5, 16)), Speed = 2 });
 
-        // At once, a walk from the far end is from six hexes away; two seconds on the player is at (7, 14).
+        // At once, a walk from the far end is from six tiles away; two seconds on the player has walked 4 tiles, past
+        // (8, 13) (1 + 2 x 1.41 along) and short of (7, 14) (1 + 3 x 1.41).
         await ann.Send(new MoveMessage { From = [5, 16], Path = [], Speed = 0 });
         Assert.Equal(new[] { 10, 10 }, (await ann.Next<RefusedMessage>()).At);
         app.Time.Advance(TimeSpan.FromSeconds(2));
         await ann.Send(new MoveMessage { From = [5, 16], Path = [], Speed = 0 });
-        Assert.Equal(new[] { 7, 14 }, (await ann.Next<RefusedMessage>()).At);
+        Assert.Equal(new[] { 8, 13 }, (await ann.Next<RefusedMessage>()).At);
 
-        // From the next hex along, it is taken: nothing comes back but the refused emote after it.
-        await ann.Send(new MoveMessage { From = [6, 15], Path = Path((5, 15)), Speed = 2 });
+        // From the next tile along, it is taken: nothing comes back but the refused emote after it.
+        await ann.Send(new MoveMessage { From = [7, 14], Path = Path((6, 14)), Speed = 2 });
         await ann.Send(new EmoteMessage { Emote = "bad emote!" });
         Assert.Equal("That emote can't be made now.", (await ann.Next<RefusedMessage>()).Reason);
     }
@@ -187,8 +197,8 @@ public sealed class PresenceTests
         Assert.Empty((await ann.Next<WelcomeMessage>()).Others);
 
         // Someone in the street outside is not seen inside, nor someone in another building.
-        Hex inn = RealmApp.Inn("new-benalia").At;
-        await using Walker street = await Connect(app, 2, inn.Q, inn.R);
+        Tile inn = RealmApp.Inn("new-benalia").At;
+        await using Walker street = await Connect(app, 2, inn.X, inn.Z);
         await street.Send(new EnterMessage { Space = World });
         Assert.Empty((await street.Next<WelcomeMessage>()).Others);
         await using Walker smith = await Connect(app, 3, 0, 0, "new-benalia-smithy");
@@ -200,8 +210,10 @@ public sealed class PresenceTests
         Assert.Equal("Walker 1", Assert.Single((await bob.Next<WelcomeMessage>()).Others).Name);
         Assert.Equal("Walker 4", (await ann.Next<OtherMessage>()).Name);
 
-        // A walk inside is checked against the interior's own tiles: off its floor is refused.
-        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((2, 0), (3, 0), (4, 0)), Speed = 3 });
+        // A walk inside is checked against the interior's own tiles: off its floor, or onto the innkeeper's, is refused.
+        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((1, -1)), Speed = 3 });
+        Assert.Contains("leaves the place", (await bob.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
+        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((2, 0), (3, 1)), Speed = 3 });
         Assert.Contains("leaves the place", (await bob.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
         await bob.Send(new MoveMessage { From = [1, 0], Path = Path((2, 0)), Speed = 3 });
         Assert.Equal(Path((2, 0)), (await ann.Next<MovedMessage>()).Path);
@@ -228,7 +240,7 @@ public sealed class PresenceTests
 
         public PresenceHub Presence { get; } = new(RealmApp.Content, new RealmOptions { Database = Data.RealmDatabase.Parse("sqlite:unused.db"), Root = RealmApp.Root, InstanceSize = size }, new FakeTimeProvider(RealmApp.Start));
 
-        public (PresenceHub.Member Member, List<PresenceServerMessage> Inbox) Join(string space, Hex at, int number)
+        public (PresenceHub.Member Member, List<PresenceServerMessage> Inbox) Join(string space, Tile at, int number)
         {
             List<PresenceServerMessage> inbox = [];
             PresenceHub.Member member = Presence.Connect($"dev-{number}", $"P{number}", "W", new LookView(), inbox.Add);
@@ -248,8 +260,8 @@ public sealed class PresenceTests
         PresenceHub.Member bob = presence.Connect("dev-2", "Bob", "W", new LookView(), bobBox.Add);
 
         // Ann in chunk 0_0, Bob in chunk 3_0: three chunks apart, on the same layer, and neither sees the other.
-        presence.Enter(ann, World, new Hex(5, 5));
-        presence.Enter(bob, World, new Hex(100, 5));
+        presence.Enter(ann, World, new Tile(5, 5));
+        presence.Enter(bob, World, new Tile(100, 5));
         Assert.Equal([2], presence.Instances(World));
         Assert.Empty(annBox.OfType<WelcomeMessage>().Single().Others);
         Assert.Empty(bobBox.OfType<WelcomeMessage>().Single().Others);
@@ -286,12 +298,12 @@ public sealed class PresenceTests
     public void A_crowd_spreads_over_layers_of_forty_and_a_layer_counts_only_those_near()
     {
         var hub = new Hub(2);
-        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> crowd = [.. Enumerable.Range(0, 5).Select(i => hub.Join(World, new Hex(5, 5), i))];
+        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> crowd = [.. Enumerable.Range(0, 5).Select(i => hub.Join(World, new Tile(5, 5), i))];
         Assert.Equal([2, 2, 1], hub.Presence.Instances(World));
         Assert.Equal([1, 1, 2, 2, 3], crowd.Select(one => one.Inbox.OfType<WelcomeMessage>().Single().Instance));
 
         // Far off in chunk 3_3 the first layer has nobody near: a newcomer there takes it, and sees nobody.
-        (PresenceHub.Member _, List<PresenceServerMessage> far) = hub.Join(World, new Hex(120, 120), 9);
+        (PresenceHub.Member _, List<PresenceServerMessage> far) = hub.Join(World, new Tile(120, 120), 9);
         Assert.Equal(1, far.OfType<WelcomeMessage>().Single().Instance);
         Assert.Empty(far.OfType<WelcomeMessage>().Single().Others);
         Assert.Equal([3, 2, 1], hub.Presence.Instances(World));
@@ -299,7 +311,7 @@ public sealed class PresenceTests
         // A place freed in the first layer near the crowd is the next arrival's there.
         hub.Presence.Leave(crowd[0].Member);
         Assert.IsType<LeftMessage>(crowd[1].Inbox[^1]);
-        (PresenceHub.Member _, List<PresenceServerMessage> late) = hub.Join(World, new Hex(6, 5), 10);
+        (PresenceHub.Member _, List<PresenceServerMessage> late) = hub.Join(World, new Tile(6, 5), 10);
         Assert.Equal(1, late.OfType<WelcomeMessage>().Single().Instance);
 
         // Nobody of another layer hears of anyone.
@@ -310,12 +322,12 @@ public sealed class PresenceTests
     public void An_interiors_instance_holds_its_number_of_players_and_another_opens_when_it_is_full()
     {
         var hub = new Hub(2);
-        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> inside = [.. Enumerable.Range(0, 5).Select(i => hub.Join("new-benalia-inn", new Hex(0, 0), i))];
+        List<(PresenceHub.Member Member, List<PresenceServerMessage> Inbox)> inside = [.. Enumerable.Range(0, 5).Select(i => hub.Join("new-benalia-inn", new Tile(0, 0), i))];
         Assert.Equal([2, 2, 1], hub.Presence.Instances("new-benalia-inn"));
         Assert.Empty(hub.Presence.Instances(World));
         hub.Presence.Leave(inside[0].Member);
         Assert.IsType<LeftMessage>(inside[1].Inbox[^1]);
-        hub.Join("new-benalia-inn", new Hex(0, 0), 9);
+        hub.Join("new-benalia-inn", new Tile(0, 0), 9);
         Assert.Equal([2, 2, 1], hub.Presence.Instances("new-benalia-inn"));
         Assert.DoesNotContain(inside[4].Inbox, message => message is OtherMessage);
     }

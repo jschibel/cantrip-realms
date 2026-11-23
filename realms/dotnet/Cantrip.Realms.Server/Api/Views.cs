@@ -20,8 +20,8 @@ public sealed record GearInstance(long InstanceId, GearItem Gear);
 /// <summary>
 /// A character as its player sees it: <see cref="Id"/> the player id the spawn table hashes, <see cref="Body"/> one of
 /// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order,
-/// <see cref="AnteValue"/> what the ante is worth, for the HUD; where they stand (<see cref="Space"/>, <see cref="Q"/>,
-/// <see cref="R"/>), the inn they wake at, and the mage towers they have attuned.
+/// <see cref="AnteValue"/> what the ante is worth, for the HUD; where they stand (<see cref="Space"/>, <see cref="X"/>,
+/// <see cref="Z"/>, a tile), the inn they wake at, and the mage towers they have attuned.
 /// </summary>
 public sealed record CharacterView(
     string Id,
@@ -32,8 +32,8 @@ public sealed record CharacterView(
     long Gold,
     long AnteValue,
     string Space,
-    int Q,
-    int R,
+    int X,
+    int Z,
     string Inn,
     StatsView Stats,
     IReadOnlyDictionary<string, GearInstance?> Loadout,
@@ -120,8 +120,8 @@ public sealed record ChestOpen(string? Space, string? Chest);
 /// <summary>What a chest held, and the character's gold with it.</summary>
 public sealed record ChestView(long Gold, long Found);
 
-/// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a hex of it.</summary>
-public sealed record PlaceView(string Space, int Q, int R);
+/// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a tile of it, x east and z south.</summary>
+public sealed record PlaceView(string Space, int X, int Z);
 
 public sealed record DungeonEnter(string? Dungeon);
 

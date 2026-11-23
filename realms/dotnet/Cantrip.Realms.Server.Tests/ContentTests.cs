@@ -22,7 +22,7 @@ public sealed class ContentTests
     {
         RealmContent content = RealmApp.Content;
         Assert.Equal("dominaria", content.World.Plane);
-        Assert.Equal(16, content.World.Chunks.Count);
+        Assert.Equal(20, content.World.Chunks.Count);
         Assert.Contains("new-benalia", content.Towns.Keys);
         Assert.True(content.Mobs.Count >= 90);
         Assert.True(content.Vendors.Values.Count(vendor => vendor.File.Town == "new-benalia") >= 2);
@@ -32,7 +32,7 @@ public sealed class ContentTests
         }
     }
 
-    [Fact]
+    [GeneratedWorldFact]
     public void The_server_starts_on_the_generated_world_of_the_domains()
     {
         // realms/content/dominaria/world, interiors and dungeons, as realms/web/scripts/world.ts writes them from layout.json and
@@ -76,9 +76,11 @@ public sealed class ContentTests
         }
     }
 
+    [GeneratedWorldFact]
+    public void Everything_the_generated_world_names_is_there_and_everything_there_is_met() => Everything_the_world_names_is_there_and_everything_there_is_met("generated");
+
     [Theory]
     [InlineData("test")]
-    [InlineData("generated")]
     public void Everything_the_world_names_is_there_and_everything_there_is_met(string over)
     {
         RealmContent content = RealmApp.Of(over);
@@ -88,17 +90,21 @@ public sealed class ContentTests
         foreach (MapSpawn spawn in world.Spawns)
         {
             Assert.True(world.Walkable(spawn.At), spawn.Id);
-            Assert.Matches(@"^\d+_\d+:\d+$", spawn.Id);
-            Assert.Equal(world.ChunkOf(spawn.At), (int.Parse(spawn.Id.Split('_')[0], System.Globalization.CultureInfo.InvariantCulture), int.Parse(spawn.Id.Split('_', ':')[1], System.Globalization.CultureInfo.InvariantCulture)));
+            System.Text.RegularExpressions.Match id = System.Text.RegularExpressions.Regex.Match(spawn.Id, @"^(-?\d+)_(-?\d+):\d+$");
+            Assert.True(id.Success, spawn.Id);
+            Assert.Equal(world.ChunkOf(spawn.At), (int.Parse(id.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), int.Parse(id.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)));
             Assert.All(spawn.Mobs, mob => Assert.Equal((spawn.Tier, false), (content.Mobs[mob].File.Tier, content.Mobs[mob].File.Boss)));
         }
 
-        // Doors lead into interiors, which come out beside them; a vendor's shop is in its town.
-        foreach ((Hex door, string interior) in world.Doors)
+        // Doors lead into interiors, which come out on or beside them, and are walked onto; a vendor's shop is in its town.
+        foreach ((Tile door, string interior) in world.Doors)
         {
             RealmInterior inside = content.Interiors[interior];
             Assert.Contains(door, inside.Doors);
-            Assert.True(world.Walkable(inside.File.Exit!.At), interior);
+            Assert.True(world.Walkable(door), interior);
+            Assert.True(world.Walkable(inside.File.ExitAt!.Value), interior);
+            Assert.Contains(inside.Doors, at => at.DistanceTo(inside.File.ExitAt!.Value) <= 1);
+            Assert.True(inside.Walkable(inside.File.EntryAt!.Value), interior);
         }
 
         foreach (Vendor vendor in content.Vendors.Values.Where(vendor => vendor.Kind != Vendor.Traveler))
@@ -178,9 +184,11 @@ public sealed class ContentTests
         Assert.Contains(wanderers, mob => mob.File.Creature == "Serra Angel");
     }
 
+    [GeneratedWorldFact]
+    public void Each_region_of_the_generated_world_has_a_mage_for_every_tier_of_tower() => Each_region_has_a_mage_for_every_tier_of_tower("generated");
+
     [Theory]
     [InlineData("test")]
-    [InlineData("generated")]
     public void Each_region_has_a_mage_for_every_tier_of_tower(string over)
     {
         RealmContent content = RealmApp.Of(over);
@@ -317,25 +325,101 @@ public sealed class ContentTests
     {
         RealmWorld world = RealmApp.Content.World;
 
-        // Four by four chunks of 32 open hexes, but for the rock of chunk 0_0; nothing off its edge.
-        Assert.Equal(32, world.Chunk);
-        Assert.True(world.Walkable(new Hex(0, 0)));
-        Assert.True(world.Walkable(new Hex(127, 127)));
-        Assert.False(world.Walkable(new Hex(26, 5)));
-        Assert.True(world.Has(new Hex(26, 5)));
-        Assert.False(world.Has(new Hex(-1, 0)));
-        Assert.False(world.Has(new Hex(128, 0)));
-        Assert.Equal((0, 0), world.ChunkOf(new Hex(31, 31)));
-        Assert.Equal((1, 3), world.ChunkOf(new Hex(32, 127)));
-        Assert.Equal((-1, -1), world.ChunkOf(new Hex(-1, -32)));
-        Assert.Equal((-2, 0), world.ChunkOf(new Hex(-33, 0)));
+        // Five by four chunks of 32 tiles from (-32, 0), open grass but for the rock and the buildings; nothing off its edge.
+        Assert.Equal((32, -32, 0, 160, 128), (world.Chunk, world.X0, world.Z0, world.Width, world.Height));
+        Assert.Contains((-1, 0), world.Chunks);
+        Assert.True(world.Walkable(new Tile(0, 0)));
+        Assert.True(world.Walkable(new Tile(-1, 0)));
+        Assert.True(world.Walkable(new Tile(-32, 127)));
+        Assert.True(world.Walkable(new Tile(127, 127)));
+        Assert.False(world.Walkable(new Tile(26, 5)));
+        Assert.True(world.Has(new Tile(26, 5)));
+        Assert.False(world.Has(new Tile(-33, 0)));
+        Assert.False(world.Has(new Tile(128, 0)));
+        Assert.False(world.Has(new Tile(0, -1)));
+        Assert.Equal((0, 0), world.ChunkOf(new Tile(31, 31)));
+        Assert.Equal((1, 3), world.ChunkOf(new Tile(32, 127)));
+        Assert.Equal((-1, -1), world.ChunkOf(new Tile(-1, -32)));
+        Assert.Equal((-2, 0), world.ChunkOf(new Tile(-33, 0)));
 
-        // A building belongs to the town its door stands in.
-        Assert.Equal("new-benalia", RealmApp.Content.Interiors["new-benalia-inn"].Town?.Id);
-        Assert.Equal("new-benalia", RealmApp.Content.TownAt(new Hex(16, 16))?.Id);
-        Assert.Null(RealmApp.Content.TownAt(new Hex(120, 120)));
+        // The rock is blocked but grows grass; a building's footprint is blocked and bare; its door is open ground.
+        Assert.False(world.IsBare(new Tile(26, 5)));
+        RealmInterior inn = RealmApp.Content.Interiors["new-benalia-inn"];
+        Tile door = Assert.Single(inn.Doors);
+        Assert.Equal(inn.File.ExitAt, door);
+        Assert.True(world.Walkable(door));
+        Assert.True(world.IsBare(new Tile(door.X, door.Z - 1)) && !world.Walkable(new Tile(door.X, door.Z - 1)));
+
+        // A building belongs to the town its door stands in: within the town's radius in tiles, by the most of the two axes.
+        Assert.Equal("new-benalia", inn.Town?.Id);
+        Assert.Equal("new-benalia", RealmApp.Content.TownAt(new Tile(16, 16))?.Id);
+        Assert.Equal("new-benalia", RealmApp.Content.TownAt(new Tile(26, 26))?.Id);
+        Assert.Null(RealmApp.Content.TownAt(new Tile(27, 16)));
+        Assert.Null(RealmApp.Content.TownAt(new Tile(120, 120)));
         Assert.Contains(world.SpellTables, table => RealmApp.Content.TownAt(table)?.Id == "new-benalia");
-        Assert.Contains(new Hex(1, -1), RealmApp.Content.Interiors["new-benalia-inn"].SpellTables);
+
+        // Inside the inn: its floor of 7 by 5 tiles and the sill past it, nothing to walk; the dais by the hearth 3 texels up.
+        Assert.Contains(new Tile(5, 1), inn.SpellTables);
+        Assert.Equal((0, 0, 7, 6), (inn.X0, inn.Z0, inn.X1, inn.Z1));
+        Assert.True(inn.Walkable(new Tile(6, 4)));
+        Assert.False(inn.Walkable(new Tile(4, 5)));
+        Assert.True(inn.Has(new Tile(4, 5)));
+        Assert.False(inn.Has(new Tile(7, 0)));
+        Assert.Equal((3, 0), (inn.HeightAt(new Tile(0, 1)), inn.HeightAt(new Tile(1, 1))));
+        Assert.True(inn.Walkable(new Tile(0, 1)));
+    }
+
+    [Fact]
+    public void The_server_reads_the_slice_worlds_files_as_the_overworld_does()
+    {
+        // realms/web/fixtures/slice-world: the foundation's sample of version 2 (conversion.md), with an origin west and north of
+        // 0, negative chunks, heights in texels, bare tiles and tiles of no surface; read with the server's own reader.
+        string folder = Path.Combine(RealmApp.Root, "realms", "web", "fixtures", "slice-world");
+        List<string> problems = [];
+        RealmWorld world = RealmContent.ReadWorld(folder, "dominaria", problems)!;
+        Dictionary<string, RealmInterior> interiors = RealmContent.ReadInteriors(Path.Combine(folder, "interiors"), "dominaria", problems);
+        Assert.Empty(problems);
+        Assert.Equal(Directory.GetFiles(Path.Combine(folder, "chunks"), "*.json").Length, world.Chunks.Count);
+        Assert.Contains(world.Chunks, chunk => chunk.Cx < 0 && chunk.Cz < 0);
+        Assert.False(world.Has(new Tile(world.X0 - 1, world.Z0)));
+        Assert.True(world.Has(new Tile(world.X0, world.Z0)));
+
+        // Every door with an interior leads into one of its interiors, and comes out where the interior says.
+        Assert.NotEmpty(world.Doors);
+        foreach ((Tile door, string id) in world.Doors)
+        {
+            RealmInterior room = interiors[id];
+            Assert.True(world.Walkable(door), id);
+            Assert.Equal(door, room.File.ExitAt);
+            Assert.True(room.Walkable(room.File.EntryAt!.Value), id);
+        }
+
+        // The tiles walked are the tiles the overworld's grid walks (world/load.ts: open unless blocked or of no surface),
+        // tile by tile, counted from the chunk files themselves.
+        int open = 0;
+        int bare = 0;
+        foreach (string path in Directory.GetFiles(Path.Combine(folder, "chunks"), "*.json"))
+        {
+            using JsonDocument chunk = JsonDocument.Parse(File.ReadAllBytes(path));
+            int cx = chunk.RootElement.GetProperty("cx").GetInt32();
+            int cz = chunk.RootElement.GetProperty("cz").GetInt32();
+            int i = 0;
+            foreach (JsonElement tile in chunk.RootElement.GetProperty("tiles").EnumerateArray())
+            {
+                var at = new Tile((cx * 32) + (i % 32), (cz * 32) + (i / 32));
+                bool inside = world.Inside(at);
+                bool walked = inside && (tile[2].GetInt32() & 1) == 0 && tile[1].GetString() != "";
+                Assert.Equal(walked, world.Walkable(at));
+                if (walked) open++;
+                if (inside && (tile[2].GetInt32() & 2) != 0) bare++;
+                Assert.Equal(inside ? tile[0].GetInt32() : 0, world.HeightAt(at));
+                i++;
+            }
+        }
+
+        Assert.True(open > 1000);
+        Assert.True(bare > 0);
+        Assert.Contains(interiors.Values, room => room.File.Area is not null);
     }
 
     [Fact]
@@ -368,10 +452,14 @@ public sealed class ContentTests
             Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"hurloon-minotaur\"]", StringComparison.Ordinal));
 
             // In the world: a spawn on the rock holding nobody, a spawn of the wrong tier, a door into no building, a dungeon
-            // sealed to colors that are none, and one whose boss is nobody.
+            // sealed to colors that are none, and one whose boss is nobody; a chunk that says it is another, a tile flagged
+            // with no flag there is, and a chunk a tile short.
             string chunk = Path.Combine(places, "world", "chunks", "0_0.json");
             string tier1 = RealmApp.SpawnOf(1).Id;
-            Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"q\":10,\"r\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"q\":26,\"r\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
+            Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"x\":10,\"z\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"x\":26,\"z\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "world", "chunks", "-1_1.json"), json => json.Replace("\"cx\":-1,", "\"cx\":7,", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "world", "chunks", "3_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0]", "\"tiles\":[[0,\"grass\",4]", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "world", "chunks", "2_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0],", "\"tiles\":[", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"interior\":\"new-benalia-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
             Edit(Path.Combine(places, "dungeons", "phyrexian-portal.json"), json => json.Replace("\"requires\":\"WUBRG\"", "\"requires\":\"WX\"", StringComparison.Ordinal));
@@ -390,6 +478,9 @@ public sealed class ContentTests
             Assert.Contains("interior new-benalia-smithy: no door of the world leads into it.", refused.Problems);
             Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon hurloon-caves: its boss 'x", StringComparison.Ordinal));
+            Assert.Contains("chunks/-1_1.json: it says it is chunk 7_1, but its name is -1_1.", refused.Problems);
+            Assert.Contains("chunks/3_3.json: tile 0 is [height (whole texels), surface, flags 0-3], not [0,\"grass\",4].", refused.Problems);
+            Assert.Contains("chunks/2_3.json: a chunk is 1024 tiles (32 by 32, row by row), not 1023.", refused.Problems);
         }
         finally
         {

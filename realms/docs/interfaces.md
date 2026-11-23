@@ -151,6 +151,14 @@ Design.md A6: one connected world, interiors entered through doors, and dungeons
 overworld's per-map files are gone). The server starts on the generated world; its tests also keep a small world of the
 same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py`).
 
+The server reads these files in version 2 of the world data, on square tiles (realms/docs/conversion.md, "The world data,
+version 2"; Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
+(the doors into interiors), its `npcs` (vendors, armorers, innkeepers, spell tables: a spell table is a `spell-table`
+NPC), `spawns`, `chests` and `entrances`; of an interior its `w`, `d`, `area`, `tiles`, `npcs`, `entry`, `exit`, `town`
+and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of world.json its `size`, `origin`, `chunk`,
+`tile`, `towns`, `inns`, `dungeons`, `pitches` and `ferries`. The bullets below still describe the hex world (version 1)
+until the world generator's rewrite replaces them.
+
 - **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains): its landmasses (`center`,
   `radius`, `wobble`, `stretch`, `turn`), `bays` and `archipelagos`; its `regions` (`{id, name, color or null, biome:
   heartland|plains|coast|swamp|mountains|volcanic|forest|tundra|waste, style, at, weight, minTier, areas: [4 names]}`,
@@ -193,7 +201,8 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
   - `spawns` are `[{id, q, r, mobs, radius, respawnSeconds, tier}]`, with ids unique across the world (`"<cq>_<cr>:<n>"`:
     the chunk the spawn stands in, and a number);
   - `chests` are `[{id, q, r, gold: [low, high], respawnSeconds}]`, ids unique across the world (lower-case letters,
-    digits, `-`, `_` and `:`; `"<cq>_<cr>:<n>"` serves);
+    digits, `-`, `_` and `:`, a letter or digit first but for a leading `-`; `"<cq>_<cr>:<n>"` serves, a negative
+    chunk's too);
   - `entrances` are `[{q, r, dungeon}]`.
 
   A hex `(q, r)` is in chunk `(floor(q / chunk), floor(r / chunk))`: the chunk's file holds exactly its tiles. A spell
@@ -222,7 +231,7 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
   tier of its distance from the nearest starting area, and at least its region's `minTier`), and lists only mobs of that
   tier and of its region where the roster has them.
 - **Dungeons.** `dungeons/<id>.json` is `{id, name, theme: caves|castle|tower|crypt|hollow|foundry|portal, entrance:
-  [q, r], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
+  [x, z], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
   floor (the last for the floors past it) or one list for all], warden, boss, region (a color, optional), waystone
   (optional)}`. The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
   names one if it may have two); the `boss` waits on the last floor; neither is a floor's encounter. A run's layout is
@@ -232,21 +241,42 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
 
 ### Places
 
-A character's place is `{Space, Q, R}`: `Space` is `"world"`, an interior's id, or `"run:<run>"` for a dungeon run, and
-`Q`, `R` a hex of it. The server keeps the last reported place (`POST /api/position`, which replaces `/api/travel`):
+A character's place is `{Space, X, Z}`: `Space` is `"world"`, an interior's id, or `"run:<run>"` for a dungeon run, and
+`X`, `Z` a square tile of it (x east, z south; the world's may be negative, from its `origin`). The server reads the world,
+its interiors and its dungeons in version 2 of the world data (realms/docs/conversion.md, "The world data, version 2"):
 
-- a world or interior place is a hex of it nobody is kept off (422 `NoSuchPlace`);
-- within the same space it is reached by walking: at most `REALMS_WALKING_SPEED` (4) hexes a second since the last
-  report or move, plus 2 (409 `NoWay`), so a client reports at least as often as it could be refused;
-- an interior is entered from beside (or on) one of its doors in the world, and left to its `exit` or beside it (409
-  `NoWay` otherwise, and from one interior straight into another);
-- a dungeon run is entered by `/api/dungeon/enter` (the character stands at its hex 0, 0) and left by
-  `/api/dungeon/leave` or a lost duel; within a live run of theirs any hex is taken (the layout is the browser's), and no
-  other space is reported until it ends (409 `NoWay`); a waystone is travelled by `/api/waystone`;
-- the hex of a dungeon's entrance is refused 409 `Locked` while the dungeon's `requires` is not all in the identity;
-- a character whose place the content no longer has (an old map's id) may report any open hex.
+- **Open tiles.** A tile is open - someone may stand on it - when it is a tile of the space (in the world: within `size`
+  from `origin`, in a chunk with a file; in an interior: within its `area`), has a surface (not `""`) and is not blocked
+  (flag 1), exactly as the overworld's grid (`realms/web/src/world/load.ts`) makes it walkable. Heights and the bare flag
+  (2) are read and kept, and change nothing about walking. The camera's `bounds` change nothing either.
+- **Walking.** A walk is steps to any of the eight tiles round, and a diagonal step only where both tiles it passes
+  between are open: it never cuts the corner of a blocked tile (`realms/web/src/world/grid.ts`'s rule, exactly). It
+  starts on an open tile (the overworld's A* does not check the tile it starts from; nobody stands on a closed one).
+  Golden vectors of paths and walks are `realms/content/walk-vectors.json` (`tools/realms/walk-vectors.ts`), which the
+  TypeScript and C# tests both check. A walk's length is counted along it, 1 tile a straight step and the square root
+  of 2 a diagonal one, walked at a speed in tiles a second.
+- **Proximity.** "Within N tiles" of a tile is the Chebyshev distance - the most of the two axes' differences - at most
+  N; "beside" a tile is within 1 (on it or one of the eight round it). Every check by distance is this one: a spawn's
+  reach, standing at a door, an exit, an entrance, a waystone, a chest or a spell table, being in a town (its `radius`
+  from its `center`), and a report against the walking speed (a walk of eight-way steps never covers fewer tiles of
+  Chebyshev distance than it walks).
 
-A lost duel sends the character to their inn, outside it in the world (world.json's `inns[].q, r`): the one they set with
+The server keeps the last reported place (`POST /api/position`):
+
+- a world or interior place is an open tile of it (422 `NoSuchPlace`);
+- within the same space it is reached by walking: at most `REALMS_WALKING_SPEED` (5) tiles a second since the last
+  report or move, plus 2, in Chebyshev distance (409 `NoWay`), so a client reports at least as often as it could be
+  refused;
+- an interior is entered from on or beside one of its doors in the world (a building's `door` with that `interior`), and
+  left to its `exit` (the door tile) or beside it (409 `NoWay` otherwise, and from one interior straight into another);
+- a dungeon run is entered by `/api/dungeon/enter` (the character stands at its tile 0, 0) and left by
+  `/api/dungeon/leave` or a lost duel; within a live run of theirs any tile is taken (the layout is the browser's), and
+  no other space is reported until it ends (409 `NoWay`); a waystone is travelled by `/api/waystone`;
+- the tile of a dungeon's entrance is refused 409 `Locked` while the dungeon's `requires` is not all in the identity;
+- a character whose place the content no longer has (an old map's id, or a place from before squares: the database's
+  move to tiles empties every place outside a run) may report any open tile.
+
+A lost duel sends the character to their inn, outside it in the world (world.json's `inns[].x, z`): the one they set with
 `POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Benalia), where a new character begins.
 
 ### Models (`models/<id>.vox.json`)
@@ -314,7 +344,7 @@ and no other vendor deals in it:
   `d` (UTC) its caravan is in `towns[d mod towns.length]` from `hour` o'clock UTC for `hours` hours (within the day), a
   schedule of the date alone. Each visit brings 3 cards of its plane's off-plane cards, which leave with it; it buys any
   off-plane card at half, and that card too leaves with it. It trades only while its caravan is in the character's town:
-  the character in the world within the town's radius, or in a building of the town (409 `NotNear` otherwise). The
+  the character in the world within the town's radius (in tiles, Chebyshev: Places), or in a building of the town (409 `NotNear` otherwise). The
   traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy
   (`new-benalia`, `capashen-hold`, `llanowar`, `keld`, `tolarian-academy`), each with a pitch (world.json's `pitches`)
   where the overworld stands a trader's caravan while its visit lasts; their hours are set so that one caravan at a time
@@ -323,8 +353,10 @@ and no other vendor deals in it:
 The server reads all of this at start and refuses to start on content that does not hold together: one plane has a world;
 every mob, interior, dungeon and vendor a place names is there (spawns' mobs of the spawn's tier and no boss, doors'
 interiors, entrances' dungeons as world.json places them, dungeons' mobs, wardens and bosses, vendor NPCs of the vendor's
-town, inns' towns, traders' towns); every hex a character is put on or meets something at is open (inns, exits,
-entrances, spawns); every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
+town, inns' towns, traders' towns, an interior's `town` its doors' town); every tile a character is put on or meets
+something at is open (inns, doors, exits - each on or beside a door into its interior -, entries, entrances, spawns,
+pitches - each in its town -), and every ferry's lane is a walk from its `from` to its `to`; every chunk is its file's
+(`cx`, `cz`) and 32 by 32 well-formed tiles; every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
 somewhere; every relic is a card from a boss and in no pool; the off-plane pool shares no card with any pool, its cards
 are legal and priced and its tags are planes; every record of cards.json is a card the engine has, priced by the formula, its
 relic flag relics.json's; every trader's plane is a plane not walked with cards to bring; and
@@ -353,18 +385,18 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; the character is in it (`run:<Run>`, hex 0, 0), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; the character is in it (`run:<Run>`, tile 0, 0), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
-| `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (its first open neighbour in hex.ts's order of directions that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
-| `POST /api/waystone` | `{Tower}` | `{Place: {Space, Q, R}}`: travel at once from an attuned tower's waystone (the character in the world on or beside its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
+| `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
+| `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
 | `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
-| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held, standing on or beside it in its space; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
-| `POST /api/position` | `{Space, Q, R}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a blocked hex, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
+| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
+| `POST /api/position` | `{Space, X, Z}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
-- `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Space, Q, R, Inn, Stats: {Life, Hand, MaxHand},
-  Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned: [tower]}`. `Space`, `Q`, `R`
+- `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Space, X, Z, Inn, Stats: {Life, Hand, MaxHand},
+  Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned: [tower]}`. `Space`, `X`, `Z`
   are their place (Places, above; a live run's space names the run to resume); `Inn` their home inn's id; `Attuned` the
   mage towers whose waystones they have attuned, by dungeon id. `Id` is the player id (`discord-<id>`,
   `dev-<id>`) the spawn algorithm hashes; `AnteValue` the sum of the ante's list prices, for the HUD. `Body` is one of
@@ -395,8 +427,8 @@ player with no character is 404 `NoCharacter`.
   attunes it.
 - `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
   the character at the inn - and the call is refused 409 `Unfinished`); the spawn (404 `NotThere`); that the mob
-  is one of the spawn's (409 `NotThere`); that the character is in the world within `radius + 8` hexes of the spawn point
-  (its wander radius, the 6 it chases, and 2 for walking on since the last report; 409 `NotNear`); that the spawn holds
+  is one of the spawn's (409 `NotThere`); that the character is in the world within `radius + 8` tiles of the spawn point
+  (its wander radius, the 6 it chases, and 2 for walking on since the last report; Chebyshev, Places; 409 `NotNear`); that the spawn holds
   that mob for the character this epoch or the one before (409 `NotThere`) and that it has not been fought in that epoch
   (409 `TooSoon`); and that the deck is legal (422 `IllegalDeck`). Then it commits the duel. A duel not finished within
   24 hours counts as lost.
@@ -428,8 +460,8 @@ player with no character is 404 `NoCharacter`.
 - Sign-in: `GET /signin` (Discord), then `/home`, which passes the player on to the world client. A server started with
   `REALMS_DEV_SIGNIN=1` also takes `POST /dev/signin {Id, Name}`, signing in as `dev-<Id>`: development and tests only.
   Such a server alone also takes two calls for tests, on the signed-in cookie, that arrange what play would take long to
-  reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, Q, R}` puts
-  the character at once on an open hex of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
+  reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
+  the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
   {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
   their logs, so the card layer's stand-in counts as a win. Never in production.
 
@@ -466,21 +498,22 @@ far (the server takes it as a loss, the game not being over), and a loot pick cu
 
 A WebSocket of MessagePack messages, one per binary frame (16 KB at most), on the signed-in cookie. The server relays
 positions and looks by area: in the world, among the players of a layer within two chunks of each other (their chunks
-at most 2 apart along each axis, each player's chunk the one their walk ends in); a player entering the world takes the
+at most 2 apart along each axis, each player's chunk (cx, cz) = (floor(x / 32), floor(z / 32)) of the tile their walk
+ends in); a player entering the world takes the
 first layer whose players within two chunks of them number fewer than 40 (`REALMS_INSTANCE_SIZE`), and keeps it until
 they leave. In an interior, among those in the same instance of it (40 to an instance, another opening when one is
 full). A dungeon run is single-player and shares nothing. Nothing else is shared between players (design.md A6). Each frame is a MessagePack union, `[key, {Field: value, ...}]`, as `Cantrip.Protocol`'s messages
-are: the key names the message, its fields by name, PascalCase. A hex is `[q, r]`, a time Unix milliseconds on the
+are: the key names the message, its fields by name, PascalCase. A tile is `[x, z]`, a time Unix milliseconds on the
 server's clock. A frame whose key a client doesn't know is ignored. `realms/web/src/net/presence.ts` is the client.
 
 | From | Key | Message | Fields |
 | --- | --- | --- | --- |
 | client | 0 | `Enter` | `Space` (`"world"` or an interior's id, the place last reported through `/api/position`; frame `920081a55370616365a5776f726c64` for the world) |
-| client | 1 | `Move` | `From: [q, r]`, `Path: [[q, r], ...]` (the hexes after `From`), `Speed` (hexes a second) |
+| client | 1 | `Move` | `From: [x, z]`, `Path: [[x, z], ...]` (the tiles after `From`, each a step of eight ways from the one before), `Speed` (tiles a second) |
 | client | 2 | `Look` | `Body, Palette, Slots: {slot: {Mesh, Palette: ["#rrggbb", ...]}}` (a body name, and a worn item's `look`) |
 | client | 3 | `Emote` | `Emote` |
 | server | 0 | `Welcome` | `Instance` (the world's layer, or the interior's instance, from 1), `Player` (this connection's own number), `Others: [Other]` |
-| server | 1 | `Other` | `Player, Name, Identity` (letters, as `Character`'s), `Look: {Body, Palette, Slots}, At: [q, r], Path, Speed, Since` |
+| server | 1 | `Other` | `Player, Name, Identity` (letters, as `Character`'s), `Look: {Body, Palette, Slots}, At: [x, z], Path, Speed, Since` |
 | server | 2 | `Moved` | `Player, From, Path, Speed, Since` |
 | server | 3 | `Looked` | `Player, Look` |
 | server | 4 | `Emoted` | `Player, Emote` |
@@ -490,15 +523,19 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
 - `Other` is sent for everyone the player sees in `Welcome`, and again whenever someone comes into sight: enters, or in
   the world walks within two chunks; `Left` when someone leaves or walks out of sight. `Moved`, `Looked` and `Emoted`
   reach those who see the player. `At` and `Path` are the walk the player is on (`Path` empty when standing), begun at
-  `Since`, so a client that hears of it late starts it partway.
+  `Since`, so a client that hears of it late starts it partway: a walk's length is counted along it (1 tile a straight
+  step, the square root of 2 a diagonal one), and at a moment the player stands on the last tile of it they have reached
+  at `Speed` since `Since`.
 - `Player` is a number for the connection, never the player's account. A connection from a page of another origin than
   the world client's (`REALMS_CLIENT`) or the server's own is refused.
-- `Enter` enters the space the character last reported standing in (`/api/position`), at that hex; another space, and
+- `Enter` enters the space the character last reported standing in (`/api/position`), at that tile; another space, and
   any dungeon run, is refused. The character's look starts as their loadout's meshes.
-- The server refuses a `Move` whose path leaves the space (off the world's chunks or the interior's tiles), crosses a blocked hex, steps anywhere but to a neighbour, starts
-  more than one hex from where the player is (as far along their last walk as its speed has taken them), is walked
-  faster than walking allows (`REALMS_WALKING_SPEED`, 4 hexes a second), is longer than 256 hexes, or comes more than 10
-  to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
+- The server refuses a `Move` that starts on a tile nobody stands on, or more than one tile (Chebyshev) from where the
+  player is (as far along their last walk as its speed has taken them); whose path leaves the space (off the world's
+  chunks or the interior's tiles), crosses a tile nobody stands on, steps anywhere but to one of the eight tiles round,
+  or cuts the corner of a blocked tile (Places, "Walking"); that is walked faster than walking allows
+  (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256 steps, or comes
+  more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
   and for loadout slots only a gear mesh of `realms/content/models` and up to eight `#rrggbb` colors.
 - The overworld reports where it is (`/api/position`) before it sends `Enter` for a space, so the server knows it is there.
