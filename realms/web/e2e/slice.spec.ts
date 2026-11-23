@@ -120,6 +120,69 @@ test("slice: the camera turns 45 degrees either way and no further, by key and b
   await expect(left).toBeDisabled();
 });
 
+interface PlayerState {
+  readonly tile: { x: number; z: number };
+  readonly moving: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly at: { x: number; z: number };
+}
+const playerOf = (page: Page) => slice<PlayerState>(page, "player");
+
+test("slice: a click walks to the tile, and on to it after the button is let go", async ({ page }) => {
+  await open(page, "still&at=10,12");
+  const to = await tileOnPage(page, 14, 12);
+  await page.mouse.click(to.x, to.y);
+  await expect.poll(async () => (await playerOf(page)).tile, { timeout: 10_000 }).toEqual({ x: 14, z: 12 });
+  await expect.poll(async () => (await playerOf(page)).moving).toBe(false);
+});
+
+test("slice: holding the button walks after the cursor, turning with it and never stopping, then stops on release", async ({ page }) => {
+  // Distances are kept modest: on software WebGL in the test browser the game's clock runs slower than the wall's.
+  await open(page, "still&at=12,12");
+  const start = await playerOf(page);
+  // Press ahead of the player, to the east, and hold: it walks east after the cursor.
+  await page.mouse.move(start.x + 180, start.y);
+  await page.mouse.down();
+  const stops: string[] = [];
+  const sample = async (seconds: number, xs: number[]) => {
+    const until = Date.now() + seconds * 1000;
+    while (Date.now() < until) {
+      const p = await playerOf(page);
+      xs.push(p.at.x);
+      if (!p.moving) stops.push(`stood at ${p.at.x.toFixed(2)}`);
+      await page.waitForTimeout(40);
+    }
+  };
+  await page.waitForTimeout(350);
+  const east: number[] = [];
+  await sample(1.5, east);
+  expect(east.at(-1)! - east[0]!, "walked east").toBeGreaterThan(0.8);
+  expect(await slice<boolean>(page, "dragging")).toBe(true);
+
+  // Sweep the cursor round to the west of the player, in small moves, button still down: it turns and walks west.
+  const now = await playerOf(page);
+  for (let i = 1; i <= 8; i++) await page.mouse.move(now.x + 180 - i * 50, now.y + 30 * Math.sin(i / 2));
+  const west: number[] = [];
+  await sample(2.0, west);
+  const turnAt = Math.max(...west);
+  expect(west.at(-1)!, "turned round and walked west").toBeLessThan(turnAt - 0.8);
+
+  // A camera turn while dragging: it keeps walking after the cursor.
+  await page.keyboard.press("e");
+  const turning: number[] = [];
+  await sample(0.8, turning);
+  expect(stops, "never stood still while the button was held").toEqual([]);
+
+  // Let go: it finishes the step it is on and stops, within a tile.
+  const released = (await playerOf(page)).at;
+  await page.mouse.up();
+  await expect.poll(async () => (await playerOf(page)).moving, { timeout: 5_000 }).toBe(false);
+  const rest = (await playerOf(page)).at;
+  expect(Math.hypot(rest.x - released.x, rest.z - released.z), "stopped after the step under way").toBeLessThan(1.5);
+  expect(await slice<boolean>(page, "dragging")).toBe(false);
+});
+
 test("slice: the rooms turn too, their near wall cut down", async ({ page }) => {
   for (const [scene, heading] of [
     ["shop", "right"],

@@ -108,6 +108,25 @@ export class Actor {
     this.path = [point.clone()];
   }
 
+  /**
+   * Re-aims a walk under way at another tile without breaking its stride: the step being walked is kept, and the way on
+   * is found afresh from where that step ends - never from the tile centre behind it, so nothing snaps back and the walk
+   * cycle runs on. False (and the walk unchanged) if there is no way there.
+   */
+  retarget(to: Tile): boolean {
+    const next = this.path[0];
+    if (!next) return this.goTo(to);
+    const route = this.grid.path({ x: Math.floor(next.x), z: Math.floor(next.z) }, to);
+    if (!route) return false;
+    this.path = [next, ...route.slice(1).map((t) => centre(t))];
+    return true;
+  }
+
+  /** Finishes the step under way, then stands. */
+  stopAfterStep(): void {
+    this.path = this.path.slice(0, 1);
+  }
+
   stopWalking(): void {
     this.path = [];
   }

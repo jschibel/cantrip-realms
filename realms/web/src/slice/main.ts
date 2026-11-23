@@ -157,6 +157,8 @@ const OUT = 0.45;
 
 function startDoor(door: Door): void {
   pendingDoor = null;
+  // Going through ends a hold: in the next room the button must be pressed again.
+  hold = null;
   // A camera turn under way gives way to the doorway's own easing, which starts from wherever the camera is.
   turning = false;
   turnSpeed = 0;
@@ -312,24 +314,89 @@ function clickTile(tile: { x: number; z: number }): void {
     return;
   }
   pendingDoor = null;
-  if (current.grid.walkable(tile.x, tile.z)) {
-    player.goTo(tile);
-    return;
-  }
-  // A blocked tile: the nearest open one round it.
+  const to = reachableNear(tile, 2);
+  if (to) player.goTo(to);
+}
+
+/**
+ * The tile to walk to for a tile pointed at: itself if one can stand there, else the open tile nearest it within
+ * `reach` - of those equally near, the one nearest the player, so a walk heads for the near side of what is in the way.
+ */
+function reachableNear(tile: { x: number; z: number }, reach: number): { x: number; z: number } | null {
+  if (current.grid.walkable(tile.x, tile.z)) return tile;
   let best: { x: number; z: number } | null = null;
   let bestD = Infinity;
-  for (let dz = -2; dz <= 2; dz++) {
-    for (let dx = -2; dx <= 2; dx++) {
+  const me = player.tile;
+  for (let dz = -reach; dz <= reach; dz++) {
+    for (let dx = -reach; dx <= reach; dx++) {
       const t = { x: tile.x + dx, z: tile.z + dz };
-      const d = Math.hypot(dx, dz);
+      const d = Math.hypot(dx, dz) + 0.01 * Math.hypot(t.x - me.x, t.z - me.z);
       if (current.grid.walkable(t.x, t.z) && d < bestD) {
         best = t;
         bestD = d;
       }
     }
   }
-  if (best) player.goTo(best);
+  return best;
+}
+
+// --- Holding the button: walking after the cursor ---------------------------------------------------------------------
+//
+// A press is a click as it always was. Held, it becomes a drag once the pointer reaches another tile or has been down
+// HOLD_AFTER seconds; from then the player is re-aimed at the tile under the cursor every RETARGET_EVERY seconds, and at
+// once whenever the cursor crosses into another tile - so the walk always heads where the cursor is now, at every
+// heading and while the camera turns or follows. Re-aiming keeps the step being walked (Actor.retarget): no snap, no
+// restarted stride. A cursor over something blocked walks to the open tile nearest it. A held walk goes up to a door but
+// never through it - only a click goes in (a press on the door, or holding still on it) - so sweeping past the shop
+// never pulls you inside. Letting go of a drag (or the cursor leaving the window, or the window losing focus) finishes
+// the step under way and stops there.
+
+const HOLD_AFTER = 0.3;
+const RETARGET_EVERY = 0.1;
+let hold: { x: number; y: number; tile: string; since: number; last: number; dragging: boolean } | null = null;
+const tileKey = (t: { x: number; z: number } | null) => (t ? `${t.x},${t.z}` : "");
+
+function holdStep(): void {
+  if (!hold || transition) return;
+  hold.last = time;
+  const pointed = tileAt(hold.x, hold.y);
+  if (!pointed) return;
+  // Holding still on the door clicked keeps going in; anywhere else, the held walk only walks.
+  if (pendingDoor && isDoorTile(pointed)) return;
+  pendingDoor = null;
+  const to = reachableNear(pointed, 4);
+  if (to) player.retarget(to);
+}
+
+function release(): void {
+  if (!hold) return;
+  if (hold.dragging && !transition && !pendingDoor) player.stopAfterStep();
+  hold = null;
+}
+
+window.addEventListener("pointermove", (e) => {
+  if (!hold) return;
+  // A release missed outside the window ends the hold all the same.
+  if ((e.buttons & 1) === 0) return release();
+  hold.x = e.clientX;
+  hold.y = e.clientY;
+  const key = tileKey(floorTileAt(e.clientX, e.clientY));
+  if (key !== hold.tile) {
+    hold.tile = key;
+    hold.dragging = true;
+    holdStep();
+  }
+});
+window.addEventListener("pointerup", (e) => {
+  if (e.button === 0) release();
+});
+window.addEventListener("blur", release);
+document.documentElement.addEventListener("pointerleave", release);
+
+function stepHold(): void {
+  if (!hold) return;
+  if (!hold.dragging && time - hold.since >= HOLD_AFTER) hold.dragging = true;
+  if (hold.dragging && time - hold.last >= RETARGET_EVERY) holdStep();
 }
 
 /** The tile on the floor under a point on the page, whatever stands in front of it. */
@@ -347,6 +414,7 @@ canvas.addEventListener("pointerdown", (e) => {
   const floor = floorTileAt(e.clientX, e.clientY);
   const tile = isDoorTile(floor) ? floor : tileAt(e.clientX, e.clientY);
   if (tile) clickTile(tile);
+  hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), since: time, last: time, dragging: false };
 });
 
 window.addEventListener("keydown", (e) => {
@@ -376,6 +444,7 @@ const LEAN = (25 * Math.PI) / 180;
 function tick(dt: number): void {
   time += dt;
   for (const f of cast) f.update(dt, query.get("cast") === "walk" ? 3 : 0);
+  stepHold();
   player.update(dt);
   if (pendingDoor && !player.moving && player.tile.x === pendingDoor.tile.x && player.tile.z === pendingDoor.tile.z) startDoor(pendingDoor);
   for (const a of current.actors) {
@@ -413,6 +482,10 @@ if (query.has("test")) {
     get view() {
       return { yaw: renderer.view.yaw, pitch: renderer.view.pitch, snapped: renderer.snap };
     },
+    /** Whether the button is held down walking the player after the cursor. */
+    get dragging() {
+      return hold?.dragging ?? false;
+    },
     get cameraSettled() {
       return !turning && transition === null;
     },
@@ -421,7 +494,7 @@ if (query.has("test")) {
     },
     get player() {
       const s = screen(player.position.clone().setY(0.4));
-      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y };
+      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z } };
     },
     /** Where a tile's middle is on the page. */
     tile(x: number, z: number) {
