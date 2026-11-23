@@ -23,12 +23,21 @@ public sealed class PlayerRow
 
     public long Gold { get; set; }
 
-    /// <summary>The map the character last reported standing on, and where on it.</summary>
-    public string Map { get; set; } = string.Empty;
+    /// <summary>
+    /// The space the character last reported standing in (interfaces.md, "Places"): <c>world</c>, an interior's id, or
+    /// <c>run:&lt;id&gt;</c> - and the hex of it.
+    /// </summary>
+    public string Space { get; set; } = string.Empty;
 
     public int Q { get; set; }
 
     public int R { get; set; }
+
+    /// <summary>When the character was last put somewhere: the walk to the next report starts then.</summary>
+    public long PlacedAt { get; set; }
+
+    /// <summary>The inn the character has set as home (world.json's id), where a lost duel wakes them.</summary>
+    public string Inn { get; set; } = string.Empty;
 
     public long CreatedAt { get; set; }
 }
@@ -122,6 +131,9 @@ public sealed class VendorRow
     /// <summary>The Unix hour of the last trickle and rotation applied.</summary>
     public long Hour { get; set; }
 
+    /// <summary>A traveling trader's: the Unix day of the last visit its caravan brought cards to (a day long past, -1 or 0, before any).</summary>
+    public long Visit { get; set; } = -1;
+
     public long CreatedAt { get; set; }
 }
 
@@ -168,11 +180,13 @@ public sealed class DuelRow
 
     public string PlayerId { get; set; } = string.Empty;
 
-    public string Map { get; set; } = string.Empty;
+    /// <summary>Where it was fought: <c>world</c>, or a dungeon run's <c>run:&lt;id&gt;</c>.</summary>
+    public string Space { get; set; } = string.Empty;
 
+    /// <summary>The world spawn's id, or in a run <c>&lt;floor&gt;:&lt;index&gt;</c>, the encounter's.</summary>
     public string Spawn { get; set; } = string.Empty;
 
-    /// <summary>The spawn epoch whose mob this is: one duel per spawn per epoch.</summary>
+    /// <summary>The spawn epoch whose mob this is: one duel per spawn per epoch (0 in a run: one duel per encounter).</summary>
     public long Epoch { get; set; }
 
     public string Mob { get; set; } = string.Empty;
@@ -216,11 +230,60 @@ public sealed class ChestRow
 {
     public string PlayerId { get; set; } = string.Empty;
 
-    public string Map { get; set; } = string.Empty;
+    /// <summary>The space the chest is in: <c>world</c> or an interior's id.</summary>
+    public string Space { get; set; } = string.Empty;
 
     public string Chest { get; set; } = string.Empty;
 
     public long OpenedAt { get; set; }
+}
+
+/// <summary>
+/// A dungeon run (<c>runs</c>, design.md A6): a single-player instance of a dungeon, its seed for the browser's layout, and
+/// every encounter of every floor, fixed as it begins. A character has one live run at most; leaving it or losing a duel
+/// in it ends it.
+/// </summary>
+public sealed class RunRow
+{
+    /// <summary>The run's id: its space is <c>run:&lt;id&gt;</c>.</summary>
+    public string Id { get; set; } = string.Empty;
+
+    public string PlayerId { get; set; } = string.Empty;
+
+    public string Dungeon { get; set; } = string.Empty;
+
+    /// <summary>The seed the browser lays the run out from: below 2^53.</summary>
+    public long Seed { get; set; }
+
+    /// <summary>Every floor's encounters, warden and boss, as JSON (the run's <c>Floors</c>).</summary>
+    public string Floors { get; set; } = string.Empty;
+
+    /// <summary>The floor the character stands on, the first 0.</summary>
+    public int Floor { get; set; }
+
+    /// <summary><see cref="Live"/> or <see cref="Ended"/>.</summary>
+    public string State { get; set; } = Live;
+
+    public long StartedAt { get; set; }
+
+    public long? EndedAt { get; set; }
+
+    /// <summary>How it ended, in words.</summary>
+    public string? Detail { get; set; }
+
+    public const string Live = "live";
+    public const string Ended = "ended";
+}
+
+/// <summary>A mage tower whose waystone a character has attuned by beating its mage (<c>attuned</c>, design.md A6).</summary>
+public sealed class AttunedRow
+{
+    public string PlayerId { get; set; } = string.Empty;
+
+    /// <summary>The tower: a dungeon with a waystone.</summary>
+    public string Tower { get; set; } = string.Empty;
+
+    public long At { get; set; }
 }
 
 /// <summary>A character's progress on a quest of the quest board (<c>quests</c>); the board itself comes later.</summary>
@@ -269,6 +332,10 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
 
     public DbSet<QuestRow> Quests => Set<QuestRow>();
 
+    public DbSet<RunRow> Runs => Set<RunRow>();
+
+    public DbSet<AttunedRow> Attuned => Set<AttunedRow>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -280,7 +347,8 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             player.Property(row => row.Id).HasMaxLength(64);
             player.Property(row => row.Name).HasMaxLength(32);
             player.Property(row => row.Color).HasMaxLength(1);
-            player.Property(row => row.Map).HasMaxLength(64);
+            player.Property(row => row.Space).HasMaxLength(80);
+            player.Property(row => row.Inn).HasMaxLength(64);
         });
 
         modelBuilder.Entity<CollectionRow>(row =>
@@ -366,14 +434,34 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             row.HasKey(duel => duel.Token);
             row.Property(duel => duel.Token).HasMaxLength(64);
             row.Property(duel => duel.State).HasMaxLength(16);
-            row.HasIndex(duel => new { duel.PlayerId, duel.Map, duel.Spawn, duel.Epoch }).IsUnique();
+            row.Property(duel => duel.Space).HasMaxLength(80);
+            row.HasIndex(duel => new { duel.PlayerId, duel.Space, duel.Spawn, duel.Epoch }).IsUnique();
             row.HasIndex(duel => new { duel.PlayerId, duel.State });
         });
 
         modelBuilder.Entity<ChestRow>(row =>
         {
             row.ToTable("chests");
-            row.HasKey(chest => new { chest.PlayerId, chest.Map, chest.Chest });
+            row.HasKey(chest => new { chest.PlayerId, chest.Space, chest.Chest });
+        });
+
+        modelBuilder.Entity<RunRow>(row =>
+        {
+            row.ToTable("runs");
+            row.HasKey(run => run.Id);
+            row.Property(run => run.Id).HasMaxLength(64);
+            row.Property(run => run.PlayerId).HasMaxLength(64);
+            row.Property(run => run.Dungeon).HasMaxLength(64);
+            row.Property(run => run.State).HasMaxLength(16);
+            row.HasIndex(run => new { run.PlayerId, run.State });
+        });
+
+        modelBuilder.Entity<AttunedRow>(row =>
+        {
+            row.ToTable("attuned");
+            row.HasKey(attuned => new { attuned.PlayerId, attuned.Tower });
+            row.Property(attuned => attuned.PlayerId).HasMaxLength(64);
+            row.Property(attuned => attuned.Tower).HasMaxLength(64);
         });
 
         modelBuilder.Entity<QuestRow>(row =>

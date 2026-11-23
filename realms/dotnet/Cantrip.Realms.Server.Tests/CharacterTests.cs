@@ -51,8 +51,10 @@ public sealed class CharacterTests
         Assert.Equal(2000, me.Gold);
         Assert.Empty(me.Unlocked);
 
-        // At New Argive's inn.
-        Assert.Equal(("new-argive", RealmApp.InnOf("new-argive").At), (me.Map, new Hex(me.Q, me.R)));
+        // In the world outside New Benalia's inn, which is their home; no tower attuned.
+        Assert.Equal((RealmContent.WorldSpace, RealmApp.Inn("new-benalia").At), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Equal(RealmApp.Inn("new-benalia").Id, me.Inn);
+        Assert.Empty(me.Attuned);
 
         // Common gear in three slots, worn, with the stats it gives.
         List<GearInstance> worn = [.. me.Loadout.Values.OfType<GearInstance>()];
@@ -98,22 +100,6 @@ public sealed class CharacterTests
         await using var app = new RealmApp();
         Browser browser = await app.SignIn(1);
         await browser.Refused(HttpMethod.Post, "/api/character", new { Name = name, Body = body, Palette = palette, Color = color }, HttpStatusCode.BadRequest, "BadRequest");
-    }
-
-    [Fact]
-    public async Task Travel_records_a_walkable_hex()
-    {
-        await using var app = new RealmApp();
-        Browser browser = await app.Character(1);
-        Hex open = RealmApp.Beside("benalish-meadow", new Hex(-3, 3));
-        await browser.Travel("benalish-meadow", open);
-        CharacterView me = await browser.Me();
-        Assert.Equal(("benalish-meadow", open.Q, open.R), (me.Map, me.Q, me.R));
-
-        // The spell table's own hex, and off the map.
-        await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = "benalish-meadow", Q = -3, R = 3 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = "benalish-meadow", Q = 40, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
-        await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = "nowhere", Q = 0, R = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
     }
 
     [Fact]

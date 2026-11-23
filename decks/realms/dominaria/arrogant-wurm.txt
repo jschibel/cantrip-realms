@@ -1,0 +1,12 @@
+# Arrogant Wurm (arrogant-wurm, Arrogant Wurm), a tier 3 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Arrogant Wurm
+2 Defiant Elf
+3 Elvish Archers
+3 Branchsnap Lorian
+2 Argothian Swine
+2 Havenwood Wurm
+3 Audacity
+1 Rancor
+3 Song of Freyalise
+17 Forest

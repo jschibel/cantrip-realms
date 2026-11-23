@@ -1,0 +1,40 @@
+{
+  "id": "azure-drake",
+  "name": "Azure Drake",
+  "creature": "Azure Drake",
+  "region": "U",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/azure-drake.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "drake",
+    "palette": [
+      "#2f5fa8",
+      "#a97fd0"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

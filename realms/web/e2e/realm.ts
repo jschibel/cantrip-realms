@@ -3,10 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect } from "@playwright/test";
 import { type Hex, distance, findPath, hex, spiral } from "../src/hex";
-import type { MapData } from "../src/maps/schema";
+import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey } from "../src/world/schema";
 
 // The realm's page as the tests drive it: everything is read from globalThis.realmTest (src/testHooks.ts) and every
-// action is a real mouse click at the place it publishes.
+// action is a real mouse click at the place it publishes. Where a test starts is planned from the world's files.
 
 export interface Entity {
   readonly name: string;
@@ -17,6 +17,9 @@ export interface Entity {
   readonly y: number;
   readonly to?: string;
   readonly spawn?: string;
+  readonly tier?: number;
+  readonly role?: string | null;
+  readonly tower?: string;
   readonly moving?: boolean;
 }
 
@@ -30,9 +33,13 @@ export interface Control {
 /** The pinned spawn clock every test plays at, so a spawn's mob is the same on every run. */
 export const NOW = 1763856000;
 
-/** Opens the offline overworld with a made character, at a place, with chance turned off. */
-export async function openRealm(page: Page, options: { at: string; name?: string; color?: string; encounters?: string; extra?: string }): Promise<void> {
-  const query = `offline&test&name=${options.name ?? "Tester"}&color=${options.color ?? "W"}&now=${NOW}&wander=0&encounters=${options.encounters ?? "never"}&at=${options.at}${options.extra ?? ""}`;
+/** Opens the offline overworld with a made character, at a place. */
+/** A morning hour of the same day, when the traveling traders' first caravans are in town (07:00 UTC: their 06:00 visits). */
+export const TRADERS_IN = NOW + 7 * 3600;
+
+/** Opens the offline overworld with a made character, at a place; `now` pins the clock elsewhere than NOW. */
+export async function openRealm(page: Page, options: { at: string; name?: string; color?: string; extra?: string; now?: number }): Promise<void> {
+  const query = `offline&test&name=${options.name ?? "Tester"}&color=${options.color ?? "W"}&now=${options.now ?? NOW}&wander=0&at=${options.at}${options.extra ?? ""}`;
   await page.goto(`/?${query}`);
   await waitReady(page);
 }
@@ -41,7 +48,7 @@ export async function waitReady(page: Page): Promise<void> {
   await page.waitForFunction(() => (globalThis as any).realmTest?.ready === true, undefined, { timeout: 30_000 });
 }
 
-/** Reads a property of realmTest by its path ("map.id", "layer"). */
+/** Reads a property of realmTest by its path ("space.id", "layer"). */
 export const realm = <T>(page: Page, read: string): Promise<T> =>
   page.evaluate((r) => r.split(".").reduce((o: any, k) => o?.[k], (globalThis as any).realmTest), read) as Promise<T>;
 
@@ -58,7 +65,31 @@ export async function entity(page: Page, match: (e: Entity) => boolean, what: st
   return found!;
 }
 
+/**
+ * An entity once the view has settled on it - its place on screen the same two reads running, the camera done easing
+ * after a walk or a door - so that a click at it lands on it.
+ */
+export async function steady(page: Page, match: (e: Entity) => boolean, what: string): Promise<Entity> {
+  let found: Entity | undefined;
+  let last = "";
+  await expect
+    .poll(async () => {
+      found = (await entities(page)).find(match);
+      const at = found ? `${Math.round(found.x)},${Math.round(found.y)}` : "";
+      const same = at !== "" && at === last;
+      last = at;
+      return same;
+    }, { message: what, intervals: [100, 150, 200, 250, 300] })
+    .toBe(true);
+  return found!;
+}
+
 export const player = (page: Page) => entity(page, (e) => e.kind === "player", "the player");
+
+export async function playerHex(page: Page): Promise<Hex> {
+  const [q, r] = (await player(page)).hex.split(",").map(Number);
+  return hex(q!, r!);
+}
 
 export async function control(page: Page, name: string): Promise<Control> {
   let found: Control | undefined;
@@ -76,54 +107,112 @@ export async function clickControl(page: Page, name: string): Promise<void> {
   await page.mouse.click(c.x, c.y);
 }
 
-/** Clicks a hex of the current map. */
+/** Clicks a hex of the current space. */
 export async function clickHex(page: Page, q: number, r: number): Promise<void> {
   const at = await page.evaluate(([a, b]) => (globalThis as any).realmTest.screenOfHex(a, b), [q, r] as const);
   await page.mouse.click(at.x, at.y);
 }
 
-export async function waitMap(page: Page, id: string | RegExp): Promise<void> {
-  await expect.poll(async () => (await realm<string | undefined>(page, "map.id")) ?? "", { timeout: 30_000 }).toMatch(id);
+export async function waitSpace(page: Page, id: string | RegExp): Promise<void> {
+  await expect.poll(async () => (await realm<string | undefined>(page, "space.id")) ?? "", { timeout: 30_000 }).toMatch(id);
   await waitReady(page);
 }
 
-const mapsDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "content", "dominaria", "maps");
+// --- The world's files --------------------------------------------------------------------------------------------------
 
-/** A map's file, for planning where a test starts. */
-export function mapData(id: string): MapData {
-  return JSON.parse(readFileSync(join(mapsDir, `${id}.json`), "utf8")) as MapData;
+const plane = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "content", "dominaria");
+const read = <T>(path: string): T => JSON.parse(readFileSync(join(plane, path), "utf8")) as T;
+
+export const world = (): WorldData => read<WorldData>("world/world.json");
+export const dungeon = (id: string): DungeonData => read<DungeonData>(`dungeons/${id}.json`);
+export const interior = (id: string): InteriorData => read<InteriorData>(`interiors/${id}.json`);
+
+const chunks = new Map<string, ChunkData>();
+export function chunk(cq: number, cr: number): ChunkData {
+  const k = chunkKey(cq, cr);
+  let c = chunks.get(k);
+  if (!c) {
+    c = read<ChunkData>(`world/chunks/${k}.json`);
+    chunks.set(k, c);
+  }
+  return c;
 }
 
-/** An open hex `steps` from `target` (or as near as there is one), the one nearest the middle of the map. */
-export function openNear(map: MapData, target: Hex, steps: number): Hex {
-  const open = new Set(map.tiles.filter((t) => t[4] === 0).map((t) => `${t[0]},${t[1]}`));
-  const things = new Set([...map.npcs, ...map.chests, ...map.exits, ...map.spawns].map((t) => `${t.q},${t.r}`));
+export const chunkOfHex = (h: Hex): ChunkData => chunk(Math.floor(h.q / CHUNK), Math.floor(h.r / CHUNK));
+
+let lanes: Set<string> | null = null;
+
+/** Whether a hex of the world is open ground, with nothing on it that walking onto would use, and no ferry's lane. */
+export function openWorld(h: Hex): boolean {
+  lanes ??= new Set(world().ferries.flatMap((f) => f.lane.slice(1, -1).map(([q, r]) => `${q},${r}`)));
+  if (lanes.has(`${h.q},${h.r}`)) return false;
+  if (h.q < 0 || h.r < 0 || h.q >= 640 || h.r >= 640) return false;
+  const c = chunkOfHex(h);
+  const tile = c.tiles[(h.q - c.cq * CHUNK) * CHUNK + (h.r - c.cr * CHUNK)]!;
+  if (tile[4] !== 0) return false;
+  return !c.doors.some((d) => d.q === h.q && d.r === h.r) && !c.entrances.some((e) => e.q === h.q && e.r === h.r);
+}
+
+/** An open hex `steps` from `target` (or as near as there is one), with nothing on it, that can walk to it. */
+export function openNear(target: Hex, steps: number, open: (h: Hex) => boolean = openWorld): Hex {
   for (let d = steps; d >= 1; d--) {
-    const ring = spiral(target, d).filter((h) => distance(h, target) === d && open.has(`${h.q},${h.r}`) && !things.has(`${h.q},${h.r}`));
-    ring.sort((a, b) => distance(a, hex(0, 0)) - distance(b, hex(0, 0)) || a.q - b.q || a.r - b.r);
-    if (ring[0]) return ring[0];
+    const ring = spiral(target, d).filter((h) => distance(h, target) === d && open(h));
+    ring.sort((a, b) => a.q - b.q || a.r - b.r);
+    for (const h of ring) if (findPath(h, target, (x) => open(x) || (x.q === target.q && x.r === target.r), undefined, 20000)) return h;
   }
-  throw new Error(`nowhere open near ${target.q},${target.r} of ${map.id}`);
+  throw new Error(`nowhere open near ${target.q},${target.r}`);
 }
 
-/** The `at` of a hex of a map, for openRealm. */
-export const at = (map: MapData, h: Hex): string => `${map.id}:${h.q},${h.r}`;
+/** The `at` of a hex of the world, for openRealm. */
+export const at = (h: Hex): string => `world:${h.q},${h.r}`;
 
-/**
- * Walks across a map toward a hex too far off to be on screen, by clicks on the way: a hex a few steps along the
- * path at a time, until the goal is near enough to click itself.
- */
-export async function walkNear(page: Page, map: MapData, goal: Hex, near = 5): Promise<void> {
-  const open = new Set(map.tiles.filter((t) => t[4] === 0).map((t) => `${t[0]},${t[1]}`));
-  for (let tries = 0; tries < 12; tries++) {
+/** Walks across the world toward a hex too far off to be on screen, by clicks `near` hexes along the way at a time. */
+export async function walkNear(page: Page, goal: Hex, near = 5, open: (h: Hex) => boolean = openWorld): Promise<void> {
+  for (let tries = 0; tries < 40; tries++) {
     await expect.poll(async () => (await player(page)).moving).toBe(false);
-    const [q, r] = (await player(page)).hex.split(",").map(Number);
-    const from = hex(q!, r!);
+    const from = await playerHex(page);
     if (distance(from, goal) <= near) return;
-    const path = findPath(from, goal, (h) => open.has(`${h.q},${h.r}`) || (h.q === goal.q && h.r === goal.r), undefined, 20000);
+    // Round the mobs: a click on one is an attack, not a walk.
+    // Round the mobs, out of the reach of their bodies on screen: a click on one is an attack, not a walk.
+    const mobs = (await entities(page)).filter((e) => e.kind === "mob" || e.kind === "other").map((e) => {
+      const [q, r] = e.hex.split(",").map(Number);
+      return hex(q!, r!);
+    });
+    const clear = (h: Hex) => mobs.every((m) => distance(m, h) > 2);
+    const path = findPath(from, goal, (h) => (open(h) && clear(h)) || (h.q === goal.q && h.r === goal.r), undefined, 40000)
+      ?? findPath(from, goal, (h) => open(h) || (h.q === goal.q && h.r === goal.r), undefined, 40000);
     expect(path, `a way to ${goal.q},${goal.r}`).not.toBeNull();
-    const step = path![Math.min(near, path!.length - 1)]!;
+    // A few hexes along, never onto or right beside a mob.
+    let k = Math.min(near, path!.length - 1);
+    while (k > 0 && !clear(path![k]!) && k < path!.length - 1 && distance(path![k]!, goal) > near) k--;
+    const step = path![Math.max(0, k)]!;
     await clickHex(page, step.q, step.r);
-    await expect.poll(async () => (await player(page)).hex).toBe(`${step.q},${step.r}`);
+    // Reached, or stopped by a mob that came for you (dungeon mobs chase): win its duel, take the loot, walk on.
+    // (Or stopped short, a mob in the way: the next round plans again from where the player stands.)
+    await page.waitForTimeout(150);
+    await expect
+      .poll(async () => (await realm<string | null>(page, "layer.open")) !== null || (await player(page)).hex === `${step.q},${step.r}` || !(await player(page)).moving, { timeout: 20_000 })
+      .toBe(true);
+    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
   }
+  const from = await playerHex(page);
+  expect(distance(from, goal), `walked from ${from.q},${from.r} to within ${near} of ${goal.q},${goal.r}`).toBeLessThanOrEqual(near);
+}
+
+/** Wins the duel the stand-in card layer has open, and takes the loot offered. */
+export async function winDuel(page: Page): Promise<void> {
+  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 20_000 }).toBe("duel");
+  await clickControl(page, "layer:win");
+  await expect.poll(() => realm<string | null>(page, "layer.open")).not.toBe("duel");
+  // The win told the server (a real one answers when it answers), the loot taken if it offers any, the mob gone and
+  // the world going again.
+  await expect
+    .poll(async () => {
+      if ((await realm<string | null>(page, "layer.open")) === "loot") {
+        await clickControl(page, "layer:take");
+        return false;
+      }
+      return (await realm<string>(page, "screen")) === "world" && !(await realm<boolean>(page, "paused"));
+    }, { timeout: 30_000 })
+    .toBe(true);
 }

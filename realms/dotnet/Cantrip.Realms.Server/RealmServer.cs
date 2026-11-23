@@ -17,10 +17,11 @@ public static class RealmServer
         ArgumentNullException.ThrowIfNull(options);
         services.AddSingleton(options);
         services.TryAddSingletonTime();
-        services.AddSingleton(_ => RealmContent.Load(options.Root));
+        services.AddSingleton(_ => RealmContent.Load(options.Root, places: options.Places));
         services.AddSingleton(_ => new RealmDice());
         services.AddSingleton<IDuelVerifier>(_ => new NativeDuelVerifier());
         services.AddSingleton<PresenceHub>();
+        services.AddSingleton<DevVerdicts>();
         options.Database.Register(services);
         services.AddScoped<Characters>();
         services.AddScoped<DecksAndGear>();
@@ -28,6 +29,7 @@ public static class RealmServer
         services.AddScoped<Armorers>();
         services.AddScoped<Encounters>();
         services.AddScoped<Chests>();
+        services.AddScoped<Dungeons>();
         services.AddHostedService<RealmClock>();
         services.AddRealmSignIn(options);
         services.AddHealthChecks();
@@ -80,6 +82,7 @@ public static class RealmServer
         app.MapHealthChecks("/healthz");
         app.MapRealmSignIn(options);
         app.MapRealmApi();
+        app.MapRealmDevApi(options);
         app.MapPresence();
     }
 }

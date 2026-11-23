@@ -1,0 +1,26 @@
+{
+  "id": "benalish-watchtower",
+  "name": "The Ruined Benalish Watchtower",
+  "theme": "castle",
+  "entrance": [
+    445,
+    297
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 1,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "benalish-hero",
+    "davenant-archer",
+    "mesa-pegasus"
+  ],
+  "warden": "warden-1",
+  "boss": "benalish-knight",
+  "region": "W"
+}

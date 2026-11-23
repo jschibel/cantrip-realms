@@ -1,0 +1,42 @@
+{
+  "id": "mage-keld-4",
+  "name": "Magus of the Moon",
+  "creature": "Magus of the Moon",
+  "region": "R",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mage-keld-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "ghitu-firewalkers",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

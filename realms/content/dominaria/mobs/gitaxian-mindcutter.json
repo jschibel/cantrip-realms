@@ -1,6 +1,7 @@
 {
   "id": "gitaxian-mindcutter",
   "name": "Gitaxian Mindcutter",
+  "creature": "Ertai Resurrected",
   "tier": 4,
   "deck": "decks/realms/dominaria/gitaxian-mindcutter.txt",
   "stats": {
@@ -21,7 +22,11 @@
     "pool": "dominaria",
     "colors": "UB",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Phyrexian",
+      "Wizard",
+      "Horror"
+    ],
     "rarities": [
       "uncommon",
       "rare",

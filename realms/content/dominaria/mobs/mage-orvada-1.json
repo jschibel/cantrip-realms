@@ -1,0 +1,43 @@
+{
+  "id": "mage-orvada-1",
+  "name": "Tolarian Scholar",
+  "creature": "Tolarian Scholar",
+  "region": "U",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mage-orvada-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "scholars-circlet"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Wizard"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2",
+      "#2f5fa8"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

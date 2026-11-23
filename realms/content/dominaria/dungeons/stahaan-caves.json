@@ -1,0 +1,26 @@
+{
+  "id": "stahaan-caves",
+  "name": "The Caves of Stahaan",
+  "theme": "caves",
+  "entrance": [
+    47,
+    519
+  ],
+  "floors": [
+    2,
+    3
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "serra-angel",
+    "serra-paragon",
+    "torsten-founder-of-benalia"
+  ],
+  "warden": "warden-4",
+  "boss": "serra-angel",
+  "region": "W"
+}

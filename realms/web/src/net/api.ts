@@ -43,7 +43,8 @@ export interface Character {
   readonly Gold: number;
   /** The total list price of the cards in the ante (design.md, A2). */
   readonly AnteValue: number;
-  readonly Map: string;
+  /** The space of the character's place (interfaces.md, "Places"): "world", an interior's id, or "run:<run>". */
+  readonly Space: string;
   readonly Q: number;
   readonly R: number;
   readonly Stats: { readonly Life: number; readonly Hand: number; readonly MaxHand: number };
@@ -51,6 +52,10 @@ export interface Character {
   readonly Loadout: Readonly<Partial<Record<Slot, GearInstance | null>>>;
   readonly Gear: readonly GearInstance[];
   readonly Unlocked: readonly ManaColor[];
+  /** The mage towers whose waystones are attuned to the character (design.md A6). */
+  readonly Attuned?: readonly string[];
+  /** The character's home inn (world.json's `inns[].id`). */
+  readonly Inn?: string;
 }
 
 /** A character's identity as colors, in WUBRG order. */
@@ -85,7 +90,8 @@ export interface Specialty {
 }
 
 export interface VendorView {
-  readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty };
+  /** `Kind` is `shop`, `exotic` or `trader`; `Plane` a trader's home plane (else null); `Town` a trader's caravan's town now. */
+  readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty; readonly Kind: "shop" | "exotic" | "trader"; readonly Plane: string | null };
   readonly Purse: number;
   readonly Stock: readonly { readonly Name: string; readonly Gold: number; readonly Count: number; readonly Until: string | null }[];
   /** The character's gold. */
@@ -124,6 +130,57 @@ export interface EncounterResult {
   readonly Detail: string | null;
 }
 
+/** A place (interfaces.md, "Places"). */
+export interface Place {
+  readonly Space: string;
+  readonly Q: number;
+  readonly R: number;
+}
+
+/** A dungeon run's floor: its encounters, its warden and boss (null where it has none). */
+export interface RunFloor {
+  readonly Encounters: readonly { readonly Index: number; readonly Mob: string }[];
+  readonly Warden: string | null;
+  readonly Boss: string | null;
+}
+
+export interface Run {
+  readonly Run: string;
+  readonly Seed: number;
+  readonly Floors: readonly RunFloor[];
+}
+
+/** An encounter's start: a world spawn's mob, or one of a dungeon run's. */
+export type EncounterAt =
+  | { readonly Spawn: string; readonly Mob: string }
+  | { readonly Run: string; readonly Floor: number; readonly Index: number; readonly Mob: string };
+
+/** A caravan's visit to a town: which town, and from when until when (UTC ISO-8601). */
+export interface CaravanVisit {
+  readonly Town: string;
+  readonly From: string;
+  readonly Until: string;
+}
+
+/**
+ * A traveling trader from another plane (design.md A5) and its schedule, as `GET /api/travelers` gives it: its vendor
+ * id (its `vendor` screen), its name, its plane's id and name, the visit its caravan is on now (null between visits) and
+ * the next to begin.
+ */
+export interface Traveler {
+  readonly Id: string;
+  readonly Name: string;
+  readonly Plane: string;
+  readonly PlaneName: string;
+  readonly Visit: CaravanVisit | null;
+  readonly Next: CaravanVisit;
+}
+
+/** The trader whose caravan is in a town at a moment (Unix milliseconds), if any. */
+export function travelerIn(travelers: readonly Traveler[], town: string, nowMs: number): Traveler | undefined {
+  return travelers.find((t) => t.Visit !== null && t.Visit.Town === town && Date.parse(t.Visit.From) <= nowMs && nowMs < Date.parse(t.Visit.Until));
+}
+
 /** A refused call: the server's error code and its words. */
 export class ApiError extends Error {
   constructor(
@@ -147,13 +204,24 @@ export interface RealmApi {
   buy(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }>;
   sell(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }>;
   armorer(town: string): Promise<{ Stock: readonly Gear[] }>;
-  startEncounter(body: { Map: string; Spawn: string; Mob: string }): Promise<EncounterStart>;
+  startEncounter(body: EncounterAt): Promise<EncounterStart>;
   finishEncounter(body: { Token: string; Log: readonly string[] }): Promise<EncounterResult>;
   /** Takes picks from a win's offer: the collection after. */
   takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection>;
   /** Opens a chest: the character's gold after, and what the chest held. */
-  openChest(body: { Map: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
-  travel(body: { Map: string; Q: number; R: number }): Promise<void>;
+  openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
+  /** Makes the inn the character stands in their home: where a lost duel wakes them. */
+  setInn(): Promise<{ Inn: string }>;
+  /** Reports where the character is (a world or interior place). */
+  position(body: Place): Promise<void>;
+  enterDungeon(body: { Dungeon: string }): Promise<Run>;
+  /** Takes the stair down to floor `Floor` (from 0) of the run. */
+  dungeonFloor(body: { Run: string; Floor: number }): Promise<void>;
+  leaveDungeon(body: { Run: string }): Promise<void>;
+  /** Travels from the attuned tower's waystone the character stands at to another attuned tower's. */
+  waystone(body: { Tower: string }): Promise<{ Place: Place }>;
+  /** The traveling vendors in town now, by the server's schedule. */
+  travelers(): Promise<{ Travelers: readonly Traveler[] }>;
 }
 
 /** The realm server over HTTP: same-origin `/api`, or the server `base` names, on the signed-in cookie. */
@@ -195,11 +263,21 @@ export class HttpApi implements RealmApi {
   buy = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Collection }>("POST", `vendor/${encodeURIComponent(vendor)}/buy`, { Name: name });
   sell = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Collection }>("POST", `vendor/${encodeURIComponent(vendor)}/sell`, { Name: name });
   armorer = (town: string) => this.call<{ Stock: readonly Gear[] }>("GET", `armorer/${encodeURIComponent(town)}`);
-  startEncounter = (body: { Map: string; Spawn: string; Mob: string }) => this.call<EncounterStart>("POST", "encounter/start", body);
+  startEncounter = (body: EncounterAt) => this.call<EncounterStart>("POST", "encounter/start", body);
   finishEncounter = (body: { Token: string; Log: readonly string[] }) => this.call<EncounterResult>("POST", "encounter/finish", body);
   takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<Collection>("POST", "encounter/loot", body);
-  openChest = (body: { Map: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
-  travel = async (body: { Map: string; Q: number; R: number }) => {
-    await this.call<unknown>("POST", "travel", body);
+  openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
+  setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
+  position = async (body: Place) => {
+    await this.call<unknown>("POST", "position", body);
   };
+  enterDungeon = (body: { Dungeon: string }) => this.call<Run>("POST", "dungeon/enter", body);
+  dungeonFloor = async (body: { Run: string; Floor: number }) => {
+    await this.call<unknown>("POST", "dungeon/floor", body);
+  };
+  leaveDungeon = async (body: { Run: string }) => {
+    await this.call<unknown>("POST", "dungeon/leave", body);
+  };
+  waystone = (body: { Tower: string }) => this.call<{ Place: Place }>("POST", "waystone", body);
+  travelers = () => this.call<{ Travelers: readonly Traveler[] }>("GET", "travelers");
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLOTH, RING_COLORS, SKIN_PALETTES } from "./character";
-import type { Terrain } from "./maps/schema";
+import type { Terrain } from "./world/schema";
 import { DOMINARIA, colorsOf, nearest, shadeOf } from "./palette";
 import { terrainColor } from "./scene/world";
 

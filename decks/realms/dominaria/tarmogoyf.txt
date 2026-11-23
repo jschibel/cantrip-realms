@@ -1,0 +1,11 @@
+# Tarmogoyf (tarmogoyf, Tarmogoyf), a tier 4 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Tarmogoyf
+2 Timber Wolves
+3 Branchsnap Lorian
+2 Erhnam Djinn
+3 Silverback Elder
+2 Enormous Baloth
+3 Giant Growth
+4 Forbidden Lore
+17 Forest

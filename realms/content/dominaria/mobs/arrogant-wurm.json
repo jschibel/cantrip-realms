@@ -1,0 +1,45 @@
+{
+  "id": "arrogant-wurm",
+  "name": "Arrogant Wurm",
+  "creature": "Arrogant Wurm",
+  "region": "G",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/arrogant-wurm.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band",
+    "copper-amulet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Wurm"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wurm",
+    "palette": [
+      "#3e9a4a",
+      "#8f6340",
+      "#d6ae7e"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

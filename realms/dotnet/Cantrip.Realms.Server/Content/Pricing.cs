@@ -3,7 +3,7 @@ namespace Cantrip.Realms.Server.Content;
 /// <summary>
 /// A card's list price (realms/docs/design.md A5): a hundred gold to the dollar, of the median paper price of its printings
 /// plus a surcharge by the rarity of that printing. <c>tools/realms/card-economy.py</c> works the prices out and writes
-/// them to <c>realms/content/prices.json</c>; the server reads them, and checks each against this as it loads.
+/// them to <c>realms/content/cards.json</c>; the server reads them, and checks each against this as it loads.
 /// </summary>
 public static class Pricing
 {

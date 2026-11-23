@@ -1,0 +1,45 @@
+{
+  "id": "mage-caligo-3",
+  "name": "Nebuchadnezzar",
+  "creature": "Nebuchadnezzar",
+  "region": "B",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/mage-caligo-3.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "silver-pendant"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "UB",
+    "types": [],
+    "subtypes": [
+      "Wizard"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#2a2b36",
+      "#7a1f24",
+      "#8c909c"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

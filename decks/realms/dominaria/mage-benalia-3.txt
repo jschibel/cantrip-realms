@@ -1,0 +1,14 @@
+# Loran of the Third Path (mage-benalia-3, Loran of the Third Path), the mage of Benalia's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Loran of the Third Path
+1 Ornithopter
+1 True Believer
+1 Juggernaut
+1 Marble Priest
+1 Noble Templar
+3 Goblin Firebomb
+3 Pit Trap
+2 Staff of Zegon
+3 Tawnos's Coffin
+3 The Mightstone and Weakstone
+17 Plains

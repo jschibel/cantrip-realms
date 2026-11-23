@@ -1,0 +1,18 @@
+{
+  "id": "alara-trader",
+  "name": "Ajenna of the Bant Seas",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "alara",
+    "towns": [
+      "new-benalia",
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy"
+    ],
+    "hour": 14,
+    "hours": 4
+  }
+}

@@ -4,9 +4,10 @@ import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 import { distance, findPath, hex, spiral } from "../src/hex";
 import { encodeGif } from "./gif";
-import { clickHex, mapData, openRealm, player, realm } from "./realm";
+import { spawnNear } from "./places";
+import { at, clickHex, entity, openNear, openRealm, openWorld, player, realm, waitSpace } from "./realm";
 
-// The look (tech.md B5), for eyes: the same scenes every time - a town, the meadow, Urborg, a dungeon floor, the model
+// The look (tech.md B5), for eyes: the same scenes every time - a town, the farmland, the Morass, a dungeon floor, the model
 // gallery, character creation - and a clip of a character walking past mobs on grass, to judge how clearly they move.
 // Written to test-results/look; with REALM_LOOK=<prefix> (before, after) to e2e/screenshots/look/<prefix>-*.png, so a
 // change to the look can be shown beside what it changed. REALM_LOOK_QUERY is added to every page's query, to show one
@@ -24,20 +25,28 @@ async function settle(page: Page): Promise<void> {
   await page.waitForTimeout(800);
 }
 
-const scenes: readonly { file: string; at: string; extra?: string }[] = [
-  { file: "new-argive", at: "new-argive:0,4" },
-  { file: "benalish-meadow", at: "benalish-meadow:2,-1" },
-  { file: "urborg", at: "urborg:0,0" },
-  { file: "dungeon-shivan-foundry-1", at: "shivan-foundry-1:-1,1" },
+const scenes: readonly { file: string; at: () => string; extra?: string }[] = [
+  { file: "new-benalia", at: () => "new-benalia" },
+  { file: "benalish-farmland", at: () => at(openNear(spawnNear("capashen-hold"), 2)) },
+  { file: "caligo-morass", at: () => "vess-estate" },
 ];
 
 for (const scene of scenes) {
   test(`look: ${scene.file}`, async ({ page }) => {
-    await openRealm(page, { at: scene.at, extra: `${scene.extra ?? ""}${choice}` });
+    await openRealm(page, { at: scene.at(), extra: `${scene.extra ?? ""}${choice}` });
     await settle(page);
     await page.screenshot({ path: name(`${scene.file}.png`) });
   });
 }
+
+test("look: a dungeon floor", async ({ page }) => {
+  await openRealm(page, { at: "ironclaw-delvings", extra: `&mobs=0${choice}` });
+  const way = await entity(page, (e) => e.kind === "entrance" && e.to === "ironclaw-delvings", "the way in");
+  await page.mouse.click(way.x, way.y);
+  await waitSpace(page, /^run:/);
+  await settle(page);
+  await page.screenshot({ path: name("dungeon-foundry.png") });
+});
 
 test("look: the model gallery", async ({ page }) => {
   await page.goto(`/models.html?still${choice}`);
@@ -57,20 +66,17 @@ test("look: character creation", async ({ page }) => {
 });
 
 test("look: walking past mobs on grass", async ({ page }) => {
-  // Across the meadow's first spawn, a walk that passes near its mob, framed on the player.
-  const meadow = mapData("benalish-meadow");
-  const s1 = meadow.spawns.find((s) => s.id === "s1")!;
+  // Past a spawn near Capashen Hold, a walk that passes near its mob, framed on the player.
+  const s1 = spawnNear("capashen-hold");
   const home = hex(s1.q, s1.r);
-  const open = new Set(meadow.tiles.filter((t) => t[4] === 0).map((t) => `${t[0]},${t[1]}`));
-  const things = new Set([...meadow.npcs, ...meadow.chests, ...meadow.exits, ...meadow.spawns].map((t) => `${t.q},${t.r}`));
-  const free = (h: { q: number; r: number }) => open.has(`${h.q},${h.r}`) && !things.has(`${h.q},${h.r}`);
+  const free = (h: { q: number; r: number }) => openWorld(h) && !(h.q === s1.q && h.r === s1.r);
   const ring = spiral(home, 5).filter((h) => distance(h, home) === 5 && free(h) && findPath(h, home, (x) => free(x) || (x.q === home.q && x.r === home.r)) !== null);
   ring.sort((a, b) => a.q - b.q || a.r - b.r);
   const start = ring[0]!;
   const goal = ring.reduce((far, h) => (distance(h, start) > distance(far, start) && findPath(start, h, free) ? h : far), ring[0]!);
   expect(findPath(start, goal, free), "a walk past the spawn").not.toBeNull();
 
-  await openRealm(page, { at: `benalish-meadow:${start.q},${start.r}`, extra: choice });
+  await openRealm(page, { at: at(start), extra: choice });
   await settle(page);
   const view = page.viewportSize()!;
   // The camera follows the player's feet, which stay at the middle of the view.

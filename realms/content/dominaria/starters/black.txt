@@ -1,15 +1,15 @@
 # The black starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
 
 2 Plague Beetle
+2 Black Knight
 2 Knight of Dusk's Shadow
 2 Knight of Malice
-2 Cabal Evangel
+2 Legions of Lim-Dûl
 2 Bog Raiders
-2 Python
 2 Bog Wraith
 2 Yargle, Glutton of Urborg
-2 Bone Splinters
 2 Cut Down
-2 Feed the Swarm
-1 Unearth
+2 Touch of Death
+2 Go for the Throat
+1 Terror
 17 Swamp

@@ -1,0 +1,46 @@
+{
+  "id": "elvish-archers",
+  "name": "Elvish Archers",
+  "creature": "Elvish Archers",
+  "region": "G",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/elvish-archers.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band",
+    "copper-amulet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Elf",
+      "Archer"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#3e9a4a",
+      "#8f6340",
+      "#d6ae7e"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

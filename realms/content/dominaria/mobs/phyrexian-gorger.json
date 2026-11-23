@@ -1,6 +1,7 @@
 {
   "id": "phyrexian-gorger",
   "name": "Phyrexian Gorger",
+  "creature": "Phyrexian Fleshgorger",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-gorger.txt",
   "stats": {
@@ -21,7 +22,12 @@
     "pool": "dominaria",
     "colors": "BG",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Phyrexian",
+      "Beast",
+      "Horror",
+      "Wurm"
+    ],
     "rarities": [
       "uncommon",
       "rare",

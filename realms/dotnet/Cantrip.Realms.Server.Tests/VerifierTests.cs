@@ -63,7 +63,7 @@ public sealed class VerifierPartsTests
             return new DuelSeat(content.File.Name, [.. content.Deck.Entries.SelectMany(entry => Enumerable.Repeat(entry.Card, entry.Copies))], [], null, [], 20, 7, 7, []);
         }
 
-        return new Duel([Seat("benalish-deserter"), Seat("phyrexian-scout")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Phyrexian Scout", 1, 100), 0, 0);
+        return new Duel([Seat("benalish-hero"), Seat("bog-raiders")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Bog Raiders", 1, 100), 0, 0);
     }
 }
 
@@ -155,11 +155,10 @@ public sealed class NativeVerifierTests
         CharacterView me = await browser.Ok<CharacterView>(HttpMethod.Put, "/api/loadout", new { Slots = new Dictionary<string, long?> { ["head"] = worn[0], ["body"] = worn[1] } });
 
         // The warden of Serra's sanctum, who wears plate and a pendant of its own.
-        const string Floor = "serras-fallen-sanctum-1";
-        MapSpawn keeper = RealmApp.Content.Maps[Floor].Spawn("keeper")!;
-        await browser.Travel(Floor, keeper.At);
-        string mob = Spawns.MobOf(browser.Player, Floor, keeper.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), keeper.RespawnSeconds), keeper.Mobs);
-        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Floor, Spawn = keeper.Id, Mob = mob });
+        RunView run = await app.EnterRun(browser, "benalish-keep");
+        RunFloor first = run.Floors[0];
+        Assert.Equal("sanctum-warden", first.Warden);
+        EncounterView encounter = await RealmApp.Fight(browser, run, 0, first.Encounters.Count, first.Warden!);
         Duel duel = encounter.Duel;
         Assert.Equal((me.Stats.Life, me.Stats.Hand), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));
         Assert.NotEqual((20, 7), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));
@@ -277,13 +276,39 @@ public sealed class NativeVerifierTests
     {
         await using var app = new RealmApp { NativeVerifier = true };
         Browser browser = await app.Character(1, "W");
-        await browser.Travel("benalish-meadow", 6, 3);
-        MapSpawn spawn = RealmApp.Content.Maps["benalish-meadow"].Spawn("s1")!;
-        string mob = Spawns.MobOf(browser.Player, "benalish-meadow", "s1", Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds), spawn.Mobs);
-        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = "benalish-meadow", Spawn = "s1", Mob = mob });
+        MapSpawn spawn = RealmApp.SpawnOf(1);
+        await browser.Put(RealmContent.WorldSpace, spawn.At);
+        string mob = Spawns.MobOf(browser.Player, RealmContent.WorldSpace, spawn.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds), spawn.Mobs);
+        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn = spawn.Id, Mob = mob });
 
         // The browser's part: the duel as the API gave it, seat 1 played by a bot here.
         (List<string> log, IReadOnlyList<int> winners) = Play(encounter.Duel, new TacticalPlay(), RealmBot.Create(encounter.Seed));
+        OutcomeView outcome = await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { encounter.Token, Log = log });
+        Assert.Equal(winners is [Duel.PlayerSeat] ? "won" : "lost", outcome.Outcome);
+        Assert.Null(outcome.Detail is { } detail && detail.StartsWith("The log", StringComparison.Ordinal) ? detail : null);
+    }
+}
+
+/// <summary>Llanowar's boss on the native engine: Rofellos, Llanowar Emissary, dealt by the server in his hollow and verified.</summary>
+[Trait("Category", "WallClock")]
+public sealed class RofellosDuelTests
+{
+    [Fact]
+    public async Task A_duel_against_rofellos_in_the_elfhames_hollow_deals_and_verifies()
+    {
+        await using var app = new RealmApp { NativeVerifier = true };
+        Browser browser = await app.Character(1, "G");
+        RunView run = await app.EnterRun(browser, "elfhame-hollow");
+        Assert.Equal("rofellos", run.Floors[^1].Boss);
+        await app.ToFloor(run, run.Floors.Count - 1);
+        (int floor, int index) = RealmApp.BossOf(run);
+        EncounterView encounter = await RealmApp.Fight(browser, run, floor, index, "rofellos");
+        Assert.Equal("Rofellos, Llanowar Emissary", encounter.Duel.Seats[1].Name);
+        Assert.Contains("Rofellos, Llanowar Emissary", encounter.Duel.Seats[1].Deck);
+
+        // The browser's part, seat 1 played by a bot here; the server replays the log on the native host and takes it.
+        (List<string> log, IReadOnlyList<int> winners) = NativeVerifierTests.Play(encounter.Duel, new TacticalPlay(), RealmBot.Create(encounter.Seed));
+        Assert.NotEmpty(winners);
         OutcomeView outcome = await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { encounter.Token, Log = log });
         Assert.Equal(winners is [Duel.PlayerSeat] ? "won" : "lost", outcome.Outcome);
         Assert.Null(outcome.Detail is { } detail && detail.StartsWith("The log", StringComparison.Ordinal) ? detail : null);

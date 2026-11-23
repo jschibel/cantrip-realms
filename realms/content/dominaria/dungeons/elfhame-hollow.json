@@ -1,0 +1,39 @@
+{
+  "id": "elfhame-hollow",
+  "name": "The Hollow under the Elfhames",
+  "theme": "hollow",
+  "entrance": [
+    546,
+    172
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "arrogant-wurm",
+      "birds-of-paradise",
+      "cradle-guard",
+      "craw-wurm",
+      "elven-riders",
+      "elvish-archers"
+    ],
+    [
+      "arrogant-wurm",
+      "birds-of-paradise",
+      "elvish-archers",
+      "enormous-baloth",
+      "marhault-elsdragon",
+      "tarmogoyf"
+    ]
+  ],
+  "warden": "heart-warden",
+  "boss": "rofellos",
+  "region": "G"
+}

@@ -112,7 +112,7 @@ button.primary:hover { filter: brightness(1.08); }
 #hud-layer[data-state="open"] { color: var(--accent); }
 #hud-place { padding: 8px; text-align: center; }
 #hud-place-name { font-family: "Beleren", serif; font-size: 14px; margin-bottom: 6px; color: var(--fg); }
-#hud-minimap { width: 144px; height: 144px; image-rendering: pixelated; display: block; border-radius: 4px; }
+#hud-minimap { width: 168px; height: 168px; image-rendering: pixelated; display: block; border-radius: 4px; pointer-events: auto; cursor: zoom-in; }
 #hud-actions { padding: 6px; display: flex; gap: 6px; }
 
 #hud-message {
@@ -135,7 +135,7 @@ button.primary:hover { filter: brightness(1.08); }
   pointer-events: none;
 }
 
-/* Screens over the world: dialogs, the stand-in card layer, character creation, travel. */
+/* Screens over the world: dialogs, the stand-in card layer, character creation, the world map. */
 #screens > * { position: fixed; inset: 0; z-index: 5; }
 
 .panel-card {
@@ -206,73 +206,6 @@ button.primary:hover { filter: brightness(1.08); }
 .hint { font-family: "MPlantin", serif; font-size: 13px; color: var(--fg-muted); }
 .problem { color: var(--danger); min-height: 1em; }
 
-.travel {
-  background: #0d0f14;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.travel[hidden] { display: none; }
-.travel-map { image-rendering: pixelated; border: 1px solid var(--line); border-radius: 4px; }
-.travel-labels { position: absolute; pointer-events: none; }
-.travel-label {
-  position: absolute;
-  transform: translateX(-50%);
-  font: 12px "Beleren", serif;
-  color: var(--fg);
-  text-shadow: 0 0 2px #000, 0 0 3px #000, 1px 1px 0 #000;
-  white-space: nowrap;
-}
-.travel-label.town { font-size: 14px; color: var(--accent); }
-.travel-label.hot { color: var(--accent); }
-.travel-label.sealed { color: var(--fg-soft); font-style: italic; }
-.travel-bar {
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.travel-bar .title { font: 18px "Beleren", serif; color: var(--accent); }
-.travel-bar button[hidden] { display: none; }
-.travel-banner {
-  left: 50%;
-  bottom: 40px;
-  transform: translateX(-50%);
-  font: 18px "Beleren", serif;
-  color: var(--danger);
-}
-.travel-banner[hidden] { display: none; }
-
-/* The map editor (?editor). */
-.editor-bar {
-  position: fixed;
-  left: 8px;
-  top: 8px;
-  bottom: 8px;
-  width: 260px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 4;
-}
-.editor-bar label { display: flex; flex-direction: column; gap: 4px; font: 13px "Beleren", serif; color: var(--fg-soft); }
-.editor-bar select,
-.editor-bar input {
-  font: 13px "MPlantin", serif;
-  color: var(--fg);
-  background: var(--control-fill);
-  border: 1px solid var(--control-border);
-  border-radius: 4px;
-  padding: 4px 6px;
-}
-.editor-bar .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.editor-bar .tools button.chosen { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.editor-bar .problems { font-size: 12px; color: var(--danger); white-space: pre-wrap; }
-.editor-bar .problems.clean { color: var(--ready); }
-
 /* The card layer: booted hidden, shown over everything while a card screen is open. */
 .card-layer {
   position: fixed;
@@ -287,4 +220,93 @@ button.primary:hover { filter: brightness(1.08); }
 .card-layer[data-open="true"] {
   visibility: visible;
   pointer-events: auto;
+}
+
+/* The area you stand in and its tier, at the top of the screen. */
+#hud-area {
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 15px "Beleren", serif;
+}
+#hud-area:empty { display: none; }
+#hud-area .tier {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #0b0c10;
+  background: var(--control-fill);
+}
+#hud-area .tier[data-tier="0"] { color: var(--fg-soft); }
+#hud-area.flash { animation: area-flash 1.6s ease-out; }
+@keyframes area-flash {
+  0%, 30% { box-shadow: 0 0 0 3px var(--accent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* The regional map's legend: the tiers' colors, dungeons, attuned and dormant towers. */
+#hud-place .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  max-width: 168px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--fg-soft);
+}
+#hud-place .legend span { display: inline-flex; align-items: center; gap: 3px; }
+#hud-place .legend i { width: 10px; height: 10px; display: inline-block; border: 1px solid #0b0c10; }
+#hud-place .legend .diamond { width: 7px; height: 7px; background: #ffc94a; transform: rotate(45deg); display: inline-block; border: 1px solid #0b0c10; }
+#hud-place .legend .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #575c6e; display: inline-block; }
+#hud-place .legend .tri.lit { border-bottom-color: #84bfd3; }
+
+/* What the pointer is over. */
+#hud-tooltip {
+  position: fixed;
+  z-index: 6;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: 13px "Beleren", serif;
+  color: var(--fg);
+  white-space: nowrap;
+}
+#hud-tooltip[hidden] { display: none; }
+
+/* The iris: closing to a point round the player and opening again across a door or a stair. */
+.iris {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  background: #0b0c10;
+  pointer-events: none;
+}
+.iris[hidden] { display: none; }
+
+/* The whole world's map. */
+.world-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0c10cc;
+}
+.world-map[hidden] { display: none; }
+.world-map .bar { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.world-map .bar h2 { margin: 0; }
+.world-map .bar .hint { flex: 1; font-size: 13px; color: var(--fg-soft); }
+.world-map .frame { position: relative; }
+.world-map canvas { image-rendering: pixelated; display: block; border-radius: 4px; }
+.world-map .labels { position: absolute; inset: 0; pointer-events: none; }
+.map-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font: 12px "Beleren", serif;
+  color: var(--fg);
+  text-shadow: 0 0 2px #000, 0 0 3px #000, 1px 1px 0 #000;
+  white-space: nowrap;
 }

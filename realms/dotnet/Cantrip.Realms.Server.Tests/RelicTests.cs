@@ -16,20 +16,26 @@ namespace Cantrip.Realms.Server.Tests;
 /// </summary>
 public sealed class RelicTests
 {
-    private const string Hall = "phyrexian-portal-4";
+    private const string Portal = "phyrexian-portal";
     private const string Praetor = "phyrexian-praetor";
-    private const string Meadow = "benalish-meadow";
 
     private static IReadOnlyList<string> PraetorsRelics =>
         [.. RealmApp.Content.RelicsOf(RealmApp.Content.Mobs[Praetor]).Select(relic => relic.Card)];
 
-    /// <summary>A white character who has unlocked the other four colors, standing by the praetor in its hall.</summary>
-    private static async Task<Browser> AtThePraetor(RealmApp app, ulong id)
+    /// <summary>A white character who has unlocked the other four colors, in a run of the Portal on the praetor's floor.</summary>
+    private static async Task<(Browser, RunView)> AtThePraetor(RealmApp app, ulong id)
     {
         Browser browser = await app.Character(id, "W");
         await Unlock(app, browser, "UBRG");
-        await browser.Travel(Hall, RealmApp.Content.Maps[Hall].Spawn("boss")!.At);
-        return browser;
+        return (browser, await PraetorRun(app, browser));
+    }
+
+    /// <summary>A new run of the Portal, on the praetor's floor.</summary>
+    private static async Task<RunView> PraetorRun(RealmApp app, Browser browser)
+    {
+        RunView run = await app.EnterRun(browser, Portal);
+        await app.ToFloor(run, RealmApp.BossOf(run).Floor);
+        return run;
     }
 
     private static Task Unlock(RealmApp app, Browser browser, string colors) => app.Store(async db =>
@@ -39,10 +45,11 @@ public sealed class RelicTests
     });
 
     /// <summary>Fights the praetor and wins (the fake verifier's default).</summary>
-    private static async Task<OutcomeView> BeatThePraetor(Browser browser)
+    private static async Task<OutcomeView> BeatThePraetor((Browser Browser, RunView Run) at)
     {
-        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Hall, Spawn = "boss", Mob = Praetor });
-        return await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { Token = encounter.Token, Log = new[] { "AA==" } });
+        (int floor, int index) = RealmApp.BossOf(at.Run);
+        EncounterView encounter = await RealmApp.Fight(at.Browser, at.Run, floor, index, Praetor);
+        return await RealmApp.Finish(at.Browser, encounter.Token);
     }
 
     private static Task<List<string>> Ledger(RealmApp app, Browser browser) =>
@@ -63,9 +70,9 @@ public sealed class RelicTests
     {
         var rolls = new ForcedRolls(0);
         await using var app = new RealmApp { Random = rolls };
-        Browser browser = await AtThePraetor(app, 1);
+        (Browser browser, RunView browserRun) = await AtThePraetor(app, 1);
 
-        OutcomeView won = await BeatThePraetor(browser);
+        OutcomeView won = await BeatThePraetor((browser, browserRun));
         Assert.Equal("won", won.Outcome);
         Assert.Equal(PraetorsRelics, won.Relics);
 
@@ -81,9 +88,9 @@ public sealed class RelicTests
     public async Task A_relic_that_does_not_come_up_drops_nothing()
     {
         await using var app = new RealmApp { Random = new ForcedRolls(1) };
-        Browser browser = await AtThePraetor(app, 1);
+        (Browser browser, RunView browserRun) = await AtThePraetor(app, 1);
 
-        OutcomeView won = await BeatThePraetor(browser);
+        OutcomeView won = await BeatThePraetor((browser, browserRun));
         Assert.Equal("won", won.Outcome);
         Assert.Empty(won.Relics);
         IReadOnlyDictionary<string, int> collection = await browser.Collection();
@@ -95,8 +102,8 @@ public sealed class RelicTests
     public async Task A_relic_never_drops_twice_for_an_account_even_once_the_card_is_gone_and_others_still_get_theirs()
     {
         await using var app = new RealmApp { Random = new ForcedRolls(0) };
-        Browser first = await AtThePraetor(app, 1);
-        Assert.Equal(PraetorsRelics, (await BeatThePraetor(first)).Relics);
+        (Browser first, RunView firstRun) = await AtThePraetor(app, 1);
+        Assert.Equal(PraetorsRelics, (await BeatThePraetor((first, firstRun))).Relics);
 
         // The cards leave the collection; the ledger keeps them.
         await app.Store(async db =>
@@ -106,7 +113,7 @@ public sealed class RelicTests
 
         // The praetor is back a week later, and every roll would come up: none of the relics drops again.
         app.Time.Advance(TimeSpan.FromDays(7));
-        OutcomeView again = await BeatThePraetor(first);
+        OutcomeView again = await BeatThePraetor((first, await PraetorRun(app, first)));
         Assert.Equal("won", again.Outcome);
         Assert.Empty(again.Relics);
         IReadOnlyDictionary<string, int> collection = await first.Collection();
@@ -114,8 +121,8 @@ public sealed class RelicTests
         Assert.Equal(PraetorsRelics.Count, (await Ledger(app, first)).Count);
 
         // Another account's ledger is its own.
-        Browser second = await AtThePraetor(app, 2);
-        Assert.Equal(PraetorsRelics, (await BeatThePraetor(second)).Relics);
+        (Browser second, RunView secondRun) = await AtThePraetor(app, 2);
+        Assert.Equal(PraetorsRelics, (await BeatThePraetor((second, secondRun))).Relics);
         Assert.Equal(PraetorsRelics.Count, (await Ledger(app, second)).Count);
     }
 
@@ -123,14 +130,14 @@ public sealed class RelicTests
     public async Task Only_a_relics_own_ledger_entries_are_skipped()
     {
         await using var app = new RealmApp { Random = new ForcedRolls(0) };
-        Browser browser = await AtThePraetor(app, 1);
+        (Browser browser, RunView browserRun) = await AtThePraetor(app, 1);
         await app.Store(async db =>
         {
             db.Relics.Add(new RelicRow { PlayerId = browser.Player, Card = "Black Lotus", At = 0, Duel = "earlier" });
             await db.SaveChangesAsync();
         });
 
-        OutcomeView won = await BeatThePraetor(browser);
+        OutcomeView won = await BeatThePraetor((browser, browserRun));
         Assert.Equal(PraetorsRelics.Where(relic => relic != "Black Lotus"), won.Relics);
         Assert.False((await browser.Collection()).ContainsKey("Black Lotus"));
     }
@@ -140,12 +147,12 @@ public sealed class RelicTests
     {
         await using var app = new RealmApp { Random = new ForcedRolls(0) };
         Browser browser = await app.Character(1, "W");
-        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn("s1")!;
-        await browser.Travel(Meadow, spawn.At);
+        MapSpawn spawn = RealmApp.SpawnOf(4);
+        await browser.Put(RealmContent.WorldSpace, spawn.At);
         long epoch = Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds);
-        string mob = Spawns.MobOf(browser.Player, Meadow, spawn.Id, epoch, spawn.Mobs);
+        string mob = Spawns.MobOf(browser.Player, RealmContent.WorldSpace, spawn.Id, epoch, spawn.Mobs);
 
-        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn = spawn.Id, Mob = mob });
+        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn = spawn.Id, Mob = mob });
         OutcomeView won = await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { Token = encounter.Token, Log = new[] { "AA==" } });
         Assert.Equal("won", won.Outcome);
         Assert.Empty(won.Relics);
@@ -170,10 +177,10 @@ public sealed class RelicTests
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Ante = Array.Empty<CardCount>() });
 
         // No vendor buys one: not even the curio dealer, nor one whose trade it would otherwise be.
-        await browser.Travel("new-argive", RealmApp.InnOf("new-argive").At);
         await app.Give(browser, "Black Lotus", 1);
         foreach (string vendor in new[] { "argive-curio-dealer", "argive-artificer" })
         {
+            await browser.Inside(vendor + "-shop");
             await browser.Refused(HttpMethod.Post, $"/api/vendor/{vendor}/sell", new { Name = "Black Lotus" }, HttpStatusCode.Conflict, Codes.Relic);
         }
 
@@ -197,25 +204,30 @@ public sealed class RelicTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1, "W");
-        RealmMap entrance = RealmApp.Content.Maps["phyrexian-portal-1"];
-        Hex inside = entrance.File.Exits.Select(exit => new Hex(exit.Q, exit.R)).First();
+        Hex gate = RealmApp.Content.Dungeons[Portal].File.At;
+        Hex outside = RealmApp.Beside(RealmContent.WorldSpace, gate);
+        await browser.Put(RealmContent.WorldSpace, outside);
 
-        await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = entrance.Id, inside.Q, inside.R }, HttpStatusCode.Conflict, Codes.Locked);
+        // Its gate stays shut: no run, and no stepping onto it.
+        await browser.Refused(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal }, HttpStatusCode.Conflict, Codes.Locked);
+        await browser.Refused(HttpMethod.Post, "/api/position", new { Space = RealmContent.WorldSpace, gate.Q, gate.R }, HttpStatusCode.Conflict, Codes.Locked);
         await Unlock(app, browser, "UBR");
-        await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = entrance.Id, inside.Q, inside.R }, HttpStatusCode.Conflict, Codes.Locked);
-        Assert.Equal(RealmApp.InnOf("new-argive").Map, (await browser.Me()).Map);
-
-        // An encounter there is refused too, however the character came to be standing in the hall.
-        MapSpawn boss = RealmApp.Content.Maps[Hall].Spawn("boss")!;
-        await app.Store(db => db.Players.Where(row => row.Id == browser.Player)
-            .ExecuteUpdateAsync(set => set.SetProperty(row => row.Map, Hall).SetProperty(row => row.Q, boss.Q).SetProperty(row => row.R, boss.R)));
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Hall, Spawn = "boss", Mob = Praetor }, HttpStatusCode.Conflict, Codes.Locked);
+        await browser.Refused(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal }, HttpStatusCode.Conflict, Codes.Locked);
+        CharacterView me = await browser.Me();
+        Assert.Equal((RealmContent.WorldSpace, outside), (me.Space, new Hex(me.Q, me.R)));
+        Assert.Empty(await app.Store(db => db.Runs.ToListAsync()));
 
         await Unlock(app, browser, "G");
         Assert.Equal("WUBRG", (await browser.Me()).Identity);
-        await browser.Travel(entrance.Id, inside);
-        await browser.Travel(Hall, boss.At);
-        await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Hall, Spawn = "boss", Mob = Praetor });
+        await browser.Position(RealmContent.WorldSpace, gate);
+        RunView run = await browser.Ok<RunView>(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal });
+
+        // Four floors of the Portal's Phyrexians, its warden at every stair, the praetor on the last.
+        Assert.Equal(4, run.Floors.Count);
+        Assert.All(run.Floors.SkipLast(1), floor => Assert.Equal(("portal-warden", (string?)null), (floor.Warden, floor.Boss)));
+        Assert.Equal(((string?)null, (string?)Praetor), (run.Floors[^1].Warden, run.Floors[^1].Boss));
+        Assert.All(run.Floors.SelectMany(floor => floor.Encounters), encounter => Assert.Equal(4, RealmApp.Content.Mobs[encounter.Mob].File.Tier));
+        Assert.DoesNotContain(run.Floors[0].Encounters, encounter => encounter.Mob == "gitaxian-mindcutter");
     }
 }
 

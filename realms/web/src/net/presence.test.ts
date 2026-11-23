@@ -39,7 +39,7 @@ describe("presence messages", () => {
     expect(decodeClient(encodeClient(move))).toEqual(move);
 
     // Byte for byte what the server's MessagePack makes of the same messages (PresenceTests checks these too).
-    expect(hex(encodeClient({ Type: "Enter", Map: "benalish-meadow" }))).toBe("920081a34d6170af62656e616c6973682d6d6561646f77");
+    expect(hex(encodeClient({ Type: "Enter", Space: "world" }))).toBe("920081a55370616365a5776f726c64");
     expect(hex(encodeClient({ Type: "Move", From: [0, 0], Path: [[1, 0]], Speed: 3.5 }))).toBe("920183a446726f6d920000a45061746891920100a55370656564cb400c000000000000");
   });
 
@@ -60,7 +60,7 @@ describe("SocketPresence", () => {
   it("sends Enter and Look once connected, and queues moves until then", () => {
     const presence = make();
     const socket = FakeSocket.last!;
-    presence.send({ Type: "Enter", Map: "benalish-meadow" });
+    presence.send({ Type: "Enter", Space: "world" });
     presence.send({ Type: "Look", Body: "lithe", Palette: 2, Slots: { head: { Mesh: "helm", Palette: ["#9aa0aa"] } } });
     presence.send({ Type: "Move", From: [0, 0], Path: [[1, 0]], Speed: 3.4 });
     expect(socket.sent).toHaveLength(0);

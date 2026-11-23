@@ -1,0 +1,39 @@
+{
+  "id": "benalish-keep",
+  "name": "The Fallen Benalish Keep",
+  "theme": "castle",
+  "entrance": [
+    440,
+    432
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "benalish-knight",
+      "commander-eesha",
+      "guardian-of-new-benalia",
+      "longbow-archer",
+      "northern-paladin",
+      "pegasus-charger"
+    ],
+    [
+      "commander-eesha",
+      "guardian-of-new-benalia",
+      "northern-paladin",
+      "serra-angel",
+      "serra-paragon",
+      "torsten-founder-of-benalia"
+    ]
+  ],
+  "warden": "sanctum-warden",
+  "boss": "lyra-dawnbringer",
+  "region": "W"
+}

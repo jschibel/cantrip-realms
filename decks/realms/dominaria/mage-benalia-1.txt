@@ -1,0 +1,17 @@
+# Keepers of the Faith (mage-benalia-1, Keepers of the Faith), the mage of Benalia's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Keepers of the Faith
+1 Clergy of the Holy Nimbus
+2 Benalish Faithbonder
+1 Mesa Unicorn
+1 Tormented Angel
+1 Border Patrol
+1 Noble Templar
+2 Heal
+2 Healing Salve
+2 Mana Tithe
+2 Blessed Wine
+2 Deadly Riposte
+2 Destroy Evil
+2 Take Up the Shield
+17 Plains

@@ -4,8 +4,11 @@ using Cantrip.Protocol;
 
 namespace Cantrip.Realms.Server.Content;
 
-/// <summary>A card's price and rarity (<c>realms/content/prices.json</c>).</summary>
-public sealed record CardPrice(long Gold, decimal Usd, string Rarity);
+/// <summary>
+/// A card's price and rarity, and its Vintage legality and color identity, as the realm's card database
+/// (<c>realms/content/cards.json</c>, <see cref="CardRecord"/>) gives them.
+/// </summary>
+public sealed record CardPrice(long Gold, decimal Usd, string Rarity, string? Vintage = null, string? Identity = null);
 
 /// <summary>
 /// The cards of the realm: the engine's catalog with each card's legality and color identity (the deck editor's,
@@ -21,12 +24,16 @@ public sealed class CardPool
         IReadOnlyDictionary<string, CatalogCard> catalog,
         IReadOnlyDictionary<string, CardPrice> prices,
         IReadOnlyDictionary<string, IReadOnlyList<string>> pools,
-        IReadOnlySet<string>? relics = null)
+        IReadOnlySet<string>? relics = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? offPlane = null)
     {
         ArgumentNullException.ThrowIfNull(pools);
         Catalog = catalog;
         Prices = prices;
         Relics = relics ?? new HashSet<string>(StringComparer.Ordinal);
+        OffPlane = (offPlane ?? new Dictionary<string, IReadOnlyList<string>>())
+            .Where(card => catalog.TryGetValue(card.Key, out CatalogCard? known) && !IsBasic(known) && prices.ContainsKey(card.Key) && !Relics.Contains(card.Key))
+            .ToDictionary(card => card.Key, card => card.Value, StringComparer.Ordinal);
         _pools = pools.ToDictionary(
             plane => plane.Key,
             plane => (IReadOnlyList<string>)[.. plane.Value.Where(name => catalog.TryGetValue(name, out CatalogCard? card) && !IsBasic(card) && prices.ContainsKey(name) && !Relics.Contains(name))
@@ -45,6 +52,22 @@ public sealed class CardPool
     public bool IsRelic(string name) => Relics.Contains(name);
 
     public IEnumerable<string> Planes => _pools.Keys;
+
+    /// <summary>
+    /// The off-plane pool (design.md A5, "Wares from other planes"): cards printed on no walked plane, each with the trader
+    /// planes it was printed on. Only exotic dealers deal in it.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> OffPlane { get; }
+
+    public bool IsOffPlane(string name) => OffPlane.ContainsKey(name);
+
+    /// <summary>The off-plane cards that fit a filter (its <c>Pool</c> aside), and with a plane given, printed on that plane.</summary>
+    public IReadOnlyList<string> OffPlaneFilter(CardFilter filter, string? plane = null)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        CardFilter any = new() { Colors = filter.Colors, Types = filter.Types, Subtypes = filter.Subtypes, Rarities = filter.Rarities, Names = filter.Names };
+        return [.. OffPlane.Where(card => plane is null || card.Value.Contains(plane, StringComparer.Ordinal)).Select(card => card.Key).Where(name => Fits(name, any)).Order(StringComparer.Ordinal)];
+    }
 
     /// <summary>A plane's pool, without its basic lands; empty for a plane there is none of.</summary>
     public IReadOnlyList<string> Pool(string plane) => _pools.GetValueOrDefault(plane) ?? [];
@@ -147,18 +170,32 @@ public sealed class CardPool
         return string.Concat("WUBRG".Where(letter => set.Contains(Color(letter)!.Value)));
     }
 
-    /// <summary>Reads <c>prices.json</c>.</summary>
-    public static Dictionary<string, CardPrice> ReadPrices(string path)
+    /// <summary>
+    /// The engine's catalog with the realm's own word on each priced card (design.md A2): the Vintage legality and color
+    /// identity cards.json gives, in place of the deck site's legality data, which lags the cards the engine has. A card
+    /// cards.json has no record of is left as the catalog has it.
+    /// </summary>
+    public static Dictionary<string, CatalogCard> WithRealmLegality(IReadOnlyDictionary<string, CatalogCard> catalog, IReadOnlyDictionary<string, CardRecord> records)
     {
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllBytes(path));
-        Dictionary<string, CardPrice> prices = new(StringComparer.Ordinal);
-        foreach (JsonProperty card in document.RootElement.GetProperty("cards").EnumerateObject())
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(records);
+        Dictionary<string, CatalogCard> cards = new(StringComparer.Ordinal);
+        foreach ((string name, CatalogCard card) in catalog)
         {
-            JsonElement value = card.Value;
-            decimal usd = value.TryGetProperty("usd", out JsonElement dollars) && dollars.ValueKind == JsonValueKind.Number ? dollars.GetDecimal() : 0m;
-            prices[card.Name] = new CardPrice(value.GetProperty("gold").GetInt64(), usd, value.GetProperty("rarity").GetString() ?? string.Empty);
+            if (!records.TryGetValue(name, out CardRecord? record))
+            {
+                cards[name] = card;
+                continue;
+            }
+
+            cards[name] = new CatalogCard
+            {
+                Card = card.Card,
+                Identity = [.. Identity(record.Identity)],
+                Legalities = new Dictionary<string, string>(card.Legalities, StringComparer.Ordinal) { [DeckFormat.VintageKey] = record.Vintage },
+            };
         }
 
-        return prices;
+        return cards;
     }
 }

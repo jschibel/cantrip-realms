@@ -1,0 +1,47 @@
+{
+  "id": "liliana",
+  "name": "Liliana of the Veil",
+  "creature": "Liliana of the Veil",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/liliana.txt",
+  "stats": {
+    "life": 30,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "thran-amulet"
+  ],
+  "prize": 6000,
+  "goldRange": [
+    1500,
+    1500
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [
+      "Zombie",
+      "Horror",
+      "Minion"
+    ],
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#2a2b36",
+      "#4b2f5e",
+      "#c9ced8"
+    ],
+    "size": 1.5
+  },
+  "boss": true,
+  "unlocks": "B"
+}

@@ -1,0 +1,12 @@
+# Northern Paladin (northern-paladin, Northern Paladin), a tier 3 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Northern Paladin
+2 Dauntless Bodyguard
+3 Knight of Grace
+3 Benalish Knight
+2 Serra Angel
+2 Angel of Retribution
+3 Swords to Plowshares
+3 Destroy Evil
+1 Lightning Blow
+17 Plains

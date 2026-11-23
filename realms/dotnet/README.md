@@ -25,6 +25,14 @@ set REALMS_DEV_SIGNIN=1
 dotnet run --project realms\dotnet\Cantrip.Realms.Server --urls http://localhost:5080
 ```
 
+It starts on the world the generator writes (`realms/content/dominaria/world`, its interiors and dungeons: `npm run
+world` in `realms/web`), the Domains, with new characters outside New Benalia's inn. `REALMS_PLACES` points it at
+another world instead, such as the tests' small one:
+
+```
+set REALMS_PLACES=%CD%\realms\dotnet\Cantrip.Realms.Server.Tests\World
+```
+
 That keeps its data in `realms.db` (SQLite) beside the server's project (`dotnet run` runs it from there; git ignores
 it), finds the content in the repository it runs from, and lets anyone sign in as anyone. Then:
 
@@ -60,10 +68,11 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_KEYS` | where the keys sealing the sign-in cookie are kept | in memory |
 | `REALMS_CLIENT` | the world client's address: where sign-in lands, and a browser origin the API answers | none |
 | `REALMS_CARDS` | the card layer's address (the web client's `?realm` page), when it has an origin of its own: the other browser origin the API answers | none |
-| `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin` - never in production | off |
-| `REALMS_START_MAP` | the map new characters start on, at its inn | `new-argive` |
+| `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin`, and the tests' `POST /dev/place` and `/dev/verdict` (interfaces.md) - never in production | off |
+| `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-benalia` |
+| `REALMS_PLACES` | where each plane's world, interiors and dungeons are read from instead of `realms/content` (a folder of `<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`) | `realms/content` |
 | `REALMS_WALKING_SPEED` | presence's fastest walk, hexes a second | `4` |
-| `REALMS_INSTANCE_SIZE` | players in one instance of a map | `40` |
+| `REALMS_INSTANCE_SIZE` | players in one layer of an area of the world (within two chunks), or one instance of an interior | `40` |
 | `CANTRIP_NATIVE_HOST` | the native engine host (cantrip-rs's setting) | `target/cards`, `release` or `debug` |
 
 ASP.NET Core's own settings (`ASPNETCORE_URLS`, `ASPNETCORE_ENVIRONMENT`) work as always.
@@ -74,7 +83,13 @@ ASP.NET Core's own settings (`ASPNETCORE_URLS`, `ASPNETCORE_ENVIRONMENT`) work a
 dotnet test realms\dotnet\Cantrip.Realms.sln --filter "Category!=WallClock"
 ```
 
-runs everything but the native engine's whole games, against a fake clock and a fake duel verifier. The duel verifier's
+runs everything but the native engine's whole games, against a fake clock and a fake duel verifier, over the roster,
+gear and vendors of `realms/content` and the tests' own small world (`Cantrip.Realms.Server.Tests/World`: four by four
+chunks, the Domains' towns the vendors keep shops in and the traders visit, with their inns and shops, spawns of every
+tier, the region dungeons, the Portal, the Hurloon caves and the twenty mage towers, by `layout.json`'s ids).
+`World/make-world.py` writes it from the layout, the roster and the vendors; run it after any of them changes. The
+content checks run over the generated world too (`RealmApp.Generated`), since the server starts on it, and a server
+test plays on it (`new RealmApp { OnGenerated = true }`). The duel verifier's
 own tests play whole duels on the native engine (build it first, as above):
 
 ```

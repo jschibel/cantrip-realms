@@ -1,0 +1,39 @@
+{
+  "id": "academy-tower",
+  "name": "The Academy's Tower",
+  "theme": "tower",
+  "entrance": [
+    103,
+    596
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "air-elemental",
+      "azure-drake",
+      "lord-of-atlantis",
+      "merfolk-raiders",
+      "river-merfolk",
+      "sandbar-serpent"
+    ],
+    [
+      "air-elemental",
+      "lord-of-atlantis",
+      "mahamoti-djinn",
+      "river-merfolk",
+      "sibilant-spirit",
+      "tempest-djinn"
+    ]
+  ],
+  "warden": "rift-warden",
+  "boss": "teferi",
+  "region": "U"
+}

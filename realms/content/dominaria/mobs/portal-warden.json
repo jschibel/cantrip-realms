@@ -1,6 +1,7 @@
 {
   "id": "portal-warden",
   "name": "Portal Warden",
+  "creature": "Yawgmoth Demon",
   "tier": 4,
   "deck": "decks/realms/dominaria/portal-warden.txt",
   "stats": {
@@ -22,7 +23,12 @@
     "pool": "dominaria",
     "colors": "UBR",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Phyrexian",
+      "Construct",
+      "Horror",
+      "Golem"
+    ],
     "rarities": [
       "uncommon",
       "rare",

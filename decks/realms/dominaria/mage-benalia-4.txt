@@ -1,0 +1,13 @@
+# Anointed Peacekeeper (mage-benalia-4, Anointed Peacekeeper), the mage of Benalia's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Anointed Peacekeeper
+1 Icatian Priest
+1 True Believer
+1 Serra Paragon
+1 Serra Angel
+1 Akroma, Angel of Wrath
+4 Swords to Plowshares
+2 Deadly Riposte
+4 Destroy Evil
+4 Leyline Binding
+17 Plains

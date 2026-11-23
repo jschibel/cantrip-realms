@@ -13,11 +13,11 @@ namespace Cantrip.Realms.Server.Presence;
 [Union(3, typeof(EmoteMessage))]
 public abstract class PresenceClientMessage;
 
-/// <summary>Enters a map: the character's own, where they last reported standing (<c>/api/travel</c>).</summary>
+/// <summary>Enters a space - the world or an interior - the character's own, where they last reported standing (<c>/api/position</c>).</summary>
 [MessagePackObject(true)]
 public sealed class EnterMessage : PresenceClientMessage
 {
-    public string Map { get; set; } = string.Empty;
+    public string Space { get; set; } = string.Empty;
 }
 
 /// <summary>Walks a path: from a hex, through each hex of the path in turn, at a speed in hexes a second.</summary>
@@ -81,7 +81,7 @@ public sealed class LookView
 [Union(6, typeof(RefusedMessage))]
 public abstract class PresenceServerMessage;
 
-/// <summary>Entered: the instance of the map, and everyone else in it.</summary>
+/// <summary>Entered: the layer of the world or the instance of the interior, and everyone else the player sees there.</summary>
 [MessagePackObject(true)]
 public sealed class WelcomeMessage : PresenceServerMessage
 {
@@ -94,7 +94,7 @@ public sealed class WelcomeMessage : PresenceServerMessage
 }
 
 /// <summary>
-/// Another player in the instance: a number for this connection (never their account), their name, identity and look, and
+/// Another player the player sees (in the world, of their layer within two chunks; in an interior, of their instance): a number for this connection (never their account), their name, identity and look, and
 /// their walk - from <see cref="At"/> along <see cref="Path"/> at <see cref="Speed"/>, begun at <see cref="Since"/>.
 /// </summary>
 [MessagePackObject(true)]

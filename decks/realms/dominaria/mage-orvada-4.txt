@@ -1,0 +1,13 @@
+# Arcanis the Omnipotent (mage-orvada-4, Arcanis the Omnipotent), the mage of Orvada's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Arcanis the Omnipotent
+1 Fugitive Wizard
+1 Magus of the Unseen
+1 Raven Guild Initiate
+1 Micromancer
+1 Serra Sphinx
+2 Force Spike
+4 Mana Drain
+4 Force Void
+4 Force of Will
+17 Island

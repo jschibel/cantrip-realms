@@ -1,0 +1,41 @@
+{
+  "id": "davenant-archer",
+  "name": "D'Avenant Archer",
+  "creature": "D'Avenant Archer",
+  "region": "W",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/davenant-archer.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Archer",
+      "Soldier"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#e8e4d8",
+      "#b3b5bc",
+      "#c08a62"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

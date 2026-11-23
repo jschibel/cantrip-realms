@@ -1,0 +1,38 @@
+{
+  "id": "ironclaw-orcs",
+  "name": "Ironclaw Orcs",
+  "creature": "Ironclaw Orcs",
+  "region": "R",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/ironclaw-orcs.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "goblin",
+    "palette": [
+      "#e0703a",
+      "#2e1f17",
+      "#f4ecc2"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

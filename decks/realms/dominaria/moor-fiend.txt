@@ -1,0 +1,15 @@
+# Moor Fiend (moor-fiend, Moor Fiend), a tier 2 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Moor Fiend
+2 Plague Beetle
+1 Black Knight
+2 Squirming Mass
+2 Bog Raiders
+2 Legions of Lim-Dûl
+2 Yargle, Glutton of Urborg
+2 Yawgmoth Demon
+2 Cut Down
+1 Duress
+2 Mind Ravel
+2 Touch of Death
+17 Swamp

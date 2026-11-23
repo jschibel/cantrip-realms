@@ -1,0 +1,12 @@
+# Birds of Paradise (birds-of-paradise, Birds of Paradise), a tier 3 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Birds of Paradise
+3 Elvish Archers
+3 Spitting Slug
+2 Erhnam Djinn
+2 Elfhame Wurm
+2 Enormous Baloth
+1 Audacity
+3 Bushwhack
+3 Song of Freyalise
+17 Forest

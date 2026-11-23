@@ -1,0 +1,12 @@
+# Commander Eesha (commander-eesha, Commander Eesha), a tier 3 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Commander Eesha
+2 Suntail Hawk
+3 Duskrider Falcon
+3 Thunder Spirit
+2 Dragonstalker
+2 Akron Legionnaire
+3 Swords to Plowshares
+1 Deadly Riposte
+3 Destroy Evil
+17 Plains

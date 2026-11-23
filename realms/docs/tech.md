@@ -80,9 +80,17 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   - Characters are segmented rigs (head, torso, arms, legs) with idle, walk, cast and interact animations. Each slot's gear is a voxel piece hung on an attachment point of the body. Mobs are base models with palette swaps (ten so far).
   - Audio: CC0 chiptune tracks and SFX generated with jsfxr.
 - **The world:** one connected map streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and dungeons"),
-  made offline by a seeded generator with hand-placed set pieces (`scripts/world.ts`), checked in, and linted. Nobody
-  edits the map in the game: there is no map editor, for players or for admins. Chunks near the player are built (a prism per hex, the scenery merged per chunk) and those far
-  away are dropped.
+  made offline by a seeded generator with hand-placed set pieces (`scripts/world.ts`) from the geography in
+  `realms/content/dominaria/layout.json`, checked in, and linted. Nobody edits the map in the game: there is no map
+  editor, for players or for admins. Chunks near the player are built (a prism per hex, the scenery merged per chunk,
+  each building apart so one between the camera and the player is cut away) and those far away are dropped; paths are
+  found over the loaded chunks, a bounded search. Ferries cross to the far isles along open lanes over the water.
+- **The tier zones are shown:** the regional map (the minimap, opening to the whole world's) tints and borders each
+  zone in its tier's color with a legend, and marks the towns, dungeons and mage towers with their tiers, attuned
+  waystones lit; waymarkers in the tier's color and number stand where it rises; the HUD names the area and its tier,
+  and says so on crossing into a harder one; a wanderer under the pointer shows its name and tier.
+- **Traders from other planes:** the overworld asks `GET /api/travelers` now and then, and stands each trader's caravan
+  at their town's pitch while they are in town; the HUD says so on coming into the town.
 - **Interiors:** a door's interior is its own scene. Entering is seamless: the door opens, the camera eases in, the
   world fades behind a short iris and the room fades in around the player at its door (about 400 ms in all, never a
   loading screen; the next interiors near the player are built ahead). Leaving reverses it.
@@ -90,8 +98,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   encounters the server's run names (interfaces.md). Single-player, never replicated.
 - **Play:** click-to-move with A* over hexes; local mob AI (wander, chase); doors, entrances and stairs; the waystones of attuned mage towers; NPC interaction; the HUD and minimap; and other players near you animated from relayed paths.
 - **The HUD and menus that show no cards** are DOM and CSS built on **the client's Theme tokens and fonts**. A script generates `theme.css` from `Theme.cs`, so the two can't drift.
-- **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against `MockApi`, the API in memory, with presence passed between the browser's own tabs; the card layer's stand-in panels (`?cards=stub`, the offline default) answer its screens. `?at=`, `?now=`, `?wander=0`, `?mobs=0` and `?encounters=` force a state for tests and development (src/main.ts).
-- **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name, the way `cantripTest` does. `npm test` runs vitest; `npm run e2e` runs the Playwright suite (`e2e/`) against the offline overworld with real clicks. `npm run e2e:server` runs `e2e/server/` against the real realm server instead: it starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins (`?server=`), signs in, makes a character, walks, asks for a vendor's screen and starts an encounter through the API (the card layer's stand-in records the duel), and has two players see each other walk through the relay.
+- **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against `MockApi`, the API in memory, with presence passed between the browser's own tabs; the card layer's stand-in panels (`?cards=stub`, the offline default) answer its screens. `?at=` (`world:q,r`, a town, an interior or a dungeon), `?now=`, `?wander=0`, `?mobs=0` and `?attuned=` force a state for tests and development (src/main.ts).
+- **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name, the way `cantripTest` does. `npm test` runs vitest; `npm run e2e` runs the Playwright suite (`e2e/`) against the offline overworld with real clicks. `npm run e2e:server` runs `e2e/server/` against the real realm server on the generated world instead: it starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins (`?server=`), signs in, makes a character, walks New Benalia's streets, goes into a shop and asks for its vendor's screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and takes its stair once the warden is beaten, attunes two mage towers by beating their mages and travels between their waystones, has two players see each other walk in the world and in an inn, and plays a duel in the real card layer whose log the server replays on the native host. A test starts its character where it needs to be and has the server count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`, interfaces.md); everything else is walked and clicked.
 
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.
@@ -107,9 +115,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Milestone 0 proves this layering** before anything else depends on it.
 
 ### B7. Data pipelines (fork, `tools/realms/`)
-- `fetch-prices.py`: Scryfall default-cards bulk → median paper price and rarity per Oracle card, plus each printing's set. Writes `realms/content/prices.json`; it is run monthly and committed.
+- `card-economy.py`: Scryfall default-cards bulk → the realm's card database, `realms/content/cards.json`: per card the engine has, its origin plane, the planes and sets it was printed in, its median paper price, rarity and list price, its Vintage legality, identity and types, and its Universes Beyond and relic flags (interfaces.md, "Cards, planes and pools"); the pools are views of it. It is run monthly and committed.
 - `planes.json`: set code → plane (Dominaria = Alpha through Mirage-era core, Ice Age, Weatherlight, Urza's, Invasion, Odyssey, Onslaught, Time Spiral, DOM, DMU, DMR, BRO…), with Universes Beyond excluded by Scryfall's set and printing data.
-- `realm-pool.py`: implemented ∩ Vintage-legal ∩ not UB ∩ priced, split by plane, makes the loot and vendor pools.
+- The pools (implemented ∩ Vintage-legal ∩ not UB ∩ priced ∩ no relic, by plane, and the off-plane pool) are views of `cards.json`, computed by the server as it loads and by the tools the same way (`tools/realms/realm_cards.py`); `card-economy.py --check` holds the file to the engine's cards.
 - Mob decks: `decks/realms/dominaria/*.txt`, as plain decklists. A drafting tool built on `DeckBuilder` drafts each from a themed pool, then they are tuned by hand.
 
 ### B8. Deployment (provider-neutral, separate from cantrip-rs.dev)

@@ -1,0 +1,27 @@
+{
+  "id": "orvada-3",
+  "name": "The Orvadan Tower of the Third Circle",
+  "theme": "tower",
+  "entrance": [
+    164,
+    493
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 3,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "air-elemental",
+    "lord-of-atlantis",
+    "river-merfolk"
+  ],
+  "warden": "warden-3",
+  "boss": "mage-orvada-3",
+  "region": "U",
+  "waystone": true
+}

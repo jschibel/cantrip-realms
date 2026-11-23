@@ -1,0 +1,45 @@
+{
+  "id": "northern-paladin",
+  "name": "Northern Paladin",
+  "creature": "Northern Paladin",
+  "region": "W",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/northern-paladin.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "kjeldoran-helm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Knight"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "knight",
+    "palette": [
+      "#e8e4d8",
+      "#b3b5bc",
+      "#c08a62"
+    ],
+    "size": 1.3
+  },
+  "boss": false
+}

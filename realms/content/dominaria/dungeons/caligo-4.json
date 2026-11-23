@@ -1,0 +1,27 @@
+{
+  "id": "caligo-4",
+  "name": "The Caligo Tower of the Fourth Circle",
+  "theme": "tower",
+  "entrance": [
+    66,
+    519
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "fallen-angel",
+    "sengir-vampire",
+    "tombstalker"
+  ],
+  "warden": "warden-4",
+  "boss": "mage-caligo-4",
+  "region": "B",
+  "waystone": true
+}

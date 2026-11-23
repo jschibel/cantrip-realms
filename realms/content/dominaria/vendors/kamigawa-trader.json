@@ -1,0 +1,18 @@
+{
+  "id": "kamigawa-trader",
+  "name": "Hiroko of the Eternal Lantern",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "kamigawa",
+    "towns": [
+      "keld",
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold",
+      "llanowar"
+    ],
+    "hour": 6,
+    "hours": 4
+  }
+}

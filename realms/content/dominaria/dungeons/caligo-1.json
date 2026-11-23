@@ -1,0 +1,27 @@
+{
+  "id": "caligo-1",
+  "name": "The Caligo Tower of the First Circle",
+  "theme": "tower",
+  "entrance": [
+    117,
+    357
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "bog-imp",
+    "bog-raiders",
+    "bog-rats"
+  ],
+  "warden": "warden-1",
+  "boss": "mage-caligo-1",
+  "region": "B",
+  "waystone": true
+}

@@ -1,0 +1,38 @@
+{
+  "id": "bog-rats",
+  "name": "Bog Rats",
+  "creature": "Bog Rats",
+  "region": "B",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/bog-rats.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "beast",
+    "palette": [
+      "#2a2b36",
+      "#7a1f24",
+      "#8c909c"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

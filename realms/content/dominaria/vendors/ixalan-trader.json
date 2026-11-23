@@ -1,0 +1,18 @@
+{
+  "id": "ixalan-trader",
+  "name": "Captain Ysolde of the Brazen Coast",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "ixalan",
+    "towns": [
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia",
+      "capashen-hold"
+    ],
+    "hour": 10,
+    "hours": 4
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "merfolk-raiders",
+  "name": "Merfolk Raiders",
+  "creature": "Merfolk Raiders",
+  "region": "U",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/merfolk-raiders.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Merfolk"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "merfolk",
+    "palette": [
+      "#3d8fa8",
+      "#93c8dc",
+      "#f4ecc2"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

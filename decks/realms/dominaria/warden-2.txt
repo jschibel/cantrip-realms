@@ -1,0 +1,16 @@
+# Obsianus Golem (warden-2, Obsianus Golem), a tier 2 warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Obsianus Golem
+1 Ornithopter
+2 Battering Ram
+1 Reconstructed Thopter
+2 Yotian Soldier
+2 Su-Chi
+1 Adarkar Sentinel
+2 Goblin Firebomb
+2 Pongify
+2 Pit Trap
+2 Rod of Ruin
+1 Skull Catapult
+2 Staff of Zegon
+17 Island

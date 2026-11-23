@@ -41,7 +41,7 @@ export interface Other {
 }
 
 export type ClientMessage =
-  | { readonly Type: "Enter"; readonly Map: string }
+  | { readonly Type: "Enter"; readonly Space: string }
   | { readonly Type: "Move"; readonly From: At; readonly Path: readonly At[]; readonly Speed: number }
   | ({ readonly Type: "Look" } & Look)
   | { readonly Type: "Emote"; readonly Emote: string };
@@ -251,7 +251,7 @@ export class LocalPresence implements Presence {
   send(message: ClientMessage): void {
     switch (message.Type) {
       case "Enter":
-        this.map = message.Map;
+        this.map = message.Space;
         this.path = [];
         this.onMessage({ Type: "Welcome", Instance: 1, Player: this.me.Player, Others: [] });
         break;

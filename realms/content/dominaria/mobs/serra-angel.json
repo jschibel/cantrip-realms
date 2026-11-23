@@ -1,0 +1,45 @@
+{
+  "id": "serra-angel",
+  "name": "Serra Angel",
+  "creature": "Serra Angel",
+  "region": "W",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/serra-angel.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "kjeldoran-helm"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Angel"
+    ],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "angel",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

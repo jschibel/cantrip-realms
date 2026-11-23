@@ -1,0 +1,41 @@
+{
+  "id": "soaring-drake",
+  "name": "Soaring Drake",
+  "creature": "Soaring Drake",
+  "region": "U",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/soaring-drake.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Drake",
+      "Bird"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "drake",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

@@ -11,6 +11,12 @@ namespace Cantrip.Realms.Server.Economy;
 /// 24 hours; twelve are seeded when it is created. A card a player sells stays at full price until bought, and once 60 such
 /// cards are on its shelves it buys nothing more.
 /// <para>
+/// The exotic dealers (design.md A5, "Wares from other planes") deal in off-plane cards alone, and no other vendor in
+/// any: an exotic wares shop shows at most six, gains one every six hours while it shows fewer, and lets one go unsold
+/// after three days; a traveling trader trades only while its caravan is in the character's town (<see cref="Travelers"/>),
+/// brings three cards of its plane to each visit, and takes what it bought away with it when the visit ends.
+/// </para>
+/// <para>
 /// A vendor is brought up to the hour whenever anyone looks at or trades with it, and by <see cref="RealmClock"/> every hour
 /// besides, so its state never depends on when anyone looked. Time is the injected <see cref="TimeProvider"/>'s. A purchase
 /// or a sale changes the player's gold and collection and the vendor's purse and stock in one transaction, each change a
@@ -27,6 +33,15 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
     public const int MostSold = 60;
     public static TimeSpan Shelf { get; } = TimeSpan.FromHours(24);
 
+    /// <summary>The most off-plane cards an exotic wares shop shows.</summary>
+    public const int ExoticShown = 6;
+
+    /// <summary>How often an exotic wares shop gains a card, in hours.</summary>
+    public const int ExoticEvery = 6;
+
+    /// <summary>How long an off-plane card stays on an exotic wares shop's shelf unsold.</summary>
+    public static TimeSpan ExoticShelf { get; } = TimeSpan.FromDays(3);
+
     private const long HourMs = 3_600_000;
 
     private long Now => time.GetUtcNow().ToUnixTimeMilliseconds();
@@ -41,17 +56,46 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         long now = Now;
         foreach (Vendor vendor in content.Vendors.Values.Where(vendor => !known.Contains(vendor.Id)))
         {
-            db.Vendors.Add(new VendorRow { Id = vendor.Id, Purse = vendor.File.Purse, Hour = now / HourMs, CreatedAt = now });
-            foreach (string card in Specialty(vendor).Count > 0 ? Enumerable.Range(0, SeededAtCreation).Select(_ => Pick(vendor)) : [])
+            db.Vendors.Add(new VendorRow { Id = vendor.Id, Purse = vendor.File.Purse, Hour = now / HourMs, CreatedAt = now, Visit = -1 });
+            if (vendor.Kind == Vendor.Shop)
             {
-                db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = card, Count = 1, Source = VendorStockRow.Seeded, AddedAt = now, Until = now + (long)Shelf.TotalMilliseconds });
+                foreach (string card in Specialty(vendor).Count > 0 ? Enumerable.Range(0, SeededAtCreation).Select(_ => Pick(vendor)) : [])
+                {
+                    db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = card, Count = 1, Source = VendorStockRow.Seeded, AddedAt = now, Until = now + (long)Shelf.TotalMilliseconds });
+                }
+            }
+            else if (vendor.Kind == Vendor.ExoticShop && Specialty(vendor).Count > 0)
+            {
+                // A full shelf, as if it had filled a card every six hours: the oldest leaves first.
+                for (int i = 0; i < ExoticShown; i++)
+                {
+                    long until = now + (long)ExoticShelf.TotalMilliseconds - (i * ExoticEvery * HourMs);
+                    db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = Pick(vendor), Count = 1, Source = VendorStockRow.Seeded, AddedAt = now, Until = until });
+                }
             }
         }
 
         await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    private IReadOnlyList<string> Specialty(Vendor vendor) => content.Cards.Filter(vendor.Plane, vendor.File.Specialty);
+    /// <summary>What a vendor stocks: its plane's pool in its specialty; an exotic shop's off-plane cards in it; a trader's, its plane's.</summary>
+    private IReadOnlyList<string> Specialty(Vendor vendor) => vendor.Kind switch
+    {
+        Vendor.Traveler => content.Cards.OffPlaneFilter(new CardFilter(), vendor.File.Trader!.Plane),
+        Vendor.ExoticShop => content.Cards.OffPlaneFilter(vendor.File.Specialty),
+        _ => content.Cards.Filter(vendor.Plane, vendor.File.Specialty),
+    };
+
+    /// <summary>
+    /// Whether a vendor buys a card: a shop of Dominaria its plane's cards of its specialty, never an off-plane card; an
+    /// exotic shop off-plane cards of its specialty; a trader any off-plane card.
+    /// </summary>
+    private bool Buys(Vendor vendor, string name) => vendor.Kind switch
+    {
+        Vendor.Traveler => content.Cards.IsOffPlane(name),
+        Vendor.ExoticShop => content.Cards.IsOffPlane(name) && content.Cards.Fits(name, vendor.File.Specialty),
+        _ => content.Cards.Fits(name, vendor.File.Specialty) && content.Cards.Pool(vendor.Plane).Contains(name, StringComparer.Ordinal),
+    };
 
     private string Pick(Vendor vendor)
     {
@@ -81,6 +125,10 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
 
             long purse = row.Purse;
             bool stocks = Specialty(vendor).Count > 0;
+            List<(long AddedAt, long? Until)> shown = vendor.Kind == Vendor.ExoticShop
+                ? [.. (await db.VendorStock.AsNoTracking().Where(item => item.VendorId == vendor.Id && item.Count > 0).Select(item => new { item.AddedAt, item.Until, item.Count }).ToListAsync().ConfigureAwait(false))
+                    .SelectMany(item => Enumerable.Repeat((item.AddedAt, item.Until), item.Count))]
+                : [];
             for (long h = from + 1; h <= hour; h++)
             {
                 // The hour that just ended is h - 1: its visitors are what this hour's trickle counts.
@@ -88,8 +136,21 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
                 purse = Math.Max(purse, Math.Min(PurseCeiling, purse + gained));
 
                 long added = h * HourMs;
+                if (vendor.Kind == Vendor.ExoticShop)
+                {
+                    // A card every six hours while it shows fewer than six then; each leaves unsold after three days.
+                    long leaves = added + (long)ExoticShelf.TotalMilliseconds;
+                    if (stocks && h % ExoticEvery == 0 && shown.Count(item => item.AddedAt <= added && (item.Until is null || item.Until > added)) < ExoticShown)
+                    {
+                        shown.Add((added, leaves));
+                        if (leaves > now) db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = Pick(vendor), Count = 1, Source = VendorStockRow.Rotated, AddedAt = added, Until = leaves });
+                    }
+
+                    continue;
+                }
+
                 long until = added + (long)Shelf.TotalMilliseconds;
-                if (stocks && until > now)
+                if (stocks && until > now && vendor.Kind == Vendor.Shop)
                 {
                     for (int i = 0; i < RotatedEachHour; i++)
                     {
@@ -122,7 +183,32 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
 
         await db.VendorStock.Where(stock => stock.VendorId == vendor.Id && stock.Until != null && stock.Until <= now).ExecuteDeleteAsync().ConfigureAwait(false);
         db.ChangeTracker.Clear();
+        if (vendor.File.Trader is { } round && Travelers.Current(round, now) is { } visit)
+        {
+            await Arrive(vendor, visit).ConfigureAwait(false);
+        }
+
         return await db.Vendors.AsNoTracking().SingleAsync(stored => stored.Id == vendor.Id).ConfigureAwait(false);
+    }
+
+    /// <summary>A caravan come to town: three cards of its plane for the visit, once a visit, leaving when it does.</summary>
+    private async Task Arrive(Vendor vendor, Travelers.Visit visit)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
+        if (await db.Vendors.Where(stored => stored.Id == vendor.Id && stored.Visit != visit.Day)
+            .ExecuteUpdateAsync(set => set.SetProperty(stored => stored.Visit, visit.Day)).ConfigureAwait(false) != 1)
+        {
+            return;
+        }
+
+        foreach (string card in dice.Draw(Specialty(vendor), Travelers.Brought))
+        {
+            db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = card, Count = 1, Source = VendorStockRow.Rotated, AddedAt = visit.From, Until = visit.Until });
+        }
+
+        await db.SaveChangesAsync().ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
+        db.ChangeTracker.Clear();
     }
 
     /// <summary>Brings every vendor up to the hour.</summary>
@@ -173,7 +259,13 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
             .OrderBy(item => item.Name, StringComparer.Ordinal)
             .ThenBy(item => item.Until ?? DateTimeOffset.MaxValue)];
         PlayerRow character = await characters.Require(player).ConfigureAwait(false);
-        return new VendorView(new VendorInfo(vendor.Id, vendor.File.Name, vendor.File.Town, vendor.File.Specialty), row.Purse, shelf, character.Gold, await Buying(player, vendor).ConfigureAwait(false));
+        string town = vendor.File.Trader is { } round ? Travelers.Current(round, Now)?.Town ?? string.Empty : vendor.File.Town;
+        return new VendorView(
+            new VendorInfo(vendor.Id, vendor.File.Name, town, vendor.File.Specialty, vendor.Kind, vendor.File.Trader?.Plane),
+            row.Purse,
+            shelf,
+            character.Gold,
+            await Buying(player, vendor).ConfigureAwait(false));
     }
 
     /// <summary>The character's cards a vendor deals in - those <see cref="Sell"/> would not refuse as <c>NotTheirTrade</c> - in name order.</summary>
@@ -181,8 +273,7 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
     {
         Dictionary<string, int> owned = await db.Collection.AsNoTracking().Where(row => row.PlayerId == player && row.Count > 0)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
-        HashSet<string> pool = [.. content.Cards.Pool(vendor.Plane)];
-        List<string> traded = [.. owned.Keys.Where(name => pool.Contains(name) && content.Cards.Fits(name, vendor.File.Specialty)).Order(StringComparer.Ordinal)];
+        List<string> traded = [.. owned.Keys.Where(name => Buys(vendor, name)).Order(StringComparer.Ordinal)];
         if (traded.Count == 0) return [];
 
         Dictionary<string, int> used = new(StringComparer.Ordinal);
@@ -247,7 +338,7 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         await Advance(vendor).ConfigureAwait(false);
         string name = request.Name ?? throw Refusal.BadRequest("A sale names a card.");
         if (content.Cards.IsRelic(name)) throw Refusal.Conflict(Codes.Relic, $"{name} is a relic: nobody buys one, and it is never sold.");
-        if (!content.Cards.Fits(name, vendor.File.Specialty) || !content.Cards.Pool(vendor.Plane).Contains(name, StringComparer.Ordinal))
+        if (!Buys(vendor, name))
         {
             throw Refusal.Conflict(Codes.NotTheirTrade, $"{vendor.File.Name} doesn't deal in {name}.");
         }
@@ -263,8 +354,13 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
                 + await db.Ante.Where(row => row.PlayerId == player && row.Name == name).SumAsync(row => row.Count).ConfigureAwait(false);
             if (owned - 1 < used) throw Refusal.Conflict(Codes.InDeck, $"Every {name} you own is in your deck or your ante.");
 
+            // A shop of Dominaria keeps sixty sold cards; an exotic shop shows six cards in all; a caravan has room for all.
             int sold = await db.VendorStock.Where(item => item.VendorId == vendor.Id && item.Source == VendorStockRow.Sold).SumAsync(item => item.Count).ConfigureAwait(false);
-            if (sold >= MostSold) throw Refusal.Conflict(Codes.VendorFull, $"{vendor.File.Name}'s shelves are full.");
+            int shown = await db.VendorStock.Where(item => item.VendorId == vendor.Id && (item.Until == null || item.Until > now)).SumAsync(item => item.Count).ConfigureAwait(false);
+            if (vendor.Kind == Vendor.Shop ? sold >= MostSold : vendor.Kind == Vendor.ExoticShop && shown >= ExoticShown)
+            {
+                throw Refusal.Conflict(Codes.VendorFull, $"{vendor.File.Name}'s shelves are full.");
+            }
 
             if (await db.Vendors.Where(row => row.Id == vendor.Id && row.Purse >= pays)
                 .ExecuteUpdateAsync(set => set.SetProperty(row => row.Purse, row => row.Purse - pays)).ConfigureAwait(false) != 1)
@@ -282,8 +378,10 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
             await db.Players.Where(row => row.Id == player)
                 .ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, row => row.Gold + pays)).ConfigureAwait(false);
 
-            VendorStockRow? shelf = await db.VendorStock.SingleOrDefaultAsync(item => item.VendorId == vendor.Id && item.Name == name && item.Source == VendorStockRow.Sold).ConfigureAwait(false);
-            if (shelf is null) db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = name, Count = 1, Source = VendorStockRow.Sold, AddedAt = now });
+            // A card sold to a caravan goes with it when its visit ends; any other stays until bought.
+            long? leaves = vendor.File.Trader is { } round ? Travelers.Current(round, now)?.Until : null;
+            VendorStockRow? shelf = await db.VendorStock.SingleOrDefaultAsync(item => item.VendorId == vendor.Id && item.Name == name && item.Source == VendorStockRow.Sold && item.Until == leaves).ConfigureAwait(false);
+            if (shelf is null) db.VendorStock.Add(new VendorStockRow { VendorId = vendor.Id, Name = name, Count = 1, Source = VendorStockRow.Sold, AddedAt = now, Until = leaves });
             else shelf.Count++;
             await db.SaveChangesAsync().ConfigureAwait(false);
             await transaction.CommitAsync().ConfigureAwait(false);
@@ -299,10 +397,27 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         return new TradeView(row.Gold, await characters.Collection(player).ConfigureAwait(false));
     }
 
-    /// <summary>A vendor trades with a character in its own town.</summary>
+    /// <summary>
+    /// A vendor trades with a character inside its shop: an interior of its town where it keeps a vendor NPC. A trader trades
+    /// while its caravan is in the character's town: in the world within the town, or in a building of it.
+    /// </summary>
     private async Task Near(string player, Vendor vendor)
     {
         PlayerRow row = await characters.Require(player).ConfigureAwait(false);
-        if (row.Map != vendor.File.Town) throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades in {vendor.File.Town}.");
+        if (vendor.File.Trader is { } round)
+        {
+            string? here = row.Space == RealmContent.WorldSpace ? content.TownAt(new Hex(row.Q, row.R))?.Id : content.Interiors.GetValueOrDefault(row.Space)?.Town?.Id;
+            if (Travelers.Current(round, Now) is not { } visit || visit.Town != here)
+            {
+                throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name}'s caravan is not in your town now.");
+            }
+
+            return;
+        }
+
+        if (content.Interiors.GetValueOrDefault(row.Space) is not { } shop || !shop.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
+        {
+            throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades in its shop in {vendor.File.Town}.");
+        }
     }
 }

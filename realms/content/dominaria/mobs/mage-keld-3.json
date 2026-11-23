@@ -1,0 +1,46 @@
+{
+  "id": "mage-keld-3",
+  "name": "Dragon Mage",
+  "creature": "Dragon Mage",
+  "region": "R",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/mage-keld-3.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "keldon-greaves",
+    "silver-pendant"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [
+      "Wizard",
+      "Dragon"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#8f2f2f",
+      "#4a3122",
+      "#f1b44c"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

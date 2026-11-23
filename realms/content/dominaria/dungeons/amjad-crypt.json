@@ -1,0 +1,29 @@
+{
+  "id": "amjad-crypt",
+  "name": "The Crypts of Amjad",
+  "theme": "crypt",
+  "entrance": [
+    606,
+    88
+  ],
+  "floors": [
+    2,
+    3
+  ],
+  "tier": 3,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "abomination",
+    "eater-of-the-dead",
+    "fallen-angel",
+    "knight-of-malice",
+    "sengir-vampire",
+    "tombstalker"
+  ],
+  "warden": "warden-3",
+  "boss": "fallen-angel",
+  "region": "B"
+}

@@ -19,8 +19,9 @@ public sealed record GearInstance(long InstanceId, GearItem Gear);
 
 /// <summary>
 /// A character as its player sees it: <see cref="Id"/> the player id the spawn table hashes, <see cref="Body"/> one of
-/// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order, and
-/// <see cref="AnteValue"/> what the ante is worth, for the HUD.
+/// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order,
+/// <see cref="AnteValue"/> what the ante is worth, for the HUD; where they stand (<see cref="Space"/>, <see cref="Q"/>,
+/// <see cref="R"/>), the inn they wake at, and the mage towers they have attuned.
 /// </summary>
 public sealed record CharacterView(
     string Id,
@@ -30,13 +31,15 @@ public sealed record CharacterView(
     string Identity,
     long Gold,
     long AnteValue,
-    string Map,
+    string Space,
     int Q,
     int R,
+    string Inn,
     StatsView Stats,
     IReadOnlyDictionary<string, GearInstance?> Loadout,
     IReadOnlyList<GearInstance> Gear,
-    IReadOnlyList<string> Unlocked);
+    IReadOnlyList<string> Unlocked,
+    IReadOnlyList<string> Attuned);
 
 /// <summary>A new character: a name, a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a palette and a starting color.</summary>
 public sealed record NewCharacter(string? Name, string? Body, int Palette, string? Color);
@@ -55,7 +58,20 @@ public sealed record DeckCheckView(IReadOnlyList<string> Problems, long AnteValu
 
 public sealed record LoadoutChange(IReadOnlyDictionary<string, long?>? Slots);
 
-public sealed record VendorInfo(string Id, string Name, string Town, CardFilter Specialty);
+/// <summary>
+/// A vendor: its id and name, the town it trades in (a trader's caravan's now, empty between visits), its specialty, its
+/// kind (<c>shop</c>, <c>exotic</c> or <c>trader</c>) and a trader's home plane.
+/// </summary>
+public sealed record VendorInfo(string Id, string Name, string Town, CardFilter Specialty, string Kind, string? Plane);
+
+/// <summary>A caravan's visit: its town, and when it comes and goes.</summary>
+public sealed record VisitView(string Town, DateTimeOffset From, DateTimeOffset Until);
+
+/// <summary>A traveling trader: its plane, the visit it is on now (null between visits) and its next.</summary>
+public sealed record TravelerView(string Id, string Name, string Plane, string PlaneName, VisitView? Visit, VisitView Next);
+
+/// <summary>Every traveling trader's schedule (<c>GET /api/travelers</c>).</summary>
+public sealed record TravelersView(IReadOnlyList<TravelerView> Travelers);
 
 public sealed record StockView(string Name, long Gold, int Count, DateTimeOffset? Until);
 
@@ -80,7 +96,8 @@ public sealed record GearSell(long InstanceId);
 
 public sealed record GearTradeView(long Gold, IReadOnlyList<GearInstance> Gear);
 
-public sealed record EncounterStart(string? Map, string? Spawn, string? Mob);
+/// <summary>An encounter to start: a world spawn's mob (<see cref="Spawn"/>), or a dungeon run's (<see cref="Run"/>, <see cref="Floor"/>, <see cref="Index"/>).</summary>
+public sealed record EncounterStart(string? Spawn, string? Mob, string? Run = null, int? Floor = null, int? Index = null);
 
 public sealed record EncounterView(string Token, long Seed, Duel Duel);
 
@@ -98,9 +115,36 @@ public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<Offere
 
 public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
 
-public sealed record ChestOpen(string? Map, string? Chest);
+public sealed record ChestOpen(string? Space, string? Chest);
 
 /// <summary>What a chest held, and the character's gold with it.</summary>
 public sealed record ChestView(long Gold, long Found);
 
-public sealed record TravelTo(string? Map, int Q, int R);
+/// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a hex of it.</summary>
+public sealed record PlaceView(string Space, int Q, int R);
+
+public sealed record DungeonEnter(string? Dungeon);
+
+/// <summary>One encounter of a run's floor: its index on the floor, and its mob.</summary>
+public sealed record RunEncounter(int Index, string Mob);
+
+/// <summary>
+/// A floor of a run: its encounters, then the warden at its stair (every floor but the last; its index the count of the
+/// encounters) and on the last floor the boss (its index one past the encounters').
+/// </summary>
+public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss);
+
+/// <summary>A run begun: its id, its seed for the browser's layout, and every encounter it holds.</summary>
+public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors);
+
+public sealed record FloorTake(string? Run, int Floor);
+
+public sealed record RunLeave(string? Run);
+
+public sealed record WaystoneTravel(string? Tower);
+
+/// <summary>Where a waystone took the character.</summary>
+public sealed record WaystoneView(PlaceView Place);
+
+/// <summary>The inn a character has set as home.</summary>
+public sealed record InnView(string Inn);

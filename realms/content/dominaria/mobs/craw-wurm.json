@@ -1,0 +1,44 @@
+{
+  "id": "craw-wurm",
+  "name": "Craw Wurm",
+  "creature": "Craw Wurm",
+  "region": "G",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/craw-wurm.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Wurm",
+      "Beast"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wurm",
+    "palette": [
+      "#3e9a4a",
+      "#8f6340",
+      "#d6ae7e"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

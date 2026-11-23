@@ -38,12 +38,30 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.ToTable("ante", (string)null);
                 });
 
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.AttunedRow", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Tower")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("At")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PlayerId", "Tower");
+
+                    b.ToTable("attuned", (string)null);
+                });
+
             modelBuilder.Entity("Cantrip.Realms.Server.Data.ChestRow", b =>
                 {
                     b.Property<string>("PlayerId")
                         .HasColumnType("text");
 
-                    b.Property<string>("Map")
+                    b.Property<string>("Space")
                         .HasColumnType("text");
 
                     b.Property<string>("Chest")
@@ -52,7 +70,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("OpenedAt")
                         .HasColumnType("bigint");
 
-                    b.HasKey("PlayerId", "Map", "Chest");
+                    b.HasKey("PlayerId", "Space", "Chest");
 
                     b.ToTable("chests", (string)null);
                 });
@@ -119,10 +137,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("Gold")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Map")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Mob")
                         .IsRequired()
                         .HasColumnType("text");
@@ -136,6 +150,11 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
 
                     b.Property<long>("Seed")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("Space")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.Property<string>("Spawn")
                         .IsRequired()
@@ -157,7 +176,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
 
                     b.HasIndex("PlayerId", "State");
 
-                    b.HasIndex("PlayerId", "Map", "Spawn", "Epoch")
+                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch")
                         .IsUnique();
 
                     b.ToTable("duels", (string)null);
@@ -230,7 +249,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("Gold")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Map")
+                    b.Property<string>("Inn")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -243,11 +262,19 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<int>("Palette")
                         .HasColumnType("integer");
 
+                    b.Property<long>("PlacedAt")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Q")
                         .HasColumnType("integer");
 
                     b.Property<int>("R")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Space")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.HasKey("Id");
 
@@ -296,6 +323,53 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.ToTable("relics", (string)null);
                 });
 
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.RunRow", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Dungeon")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long?>("EndedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Floor")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Floors")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("Seed")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StartedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "State");
+
+                    b.ToTable("runs", (string)null);
+                });
+
             modelBuilder.Entity("Cantrip.Realms.Server.Data.UnlockRow", b =>
                 {
                     b.Property<string>("PlayerId")
@@ -326,6 +400,9 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                         .HasColumnType("bigint");
 
                     b.Property<long>("Purse")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Visit")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");

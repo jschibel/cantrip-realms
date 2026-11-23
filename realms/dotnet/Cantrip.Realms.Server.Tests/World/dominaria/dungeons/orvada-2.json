@@ -1,0 +1,1 @@
+{"id":"orvada-2","name":"The Orvadan Tower of the Second Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":2,"encounters":[1,2],"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"warden":"warden-2","boss":"mage-orvada-2","region":"U","entrance":[32,84]}

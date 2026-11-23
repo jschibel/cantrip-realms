@@ -2,76 +2,99 @@ import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
-import { at, entity, mapData, openNear, openRealm, realm } from "./realm";
+import { hex } from "../src/hex";
+import { doorOf, spawnNear } from "./places";
+import { TRADERS_IN, at, clickControl, dungeon, entity, openNear, openRealm, realm, waitSpace, world } from "./realm";
 
-// A picture of each kind of place, for looking at: a town, the hub, a village, the wilderness, a dungeon floor and a
-// boss's hall, a travel encounter, the world map, character creation and the map editor. Not compared against
-// anything - the other tests check behaviour; these are for eyes, and that each place loads. They are written to
-// test-results/screenshots, or to the committed e2e/screenshots when REALM_SCREENSHOTS is set.
+// Pictures of the world, for eyes: each region of the Domains, the capital, a shop and the exotic wares shop inside,
+// a caravan at its pitch, the regional and whole maps with their tier zones, and a floor of every dungeon theme. Not
+// compared against anything - the other suites check behaviour. Written to test-results/screenshots/world, or to the
+// committed e2e/screenshots/world when REALM_SCREENSHOTS is set.
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out = process.env.REALM_SCREENSHOTS ? join(here, "screenshots") : join(here, "..", "test-results", "screenshots");
+const out = process.env.REALM_SCREENSHOTS ? join(here, "screenshots", "world") : join(here, "..", "test-results", "screenshots", "world");
 mkdirSync(out, { recursive: true });
 
 async function settle(page: Page): Promise<void> {
   await page.mouse.move(2, 2);
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(900);
 }
 
-const places: readonly { file: string; at: string }[] = [
-  { file: "town-new-argive", at: "new-argive:0,4" },
-  { file: "town-urborg", at: "urborg" },
-  { file: "village-yavimaya-hollow", at: "yavimaya-hollow" },
-  { file: "wilderness-benalish-meadow", at: "benalish-meadow:0,0" },
-  { file: "wilderness-smoldering-crater", at: "smoldering-crater" },
-  { file: "wilderness-tolarian-shore", at: "tolarian-shore" },
-  { file: "dungeon-shivan-foundry-1", at: "shivan-foundry-1" },
-  { file: "encounter-llanowar", at: "encounter-llanowar" },
+const shot = (page: Page, name: string) => page.screenshot({ path: join(out, `${name}.png`) });
+
+// Each region in its wilds: by a spawn point near its home, or (the neutral lands) at a dungeon of theirs.
+const regions: readonly { file: string; at: () => string }[] = [
+  { file: "region-benalia", at: () => at(openNear(spawnNear("capashen-hold"), 3)) },
+  { file: "region-llanowar", at: () => at(openNear(spawnNear("llanowar"), 3)) },
+  { file: "region-caligo-morass", at: () => at(openNear(spawnNear("vess-estate"), 3)) },
+  { file: "region-keld", at: () => at(openNear(spawnNear("keld"), 3)) },
+  { file: "region-orvada-walassa", at: () => at(openNear(spawnNear("tolarian-academy"), 3)) },
+  { file: "region-hurloon-mountains", at: () => "hurloon-caves" },
+  { file: "region-ironclaw-mountains", at: () => "ironclaw-delvings" },
+  { file: "region-desolate-waste", at: () => "phyrexian-portal" },
 ];
 
-for (const place of places) {
-  test(`screenshot: ${place.file}`, async ({ page }) => {
-    await openRealm(page, { at: place.at });
+for (const r of regions) {
+  test(`screenshot: ${r.file}`, async ({ page }) => {
+    await openRealm(page, { at: r.at() });
     await settle(page);
-    await page.screenshot({ path: join(out, `${place.file}.png`) });
+    await shot(page, r.file);
   });
 }
 
-test("screenshot: a boss's hall", async ({ page }) => {
-  const hall = mapData("serras-fallen-sanctum-4");
-  const boss = hall.spawns.find((s) => s.id === "boss")!;
-  await openRealm(page, { at: at(hall, openNear(hall, boss, 3)), extra: "&mobs=1" });
+for (const town of ["new-benalia", "capashen-hold", "llanowar", "vess-estate", "keld", "tolarian-academy"]) {
+  test(`screenshot: town ${town}`, async ({ page }) => {
+    await openRealm(page, { at: town, extra: "&mobs=0" });
+    await settle(page);
+    await shot(page, `town-${town}`);
+  });
+}
+
+test("screenshot: a shop inside, and the exotic wares shop", async ({ page }) => {
+  for (const [id, file] of [["argive-goblin-trader-shop", "interior-shop"], ["new-benalia-exotic-wares-shop", "interior-exotic-wares"], ["new-benalia-inn", "interior-inn"]] as const) {
+    await openRealm(page, { at: id, extra: "&mobs=0" });
+    await settle(page);
+    await shot(page, file);
+  }
+  void doorOf;
+});
+
+test("screenshot: a traveling trader's caravan at the pitch", async ({ page }) => {
+  const pitch = world().pitches.find((p) => p.town === "new-benalia")!;
+  await openRealm(page, { at: at(openNear(hex(pitch.q, pitch.r), 2)), extra: "&mobs=0", now: TRADERS_IN });
+  await entity(page, (e) => e.kind === "vendor" && e.hex === `${pitch.q},${pitch.r}`, "the trader");
   await settle(page);
-  await page.screenshot({ path: join(out, "dungeon-boss-hall.png") });
+  await shot(page, "caravan");
 });
 
-test("screenshot: the world map", async ({ page }) => {
-  const meadow = mapData("benalish-meadow");
-  const exit = meadow.exits.find((e) => e.to === "world")!;
-  await openRealm(page, { at: at(meadow, openNear(meadow, exit, 1)), extra: "&mobs=0" });
-  const way = await entity(page, (e) => e.kind === "exit" && e.to === "world", "the way to the world map");
-  await page.mouse.click(way.x, way.y);
-  await expect.poll(() => realm<string>(page, "screen")).toBe("travel");
-  await expect.poll(async () => (await realm<{ name: string; id: string }[]>(page, "travel.places")).every((p) => p.name !== p.id)).toBe(true);
-  const argive = (await realm<{ id: string; x: number; y: number }[]>(page, "travel.places")).find((p) => p.id === "new-argive")!;
-  await page.mouse.move(argive.x, argive.y);
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: join(out, "world-map.png") });
+test("screenshot: the regional map and the whole map, with the tier zones", async ({ page }) => {
+  await openRealm(page, { at: "cabal-crossing", extra: "&mobs=0" });
+  await settle(page);
+  await page.locator("#hud-place").screenshot({ path: join(out, "map-regional.png") });
+  await clickControl(page, "hud:minimap");
+  await expect.poll(async () => (await realm<{ open: boolean }>(page, "map")).open).toBe(true);
+  await page.waitForTimeout(400);
+  await shot(page, "map-world");
 });
 
-test("screenshot: character creation", async ({ page }) => {
-  await page.goto("/?offline&test");
-  await expect.poll(() => realm<string>(page, "screen")).toBe("create");
-  await page.locator("[data-test='create:name']").fill("Jhoira");
-  await page.locator("[data-test='create:body:broad']").click();
-  await page.locator("[data-test='create:color:G']").click();
-  await page.waitForTimeout(800);
-  await page.screenshot({ path: join(out, "character-creation.png") });
-});
+// A floor of each dungeon theme, entered as a player does.
+const themes: readonly { id: string; color?: string }[] = [
+  { id: "benalish-keep" },
+  { id: "elfhame-hollow" },
+  { id: "vess-crypts" },
+  { id: "keldon-fortress" },
+  { id: "academy-tower" },
+  { id: "ironclaw-delvings" },
+  { id: "phyrexian-portal", color: "WUBRG" },
+];
 
-test("screenshot: the map editor", async ({ page }) => {
-  await page.goto("/?editor=keld");
-  await page.waitForFunction(() => (globalThis as any).realmEditor !== undefined);
-  await page.waitForTimeout(800);
-  await page.screenshot({ path: join(out, "map-editor.png") });
-});
+for (const t of themes) {
+  test(`screenshot: dungeon ${dungeon(t.id).theme} (${t.id})`, async ({ page }) => {
+    await openRealm(page, { at: t.id, color: t.color, extra: "&mobs=0" });
+    const way = await entity(page, (e) => e.kind === "entrance" && e.to === t.id, "the way in");
+    await page.mouse.click(way.x, way.y);
+    await waitSpace(page, /^run:/);
+    await settle(page);
+    await shot(page, `dungeon-${dungeon(t.id).theme}`);
+  });
+}

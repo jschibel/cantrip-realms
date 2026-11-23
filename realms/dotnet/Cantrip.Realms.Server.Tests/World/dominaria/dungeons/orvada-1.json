@@ -1,0 +1,1 @@
+{"id":"orvada-1","name":"The Orvadan Tower of the First Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":1,"encounters":[1,2],"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"warden":"warden-1","boss":"mage-orvada-1","region":"U","entrance":[32,74]}

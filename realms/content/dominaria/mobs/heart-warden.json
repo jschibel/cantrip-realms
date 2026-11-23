@@ -1,6 +1,8 @@
 {
   "id": "heart-warden",
   "name": "Heart Warden",
+  "creature": "Wirewood Guardian",
+  "region": "G",
   "tier": 4,
   "deck": "decks/realms/dominaria/heart-warden.txt",
   "stats": {
@@ -21,7 +23,12 @@
     "pool": "dominaria",
     "colors": "G",
     "types": [],
-    "subtypes": [],
+    "subtypes": [
+      "Elf",
+      "Treefolk",
+      "Wurm",
+      "Elemental"
+    ],
     "rarities": [
       "uncommon",
       "rare",
@@ -29,7 +36,7 @@
     ]
   },
   "model": {
-    "mesh": "wurm",
+    "mesh": "treefolk",
     "palette": [
       "#2a4524",
       "#f1b44c",

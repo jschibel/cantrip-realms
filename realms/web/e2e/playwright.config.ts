@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 // The overworld end to end (tech.md, B10): the offline overworld (?offline: the in-memory API, presence between tabs,
 // the stand-in card layer) driven in Chromium with real mouse clicks at the places realmTest publishes. The dev
 // server is started on its own port. WebGL runs on SwiftShader, so no GPU is needed.
-const port = 5174;
+const port = Number(process.env.REALM_E2E_PORT ?? 5174);
 
 export default defineConfig({
   testDir: ".",

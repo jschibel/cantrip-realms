@@ -1,0 +1,1419 @@
+{
+  "seed": 1997,
+  "landmasses": [
+    {
+      "id": "aerona",
+      "name": "Aerona",
+      "center": [355, 333],
+      "radius": 138,
+      "wobble": 16
+    },
+    {
+      "id": "aerona-west",
+      "name": "Aerona",
+      "center": [253, 438],
+      "radius": 78,
+      "wobble": 14
+    },
+    {
+      "id": "aerona-east",
+      "name": "Aerona",
+      "center": [472, 226],
+      "radius": 92,
+      "wobble": 14
+    },
+    {
+      "id": "aerona-north",
+      "name": "Aerona",
+      "center": [210, 342],
+      "radius": 90,
+      "wobble": 14
+    },
+    {
+      "id": "aerona-northeast",
+      "name": "Aerona",
+      "center": [320, 202],
+      "radius": 81,
+      "wobble": 14
+    },
+    {
+      "id": "aerona-south",
+      "name": "Aerona",
+      "center": [451, 343],
+      "radius": 87,
+      "wobble": 14
+    },
+    {
+      "id": "waste",
+      "name": "The Desolate Waste",
+      "center": [196, 231],
+      "radius": 24,
+      "wobble": 8
+    },
+    {
+      "id": "icehaven",
+      "name": "Icehaven",
+      "center": [124, 236],
+      "radius": 48,
+      "wobble": 12
+    },
+    {
+      "id": "icehaven-east",
+      "name": "Icehaven",
+      "center": [168, 171],
+      "radius": 51,
+      "wobble": 12
+    },
+    {
+      "id": "icehaven-north",
+      "name": "Icehaven",
+      "center": [114, 182],
+      "radius": 41,
+      "wobble": 12
+    },
+    {
+      "id": "walassa",
+      "name": "Walassa",
+      "center": [141, 588],
+      "radius": 39,
+      "wobble": 8
+    },
+    {
+      "id": "denawa",
+      "name": "Denawa",
+      "center": [211, 597],
+      "radius": 24,
+      "wobble": 6
+    },
+    {
+      "id": "stahaan",
+      "name": "Stahaan",
+      "center": [55, 518],
+      "radius": 24,
+      "wobble": 6
+    },
+    {
+      "id": "verdura",
+      "name": "Verdura",
+      "center": [527, 433],
+      "radius": 39,
+      "wobble": 8
+    },
+    {
+      "id": "shanodin",
+      "name": "Shanodin's island",
+      "center": [531, 92],
+      "radius": 39,
+      "wobble": 10
+    },
+    {
+      "id": "amjad",
+      "name": "Shanodin's island",
+      "center": [595, 90],
+      "radius": 33,
+      "wobble": 8
+    }
+  ],
+  "bays": [],
+  "archipelagos": [
+    {
+      "center": [162, 617],
+      "radius": 32,
+      "density": 0.35
+    },
+    {
+      "center": [571, 61],
+      "radius": 26,
+      "density": 0.3
+    }
+  ],
+  "regions": [
+    {
+      "id": "benalia",
+      "name": "Benalia",
+      "color": "W",
+      "biome": "plains",
+      "style": "benalish",
+      "at": [369, 388],
+      "areas": ["Benalish Farmlands", "The Benalish Vales", "The Southern Marches", "The Wild Downs"]
+    },
+    {
+      "id": "llanowar",
+      "name": "Llanowar",
+      "color": "G",
+      "biome": "forest",
+      "style": "llanowar",
+      "at": [521, 220],
+      "areas": ["The Edge of Llanowar", "The Elfhame Woods", "The Deep Llanowar", "The Untamed Wood"]
+    },
+    {
+      "id": "caligo",
+      "name": "The Caligo Morass",
+      "color": "B",
+      "biome": "swamp",
+      "style": "urborg",
+      "at": [114, 400],
+      "areas": ["The Morass's Edge", "The Caligo Fens", "The Drowned Wood", "The Black Morass"]
+    },
+    {
+      "id": "keld",
+      "name": "Keld",
+      "color": "R",
+      "biome": "tundra",
+      "style": "keldon",
+      "at": [145, 243],
+      "areas": ["The Keldon Shore", "The Frozen Steppe", "The Keldon Heights", "The Ice Wastes"],
+      "weight": 0.9
+    },
+    {
+      "id": "skyshroud",
+      "name": "Skyshroud",
+      "color": "R",
+      "biome": "forest",
+      "style": "keldon",
+      "at": [88, 291],
+      "areas": ["Skyshroud's Edge", "The Skyshroud", "The Skyshroud Deeps", "The Skyshroud Deeps"],
+      "weight": 0.5
+    },
+    {
+      "id": "orvada",
+      "name": "Orvada",
+      "color": "U",
+      "biome": "coast",
+      "style": "tolarian",
+      "at": [163, 588],
+      "areas": ["The Orvadan Shore", "The Isles of Orvada", "The Outer Isles", "The Far Shoals"]
+    },
+    {
+      "id": "hurloon",
+      "name": "The Hurloon Mountains",
+      "color": null,
+      "biome": "mountains",
+      "style": "benalish",
+      "at": [303, 314],
+      "areas": ["The Hurloon Foothills", "The Hurloon Passes", "The Hurloon Heights", "The Hurloon Peaks"],
+      "weight": 0.55,
+      "minTier": 2
+    },
+    {
+      "id": "durkwood",
+      "name": "The Durkwood",
+      "color": null,
+      "biome": "forest",
+      "style": "llanowar",
+      "at": [257, 272],
+      "areas": ["The Durkwood's Edge", "The Durkwood", "The Deep Durkwood", "The Deep Durkwood"],
+      "weight": 0.9,
+      "minTier": 2
+    },
+    {
+      "id": "sursi",
+      "name": "Sursi",
+      "color": null,
+      "biome": "plains",
+      "style": "benalish",
+      "at": [134, 469],
+      "areas": ["The Sursi Hills", "The Pegasus Downs", "The Sursi Heights", "The Sursi Cliffs"],
+      "weight": 0.8,
+      "minTier": 2
+    },
+    {
+      "id": "foriys",
+      "name": "Foriys",
+      "color": null,
+      "biome": "plains",
+      "style": "keldon",
+      "at": [257, 204],
+      "areas": ["The Foriys Marches", "The Giants' Fields", "The Giants' Hills", "The Giants' Hills"],
+      "weight": 0.8
+    },
+    {
+      "id": "avenant",
+      "name": "Avenant",
+      "color": null,
+      "biome": "plains",
+      "style": "benalish",
+      "at": [206, 496],
+      "areas": ["The Avenant Fields", "The Archers' Reach", "The Avenant Heights", "The Avenant Heights"],
+      "weight": 0.8
+    },
+    {
+      "id": "ironclaw",
+      "name": "The Ironclaw Mountains",
+      "color": null,
+      "biome": "mountains",
+      "style": "keldon",
+      "at": [362, 149],
+      "areas": ["The Ironclaw Foothills", "The Ironclaw Mountains", "The Orc Delvings", "The Ironclaw Peaks"],
+      "weight": 0.85,
+      "minTier": 4
+    },
+    {
+      "id": "waste",
+      "name": "The Desolate Waste",
+      "color": null,
+      "biome": "waste",
+      "style": "keldon",
+      "at": [198, 232],
+      "areas": ["The Desolate Waste", "The Desolate Waste", "The Desolate Waste", "The Desolate Waste"],
+      "weight": 0.55,
+      "minTier": 4
+    },
+    {
+      "id": "parma",
+      "name": "Parma",
+      "color": null,
+      "biome": "tundra",
+      "style": "keldon",
+      "at": [119, 178],
+      "areas": ["Parma", "Parma", "The Frozen North", "The Ice of Parma"],
+      "weight": 0.8,
+      "minTier": 4
+    },
+    {
+      "id": "stahaan",
+      "name": "Stahaan",
+      "color": null,
+      "biome": "mountains",
+      "style": "benalish",
+      "at": [54, 515],
+      "areas": ["Stahaan", "Stahaan", "Stahaan", "Stahaan"],
+      "weight": 0.6,
+      "minTier": 4
+    },
+    {
+      "id": "verdura",
+      "name": "Verdura",
+      "color": null,
+      "biome": "forest",
+      "style": "llanowar",
+      "at": [531, 435],
+      "areas": ["The Verduran Shore", "Verdura", "The Druids' Wood", "The Druids' Wood"],
+      "weight": 0.8
+    },
+    {
+      "id": "shanodin",
+      "name": "Shanodin",
+      "color": null,
+      "biome": "forest",
+      "style": "llanowar",
+      "at": [523, 90],
+      "areas": ["The Shore of Shanodin", "The Forest of Shanodin", "Oneah's Wilds", "Oneah's Wilds"],
+      "weight": 0.75
+    },
+    {
+      "id": "amjad",
+      "name": "Amjad",
+      "color": "B",
+      "biome": "swamp",
+      "style": "urborg",
+      "at": [597, 92],
+      "areas": ["The Borders of Amjad", "Amjad", "The Depths of Amjad", "The Depths of Amjad"],
+      "weight": 0.6,
+      "minTier": 2
+    }
+  ],
+  "mountains": [
+    {
+      "from": [186, 470],
+      "to": [254, 383],
+      "width": 4
+    },
+    {
+      "from": [281, 349],
+      "to": [339, 259],
+      "width": 4
+    },
+    {
+      "from": [358, 228],
+      "to": [445, 136],
+      "width": 4
+    },
+    {
+      "from": [313, 168],
+      "to": [395, 123],
+      "width": 5
+    },
+    {
+      "from": [74, 273],
+      "to": [113, 207],
+      "width": 3
+    }
+  ],
+  "rivers": [
+    {
+      "from": [366, 250],
+      "to": [579, 315]
+    },
+    {
+      "from": [262, 392],
+      "to": [338, 551]
+    },
+    {
+      "from": [216, 288],
+      "to": [118, 321]
+    }
+  ],
+  "lakes": [
+    {
+      "at": [406, 377],
+      "radius": 5
+    },
+    {
+      "at": [119, 433],
+      "radius": 6,
+      "kind": "swamp"
+    },
+    {
+      "at": [105, 378],
+      "radius": 5,
+      "kind": "swamp"
+    },
+    {
+      "at": [563, 210],
+      "radius": 4
+    },
+    {
+      "at": [177, 193],
+      "radius": 4
+    }
+  ],
+  "towns": [
+    {
+      "id": "new-benalia",
+      "name": "New Benalia",
+      "kind": "capital",
+      "region": "benalia",
+      "style": "benalish",
+      "start": true,
+      "inn": "The Gilded Sword",
+      "innkeeper": ["Welcome to New Benalia, mage. The capital rests easier with your kind about."],
+      "board": ["The five color-wells of the Domains are held by guardians. Earn each well's attunement.", "When all five are yours, the Phyrexian Portal in the desolate waste will open. So say the seers.", "The mage towers' waystones carry those who beat their mages from tower to tower.", "The arena opens soon. Practise your duelling."],
+      "folk": [
+        {
+          "name": "Benalish herald",
+          "text": ["Every road in Aerona leads to New Benalia. Most of them come back."]
+        },
+        {
+          "name": "Town crier",
+          "text": ["Hear ye! Phyrexian stragglers in every Domain! Arm yourselves with cards!"]
+        },
+        {
+          "name": "Merchant",
+          "text": ["More vendors here than anywhere in the Domains, and a shop of wares from other planes."]
+        },
+        {
+          "name": "Old soldier",
+          "text": ["Past the Hurloons the wilds turn hard. The waymarkers say how hard."]
+        },
+        {
+          "name": "Caravan master",
+          "text": ["The planeswalkers' caravans come and go. Watch the market square."]
+        }
+      ],
+      "centrepiece": "statue",
+      "temple": "The Cathedral of Serra",
+      "guild": "The Order of the White Shield",
+      "exotic": "new-benalia-exotic-wares",
+      "caravan": true,
+      "at": [368, 338],
+      "radius": 66
+    },
+    {
+      "id": "capashen-hold",
+      "name": "Capashen Hold",
+      "kind": "town",
+      "region": "benalia",
+      "style": "benalish",
+      "start": true,
+      "home": "W",
+      "inn": "The Capashen Arms",
+      "innkeeper": ["Welcome to Capashen Hold, mage. Rest here, and here you wake if a duel goes badly."],
+      "board": ["Bounty: Phyrexian scouts in the Benalish Farmlands.", "Wanted: an escort to the Fallen Keep."],
+      "folk": [
+        {
+          "name": "Benalish squire",
+          "text": ["The Capashens held this land before New Benalia stood."]
+        },
+        {
+          "name": "Old pilgrim",
+          "text": ["Serra's angels guard the fallen keep still, but not for her."]
+        }
+      ],
+      "centrepiece": "statue",
+      "temple": "The Chapel of the Capashens",
+      "guild": "The Hold's Mages' Hall",
+      "exotic": "capashen-hold-exotic-wares",
+      "caravan": true,
+      "at": [344, 475],
+      "radius": 42
+    },
+    {
+      "id": "llanowar",
+      "name": "The Elfhames of Llanowar",
+      "kind": "town",
+      "region": "llanowar",
+      "style": "llanowar",
+      "start": true,
+      "home": "G",
+      "inn": "The Hollow Bough",
+      "innkeeper": ["Welcome to the elfhames. The trees are listening; tip accordingly."],
+      "board": ["Bounty: the wurm eating the north orchard.", "The Steel Leaf ride at dawn. Stay off the trails."],
+      "folk": [
+        {
+          "name": "Elvish ranger",
+          "text": ["Across the Suder the forest begins, and it does not end politely."]
+        },
+        {
+          "name": "Wurm herder",
+          "text": ["They're gentle, really. Just very, very large."]
+        }
+      ],
+      "centrepiece": "tree",
+      "temple": "The Grove of Gaea",
+      "guild": "The Druids' Circle",
+      "caravan": true,
+      "at": [529, 222],
+      "radius": 42
+    },
+    {
+      "id": "vess-estate",
+      "name": "The Vess Estate",
+      "kind": "town",
+      "region": "caligo",
+      "style": "urborg",
+      "start": true,
+      "home": "B",
+      "inn": "The Last Lantern",
+      "innkeeper": ["Welcome to the Vess estate's village. The lady of the house is... away."],
+      "board": ["Bounty: bog-wraiths on the Morass road.", "Do not wander into the Vess crypts. Do not."],
+      "folk": [
+        {
+          "name": "Gravedigger",
+          "text": ["The Morass was a forest once. The trees remember."]
+        },
+        {
+          "name": "Cabal defector",
+          "text": ["The Cabal made this swamp. I helped. I'm sorry."]
+        }
+      ],
+      "centrepiece": "brazier",
+      "temple": "The Chapel of the Drowned",
+      "guild": "The Old Vess Library",
+      "at": [110, 405],
+      "radius": 42
+    },
+    {
+      "id": "keld",
+      "name": "Keld",
+      "kind": "town",
+      "region": "keld",
+      "style": "keldon",
+      "start": true,
+      "home": "R",
+      "inn": "The Burning Keel",
+      "innkeeper": ["Welcome to Keld. Sit, drink, and if someone shouts, shout back."],
+      "board": ["Bounty: the ice giants raiding the north herds.", "The Skyshroud is not for the soft."],
+      "folk": [
+        {
+          "name": "Keldon warrior",
+          "text": ["Fight me. No? Then fight the giants, they're asking for it."]
+        },
+        {
+          "name": "Skald",
+          "text": ["Past the waste lie the Domains. Past Parma lies nothing."]
+        }
+      ],
+      "centrepiece": "brazier",
+      "temple": "The Hall of the Fallen",
+      "guild": "The Pyromancers' Lodge",
+      "caravan": true,
+      "at": [146, 238],
+      "radius": 42
+    },
+    {
+      "id": "tolarian-academy",
+      "name": "Tolarian Academy",
+      "kind": "town",
+      "region": "orvada",
+      "style": "tolarian",
+      "start": true,
+      "home": "U",
+      "inn": "The Drowned Lecture",
+      "innkeeper": ["Welcome to the Academy on Walassa. Mind the time rifts on your way to bed."],
+      "board": ["Lost: one automaton, answers to nothing.", "Research assistants wanted for the tower. Hazard pay."],
+      "folk": [
+        {
+          "name": "Lecturer",
+          "text": ["We rebuilt the Academy on Walassa. The old one is best not spoken of."]
+        },
+        {
+          "name": "Fisher",
+          "text": ["The causeway floods at high tide. Walk quickly."]
+        }
+      ],
+      "centrepiece": "crystal",
+      "temple": "The Shrine of the Tides",
+      "guild": "The Academy's Hall of Mages",
+      "caravan": true,
+      "at": [147, 586],
+      "radius": 37
+    },
+    {
+      "id": "serras-rest",
+      "name": "Serra's Rest",
+      "kind": "village",
+      "region": "benalia",
+      "style": "benalish",
+      "start": false,
+      "inn": "The Feather and Lance",
+      "board": ["Ferry to Verdura at the south dock."],
+      "folk": [
+        {
+          "name": "Shepherd",
+          "text": ["The angels used to bless the flocks. Now they take them."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [480, 341],
+      "radius": 15,
+      "innkeeper": ["The Feather and Lance. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "steelleaf-glade",
+      "name": "Steelleaf Glade",
+      "kind": "village",
+      "region": "llanowar",
+      "style": "llanowar",
+      "start": false,
+      "inn": "The Iron Acorn",
+      "board": ["The ferry to Shanodin sails from the east shore."],
+      "folk": [
+        {
+          "name": "Old druid",
+          "text": ["Past the glade the forest is older than the elves, and less forgiving."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [613, 168],
+      "radius": 15,
+      "innkeeper": ["The Iron Acorn. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "cabal-crossing",
+      "name": "Cabal Crossing",
+      "kind": "village",
+      "region": "caligo",
+      "style": "urborg",
+      "start": false,
+      "inn": "The Rotten Plank",
+      "board": ["Cultists seen in the Drowned Wood. They wave."],
+      "folk": [
+        {
+          "name": "Lantern keeper",
+          "text": ["Keep the lantern lit and the dead keep their distance. Usually."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [190, 350],
+      "radius": 15,
+      "innkeeper": ["The Rotten Plank. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "keldon-watch",
+      "name": "Keldon Watch",
+      "kind": "village",
+      "region": "keld",
+      "style": "keldon",
+      "start": false,
+      "inn": "The Axe and Ember",
+      "board": ["The ferry to Foriys sails from the south shore."],
+      "folk": [
+        {
+          "name": "Lookout",
+          "text": ["From up here you can see the waste smoking. The Portal is out there."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [183, 155],
+      "radius": 15,
+      "innkeeper": ["The Axe and Ember. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "denawa",
+      "name": "Denawa",
+      "kind": "village",
+      "region": "orvada",
+      "style": "tolarian",
+      "start": false,
+      "inn": "The Scholar's Rest",
+      "board": ["Tutors wanted. Must not be phased out."],
+      "folk": [
+        {
+          "name": "Scribe",
+          "text": ["Denawa copies what Walassa forgets."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [212, 591],
+      "radius": 15,
+      "innkeeper": ["The Scholar's Rest. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "avenant",
+      "name": "Avenant",
+      "kind": "village",
+      "region": "avenant",
+      "style": "benalish",
+      "start": false,
+      "inn": "The Bent Bow",
+      "board": ["Archers wanted for the Hurloon passes."],
+      "folk": [
+        {
+          "name": "Archer",
+          "text": ["Avenant's arrows fly true. Avenant's ale, less so."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [206, 496],
+      "radius": 15,
+      "innkeeper": ["The Bent Bow. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "sursi",
+      "name": "Sursi",
+      "kind": "village",
+      "region": "sursi",
+      "style": "benalish",
+      "start": false,
+      "inn": "The Winged Mare",
+      "board": ["The ferry to Stahaan sails from the west cliffs. The minotaurs do not welcome visitors."],
+      "folk": [
+        {
+          "name": "Pegasus groom",
+          "text": ["The herds fly the cliffs at dusk. Don't stand under them."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [145, 465],
+      "radius": 15,
+      "innkeeper": ["The Winged Mare. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "foriys",
+      "name": "Foriys",
+      "kind": "village",
+      "region": "foriys",
+      "style": "keldon",
+      "start": false,
+      "inn": "The Two Heads",
+      "board": ["The ferry to Keld sails from the north shore."],
+      "folk": [
+        {
+          "name": "Giant's herald",
+          "text": ["The giants argue with themselves. Both heads usually lose."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [263, 197],
+      "radius": 15,
+      "innkeeper": ["The Two Heads. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "oneah",
+      "name": "Oneah",
+      "kind": "village",
+      "region": "shanodin",
+      "style": "llanowar",
+      "start": false,
+      "inn": "The Quiet Oak",
+      "board": ["Do not go south into Amjad."],
+      "folk": [
+        {
+          "name": "Oneahn elder",
+          "text": ["Oneah is small, and means to stay that way."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [512, 101],
+      "radius": 15,
+      "innkeeper": ["The Quiet Oak. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "verdura-grove",
+      "name": "Verdura Grove",
+      "kind": "village",
+      "region": "verdura",
+      "style": "llanowar",
+      "start": false,
+      "inn": "The Green Cup",
+      "board": ["The druids ask that you leave the wood as you found it."],
+      "folk": [
+        {
+          "name": "Druid",
+          "text": ["Verdura grows back faster than you can cut it."]
+        }
+      ],
+      "centrepiece": "well",
+      "at": [523, 432],
+      "radius": 15,
+      "innkeeper": ["The Green Cup. Small, but the beds are dry."],
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    }
+  ],
+  "roads": [
+    {
+      "from": "new-benalia",
+      "to": "capashen-hold",
+      "main": true
+    },
+    {
+      "from": "new-benalia",
+      "to": "llanowar",
+      "main": true
+    },
+    {
+      "from": "new-benalia",
+      "to": "cabal-crossing",
+      "main": true
+    },
+    {
+      "from": "cabal-crossing",
+      "to": "vess-estate",
+      "main": true
+    },
+    {
+      "from": "capashen-hold",
+      "to": "avenant",
+      "main": true
+    },
+    {
+      "from": "avenant",
+      "to": "tolarian-academy",
+      "main": true
+    },
+    {
+      "from": "new-benalia",
+      "to": "foriys",
+      "main": true
+    },
+    {
+      "from": "foriys",
+      "to": "ferry:keldon-ferry:from",
+      "main": true
+    },
+    {
+      "from": "ferry:keldon-ferry:to",
+      "to": "keldon-watch",
+      "main": true
+    },
+    {
+      "from": "keldon-watch",
+      "to": "keld",
+      "main": true
+    },
+    {
+      "from": "new-benalia",
+      "to": "serras-rest"
+    },
+    {
+      "from": "serras-rest",
+      "to": "ferry:verdura-ferry:from"
+    },
+    {
+      "from": "ferry:verdura-ferry:to",
+      "to": "verdura-grove"
+    },
+    {
+      "from": "llanowar",
+      "to": "steelleaf-glade"
+    },
+    {
+      "from": "steelleaf-glade",
+      "to": "ferry:shanodin-ferry:from"
+    },
+    {
+      "from": "ferry:shanodin-ferry:to",
+      "to": "oneah"
+    },
+    {
+      "from": "tolarian-academy",
+      "to": "denawa"
+    },
+    {
+      "from": "avenant",
+      "to": "sursi"
+    },
+    {
+      "from": "sursi",
+      "to": "vess-estate"
+    },
+    {
+      "from": "sursi",
+      "to": "ferry:stahaan-ferry:from"
+    }
+  ],
+  "dungeons": [
+    {
+      "id": "benalish-keep",
+      "name": "The Fallen Benalish Keep",
+      "theme": "castle",
+      "region": "benalia",
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "sanctum-warden",
+      "boss": "lyra-dawnbringer",
+      "road": "capashen-hold",
+      "at": [440, 432]
+    },
+    {
+      "id": "elfhame-hollow",
+      "name": "The Hollow under the Elfhames",
+      "theme": "hollow",
+      "region": "llanowar",
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "heart-warden",
+      "boss": "rofellos",
+      "road": "llanowar",
+      "at": [546, 172]
+    },
+    {
+      "id": "vess-crypts",
+      "name": "The Vess Crypts",
+      "theme": "crypt",
+      "region": "caligo",
+      "floors": [4, 5],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "tomb-warden",
+      "boss": "liliana",
+      "road": "vess-estate",
+      "at": [43, 440]
+    },
+    {
+      "id": "keldon-fortress",
+      "name": "The Keldon Fortress",
+      "theme": "caves",
+      "region": "keld",
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "foundry-warden",
+      "boss": "garna",
+      "road": "keld",
+      "at": [96, 257]
+    },
+    {
+      "id": "academy-tower",
+      "name": "The Academy's Tower",
+      "theme": "tower",
+      "region": "orvada",
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "rift-warden",
+      "boss": "teferi",
+      "road": "tolarian-academy",
+      "at": [106, 596]
+    },
+    {
+      "id": "benalish-watchtower",
+      "name": "The Ruined Benalish Watchtower",
+      "theme": "castle",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2",
+      "at": [445, 297]
+    },
+    {
+      "id": "hurloon-caves",
+      "name": "The Hurloon Caves",
+      "theme": "caves",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3",
+      "at": [274, 372]
+    },
+    {
+      "id": "durkwood-hollow",
+      "name": "The Durkwood Hollow",
+      "theme": "hollow",
+      "region": "llanowar",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3",
+      "at": [256, 259]
+    },
+    {
+      "id": "caligo-barrow",
+      "name": "The Drowned Barrow",
+      "theme": "crypt",
+      "region": "caligo",
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2",
+      "at": [151, 376]
+    },
+    {
+      "id": "sursi-watchtower",
+      "name": "The Sursi Watchtower",
+      "theme": "castle",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3",
+      "at": [173, 453]
+    },
+    {
+      "id": "ironclaw-delvings",
+      "name": "The Orc Delvings of Ironclaw",
+      "theme": "foundry",
+      "region": "keld",
+      "floors": [2, 3],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "@wanderer:4",
+      "at": [357, 135]
+    },
+    {
+      "id": "amjad-crypt",
+      "name": "The Crypts of Amjad",
+      "theme": "crypt",
+      "region": "caligo",
+      "floors": [2, 3],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3-4"],
+      "warden": "@warden:3",
+      "boss": "@wanderer:4",
+      "at": [606, 88]
+    },
+    {
+      "id": "verdura-hollow",
+      "name": "The Druids' Hollow",
+      "theme": "hollow",
+      "region": "llanowar",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3",
+      "at": [524, 451]
+    },
+    {
+      "id": "stahaan-caves",
+      "name": "The Caves of Stahaan",
+      "theme": "caves",
+      "region": "benalia",
+      "floors": [2, 3],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "@wanderer:4",
+      "at": [47, 519]
+    },
+    {
+      "id": "parma-caves",
+      "name": "The Ice Caves of Parma",
+      "theme": "caves",
+      "region": "keld",
+      "floors": [2, 3],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "@wanderer:4",
+      "at": [120, 166]
+    },
+    {
+      "id": "phyrexian-portal",
+      "name": "The Phyrexian Portal",
+      "theme": "portal",
+      "requires": "WUBRG",
+      "floors": [4, 4],
+      "tier": 4,
+      "encounters": [3, 4],
+      "mobs": [
+        ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger"],
+        ["phyrexian-ravager", "gitaxian-mindcutter", "phyrexian-negator", "phyrexian-gorger"]
+      ],
+      "warden": "portal-warden",
+      "boss": "phyrexian-praetor",
+      "at": [194, 230]
+    },
+    {
+      "id": "benalia-1",
+      "name": "The Benalish Tower of the First Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-benalia-1",
+      "waystone": true,
+      "road": "capashen-hold",
+      "at": [401, 424]
+    },
+    {
+      "id": "benalia-2",
+      "name": "The Benalish Tower of the Second Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-benalia-2",
+      "waystone": true,
+      "at": [351, 506]
+    },
+    {
+      "id": "benalia-3",
+      "name": "The Benalish Tower of the Third Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-benalia-3",
+      "waystone": true,
+      "at": [274, 396]
+    },
+    {
+      "id": "benalia-4",
+      "name": "The Benalish Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-benalia-4",
+      "waystone": true,
+      "at": [556, 425]
+    },
+    {
+      "id": "llanowar-1",
+      "name": "The Llanowar Tower of the First Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-llanowar-1",
+      "waystone": true,
+      "road": "llanowar",
+      "at": [531, 267]
+    },
+    {
+      "id": "llanowar-2",
+      "name": "The Llanowar Tower of the Second Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-llanowar-2",
+      "waystone": true,
+      "at": [610, 192]
+    },
+    {
+      "id": "llanowar-3",
+      "name": "The Llanowar Tower of the Third Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-llanowar-3",
+      "waystone": true,
+      "at": [503, 151]
+    },
+    {
+      "id": "llanowar-4",
+      "name": "The Llanowar Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-llanowar-4",
+      "waystone": true,
+      "at": [607, 92]
+    },
+    {
+      "id": "caligo-1",
+      "name": "The Caligo Tower of the First Circle",
+      "theme": "tower",
+      "region": "caligo",
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-caligo-1",
+      "waystone": true,
+      "road": "vess-estate",
+      "at": [112, 369]
+    },
+    {
+      "id": "caligo-2",
+      "name": "The Caligo Tower of the Second Circle",
+      "theme": "tower",
+      "region": "caligo",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-caligo-2",
+      "waystone": true,
+      "at": [67, 464]
+    },
+    {
+      "id": "caligo-3",
+      "name": "The Caligo Tower of the Third Circle",
+      "theme": "tower",
+      "region": "caligo",
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-caligo-3",
+      "waystone": true,
+      "at": [163, 319]
+    },
+    {
+      "id": "caligo-4",
+      "name": "The Caligo Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "caligo",
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-caligo-4",
+      "waystone": true,
+      "at": [66, 519]
+    },
+    {
+      "id": "keld-1",
+      "name": "The Keldon Tower of the First Circle",
+      "theme": "tower",
+      "region": "keld",
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-keld-1",
+      "waystone": true,
+      "road": "keld",
+      "at": [176, 218]
+    },
+    {
+      "id": "keld-2",
+      "name": "The Keldon Tower of the Second Circle",
+      "theme": "tower",
+      "region": "keld",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-keld-2",
+      "waystone": true,
+      "at": [101, 290]
+    },
+    {
+      "id": "keld-3",
+      "name": "The Keldon Tower of the Third Circle",
+      "theme": "tower",
+      "region": "keld",
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-keld-3",
+      "waystone": true,
+      "at": [167, 146]
+    },
+    {
+      "id": "keld-4",
+      "name": "The Keldon Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "keld",
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-keld-4",
+      "waystone": true,
+      "at": [99, 189]
+    },
+    {
+      "id": "orvada-1",
+      "name": "The Orvadan Tower of the First Circle",
+      "theme": "tower",
+      "region": "orvada",
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-orvada-1",
+      "waystone": true,
+      "road": "tolarian-academy",
+      "at": [179, 573]
+    },
+    {
+      "id": "orvada-2",
+      "name": "The Orvadan Tower of the Second Circle",
+      "theme": "tower",
+      "region": "orvada",
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-orvada-2",
+      "waystone": true,
+      "at": [213, 607]
+    },
+    {
+      "id": "orvada-3",
+      "name": "The Orvadan Tower of the Third Circle",
+      "theme": "tower",
+      "region": "orvada",
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-orvada-3",
+      "waystone": true,
+      "at": [146, 511]
+    },
+    {
+      "id": "orvada-4",
+      "name": "The Orvadan Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "orvada",
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-orvada-4",
+      "waystone": true,
+      "at": [170, 608]
+    }
+  ],
+  "ferries": [
+    {
+      "id": "keldon-ferry",
+      "name": "The Keldon Ferry",
+      "from": [251, 189],
+      "to": [200, 199]
+    },
+    {
+      "id": "verdura-ferry",
+      "name": "The Verdura Ferry",
+      "from": [503, 368],
+      "to": [509, 408]
+    },
+    {
+      "id": "shanodin-ferry",
+      "name": "The Shanodin Ferry",
+      "from": [576, 152],
+      "to": [558, 109]
+    },
+    {
+      "id": "stahaan-ferry",
+      "name": "The Stahaan Ferry",
+      "from": [114, 487],
+      "to": [75, 510]
+    }
+  ]
+}

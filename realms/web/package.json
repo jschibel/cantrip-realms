@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "models": "vite-node scripts/models.ts",
-    "maps": "vite-node scripts/maps.ts",
+    "world": "vite-node scripts/world.ts",
     "e2e": "node scripts/theme.mjs && playwright test -c e2e/playwright.config.ts",
     "e2e:server": "node scripts/theme.mjs && playwright test -c e2e/server/playwright.config.ts"
   },

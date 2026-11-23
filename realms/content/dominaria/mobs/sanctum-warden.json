@@ -1,6 +1,8 @@
 {
   "id": "sanctum-warden",
   "name": "Sanctum Warden",
+  "creature": "Archangel",
+  "region": "W",
   "tier": 4,
   "deck": "decks/realms/dominaria/sanctum-warden.txt",
   "stats": {

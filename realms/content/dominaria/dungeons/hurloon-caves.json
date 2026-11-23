@@ -1,0 +1,26 @@
+{
+  "id": "hurloon-caves",
+  "name": "The Hurloon Caves",
+  "theme": "caves",
+  "entrance": [
+    274,
+    372
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "benalish-knight",
+    "longbow-archer",
+    "pegasus-charger"
+  ],
+  "warden": "warden-2",
+  "boss": "commander-eesha",
+  "region": "W"
+}

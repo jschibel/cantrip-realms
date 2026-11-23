@@ -1,0 +1,46 @@
+{
+  "id": "mage-llanowar-3",
+  "name": "Verduran Enchantress",
+  "creature": "Verduran Enchantress",
+  "region": "G",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/mage-llanowar-3.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "elvish-striders",
+    "silver-pendant",
+    "copper-ring"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Druid"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#6b963e",
+      "#8f6340",
+      "#f1b44c"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

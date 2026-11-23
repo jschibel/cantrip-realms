@@ -1,0 +1,1 @@
+{"id":"caligo-3","name":"The Caligo Tower of the Third Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":3,"encounters":[1,2],"mobs":["abomination","eater-of-the-dead","knight-of-malice"],"warden":"warden-3","boss":"mage-caligo-3","region":"B","entrance":[56,94]}

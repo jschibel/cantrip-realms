@@ -1,0 +1,43 @@
+{
+  "id": "garna",
+  "name": "Garna, Bloodfist of Keld",
+  "creature": "Garna, Bloodfist of Keld",
+  "region": "R",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/garna.txt",
+  "stats": {
+    "life": 30,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "argivian-crown"
+  ],
+  "prize": 6000,
+  "goldRange": [
+    1500,
+    1500
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "BR",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#8f2f2f",
+      "#2e1f17",
+      "#f1b44c"
+    ],
+    "size": 1.6
+  },
+  "boss": true,
+  "unlocks": "R"
+}

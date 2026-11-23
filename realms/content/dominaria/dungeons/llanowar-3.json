@@ -1,0 +1,27 @@
+{
+  "id": "llanowar-3",
+  "name": "The Llanowar Tower of the Third Circle",
+  "theme": "tower",
+  "entrance": [
+    503,
+    151
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 3,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "arrogant-wurm",
+    "birds-of-paradise",
+    "elvish-archers"
+  ],
+  "warden": "warden-3",
+  "boss": "mage-llanowar-3",
+  "region": "G",
+  "waystone": true
+}

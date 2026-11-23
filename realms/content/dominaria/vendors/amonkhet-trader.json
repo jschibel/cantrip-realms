@@ -1,0 +1,18 @@
+{
+  "id": "amonkhet-trader",
+  "name": "Nefer of the Luxa",
+  "specialty": {},
+  "purse": 30000,
+  "trader": {
+    "plane": "amonkhet",
+    "towns": [
+      "capashen-hold",
+      "llanowar",
+      "keld",
+      "tolarian-academy",
+      "new-benalia"
+    ],
+    "hour": 10,
+    "hours": 4
+  }
+}

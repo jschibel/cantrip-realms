@@ -76,6 +76,9 @@ public static class RealmApi
         api.MapPost("/vendor/{id}/sell", async (HttpContext context, Vendors vendors, string id, CardTrade body) =>
             Results.Ok(await vendors.Sell(Player(context), id, body).ConfigureAwait(false)));
 
+        api.MapGet("/travelers", (RealmContent content, TimeProvider time) =>
+            Results.Ok(Travelers.View(content, time.GetUtcNow().ToUnixTimeMilliseconds())));
+
         api.MapGet("/armorer/{town}", (Armorers armorers, string town) =>
             Results.Ok(new ArmorerView(armorers.Stock(town))));
 
@@ -97,10 +100,31 @@ public static class RealmApi
         api.MapPost("/chest/open", async (HttpContext context, Chests chests, ChestOpen body) =>
             Results.Ok(await chests.Open(Player(context), body).ConfigureAwait(false)));
 
-        api.MapPost("/travel", async (HttpContext context, Characters characters, TravelTo body) =>
+        api.MapPost("/position", async (HttpContext context, Characters characters, PlaceView body) =>
         {
-            await characters.Travel(Player(context), body).ConfigureAwait(false);
+            await characters.Position(Player(context), body).ConfigureAwait(false);
             return Results.Ok(new { });
         });
+
+        api.MapPost("/inn", async (HttpContext context, Characters characters) =>
+            Results.Ok(await characters.SetInn(Player(context)).ConfigureAwait(false)));
+
+        api.MapPost("/dungeon/enter", async (HttpContext context, Dungeons dungeons, DungeonEnter body) =>
+            Results.Ok(await dungeons.Enter(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/dungeon/floor", async (HttpContext context, Dungeons dungeons, FloorTake body) =>
+        {
+            await dungeons.Floor(Player(context), body).ConfigureAwait(false);
+            return Results.Ok(new { });
+        });
+
+        api.MapPost("/dungeon/leave", async (HttpContext context, Dungeons dungeons, RunLeave body) =>
+        {
+            await dungeons.Leave(Player(context), body).ConfigureAwait(false);
+            return Results.Ok(new { });
+        });
+
+        api.MapPost("/waystone", async (HttpContext context, Dungeons dungeons, WaystoneTravel body) =>
+            Results.Ok(await dungeons.Travel(Player(context), body).ConfigureAwait(false)));
     }
 }

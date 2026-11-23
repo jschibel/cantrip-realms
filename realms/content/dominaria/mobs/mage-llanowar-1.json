@@ -1,0 +1,44 @@
+{
+  "id": "mage-llanowar-1",
+  "name": "Woodland Druid",
+  "creature": "Woodland Druid",
+  "region": "G",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mage-llanowar-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band",
+    "copper-amulet"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Druid",
+      "Elf"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#6b963e",
+      "#8f6340",
+      "#f1b44c"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

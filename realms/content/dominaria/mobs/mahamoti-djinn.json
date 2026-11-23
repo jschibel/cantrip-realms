@@ -1,0 +1,42 @@
+{
+  "id": "mahamoti-djinn",
+  "name": "Mahamoti Djinn",
+  "creature": "Mahamoti Djinn",
+  "region": "U",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mahamoti-djinn.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "tolarian-robe",
+    "scholars-circlet"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#2f5fa8",
+      "#a97fd0"
+    ],
+    "size": 1.55
+  },
+  "boss": false
+}

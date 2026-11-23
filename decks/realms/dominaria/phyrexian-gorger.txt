@@ -1,12 +1,12 @@
-# Phyrexian Gorger (phyrexian-gorger), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+# Phyrexian Gorger (phyrexian-gorger, Phyrexian Fleshgorger), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
 
+4 Phyrexian Fleshgorger
+2 Phyrexian Walker
+3 Priest of Yawgmoth
+2 Branchsnap Lorian
+2 Moor Fiend
+2 Elfhame Wurm
 4 Cut Down
-3 Bone Splinters
-2 Plague Beetle
-4 Knight of Dusk's Shadow
-2 Knight of Malice
-4 Bog Raiders
-2 Sheoldred, the Apocalypse
-2 Silverback Elder
-13 Swamp
-4 Forest
+4 Go for the Throat
+12 Swamp
+5 Forest

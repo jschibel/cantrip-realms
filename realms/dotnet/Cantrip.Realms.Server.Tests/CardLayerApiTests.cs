@@ -80,13 +80,13 @@ public sealed class CardLayerApiTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1, "W");
-        await browser.Travel("new-benalia", RealmApp.InnOf("new-benalia").At);
+        await browser.Inside("benalia-white-goods-shop");
         await app.Give(browser, "Serra Angel", 3);
         await app.Give(browser, "Lightning Bolt", 1);
         DeckView deck = await browser.Deck();
         await browser.ToSpellTable();
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { deck.Main, Ante = new[] { new CardCount("Serra Angel", 1) } });
-        await browser.Travel("new-benalia", RealmApp.InnOf("new-benalia").At);
+        await browser.Inside("benalia-white-goods-shop");
 
         VendorView whites = await browser.Ok<VendorView>(HttpMethod.Get, "/api/vendor/benalia-white-goods");
         CharacterView me = await browser.Me();

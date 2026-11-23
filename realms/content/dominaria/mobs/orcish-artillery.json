@@ -1,0 +1,43 @@
+{
+  "id": "orcish-artillery",
+  "name": "Orcish Artillery",
+  "creature": "Orcish Artillery",
+  "region": "R",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/orcish-artillery.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "travelers-boots"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [
+      "Orc"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "goblin",
+    "palette": [
+      "#c8432c",
+      "#f1b44c",
+      "#2e1f17"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

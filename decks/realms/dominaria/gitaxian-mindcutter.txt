@@ -1,12 +1,12 @@
-# Gitaxian Mindcutter (gitaxian-mindcutter), a tier 4 mob: written by tools/realms/sample-decks.py; tune it by hand.
+# Gitaxian Mindcutter (gitaxian-mindcutter, Ertai Resurrected), a tier 4 Phyrexian of the Portal: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Cut Down
-3 Bone Splinters
-2 Fugitive Wizard
-4 Naban, Dean of Iteration
-2 Knight of Dusk's Shadow
-4 Tolarian Scholar
-2 Sheoldred, the Apocalypse
-2 Yargle, Glutton of Urborg
-7 Island
-10 Swamp
+4 Ertai Resurrected
+2 Phyrexian Walker
+3 Zuran Enchanter
+2 Raven Guild Initiate
+2 Abomination
+2 Phyrexian Fleshgorger
+4 Mana Drain
+4 Mind Ravel
+10 Island
+7 Swamp

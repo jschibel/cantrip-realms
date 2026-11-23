@@ -1,0 +1,16 @@
+# Vodalian Soldiers (vodalian-soldiers, Vodalian Soldiers), a tier 1 wanderer of Orvada: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Vodalian Soldiers
+2 Aven Envoy
+1 Coast Watcher
+2 Vodalian Mage
+2 Wing Commando
+1 Ghost Ship
+2 Keeneye Aven
+2 Homarid Warrior
+2 Shoreline Ranger
+2 Force Spike
+2 Counterspell
+2 Essence Scatter
+1 Flash Counter
+17 Island

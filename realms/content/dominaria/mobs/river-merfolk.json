@@ -1,0 +1,44 @@
+{
+  "id": "river-merfolk",
+  "name": "River Merfolk",
+  "creature": "River Merfolk",
+  "region": "U",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/river-merfolk.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "scholars-circlet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Merfolk"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "merfolk",
+    "palette": [
+      "#2f5fa8",
+      "#a97fd0"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

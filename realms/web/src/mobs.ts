@@ -31,15 +31,15 @@ const byId = new Map(Object.values(files).map((m) => [m.id, m]));
 
 /** Which base model a mob id reads as, by the words in it, for mobs with no file yet. */
 const GUESSES: readonly [RegExp, string, readonly string[], number?][] = [
-  [/seraph|angel|lyra/, "angel", ["#f2efe6", "#f1b44c", "#93c8dc"]],
-  [/drake|dragon|darigaaz/, "drake", ["#c8432c", "#f1b44c", "#2e1f17"], 1.3],
+  [/seraph|angel/, "angel", ["#f2efe6", "#f1b44c", "#93c8dc"]],
+  [/drake|dragon/, "drake", ["#c8432c", "#f1b44c", "#2e1f17"], 1.3],
   [/wurm|beast|ancient/, "wurm", ["#4f7a34", "#d6ae7e", "#2a4524"], 1.2],
-  [/elf|elves|elvish|multani-guard|forager/, "elf", ["#3e9a4a", "#8f6340", "#c08a62"]],
+  [/elf|elves|elvish|forager/, "elf", ["#3e9a4a", "#8f6340", "#c08a62"]],
   [/goblin/, "goblin", ["#6b963e", "#c8432c", "#4a3122"]],
   [/ghoul|zombie/, "ghoul", ["#8c909c", "#4b2f5e", "#5d6646"]],
-  [/phyrexian|sheoldred|horror|plaguelord/, "phyrexian", ["#b3b5bc", "#7a1f24", "#2a2b36"]],
+  [/phyrexian|horror|plaguelord/, "phyrexian", ["#b3b5bc", "#7a1f24", "#2a2b36"]],
   [/automaton|construct|sentinel|warden|golem/, "construct", ["#8c909c", "#9c6a1e", "#62a4c2"]],
-  [/wraith|spirit|elemental|drifter|multani$/, "spirit", ["#93c8dc", "#f4ecc2", "#5b8fd6"]],
+  [/wraith|spirit|elemental|drifter/, "spirit", ["#93c8dc", "#f4ecc2", "#5b8fd6"]],
 ];
 
 function guess(id: string): MobInfo {

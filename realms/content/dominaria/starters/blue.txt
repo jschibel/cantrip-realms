@@ -4,12 +4,12 @@
 2 Bay Falcon
 2 Storm Crow
 2 Tetsuko Umezawa, Fugitive
-2 Glacial Wall
-2 Wall of Air
+2 Soaring Drake
+2 Blind Phantasm
 2 Azure Drake
 2 Serra Sphinx
-2 Miscalculation
-2 Remand
-2 Counterspell
-1 Disdainful Stroke
+2 Pongify
+2 Force Void
+2 Force Spike
+1 Psionic Blast
 17 Island

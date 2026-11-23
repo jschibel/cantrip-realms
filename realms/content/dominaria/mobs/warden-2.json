@@ -1,0 +1,45 @@
+{
+  "id": "warden-2",
+  "name": "Obsianus Golem",
+  "creature": "Obsianus Golem",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/warden-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "copper-amulet"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [
+      "Construct",
+      "Golem",
+      "Thopter"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "construct",
+    "palette": [
+      "#8c909c",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

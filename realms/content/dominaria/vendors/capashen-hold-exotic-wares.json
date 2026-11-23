@@ -1,0 +1,8 @@
+{
+  "id": "capashen-hold-exotic-wares",
+  "name": "The Far-Shore Trader",
+  "town": "capashen-hold",
+  "specialty": {},
+  "purse": 50000,
+  "exotic": true
+}

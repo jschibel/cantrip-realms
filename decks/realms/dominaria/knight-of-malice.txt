@@ -1,0 +1,12 @@
+# Knight of Malice (knight-of-malice, Knight of Malice), a tier 3 wanderer of the Caligo Morass: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Knight of Malice
+2 Will-o'-the-Wisp
+3 Headless Horseman
+3 Shadow Rider
+2 Yargle, Glutton of Urborg
+2 Yawgmoth Demon
+3 Cut Down
+3 Go for the Throat
+1 Terror
+17 Swamp

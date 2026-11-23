@@ -1,0 +1,16 @@
+# Cradle Guard (cradle-guard, Cradle Guard), a tier 2 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Cradle Guard
+2 Scryb Sprites
+1 Emerald Dragonfly
+2 Thornweald Archer
+2 Magnigoth Sentry
+1 Blanchwood Treefolk
+2 Elfhame Wurm
+2 Primordial Wurm
+1 Enormous Baloth
+2 Audacity
+2 Giant Growth
+2 Foxfire
+1 Touch of Vitae
+17 Forest

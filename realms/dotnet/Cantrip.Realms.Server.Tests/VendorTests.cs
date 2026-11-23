@@ -13,13 +13,11 @@ public sealed class VendorTests
     /// <summary>New Benalia's white goods: a vendor of every white card.</summary>
     private const string Whites = "benalia-white-goods";
 
-    private const string Town = "new-benalia";
-
-    /// <summary>A player with a character, at New Benalia's inn among its vendors.</summary>
+    /// <summary>A player with a character, inside the white goods' shop in New Benalia.</summary>
     private static async Task<Browser> Shopper(RealmApp app, ulong id, string color = "W", string name = "Tester")
     {
         Browser browser = await app.Character(id, color, name);
-        await browser.Travel(Town, RealmApp.InnOf(Town).At);
+        await browser.Inside(Whites + "-shop");
         return browser;
     }
 
@@ -53,11 +51,15 @@ public sealed class VendorTests
     }
 
     [Fact]
-    public async Task A_vendor_trades_in_its_own_town()
+    public async Task A_vendor_trades_in_its_own_shop()
     {
         await using var app = new RealmApp();
         Browser browser = await Shopper(app, 1);
-        await browser.Travel("benalish-meadow", new Hex(0, 0));
+
+        // Not in the street outside, nor in the town's other shop.
+        await browser.Put(RealmContent.WorldSpace, RealmApp.Inn("new-benalia").At);
+        await browser.Refused(HttpMethod.Get, Path(Whites), null, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("benalia-soldiers-shop");
         await browser.Refused(HttpMethod.Get, Path(Whites), null, HttpStatusCode.Conflict, Codes.NotNear);
         await browser.Refused(HttpMethod.Get, Path("nobody"), null, HttpStatusCode.NotFound, Codes.NoVendor);
     }
@@ -168,8 +170,10 @@ public sealed class VendorTests
         Browser browser = await Shopper(app, 1, "W");
         await browser.Ok<VendorView>(HttpMethod.Get, Path(Whites));
 
-        // A goblin vendor's trade is goblins; a white card is not.
+        // The soldiers' trade is soldiers; an angel is not.
+        await browser.Inside("benalia-soldiers-shop");
         await browser.Refused(HttpMethod.Post, Path("benalia-soldiers", "/sell"), new { Name = "Serra Angel" }, HttpStatusCode.Conflict, Codes.NotTheirTrade);
+        await browser.Inside(Whites + "-shop");
 
         // Every copy of a starter card is in the deck.
         DeckView deck = await browser.Deck();

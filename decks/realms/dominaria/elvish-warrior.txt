@@ -1,0 +1,15 @@
+# Elvish Warrior (elvish-warrior, Elvish Warrior), a tier 1 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Elvish Warrior
+2 Defiant Elf
+2 Elvish Lookout
+2 Thornweald Archer
+2 Cat Warriors
+2 Nessian Courser
+2 Barkweave Crusher
+1 Magnigoth Sentry
+2 Panther Warriors
+2 Wirewood Guardian
+2 Giant Growth
+2 Foxfire
+17 Forest

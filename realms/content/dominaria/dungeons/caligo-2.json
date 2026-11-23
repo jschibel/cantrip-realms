@@ -1,0 +1,27 @@
+{
+  "id": "caligo-2",
+  "name": "The Caligo Tower of the Second Circle",
+  "theme": "tower",
+  "entrance": [
+    67,
+    489
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "bog-wraith",
+    "lost-soul",
+    "moor-fiend"
+  ],
+  "warden": "warden-2",
+  "boss": "mage-caligo-2",
+  "region": "B",
+  "waystone": true
+}

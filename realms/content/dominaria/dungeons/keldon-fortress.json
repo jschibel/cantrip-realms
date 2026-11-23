@@ -1,0 +1,39 @@
+{
+  "id": "keldon-fortress",
+  "name": "The Keldon Fortress",
+  "theme": "caves",
+  "entrance": [
+    96,
+    257
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "frost-giant",
+      "keldon-warlord",
+      "marton-stromgald",
+      "orcish-artillery",
+      "talruum-minotaur",
+      "two-headed-giant-of-foriys"
+    ],
+    [
+      "frost-giant",
+      "karplusan-yeti",
+      "marton-stromgald",
+      "rorix-bladewing",
+      "shivan-dragon",
+      "two-headed-giant-of-foriys"
+    ]
+  ],
+  "warden": "foundry-warden",
+  "boss": "garna",
+  "region": "R"
+}

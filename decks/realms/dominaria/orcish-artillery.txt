@@ -1,0 +1,16 @@
+# Orcish Artillery (orcish-artillery, Orcish Artillery), a tier 2 wanderer of Keld: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Orcish Artillery
+2 Orcish Spy
+1 Blazing Effigy
+2 Ironclaw Orcs
+1 Orcish Cannoneers
+1 Coalition Warbrute
+2 Flametongue Kavu
+2 Earth Elemental
+2 Volcanic Dragon
+2 Chain Lightning
+2 Firebolt
+1 Lava Dart
+2 Flare
+17 Mountain

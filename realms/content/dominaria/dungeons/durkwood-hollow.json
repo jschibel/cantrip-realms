@@ -1,0 +1,26 @@
+{
+  "id": "durkwood-hollow",
+  "name": "The Durkwood Hollow",
+  "theme": "hollow",
+  "entrance": [
+    256,
+    259
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 2,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "cradle-guard",
+    "craw-wurm",
+    "elven-riders"
+  ],
+  "warden": "warden-2",
+  "boss": "arrogant-wurm",
+  "region": "G"
+}
