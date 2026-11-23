@@ -232,8 +232,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_12:1","x":558,"z":393,"mobs":["craw-wurm","elven-riders","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"17_12:2","x":564,"z":413,"mobs":["longbow-archer","lost-soul","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"17_12:1","x":563,"z":398,"mobs":["elven-riders","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_12:2","x":545,"z":400,"mobs":["benalish-knight","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

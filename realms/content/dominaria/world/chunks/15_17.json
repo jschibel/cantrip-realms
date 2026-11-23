@@ -32,7 +32,7 @@
     [32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",3],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",3],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],
     [32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[30,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],
     [32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",3],[31,"rock",3],[31,"rock",0],[31,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],
-    [32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",3],[31,"rock",0],[31,"rock",3],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],
+    [32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",3],[31,"rock",0],[31,"rock",3],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],
     [32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",3],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0]
   ],
   "props": [
@@ -155,12 +155,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_17:1","x":509,"z":551,"mobs":["azure-drake","lost-soul","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"15_17:2","x":485,"z":558,"mobs":["keldon-warlord","longbow-archer","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"15_17:1","x":509,"z":551,"mobs":["azure-drake","benalish-knight","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"15_17:2","x":484,"z":563,"mobs":["azure-drake","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"15_17:c1","x":482,"z":574,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

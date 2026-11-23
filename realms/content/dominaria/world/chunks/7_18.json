@@ -2,7 +2,7 @@
   "cx": 7,
   "cz": 18,
   "tiles": [
-    [3,"grass",3],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],
+    [3,"grass",3],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],
     [1,"sand",0],[1,"sand",0],[3,"grass",0],[4,"grass",0],[4,"grass",3],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],
     [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[5,"grass",3],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],
     [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],
@@ -31,7 +31,7 @@
     [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[3,"meadow",0],[4,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",3],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[3,"meadow",0],[3,"meadow",0],[4,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[3,"meadow",0],[3,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[3,"meadow",0],[4,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[3,"meadow",0],[4,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",0],[6,"meadow",3],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[2,"meadow",0],[3,"meadow",0],[4,"meadow",0],[4,"meadow",0],[5,"meadow",3],[5,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",3],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[2,"meadow",0],[3,"meadow",3],[4,"meadow",0],[4,"meadow",0],[5,"meadow",0],[5,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0]
   ],
@@ -57,11 +57,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"7_18:1","x":237,"z":577,"mobs":["pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"7_18:2","x":245,"z":594,"mobs":["benalish-knight","cradle-guard","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"7_18:1","x":234,"z":576,"mobs":["benalish-knight","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"7_18:2","x":249,"z":593,"mobs":["lost-soul","pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"7_18:c1","x":244,"z":576,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"7_18:c1","x":238,"z":605,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": [

@@ -3,7 +3,7 @@
   "cz": 15,
   "tiles": [
     [80,"rock",1],[70,"rock",1],[40,"scree",0],[37,"scree",0],[35,"scree",0],[32,"scree",0],[30,"scree",3],[28,"scree",0],[26,"scree",0],[24,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",3],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[20,"scree",0],[18,"scree",0],[17,"scree",0],[16,"scree",0],[14,"scree",3],[13,"scree",0],[11,"scree",0],[10,"scree",0],
-    [89,"rock",1],[79,"rock",1],[69,"rock",1],[39,"scree",3],[36,"scree",0],[34,"scree",0],[31,"scree",0],[29,"scree",0],[28,"scree",0],[26,"scree",0],[23,"scree",3],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[20,"scree",0],[19,"scree",0],[18,"scree",0],[16,"scree",0],[15,"scree",0],[14,"scree",3],[13,"scree",0],[11,"scree",0],
+    [89,"rock",1],[79,"rock",1],[69,"rock",1],[39,"scree",3],[36,"scree",0],[34,"scree",0],[31,"scree",0],[29,"scree",0],[28,"scree",0],[26,"scree",0],[23,"scree",3],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",3],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[20,"scree",0],[19,"scree",0],[18,"scree",0],[16,"scree",0],[15,"scree",0],[14,"scree",3],[13,"scree",0],[11,"scree",0],
     [98,"rock",1],[88,"rock",1],[78,"rock",1],[69,"rock",1],[39,"scree",0],[36,"scree",0],[34,"scree",3],[31,"scree",3],[29,"scree",0],[26,"scree",0],[24,"scree",0],[21,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[21,"scree",0],[20,"scree",0],[19,"scree",0],[17,"scree",0],[16,"scree",3],[15,"scree",0],[14,"scree",0],[13,"scree",0],
     [107,"rock",1],[96,"rock",1],[87,"rock",1],[77,"rock",1],[68,"rock",1],[39,"scree",0],[36,"scree",0],[33,"scree",3],[31,"scree",0],[28,"scree",0],[26,"scree",0],[23,"scree",0],[20,"scree",0],[20,"scree",3],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",3],[20,"scree",0],[19,"scree",0],[18,"scree",0],[17,"scree",0],[16,"scree",0],[15,"scree",0],[14,"scree",0],
     [115,"rock",1],[105,"rock",1],[96,"rock",1],[86,"rock",1],[77,"rock",1],[67,"rock",1],[38,"scree",0],[35,"scree",0],[33,"scree",0],[30,"scree",0],[27,"scree",0],[25,"scree",0],[22,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"scree",0],[20,"grass",0],[19,"grass",3],[18,"grass",0],[17,"grass",3],[16,"grass",3],[15,"grass",0],
@@ -80,9 +80,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"24_15:1","x":786,"z":481,"mobs":["rorix-bladewing","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"24_15:1","x":791,"z":495,"mobs":["serra-paragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"24_15:c1","x":783,"z":481,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

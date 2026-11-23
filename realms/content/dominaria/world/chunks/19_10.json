@@ -33,7 +33,7 @@
     [6,"meadow",0],[6,"meadow",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],
     [6,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],
     [7,"meadow",0],[7,"meadow",3],[8,"meadow",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",2],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],
-    [8,"meadow",0],[8,"meadow",0],[8,"meadow",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",2],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0]
+    [8,"meadow",0],[8,"meadow",0],[8,"meadow",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",2],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0]
   ],
   "props": [
     {"id":"bones","x":617.5625,"z":321.375,"seed":8},
@@ -68,11 +68,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_10:1","x":613,"z":323,"mobs":["enormous-baloth","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"19_10:2","x":612,"z":341,"mobs":["benalish-hero","bog-raiders","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"19_10:3","x":629,"z":345,"mobs":["hurloon-minotaur","mesa-pegasus","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"19_10:1","x":608,"z":328,"mobs":["rorix-bladewing","tarmogoyf","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"19_10:2","x":624,"z":346,"mobs":["bog-rats","ironclaw-orcs","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"19_10:c1","x":628,"z":351,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

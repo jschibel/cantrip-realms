@@ -82,8 +82,8 @@
     {"id":"oneah-guard-3","x":879,"z":667,"kind":"guard","name":"Oneah guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"elf","speed":2.2,"behaviour":{"beat":{"stops":[[879,667],[879,675]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"27_20:1","x":865,"z":654,"mobs":["eater-of-the-dead","lord-of-atlantis","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"27_20:2","x":889,"z":656,"mobs":["lord-of-atlantis","marton-stromgald"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"27_20:1","x":865,"z":654,"mobs":["eater-of-the-dead","knight-of-malice","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"27_20:2","x":894,"z":656,"mobs":["air-elemental","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

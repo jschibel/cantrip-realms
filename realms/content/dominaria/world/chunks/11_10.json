@@ -81,7 +81,8 @@
     {"id":"caligo-1-waystone","x":371,"z":343,"kind":"waystone","name":"The waystone of the Caligo Tower of the First Circle","stand":[371.5,0.125,343.5],"tower":"caligo-1"}
   ],
   "spawns": [
-    {"id":"11_10:1","x":368,"z":327,"mobs":["bog-imp","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"11_10:1","x":369,"z":331,"mobs":["bog-imp","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"11_10:2","x":383,"z":343,"mobs":["bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [

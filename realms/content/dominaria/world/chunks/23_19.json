@@ -63,7 +63,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"23_19:1","x":741,"z":623,"mobs":["mahamoti-djinn","tempest-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"23_19:1","x":757,"z":635,"mobs":["sengir-vampire","shivan-dragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

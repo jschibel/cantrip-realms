@@ -85,7 +85,7 @@
     {"id":"new-benalia-guard-2","x":431,"z":737,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[431,737],[439,737]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"13_23:1","x":419,"z":746,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"13_23:1","x":417,"z":751,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

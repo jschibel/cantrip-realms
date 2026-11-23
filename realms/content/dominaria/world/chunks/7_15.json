@@ -85,9 +85,8 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"7_15:1","x":236,"z":481,"mobs":["lost-soul","orcish-artillery","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:2","x":252,"z":490,"mobs":["azure-drake","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"7_15:3","x":227,"z":510,"mobs":["azure-drake","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"7_15:1","x":246,"z":484,"mobs":["longbow-archer","moor-fiend","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"7_15:2","x":227,"z":510,"mobs":["longbow-archer","merfolk-raiders","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

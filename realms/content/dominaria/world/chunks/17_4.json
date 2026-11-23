@@ -70,9 +70,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_4:1","x":545,"z":140,"mobs":["fallen-angel","serra-paragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_4:2","x":575,"z":146,"mobs":["mahamoti-djinn","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_4:3","x":560,"z":155,"mobs":["fallen-angel","shivan-dragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"17_4:1","x":545,"z":140,"mobs":["fallen-angel","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"17_4:2","x":562,"z":142,"mobs":["enormous-baloth","mahamoti-djinn","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

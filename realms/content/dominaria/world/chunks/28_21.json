@@ -14,7 +14,7 @@
     [9,"forest-floor",0],[9,"forest-floor",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[5,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],[9,"moss",0],
     [9,"forest-floor",3],[9,"forest-floor",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",3],[6,"moss",3],[6,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],[9,"moss",0],
     [9,"forest-floor",3],[9,"forest-floor",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],
-    [9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[8,"dirt",0],[8,"dirt",0],[7,"dirt",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"grass",0],[9,"grass",0],
+    [9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[8,"dirt",0],[8,"dirt",0],[7,"dirt",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"grass",0],[9,"grass",0],
     [9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[8,"dirt",0],[8,"dirt",0],[7,"dirt",0],[7,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[7,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[8,"moss",0],[8,"moss",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],
     [9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[9,"dirt",0],[8,"dirt",0],[8,"dirt",0],[8,"dirt",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],
     [9,"forest-floor",3],[9,"forest-floor",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[7,"moss",0],[7,"moss",2],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"grass",0],[8,"grass",2],[8,"grass",3],[8,"grass",2],
@@ -168,10 +168,11 @@
     {"id":"oneah-guard-4","x":896,"z":686,"kind":"guard","name":"Oneah guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"elf","speed":2.2,"behaviour":{"beat":{"stops":[[896,686],[888,686]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"28_21:1","x":908,"z":683,"mobs":["birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"28_21:2","x":915,"z":699,"mobs":["commander-eesha","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"28_21:1","x":911,"z":689,"mobs":["air-elemental","knight-of-malice","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"28_21:c1","x":908,"z":684,"gold":[180,380],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

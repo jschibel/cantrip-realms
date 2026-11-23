@@ -29,7 +29,7 @@
     [7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],
     [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[6,"grass",0],[2,"moss",0],[2,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],
     [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],
-    [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[3,"moss",0],[3,"moss",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],
+    [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[3,"moss",0],[3,"moss",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],
     [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],
     [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"meadow",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],
     [7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"meadow",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"moss",0],[3,"moss",0],
@@ -73,9 +73,11 @@
     {"id":"vess-estate-guard-2","x":282,"z":419,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[282,419],[290,419]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"8_13:1","x":260,"z":438,"mobs":["benalish-knight","merfolk-raiders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"8_13:1","x":260,"z":438,"mobs":["elven-riders","pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"8_13:c1","x":268,"z":443,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

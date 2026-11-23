@@ -46,9 +46,7 @@
     {"id":"oneah-b5","style":"llanowar","kind":"house","x":859,"z":666,"w":6,"d":6,"rot":1,"params":{"ground":2.5625,"upper":0,"roof":"tile","rise":1.5,"wall":"plaster","openings":[{"at":1.5,"kind":"door"},{"at":3.25,"kind":"window"}]}}
   ],
   "npcs": [],
-  "spawns": [
-    {"id":"26_20:1","x":848,"z":667,"mobs":["elvish-archers","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

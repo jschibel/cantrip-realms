@@ -112,7 +112,7 @@
     {"id":"foriys-quest-board","x":650,"z":373,"kind":"quest-board","name":"Notice board","text":["The ferry to Keld sails from the north shore."],"stand":[650.5,0.3125,373.5]}
   ],
   "spawns": [
-    {"id":"20_11:1","x":646,"z":356,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"20_11:1","x":662,"z":354,"mobs":["elven-riders","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

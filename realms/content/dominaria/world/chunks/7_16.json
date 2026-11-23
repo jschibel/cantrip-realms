@@ -109,7 +109,7 @@
     {"id":"sursi-guard-2","x":244,"z":521,"kind":"guard","name":"Sursi guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[244,521],[252,521]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"7_16:1","x":228,"z":530,"mobs":["bog-wraith","longbow-archer","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"7_16:1","x":225,"z":537,"mobs":["bog-wraith","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

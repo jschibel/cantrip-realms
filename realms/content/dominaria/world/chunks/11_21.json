@@ -29,7 +29,7 @@
     [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",3],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",3],[13,"grass",0],[13,"grass",0],[13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],[10,"grass",0],
     [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],
     [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[9,"grass",0],[9,"grass",0],
-    [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",3],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],
+    [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",3],[13,"grass",0],[13,"grass",3],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],
     [13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",2],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],
     [13,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",3],[9,"grass",0],[9,"grass",0],[9,"grass",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[9,"grass",3],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],
@@ -70,10 +70,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_21:1","x":357,"z":677,"mobs":["balduvian-barbarians","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"11_21:1","x":376,"z":675,"mobs":["bog-raiders","coral-merfolk","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"11_21:2","x":370,"z":695,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"11_21:c1","x":356,"z":699,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

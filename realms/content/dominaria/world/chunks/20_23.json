@@ -209,9 +209,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"20_23:1","x":658,"z":739,"mobs":["elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"20_23:2","x":640,"z":754,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"20_23:3","x":664,"z":755,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"20_23:1","x":640,"z":739,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_23:2","x":657,"z":740,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_23:3","x":668,"z":757,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_23:4","x":650,"z":758,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

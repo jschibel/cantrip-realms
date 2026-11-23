@@ -13,7 +13,7 @@
     [32,"scree",0],[31,"scree",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[29,"scree",0],[29,"scree",0],[28,"scree",0],[28,"scree",0],[27,"scree",3],[27,"scree",0],[26,"scree",0],[25,"scree",0],[25,"scree",0],[24,"scree",0],[25,"scree",0],[25,"scree",0],[25,"scree",0],[25,"scree",0],[25,"scree",3],[24,"scree",0],[24,"scree",0],[23,"scree",0],[23,"scree",0],[23,"scree",0],[23,"scree",0],[23,"scree",0],[23,"scree",0],[23,"scree",0],[24,"scree",0],
     [31,"scree",0],[31,"scree",3],[31,"scree",3],[31,"scree",0],[30,"scree",3],[30,"scree",0],[30,"scree",0],[29,"scree",3],[29,"scree",0],[28,"scree",0],[28,"scree",0],[27,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[29,"scree",0],[29,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[29,"scree",0],[29,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],[28,"scree",0],
     [32,"scree",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[29,"scree",0],[30,"scree",0],[30,"scree",0],[30,"scree",0],[31,"scree",0],[31,"scree",0],[31,"scree",0],[32,"scree",3],[33,"scree",0],[34,"scree",0],[34,"scree",0],[35,"scree",0],[34,"scree",3],[34,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",3],[33,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],
-    [36,"scree",0],[36,"scree",3],[34,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[34,"scree",0],[34,"scree",0],[35,"scree",0],[34,"scree",0],[36,"scree",0],[36,"scree",0],[37,"scree",0],[37,"scree",3],[38,"scree",0],[38,"scree",0],[38,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",3],[39,"scree",0],[39,"scree",3],[38,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],
+    [36,"scree",0],[36,"scree",0],[34,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[34,"scree",0],[34,"scree",0],[35,"scree",0],[34,"scree",0],[36,"scree",0],[36,"scree",0],[37,"scree",0],[37,"scree",3],[38,"scree",0],[38,"scree",0],[38,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",3],[39,"scree",0],[39,"scree",3],[38,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],
     [40,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[38,"scree",0],[37,"scree",0],[38,"scree",0],[39,"scree",0],[39,"scree",0],[40,"scree",0],[40,"scree",0],[40,"scree",0],[41,"scree",0],[41,"scree",0],[42,"scree",0],[42,"scree",0],[64,"rock",1],[67,"rock",1],[69,"rock",1],[70,"rock",1],[70,"rock",1],[71,"rock",1],[71,"rock",1],[70,"rock",1],[70,"rock",1],[69,"rock",1],[68,"rock",1],[68,"rock",1],[67,"rock",1],[67,"rock",1],
     [43,"scree",0],[43,"scree",0],[41,"scree",0],[41,"scree",0],[41,"scree",0],[41,"scree",0],[40,"scree",3],[41,"scree",0],[42,"scree",0],[42,"scree",0],[43,"scree",0],[43,"scree",0],[44,"scree",0],[44,"scree",0],[64,"rock",1],[68,"rock",1],[72,"rock",1],[75,"rock",1],[78,"rock",1],[81,"rock",1],[83,"rock",1],[84,"rock",1],[84,"rock",1],[85,"rock",1],[84,"rock",1],[84,"rock",1],[83,"rock",1],[83,"rock",1],[82,"rock",1],[81,"rock",1],[81,"rock",1],[81,"rock",1],
     [47,"scree",0],[45,"scree",0],[45,"scree",0],[45,"scree",0],[44,"scree",0],[44,"scree",0],[44,"scree",0],[44,"scree",0],[44,"scree",0],[45,"scree",0],[45,"scree",0],[66,"rock",1],[70,"rock",1],[74,"rock",1],[78,"rock",1],[82,"rock",1],[86,"rock",1],[89,"rock",1],[92,"rock",1],[95,"rock",1],[97,"rock",1],[98,"rock",1],[98,"rock",1],[99,"rock",1],[98,"rock",1],[98,"rock",1],[97,"rock",1],[96,"rock",1],[95,"rock",1],[94,"rock",1],[94,"rock",1],[94,"rock",1],
@@ -89,13 +89,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_18:1","x":542,"z":586,"mobs":["benalish-knight","longbow-archer","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_18:2","x":525,"z":588,"mobs":["craw-wurm","elven-riders","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_18:3","x":541,"z":605,"mobs":["elven-riders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"16_18:1","x":541,"z":576,"mobs":["benalish-knight","elven-riders","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"16_18:2","x":525,"z":588,"mobs":["bog-wraith","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"16_18:c1","x":513,"z":587,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

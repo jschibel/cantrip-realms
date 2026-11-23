@@ -99,8 +99,8 @@
     {"id":"keldon-watch-guard-4","x":682,"z":202,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"humanoid","speed":2.2,"behaviour":{"beat":{"stops":[[682,202],[674,202]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"21_6:1","x":694,"z":194,"mobs":["mahamoti-djinn","rorix-bladewing","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"21_6:2","x":701,"z":215,"mobs":["shivan-dragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"21_6:1","x":693,"z":196,"mobs":["mahamoti-djinn","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"21_6:2","x":703,"z":213,"mobs":["sengir-vampire","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

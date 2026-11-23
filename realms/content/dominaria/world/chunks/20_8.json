@@ -22,7 +22,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[4,"tundra",0],[5,"tundra",0],[6,"tundra",0],[6,"tundra",0],[7,"tundra",0],[8,"tundra",0],[9,"tundra",0],[9,"tundra",0],[9,"grass",0],[9,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[4,"tundra",0],[5,"tundra",0],[6,"tundra",3],[7,"tundra",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",3],[9,"grass",0],[10,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[4,"tundra",0],[4,"grass",0],[5,"grass",0],[6,"grass",2],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",3],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],
@@ -61,12 +61,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"20_8:1","x":651,"z":270,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"20_8:2","x":671,"z":280,"mobs":["bog-raiders","coral-merfolk","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"20_8:1","x":645,"z":256,"mobs":["hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_8:2","x":660,"z":276,"mobs":["ironclaw-orcs","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"20_8:c1","x":666,"z":276,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

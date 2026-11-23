@@ -33,7 +33,7 @@
     [1,"forest-floor",3],[1,"forest-floor",0],[1,"forest-floor",3],[1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",3],[1,"forest-floor",0],[1,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",3],[1,"forest-floor",3],[1,"forest-floor",3],[1,"forest-floor",3],[1,"forest-floor",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",3],[1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",0],[1,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [1,"forest-floor",0],[1,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",2],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
+    [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",2],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
   "props": [
     {"id":"great-tree","x":839.375,"z":800.4375,"seed":1,"scale":0.9375},
@@ -260,11 +260,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"26_25:1","x":852,"z":800,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"26_25:2","x":838,"z":811,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"26_25:3","x":848,"z":826,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"26_25:1","x":838,"z":811,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"26_25:2","x":848,"z":826,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"26_25:c1","x":835,"z":831,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

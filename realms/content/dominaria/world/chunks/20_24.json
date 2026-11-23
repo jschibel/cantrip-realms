@@ -13,7 +13,7 @@
     [6,"forest-floor",0],[6,"forest-floor",3],[6,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],
     [6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",3],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],
     [6,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",3],[6,"grass",0],[6,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],
-    [7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",3],[7,"grass",0],[7,"grass",3],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],
+    [7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",3],[6,"forest-floor",0],[6,"forest-floor",0],[6,"forest-floor",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],
     [7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",3],
     [7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",3],[7,"forest-floor",3],[7,"forest-floor",0],[7,"grass",0],[7,"grass",3],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],
     [10,"forest-floor",0],[8,"forest-floor",0],[8,"forest-floor",3],[7,"forest-floor",3],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",0],[7,"forest-floor",3],[7,"forest-floor",0],[7,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",3],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",3],[8,"moss",0],[8,"moss",0],
@@ -227,13 +227,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"20_24:1","x":665,"z":772,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"20_24:2","x":645,"z":777,"mobs":["elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"20_24:3","x":661,"z":789,"mobs":["elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"20_24:1","x":664,"z":774,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_24:2","x":647,"z":776,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"20_24:3","x":651,"z":793,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"20_24:c1","x":667,"z":779,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

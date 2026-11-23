@@ -3,7 +3,7 @@
   "cz": 26,
   "tiles": [
     [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",2],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[2,"forest-floor",3],[3,"forest-floor",0],[3,"forest-floor",3],[3,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",3],[3,"forest-floor",0],[3,"forest-floor",0],[3,"forest-floor",0],[3,"forest-floor",0],[3,"forest-floor",0],[3,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[2,"forest-floor",3],[2,"forest-floor",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -208,12 +208,10 @@
     {"id":"shanodin-ferry-ferryman-from","x":853,"z":843,"kind":"ferryman","ferry":"shanodin-ferry","name":"The ferryman of the Shanodin Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"26_26:1","x":859,"z":853,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"26_26:2","x":832,"z":856,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"26_26:1","x":834,"z":838,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"26_26:2","x":832,"z":856,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"26_26:c1","x":841,"z":833,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

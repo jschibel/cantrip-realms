@@ -1,7 +1,8 @@
 // Maps of the generated world from straight above (`npm run world:map [out-dir]`), drawn from the checked-in files as
 // the overworld loads them: the whole of Dominaria a tile a pixel (world.png), the same with each tier's zone tinted and
 // the spawns, waymarkers, dungeons and towers marked (zones.png), and every town close up, four pixels a tile
-// (town-<id>.png) - streets, buildings by footprint with their doors, walls and gates, wares, people. The default
+// (town-<id>.png) - streets, buildings by footprint with their doors, walls and gates, wares, people - and a stretch of
+// each kind of country (land-<name>.png). The default
 // directory is realms/web/e2e/screenshots/world2/.
 
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -102,4 +103,16 @@ for (const t of world.towns) {
   const scale = t.kind === "capital" ? 3 : 4;
   writeFileSync(join(out, `town-${t.id}.png`), draw(t.center[0] - r, t.center[1] - r, t.center[0] + r + 1, t.center[1] + r + 1, scale).png());
 }
-console.log(`world-map.ts: ${2 + world.towns.length} pictures in ${out}`);
+// The lands between, closer: a stretch of each kind of country, two pixels a tile.
+const LANDS: Record<string, readonly [number, number]> = {
+  "benalia-farmland": [440, 880],
+  "llanowar-forest": [780, 760],
+  "caligo-morass": [300, 360],
+  "hurloon-mountains": [520, 590],
+  "keld-and-the-waste": [590, 280],
+  "parma-ice": [600, 110],
+  "orvada-isles": [110, 700],
+  "verdura": [478, 1110],
+};
+for (const [name, [x, z]] of Object.entries(LANDS)) writeFileSync(join(out, `land-${name}.png`), draw(x - 100, z - 75, x + 100, z + 75, 2).png());
+console.log(`world-map.ts: ${2 + world.towns.length + Object.keys(LANDS).length} pictures in ${out}`);

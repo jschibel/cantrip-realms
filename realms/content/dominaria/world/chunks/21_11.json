@@ -26,7 +26,7 @@
     [5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"meadow",0],[4,"meadow",0],[4,"meadow",0],[4,"meadow",0],[4,"meadow",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],
     [5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],
     [5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],
-    [5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",2],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],
+    [5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",3],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",2],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],
     [5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],
     [5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],
     [5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",3],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",0],
@@ -54,10 +54,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"21_11:1","x":675,"z":352,"mobs":["keldon-warlord","longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"21_11:2","x":690,"z":372,"mobs":["azure-drake","cradle-guard","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"21_11:1","x":682,"z":356,"mobs":["craw-wurm","keldon-warlord","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"21_11:2","x":680,"z":375,"mobs":["longbow-archer","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"21_11:c1","x":689,"z":376,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

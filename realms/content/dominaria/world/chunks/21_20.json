@@ -322,8 +322,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"21_20:1","x":676,"z":650,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"21_20:2","x":695,"z":654,"mobs":["cradle-guard","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"21_20:1","x":676,"z":650,"mobs":["elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"21_20:2","x":695,"z":654,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"21_20:3","x":682,"z":669,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

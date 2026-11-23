@@ -237,8 +237,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"27_22:1","x":888,"z":722,"mobs":["pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"27_22:2","x":867,"z":726,"mobs":["bog-wraith","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"27_22:1","x":876,"z":723,"mobs":["elven-riders","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

@@ -40,7 +40,7 @@ become the game's, `slice.html` and the hex renderer are gone, and this file is 
 Each recipe module is a registry: an id maps to a pure function from a recipe and a palette to meshes and materials.
 The world data names ids; nothing in the world data is three.js.
 
-`world/` also still holds the hex world's files (`schema.ts`, `content.ts`, `space.ts`, `world.test.ts`), which the game
+`world/` also still holds the hex world's files (`schema.ts`, `content.ts`, `space.ts`; the hex content and its generator are gone, so these read version-2 files as hexes until integration retires them), which the game
 page uses until integration retires them; version 2 is `format.ts`, `load.ts`, `lint.ts` and `grid.ts` beside them.
 `slice/main.ts` is the slice's page: input, doors, the HUD and the test hooks over the modules below, until integration
 makes the game page the slice's.

@@ -21,7 +21,7 @@
     [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
-    [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
+    [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [7,"meadow",0],[7,"dirt",0],[7,"dirt",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
@@ -74,9 +74,13 @@
     {"id":"avenant-guard-3","x":258,"z":639,"kind":"guard","name":"Avenant guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[258,639],[258,647]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"8_19:1","x":274,"z":615,"mobs":["longbow-archer","lost-soul","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"8_19:1","x":287,"z":612,"mobs":["bog-wraith","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"8_19:2","x":273,"z":623,"mobs":["benalish-knight","longbow-archer","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"8_19:3","x":256,"z":624,"mobs":["benalish-knight","lost-soul","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"8_19:c1","x":261,"z":627,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

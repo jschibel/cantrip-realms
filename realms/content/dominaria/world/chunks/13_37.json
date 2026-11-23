@@ -2,8 +2,8 @@
   "cx": 13,
   "cz": 37,
   "tiles": [
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"moss",0],[2,"moss",0],[3,"moss",0],[3,"moss",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"moss",0],[2,"moss",0],[3,"moss",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"moss",0],[2,"moss",3],[3,"moss",0],[3,"moss",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"moss",0],[2,"moss",3],[3,"moss",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[2,"moss",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],
@@ -35,7 +35,10 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
-  "props": [],
+  "props": [
+    {"id":"tree","x":445.625,"z":1184.5625,"seed":15,"scale":0.8125},
+    {"id":"mushroom","x":446.375,"z":1185.4375,"seed":3,"scale":1.25}
+  ],
   "buildings": [],
   "npcs": [],
   "spawns": [],

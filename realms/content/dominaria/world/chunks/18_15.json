@@ -292,8 +292,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_15:1","x":597,"z":493,"mobs":["keldon-warlord","lost-soul","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"18_15:2","x":583,"z":509,"mobs":["craw-wurm","keldon-warlord","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"18_15:1","x":597,"z":493,"mobs":["merfolk-raiders","orcish-artillery","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

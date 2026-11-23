@@ -3,7 +3,7 @@
   "cz": 24,
   "tiles": [
     [2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",2],[2,"mud",3],[1,"mud",0],[1,"mud",0],[1,"mud",0],[1,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",3],[1,"mud",0],[1,"mud",0],[1,"mud",3],[1,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",0],[2,"mud",3],[1,"mud",0],[1,"mud",0],[1,"mud",0],[1,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"mud",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"mud",0],[2,"mud",0],[1,"mud",2],[1,"mud",0],[1,"mud",0],[1,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",3],[2,"moss",0],[2,"moss",0],[1,"mud",0],[1,"mud",0],[1,"mud",0],[1,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",0],[2,"moss",3],[2,"moss",3],[2,"moss",0],[1,"mud",0],[1,"mud",0],[1,"mud",0],[1,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -99,10 +99,10 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
-  "chests": [
-    {"id":"30_24:c1","x":968,"z":769,"gold":[180,380],"respawnSeconds":86400}
+  "spawns": [
+    {"id":"30_24:1","x":967,"z":778,"mobs":["eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

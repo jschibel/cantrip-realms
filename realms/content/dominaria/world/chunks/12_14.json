@@ -90,8 +90,8 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"12_14:1","x":410,"z":451,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"12_14:2","x":405,"z":472,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"12_14:1","x":408,"z":460,"mobs":["bog-imp","bog-raiders"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"12_14:2","x":406,"z":479,"mobs":["bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

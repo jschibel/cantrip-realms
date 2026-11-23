@@ -15,7 +15,7 @@
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[11,"grass",0],[11,"grass",0],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[11,"grass",0],[11,"grass",3],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],
-    [12,"moss",3],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],
+    [12,"moss",3],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],
     [12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",2],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[11,"moss",0],[11,"moss",0],[11,"moss",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",3],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],
     [11,"moss",0],[11,"moss",0],[11,"moss",0],[11,"moss",0],[11,"moss",0],[11,"moss",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",3],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],[10,"grass",0],
@@ -158,11 +158,13 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_16:1","x":536,"z":519,"mobs":["benalish-knight","bog-wraith","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_16:2","x":520,"z":529,"mobs":["benalish-knight","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_16:3","x":534,"z":542,"mobs":["cradle-guard","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"16_16:1","x":536,"z":519,"mobs":["azure-drake","benalish-knight","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"16_16:2","x":520,"z":529,"mobs":["bog-wraith","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"16_16:3","x":533,"z":542,"mobs":["cradle-guard","moor-fiend","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"16_16:c1","x":537,"z":525,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

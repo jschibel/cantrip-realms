@@ -32,7 +32,7 @@
     [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"mud",3],
     [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],
     [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],
-    [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[3,"mud",0],[3,"mud",3],
+    [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[3,"mud",0],[3,"mud",3],
     [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"mud",0]
   ],
   "props": [
@@ -102,10 +102,12 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"12_12:1","x":407,"z":391,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"12_12:2","x":411,"z":408,"mobs":["bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"12_12:1","x":406,"z":391,"mobs":["bog-imp","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"12_12:2","x":411,"z":408,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"12_12:c1","x":406,"z":414,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [
     {"x":413,"z":384,"dungeon":"caligo-barrow"}
   ],

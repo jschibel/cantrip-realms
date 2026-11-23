@@ -140,7 +140,7 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"19_21:1","x":631,"z":694,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"19_21:1","x":631,"z":694,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

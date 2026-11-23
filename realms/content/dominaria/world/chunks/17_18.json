@@ -80,8 +80,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_18:1","x":559,"z":579,"mobs":["longbow-archer","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"17_18:2","x":574,"z":604,"mobs":["cradle-guard","longbow-archer","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"17_18:1","x":559,"z":579,"mobs":["keldon-warlord","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_18:2","x":574,"z":604,"mobs":["cradle-guard","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_18:3","x":554,"z":605,"mobs":["keldon-warlord","orcish-artillery","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

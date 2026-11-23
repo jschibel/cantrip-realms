@@ -88,7 +88,8 @@
   "npcs": [],
   "spawns": [
     {"id":"24_17:1","x":771,"z":548,"mobs":["sibilant-spirit","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"24_17:2","x":770,"z":568,"mobs":["fallen-angel","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"24_17:2","x":791,"z":552,"mobs":["mahamoti-djinn","rorix-bladewing","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"24_17:3","x":768,"z":571,"mobs":["karplusan-yeti","mahamoti-djinn","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

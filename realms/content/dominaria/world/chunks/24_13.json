@@ -63,8 +63,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"24_13:1","x":783,"z":418,"mobs":["enormous-baloth","sengir-vampire","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"24_13:2","x":768,"z":439,"mobs":["enormous-baloth","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"24_13:1","x":783,"z":420,"mobs":["karplusan-yeti","serra-angel","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

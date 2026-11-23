@@ -33,7 +33,7 @@
     [2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"grass",0],[3,"grass",0],[5,"grass",0],[7,"grass",0],[8,"scree",0],[8,"scree",0],[8,"scree",0],[8,"scree",0],[8,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[9,"scree",0],[10,"scree",0],[10,"scree",0],[10,"scree",0],[10,"scree",0],[10,"scree",0],[10,"scree",0],
     [2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[3,"grass",0],[5,"grass",0],[7,"grass",0],[8,"grass",0],[10,"grass",0],[10,"scree",0],[10,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"grass",0],[11,"grass",0],[11,"grass",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],[11,"scree",0],
     [2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[4,"grass",0],[5,"grass",0],[7,"grass",0],[8,"grass",0],[10,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[13,"grass",0],[13,"grass",0],[13,"grass",0],[13,"scree",0],[13,"scree",0],[13,"scree",0],
-    [2,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",3],[2,"grass",0],[4,"grass",0],[5,"grass",0],[7,"grass",0],[8,"grass",0],[10,"grass",0],[12,"grass",0],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3]
+    [2,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",0],[2,"grass",0],[4,"grass",0],[5,"grass",0],[7,"grass",0],[8,"grass",0],[10,"grass",0],[12,"grass",0],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3],[14,"cobbles",3]
   ],
   "props": [
     {"id":"pine","x":440.375,"z":608.4375,"seed":11,"scale":1},
@@ -64,14 +64,12 @@
     {"id":"hurloon-caves-spell-table","x":437,"z":619,"kind":"spell-table","name":"Spell table","stand":[437.5,0.3125,619.5]}
   ],
   "spawns": [
-    {"id":"13_19:1","x":437,"z":630,"mobs":["bog-wraith","lost-soul","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"13_19:2","x":420,"z":635,"mobs":["benalish-knight","longbow-archer","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"13_19:1","x":447,"z":614,"mobs":["longbow-archer","moor-fiend","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"13_19:2","x":439,"z":631,"mobs":["keldon-warlord","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [
     {"x":439,"z":619,"dungeon":"hurloon-caves"}
   ],
-  "waymarkers": [
-    {"x":419,"z":639,"tier":2}
-  ]
+  "waymarkers": []
 }

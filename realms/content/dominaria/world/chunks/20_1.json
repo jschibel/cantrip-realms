@@ -45,9 +45,7 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"20_1:1","x":641,"z":52,"mobs":["sengir-vampire","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

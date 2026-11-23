@@ -85,9 +85,7 @@
     {"id":"new-benalia-b67","style":"benalish","kind":"house","x":430,"z":728,"w":6,"d":5,"rot":0,"params":{"ground":2.4375,"upper":0,"roof":"tile","rise":1.8125,"chimney":3.4375,"wall":"plaster","openings":[{"at":2.5,"kind":"door"}]}}
   ],
   "npcs": [],
-  "spawns": [
-    {"id":"13_22:1","x":420,"z":729,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

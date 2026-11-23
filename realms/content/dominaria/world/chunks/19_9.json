@@ -23,7 +23,7 @@
     [2,"rock",0],[2,"rock",0],[2,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",3],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [3,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [3,"rock",0],[3,"rock",0],[3,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",3],[2,"rock",0],[1,"rock",0],[1,"rock",3],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [3,"rock",0],[3,"rock",0],[3,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[1,"rock",0],[1,"rock",3],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [3,"rock",0],[3,"rock",0],[3,"rock",0],[3,"rock",0],[3,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[2,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [3,"rock",0],[3,"rock",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[2,"rock",0],[2,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",2],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",3],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[3,"cracked-earth",0],[2,"cracked-earth",0],[2,"rock",0],[1,"rock",0],[1,"rock",0],[1,"rock",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -52,12 +52,8 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"19_9:1","x":610,"z":304,"mobs":["mahamoti-djinn","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
-  "chests": [
-    {"id":"19_9:c1","x":614,"z":309,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "spawns": [],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

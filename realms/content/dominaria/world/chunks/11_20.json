@@ -70,9 +70,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"11_20:1","x":383,"z":654,"mobs":["llanowar-elves","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"11_20:2","x":366,"z":659,"mobs":["coral-merfolk","davenant-archer","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"11_20:3","x":380,"z":671,"mobs":["benalish-hero","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"11_20:1","x":376,"z":652,"mobs":["bog-rats","coral-merfolk"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"11_20:2","x":362,"z":662,"mobs":["elvish-warrior","hurloon-minotaur","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

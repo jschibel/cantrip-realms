@@ -31,23 +31,26 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",3],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",2],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],[1,"sand",0],[1,"sand",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",3],[4,"grass",3],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],
-    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",3],[4,"grass",0],[5,"grass",3],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[5,"grass",3],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0]
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",3],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[2,"grass",0],[1,"sand",0],[1,"sand",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",3],[4,"grass",3],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",3],[2,"grass",0],
+    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[5,"grass",2],[5,"grass",0],[5,"grass",0],[5,"grass",3],[6,"grass",0],[6,"grass",0],[6,"grass",3],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",3],[4,"grass",0],[4,"grass",0],[4,"grass",3],[4,"grass",0],[4,"grass",0],[4,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0],[3,"grass",0]
   ],
   "props": [
-    {"id":"mushroom","x":467.4375,"z":1053.375,"seed":3,"scale":1.125},
-    {"id":"bush","x":466.5625,"z":1053.625,"seed":5},
-    {"id":"stump","x":472.375,"z":1053.625,"seed":9},
-    {"id":"tree","x":466.5,"z":1054.5,"seed":12,"scale":1.0625},
-    {"id":"tree","x":465.4375,"z":1054.5625,"seed":2,"scale":1},
-    {"id":"tree","x":457.625,"z":1055.4375,"seed":14,"scale":1.125},
-    {"id":"bush","x":464.4375,"z":1055.5625,"seed":6},
-    {"id":"mushroom","x":455.5625,"z":1055.625,"seed":15}
+    {"id":"tree","x":468.5625,"z":1053.375,"seed":6,"scale":0.8125},
+    {"id":"pine","x":478.4375,"z":1054.5,"seed":2,"scale":0.9375},
+    {"id":"tree","x":458.625,"z":1054.5625,"seed":0,"scale":0.875},
+    {"id":"mushroom","x":459.4375,"z":1054.625,"seed":13},
+    {"id":"pine","x":460.5,"z":1055.375,"seed":14,"scale":1.125},
+    {"id":"stump","x":457.5,"z":1055.5,"seed":14},
+    {"id":"pine","x":463.625,"z":1055.5,"seed":1,"scale":0.9375},
+    {"id":"tree","x":469.4375,"z":1055.5625,"seed":8,"scale":0.8125},
+    {"id":"pine","x":472.375,"z":1055.625,"seed":14,"scale":0.875}
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"14_32:1","x":465,"z":1053,"mobs":["frost-giant","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

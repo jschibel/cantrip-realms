@@ -17,7 +17,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[10,"grass",3],[11,"grass",0],[12,"grass",0],[13,"grass",0],[15,"grass",0],[15,"grass",0],[15,"grass",0],[15,"grass",0],[15,"grass",0],[15,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[6,"grass",2],[7,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[12,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[12,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",3],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[13,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",3],[11,"grass",0],[13,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[5,"grass",0],[6,"grass",3],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[13,"grass",0],[14,"grass",0],[14,"grass",0],[14,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[13,"grass",0],[14,"grass",0],[14,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[9,"grass",0],[10,"grass",0],[11,"grass",0],[12,"grass",0],[13,"grass",0],
@@ -57,12 +57,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_23:1","x":273,"z":737,"mobs":["elven-riders","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"8_23:2","x":286,"z":759,"mobs":["benalish-hero","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"8_23:1","x":274,"z":742,"mobs":["azure-drake","longbow-archer","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"8_23:2","x":286,"z":759,"mobs":["elvish-warrior","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],
   "waymarkers": [
-    {"x":275,"z":751,"tier":2}
+    {"x":281,"z":751,"tier":2}
   ]
 }

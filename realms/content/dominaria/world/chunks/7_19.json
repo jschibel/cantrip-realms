@@ -18,7 +18,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[2,"grass",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",2],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],[6,"meadow",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",3],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",0],[3,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",3],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],[7,"meadow",0],
@@ -59,13 +59,10 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"7_19:1","x":238,"z":611,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"7_19:2","x":255,"z":616,"mobs":["lost-soul","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"7_19:3","x":231,"z":627,"mobs":["bog-rats","ironclaw-orcs","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"7_19:1","x":242,"z":611,"mobs":["azure-drake","craw-wurm"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"7_19:2","x":230,"z":627,"mobs":["durkwood-boars","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"7_19:c1","x":237,"z":624,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

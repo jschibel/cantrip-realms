@@ -285,7 +285,9 @@
     {"id":"elfhame-hollow-spell-table","x":812,"z":821,"kind":"spell-table","name":"Spell table","stand":[812.5,0.25,821.5]}
   ],
   "spawns": [
-    {"id":"25_25:1","x":814,"z":812,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"25_25:1","x":820,"z":802,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"25_25:2","x":804,"z":812,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"25_25:3","x":825,"z":822,"mobs":["elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [

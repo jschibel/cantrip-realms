@@ -32,8 +32,8 @@
     [29,"rock",0],[29,"rock",0],[29,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",0],[24,"rock",0],[24,"rock",0],[23,"scree",0],[25,"scree",0],[25,"scree",0],[27,"scree",0],[28,"scree",0],[30,"scree",0],[30,"scree",0],[32,"scree",0],[33,"scree",0],[34,"scree",0],[36,"scree",0],[36,"scree",0],[37,"scree",0],[37,"scree",0],[38,"scree",0],[65,"rock",1],
     [28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",0],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",0],[22,"rock",0],[22,"rock",0],[22,"scree",0],[24,"scree",0],[25,"scree",0],[26,"scree",0],[28,"scree",3],[28,"scree",0],[30,"scree",0],[31,"scree",0],[31,"scree",0],[32,"scree",0],[33,"scree",0],[34,"scree",0],[33,"scree",3],
     [28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",0],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",0],[22,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[22,"scree",3],[23,"scree",0],[24,"scree",0],[25,"scree",0],[27,"scree",0],[28,"scree",0],[28,"scree",0],[29,"scree",0],[29,"scree",0],[28,"scree",0],
-    [28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",0],[25,"rock",0],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",0],[22,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[20,"rock",0],[19,"scree",0],[21,"scree",0],[22,"scree",0],[23,"scree",3],[23,"scree",0],[24,"scree",0],[24,"scree",0],[25,"scree",0],
-    [28,"rock",3],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",3],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",3],[22,"rock",0],[22,"rock",0],[22,"rock",3],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[19,"rock",0],[19,"rock",0],[19,"rock",3],[18,"rock",0],[19,"scree",0],[19,"scree",0],[20,"scree",0]
+    [28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",3],[25,"rock",0],[25,"rock",0],[25,"rock",0],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",0],[22,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[20,"rock",0],[19,"scree",0],[21,"scree",0],[22,"scree",0],[23,"scree",3],[23,"scree",0],[24,"scree",0],[24,"scree",0],[25,"scree",0],
+    [28,"rock",0],[28,"rock",0],[28,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[27,"rock",0],[26,"rock",0],[26,"rock",0],[26,"rock",0],[25,"rock",0],[25,"rock",3],[24,"rock",0],[24,"rock",0],[23,"rock",0],[23,"rock",3],[22,"rock",0],[22,"rock",0],[22,"rock",3],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[19,"rock",0],[19,"rock",0],[19,"rock",3],[18,"rock",0],[19,"scree",0],[19,"scree",0],[20,"scree",0]
   ],
   "props": [
     {"id":"dead-tree","x":688.5625,"z":576.375,"seed":14,"scale":0.875},
@@ -75,11 +75,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"21_18:1","x":682,"z":580,"mobs":["mahamoti-djinn","serra-angel","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"21_18:2","x":675,"z":602,"mobs":["enormous-baloth","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"21_18:1","x":687,"z":577,"mobs":["karplusan-yeti","marhault-elsdragon","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"21_18:2","x":675,"z":602,"mobs":["shivan-dragon","sibilant-spirit","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"21_18:3","x":697,"z":603,"mobs":["rorix-bladewing","shivan-dragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"21_18:c1","x":672,"z":607,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"21_18:c1","x":681,"z":606,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

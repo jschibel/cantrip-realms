@@ -25,7 +25,7 @@
     [40,"scree",0],[40,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[30,"rock",0],[30,"scree",0],
     [40,"rock",0],[40,"scree",0],[40,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",3],[39,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",3],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[36,"scree",3],[36,"scree",0],[36,"scree",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",3],[34,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[32,"scree",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[30,"scree",0],[30,"scree",0],
     [40,"rock",0],[40,"rock",0],[40,"scree",0],[40,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",3],[37,"scree",0],[37,"scree",0],[37,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[32,"scree",0],[32,"scree",0],[31,"scree",3],[31,"scree",0],[30,"scree",0],[30,"scree",0],
-    [40,"rock",0],[40,"rock",0],[40,"rock",0],[40,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[32,"scree",0],[32,"scree",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],
+    [40,"rock",0],[40,"rock",0],[40,"rock",0],[40,"scree",3],[39,"scree",0],[39,"scree",0],[39,"scree",0],[39,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[38,"scree",0],[37,"scree",0],[37,"scree",0],[37,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",0],[33,"scree",0],[33,"scree",0],[32,"scree",0],[32,"scree",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],
     [40,"rock",0],[40,"rock",0],[40,"rock",0],[39,"rock",0],[39,"rock",0],[39,"rock",0],[39,"rock",0],[39,"rock",3],[38,"rock",0],[38,"rock",0],[38,"rock",0],[37,"rock",0],[37,"rock",0],[37,"rock",0],[36,"rock",0],[36,"rock",3],[36,"rock",0],[36,"rock",0],[35,"scree",0],[35,"scree",0],[35,"scree",0],[34,"scree",0],[34,"scree",0],[33,"scree",3],[33,"scree",0],[32,"scree",0],[32,"scree",0],[32,"scree",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],
     [36,"rock",0],[36,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[35,"rock",0],[34,"rock",0],[34,"rock",0],[34,"rock",0],[33,"rock",0],[33,"rock",0],[33,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"scree",0],[31,"scree",0],[30,"scree",0],[30,"scree",0],[29,"scree",0],[29,"scree",0],[29,"scree",0],[29,"scree",0],[29,"scree",0],[28,"scree",0],[28,"scree",0],
     [33,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[32,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[31,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[30,"rock",0],[29,"rock",0],[29,"rock",0],[29,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"rock",0],[28,"scree",0],[28,"scree",0],[27,"scree",0],[27,"scree",0],[26,"scree",0],[26,"scree",0],[26,"scree",0],[25,"scree",0],[25,"scree",0],
@@ -90,10 +90,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_19:1","x":566,"z":623,"mobs":["benalish-knight","keldon-warlord","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"17_19:2","x":548,"z":624,"mobs":["cradle-guard","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"17_19:1","x":566,"z":623,"mobs":["longbow-archer","moor-fiend","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_19:2","x":548,"z":624,"mobs":["azure-drake","cradle-guard","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"17_19:c1","x":547,"z":631,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

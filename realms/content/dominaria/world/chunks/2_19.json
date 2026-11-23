@@ -5,7 +5,7 @@
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"dirt",0],
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"grass",3],[1,"grass",3],[1,"grass",3],[2,"grass",3],[2,"grass",0],[2,"grass",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"dirt",0],[2,"dirt",0],
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[2,"grass",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
-    [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
+    [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",3],[2,"grass",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"sand",0],[1,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"sand",0],[1,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
     [2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",0],[1,"grass",3],[1,"sand",0],[1,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"sand",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],[2,"grass",0],
@@ -90,9 +90,11 @@
     {"id":"academy-tower-spell-table","x":84,"z":608,"kind":"spell-table","name":"Spell table","stand":[84.5,0.125,608.5]}
   ],
   "spawns": [
-    {"id":"2_19:1","x":92,"z":615,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"2_19:1","x":93,"z":615,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"2_19:c1","x":69,"z":611,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [
     {"x":86,"z":608,"dungeon":"academy-tower"}
   ],

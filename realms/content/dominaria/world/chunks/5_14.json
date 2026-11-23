@@ -82,8 +82,8 @@
     {"id":"stahaan-ferry-ferryman-to","x":185,"z":461,"kind":"ferryman","ferry":"stahaan-ferry","name":"The ferryman of the Stahaan Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"5_14:1","x":189,"z":450,"mobs":["rorix-bladewing","serra-paragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"5_14:2","x":175,"z":467,"mobs":["serra-paragon","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"5_14:1","x":190,"z":450,"mobs":["sengir-vampire","serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"5_14:2","x":176,"z":462,"mobs":["serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

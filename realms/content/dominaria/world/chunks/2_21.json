@@ -88,7 +88,9 @@
     {"id":"tolarian-academy-b35","style":"tolarian","kind":"house","x":93,"z":697,"w":5,"d":6,"rot":0,"params":{"ground":2.4375,"upper":0,"roof":"tile","rise":1.5625,"wall":"plaster","openings":[{"at":1.25,"kind":"window"},{"at":3.5,"kind":"door"}]}}
   ],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"2_21:1","x":65,"z":674,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

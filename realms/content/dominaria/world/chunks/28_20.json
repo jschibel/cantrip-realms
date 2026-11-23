@@ -20,7 +20,7 @@
     [4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [5,"moss",3],[5,"moss",3],[5,"moss",0],[5,"moss",3],[5,"moss",0],[5,"moss",0],[5,"moss",3],[5,"moss",0],[4,"moss",0],[4,"moss",0],[3,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[4,"moss",0],[4,"moss",0],[3,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[5,"moss",3],[5,"moss",3],[4,"moss",3],[4,"moss",0],[4,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
+    [7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[5,"moss",3],[5,"moss",3],[4,"moss",3],[4,"moss",0],[4,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],
     [9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[5,"moss",3],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",3],[4,"moss",0],[4,"moss",0],[4,"moss",0],[4,"moss",0],[3,"moss",0],
     [9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[5,"moss",3],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[5,"moss",0],[4,"moss",0],[4,"moss",3],
@@ -33,7 +33,7 @@
     [9,"moss",3],[9,"moss",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[8,"grass",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",3],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],
     [9,"moss",3],[9,"moss",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"moss",0],[6,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",3],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],
     [9,"moss",3],[9,"moss",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",3],[9,"moss",3],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],
-    [9,"moss",3],[9,"moss",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",3],[7,"moss",0],[7,"moss",2],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",3]
+    [9,"moss",3],[9,"moss",3],[9,"dirt",0],[9,"dirt",0],[9,"dirt",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"moss",0],[6,"moss",3],[6,"moss",0],[6,"moss",3],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",2],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",3]
   ],
   "props": [
     {"id":"mushroom","x":902.4375,"z":656.375,"seed":14,"scale":1},
@@ -79,13 +79,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"28_20:1","x":911,"z":659,"mobs":["enormous-baloth","fallen-angel","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"28_20:1","x":916,"z":660,"mobs":["mahamoti-djinn","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"28_20:c1","x":920,"z":658,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
-  "waymarkers": [
-    {"x":914,"z":671,"tier":4}
-  ]
+  "waymarkers": []
 }

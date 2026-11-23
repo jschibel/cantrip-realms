@@ -84,8 +84,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"30_25:1","x":966,"z":801,"mobs":["abomination","eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"30_25:2","x":963,"z":824,"mobs":["eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"30_25:1","x":973,"z":808,"mobs":["abomination","eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"30_25:2","x":963,"z":824,"mobs":["abomination","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

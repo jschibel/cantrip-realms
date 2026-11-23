@@ -4,7 +4,7 @@
   "tiles": [
     [3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],
     [3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[3,"mud",0],
-    [3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],
+    [3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],
     [3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"planks",0],[3,"mud",0],[3,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],
     [3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"moss",0],[3,"moss",3],[3,"moss",0],[3,"moss",0],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],
     [3,"planks",0],[3,"planks",0],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"mud",3],[3,"moss",0],[3,"moss",0],[3,"moss",0],[3,"moss",3],[3,"planks",0],[3,"planks",0],[3,"planks",3],[3,"mud",0],[3,"mud",0],[3,"mud",0],[4,"mud",0],[4,"mud",0],[3,"mud",0],[3,"planks",0],[3,"planks",0],[4,"mud",0],[4,"mud",3],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],[4,"mud",0],
@@ -114,11 +114,9 @@
     {"id":"vess-estate-guard-4","x":394,"z":419,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"knight","speed":2.2,"behaviour":{"beat":{"stops":[[394,419],[386,419]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"12_13:1","x":411,"z":433,"mobs":["bog-imp","bog-raiders"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"12_13:1","x":411,"z":433,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"12_13:c1","x":409,"z":418,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

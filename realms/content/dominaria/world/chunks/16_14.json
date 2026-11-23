@@ -5,7 +5,7 @@
     [14,"forest-floor",0],[14,"forest-floor",0],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],
     [14,"forest-floor",0],[14,"forest-floor",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
     [14,"forest-floor",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
-    [15,"forest-floor",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
+    [15,"forest-floor",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
     [15,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",3],[14,"moss",0],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",2],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",3],
     [15,"moss",0],[14,"moss",0],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",2],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",0],[15,"moss",3],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
     [15,"moss",3],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",3],[14,"moss",3],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[14,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],[15,"moss",0],
@@ -149,12 +149,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_14:1","x":517,"z":451,"mobs":["cradle-guard","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_14:2","x":534,"z":453,"mobs":["longbow-archer","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_14:3","x":521,"z":474,"mobs":["pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"16_14:4","x":540,"z":474,"mobs":["azure-drake","bog-wraith","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"16_14:1","x":521,"z":466,"mobs":["azure-drake","craw-wurm"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"16_14:c1","x":518,"z":451,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

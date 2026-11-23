@@ -305,8 +305,8 @@
     {"id":"llanowar-3-waystone","x":813,"z":733,"kind":"waystone","name":"The waystone of the Llanowar Tower of the Third Circle","stand":[813.5,0.4375,733.5],"tower":"llanowar-3"}
   ],
   "spawns": [
-    {"id":"25_22:1","x":812,"z":711,"mobs":["longbow-archer","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"25_22:2","x":822,"z":730,"mobs":["cradle-guard","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"25_22:1","x":812,"z":711,"mobs":["longbow-archer","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"25_22:2","x":829,"z":713,"mobs":["merfolk-raiders","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [

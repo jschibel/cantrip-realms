@@ -8,7 +8,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[8,"rock",0],[10,"rock",0],[12,"rock",0],[14,"rock",0],[15,"rock",0],[17,"rock",0],[19,"rock",0],[21,"rock",3],[22,"rock",0],[22,"rock",3],[21,"rock",0],[21,"rock",0],[20,"rock",3],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",0],[17,"rock",0],[17,"rock",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[1,"rock",0],[2,"rock",0],[9,"rock",0],[10,"rock",0],[12,"rock",0],[14,"rock",0],[16,"rock",3],[18,"rock",0],[20,"rock",0],[21,"rock",0],[22,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[19,"rock",3],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",0],[17,"rock",0],[17,"rock",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[7,"rock",0],[9,"rock",0],[11,"rock",0],[13,"rock",0],[15,"rock",0],[17,"rock",0],[18,"rock",0],[20,"rock",0],[22,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",3],[17,"rock",0],[17,"rock",0],[17,"rock",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[8,"rock",0],[10,"rock",0],[12,"rock",0],[14,"rock",0],[15,"rock",0],[17,"rock",0],[19,"rock",0],[20,"rock",0],[22,"rock",0],[21,"rock",3],[21,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[18,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[8,"rock",0],[10,"rock",0],[12,"rock",0],[14,"rock",0],[15,"rock",0],[17,"rock",0],[19,"rock",3],[20,"rock",0],[22,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[18,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",2],[1,"rock",0],[1,"rock",0],[2,"rock",0],[9,"rock",3],[11,"rock",0],[12,"rock",0],[14,"rock",0],[16,"rock",0],[18,"rock",0],[19,"rock",0],[21,"rock",0],[22,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[19,"rock",0],[18,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[7,"rock",0],[9,"rock",0],[11,"rock",0],[13,"rock",0],[15,"rock",0],[16,"rock",0],[18,"rock",0],[19,"rock",0],[21,"rock",3],[21,"rock",0],[21,"rock",0],[20,"rock",0],[19,"rock",0],[19,"rock",0],[18,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"rock",0],[1,"rock",0],[2,"rock",0],[8,"rock",0],[10,"rock",0],[12,"rock",0],[13,"rock",0],[15,"rock",0],[17,"rock",0],[18,"rock",0],[20,"rock",0],[21,"rock",0],[21,"rock",0],[20,"rock",0],[20,"rock",0],[19,"rock",0],[18,"rock",0],[18,"rock",0],[17,"rock",0],[16,"rock",0],[16,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],[17,"rock",0],
@@ -65,10 +65,10 @@
     {"id":"stahaan-caves-spell-table","x":157,"z":417,"kind":"spell-table","name":"Spell table","stand":[157.5,1.0625,417.5]}
   ],
   "spawns": [
-    {"id":"4_13:1","x":143,"z":416,"mobs":["enormous-baloth","fallen-angel"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"4_13:1","x":143,"z":416,"mobs":["rorix-bladewing","sengir-vampire","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
-    {"id":"4_13:c1","x":144,"z":422,"gold":[300,500],"respawnSeconds":86400}
+    {"id":"4_13:c1","x":141,"z":422,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"x":157,"z":419,"dungeon":"stahaan-caves"}

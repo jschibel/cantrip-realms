@@ -8,7 +8,7 @@
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[18,"snow",3],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],[19,"snow",0],
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",3],[17,"snow",0],[17,"snow",0],[17,"snow",0],[18,"snow",0],[18,"snow",3],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",3],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],
-    [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",3],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",3],[17,"snow",0],[17,"snow",3],[17,"snow",0],[17,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],
+    [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",3],[14,"tundra",0],[14,"tundra",0],[14,"tundra",3],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",3],[17,"snow",0],[17,"snow",3],[17,"snow",0],[17,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",0],[17,"snow",0],[17,"snow",3],[17,"snow",0],[17,"snow",0],[17,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],[18,"snow",0],
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",3],[16,"tundra",0],[16,"tundra",0],[17,"tundra",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],
     [13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[13,"tundra",0],[14,"tundra",0],[14,"tundra",0],[14,"tundra",3],[14,"tundra",0],[14,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",0],[15,"tundra",2],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[16,"tundra",0],[17,"tundra",0],[17,"tundra",0],[17,"snow",0],[17,"snow",3],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],[17,"snow",0],
@@ -80,9 +80,11 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"21_5:1","x":696,"z":167,"mobs":["marhault-elsdragon","sibilant-spirit","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"21_5:1","x":679,"z":172,"mobs":["serra-paragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"21_5:c1","x":679,"z":166,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

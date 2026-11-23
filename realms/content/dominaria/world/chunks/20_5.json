@@ -92,7 +92,7 @@
   ],
   "spawns": [
     {"id":"20_5:1","x":642,"z":162,"mobs":["fallen-angel","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"20_5:2","x":667,"z":172,"mobs":["mahamoti-djinn","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"20_5:2","x":659,"z":169,"mobs":["enormous-baloth","karplusan-yeti","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

@@ -72,8 +72,7 @@
     {"id":"ironclaw-delvings-spell-table","x":767,"z":466,"kind":"spell-table","name":"Spell table","stand":[767.5,1.1875,466.5]}
   ],
   "spawns": [
-    {"id":"23_14:1","x":744,"z":450,"mobs":["tarmogoyf","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"23_14:2","x":759,"z":460,"mobs":["marhault-elsdragon","rorix-bladewing","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"23_14:1","x":745,"z":452,"mobs":["marhault-elsdragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

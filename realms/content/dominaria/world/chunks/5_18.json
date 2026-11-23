@@ -40,7 +40,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"5_18:1","x":164,"z":598,"mobs":["soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

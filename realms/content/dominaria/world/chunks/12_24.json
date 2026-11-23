@@ -6,7 +6,7 @@
     [3,"meadow",0],[3,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
     [3,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",3],[2,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",0],[1,"meadow",0],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",3],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
     [2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[2,"meadow",3],[2,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
-    [2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[1,"meadow",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",3],[1,"meadow",0],[1,"meadow",0],[1,"meadow",2],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
+    [2,"meadow",0],[2,"meadow",0],[2,"meadow",0],[1,"meadow",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",2],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
     [2,"meadow",0],[2,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
     [1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
     [1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"wheat",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],[1,"meadow",0],
@@ -62,11 +62,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_24:1","x":402,"z":788,"mobs":["davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"12_24:1","x":402,"z":782,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"12_24:c1","x":405,"z":772,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

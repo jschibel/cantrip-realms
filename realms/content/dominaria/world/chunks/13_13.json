@@ -103,7 +103,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"13_13:1","x":443,"z":428,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

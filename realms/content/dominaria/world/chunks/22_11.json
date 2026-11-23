@@ -40,7 +40,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"22_11:1","x":707,"z":376,"mobs":["birds-of-paradise","eater-of-the-dead"],"radius":6,"respawnSeconds":600,"tier":3}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

@@ -102,7 +102,8 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"13_24:1","x":420,"z":768,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"13_24:1","x":420,"z":768,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"13_24:2","x":419,"z":787,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

@@ -33,7 +33,7 @@
     [9,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[5,"moss",0],[4,"moss",0],[4,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [10,"moss",0],[10,"moss",0],[10,"moss",0],[10,"moss",0],[9,"moss",2],[9,"moss",0],[9,"moss",0],[9,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"moss",0],[7,"moss",0],[7,"moss",0],[6,"moss",0],[6,"moss",0],[5,"moss",0],[5,"moss",3],[5,"moss",0],[4,"moss",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [10,"moss",3],[10,"moss",0],[10,"moss",0],[10,"moss",0],[10,"moss",0],[10,"moss",0],[10,"moss",0],[9,"moss",0],[9,"moss",0],[9,"moss",0],[8,"moss",0],[8,"moss",0],[8,"moss",0],[7,"grass",0],[7,"grass",0],[6,"grass",0],[6,"grass",3],[5,"grass",3],[5,"grass",0],[4,"grass",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [10,"moss",0],[10,"moss",0],[10,"moss",0],[10,"moss",0],[11,"moss",0],[11,"moss",0],[10,"moss",0],[10,"moss",2],[10,"moss",0],[9,"moss",0],[9,"grass",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1]
+    [10,"moss",0],[10,"moss",3],[10,"moss",0],[10,"moss",0],[11,"moss",0],[11,"moss",0],[10,"moss",0],[10,"moss",2],[10,"moss",0],[9,"moss",0],[9,"grass",3],[9,"grass",0],[8,"grass",0],[8,"grass",0],[7,"grass",0],[6,"grass",3],[6,"grass",0],[6,"grass",0],[5,"grass",0],[5,"grass",0],[4,"grass",3],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1]
   ],
   "props": [
     {"id":"tree","x":940.5625,"z":661.375,"seed":12,"scale":1.1875},
@@ -63,10 +63,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"29_20:1","x":943,"z":657,"mobs":["fallen-angel","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"29_20:2","x":929,"z":667,"mobs":["karplusan-yeti","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"29_20:1","x":943,"z":657,"mobs":["fallen-angel","mahamoti-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],
-  "waymarkers": []
+  "waymarkers": [
+    {"x":929,"z":671,"tier":4}
+  ]
 }

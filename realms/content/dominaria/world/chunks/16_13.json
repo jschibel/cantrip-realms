@@ -234,7 +234,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"16_13:1","x":532,"z":430,"mobs":["benalish-knight","keldon-warlord","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"16_13:1","x":532,"z":419,"mobs":["bog-wraith","keldon-warlord","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"16_13:2","x":534,"z":440,"mobs":["azure-drake","benalish-knight","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

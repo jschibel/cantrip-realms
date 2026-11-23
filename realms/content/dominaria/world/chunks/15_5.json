@@ -29,7 +29,7 @@
     [4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",3],[6,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"tundra",0],[10,"tundra",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],
     [4,"grass",0],[4,"grass",0],[5,"grass",2],[6,"grass",0],[6,"grass",3],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],
     [4,"grass",0],[4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",0],[10,"tundra",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],
-    [4,"grass",0],[5,"grass",2],[5,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],
+    [4,"grass",0],[5,"grass",2],[5,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],
     [4,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],[10,"dirt",0],
     [4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",3],[8,"grass",0],[8,"grass",0],[8,"grass",3],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",0],[10,"tundra",0],[10,"tundra",0],[10,"tundra",3],[10,"tundra",0],[10,"tundra",0],
     [4,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[9,"grass",0],[11,"snow",0],[11,"snow",0],[10,"snow",0],[10,"dirt",3],[10,"dirt",0],[10,"dirt",0],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",3],[10,"tundra",0],[10,"tundra",0],[10,"tundra",0],[10,"tundra",0],[10,"tundra",0],[10,"tundra",0],[10,"tundra",3],
@@ -107,10 +107,11 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"15_5:1","x":489,"z":166,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"15_5:2","x":482,"z":185,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"15_5:1","x":483,"z":178,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"15_5:c1","x":487,"z":187,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

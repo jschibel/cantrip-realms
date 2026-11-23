@@ -52,7 +52,7 @@
   "npcs": [],
   "spawns": [
     {"id":"2_18:1","x":93,"z":588,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"2_18:2","x":75,"z":598,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"2_18:2","x":75,"z":598,"mobs":["coral-merfolk","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

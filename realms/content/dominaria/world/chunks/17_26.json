@@ -13,7 +13,7 @@
     [19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",0],[19,"grass",0],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[19,"grass",3],[18,"grass",3],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",3],
     [19,"grass",3],[19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],
     [19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",3],[17,"grass",0],[17,"grass",0],[17,"grass",0],
-    [19,"grass",0],[19,"grass",3],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",3],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],
+    [19,"grass",0],[19,"grass",3],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],
     [19,"grass",0],[19,"grass",0],[19,"grass",3],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",3],[17,"grass",0],
     [19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",3],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],
     [19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"grass",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[19,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"furrows",0],[18,"grass",0],[18,"grass",0],[18,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[17,"grass",0],[16,"grass",0],
@@ -71,12 +71,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_26:1","x":564,"z":848,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"17_26:2","x":551,"z":859,"mobs":["davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"17_26:1","x":565,"z":839,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"17_26:2","x":549,"z":850,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"17_26:c1","x":569,"z":843,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

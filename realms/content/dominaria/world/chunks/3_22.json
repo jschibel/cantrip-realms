@@ -23,7 +23,7 @@
     [5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"grass",0],[8,"planks",0],[8,"planks",0],[8,"planks",0],[8,"sand",0],[7,"dirt",0],[7,"dirt",0],[8,"sand",0],[8,"sand",0],[8,"sand",0],
     [1,"sand",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[8,"grass",0],[8,"planks",0],[8,"planks",0],[8,"planks",0],[8,"sand",0],[7,"dirt",0],[7,"dirt",0],[8,"sand",0],[8,"sand",0],[7,"sand",0],
     [1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],[7,"planks",0],[7,"planks",0],[7,"planks",0],[7,"sand",0],[7,"dirt",0],[7,"dirt",0],[7,"grass",0],[7,"grass",0],[7,"grass",0],
-    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"planks",0],[7,"planks",0],[7,"planks",0],[7,"grass",0],[7,"dirt",0],[7,"dirt",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],
+    [1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",3],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],[6,"planks",0],[7,"planks",0],[7,"planks",0],[7,"grass",0],[7,"dirt",0],[7,"dirt",0],[7,"grass",0],[6,"grass",0],[6,"grass",0],
     [0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",3],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],[6,"grass",0],[6,"planks",0],[6,"planks",0],[6,"planks",0],[6,"grass",0],[7,"dirt",0],[7,"dirt",0],[6,"grass",0],[6,"grass",0],[6,"grass",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"grass",0],[5,"grass",0],[5,"grass",0],[5,"planks",0],[5,"planks",0],[5,"planks",0],[5,"grass",0],[7,"dirt",0],[7,"dirt",0],[5,"grass",0],[5,"grass",0],[5,"grass",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[1,"sand",0],[3,"grass",3],[4,"grass",0],[4,"grass",0],[4,"grass",0],[4,"planks",0],[5,"planks",0],[5,"planks",0],[5,"grass",0],[7,"dirt",0],[7,"dirt",0],[5,"grass",0],[5,"grass",0],[4,"grass",0],
@@ -73,10 +73,11 @@
     {"id":"tolarian-academy-guard-1","x":121,"z":711,"kind":"guard","name":"Tolarian Academy guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"wizard","speed":2.2,"behaviour":{"beat":{"stops":[[121,711],[121,703]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
-    {"id":"3_22:1","x":103,"z":724,"mobs":["soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"3_22:2","x":126,"z":725,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"3_22:1","x":107,"z":728,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"3_22:c1","x":99,"z":725,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

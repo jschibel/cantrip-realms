@@ -68,7 +68,7 @@
     {"id":"keldon-ferry-ferryman-to","x":617,"z":265,"kind":"ferryman","ferry":"keldon-ferry","name":"The ferryman of the Keldon Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"19_8:1","x":627,"z":256,"mobs":["hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"19_8:1","x":627,"z":256,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],
