@@ -70,7 +70,7 @@ function wallTopPicture(ramp: Ramp = C.DARKWOOD): Pixmap {
 }
 
 /** A mud daub's plaster ramp: grey-green and brown (the Morass). */
-const DAUB: Ramp = [0x2a2a24, 0x3a3a30, 0x4c4a3a, 0x5e5a44, 0x706a50, 0x847c5c];
+const DAUB: Ramp = [0x3a3a30, 0x4c4a3a, 0x625e48, 0x787052, 0x8c8260, 0xa09670];
 /** Tolaria's plaster: pale blue-white. */
 const TOLARIAN_PLASTER: Ramp = [0x5a6a8a, 0x7e8eac, 0xa6b4cc, 0xc8d4e4, 0xe0e8f2, 0xf4f8fc];
 /** The Morass's dark timber, as a five-step ramp. */

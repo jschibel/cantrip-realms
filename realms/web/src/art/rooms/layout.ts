@@ -529,7 +529,7 @@ const inn: Layout = (plan, spec, keeper) => {
   if (!upstairs && plan.take(west ? 1 : w - 3, d - 2, west ? 3 : w - 1, d - 1)) plan.add({ id: "card-table", x: west ? 1 : w - 3, z: d - 2 });
   const wl = west ? w - 5.5 : 5.5;
   plan.add({ id: "wall-lamp", x: wl, z: 0, y: 1.6 });
-  plan.lights.push(candleLight(wl, 1.6, 0.6));
+  plan.lights.push({ ...candleLight(wl, 1.55, 0.9), intensity: 1.4 });
   cornerStores(plan, west ? "east" : "west");
 };
 
@@ -846,10 +846,12 @@ function dress(plan: Plan, kind: RoomKind): void {
   const options = DRESSING[kind];
   if (options.length === 0) return;
   let windows = plan.lights.filter((l) => l.kind === "spot").length;
+  // The options in turn from a seeded start, so a wall is not all lamps.
+  let next = plan.between(0, options.length - 1);
   for (const [a, b] of spans) {
     const span = b - a;
     const mid = (a + b) / 2;
-    const pick = options[plan.between(0, options.length - 1)]!;
+    const pick = options[next++ % options.length]!;
     if (pick === "window" && span >= 1.4 && windows < 2) {
       window(plan, mid - 0.5);
       windows++;
@@ -860,7 +862,7 @@ function dress(plan: Plan, kind: RoomKind): void {
     else if (pick === "shield" && span >= 0.8) plan.add({ id: "shield", x: mid - 0.3125, z: 0, y: 1.7 });
     else if (pick === "lamp" || span < 1.2) {
       plan.add({ id: "wall-lamp", x: mid, z: 0, y: 1.6 });
-      plan.lights.push(candleLight(mid, 1.6, 0.6));
+      plan.lights.push({ ...candleLight(mid, 1.55, 0.9), intensity: 1.4 });
     } else plan.add({ id: "poster", x: mid - 0.3125, z: 0, y: 1.4, seed: plan.between(2, 6) });
   }
 }

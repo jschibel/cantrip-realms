@@ -122,7 +122,8 @@ class Registry<R> { define(id, about, recipe, palette?, check?); has(id); get(id
   `upper`, `roof` tile|slate, `rise`, `chimney`, `wall` limestone|plaster, `openings` [{at, kind: door, shopDoor, window,
   windowUp, display, banner, bannerUp, sign, lamp}] - and `mausoleum`). `placeBuilding(building, draw)` lays a style's
   drawing (facing south on its footprint) out at the building's `rot`, its doorway turned with it.
-- `ROOMS: Registry<InteriorData>` by interior kind (art/rooms): `shop`, `crypt`. `roomShell(builder, spec)` draws the
+- `ROOMS: Registry<InteriorData>` by interior kind (art/rooms): `shop`, `inn`, `guildhall`, `temple`, `smithy`,
+  `library`, `house`, `tower`, `exotic-wares`, `crypt` ("Rooms and dungeons" below). `roomShell(builder, spec)` draws the
   back and front walls and returns the side walls as camera cut-aways; `exitGap(entry.x)` is the exit's two-tile gap.
 - `SURFACES` (art/surfaces): `defineSurface(id, about, palette, (palette) => {picture, priority, hole?, under?,
   tufts?})`; `SURFACES.look(id, palette?)`. Ids: `grass` (tufts 3), `cobbles`, `flagstones`, `dirt`, `straw`,
@@ -266,6 +267,136 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
   the door's step from the data.
 - `render/assemble.ts` puts all loaded chunks in one `Place`; the chunk manager should keep `Place` per chunk (or
   `addPieces` per chunk) and use `assembleWorld`'s per-chunk loop as its model.
+
+## Rooms and dungeons (phase 2, Interiors & dungeons)
+
+### Rooms: `art/rooms/layout.ts` -> `interiors/<id>.json`
+
+The World agent instances an interior by calling `layoutRoom(spec)`. It returns the whole `InteriorData` to write: the
+floor, the props, the keeper NPCs, the lights and the `params`. The same spec always gives the same room.
+
+```ts
+layoutRoom({
+  id, name?, town?,
+  kind,          // ROOM_KINDS: shop, inn, guildhall, temple, smithy, library, house, tower, exotic-wares
+  style,         // ROOM_STYLES: benalish, llanowar, morass, keldon, tolarian, vess
+                 //   aliases: urborg/caligo -> morass, argive -> vess, keld -> keldon, orvada -> tolarian,
+                 //   benalia -> benalish; anything else is benalish
+  seed,          // varies the layout and the furniture
+  building?: {w, d},  // the building's footprint in world units; the room's size is taken from it,
+                      //   within ROOM_SIZES[kind]
+  w?, d?,        // or the floor's size given outright
+  exit,          // the world tile you come out on: the building's door tile
+  specialty?,    // shop: cards | curios | books | weapons (else chosen by the seed)
+  upstairs?,     // inn: false makes it a tavern, with no gallery and more tables
+  keeper?,       // laid over the first keeper: {id, name, vendor, figure, palette...}
+}) -> InteriorData
+```
+
+- **Sizes** (`ROOM_SIZES`, in tiles):
+
+  | Kind | Width | Depth |
+  | --- | --- | --- |
+  | house | 8-10 | 6-7 |
+  | shop, inn, guildhall, temple, smithy, library, exotic wares | 9-11 (an inn 10-11) | 6-7 |
+  | tower (round, an even width across) | 8-10 | 8-10 |
+
+  A room up to these sizes is seen whole at every heading. The way out is a two-tile gap in the middle of the front
+  wall, with `entry` = `[floor(w / 2), d - 1]` (`w / 2` for the tower). The area takes in the sill row at `z = d`.
+- **Keepers** (NPCs):
+  - shop and exotic wares: a `vendor`, behind the counter;
+  - inn: an `innkeeper` behind the bar, and a `spell-table` NPC;
+  - guildhall (the mages' guild): a `spell-table` NPC and a guildmaster (`townsfolk`);
+  - smithy: an `armorer`;
+  - temple, library and tower: a priest, librarian or mage (`townsfolk`).
+
+  Use `keeper` to set the vendor's id. A keeper's tile is open but cannot be reached from the door. Every other open
+  tile is reached from the door.
+- **`params`** the shells read:
+  - `gallery: {y, depth, from, to, doors}`: an inn's gallery of rooms upstairs over its bar;
+  - `specialty`: a shop's wares.
+- **The recipes** (`ROOMS`):
+  - `hall.ts`: the square kinds, in their style's finish;
+  - `tower.ts`: the round floor;
+  - `crypt.ts`: the slice's crypt.
+
+  The finishes are in `styles.ts`: floor surfaces, wall bands, posts, the room's fill and daylight. Each style also names
+  the palette its furniture takes, `room-<style>`, given as each prop's `tint`.
+- **The room surfaces** (`room-*`): `room-elfwood`, `room-bogwood`, `room-keld-flags`, `room-mosaic`,
+  `room-tolarian-flags`, `room-parquet`, `room-marble`, `room-checker`, `room-stone`, `room-earth`, `room-mossy-flags`.
+- **Furniture** (`art/props`; anchors and args are in each entry's `about`):
+  - house and common: `table`, `chair`, `bench-seat`, `tankards`, `bed`, `chest`, `wardrobe`, `plant`,
+    `candle-stand`, `wall-lamp`, `carpet`, `fur-rug`;
+  - inn: `bar-counter`, `bar-shelf`, `keg-rack`, `inn-stair`;
+  - guildhall: `guild-banner`, `tapestry`, `quest-board`, `wall-map`, `spell-table`;
+  - temple: `altar`, `pew`, `column`, `stained-window`, `font`, `candle-rack`;
+  - smithy: `forge`, `anvil`, `quench-trough`, `grindstone`, `weapon-rack`, `armor-stand`, `tool-rack`, `coal-heap`,
+    `ingots`;
+  - library and tower: `bookcase`, `reading-desk`, `lectern`, `globe`, `book-pile`, `ladder`, `rune-circle`,
+    `orrery`, `telescope`, `crystal-pedestal`, `floating-crystal`, `spiral-stair`;
+  - shops: `card-case`, `booster-crate`, `weapon-barrel`, `curio-case`, `planar-rift`, `arcane-lamp`, `cauldron`,
+    `relic-pedestal`.
+- **Rotation:** a free-standing piece faces south and is turned by `rot`, in quarter turns as a building's (1 west,
+  2 north, 3 east). A wall piece stands against the wall at its own `z` and turns the same way.
+- **The slice's wall props** (`hearth`, `bookshelf`, `back-window`, `poster`, `blade-rack`, `shield`, `ossuary`,
+  `buttress`, `tattered-banner`, `torch`) now take their wall's `z` and `rot`. With `z` = 0 and no `rot`, as in the
+  slice, they are unchanged byte for byte.
+
+### Dungeons on squares: `dungeon/squares`
+
+`generateDungeonFloor({theme, seed, floor, floors, run})` returns a `DungeonFloor` (`types.ts`):
+- `w` by `d` tiles from (0, 0), in version 2's tile format (`tiles`, row by row);
+- `cells`, the plan the walls are drawn from: rows of `#` wall, `.` floor, `~` water, `=` lava, ` ` void;
+- `props`, `lights` (at most 16), and the spell-table `npcs` on floor 0;
+- `arrive`, `up`, `down`, `wayOut` and `spots` (`{index, mob, role, x, z}`), all in tiles.
+
+Each theme has its own carver in `themes/`, seeded by `${theme}:${seed}:${floor}`. `finish.ts` places the run's
+contract:
+- Walking is eight ways, never cutting a corner.
+- Every floor tile is reached from the arrival without crossing a stair or the way out. Those are walkable, but walked
+  onto only to be taken.
+- The warden's index is `Encounters.length` and the boss's is one more.
+
+`assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room:
+- walls in the theme's stone;
+- near walls low, and east and west walls as camera cut-aways;
+- skirts over the void;
+- the theme's fill and its own lights;
+- the `dungeon-*` surfaces and props.
+
+`gridOfFloor(floor)` is the floor's walkable Grid. The page frames a floor as `{inside: true, turns: true, bounds}`.
+Leaving is stepping onto `up`, going down is stepping onto `down`, and leaving after the boss is stepping onto `wayOut`.
+Importing `dungeon/squares` registers every id it names.
+
+### Viewing them
+
+`rooms.html` (dev only) shows a room or a floor with the hero in it:
+- a room: `?room=<kind>&style=&seed=&specialty=&upstairs=0&heading=`;
+- a floor: `?dungeon=<theme>&seed=&floor=&floors=&heading=`;
+- no query: an index of links.
+
+`e2e/rooms.spec.ts` renders every kind and theme at every heading. With `ROOMS_SHOTS=1` it writes them to
+`e2e/screenshots/rooms/`. `ROOMS_ONLY=<query fragment>` renders only the pages that match.
+
+### Changes made outside these modules (backward compatible)
+
+- **`render/camera.ts`:** a room seen from a corner is held to its edges as the camera sees it at that turn, so the
+  slice's hearth corner no longer falls off the screen. `insideScale`: a room that would be seen whole from every heading
+  one zoom step out, but not at the closest, is seen from that step (never further), the same at every heading. The
+  slice's rooms are bigger than that and keep the closest step.
+- **`art/paint/palette.ts`:** `definePalette(name, palette)`.
+- **`art/props/index.ts`:** imports the furniture files.
+
+### For integration
+
+- `dungeon/squares/assemble.ts` repeats about 25 lines of `render/assemble.ts`'s private `groundOf` and `underOf`. Fold
+  them together, by exporting those two or by moving `assembleFloor` into `render/`.
+- A run's arrival is `floor.arrive`, not tile 0, 0, so interfaces.md's "stands at 0, 0 on enter" needs rewording. The
+  server takes any tile within a live run.
+- The hex generator (`dungeon/generate.ts`, `floor.ts`, `themes/`) is still the game page's. Retire it, and move
+  `dungeon/squares` up into its place.
+- The world generator should call `layoutRoom` for every door's interior, passing the building's footprint and style
+  and the vendor as `keeper`. A town's inn and its mages' guild then each carry a spell table.
 
 ## The server (`realms/dotnet`)
 
