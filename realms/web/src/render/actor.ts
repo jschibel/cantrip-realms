@@ -68,7 +68,7 @@ export class Actor {
     });
     this.position.copy(centre(tile, grid.heightAt(tile.x, tile.z)));
     this.figure.root.position.copy(this.position);
-    this.shadow = blobShadow(0.42);
+    this.shadow = blobShadow(spec.footprint ?? 0.42);
     this.figure.root.add(this.shadow);
     if (behaviour.rest) this.figure.face(behaviour.rest[0], behaviour.rest[1]);
     this.figure.update(0, 0);
