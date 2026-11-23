@@ -249,7 +249,7 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   floor (the last for the floors past it) or one list for all], warden, boss, region (a color, optional), waystone
   (optional)}`. The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
   names one if it may have two); the `boss` waits on the last floor; neither is a floor's encounter. A run's layout is
-  the browser's (`realms/web/src/dungeon/generate.ts`, one generator per theme), made from the run's seed, and holds
+  the browser's (`realms/web/src/dungeon/generate.ts`, one generator per theme, on squares), made from the run's seed, and holds
   exactly the encounters the run names, each with its mob. world.json's `dungeons` places each at its entrance, where a
   chunk's `entrances` leads into it.
 
@@ -283,9 +283,12 @@ The server keeps the last reported place (`POST /api/position`):
   refused;
 - an interior is entered from on or beside one of its doors in the world (a building's `door` with that `interior`), and
   left to its `exit` (the door tile) or beside it (409 `NoWay` otherwise, and from one interior straight into another);
-- a dungeon run is entered by `/api/dungeon/enter` (the character stands at its tile 0, 0) and left by
-  `/api/dungeon/leave` or a lost duel; within a live run of theirs any tile is taken (the layout is the browser's), and
-  no other space is reported until it ends (409 `NoWay`); a waystone is travelled by `/api/waystone`;
+- a dungeon run is entered by `/api/dungeon/enter` and left by `/api/dungeon/leave` or a lost duel; within a live run of
+  theirs any tile is taken (the layout is the browser's), and no other space is reported until it ends (409 `NoWay`).
+  The server puts the character in the run at tile 0, 0, a placeholder: the browser stands them on the floor's `arrive`
+  tile (each floor's, going down too) and reports it. Stepping onto the floor's `up` leaves the run (on floor 0 the way
+  in), onto `down` takes the stair (`/api/dungeon/floor`), and onto `wayOut`, beside the beaten boss, leaves it too
+  (realms/web/src/dungeon/types.ts). A waystone is travelled by `/api/waystone`;
 - the tile of a dungeon's entrance is refused 409 `Locked` while the dungeon's `requires` is not all in the identity;
 - a character whose place the content no longer has (an old map's id, or a place from before squares: the database's
   move to tiles empties every place outside a run) may report any open tile.
@@ -424,7 +427,7 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; the character is in it (`run:<Run>`, tile 0, 0), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside one of its `waystone` NPCs' tiles, or its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |

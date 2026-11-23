@@ -631,7 +631,7 @@ layoutRoom({
   `buttress`, `tattered-banner`, `torch`) now take their wall's `z` and `rot`. With `z` = 0 and no `rot`, as in the
   slice, they are unchanged byte for byte.
 
-### Dungeons on squares: `dungeon/squares`
+### Dungeons on squares: `dungeon/`
 
 `generateDungeonFloor({theme, seed, floor, floors, run})` returns a `DungeonFloor` (`types.ts`):
 - `w` by `d` tiles from (0, 0), in version 2's tile format (`tiles`, row by row);
@@ -639,23 +639,33 @@ layoutRoom({
 - `props`, `lights` (at most 16), and the spell-table `npcs` on floor 0;
 - `arrive`, `up`, `down`, `wayOut` and `spots` (`{index, mob, role, x, z}`), all in tiles.
 
-Each theme has its own carver in `themes/`, seeded by `${theme}:${seed}:${floor}`. `finish.ts` places the run's
-contract:
+`realms/web/src/dungeon/` is the module (the hex generator is retired); `dungeon/index.ts` exports
+`generateDungeonFloor`, `THEME_DEFS`, `assembleFloor`, `gridOfFloor`, `AssembledFloor`, `MAX_LIGHTS`, `wardenIndex`,
+`bossIndex` and the types `DungeonFloor`, `FloorRequest`, `RunFloor` (net/api.ts's, the run as the server hands it out),
+`Role` and `Spot`. Each theme has its own carver in `themes/`, seeded by `${theme}:${seed}:${floor}`. `finish.ts` places
+the run's contract:
 - Walking is eight ways, never cutting a corner.
 - Every floor tile is reached from the arrival without crossing a stair or the way out. Those are walkable, but walked
   onto only to be taken.
 - The warden's index is `Encounters.length` and the boss's is one more.
 
-`assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room:
-- walls in the theme's stone;
+`assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room,
+with the renderer's own `groundOf`, `underOf` and `propOf` (render/chunks.ts):
+- walls in the theme's stone; a cave's are crags of living rock instead of blocks (`rock.ts`): outlines that wander back
+  from the open ground, tops that rise and fall, the floor run on under them, darker rock falling away into the dark
+  beyond them, and ragged lips over a chasm (`walls.test.ts`: no rock over a walked tile);
 - near walls low, and east and west walls as camera cut-aways;
 - skirts over the void;
 - the theme's fill and its own lights;
 - the `dungeon-*` surfaces and props.
 
 `gridOfFloor(floor)` is the floor's walkable Grid. The page frames a floor as `{inside: true, turns: true, bounds}`.
-Leaving is stepping onto `up`, going down is stepping onto `down`, and leaving after the boss is stepping onto `wayOut`.
-Importing `dungeon/squares` registers every id it names.
+A run's player arrives on `arrive` (each floor's, going down too) and reports it; the server took them into the run at
+tile 0, 0 and takes any tile within it. Leaving is stepping onto `up` (`/api/dungeon/leave`; on floor 0 it is the way
+in), going down is stepping onto `down` (`/api/dungeon/floor`, once the warden is beaten), and leaving after the boss is
+stepping onto `wayOut` (`/api/dungeon/leave`). The fights stand on `spots`: each `{index, mob, role}` is the run's
+`{Index, Mob}` (an encounter, the warden at `wardenIndex`, the boss at `bossIndex`), started by
+`/api/encounter/start` `{Run, Floor, Index, Mob}`. Importing `dungeon/` registers every id it names.
 
 ### Viewing them
 
@@ -678,12 +688,8 @@ Importing `dungeon/squares` registers every id it names.
 
 ### For integration
 
-- `dungeon/squares/assemble.ts` repeats about 25 lines of `render/assemble.ts`'s private `groundOf` and `underOf`. Fold
-  them together, by exporting those two or by moving `assembleFloor` into `render/`.
-- A run's arrival is `floor.arrive`, not tile 0, 0, so interfaces.md's "stands at 0, 0 on enter" needs rewording. The
-  server takes any tile within a live run.
-- The hex generator (`dungeon/generate.ts`, `floor.ts`, `themes/`) is still the game page's. Retire it, and move
-  `dungeon/squares` up into its place.
+- Done at integration: `dungeon/assemble.ts` uses render/chunks.ts's `groundOf`, `underOf` and `propOf`; interfaces.md
+  says a run's arrival is `floor.arrive`; the hex generator is retired and `dungeon/squares` is `dungeon/`.
 - The world generator should call `layoutRoom` for every door's interior, passing the building's footprint and style
   and the vendor as `keeper`. A town's inn and its mages' guild then each carry a spell table.
 
