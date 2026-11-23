@@ -78,7 +78,7 @@ public sealed class NativeVerifierTests
     /// Plays a duel as the browser does: seat 1 by <paramref name="player"/> through a recording transport that settles the
     /// mob's seat before each message, seat 2 by <paramref name="mob"/>. Returns the log and who won.
     /// </summary>
-    private static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob)
+    private static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob, Action<PlayerView>? watch = null)
     {
         IRulesHost rules = NativeDuelVerifier.Deal(duel, NativeHostProcess.Shared);
         using var session = new GameSession(rules);
@@ -95,6 +95,7 @@ public sealed class NativeVerifierTests
             Assert.True(steps < 100_000, "The duel never ended.");
             Assert.True(RealmBot.Settle(mobSeat));
             GameClient client = playerSeat.Client;
+            if (client.View is { } seen) watch?.Invoke(seen);
             idle = playerSeat.Step() || client.IsWaitingOnMe || client.IsSettling || client.IsChecking ? 0 : idle + 1;
             Assert.True(idle < 4, $"Neither seat has anything to do and the game is not over: waiting on {string.Join(",", session.WaitingOn)}, turn {session.Turn}.");
         }
@@ -166,6 +167,36 @@ public sealed class NativeVerifierTests
 
         // The same log, the same verdict.
         Assert.Equal(verdict.Winners, new NativeDuelVerifier().Verify(duel, log).Winners);
+    }
+
+    [Fact]
+    public void A_duel_with_gear_emblems_plays_them_and_verifies()
+    {
+        // The player wears Tinker's Talisman (a Thopter at its second upkeep), the mob Ring of Thorns (the player discards at
+        // its second upkeep): emblems of the fork's own card files, which the fork's cantrip-native-host knows as any card
+        // (realms/docs/gear.md). Both begin in their seats' command zones, the Talisman's Thopter comes, and the log of the
+        // whole game verifies with the result it had.
+        Duel sample = VerifierPartsTests.Sample(7);
+        Duel duel = sample with
+        {
+            Seats = [sample.Seats[0] with { Emblems = ["Tinker's Talisman (gear)"] }, sample.Seats[1] with { Emblems = ["Ring of Thorns (gear)"] }],
+        };
+        bool inCommand = false, thopter = false;
+        (List<string> log, IReadOnlyList<int> winners) = Play(duel, new TacticalPlay(), RealmBot.Create(duel.Seed), view =>
+        {
+            inCommand |= view.Objects.Any(o => o.Zone == ZoneKindView.Command && o.Name == "Tinker's Talisman (gear)" && o.Owner == Duel.PlayerSeat)
+                && view.Objects.Any(o => o.Zone == ZoneKindView.Command && o.Name == "Ring of Thorns (gear)" && o.Owner == Duel.MobSeat);
+            thopter |= view.Objects.Any(o => o.Zone == ZoneKindView.Battlefield && o.Name == "Thopter Token" && o.Controller == Duel.PlayerSeat);
+        });
+        Assert.True(inCommand, "Both seats' emblems were in the command zone.");
+        Assert.True(thopter, "The Talisman made its Thopter.");
+
+        DuelVerdict verdict = new NativeDuelVerifier().Verify(duel, log);
+        Assert.True(verdict.Accepted, verdict.Problem);
+        Assert.Equal(winners, verdict.Winners);
+
+        // The same log without the gear is another game, which it does not fit.
+        Assert.False(new NativeDuelVerifier().Verify(sample, log).Accepted);
     }
 
     [Fact]
