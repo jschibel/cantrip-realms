@@ -142,13 +142,13 @@ owner may extend.
     - Cards players sell stay until bought, up to 60. When that is full the vendor buys nothing more.
   - A card a player sells shows up at full price for everyone.
   - There is no trading between players.
-- **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Urborg Ghouls" for gold or gear).
+- **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear).
 
 ### A6. The world — Dominaria
 - **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
   no separate travel screen and no local maps to load between. It is big (about 640 by 640 hexes) and streamed in chunks
   as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other.
-- **Difficulty grows with distance.** The five home towns and New Argive are the starting areas. Around them and along
+- **Difficulty grows with distance.** The five home towns and New Benalia are the starting areas. Around them and along
   their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
   enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
   the tier of its distance from the nearest starting area. A dungeon takes the tier of where it stands, never less than
@@ -170,29 +170,45 @@ owner may extend.
 
   | Theme | Where | Layout |
   |---|---|---|
-  | Caves | mountains and hills (Keld, Shiv) | winding caverns, chasms, underground lakes |
+  | Caves | mountains and hills (Keld, the Hurloon and Ironclaw Mountains) | winding caverns, chasms, underground lakes |
   | Castle | plains and farmland (Benalia) | keep, halls, courtyards, battlements |
-  | Mage tower | coasts and islands (Tolaria) | round floors climbing upward, libraries, time-rift rooms |
-  | Crypt | swamps (Urborg) | catacombs, ossuaries, flooded tombs |
-  | Root hollow | forests (Llanowar, Yavimaya) | organic tunnels through living roots, glades under the canopy |
-  | Foundry | volcanic land (Shiv) | forges, lava channels, gantries |
+  | Mage tower | coasts, isles and lonely heights (Orvada's academy, and mage towers everywhere) | round floors climbing upward, libraries, time-rift rooms |
+  | Crypt | swamps and dark realms (the Caligo Morass, Amjad) | catacombs, ossuaries, flooded tombs |
+  | Root hollow | forests (Llanowar, the Durkwood, Verdura) | organic tunnels through living roots, glades under the canopy |
+  | Foundry | the orcs' delvings in the Ironclaw Mountains, and Keldon forges | forges, lava channels, gantries |
   | Phyrexian Portal | the capstone | the praetor's realm |
 
   A dungeon's content (its theme, its floors, its mobs by tier and its boss) is data. The layout is the generator's,
   from a seed the server hands out for the run (B4).
-- **Geography:** five regions placed around a central hub in **WUBRG wheel order**, so ally colors are neighbors and enemy colors are across the map.
+- **Geography: the Domains.** The world is the Domains of Dominaria as the 2018 *Dominaria* set and its supplements
+  show them: the continent of **Aerona**, **Icehaven** to its north, and the islands around them. Places beyond the
+  Domains (Tolaria's old island, Urborg in the Burning Isles, Shiv, Yavimaya and New Argive in Terisiare) are not in it.
+  Where the sources are silent the layout is ours, kept true to what they do say.
 
-  | Color | Region | Home town | Dungeon | Suggested boss |
-  |---|---|---|---|---|
-  | W | Benalia | New Benalia | Serra's Fallen Sanctum | Lyra Dawnbringer, angel deck |
-  | U | Tolaria | Tolarian Academy | the Time-Rift Academy | Teferi, control deck |
-  | B | Urborg | Urborg | the Tomb of Yawgmoth | Sheoldred, the Apocalypse |
-  | R | Shiv | Keld and Shiv | the Shivan Foundry | Darigaaz, dragons |
-  | G | Llanowar and Yavimaya | Llanowar | the Heart of Yavimaya | Multani |
+  | Color | Region | Home | Land | Dungeon (theme) | Boss |
+  |---|---|---|---|---|---|
+  | — | the hub | **New Benalia**, the capital that holds sway over most of Aerona | south-central Aerona, plains | — | — |
+  | W | Benalia | Capashen Hold, a Benalish town | southern Aerona: plains, farmland, river valleys | a Benalish castle (castle) | Lyra Dawnbringer |
+  | G | Llanowar | the elfhames of Llanowar | the great forest south-east of Benalia, across the Suder River | a root hollow under the elfhames (hollow) | Freyalise or Molimo, Maro-Sorcerer, by what the engine has |
+  | B | the Caligo Morass and Amjad | the Vess estate's village | the Morass, a Benalian forest the Cabal turned to fetid swamp, in Aerona's north-west; and Amjad, a dark realm on Shanodin's island | the Vess crypts (crypt) | Liliana Vess, at her ancestral home |
+  | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | a Keldon warlord legend the engine has |
+  | U | Orvada | the Tolarian Academy on Walassa | Orvada's isles, Walassa and Denawa, off Aerona's coast | the academy's tower (tower) | Teferi |
 
-  - The hub is **New Argive**, a neutral capital with the most vendors.
-  - Each region also has a village or two, and wilderness between them.
-  - The bosses are suggestions and are kept to cards that are implemented.
+  - **Aerona** is split north from south by the **Hurloon Mountains**, home of the minotaurs. North of them are the
+    Durkwood, Sursi of the pegasi, Foriys of the two-headed giants, Avenant of the archers, and the **Ironclaw
+    Mountains** of the orcs. South of them lie Benalia and Llanowar, with the Suder River between.
+  - **Icehaven**, across a strait to the north, holds Keld in its south and **Parma** of the ice giants in its frozen
+    north. A **desolate waste** divides Keld from the rest of the Domains; the **Phyrexian Portal** stands in it.
+  - **Islands:** **Verdura**, lush druid woodland, to the south; **Shanodin's island** to the east, with the forest of
+    Shanodin, the small nation of Oneah and the dark realm of Amjad; **Orvada's isles** to the west; and **Stahaan**,
+    the xenophobic minotaurs' isle, north of Orvada.
+  - **One connected world:** the islands are reached as the land is walked. Causeways and fords join the near ones, and
+    ferries at harbor docks cross to the far ones. A ferry crossing is seamless, as a door is: you board, the crossing
+    eases by, and you step off on the other shore.
+  - **Difficulty by distance** from the starting areas (New Benalia and the five homes): Benalia's fields and the edges
+    of Llanowar are the gentlest. The Hurloon passes, the Durkwood and Sursi are harder, and the hardest are the
+    Ironclaw Mountains, Parma's ice, Stahaan, the depths of Amjad and the desolate waste.
+  - The bosses are kept to cards that are implemented.
 - **Dungeon runs:**
   - 3–5 floors each, generated anew each run. Each floor ends at a stair guarded by a floor warden. The boss waits on the
     last floor.
@@ -206,23 +222,23 @@ owner may extend.
   - You can fight them again each week for loot.
   - **Capstone:** once all five colors are unlocked, the Phyrexian Portal opens. A five-color praetor boss ends the Dominaria arc, and later planes come in as data packs.
 - **The Phyrexian Portal** (the capstone dungeon):
-  - Its entrance stands just south of New Argive, on its own road from the hub, and belongs to no region.
+  - Its gate stands in the desolate waste between Keld and the rest of the Domains, and belongs to no region.
   - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then its gate stays shut, and the server refuses to start a run of it.
   - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
   - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears: 42 life, a starting hand of 9 and a maximum hand of 10. Its deck is the strongest the Dominaria pool allows. It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
   - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and offer, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
 - **Mobs are Dominaria's own creatures.** Every wanderer is a real creature of the plane: a creature card the engine has,
   printed in a Dominaria set (planes.json), drawn as that creature. Examples are a pack of Llanowar Elves, a Shivan
-  Dragon, Serra Angels, Benalish Marshals, Keldon Raiders, Urborg ghouls and Phyrexian horrors. Its deck is themed around
+  Dragon, Serra Angels, Benalish Marshals, Keldon Raiders, Hurloon minotaurs and Phyrexian horrors. Its deck is themed around
   it: the creature itself, its kin and tribe, and cards that support what it does. A Llanowar Elves pack ramps into
-  Yavimaya's big creatures; a Shivan Dragon brings dragons, burn and red mana. Each has stats and gear traits, through the same
+  the forest's big creatures; a Shivan Dragon brings dragons, burn and red mana. Each has stats and gear traits, through the same
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** are big walled cities (New Argive about 120 by 120 hexes, home towns about 80, villages about 30) with gates,
+- **Towns** are big walled cities (New Benalia about 120 by 120 hexes, home towns about 80, villages about 30) with gates,
   streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
   guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
-  region's towns are built in its own style: Benalish stone and banners, Tolarian domes, Urborg's dark stilt-houses,
+  region's towns are built in its own style: Benalish stone and banners, Tolarian domes on Walassa, the Morass's dark stilt-houses,
   Keldon longhouses, Llanowar's tree-houses.
   - **Vendors work inside their shops**, the armorer inside the smithy, the innkeeper inside the inn. A shop's sign says
     what it trades in.
