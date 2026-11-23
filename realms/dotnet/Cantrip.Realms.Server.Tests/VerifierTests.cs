@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using Cantrip.Client;
 using Cantrip.Client.Embedded;
 using Cantrip.Client.Tactics;
@@ -46,19 +45,12 @@ public sealed class VerifierPartsTests
     }
 
     [Fact]
-    public void A_deal_carries_each_seats_variant_as_the_host_names_it()
+    public void A_seat_is_dealt_with_its_setup_values_and_emblems_as_its_variant()
     {
-        string request = """{"Cmd":"NewGame","Seats":[{"Name":"Ann","Deck":[]},{"Name":"Mob","Deck":[]}],"Seed":1}""";
-        string dealt = SeatVariantTransport.WithVariants(request, [new SeatVariant(25, 8, 9, ["Circlet of Foresight (gear)"]), null]);
-        JsonNode seats = JsonNode.Parse(dealt)!["Seats"]!;
-        Assert.Equal(25, seats[0]!["StartingLife"]!.GetValue<int>());
-        Assert.Equal(8, seats[0]!["StartingHandSize"]!.GetValue<int>());
-        Assert.Equal(9, seats[0]!["MaximumHandSize"]!.GetValue<int>());
-        Assert.Equal("Circlet of Foresight (gear)", seats[0]!["Emblems"]![0]!.GetValue<string>());
-        Assert.Null(seats[1]!["StartingLife"]);
-
-        string start = """{"Cmd":"Start","GameId":1}""";
-        Assert.Same(start, SeatVariantTransport.WithVariants(start, [new SeatVariant(25)]));
+        var seat = new DuelSeat("Ann", ["Plains"], [], null, [], 25, 8, 9, ["Circlet of Foresight (gear)"]);
+        RulesSeat dealt = NativeDuelVerifier.Seat(seat);
+        Assert.Equal(new SeatVariant(25, 8, 9, dealt.Variant!.Emblems), dealt.Variant);
+        Assert.Equal(["Circlet of Foresight (gear)"], dealt.Variant.Emblems!);
     }
 
     /// <summary>A duel of two sample mobs' decks, at the default setup values: what today's engine deals.</summary>
@@ -87,8 +79,7 @@ public sealed class NativeVerifierTests
     /// </summary>
     private static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob)
     {
-        IHostTransport host = new SeatVariantTransport(NativeHostProcess.Shared, [.. duel.Seats.Select(SeatVariant.Of)]);
-        IRulesHost rules = new NativeRulesHostFactory(host).Create([.. duel.Seats.Select(NativeDuelVerifier.Seat)], (ulong)duel.Seed, new RulesGameOptions { MinimumDeckSize = duel.MinimumDeckSize });
+        IRulesHost rules = NativeDuelVerifier.Deal(duel, NativeHostProcess.Shared);
         using var session = new GameSession(rules);
         var mobSeat = new AutoSeat(new LoopbackTransport(session, new PlayerId(Duel.MobSeat)), mob);
         var recording = new RecordingTransport(new LoopbackTransport(session, new PlayerId(Duel.PlayerSeat)))
