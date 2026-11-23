@@ -5,6 +5,7 @@
   "region": "W",
   "floor": 3,
   "radius": 13,
+  "inn": {"map":"new-benalia","q":-4,"r":4},
   "exits": [
     {"q":9,"r":1,"to":"serras-fallen-sanctum-2"},
     {"q":-11,"r":-1,"to":"serras-fallen-sanctum-4"}

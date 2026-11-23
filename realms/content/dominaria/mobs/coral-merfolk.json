@@ -1,0 +1,35 @@
+{
+  "id": "coral-merfolk",
+  "name": "Coral Merfolk",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/coral-merfolk.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#3d8fa8",
+      "#c8432c"
+    ],
+    "size": 0.95
+  },
+  "boss": false
+}

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cantrip.Realms.Server.Content;
+using Cantrip.Realms.Server.Economy;
 using Cantrip.Server;
 using Xunit;
 
@@ -20,6 +21,107 @@ public sealed class ContentTests
         {
             Assert.Contains(content.Gear.Values, item => item.Slot == slot);
         }
+    }
+
+    [Fact]
+    public void Everything_a_map_names_is_there_and_everything_there_is_named_by_a_map()
+    {
+        RealmContent content = RealmApp.Content;
+        HashSet<string> mobsNamed = new(StringComparer.Ordinal);
+        HashSet<string> vendorsNamed = new(StringComparer.Ordinal);
+        foreach (RealmMap map in content.Maps.Values)
+        {
+            foreach (MapSpawn spawn in map.File.Spawns)
+            {
+                foreach (string mob in spawn.Mobs)
+                {
+                    Assert.True(content.Mobs.ContainsKey(mob), $"{map.Id} spawn {spawn.Id}: no mob '{mob}'");
+                    mobsNamed.Add(mob);
+                }
+            }
+
+            foreach (MapNpc npc in map.File.Npcs.Where(npc => npc.Kind == "vendor"))
+            {
+                Assert.True(content.Vendors.TryGetValue(npc.Vendor!, out Vendor? vendor), $"{map.Id}: no vendor '{npc.Vendor}'");
+                Assert.Equal(map.Id, vendor.File.Town);
+                vendorsNamed.Add(vendor.Id);
+            }
+
+            foreach (MapExit exit in map.File.Exits)
+            {
+                Assert.True(exit.To == RealmContent.World || content.Maps.ContainsKey(exit.To), $"{map.Id}: an exit to no map '{exit.To}'");
+            }
+
+            foreach (MapEncounterZone zone in map.File.Encounters)
+            {
+                Assert.Contains(zone.Map, content.Maps.Keys);
+            }
+
+            // The inn: none on the world map, a town's or village's own, else the inn of a town or village by its map.
+            if (map.File.Kind == RealmContent.World)
+            {
+                Assert.Null(map.File.Inn);
+                continue;
+            }
+
+            MapInn inn = map.File.Inn!;
+            RealmMap town = content.Maps[inn.Map ?? map.Id];
+            Assert.Contains(town.File.Kind, new[] { "town", "village" });
+            Assert.Equal(inn.At, town.File.Inn!.At);
+            Assert.Null(town.File.Inn.Map);
+            Assert.True(town.Walkable(inn.At), $"{map.Id}'s inn");
+        }
+
+        // No mob or vendor nobody meets.
+        Assert.Equal(content.Mobs.Keys.Order(StringComparer.Ordinal), mobsNamed.Order(StringComparer.Ordinal));
+        Assert.Equal(content.Vendors.Keys.Order(StringComparer.Ordinal), vendorsNamed.Order(StringComparer.Ordinal));
+
+        // Every mob's deck, gear and model resolve.
+        foreach (Mob mob in content.Mobs.Values)
+        {
+            Assert.True(mob.Deck.Entries.Sum(entry => entry.Copies) >= Duel.RealmMinimumDeckSize, mob.Id);
+            Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card), $"{mob.Id}: {entry.Card}"));
+            Assert.All(mob.File.Gear, gear => Assert.True(content.Gear.ContainsKey(gear) && content.Gear[gear].Emblem is null, $"{mob.Id} wears {gear}"));
+            Assert.Equal("mob", content.Models.GetValueOrDefault(mob.File.Model.Mesh));
+            Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
+        }
+
+        Assert.All(content.Gear.Values, item => Assert.Equal("gear", content.Models.GetValueOrDefault(item.Look.Mesh)));
+    }
+
+    [Fact]
+    public void Mobs_grow_from_the_wilderness_to_the_dungeons_and_their_bosses()
+    {
+        RealmContent content = RealmApp.Content;
+        foreach (RealmMap map in content.Maps.Values)
+        {
+            List<Mob> mobs = [.. map.File.Spawns.SelectMany(spawn => spawn.Mobs).Distinct().Select(id => content.Mobs[id])];
+            if (map.File.Kind == "wilderness") Assert.All(mobs, mob => Assert.InRange(mob.File.Tier, 1, 2));
+            if (map.File.Kind == "dungeon")
+            {
+                Assert.All(mobs, mob => Assert.True(mob.File.Boss || mob.File.Tier >= (map.File.Floor == 1 ? 2 : 3), $"{map.Id}: {mob.Id} is tier {mob.File.Tier}"));
+                Assert.Contains(mobs, mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal));
+            }
+        }
+
+        // Five floor wardens of tier 4, and five bosses who unlock the five colors.
+        Assert.Equal(5, content.Mobs.Values.Count(mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal) && mob.File.Tier == 4 && !mob.File.Boss));
+        List<Mob> bosses = [.. content.Mobs.Values.Where(mob => mob.File.Boss)];
+        Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).Order(StringComparer.Ordinal)));
+        Assert.All(bosses, boss => Assert.Equal(6000, boss.File.Prize));
+        Assert.Contains("Lyra Dawnbringer", content.Mobs["lyra-dawnbringer"].Deck.Entries.Select(entry => entry.Card));
+        Assert.Contains("Teferi, Hero of Dominaria", content.Mobs["teferi"].Deck.Entries.Select(entry => entry.Card));
+        Assert.Contains("Sheoldred, the Apocalypse", content.Mobs["sheoldred"].Deck.Entries.Select(entry => entry.Card));
+
+        // The prize and gold of each tier (design.md A3).
+        Dictionary<int, (long Prize, long Low, long High)> tiers = new() { [1] = (100, 20, 60), [2] = (300, 50, 150), [3] = (800, 120, 300), [4] = (2000, 250, 600) };
+        foreach (Mob mob in content.Mobs.Values.Where(mob => !mob.File.Boss))
+        {
+            Assert.Equal(tiers[mob.File.Tier], (mob.File.Prize, mob.File.GoldRange[0], mob.File.GoldRange[1]));
+        }
+
+        // An armorer in New Argive and each home town.
+        Assert.Equal(6, content.Maps.Values.Count(map => map.File.Npcs.Any(npc => npc.Kind == Armorers.Kind)));
     }
 
     [Fact]
@@ -83,7 +185,7 @@ public sealed class ContentTests
 
             // A mob whose deck is gone, a spawn on a blocked hex holding no mob, and gear in no slot.
             Edit(Path.Combine(content, "dominaria", "mobs", "phyrexian-scout.json"), json => json.Replace("decks/realms/dominaria/phyrexian-scout.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
-            Edit(Path.Combine(content, "dominaria", "maps", "benalish-meadow.json"), json => json.Replace("{\"id\":\"s2\",\"q\":-6,\"r\":10,\"mobs\":[\"llanowar-elves-pack\"]", "{\"id\":\"s2\",\"q\":-3,\"r\":3,\"mobs\":[\"nobody\"]", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "dominaria", "maps", "benalish-meadow.json"), json => json.Replace("{\"id\":\"s2\",\"q\":-6,\"r\":9,\"mobs\":[\"phyrexian-scout\",\"benalish-deserter\"]", "{\"id\":\"s2\",\"q\":-3,\"r\":3,\"mobs\":[\"nobody\"]", StringComparison.Ordinal));
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
 
             RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(root, Path.Combine(RealmApp.Root, "content")));

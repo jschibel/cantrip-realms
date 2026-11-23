@@ -1,0 +1,41 @@
+{
+  "id": "krosan-beast",
+  "name": "Krosan Beast",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/krosan-beast.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "elvish-striders",
+    "copper-ring"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wurm",
+    "palette": [
+      "#8f6340",
+      "#3e9a4a",
+      "#2a4524"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

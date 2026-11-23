@@ -1,4 +1,4 @@
-# kjeldoran-raider: a sample mob's deck, written by tools/realms/sample-decks.py; tune it by hand.
+# Kjeldoran Raider (kjeldoran-raider), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
 
 2 Benalish Hero
 2 Longbow Archer
@@ -6,7 +6,7 @@
 2 Silver Knight
 2 Benalish Knight
 2 Standing Troops
-2 Wall of Swords
+2 Baird, Steward of Argive
 2 Ardent Militia
 2 Destroy Evil
 2 Mana Tithe

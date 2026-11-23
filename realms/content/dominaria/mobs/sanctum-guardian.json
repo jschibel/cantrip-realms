@@ -1,0 +1,45 @@
+{
+  "id": "sanctum-guardian",
+  "name": "Sanctum Guardian",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/sanctum-guardian.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "copper-amulet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Angel",
+      "Spirit",
+      "Wall"
+    ],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "angel",
+    "palette": [
+      "#e8e4d8",
+      "#b3b5bc",
+      "#93c8dc"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

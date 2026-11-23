@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, HttpApi } from "./api";
+import { ApiError, type Character, HttpApi, identityOf } from "./api";
 import { MockApi } from "./mockApi";
 
 describe("HttpApi", () => {
@@ -25,6 +25,32 @@ describe("HttpApi", () => {
     expect(refused).toMatchObject({ status: 409, code: "NotNear", detail: "You are too far from that spawn." });
   });
 
+  it("reads the server's Character: its id, body name, ante value, identity letters and loadout of gear instances", async () => {
+    // As Cantrip.Realms.Server's CharacterView serialises (interfaces.md, the Character bullet).
+    const plate = { Id: "padded-jerkin", Name: "Padded Jerkin", Slot: "body", Rarity: "common", Gold: 300, Stats: { Life: 3, Hand: 0, MaxHand: 0 }, Effects: [], Text: "", Look: { Mesh: "armor", Palette: ["#8a6a43", "#5a4630"], Size: null }, Unique: false, Emblem: null };
+    const sent = {
+      Id: "dev-1", Name: "Ann", Body: "broad", Palette: 2, Identity: "WU", Gold: 2000, AnteValue: 150, Map: "new-argive", Q: 1, R: -2,
+      Stats: { Life: 23, Hand: 7, MaxHand: 7 },
+      Loadout: { head: null, neck: null, body: { InstanceId: 4, Gear: plate }, hands: null, feet: null, ring1: null, ring2: null, relic: null },
+      Gear: [{ InstanceId: 4, Gear: plate }],
+      Unlocked: ["U"],
+    };
+    vi.stubGlobal("fetch", reply(200, sent));
+    const me: Character = (await new HttpApi("https://realm.example/").me())!;
+    expect(me.Id).toBe("dev-1");
+    expect(me.Body).toBe("broad");
+    expect(identityOf(me)).toEqual(["W", "U"]);
+    expect(me.Loadout.body?.Gear.Look.Mesh).toBe("armor");
+    expect(me.Loadout.head).toBeNull();
+  });
+
+  it("sends a loadout by gear instance ids", async () => {
+    const fetch = reply(200, {});
+    vi.stubGlobal("fetch", fetch);
+    await new HttpApi("https://realm.example/").saveLoadout({ head: 4, ring1: null });
+    expect(fetch.mock.calls[0]![1]).toMatchObject({ method: "PUT", body: JSON.stringify({ Slots: { head: 4, ring1: null } }) });
+  });
+
   it("reads no character as null", async () => {
     vi.stubGlobal("fetch", reply(404, { Error: "NoCharacter", Detail: "" }));
     expect(await new HttpApi("https://realm.example/").me()).toBeNull();
@@ -36,8 +62,8 @@ describe("MockApi", () => {
 
   it("starts a character with the kit of design.md A1 in its home town", async () => {
     const me = (await make().me())!;
-    expect(me).toMatchObject({ Name: "Tester", Identity: ["B"], Gold: 2000, Map: "urborg" });
-    expect(Object.keys(me.Loadout)).toHaveLength(3);
+    expect(me).toMatchObject({ Name: "Tester", Identity: "B", Gold: 2000, Map: "urborg" });
+    expect(Object.values(me.Loadout).filter((worn) => worn)).toHaveLength(3);
   });
 
   it("caps the loot at the ante and refuses picks over it", async () => {

@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Hex, distance, hex, key, neighbors, spiral, toWorld } from "../src/hex";
 import { formatMap } from "../src/maps/format";
+import { innOf } from "../src/maps/graph";
 import type { MapData, Region } from "../src/maps/schema";
 import { validateMap } from "../src/maps/schema";
 import { MapBuilder, STEP, toward } from "./mapgen/builder";
@@ -407,7 +408,30 @@ function plan(): MapData[] {
   return maps;
 }
 
-const maps = plan();
+/**
+ * Every map's inn (interfaces.md, "Maps"): a town's or village's is its own, written where it was built; any other
+ * map's is its nearest town's or village's on the world map, worked out here once so nothing works it out in play.
+ */
+async function withInns(planned: readonly MapData[]): Promise<MapData[]> {
+  const byId = new Map(planned.map((m) => [m.id, m]));
+  const load = (id: string) => {
+    const map = byId.get(id);
+    return map ? Promise.resolve(map) : Promise.reject(new Error(`no map ${id}`));
+  };
+  const out: MapData[] = [];
+  for (const map of planned) {
+    if (map.kind === "world" || map.kind === "town" || map.kind === "village") {
+      out.push(map);
+      continue;
+    }
+    const inn = await innOf(map.id, load);
+    if (!inn) throw new Error(`${map.id}: no town or village can be found from it`);
+    out.push({ ...map, inn });
+  }
+  return out;
+}
+
+const maps = await withInns(plan());
 const ids = new Set(maps.map((m) => m.id));
 let bad = 0;
 for (const map of maps) {

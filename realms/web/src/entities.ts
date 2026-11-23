@@ -166,8 +166,10 @@ export function besides(from: Hex, target: Hex, free: (h: Hex) => boolean): Hex 
 
 /** Another player on this map instance, as the relay tells it. */
 export interface Visitor {
-  readonly player: string;
+  /** The connection's number on the relay. */
+  readonly player: number;
   name: string;
-  identity: readonly string[];
+  /** Their colors, as letters in WUBRG order. */
+  identity: string;
   readonly walker: Walker;
 }

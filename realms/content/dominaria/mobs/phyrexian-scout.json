@@ -20,17 +20,16 @@
     "types": [],
     "subtypes": [],
     "rarities": [
-      "common",
-      "uncommon"
+      "common"
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "phyrexian",
     "palette": [
       "#8c909c",
       "#7a1f24"
     ],
-    "size": 1.15
+    "size": 1.0
   },
   "boss": false
 }

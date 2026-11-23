@@ -17,7 +17,7 @@
   ],
   "text": "{1}: Scry 2. Activate only once each game.",
   "look": {
-    "mesh": "talisman",
+    "mesh": "relic",
     "palette": [
       "#c9a46a",
       "#4a7fbf"

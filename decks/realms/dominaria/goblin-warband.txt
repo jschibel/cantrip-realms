@@ -1,0 +1,15 @@
+# Goblin Warband (goblin-warband), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Raging Goblin
+2 Roc Hunter
+2 Dwarven Forge-Chanter
+2 Wall of Earth
+2 Goblin Chariot
+2 Goblin Spelunkers
+2 Coalition Warbrute
+2 Reckless Wurm
+2 Firebolt
+2 Shock
+2 Abrade
+1 Lightning Strike
+17 Mountain

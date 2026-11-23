@@ -139,6 +139,13 @@ export interface EncounterZoneData {
   readonly chance: number;
 }
 
+/** An inn: a hex of this map, or of the map `map` names. */
+export interface InnData {
+  readonly q: number;
+  readonly r: number;
+  readonly map?: string;
+}
+
 export interface MapData {
   readonly id: string;
   readonly name: string;
@@ -153,7 +160,12 @@ export interface MapData {
   readonly spawns: readonly SpawnData[];
   readonly chests: readonly ChestData[];
   readonly npcs: readonly NpcData[];
-  readonly inn?: { readonly q: number; readonly r: number };
+  /**
+   * Where a character who loses a duel here wakes: a town's or village's own open hex, or, on any other map, its nearest
+   * town's or village's on the world map (`map` names it), which the map generator writes (scripts/maps.ts, graph.ts).
+   * Every map but the world map names one.
+   */
+  readonly inn?: InnData;
   /** The world map's encounter zones. */
   readonly encounters?: readonly EncounterZoneData[];
 }
@@ -289,17 +301,27 @@ export function validateMap(data: unknown, maps?: ReadonlySet<string>): string[]
   }
 
   const kinds = new Set(map.npcs.map((n) => n.kind));
-  if (map.kind === "town" || map.kind === "village") {
-    if (!map.inn) fail(`a ${map.kind} needs an inn to respawn at`);
+  const settlement = map.kind === "town" || map.kind === "village";
+  if (settlement) {
     for (const needed of ["inn", "spell-table"] as const) if (!kinds.has(needed)) fail(`a ${map.kind} needs a ${needed}`);
   }
   if (map.kind === "town") {
     for (const needed of ["vendor", "armorer", "quest-board"] as const) if (!kinds.has(needed)) fail(`a town needs a ${needed}`);
   }
-  if (map.inn) {
+  if (map.kind === "world") {
+    if (map.inn !== undefined) fail("the world map names no inn");
+  } else if (!map.inn) {
+    fail(settlement ? `a ${map.kind} needs an inn to respawn at` : "a map names the inn a beaten player wakes at");
+  } else if (map.inn.map === undefined) {
+    if (!settlement) fail("only a town's or village's inn is on its own map; any other map's names the town's");
     const h = where("inn", map.inn);
     if (h && !open(h)) fail(`the inn's respawn hex ${key(h)} is blocked`);
     if (h) arrivals.push(h);
+  } else {
+    if (settlement) fail(`a ${map.kind}'s inn is its own`);
+    if (typeof map.inn.map !== "string" || map.inn.map === map.id) fail("the inn's map is another map's id");
+    else if (maps && !maps.has(map.inn.map)) fail(`the inn is on ${map.inn.map}: no such map`);
+    if (!isInt(map.inn.q) || !isInt(map.inn.r)) fail("inn: q and r are whole numbers");
   }
 
   if (map.kind === "world") {

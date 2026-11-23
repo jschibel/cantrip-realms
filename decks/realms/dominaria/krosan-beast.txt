@@ -1,0 +1,13 @@
+# Krosan Beast (krosan-beast), a tier 3 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Abundance
+3 Crop Rotation
+1 Fastbond
+2 Timber Wolves
+3 Elvish Archers
+3 Ashcoat Bear
+3 Pale Bears
+1 Pygmy Allosaurus
+2 Magnigoth Sentry
+2 Barkhide Mauler
+17 Forest

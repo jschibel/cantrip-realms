@@ -1,0 +1,36 @@
+{
+  "id": "elvish-scout",
+  "name": "Elvish Scout",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/elvish-scout.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "elf",
+    "palette": [
+      "#2a4524",
+      "#d6ae7e",
+      "#c08a62"
+    ],
+    "size": 0.95
+  },
+  "boss": false
+}

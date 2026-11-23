@@ -1,20 +1,18 @@
 {
   "id": "urborg-ghoul",
   "name": "Urborg Ghoul",
-  "tier": 2,
+  "tier": 1,
   "deck": "decks/realms/dominaria/urborg-ghoul.txt",
   "stats": {
     "life": 20,
     "hand": 7,
     "maxHand": 7
   },
-  "gear": [
-    "travelers-boots"
-  ],
-  "prize": 300,
+  "gear": [],
+  "prize": 100,
   "goldRange": [
-    50,
-    150
+    20,
+    60
   ],
   "loot": {
     "pool": "dominaria",
@@ -22,15 +20,15 @@
     "types": [],
     "subtypes": [],
     "rarities": [
-      "common",
-      "uncommon"
+      "common"
     ]
   },
   "model": {
     "mesh": "ghoul",
     "palette": [
-      "#5f6b4a",
-      "#2c2f24"
+      "#8c909c",
+      "#4b2f5e",
+      "#5d6646"
     ],
     "size": 1.0
   },

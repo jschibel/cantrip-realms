@@ -220,7 +220,7 @@ public sealed class Encounters(
         }
 
         await transaction.CommitAsync().ConfigureAwait(false);
-        return new OutcomeView("won", gold, offer, duel.Cap, dropped, null);
+        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, null);
     }
 
     /// <summary>

@@ -1,0 +1,13 @@
+{
+  "id": "keld-dragons-hoard",
+  "name": "The Dragon's Hoard",
+  "town": "keld",
+  "specialty": {
+    "colors": "R",
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "purse": 50000
+}

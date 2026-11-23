@@ -1,15 +1,15 @@
 {
-  "id": "shivan-raider",
-  "name": "Shivan Raider",
+  "id": "multani-guard",
+  "name": "Multani's Guard",
   "tier": 2,
-  "deck": "decks/realms/dominaria/shivan-raider.txt",
+  "deck": "decks/realms/dominaria/multani-guard.txt",
   "stats": {
     "life": 20,
     "hand": 7,
     "maxHand": 7
   },
   "gear": [
-    "copper-ring"
+    "padded-jerkin"
   ],
   "prize": 300,
   "goldRange": [
@@ -18,7 +18,7 @@
   ],
   "loot": {
     "pool": "dominaria",
-    "colors": "R",
+    "colors": "G",
     "types": [],
     "subtypes": [],
     "rarities": [
@@ -27,12 +27,13 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "spirit",
     "palette": [
-      "#a8432f",
-      "#3a2a20"
+      "#3e9a4a",
+      "#8f6340",
+      "#d6ae7e"
     ],
-    "size": 1.1
+    "size": 1.15
   },
   "boss": false
 }

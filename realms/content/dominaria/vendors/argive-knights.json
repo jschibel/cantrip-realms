@@ -1,0 +1,11 @@
+{
+  "id": "argive-knights",
+  "name": "The Knights' Outfitter",
+  "town": "new-argive",
+  "specialty": {
+    "subtypes": [
+      "Knight"
+    ]
+  },
+  "purse": 50000
+}

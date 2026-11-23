@@ -1,0 +1,13 @@
+# Rift Elemental (rift-elemental), a tier 3 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Remand
+3 Miscalculation
+1 Counterspell
+2 Flying Men
+3 Lord of Atlantis
+3 Naban, Dean of Iteration
+3 Soaring Drake
+1 True-Name Nemesis
+2 Azure Drake
+2 Air Elemental
+17 Island

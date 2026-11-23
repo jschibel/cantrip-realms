@@ -1,0 +1,22 @@
+{
+  "id": "tolarian-robe",
+  "name": "Tolarian Robe",
+  "slot": "body",
+  "rarity": "uncommon",
+  "gold": 900,
+  "stats": {
+    "life": 4,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 4 additional life.",
+  "look": {
+    "mesh": "robe",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2"
+    ]
+  },
+  "unique": false
+}

@@ -1,0 +1,13 @@
+# Sanctum Guardian (sanctum-guardian), a tier 3 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Destroy Evil
+3 Mana Tithe
+1 Enlightened Tutor
+2 Savannah Lions
+3 Shimmering Barrier
+3 Angelic Wall
+3 Thunder Spirit
+1 Anointed Peacekeeper
+2 Wall of Swords
+2 Serra Angel
+17 Plains

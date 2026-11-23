@@ -1,0 +1,12 @@
+{
+  "id": "argive-spellsmith",
+  "name": "Instants and Sorceries",
+  "town": "new-argive",
+  "specialty": {
+    "types": [
+      "Instant",
+      "Sorcery"
+    ]
+  },
+  "purse": 50000
+}

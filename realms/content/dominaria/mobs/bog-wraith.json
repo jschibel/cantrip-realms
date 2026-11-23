@@ -1,0 +1,39 @@
+{
+  "id": "bog-wraith",
+  "name": "Bog Wraith",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/bog-wraith.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#4b2f5e",
+      "#5d6646",
+      "#2a2b36"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

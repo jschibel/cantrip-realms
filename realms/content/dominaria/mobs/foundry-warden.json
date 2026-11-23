@@ -1,0 +1,41 @@
+{
+  "id": "foundry-warden",
+  "name": "Foundry Warden",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/foundry-warden.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "construct",
+    "palette": [
+      "#2a2b36",
+      "#c8432c",
+      "#f1b44c"
+    ],
+    "size": 1.4
+  },
+  "boss": false
+}

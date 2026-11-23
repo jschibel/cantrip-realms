@@ -94,6 +94,12 @@ public sealed partial class RealmContent
 
     public static IReadOnlySet<string> MapKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "town", "village", "wilderness", "dungeon", "world" };
 
+    /// <summary>The people and places of a map a player uses (interfaces.md, "Maps").</summary>
+    public static IReadOnlySet<string> NpcKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "inn", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk" };
+
+    /// <summary>The world map's id: the travel map, whose exits are its places.</summary>
+    public const string World = "world";
+
     /// <summary>The five colors a character may start in, and the file each starter deck is in.</summary>
     public static IReadOnlyDictionary<string, string> StarterFiles { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -132,6 +138,9 @@ public sealed partial class RealmContent
     public IReadOnlyDictionary<string, RealmMap> Maps { get; private set; } = new Dictionary<string, RealmMap>();
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
+
+    /// <summary>The kind of each voxel model of <c>realms/content/models</c> (<c>body</c>, <c>mob</c> or <c>gear</c>), by id.</summary>
+    public IReadOnlyDictionary<string, string> Models { get; private set; } = new Dictionary<string, string>();
 
     /// <summary>Each plane's starter decks, by color letter.</summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, DeckList>> Starters { get; private set; } =
@@ -182,6 +191,7 @@ public sealed partial class RealmContent
             }
         }
 
+        content.Models = ReadModels(Path.Combine(realms, "models"), problems);
         content.Gear = ReadGear(Path.Combine(realms, "gear"), problems);
 
         Dictionary<string, Mob> mobs = new(StringComparer.Ordinal);
@@ -268,9 +278,40 @@ public sealed partial class RealmContent
         return gear;
     }
 
+    private static Dictionary<string, string> ReadModels(string folder, List<string> problems)
+    {
+        Dictionary<string, string> models = new(StringComparer.Ordinal);
+        if (!Directory.Exists(folder)) return models;
+        foreach (string path in Directory.EnumerateFiles(folder, "*.vox.json").Order(StringComparer.Ordinal))
+        {
+            string file = Path.GetFileName(path);
+            try
+            {
+                using JsonDocument model = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
+                string id = model.RootElement.GetProperty("id").GetString() ?? string.Empty;
+                if (file != id + ".vox.json") problems.Add($"models/{file}: its id '{id}' is its file's name.");
+                else models[id] = model.RootElement.GetProperty("kind").GetString() ?? string.Empty;
+            }
+            catch (Exception problem) when (problem is JsonException or KeyNotFoundException or InvalidOperationException)
+            {
+                problems.Add($"models/{file}: {problem.Message}");
+            }
+        }
+
+        return models;
+    }
+
+    /// <summary>Whether a mesh is a model of a kind (a gear item's look, a mob's model).</summary>
+    private bool IsModel(string mesh, string kind) => Models.TryGetValue(mesh, out string? found) && found == kind;
+
     /// <summary>Checks what refers to what, once everything is read.</summary>
     private void Check(List<string> problems)
     {
+        foreach (GearItem item in Gear.Values.Where(item => !string.IsNullOrWhiteSpace(item.Look.Mesh) && !IsModel(item.Look.Mesh, "gear")))
+        {
+            problems.Add($"gear {item.Id}: its look '{item.Look.Mesh}' is no gear model of realms/content/models.");
+        }
+
         foreach (Mob mob in Mobs.Values)
         {
             CheckMob(mob, problems);
@@ -288,6 +329,11 @@ public sealed partial class RealmContent
             if (!Maps.TryGetValue(vendor.File.Town, out RealmMap? town) || town.File.Kind is not ("town" or "village"))
             {
                 problems.Add($"{where}: its town '{vendor.File.Town}' is not a town's map.");
+            }
+
+            else if (!town.File.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
+            {
+                problems.Add($"{where}: nobody keeps its stall in {vendor.File.Town}: no vendor of the map names it.");
             }
 
             if (vendor.File.Purse < 0) problems.Add($"{where}: a purse is never less than nothing.");
@@ -332,6 +378,7 @@ public sealed partial class RealmContent
             problems.Add($"{where}: wears '{gear}', which is no gear item.");
         }
 
+        if (!IsModel(file.Model.Mesh, "mob")) problems.Add($"{where}: its model '{file.Model.Mesh}' is no mob model of realms/content/models.");
         if (file.Prize < 0) problems.Add($"{where}: a prize is never less than nothing.");
         if (file.GoldRange is not [long low, long high] || low < 0 || high < low)
         {
@@ -376,28 +423,64 @@ public sealed partial class RealmContent
         foreach (MapNpc npc in file.Npcs)
         {
             if (map.TileAt(npc.At) is null) problems.Add($"{where}: {npc.Id} stands off the map at {npc.At}.");
+            if (!NpcKinds.Contains(npc.Kind)) problems.Add($"{where}: {npc.Id} is a '{npc.Kind}', none of {string.Join(", ", NpcKinds)}.");
             if (npc.Kind == "vendor" && (npc.Vendor is null || !Vendors.TryGetValue(npc.Vendor, out Vendor? vendor) || vendor.File.Town != map.Id))
             {
                 problems.Add($"{where}: {npc.Id} is a vendor, but '{npc.Vendor}' is no vendor of this town.");
             }
         }
 
-        foreach (MapExit exit in file.Exits.Where(exit => map.TileAt(new Hex(exit.Q, exit.R)) is null))
+        foreach (MapExit exit in file.Exits)
         {
-            problems.Add($"{where}: an exit is off the map at ({exit.Q}, {exit.R}).");
+            if (map.TileAt(new Hex(exit.Q, exit.R)) is null) problems.Add($"{where}: an exit is off the map at ({exit.Q}, {exit.R}).");
+            if (exit.To != World && !Maps.ContainsKey(exit.To)) problems.Add($"{where}: an exit leads to '{exit.To}', which is no map.");
         }
 
-        if (file.Inn is not { } inn)
+        foreach (MapEncounterZone zone in file.Encounters)
+        {
+            if (file.Kind != World) problems.Add($"{where}: only the world map has encounter zones.");
+            if (!Maps.TryGetValue(zone.Map, out RealmMap? fought)) problems.Add($"{where}: an encounter zone is fought on '{zone.Map}', which is no map.");
+            else if (fought.File.Spawns.Count == 0) problems.Add($"{where}: an encounter zone is fought on {zone.Map}, which has no spawn to be the mob.");
+            if (map.TileAt(new Hex(zone.Q, zone.R)) is null) problems.Add($"{where}: an encounter zone is off the map at ({zone.Q}, {zone.R}).");
+            if (zone.Chance is < 0 or > 1 || double.IsNaN(zone.Chance)) problems.Add($"{where}: an encounter zone's chance is from 0 to 1.");
+        }
+
+        CheckInn(map, problems);
+    }
+
+    /// <summary>
+    /// A map's inn (interfaces.md, "Maps"): none on the world map; a town's or village's an open hex of its own; any other
+    /// map's the inn of a town or village, named by its map and hex.
+    /// </summary>
+    private void CheckInn(RealmMap map, List<string> problems)
+    {
+        MapFile file = map.File;
+        string where = $"map {map.Id}";
+        bool settlement = file.Kind is "town" or "village";
+        if (file.Kind == World)
+        {
+            if (file.Inn is not null) problems.Add($"{where}: the world map names no inn.");
+        }
+        else if (file.Inn is not { } inn)
         {
             problems.Add($"{where}: no inn, so a character who loses here has nowhere to wake.");
         }
-        else if (inn.Map is { } other && !Maps.ContainsKey(other))
+        else if (inn.Map is null)
         {
-            problems.Add($"{where}: its inn is on '{other}', which is no map.");
+            if (!settlement) problems.Add($"{where}: only a town's or village's inn is its own; any other map names its nearest town's.");
+            if (!map.Walkable(inn.At)) problems.Add($"{where}: its inn is at {inn.At}, which nobody can stand on.");
         }
-        else if (!Maps[inn.Map ?? map.Id].Walkable(inn.At))
+        else if (settlement)
         {
-            problems.Add($"{where}: its inn is at {inn.At} on {inn.Map ?? map.Id}, which nobody can stand on.");
+            problems.Add($"{where}: a {file.Kind}'s inn is its own.");
+        }
+        else if (!Maps.TryGetValue(inn.Map, out RealmMap? town))
+        {
+            problems.Add($"{where}: its inn is on '{inn.Map}', which is no map.");
+        }
+        else if (town.File.Kind is not ("town" or "village") || town.File.Inn is not { Map: null } own || own.At != inn.At)
+        {
+            problems.Add($"{where}: its inn is {inn.Map}'s at {inn.At}, which is not that town's or village's own inn.");
         }
     }
 

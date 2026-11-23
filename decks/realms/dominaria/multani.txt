@@ -1,0 +1,10 @@
+# Multani (multani), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Enormous Baloth
+4 Arrogant Wurm
+4 Sylvan Library
+3 Berserk
+2 Timber Wolves
+4 Elvish Archers
+2 Ashcoat Bear
+17 Forest

@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "W",
   "radius": 16,
+  "inn": {"map":"capashen-hold","q":-3,"r":3},
   "exits": [
     {"q":-5,"r":16,"to":"world"},
     {"q":-16,"r":10,"to":"capashen-hold"}

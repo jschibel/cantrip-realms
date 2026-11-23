@@ -1,0 +1,22 @@
+{
+  "id": "signet-of-the-wells",
+  "name": "Signet of the Wells",
+  "slot": "ring",
+  "rarity": "uncommon",
+  "gold": 1000,
+  "stats": {
+    "life": 4,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 4 additional life.",
+  "look": {
+    "mesh": "ring",
+    "palette": [
+      "#f1b44c",
+      "#62a4c2"
+    ]
+  },
+  "unique": false
+}

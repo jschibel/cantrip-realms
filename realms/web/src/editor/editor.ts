@@ -62,6 +62,8 @@ interface Working {
   chests: MapData["chests"][number][];
   npcs: MapData["npcs"][number][];
   inn: Hex | undefined;
+  /** Another map's inn, which this map names (the generator's; the inn tool puts one here instead). */
+  innElsewhere: MapData["inn"];
   encounters: MapData["encounters"];
 }
 
@@ -79,7 +81,8 @@ function working(data: MapData): Working {
     spawns: [...data.spawns],
     chests: [...data.chests],
     npcs: [...data.npcs],
-    inn: data.inn ? hex(data.inn.q, data.inn.r) : undefined,
+    inn: data.inn && data.inn.map === undefined ? hex(data.inn.q, data.inn.r) : undefined,
+    innElsewhere: data.inn?.map !== undefined ? data.inn : undefined,
     encounters: data.encounters,
   };
 }
@@ -108,7 +111,7 @@ function toData(w: Working): MapData {
     ...(w.region ? { region: w.region } : {}),
     ...(w.kind === "dungeon" ? { floor: w.floor ?? 1 } : {}),
     radius: w.radius,
-    ...(w.inn ? { inn: { q: w.inn.q, r: w.inn.r } } : {}),
+    ...(w.inn ? { inn: { q: w.inn.q, r: w.inn.r } } : w.innElsewhere ? { inn: w.innElsewhere } : {}),
     tiles: order.map((k) => w.tiles.get(k)).filter((t): t is MutableTile => t !== undefined) as TileData[],
     props: order
       .filter((k) => w.props.has(k))
@@ -278,6 +281,7 @@ export async function runEditor(canvas: HTMLCanvasElement, mapId: string | null)
         break;
       case "inn":
         map.inn = h;
+        map.innElsewhere = undefined;
         tile[4] = 0;
         break;
       case "erase":

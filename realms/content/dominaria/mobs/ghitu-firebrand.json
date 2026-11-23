@@ -1,0 +1,39 @@
+{
+  "id": "ghitu-firebrand",
+  "name": "Ghitu Firebrand",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/ghitu-firebrand.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [
+      "Human",
+      "Wizard",
+      "Shaman"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#c8432c",
+      "#f1b44c"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

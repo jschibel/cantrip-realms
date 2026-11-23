@@ -43,14 +43,16 @@ public sealed class CharacterTests
         Browser browser = await app.Character(1, "G", "Ann");
         CharacterView me = await browser.Me();
 
+        Assert.Equal(browser.Player, me.Id);
         Assert.Equal("Ann", me.Name);
+        Assert.Equal("broad", me.Body);
         Assert.Equal("G", me.Identity);
+        Assert.Equal(0, me.AnteValue);
         Assert.Equal(2000, me.Gold);
         Assert.Empty(me.Unlocked);
 
         // At New Argive's inn.
-        Assert.Equal("new-argive", me.Map);
-        Assert.Equal((0, -4), (me.Q, me.R));
+        Assert.Equal(("new-argive", RealmApp.InnOf("new-argive").At), (me.Map, new Hex(me.Q, me.R)));
 
         // Common gear in three slots, worn, with the stats it gives.
         List<GearInstance> worn = [.. me.Loadout.Values.OfType<GearInstance>()];
@@ -82,15 +84,16 @@ public sealed class CharacterTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Refused(HttpMethod.Post, "/api/character", new { Name = "Again", Body = 0, Palette = 0, Color = "U" }, HttpStatusCode.Conflict, Codes.HasCharacter);
+        await browser.Refused(HttpMethod.Post, "/api/character", new { Name = "Again", Body = "lithe", Palette = 0, Color = "U" }, HttpStatusCode.Conflict, Codes.HasCharacter);
     }
 
     [Theory]
-    [InlineData("A", 0, 0, "W")]
-    [InlineData("Ann", 4, 0, "W")]
-    [InlineData("Ann", 0, 6, "W")]
-    [InlineData("Ann", 0, 0, "C")]
-    public async Task A_character_is_made_of_a_name_a_body_a_palette_and_a_color(string name, int body, int palette, string color)
+    [InlineData("A", "lithe", 0, "W")]
+    [InlineData("Ann", "giant", 0, "W")]
+    [InlineData("Ann", "1", 0, "W")]
+    [InlineData("Ann", "lithe", 6, "W")]
+    [InlineData("Ann", "lithe", 0, "C")]
+    public async Task A_character_is_made_of_a_name_a_body_a_palette_and_a_color(string name, string body, int palette, string color)
     {
         await using var app = new RealmApp();
         Browser browser = await app.SignIn(1);
@@ -102,9 +105,10 @@ public sealed class CharacterTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Travel("benalish-meadow", 4, 2);
+        Hex open = RealmApp.Beside("benalish-meadow", new Hex(-3, 3));
+        await browser.Travel("benalish-meadow", open);
         CharacterView me = await browser.Me();
-        Assert.Equal(("benalish-meadow", 4, 2), (me.Map, me.Q, me.R));
+        Assert.Equal(("benalish-meadow", open.Q, open.R), (me.Map, me.Q, me.R));
 
         // The spell table's own hex, and off the map.
         await browser.Refused(HttpMethod.Post, "/api/travel", new { Map = "benalish-meadow", Q = -3, R = 3 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
@@ -130,7 +134,7 @@ public sealed class CharacterTests
             CharacterView after = await again.Me();
             Assert.Equivalent(before, after, strict: true);
             Assert.Equivalent(collection, await again.Collection(), strict: true);
-            Assert.Equal(4, await second.Store(db => db.Vendors.CountAsync()));
+            Assert.Equal(RealmApp.Content.Vendors.Count, await second.Store(db => db.Vendors.CountAsync()));
         }
     }
 }

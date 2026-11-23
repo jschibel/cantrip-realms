@@ -30,7 +30,7 @@ it), finds the content in the repository it runs from, and lets anyone sign in a
 
 ```
 curl -c jar -H "Content-Type: application/json" -d "{\"Id\":1,\"Name\":\"Ann\"}" http://localhost:5080/dev/signin
-curl -b jar -H "Content-Type: application/json" -d "{\"Name\":\"Ann\",\"Body\":0,\"Palette\":0,\"Color\":\"W\"}" http://localhost:5080/api/character
+curl -b jar -H "Content-Type: application/json" -d "{\"Name\":\"Ann\",\"Body\":\"lithe\",\"Palette\":0,\"Color\":\"W\"}" http://localhost:5080/api/character
 curl -b jar http://localhost:5080/api/me
 curl http://localhost:5080/healthz
 ```

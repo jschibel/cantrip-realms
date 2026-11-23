@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hex, spiral } from "../hex";
 import { GameMap } from "./gameMap";
-import { nearestInn, worldLocation } from "./graph";
+import { innOf, nearestInn, worldLocation } from "./graph";
 import { type MapData, validateMap } from "./schema";
 
 /** A small good map to break: a village with its inn, spell table and a way out. */
@@ -65,6 +65,16 @@ describe("validateMap", () => {
     );
   });
 
+  it("wants every map but the world map to name its inn, a town's own and any other map's a town's", () => {
+    expect(validateMap(village({ inn: undefined }))).toContain("a village needs an inn to respawn at");
+    expect(validateMap(village({ inn: { map: "elsewhere", q: 0, r: 0 } }), new Set(["test-village", "elsewhere"]))).toContain("a village's inn is its own");
+    const wild = village({ kind: "wilderness", npcs: [] });
+    expect(validateMap({ ...wild, inn: undefined })).toContain("a map names the inn a beaten player wakes at");
+    expect(validateMap(wild)).toContain("only a town's or village's inn is on its own map; any other map's names the town's");
+    expect(validateMap({ ...wild, inn: { map: "test-town", q: 1, r: 1 } }, new Set(["test-village", "test-town"]))).toEqual([]);
+    expect(validateMap({ ...wild, inn: { map: "nowhere", q: 1, r: 1 } }, new Set(["test-village"]))).toContain("the inn is on nowhere: no such map");
+  });
+
   it("follows exits to maps that exist", () => {
     expect(validateMap(village({ exits: [{ q: 4, r: 0, to: "nowhere" }] }), new Set(["test-village"]))).toContain("exit to nowhere: no such map");
   });
@@ -116,7 +126,9 @@ describe("the nearest inn", () => {
     ["near-village", village({ id: "near-village" })],
     ["dungeon-1", { ...village({ id: "dungeon-1", kind: "dungeon", floor: 1, inn: undefined, exits: [{ q: 4, r: 0, to: "world" }, { q: -4, r: 0, to: "dungeon-2" }] }) }],
     ["dungeon-2", { ...village({ id: "dungeon-2", kind: "dungeon", floor: 2, inn: undefined, exits: [{ q: 4, r: 0, to: "dungeon-1" }] }) }],
+    ["roadside", { ...village({ id: "roadside", kind: "wilderness", inn: undefined, npcs: [] }) }],
   ]);
+  maps.set("world", { ...world, encounters: [{ q: 7, r: 0, radius: 2, map: "roadside", chance: 0.1 }] });
   const load = (id: string) => Promise.resolve(maps.get(id)!);
 
   it("is found from a deep dungeon floor through the floors above", async () => {
@@ -126,5 +138,13 @@ describe("the nearest inn", () => {
 
   it("is the map's own when it has one", async () => {
     expect(await nearestInn("far-town", load)).toBe("far-town");
+    expect(await innOf("far-town", load)).toEqual({ q: 0, r: 0 });
+  });
+
+  it("is written as the town's map and hex for any other map, an encounter's map by its zone", async () => {
+    expect(await innOf("dungeon-2", load)).toEqual({ map: "near-village", q: 0, r: 0 });
+    expect(await worldLocation("roadside", load)).toEqual(hex(7, 0));
+    expect(await innOf("roadside", load)).toEqual({ map: "far-town", q: 0, r: 0 });
+    expect(await innOf("world", load)).toBeNull();
   });
 });

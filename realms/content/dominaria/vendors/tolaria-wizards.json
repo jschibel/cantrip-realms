@@ -1,0 +1,12 @@
+{
+  "id": "tolaria-wizards",
+  "name": "The Wizards' Exchange",
+  "town": "tolarian-academy",
+  "specialty": {
+    "subtypes": [
+      "Wizard",
+      "Artificer"
+    ]
+  },
+  "purse": 50000
+}

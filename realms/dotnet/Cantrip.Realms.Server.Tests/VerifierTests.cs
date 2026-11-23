@@ -1,10 +1,10 @@
-using System.Text.Json.Nodes;
 using Cantrip.Client;
 using Cantrip.Client.Embedded;
 using Cantrip.Client.Tactics;
 using Cantrip.Core;
 using Cantrip.Protocol;
 using Cantrip.Realms.Server.Content;
+using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Duels;
 using Cantrip.Server;
 using Cantrip.Server.Rules;
@@ -46,19 +46,12 @@ public sealed class VerifierPartsTests
     }
 
     [Fact]
-    public void A_deal_carries_each_seats_variant_as_the_host_names_it()
+    public void A_seat_is_dealt_with_its_setup_values_and_emblems_as_its_variant()
     {
-        string request = """{"Cmd":"NewGame","Seats":[{"Name":"Ann","Deck":[]},{"Name":"Mob","Deck":[]}],"Seed":1}""";
-        string dealt = SeatVariantTransport.WithVariants(request, [new SeatVariant(25, 8, 9, ["Circlet of Foresight (gear)"]), null]);
-        JsonNode seats = JsonNode.Parse(dealt)!["Seats"]!;
-        Assert.Equal(25, seats[0]!["StartingLife"]!.GetValue<int>());
-        Assert.Equal(8, seats[0]!["StartingHandSize"]!.GetValue<int>());
-        Assert.Equal(9, seats[0]!["MaximumHandSize"]!.GetValue<int>());
-        Assert.Equal("Circlet of Foresight (gear)", seats[0]!["Emblems"]![0]!.GetValue<string>());
-        Assert.Null(seats[1]!["StartingLife"]);
-
-        string start = """{"Cmd":"Start","GameId":1}""";
-        Assert.Same(start, SeatVariantTransport.WithVariants(start, [new SeatVariant(25)]));
+        var seat = new DuelSeat("Ann", ["Plains"], [], null, [], 25, 8, 9, ["Circlet of Foresight (gear)"]);
+        RulesSeat dealt = NativeDuelVerifier.Seat(seat);
+        Assert.Equal(new SeatVariant(25, 8, 9, dealt.Variant!.Emblems), dealt.Variant);
+        Assert.Equal(["Circlet of Foresight (gear)"], dealt.Variant.Emblems!);
     }
 
     /// <summary>A duel of two sample mobs' decks, at the default setup values: what today's engine deals.</summary>
@@ -87,8 +80,7 @@ public sealed class NativeVerifierTests
     /// </summary>
     private static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob)
     {
-        IHostTransport host = new SeatVariantTransport(NativeHostProcess.Shared, [.. duel.Seats.Select(SeatVariant.Of)]);
-        IRulesHost rules = new NativeRulesHostFactory(host).Create([.. duel.Seats.Select(NativeDuelVerifier.Seat)], (ulong)duel.Seed, new RulesGameOptions { MinimumDeckSize = duel.MinimumDeckSize });
+        IRulesHost rules = NativeDuelVerifier.Deal(duel, NativeHostProcess.Shared);
         using var session = new GameSession(rules);
         var mobSeat = new AutoSeat(new LoopbackTransport(session, new PlayerId(Duel.MobSeat)), mob);
         var recording = new RecordingTransport(new LoopbackTransport(session, new PlayerId(Duel.PlayerSeat)))
@@ -109,6 +101,56 @@ public sealed class NativeVerifierTests
 
         Assert.True(RealmBot.Settle(mobSeat));
         return ([.. recording.Log], session.WinningSeats);
+    }
+
+    [Fact]
+    public async Task A_duels_starting_life_and_hand_from_gear_stats_reach_the_engine()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "W");
+
+        // Beside the kit, a crown (one more card in the opening hand) and plate (eight more life).
+        List<long> worn = await app.Store(async db =>
+        {
+            GearOwnedRow crown = new() { PlayerId = browser.Player, GearId = "argivian-crown" };
+            GearOwnedRow plate = new() { PlayerId = browser.Player, GearId = "benalish-plate" };
+            db.GearOwned.AddRange(crown, plate);
+            await db.SaveChangesAsync();
+            return new List<long> { crown.Id, plate.Id };
+        });
+        CharacterView me = await browser.Ok<CharacterView>(HttpMethod.Put, "/api/loadout", new { Slots = new Dictionary<string, long?> { ["head"] = worn[0], ["body"] = worn[1] } });
+
+        // The warden of Serra's sanctum, who wears plate and a pendant of its own.
+        const string Floor = "serras-fallen-sanctum-1";
+        MapSpawn keeper = RealmApp.Content.Maps[Floor].Spawn("keeper")!;
+        await browser.Travel(Floor, keeper.At);
+        string mob = Spawns.MobOf(browser.Player, Floor, keeper.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), keeper.RespawnSeconds), keeper.Mobs);
+        EncounterView encounter = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Floor, Spawn = keeper.Id, Mob = mob });
+        Duel duel = encounter.Duel;
+        Assert.Equal((me.Stats.Life, me.Stats.Hand), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));
+        Assert.NotEqual((20, 7), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));
+        Assert.NotEqual(20, duel.Seats[1].StartingLife);
+
+        // Dealt on the native engine as the verifier deals it: each seat starts with its life and draws its hand (CR 103.4,
+        // 103.5). Both seats answer one question at a time - who plays first first - until both hands are drawn.
+        using var session = new GameSession(NativeDuelVerifier.Deal(duel, NativeHostProcess.Shared));
+        var player = new AutoSeat(new LoopbackTransport(session, new PlayerId(Duel.PlayerSeat)), new AutoPlayer());
+        var mobSeat = new AutoSeat(new LoopbackTransport(session, new PlayerId(Duel.MobSeat)), RealmBot.Create(duel.Seed));
+        session.Start();
+        for (int i = 0; i < 20 && (player.Client.View is null || player.Client.View.Players.Any(seat => seat.HandCount == 0)); i++)
+        {
+            if (!player.Step()) mobSeat.Step();
+            player.Client.Pump();
+        }
+
+        PlayerView view = player.Client.View!;
+        Assert.NotNull(view);
+        for (int seat = 1; seat <= 2; seat++)
+        {
+            PlayerSummaryView summary = view.Players.Single(summary => summary.Seat == seat);
+            DuelSeat dealt = duel.Seats[seat - 1];
+            Assert.Equal((dealt.StartingLife, dealt.StartingHandSize), (summary.Life, summary.HandCount));
+        }
     }
 
     [Fact]

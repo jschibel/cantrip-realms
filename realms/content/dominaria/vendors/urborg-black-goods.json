@@ -1,0 +1,9 @@
+{
+  "id": "urborg-black-goods",
+  "name": "The Black Market",
+  "town": "urborg",
+  "specialty": {
+    "colors": "B"
+  },
+  "purse": 50000
+}

@@ -5,6 +5,7 @@
   "region": "U",
   "floor": 1,
   "radius": 13,
+  "inn": {"map":"tolarian-academy","q":-3,"r":4},
   "exits": [
     {"q":-7,"r":11,"to":"world"},
     {"q":12,"r":-12,"to":"time-rift-academy-2"}

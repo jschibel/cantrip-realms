@@ -61,7 +61,7 @@ async function boot(): Promise<void> {
 
   const character = (await api.me()) ?? (await createCharacter(api));
   const presence: Presence = offline
-    ? new LocalPresence({ Player: `offline-${Math.random().toString(36).slice(2, 10)}`, Name: character.Name, Identity: character.Identity })
+    ? new LocalPresence({ Player: Math.floor(Math.random() * 2 ** 31), Name: character.Name, Identity: character.Identity })
     : new SocketPresence(socketUrl(server!));
 
   const options = {

@@ -1,15 +1,15 @@
 import * as THREE from "three";
 import type { CardScreens, Closed } from "./cardLayer";
-import { type Appearance, Character, type GearLook, type ManaColor, SLOTS, type Slot } from "./character";
+import { type Appearance, Character, type GearLook, SLOTS, type Slot } from "./character";
 import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
 import type { GameMap } from "./maps/gameMap";
-import { nearestInn, worldLocation } from "./maps/graph";
+import { worldLocation } from "./maps/graph";
 import { loadMap } from "./maps/load";
 import type { NpcData } from "./maps/schema";
 import { mobInfo } from "./mobs";
-import { ApiError, type Character as CharacterData, type RealmApi } from "./net/api";
+import { ApiError, type Character as CharacterData, type RealmApi, identityOf } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Look, Presence, ServerMessage } from "./net/presence";
 import { DOMINARIA } from "./palette";
@@ -48,7 +48,7 @@ export class Overworld {
   character!: Character;
   data!: CharacterData;
   readonly mobs: Mob[] = [];
-  readonly visitors = new Map<string, Visitor>();
+  readonly visitors = new Map<number, Visitor>();
   private travel: TravelScreen | null = null;
   private readonly placeInfo = new Map<string, PlaceInfo>();
   /** Spawn epochs whose mob was beaten here: `map|spawn|epoch`. */
@@ -91,10 +91,10 @@ export class Overworld {
   get appearance(): Appearance {
     const slots: Partial<Record<Slot, GearLook>> = {};
     for (const slot of SLOTS) {
-      const gear = this.data.Loadout[slot];
-      if (gear) slots[slot] = { mesh: gear.look.mesh, palette: gear.look.palette };
+      const worn = this.data.Loadout[slot];
+      if (worn) slots[slot] = { mesh: worn.Gear.Look.Mesh, palette: worn.Gear.Look.Palette };
     }
-    return { body: this.data.Body, palette: this.data.Palette, identity: this.data.Identity, slots };
+    return { body: this.data.Body, palette: this.data.Palette, identity: identityOf(this.data), slots };
   }
 
   /** Starts the overworld for a character, on the map it is on (or `at`, a test's or a developer's choice). */
@@ -165,9 +165,10 @@ export class Overworld {
     }
 
     this.hud.showMap(map);
+    // The server enters a player on the map they last reported standing on, so the report goes first.
+    await this.api.travel({ Map: map.id, Q: at.q, R: at.r }).catch(() => {});
     this.presence?.send({ Type: "Enter", Map: map.id });
     this.presence?.send({ Type: "Move", From: [at.q, at.r], Path: [], Speed: PLAYER_SPEED });
-    void this.api.travel({ Map: map.id, Q: at.q, R: at.r }).catch(() => {});
     this.screen = "world";
     this.paused = false;
     this.say(`${map.name}.`);
@@ -252,13 +253,13 @@ export class Overworld {
   }
 
   private walkThen(path: Hex[], then?: () => void): void {
+    // The walk is told from the hex it starts beside: walking steps onto the path's first hex at once.
+    const from = this.player.hex;
     this.player.walk(path, () => {
       this.reportTravel();
       then?.();
     });
-    const to = path.at(-1) ?? this.player.hex;
-    this.presence?.send({ Type: "Move", From: [this.player.hex.q, this.player.hex.r], Path: path.map((s) => [s.q, s.r] as const), Speed: PLAYER_SPEED });
-    void to;
+    this.presence?.send({ Type: "Move", From: [from.q, from.r], Path: path.map((s) => [s.q, s.r] as const), Speed: PLAYER_SPEED });
   }
 
   private walkBeside(h: Hex, then: () => void): void {
@@ -381,11 +382,11 @@ export class Overworld {
   private async openChest(id: string, h: Hex): Promise<void> {
     this.character.play("interact");
     try {
-      const { Gold } = await this.api.openChest({ Map: this.map.id, Chest: id });
+      const { Found } = await this.api.openChest({ Map: this.map.id, Chest: id });
       const chest = this.map.data.chests.find((c) => c.id === id)!;
       this.opened.add(`${this.map.id}|${id}|${spawnEpoch(chest, this.options.now())}`);
       this.world.setChest(id, true);
-      this.say(`You open the chest: ${gold(Gold)} gold.`);
+      this.say(`You open the chest: ${gold(Found)} gold.`);
       await this.refresh();
     } catch (e) {
       if (e instanceof ApiError && e.code === "Empty") {
@@ -484,8 +485,10 @@ export class Overworld {
       this.paused = false;
     } else {
       await this.refresh();
-      const inn = (await nearestInn(this.map.id, (id) => loadMap(id).then((map) => map.data))) ?? "new-argive";
-      await this.enter(inn);
+      // The inn this map names (its own, or its nearest town's), as the server moved the character there.
+      const inn = this.map.data.inn;
+      if (inn) await this.enter(inn.map ?? this.map.id, { at: hex(inn.q, inn.r) });
+      else await this.enter(this.data.Map, { at: hex(this.data.Q, this.data.R) });
       this.say(`You lost the duel, and wake at the inn in ${this.map.name}.`);
     }
   }
@@ -538,6 +541,8 @@ export class Overworld {
         break;
       }
       case "Refused": {
+        // A walk refused leaves the player where the server says they truly are.
+        if (message.At.length !== 2) break;
         const at = hex(message.At[0], message.At[1]);
         if (this.map.passable(at)) this.player.place(at);
         break;
@@ -545,12 +550,12 @@ export class Overworld {
     }
   }
 
-  private walkVisitor(visitor: Visitor, from: readonly [number, number], path: readonly (readonly [number, number])[], speed: number, since: string): void {
+  private walkVisitor(visitor: Visitor, from: readonly [number, number], path: readonly (readonly [number, number])[], speed: number, since: number): void {
     const start = hex(from[0], from[1]);
     if (this.map.passable(start) && !equals(visitor.walker.hex, start)) visitor.walker.place(start);
     visitor.walker.speed = speed || PLAYER_SPEED;
     visitor.walker.walk(path.map(([q, r]) => hex(q, r)).filter((h) => this.map.tile(h) !== undefined));
-    const late = (Date.now() - Date.parse(since)) / 1000;
+    const late = (Date.now() - since) / 1000;
     if (Number.isFinite(late) && late > 0.05) visitor.walker.skip(Math.min(late, 60));
   }
 
@@ -595,13 +600,13 @@ export class Overworld {
   }
 }
 
-function lookToAppearance(look: Look, identity: readonly string[]): Appearance {
+function lookToAppearance(look: Look, identity: string): Appearance {
   const slots: Partial<Record<Slot, GearLook>> = {};
   for (const [slot, s] of Object.entries(look.Slots)) {
     if ((SLOTS as readonly string[]).includes(slot)) slots[slot as Slot] = { mesh: s.Mesh, palette: s.Palette };
   }
   const body = (["lithe", "broad", "tall", "stocky"] as const).find((b) => b === look.Body) ?? "lithe";
-  return { body, palette: look.Palette, identity: identity.filter((c): c is ManaColor => "WUBRG".includes(c)), slots };
+  return { body, palette: look.Palette, identity: identityOf({ Identity: identity }), slots };
 }
 
 function refusal(e: unknown): string {

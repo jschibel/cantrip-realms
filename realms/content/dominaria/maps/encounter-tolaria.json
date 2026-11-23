@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "U",
   "radius": 7,
+  "inn": {"map":"tolarian-academy","q":-3,"r":4},
   "exits": [
     {"q":7,"r":0,"to":"world"},
     {"q":-7,"r":7,"to":"world"},

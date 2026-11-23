@@ -7,34 +7,39 @@ import type { Body, ManaColor, Slot } from "../character";
 export type GearSlot = "head" | "neck" | "body" | "hands" | "feet" | "ring" | "relic";
 export type Rarity = "common" | "uncommon" | "rare" | "mythic";
 
-/** A gear item's definition (`realms/content/gear/<id>.json`), as the server sends it: camelCase, as in the file. */
+/** A gear item (`realms/content/gear/<id>.json`) as the server sends it: its content file, PascalCase, with its emblem. */
 export interface Gear {
-  readonly id: string;
-  readonly name: string;
-  readonly slot: GearSlot;
-  readonly rarity: Rarity;
-  readonly gold: number;
-  readonly stats: { readonly life: number; readonly hand: number; readonly maxHand: number };
-  readonly effects: readonly Record<string, unknown>[];
-  readonly text: string;
-  readonly look: { readonly mesh: string; readonly palette: readonly string[] };
-  readonly unique: boolean;
+  readonly Id: string;
+  readonly Name: string;
+  readonly Slot: GearSlot;
+  readonly Rarity: Rarity;
+  readonly Gold: number;
+  readonly Stats: { readonly Life: number; readonly Hand: number; readonly MaxHand: number };
+  /** The item's abilities, as its file has them (camelCase): the gear crate's to read. */
+  readonly Effects: readonly Record<string, unknown>[];
+  readonly Text: string;
+  /** How it shows on a character: a gear mesh of realms/content/models and its palette. */
+  readonly Look: { readonly Mesh: string; readonly Palette: readonly string[] };
+  readonly Unique: boolean;
+  /** The engine's emblem for the item, `"<name> (gear)"`, or null for an item with no effects. */
+  readonly Emblem: string | null;
 }
 
 /** A gear item a player owns: one of possibly several copies. */
 export interface GearInstance {
-  readonly InstanceId: string;
+  readonly InstanceId: number;
   readonly Gear: Gear;
 }
 
 export interface Character {
-  /** The player id the spawn algorithm hashes: `discord-<id>`. */
+  /** The player id the spawn algorithm hashes: `discord-<id>`, `dev-<id>`. */
   readonly Id: string;
   readonly Name: string;
   readonly Body: Body;
   /** Which of the six skin and hair palettes, 0-5. */
   readonly Palette: number;
-  readonly Identity: readonly ManaColor[];
+  /** The starting color and the unlocked ones, as letters in WUBRG order: "WU". */
+  readonly Identity: string;
   readonly Gold: number;
   /** The total list price of the cards in the ante (design.md, A2). */
   readonly AnteValue: number;
@@ -42,10 +47,15 @@ export interface Character {
   readonly Q: number;
   readonly R: number;
   readonly Stats: { readonly Life: number; readonly Hand: number; readonly MaxHand: number };
-  readonly Loadout: Partial<Record<Slot, Gear>>;
+  /** What each of the eight slots holds, null when empty. */
+  readonly Loadout: Readonly<Partial<Record<Slot, GearInstance | null>>>;
   readonly Gear: readonly GearInstance[];
   readonly Unlocked: readonly ManaColor[];
 }
+
+/** A character's identity as colors, in WUBRG order. */
+export const identityOf = (c: { readonly Identity: string }): ManaColor[] =>
+  [...c.Identity].filter((l): l is ManaColor => "WUBRG".includes(l));
 
 export interface CardCount {
   readonly Name: string;
@@ -55,10 +65,27 @@ export interface CardCount {
 export interface Deck {
   readonly Main: readonly CardCount[];
   readonly Ante: readonly CardCount[];
+  /** What the ante is worth, as the server reckons it (it ignores this when a deck is saved). */
+  readonly AnteValue?: number;
+}
+
+/** A collection: copies owned, by card name. */
+export interface Collection {
+  readonly Cards: Readonly<Record<string, number>>;
+}
+
+/** What a vendor deals in: any of the filters, all that are given holding (interfaces.md, "Vendors"). */
+export interface Specialty {
+  readonly Pool?: string | null;
+  readonly Colors?: string | null;
+  readonly Types?: readonly string[];
+  readonly Subtypes?: readonly string[];
+  readonly Rarities?: readonly string[];
+  readonly Names?: readonly string[];
 }
 
 export interface VendorView {
-  readonly Vendor: { readonly id: string; readonly name: string; readonly town: string };
+  readonly Vendor: { readonly Id: string; readonly Name: string; readonly Town: string; readonly Specialty: Specialty };
   readonly Purse: number;
   readonly Stock: readonly { readonly Name: string; readonly Gold: number; readonly Count: number; readonly Until: string | null }[];
 }
@@ -82,8 +109,13 @@ export interface EncounterStart {
 export interface EncounterResult {
   readonly Outcome: "won" | "lost";
   readonly Gold: number;
+  /** Up to three cards, each with its list price, each within the cap alone. */
   readonly Offer: readonly { readonly Name: string; readonly Gold: number }[];
   readonly Cap: number;
+  /** The gear item a win dropped, if one did. */
+  readonly Gear: GearInstance | null;
+  /** Why a duel counted as lost without being played out. */
+  readonly Detail: string | null;
 }
 
 /** A refused call: the server's error code and its words. */
@@ -102,17 +134,19 @@ export interface RealmApi {
   readonly offline: boolean;
   me(): Promise<Character | null>;
   createCharacter(body: { Name: string; Body: Body; Palette: number; Color: ManaColor }): Promise<Character>;
-  collection(): Promise<{ Cards: Record<string, number> }>;
+  collection(): Promise<Collection>;
   saveDeck(deck: Deck): Promise<Deck>;
-  saveLoadout(slots: Partial<Record<Slot, string | null>>): Promise<Character>;
+  saveLoadout(slots: Partial<Record<Slot, number | null>>): Promise<Character>;
   vendor(id: string): Promise<VendorView>;
-  buy(vendor: string, name: string): Promise<{ Gold: number; Collection: Record<string, number> }>;
-  sell(vendor: string, name: string): Promise<{ Gold: number; Collection: Record<string, number> }>;
+  buy(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }>;
+  sell(vendor: string, name: string): Promise<{ Gold: number; Collection: Collection }>;
   armorer(town: string): Promise<{ Stock: readonly Gear[] }>;
   startEncounter(body: { Map: string; Spawn: string; Mob: string }): Promise<EncounterStart>;
   finishEncounter(body: { Token: string; Log: readonly string[] }): Promise<EncounterResult>;
-  takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<{ Collection: Record<string, number> }>;
-  openChest(body: { Map: string; Chest: string }): Promise<{ Gold: number }>;
+  /** Takes picks from a win's offer: the collection after. */
+  takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection>;
+  /** Opens a chest: the character's gold after, and what the chest held. */
+  openChest(body: { Map: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
   travel(body: { Map: string; Q: number; R: number }): Promise<void>;
 }
 
@@ -148,17 +182,17 @@ export class HttpApi implements RealmApi {
   }
 
   createCharacter = (body: { Name: string; Body: Body; Palette: number; Color: ManaColor }) => this.call<Character>("POST", "character", body);
-  collection = () => this.call<{ Cards: Record<string, number> }>("GET", "collection");
-  saveDeck = (deck: Deck) => this.call<Deck>("PUT", "deck", deck);
-  saveLoadout = (slots: Partial<Record<Slot, string | null>>) => this.call<Character>("PUT", "loadout", { Slots: slots });
+  collection = () => this.call<Collection>("GET", "collection");
+  saveDeck = (deck: Deck) => this.call<Deck>("PUT", "deck", { Main: deck.Main, Ante: deck.Ante });
+  saveLoadout = (slots: Partial<Record<Slot, number | null>>) => this.call<Character>("PUT", "loadout", { Slots: slots });
   vendor = (id: string) => this.call<VendorView>("GET", `vendor/${encodeURIComponent(id)}`);
-  buy = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Record<string, number> }>("POST", `vendor/${encodeURIComponent(vendor)}/buy`, { Name: name });
-  sell = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Record<string, number> }>("POST", `vendor/${encodeURIComponent(vendor)}/sell`, { Name: name });
+  buy = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Collection }>("POST", `vendor/${encodeURIComponent(vendor)}/buy`, { Name: name });
+  sell = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Collection }>("POST", `vendor/${encodeURIComponent(vendor)}/sell`, { Name: name });
   armorer = (town: string) => this.call<{ Stock: readonly Gear[] }>("GET", `armorer/${encodeURIComponent(town)}`);
   startEncounter = (body: { Map: string; Spawn: string; Mob: string }) => this.call<EncounterStart>("POST", "encounter/start", body);
   finishEncounter = (body: { Token: string; Log: readonly string[] }) => this.call<EncounterResult>("POST", "encounter/finish", body);
-  takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<{ Collection: Record<string, number> }>("POST", "encounter/loot", body);
-  openChest = (body: { Map: string; Chest: string }) => this.call<{ Gold: number }>("POST", "chest/open", body);
+  takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<Collection>("POST", "encounter/loot", body);
+  openChest = (body: { Map: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
   travel = async (body: { Map: string; Q: number; R: number }) => {
     await this.call<unknown>("POST", "travel", body);
   };

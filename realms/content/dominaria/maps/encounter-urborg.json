@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "B",
   "radius": 7,
+  "inn": {"map":"urborg","q":-4,"r":4},
   "exits": [
     {"q":7,"r":0,"to":"world"},
     {"q":-7,"r":7,"to":"world"},

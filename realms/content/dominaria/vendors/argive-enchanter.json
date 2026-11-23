@@ -1,0 +1,11 @@
+{
+  "id": "argive-enchanter",
+  "name": "The Enchanter's Stall",
+  "town": "new-argive",
+  "specialty": {
+    "types": [
+      "Enchantment"
+    ]
+  },
+  "purse": 50000
+}

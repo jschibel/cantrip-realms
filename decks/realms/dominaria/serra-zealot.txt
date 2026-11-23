@@ -1,0 +1,15 @@
+# Serra Zealot (serra-zealot), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Suntail Hawk
+2 Benalish Faithbonder
+2 Longbow Archer
+2 Skyshroud Falcon
+2 Yotian Medic
+2 Keepers of the Faith
+2 Tormented Angel
+2 Melesse Spirit
+2 Destroy Evil
+2 Mana Tithe
+2 Healing Salve
+1 Path to Exile
+17 Plains

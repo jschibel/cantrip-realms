@@ -1,0 +1,15 @@
+# Phyrexian Plaguelord (phyrexian-plaguelord), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Plague Beetle
+2 Knight of Dusk's Shadow
+2 Knight of Malice
+2 Cabal Evangel
+2 Bog Raiders
+2 Python
+2 Crazed Skirge
+2 Yargle, Glutton of Urborg
+2 Bone Splinters
+2 Cut Down
+2 Feed the Swarm
+1 Unearth
+17 Swamp

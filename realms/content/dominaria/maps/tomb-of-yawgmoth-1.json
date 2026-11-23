@@ -5,6 +5,7 @@
   "region": "B",
   "floor": 1,
   "radius": 13,
+  "inn": {"map":"urborg","q":-4,"r":4},
   "exits": [
     {"q":-9,"r":-1,"to":"world"},
     {"q":11,"r":2,"to":"tomb-of-yawgmoth-2"}

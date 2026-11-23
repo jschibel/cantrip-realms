@@ -1,0 +1,12 @@
+{
+  "id": "llanowar-elvish-exchange",
+  "name": "The Elvish Exchange",
+  "town": "llanowar",
+  "specialty": {
+    "subtypes": [
+      "Elf",
+      "Druid"
+    ]
+  },
+  "purse": 50000
+}

@@ -1,0 +1,9 @@
+{
+  "id": "keld-red-goods",
+  "name": "Keldon Wares",
+  "town": "keld",
+  "specialty": {
+    "colors": "R"
+  },
+  "purse": 50000
+}

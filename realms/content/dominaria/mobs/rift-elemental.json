@@ -1,0 +1,41 @@
+{
+  "id": "rift-elemental",
+  "name": "Rift Elemental",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/rift-elemental.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "scholars-circlet"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "spirit",
+    "palette": [
+      "#5b8fd6",
+      "#a97fd0",
+      "#f4ecc2"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

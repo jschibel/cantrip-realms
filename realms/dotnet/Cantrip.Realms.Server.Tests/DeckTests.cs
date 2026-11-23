@@ -1,4 +1,5 @@
 using System.Net;
+using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Economy;
 using Microsoft.EntityFrameworkCore;
@@ -41,9 +42,10 @@ public sealed class DeckTests
         // Next to the table, it does; and in the meadow, next to its table, too.
         await browser.ToSpellTable();
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
-        await browser.Travel("benalish-meadow", -3, 4);
+        Hex table = RealmApp.Npc("benalish-meadow", RealmMap.SpellTable);
+        await browser.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", table));
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
-        await browser.Travel("benalish-meadow", -3, 6);
+        await browser.Travel("benalish-meadow", RealmApp.Away("benalish-meadow", table, 2));
         await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
     }
 

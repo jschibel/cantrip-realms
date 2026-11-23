@@ -4,6 +4,7 @@
   "kind": "wilderness",
   "region": "W",
   "radius": 18,
+  "inn": {"map":"new-benalia","q":-4,"r":4},
   "exits": [
     {"q":-6,"r":18,"to":"world"},
     {"q":-18,"r":18,"to":"new-benalia"}

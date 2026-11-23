@@ -1,0 +1,11 @@
+# Heart Warden (heart-warden), a dungeon floor's warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Sylvan Library
+3 Berserk
+2 Timber Wolves
+4 Elvish Archers
+2 Ashcoat Bear
+4 Pale Bears
+2 Barkweave Crusher
+2 Elfhame Wurm
+17 Forest

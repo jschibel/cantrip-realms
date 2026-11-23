@@ -1,0 +1,42 @@
+{
+  "id": "yavimaya-wurm",
+  "name": "Yavimaya Wurm",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/yavimaya-wurm.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [
+      "Wurm",
+      "Beast"
+    ],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wurm",
+    "palette": [
+      "#4f7a34",
+      "#d6ae7e",
+      "#2a4524"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

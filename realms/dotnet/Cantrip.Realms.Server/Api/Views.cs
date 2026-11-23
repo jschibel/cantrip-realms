@@ -17,13 +17,19 @@ public sealed record StatsView(int Life, int Hand, int MaxHand)
 /// <summary>A gear item a character owns: its instance's id and the item.</summary>
 public sealed record GearInstance(long InstanceId, GearItem Gear);
 
-/// <summary>A character as its player sees it.</summary>
+/// <summary>
+/// A character as its player sees it: <see cref="Id"/> the player id the spawn table hashes, <see cref="Body"/> one of
+/// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order, and
+/// <see cref="AnteValue"/> what the ante is worth, for the HUD.
+/// </summary>
 public sealed record CharacterView(
+    string Id,
     string Name,
-    int Body,
+    string Body,
     int Palette,
     string Identity,
     long Gold,
+    long AnteValue,
     string Map,
     int Q,
     int R,
@@ -32,7 +38,8 @@ public sealed record CharacterView(
     IReadOnlyList<GearInstance> Gear,
     IReadOnlyList<string> Unlocked);
 
-public sealed record NewCharacter(string? Name, int Body, int Palette, string? Color);
+/// <summary>A new character: a name, a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a palette and a starting color.</summary>
+public sealed record NewCharacter(string? Name, string? Body, int Palette, string? Color);
 
 public sealed record CollectionView(IReadOnlyDictionary<string, int> Cards);
 
@@ -69,11 +76,14 @@ public sealed record EncounterView(string Token, long Seed, Duel Duel);
 
 public sealed record EncounterFinish(string? Token, IReadOnlyList<string>? Log);
 
+/// <summary>A card offered after a win, and its list price: what it counts against the cap.</summary>
+public sealed record OfferedCard(string Name, long Gold);
+
 /// <summary>
-/// How a duel ended: <c>won</c> or <c>lost</c>; the gold a win paid; the cards offered and the cap their picks fit under;
-/// a gear item that dropped; and, for a duel counted as lost without being played out, why.
+/// How a duel ended: <c>won</c> or <c>lost</c>; the gold a win paid; the cards offered, each with its list price, and the cap
+/// their picks fit under; a gear item that dropped; and, for a duel counted as lost without being played out, why.
 /// </summary>
-public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<string> Offer, long Cap, GearInstance? Gear, string? Detail);
+public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, string? Detail);
 
 public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
 

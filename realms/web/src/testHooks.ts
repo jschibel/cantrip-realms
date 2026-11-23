@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { CardScreens } from "./cardLayer";
 import type { Overworld } from "./game";
 import { type Hex, key } from "./hex";
+import { identityOf } from "./net/api";
 import { MockApi } from "./net/mockApi";
 
 // Playwright's view of the page (?test): where everything is, by name, with its position on the page in CSS pixels,
@@ -49,7 +50,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     },
     get character() {
       const o = game();
-      return o?.data ? { name: o.data.Name, gold: o.data.Gold, ante: o.data.AnteValue, identity: o.data.Identity, loadout: Object.keys(o.data.Loadout) } : null;
+      return o?.data ? { name: o.data.Name, gold: o.data.Gold, ante: o.data.AnteValue, identity: identityOf(o.data), loadout: Object.entries(o.data.Loadout).filter(([, worn]) => worn).map(([slot]) => slot) } : null;
     },
     get entities() {
       const o = game();

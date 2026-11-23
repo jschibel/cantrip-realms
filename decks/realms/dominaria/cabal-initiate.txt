@@ -1,0 +1,15 @@
+# Cabal Initiate (cabal-initiate), a tier 1 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Plague Beetle
+2 Cabal Evangel
+2 Krovikan Scoundrel
+2 Bog Imp
+2 Lost Soul
+2 Bog Raiders
+2 Moor Fiend
+2 Mass of Ghouls
+2 Bone Splinters
+2 Unearth
+2 Night's Whisper
+1 Bubbling Muck
+17 Swamp

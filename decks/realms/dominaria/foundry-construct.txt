@@ -1,0 +1,13 @@
+# Foundry Construct (foundry-construct), a tier 3 mob: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Lightning Bolt
+3 Chain Lightning
+1 Fiery Temper
+2 Goblin Welder
+3 Goblin Engineer
+3 Dreadhorde Arcanist
+3 Goblin Chariot
+1 Goblin Spelunkers
+2 Goblin Berserker
+2 Earth Elemental
+17 Mountain
