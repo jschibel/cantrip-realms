@@ -6,14 +6,20 @@
   "scripts": {
     "theme": "node scripts/theme.mjs",
     "dev": "node scripts/theme.mjs && vite",
-    "build": "node scripts/theme.mjs && tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "build": "node scripts/theme.mjs && npm run typecheck && vite build",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "models": "vite-node scripts/models.ts",
+    "maps": "vite-node scripts/maps.ts",
+    "e2e": "node scripts/theme.mjs && playwright test -c e2e/playwright.config.ts"
   },
   "dependencies": {
+    "@msgpack/msgpack": "3.1.2",
     "three": "0.170.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.57.0",
+    "@types/node": "22.10.2",
     "@types/three": "0.170.0",
     "typescript": "5.7.2",
     "vite": "6.0.3",
