@@ -6,7 +6,8 @@ import { type Page, expect, test } from "@playwright/test";
 // The rooms and dungeons gallery (rooms.html): every room kind and every dungeon theme renders at each of the camera's
 // three headings, and draws something - not a black frame. With ROOMS_SHOTS=1 the pictures are written to
 // e2e/screenshots/rooms for the owner to judge; otherwise to test-results/rooms. ROOMS_ONLY=<a query fragment> renders
-// only the pages whose query contains it (room=inn, dungeon=caves), for working on one.
+// only the pages whose query contains it (room=inn, dungeon=caves), for working on one; ROOMS_VIEWPORT=1920x1080 another
+// window size.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shots = !!process.env.ROOMS_SHOTS;
@@ -49,6 +50,9 @@ for (const theme of THEMES) for (const heading of HEADINGS) pages.push({ query: 
 for (const theme of THEMES) pages.push({ query: `dungeon=${theme}&seed=2&floor=2&floors=3&heading=front`, name: `dungeon-${theme}-last` });
 
 test.describe("the rooms gallery", () => {
+  // ROOMS_VIEWPORT=1920x1080 renders them at another window size.
+  const viewport = process.env.ROOMS_VIEWPORT?.split("x").map(Number);
+  if (viewport?.length === 2) test.use({ viewport: { width: viewport[0]!, height: viewport[1]! } });
   test("lists every room kind and theme", async ({ page }) => {
     await page.goto("/rooms.html");
     await page.waitForFunction(() => (globalThis as any).roomsTest?.ready === true);

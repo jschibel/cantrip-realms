@@ -301,7 +301,9 @@ layoutRoom({
   | shop, inn, guildhall, temple, smithy, library, exotic wares | 9-11 (an inn 10-11) | 6-7 |
   | tower (round, an even width across) | 8-10 | 8-10 |
 
-  A room up to these sizes is seen whole at every heading. The way out is a two-tile gap in the middle of the front
+  A room up to these sizes is seen whole at every heading at 1280 by 800 and 1920 by 1080. The exception is an inn with
+  rooms upstairs: its gallery's tall back wall leaves its nearest corner a tile off the screen from a corner heading,
+  until the player walks toward it. The way out is a two-tile gap in the middle of the front
   wall, with `entry` = `[floor(w / 2), d - 1]` (`w / 2` for the tower). The area takes in the sill row at `z = d`.
 - **Keepers** (NPCs):
   - shop and exotic wares: a `vendor`, behind the counter;
