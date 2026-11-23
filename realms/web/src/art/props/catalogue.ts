@@ -20,6 +20,8 @@ export type Footprint =
       readonly rect: Rect;
       /** Whether its tiles refuse walking: mark them blocked (flag 1). */
       readonly blocks: boolean;
+      /** Scaled by `args.size` over the rectangle's width too (a statue filling its square). */
+      readonly sizeArg?: boolean;
     }
   | {
       /** A line from (x, z) to `args.to`, `width` wide (a fence, a wall). */
@@ -29,6 +31,14 @@ export type Footprint =
   | {
       /** A rectangle from (x, z) to `args.to` (a dock, a terrace). */
       readonly area: true;
+      readonly blocks: boolean;
+    }
+  | {
+      /**
+       * A rectangle `args.w` by `args.d` from (x, z), its corner (a dungeon entrance's footprint); these across its front
+       * and deep when its args do not say (turned with `rot`).
+       */
+      readonly sized: readonly [number, number];
       readonly blocks: boolean;
     };
 
@@ -64,8 +74,9 @@ export function prop(
   draw: (b: MeshBuilder, p: PropData, palette: Palette) => Omit<Built, "model"> | void,
   palette: Palette = {},
   check?: (p: PropData) => readonly string[],
+  far?: (b: MeshBuilder, p: PropData, palette: Palette) => void,
 ): void {
-  drawn(id, about, draw, palette, check);
+  drawn(id, about, draw, palette, check, far);
   describe(id, info);
 }
 
@@ -91,8 +102,16 @@ export function tilesOf(p: PropData): { readonly tiles: readonly XZ[]; readonly 
     for (let z = Math.floor(z0 + e); z <= Math.floor(z1 - e); z++) for (let x = Math.floor(x0 + e); x <= Math.floor(x1 - e); x++) tiles.set(key(x, z), [x, z]);
   };
   const to = p.args?.to;
-  if ("rect" in fp) {
-    const s = p.scale ?? 1;
+  if ("sized" in fp) {
+    const turnedRound = ((((p.rot ?? 0) % 4) + 4) % 4) % 2 === 1;
+    const [dw, dd] = turnedRound ? [fp.sized[1], fp.sized[0]] : fp.sized;
+    const w = typeof p.args?.w === "number" ? (p.args.w as number) : dw;
+    const d = typeof p.args?.d === "number" ? (p.args.d as number) : dd;
+    addRect(p.x, p.z, p.x + w, p.z + d);
+  } else if ("rect" in fp) {
+    const [a0, , a1] = fp.rect;
+    const size = fp.sizeArg && typeof p.args?.size === "number" ? (p.args.size as number) / (a1 - a0) : 1;
+    const s = (p.scale ?? 1) * size;
     const t = turnOf(p);
     const c = Math.cos(t);
     const sn = Math.sin(t);

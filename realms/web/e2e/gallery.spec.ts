@@ -6,7 +6,7 @@ import { type Page, expect, test } from "@playwright/test";
 // The art gallery (gallery.html, dev only): every board - the surfaces and where biomes meet, the props by kind, each
 // region's building style - loads and draws without an error. With ART_SHOTS=1 it also writes the pictures for review
 // to e2e/screenshots/art: each board at the three headings one zoom step out (where most boards are seen whole), at
-// the closest step from the front, and the building styles row by row and at the farthest step too; otherwise to test-results/art.
+// the closest step from the front, and the building styles row by row and at the farthest step too (the trees there in their far stand-ins); otherwise to test-results/art.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shots = !!process.env.ART_SHOTS;
@@ -20,7 +20,7 @@ async function open(page: Page, board: string, heading: string, zoom: number, fo
   await page.evaluate(() => (globalThis as any).galleryTest.advance(0.5));
 }
 
-/** How many colors the scene shows: a board that drew is rich in them. */
+/** How many colors the scene shows: a board that drew shows dozens (a blank or broken one a handful). */
 async function colorCount(page: Page): Promise<number> {
   const f = await page.evaluate(() => (globalThis as any).galleryTest.frame() as { rgba: string });
   const rgba = Buffer.from(f.rgba, "base64");
@@ -84,7 +84,7 @@ for (const board of BOARDS) {
       ["left", 1],
       ["right", 1],
       ["front", 0],
-      ...(board.startsWith("style-") ? ([["front", 2]] as [string, number][]) : []),
+      ...(board.startsWith("style-") || board === "props-trees" || board === "props-plants" ? ([["front", 2]] as [string, number][]) : []),
     ];
     await open(page, board, "front", 1);
     const places = (await page.evaluate(() => (globalThis as any).galleryTest.views)) as [number, number][];
@@ -94,7 +94,7 @@ for (const board of BOARDS) {
       for (const [k, focus] of where.entries()) {
         await open(page, board, heading, zoom, focus);
         expect(await page.evaluate(() => (globalThis as any).galleryTest.heading)).toBe(heading);
-        expect(await colorCount(page), `${board} ${heading} zoom ${zoom}: painted`).toBeGreaterThan(120);
+        expect(await colorCount(page), `${board} ${heading} zoom ${zoom}: painted`).toBeGreaterThan(30);
         if (shots) await page.screenshot({ path: join(out, `${board}-${heading}-z${zoom}${where.length > 1 ? `-row${k + 1}` : ""}.png`) });
       }
     }

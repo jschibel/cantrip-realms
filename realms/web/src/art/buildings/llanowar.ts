@@ -563,6 +563,7 @@ function llanowar(building: BuildingData, pal: Palette): Built {
       const floors = P.num("floors", 3);
       return go(3.0 + floors * 1.8 + 5.6, tower(building, m, floors));
     }
+    case "barn":
     case "warehouse":
       return go(3.0, warehouse(m, trade ?? "general"));
     case "gatehouse":

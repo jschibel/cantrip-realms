@@ -34,8 +34,11 @@ export function point(p: PropData, key: string): XZ {
   throw new Error(`prop ${p.id} at ${p.x},${p.z}: args.${key} is not [x, z]`);
 }
 
-/** The prop's whole turn about the vertical, radians: its quarter turns and its small turn. */
-export const turnOf = (p: PropData): number => ((p.rot ?? 0) * Math.PI) / 2 + (p.turn ?? 0);
+/**
+ * The prop's whole turn about the vertical, radians: its quarter turns clockwise seen from above (format.ts: 0 faces
+ * south, 1 west, 2 north, 3 east, as a building's `rot`) and its small turn.
+ */
+export const turnOf = (p: PropData): number => -((p.rot ?? 0) * Math.PI) / 2 + (p.turn ?? 0);
 
 /** Checks for an entry: the args it needs are there and of the right kind. */
 export function needs(spec: Readonly<Record<string, "number" | "boolean" | "string" | "point">>): (p: PropData) => string[] {
@@ -58,6 +61,8 @@ export function drawn(
   draw: (b: MeshBuilder, p: PropData, palette: Palette) => Omit<Built, "model"> | void,
   palette: Palette = {},
   check?: (p: PropData) => readonly string[],
+  /** Draws its far-zoom stand-in (Built.far), if it has one: dense vegetation does. */
+  far?: (b: MeshBuilder, p: PropData, palette: Palette) => void,
 ): void {
   PROPS.define(
     id,
@@ -65,7 +70,10 @@ export function drawn(
     (p, pal) => {
       const b = new MeshBuilder();
       const extra = draw(b, p, pal) ?? {};
-      return { ...extra, model: b.model() };
+      const model = b.model();
+      if (!far) return { ...extra, model };
+      far(b, p, pal);
+      return { ...extra, model, far: b.model() };
     },
     palette,
     check,

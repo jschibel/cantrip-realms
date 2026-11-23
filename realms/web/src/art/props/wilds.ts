@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import type { PropData, XYZ } from "../../world/format";
 import { MeshBuilder, fitted, sides, tiled } from "../paint/builder";
 import * as C from "../paint/colors";
@@ -10,7 +11,7 @@ import * as T from "../paint/textures";
 import { centred, prop } from "./catalogue";
 import * as D from "./draw";
 import { bark, flames, foliage, frustum, glowing, limb, lump, rock } from "./kit";
-import { bool } from "./registry";
+import { bool, turnOf } from "./registry";
 
 // The wilds' darker things: Phyrexian wreckage strewn over the desolate waste (broken hulls, hooked spikes, ribcages of
 // metal, oil vents) and the dungeons' ways in, one for each theme (design.md A6): a cave mouth in a rocky mound, a
@@ -19,7 +20,7 @@ import { bool } from "./registry";
 // faces south (turned by rot); the tile before it is where the player stands to go in.
 
 type V3 = [number, number, number];
-const turned = (p: PropData) => ((p.rot ?? 0) * Math.PI) / 2 + (p.turn ?? 0);
+const turned = turnOf;
 
 /** Phyrexian metal from a ramp: ribbed plates, a seam, rivets and oil weeping. */
 const metal = (r: Ramp) =>
@@ -170,22 +171,63 @@ function mouthPicture(w: number, h: number, rim: Ramp): Pixmap {
 
 const mouth = (w: number, h: number, rim: Ramp) => material(`mouth-${w}x${h}@${rampKey(rim)}`, () => mouthPicture(w, h, rim), { cutout: true });
 
-/** An entrance's frame: drawn turned to its rot about its anchor (its door's foot), returning the doorway. */
-function entrance(b: MeshBuilder, p: PropData, draw: () => number): { doorway: XYZ } {
-  let y = 1;
-  b.at(p.x, 0, p.z, turned(p), () => {
-    y = draw();
-  });
+/**
+ * An entrance over its footprint: `args.w` by `args.d` world units from its anchor (x, z), the corner, facing `rot`
+ * (0 south, 1 west, 2 north, 3 east, as a building's). Its door is the middle of the front edge; `draw` lays the entrance
+ * out facing south with its door's foot at the origin and its body behind (north, -z), `base` its own size across and
+ * deep, and it is scaled up to fill the footprint (at most by 1.35). Returns the doorway.
+ */
+function entrance(b: MeshBuilder, p: PropData, base: readonly [number, number], draw: () => number): { doorway: XYZ } {
+  const rot = (((p.rot ?? 0) % 4) + 4) % 4;
+  const [w, d] = sizeOf(p);
+  const door: [number, number] = [
+    [p.x + w / 2, p.z + d],
+    [p.x, p.z + d / 2],
+    [p.x + w / 2, p.z],
+    [p.x + w, p.z + d / 2],
+  ][rot] as [number, number];
+  const across = rot % 2 === 0 ? w : d;
+  const deep = rot % 2 === 0 ? d : w;
+  const scale = Math.max(0.5, Math.min(across / base[0], deep / base[1], 1.35));
   const t = turned(p);
-  return { doorway: [p.x + Math.sin(t) * 0.05, y, p.z + Math.cos(t) * 0.05] };
+  const saved = b.matrix;
+  b.matrix = saved.clone().multiply(new THREE.Matrix4().makeTranslation(door[0], 0, door[1]).multiply(new THREE.Matrix4().makeRotationY(t)).multiply(new THREE.Matrix4().makeScale(scale, scale, scale)));
+  let y = 1;
+  try {
+    y = draw() * scale;
+  } finally {
+    b.matrix = saved;
+  }
+  return { doorway: [door[0] + Math.sin(t) * 0.05, y, door[1] + Math.cos(t) * 0.05] };
 }
 
+/** An entrance's footprint, world units: its args, or the world generator's size for its theme. */
+function sizeOf(p: PropData): [number, number] {
+  const [a, c] = ENTRANCE_SIZE[p.id] ?? [5, 4];
+  const rot = (((p.rot ?? 0) % 4) + 4) % 4;
+  const [dw, dd] = rot % 2 === 0 ? [a, c] : [c, a];
+  return [typeof p.args?.w === "number" ? (p.args.w as number) : dw, typeof p.args?.d === "number" ? (p.args.d as number) : dd];
+}
+
+/** The world generator's footprints by entrance, across the front and deep (scripts/worldgen/wilds.ts). */
+const ENTRANCE_SIZE: Readonly<Record<string, readonly [number, number]>> = {
+  "cave-mouth": [6, 4],
+  "castle-gate": [9, 7],
+  "mage-tower": [6, 6],
+  "crypt-door": [6, 5],
+  "root-hollow": [7, 5],
+  "foundry-gate": [9, 6],
+  "phyrexian-portal": [8, 4],
+};
+
+const SIZED = (id: string, blocks = true) => ({ sized: ENTRANCE_SIZE[id] ?? ([5, 4] as const), blocks });
+
 prop(
-  "entrance-caves",
-  "a cave's mouth (caves theme) in a mound of rock, its door at x, z facing south (turned by rot); 5 by 4 behind it",
-  { category: "entrance", biomes: ["mountain", "keld", "tundra"], footprint: { rect: [-2.5, -4, 2.5, 0], blocks: true } },
+  "cave-mouth",
+  "a cave's mouth (caves theme) in a mound of rock, its door over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["mountain", "keld", "tundra"], footprint: SIZED("cave-mouth") },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [5, 4], () => {
       const r = rock(pal.stone!, R.LICHEN);
       lump(b, 0, -2, 0, [[2.6, 0], [2.4, 1.3], [1.8, 2.5], [0.9, 3.2], [0, 3.4]], 9, r, p.seed ?? 4, 0.18, { squash: 0.9 });
       lump(b, 1.8, -0.9, 0, [[0.8, 0], [0.6, 0.8], [0, 1.2]], 6, r, 7, 0.25);
@@ -196,11 +238,11 @@ prop(
   { stone: R.GRANITE },
 );
 prop(
-  "entrance-castle",
-  "a castle's postern (castle theme): a gate in a stretch of curtain wall between two towers, its portcullis down, at x, z facing south; 7 by 3 behind it",
-  { category: "entrance", biomes: ["plains", "farmland"], footprint: { rect: [-3.5, -3, 3.5, 0], blocks: true } },
+  "castle-gate",
+  "a castle's postern (castle theme): a gate in a stretch of curtain wall between two towers, its portcullis down, over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["plains", "farmland"], footprint: SIZED("castle-gate") },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [7, 3], () => {
       const lime = tiled(stock.limestone(pal.stone));
       const flag = tiled(stock.flagstone(pal.stone));
       b.box(-1.5, 0, -2.2, 1.5, 3.4, -0.2, sides(lime, flag));
@@ -218,11 +260,11 @@ prop(
   { stone: C.LIMESTONE },
 );
 prop(
-  "entrance-tower",
-  "a mage tower standing alone (tower theme): round, ruined at its crown, its door at x, z facing south; 4 by 4 behind it",
-  { category: "entrance", biomes: ["coast", "plains", "mountain", "any"], footprint: { rect: [-2, -4, 2, 0], blocks: true } },
+  "mage-tower",
+  "a mage tower standing alone (tower theme): round, ruined at its crown, its door over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["coast", "plains", "mountain", "any"], footprint: SIZED("mage-tower") },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [4, 4], () => {
       const r = 1.8;
       const stone = stock.limestone(pal.stone);
       b.cylinder(0, -r, 0, 7.0, r, 12, { mat: stone }, undefined, 0, 1, 2);
@@ -245,11 +287,11 @@ prop(
   { stone: C.LIMESTONE },
 );
 prop(
-  "entrance-crypt",
-  "a crypt's way down (crypt theme): a sunken stair under a stone pediment and an iron gate, at x, z facing south; 3 by 3 behind it",
-  { category: "entrance", biomes: ["swamp", "morass", "town", "waste"], footprint: { rect: [-1.5, -3, 1.5, 0], blocks: true } },
+  "crypt-door",
+  "a crypt's way down (crypt theme): a sunken stair under a stone pediment and an iron gate, over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["swamp", "morass", "town", "waste"], footprint: SIZED("crypt-door") },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [3, 3], () => {
       const stone = tiled(stock.cryptBrick(pal.stone));
       const flag = tiled(stock.cryptStone(pal.stone));
       for (const x of [-1.3, 1.3]) b.box(x - 0.3, 0, -2.6, x + 0.3, 2.2, 0, sides(stone, flag));
@@ -265,11 +307,11 @@ prop(
   { stone: C.DUNGEON },
 );
 prop(
-  "entrance-hollow",
-  "a root hollow (hollow theme): a giant's roots arching over a dark way down, moss and ferns about it, at x, z facing south; 5 by 4 behind it",
-  { category: "entrance", biomes: ["llanowar", "forest", "verdura"], footprint: { rect: [-2.5, -4, 2.5, 0], blocks: true } },
+  "root-hollow",
+  "a root hollow (hollow theme): a giant's roots arching over a dark way down, moss and ferns about it, over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["llanowar", "forest", "verdura"], footprint: SIZED("root-hollow") },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [5, 4], () => {
       const bk = bark(pal.bark!, "smooth");
       // The stump of a great trunk behind, mossed over, and its roots thrust out and down round the hole.
       lump(b, 0, -2.0, 0, [[2.1, 0], [1.8, 1.0], [1.6, 2.0], [1.5, 2.4]], 10, bk, 3, 0.08);
@@ -287,11 +329,11 @@ prop(
   { bark: R.ELFWOOD },
 );
 prop(
-  "entrance-foundry",
-  "a foundry's door (foundry theme): an iron door in a rock face, its seams glowing, chimneys of stone smoking above, at x, z facing south; 5 by 3 behind it",
-  { category: "entrance", biomes: ["mountain", "keld", "volcanic"], footprint: { rect: [-2.5, -3, 2.5, 0], blocks: true } },
+  "foundry-gate",
+  "a foundry's door (foundry theme): an iron door in a rock face, its seams glowing, chimneys of stone smoking above, over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["mountain", "keld", "volcanic"], footprint: SIZED("foundry-gate") },
   (b, p, pal) => {
-    const out = entrance(b, p, () => {
+    const out = entrance(b, p, [5, 3], () => {
       const r = rock(pal.stone!, null);
       lump(b, 0, -1.6, 0, [[2.6, 0], [2.3, 1.6], [1.6, 3.0], [0.6, 3.6]], 8, r, 5, 0.2, { squash: 0.7 });
       const brick = tiled(stock.cryptBrick(R.BASALT));
@@ -309,11 +351,11 @@ prop(
   { stone: R.BASALT },
 );
 prop(
-  "entrance-portal",
-  "the Phyrexian Portal's sealed arch (portal theme): ribbed black metal round a membrane of oil, glowing when args.open, at x, z facing south; 5 by 2 behind it",
-  { category: "entrance", biomes: ["phyrexian", "waste"], footprint: { rect: [-2.5, -2, 2.5, 0], blocks: true }, sample: { args: { open: true } } },
+  "phyrexian-portal",
+  "the Phyrexian Portal's sealed arch (portal theme): ribbed black metal round a membrane of oil, glowing when args.open, over its footprint args.w by args.d from x, z (the corner), facing rot",
+  { category: "entrance", biomes: ["phyrexian", "waste"], footprint: SIZED("phyrexian-portal"), sample: { args: { open: true } } },
   (b, p, pal) =>
-    entrance(b, p, () => {
+    entrance(b, p, [5, 2], () => {
       const m = metal(pal.metal!);
       // Two hooked pillars, ribs arching between them over the membrane.
       for (const s of [-1, 1]) {
@@ -376,4 +418,6 @@ function skullPicture(): Pixmap {
   return p;
 }
 
-export const ENTRANCE_THEMES = ["caves", "castle", "tower", "crypt", "hollow", "foundry", "portal"] as const;
+/** The entrance prop of each dungeon theme. */
+export const ENTRANCES = { caves: "cave-mouth", castle: "castle-gate", tower: "mage-tower", crypt: "crypt-door", hollow: "root-hollow", foundry: "foundry-gate", portal: "phyrexian-portal" } as const;
+export const ENTRANCE_THEMES = Object.keys(ENTRANCES) as (keyof typeof ENTRANCES)[];

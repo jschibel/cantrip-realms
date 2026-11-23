@@ -549,6 +549,7 @@ function keldon(building: BuildingData, pal: Palette): Built {
       const floors = P.num("floors", 2);
       return go(1.2 + floors * 1.5 + 2.9, tower(m, trade ?? "magic", floors));
     }
+    case "barn":
     case "warehouse":
       return go(0.8 + 3.0 + 1.9 + 0.6, warehouse(m));
     case "gatehouse":

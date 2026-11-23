@@ -41,6 +41,11 @@ export interface Built {
   readonly doorway?: XYZ;
   /** Rooms: the rectangle (x0, z0, x1, z1) of the ground the camera keeps its view within. */
   readonly bounds?: Rect;
+  /**
+   * A cheaper stand-in for `model` at the far zoom step (a tree's: its silhouette and painted texture in a hundred or so
+   * triangles, where the near one has a few hundred). The renderer draws it instead of `model` there; none, `model`.
+   */
+  readonly far?: Model;
 }
 
 /** A light a recipe brings: one of the world data's lights, or an ambient one (a room's sky and fill). */

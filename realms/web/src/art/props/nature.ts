@@ -1,13 +1,13 @@
 import { type Material, MeshBuilder, fitted, sides, tiled } from "../paint/builder";
 import * as C from "../paint/colors";
 import { material } from "../paint/materials";
-import { type Ramp, rampKey } from "../paint/palette";
+import { type Palette, type Ramp, rampKey } from "../paint/palette";
 import { Pixmap, type Rgb, hash2, seeded } from "../paint/pixmap";
 import * as R from "../paint/ramps";
 import type { PropData } from "../../world/format";
 import { along, centred, prop } from "./catalogue";
 import { bark, cutout, disc, foliage, frustum, limb, lump, needleMaterial, ringsMaterial, rock, snowCover, standingCard } from "./kit";
-import { needs, num, point, str } from "./registry";
+import { needs, num, point, str, turnOf } from "./registry";
 
 // The open country's growing things and its stone, by biome: Benalia's oaks and birches; Llanowar's giant trees,
 // undergrowth and ferns; the Morass's dead trees and cypresses hung with moss; Keld's pines and snowy firs; the coasts'
@@ -183,22 +183,50 @@ const palmLeaf = (r: Ramp) => cutout(`palm-frond@${rampKey(r)}`, () => palmFrond
 const vine = (r: Ramp, flowers: boolean) => cutout(`vine${flowers ? "-flowering" : ""}@${rampKey(r)}`, () => vinePicture(r, flowers));
 const blossom = (r: Ramp, petals: readonly Rgb[]) => material(`blossom@${rampKey(r)}+${rampKey(petals)}`, () => blossomPicture(r, petals), { smooth: true });
 
+// --- Near and far -----------------------------------------------------------------------------------------------------
+
+/**
+ * How finely the growing things are drawn: near, a crown's clumps are spheres of 80 triangles; far (Built.far, the far
+ * zoom step), of 20, fewer of them, and the small things (roots, vines, moss, blossom) left out - the silhouette and the
+ * painted leaves kept in about a hundred triangles.
+ */
+let FAR = false;
+
+/** A blob at the detail of the drawing under way. */
+function bl(b: MeshBuilder, cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, mat: Material, offset: readonly [number, number] = [0, 0]): void {
+  b.blob(cx, cy, cz, rx, ry, rz, mat, offset, FAR ? 0 : 1);
+}
+
+/** The far stand-in of a drawing: the same function drawn coarse. */
+function far<A extends unknown[]>(draw: (b: MeshBuilder, ...args: A) => unknown): (b: MeshBuilder, ...args: A) => void {
+  return (b, ...args) => {
+    FAR = true;
+    try {
+      draw(b, ...args);
+    } finally {
+      FAR = false;
+    }
+  };
+}
+
 // --- Trees ---------------------------------------------------------------------------------------------------------------
 
 /** Clumps of foliage round a centre: a crown of `n` blobs, seeded. */
 function crown(b: MeshBuilder, x: number, y: number, z: number, rx: number, ry: number, n: number, mat: Material, seed: number, spread = 0.6): void {
   const random = seeded(seed * 31 + 7);
-  b.blob(x, y, z, rx, ry, rx * 0.95, mat, [seed * 5, 0]);
-  for (let i = 0; i < n; i++) {
+  bl(b, x, y, z, rx, ry, rx * 0.95, mat, [seed * 5, 0]);
+  const clumps = FAR ? Math.min(n, 3) : n;
+  for (let i = 0; i < clumps; i++) {
     const a = (i / n) * Math.PI * 2 + random() * 0.6;
     const r = rx * (0.55 + random() * 0.15);
     const k = 0.55 + random() * 0.2;
-    b.blob(x + Math.sin(a) * rx * spread, y + (random() - 0.6) * ry * 0.7, z + Math.cos(a) * rx * spread * 0.8, r * k / 0.6, ry * k, r * k / 0.6, mat, [i * 7 + seed, i * 3]);
+    bl(b, x + Math.sin(a) * rx * spread, y + (random() - 0.6) * ry * 0.7, z + Math.cos(a) * rx * spread * 0.8, r * k / 0.6, ry * k, r * k / 0.6, mat, [i * 7 + seed, i * 3]);
   }
 }
 
 /** Roots flaring out from a trunk's foot. */
 function roots(b: MeshBuilder, x: number, z: number, r: number, reach: number, mat: Material, n = 4, seed = 0): void {
+  if (FAR) return;
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + seed;
     limb(b, [x + Math.sin(a) * r * 0.5, r * 1.4, z + Math.cos(a) * r * 0.5], [x + Math.sin(a) * reach, 0, z + Math.cos(a) * reach], r * 0.45, r * 0.12, mat, 5);
@@ -210,11 +238,13 @@ function oak(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): void {
   const { x, z } = p;
   const seed = sd(p);
   const bk = bark(barkRamp);
-  frustum(b, x, z, 0, 1.7 * s, 0.3 * s, 0.2 * s, 7, bk);
+  frustum(b, x, z, 0, 1.7 * s, 0.3 * s, 0.2 * s, FAR ? 4 : 6, bk);
   roots(b, x, z, 0.24 * s, 0.6 * s, bk, 4, seed);
-  limb(b, [x, 1.4 * s, z], [x - 0.7 * s, 2.2 * s, z + 0.1 * s], 0.13 * s, 0.07 * s, bk);
-  limb(b, [x, 1.5 * s, z], [x + 0.75 * s, 2.3 * s, z - 0.1 * s], 0.12 * s, 0.06 * s, bk);
-  crown(b, x, 2.65 * s, z, 1.35 * s, 0.95 * s, 6, foliage(leaves), seed, 0.85);
+  if (!FAR) {
+    limb(b, [x, 1.4 * s, z], [x - 0.7 * s, 2.2 * s, z + 0.1 * s], 0.13 * s, 0.07 * s, bk, 4);
+    limb(b, [x, 1.5 * s, z], [x + 0.75 * s, 2.3 * s, z - 0.1 * s], 0.12 * s, 0.06 * s, bk, 4);
+  }
+  crown(b, x, 2.65 * s, z, 1.35 * s, 0.95 * s, 3, foliage(leaves), seed, 0.85);
 }
 
 function birch(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): void {
@@ -229,13 +259,13 @@ function birch(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): void 
   ];
   for (const [dx, dz] of trunks) {
     const lean = (random() - 0.5) * 0.4;
-    limb(b, [x + dx, 0, z + dz], [x + dx + lean * s, 3.0 * s, z + dz], 0.11 * s, 0.06 * s, bk);
+    limb(b, [x + dx, 0, z + dz], [x + dx + lean * s, 3.0 * s, z + dz], 0.11 * s, 0.06 * s, bk, FAR ? 3 : 5);
   }
   const leaf = foliage(leaves);
-  b.blob(x, 2.9 * s, z, 0.75 * s, 1.0 * s, 0.7 * s, leaf, [seed * 3, 2]);
-  b.blob(x - 0.35 * s, 2.35 * s, z + 0.15 * s, 0.5 * s, 0.6 * s, 0.5 * s, leaf, [seed, 9]);
-  b.blob(x + 0.38 * s, 2.5 * s, z + 0.05 * s, 0.5 * s, 0.65 * s, 0.5 * s, leaf, [5, seed]);
-  b.blob(x + 0.05 * s, 3.55 * s, z - 0.1 * s, 0.45 * s, 0.5 * s, 0.45 * s, leaf, [2, 2 + seed]);
+  bl(b, x, 2.9 * s, z, 0.75 * s, 1.0 * s, 0.7 * s, leaf, [seed * 3, 2]);
+  bl(b, x - 0.35 * s, 2.35 * s, z + 0.15 * s, 0.5 * s, 0.6 * s, 0.5 * s, leaf, [seed, 9]);
+  bl(b, x + 0.38 * s, 2.5 * s, z + 0.05 * s, 0.5 * s, 0.65 * s, 0.5 * s, leaf, [5, seed]);
+  bl(b, x + 0.05 * s, 3.55 * s, z - 0.1 * s, 0.45 * s, 0.5 * s, 0.45 * s, leaf, [2, 2 + seed]);
 }
 
 function giantTree(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): Pick<import("../recipe").Built, "frames"> | void {
@@ -243,9 +273,9 @@ function giantTree(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): P
   const { x, z } = p;
   const seed = sd(p);
   const bk = bark(barkRamp, "smooth");
-  frustum(b, x, z, 0, 6.6 * s, 0.85 * s, 0.55 * s, 10, bk);
-  // Buttress roots, broad and low.
-  for (let i = 0; i < 6; i++) {
+  frustum(b, x, z, 0, 6.6 * s, 0.85 * s, 0.55 * s, FAR ? 6 : 10, bk);
+  // Buttress roots, broad and low (far: none).
+  for (let i = 0; i < (FAR ? 0 : 6); i++) {
     const a = (i / 6) * Math.PI * 2 + seed * 0.7;
     limb(b, [x + Math.sin(a) * 0.5 * s, 1.6 * s, z + Math.cos(a) * 0.5 * s], [x + Math.sin(a) * 1.6 * s, 0, z + Math.cos(a) * 1.6 * s], 0.35 * s, 0.14 * s, bk, 6);
   }
@@ -255,13 +285,14 @@ function giantTree(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): P
     [1.5, 0.1],
     [0.2, -1.2],
   ] as const)
-    limb(b, [x, 5.2 * s, z], [x + dx * s, 6.9 * s, z + dz * s], 0.32 * s, 0.14 * s, bk);
+    if (!FAR) limb(b, [x, 5.2 * s, z], [x + dx * s, 6.9 * s, z + dz * s], 0.32 * s, 0.14 * s, bk);
   // Shelf fungus on the trunk.
   const shelf = material("shelf-fungus", () => capPicture("brown"), { smooth: true });
-  b.blob(x - 0.62 * s, 2.4 * s, z + 0.55 * s, 0.32 * s, 0.07 * s, 0.25 * s, shelf);
-  b.blob(x + 0.5 * s, 3.3 * s, z + 0.66 * s, 0.26 * s, 0.06 * s, 0.2 * s, shelf);
+  if (!FAR) bl(b, x - 0.62 * s, 2.4 * s, z + 0.55 * s, 0.32 * s, 0.07 * s, 0.25 * s, shelf);
+  if (!FAR) bl(b, x + 0.5 * s, 3.3 * s, z + 0.66 * s, 0.26 * s, 0.06 * s, 0.2 * s, shelf);
   const leaf = foliage(leaves);
-  crown(b, x, 7.6 * s, z, 2.4 * s, 1.5 * s, 8, leaf, seed, 0.95);
+  crown(b, x, 7.6 * s, z, 2.4 * s, 1.5 * s, 5, leaf, seed, 0.95);
+  if (FAR) return;
   // Vines hanging from the crown's rim.
   const v = vine(leaves, false);
   const random = seeded(seed + 9);
@@ -292,10 +323,10 @@ function deadTree(b: MeshBuilder, p: PropData, barkRamp: Ramp, mossRamp?: Ramp):
     limb(b, from, to, 0.08 * s, 0.025 * s, bk, 4);
     // A twig off each branch, crooked.
     const twig: V3 = [to[0] + Math.sin(a + 1.2) * 0.35 * s, to[1] + 0.25 * s, to[2] + Math.cos(a + 1.2) * 0.2 * s];
-    limb(b, to, twig, 0.03 * s, 0.015 * s, bk, 3);
+    if (!FAR) limb(b, to, twig, 0.03 * s, 0.015 * s, bk, 3);
     tips.push(to);
   }
-  if (mossRamp) {
+  if (mossRamp && !FAR) {
     const m = hangingMoss(mossRamp);
     tips.forEach((t, i) => standingCard(b, fitted(m), t[0], t[1] - 0.95, t[2], 0.4, 1.0, i * 1.3));
   }
@@ -310,7 +341,7 @@ function cypress(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp, moss
   frustum(b, x, z, 0.9 * s, 3.8 * s, 0.24 * s, 0.13 * s, 7, bk);
   // Knees: little stumps of root standing up from the mud round it.
   const random = seeded(seed + 21);
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < (FAR ? 0 : 4); i++) {
     const a = (i / 4) * Math.PI * 2 + random();
     const r = (0.8 + random() * 0.4) * s;
     frustum(b, x + Math.sin(a) * r, z + Math.cos(a) * r, 0, (0.18 + random() * 0.14) * s, 0.09 * s, 0.03 * s, 5, bk);
@@ -322,7 +353,8 @@ function cypress(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp, moss
     [3.95, 0.7, 0.42],
     [4.5, 0.4, 0.35],
   ];
-  for (const [y, r, h] of tiers) b.blob(x, y * s, z, r * s, h * s, r * 0.9 * s, leaf, [seed * 3 + y * 4, y * 2]);
+  for (const [y, r, h] of tiers) bl(b, x, y * s, z, r * s, h * s, r * 0.9 * s, leaf, [seed * 3 + y * 4, y * 2]);
+  if (FAR) return;
   const m = hangingMoss(mossRamp);
   for (const [y, r] of tiers.slice(0, 3)) {
     for (let i = 0; i < 5; i++) {
@@ -336,7 +368,7 @@ function pine(b: MeshBuilder, p: PropData, needlesRamp: Ramp, barkRamp: Ramp, sn
   const s = s1(p);
   const { x, z } = p;
   const seed = sd(p);
-  frustum(b, x, z, 0, 3.6 * s, 0.17 * s, 0.05 * s, 6, bark(barkRamp));
+  frustum(b, x, z, 0, 3.6 * s, 0.17 * s, 0.05 * s, FAR ? 4 : 6, bark(barkRamp));
   const n = needleMaterial(needlesRamp);
   const snow = snowCover();
   const tiers = 4;
@@ -344,11 +376,11 @@ function pine(b: MeshBuilder, p: PropData, needlesRamp: Ramp, barkRamp: Ramp, sn
     const r = (1.2 - k * 0.24) * s;
     const y0 = (0.8 + k * 0.8) * s;
     const h = (1.45 - k * 0.1) * s;
-    frustum(b, x, z, y0, y0 + h, r, 0, 9, n, [seed * 3 + k * 5, k * 7]);
+    frustum(b, x, z, y0, y0 + h, r, 0, FAR ? 6 : 9, n, [seed * 3 + k * 5, k * 7]);
     if (snowy) {
       // Snow on each tier's upper slopes, standing a little proud of the needles; the needles show in a band below.
       const t = 0.3;
-      frustum(b, x, z, y0 + h * t + 0.04 * s, y0 + h + 0.1 * s, r * (1 - t) + 0.08 * s, 0, 9, snow);
+      frustum(b, x, z, y0 + h * t + 0.04 * s, y0 + h + 0.1 * s, r * (1 - t) + 0.08 * s, 0, FAR ? 6 : 9, snow);
     }
   }
 }
@@ -360,7 +392,8 @@ function palm(b: MeshBuilder, p: PropData, leaves: Ramp): void {
   const bk = bark(C.STRAW, "palm");
   const lean = seed % 2 ? 0.9 : -0.8;
   const pt = (t: number): V3 => [x + lean * s * t * t, 3.3 * s * t, z + 0.1 * s * t];
-  for (let i = 0; i < 5; i++) limb(b, pt(i / 5), pt((i + 1) / 5), (0.17 - i * 0.015) * s, (0.155 - i * 0.015) * s, bk, 6);
+  const parts = FAR ? 2 : 5;
+  for (let i = 0; i < parts; i++) limb(b, pt(i / parts), pt((i + 1) / parts), (0.17 - i * 0.03) * s, (0.155 - i * 0.03) * s, bk, FAR ? 4 : 6);
   const top = pt(1);
   const leaf = palmLeaf(leaves);
   for (let i = 0; i < 10; i++) {
@@ -397,8 +430,9 @@ function palm(b: MeshBuilder, p: PropData, leaves: Ramp): void {
       [0.5, 0],
     ]);
   }
+  if (FAR) return;
   const nut = material("coconut", () => new Pixmap(4, 4, C.WOOD[2]!), { smooth: true });
-  for (let i = 0; i < 3; i++) b.blob(top[0] + Math.sin(i * 2.1) * 0.14 * s, top[1] - 0.12 * s, top[2] + Math.cos(i * 2.1) * 0.14 * s, 0.1 * s, 0.11 * s, 0.1 * s, nut);
+  for (let i = 0; i < 3; i++) bl(b, top[0] + Math.sin(i * 2.1) * 0.14 * s, top[1] - 0.12 * s, top[2] + Math.cos(i * 2.1) * 0.14 * s, 0.1 * s, 0.11 * s, 0.1 * s, nut);
 }
 
 function lushTree(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): void {
@@ -410,12 +444,13 @@ function lushTree(b: MeshBuilder, p: PropData, leaves: Ramp, barkRamp: Ramp): vo
   limb(b, [x + 0.3 * s, 1.6 * s, z], [x - 0.2 * s, 2.6 * s, z], 0.2 * s, 0.14 * s, bk, 7);
   roots(b, x, z, 0.22 * s, 0.6 * s, bk, 5, seed);
   const leaf = foliage(leaves);
-  crown(b, x - 0.1 * s, 3.0 * s, z, 1.6 * s, 0.9 * s, 7, leaf, seed, 0.9);
+  crown(b, x - 0.1 * s, 3.0 * s, z, 1.6 * s, 0.9 * s, 4, leaf, seed, 0.9);
+  if (FAR) return;
   const bloom = blossom(leaves, [C.PINK[4]!, 0xfff8f0, C.PINK[3]!]);
   const random = seeded(seed + 4);
-  for (let i = 0; i < 4; i++) {
-    const a = i * 1.7 + seed;
-    b.blob(x + Math.sin(a) * 1.2 * s, (2.9 + random() * 0.5) * s, z + Math.cos(a) * 0.9 * s, 0.55 * s, 0.4 * s, 0.5 * s, bloom, [i * 9, 3]);
+  for (let i = 0; i < 2; i++) {
+    const a = i * 2.9 + seed;
+    bl(b, x + Math.sin(a) * 1.2 * s, (2.9 + random() * 0.5) * s, z + Math.cos(a) * 0.9 * s, 0.55 * s, 0.4 * s, 0.5 * s, bloom, [i * 9, 3]);
   }
   const v = vine(leaves, true);
   for (let i = 0; i < 6; i++) {
@@ -445,33 +480,43 @@ function fern(b: MeshBuilder, x: number, z: number, s: number, r: Ramp, seed: nu
 
 const TREE_INFO = (biomes: string[], w = 1, sample: PropData["seed"] = 1) => ({ category: "tree", biomes, footprint: centred(w * 0.6, w * 0.6), sample: { seed: sample } });
 
-prop("oak", "a Benalish oak: a broad crown on a stout trunk at x, z; scale (1), seed its shape", TREE_INFO(["plains", "farmland", "forest", "town"]), (b, p, pal) => oak(b, p, pal.leaves!, pal.bark!), { leaves: C.LEAF, bark: C.WOOD });
-prop("birch", "a birch: white trunks (one or two by seed), a light narrow crown, at x, z; scale (1)", TREE_INFO(["plains", "forest", "tundra"]), (b, p, pal) => birch(b, p, pal.leaves!, pal.bark!), { leaves: R.BIRCH_LEAF, bark: R.BIRCH });
-prop(
+type Draw = (b: MeshBuilder, p: PropData, pal: Palette) => unknown;
+
+/** A tree: drawn near, and the same drawing coarse as its far stand-in (Built.far). */
+function tree(id: string, about: string, info: Parameters<typeof prop>[2], draw: Draw, palette: Palette): void {
+  prop(id, about, info, (b, p, pal) => void draw(b, p, pal), palette, undefined, far(draw));
+}
+
+const oakOf: Draw = (b, p, pal) => oak(b, p, pal.leaves!, pal.bark!);
+const giantOf: Draw = (b, p, pal) => giantTree(b, p, pal.leaves!, pal.bark!);
+const cypressOf: Draw = (b, p, pal) => cypress(b, p, pal.leaves!, pal.bark!, pal.moss!);
+const CYPRESS_PALETTE: Palette = { leaves: R.CYPRESS, bark: R.DEADWOOD, moss: R.HANGING_MOSS };
+
+tree("oak", "a Benalish oak: a broad crown on a stout trunk at x, z; scale (1), seed its shape", TREE_INFO(["plains", "farmland", "forest", "town"]), oakOf, { leaves: C.LEAF, bark: C.WOOD });
+tree("birch", "a birch: white trunks (one or two by seed), a light narrow crown, at x, z; scale (1)", TREE_INFO(["plains", "forest", "tundra"]), (b, p, pal) => birch(b, p, pal.leaves!, pal.bark!), { leaves: R.BIRCH_LEAF, bark: R.BIRCH });
+tree(
   "giant-tree",
-  "a giant of Llanowar: a mossy trunk on buttress roots, its crown eight tiles up, vines hanging, at x, z; scale (1); it stands on 3 by 3 tiles",
+  "a giant of Llanowar at the heart of an elfhame: a mossy trunk on buttress roots, its crown eight tiles up, vines hanging, at x, z; args.size the tiles it fills (3: scale size / 3), or scale",
   { category: "tree", biomes: ["llanowar", "forest"], footprint: centred(3, 3), sample: { seed: 2 } },
-  (b, p, pal) => giantTree(b, p, pal.leaves!, pal.bark!),
+  (b, p, pal) => giantOf(b, { ...p, scale: p.scale ?? num(p, "size", 3) / 3 }, pal),
   { leaves: R.ELF_LEAF, bark: R.ELFWOOD },
 );
-prop("elf-tree", "a Llanowar tree: an oak's shape in the elves' vivid green on mossy bark, at x, z; scale (1.2)", TREE_INFO(["llanowar"]), (b, p, pal) => oak(b, { ...p, scale: (p.scale ?? 1.2) }, pal.leaves!, pal.bark!), { leaves: R.ELF_LEAF, bark: R.ELFWOOD });
-prop("dead-tree", "a dead tree: a bare, crooked trunk and branches, at x, z; scale (1), seed its branches", TREE_INFO(["swamp", "morass", "waste", "volcanic"]), (b, p, pal) => deadTree(b, p, pal.bark!), { bark: R.DEADWOOD });
-prop(
-  "mossy-dead-tree",
-  "a dead tree of the Morass, hung with grey moss from every branch, at x, z; scale (1)",
-  TREE_INFO(["morass", "swamp"]),
-  (b, p, pal) => deadTree(b, p, pal.bark!, pal.moss!),
-  { bark: R.DEADWOOD, moss: R.HANGING_MOSS },
+tree(
+  "great-tree",
+  "one of Llanowar's great trees in the forest, its trunk filling its tile, at x, z; scale (0.55), seed its crown",
+  { category: "tree", biomes: ["llanowar", "forest"], footprint: centred(1, 1), sample: { seed: 3 } },
+  (b, p, pal) => giantOf(b, { ...p, scale: p.scale ?? 0.55 }, pal),
+  { leaves: R.ELF_LEAF, bark: R.ELFWOOD },
 );
-prop("cypress", "a swamp cypress: a flared foot, knees round it, olive tiers hung with moss, at x, z; scale (1)", TREE_INFO(["swamp", "morass"]), (b, p, pal) => cypress(b, p, pal.leaves!, pal.bark!, pal.moss!), {
-  leaves: R.CYPRESS,
-  bark: R.DEADWOOD,
-  moss: R.HANGING_MOSS,
-});
-prop("pine", "a pine: tiers of blue-green needles on a straight trunk, at x, z; scale (1)", TREE_INFO(["tundra", "keld", "mountain", "forest"]), (b, p, pal) => pine(b, p, pal.needles!, pal.bark!, false), { needles: R.PINE, bark: C.WOOD });
-prop("snowy-fir", "a fir under snow: each tier capped white, at x, z; scale (1)", TREE_INFO(["keld", "tundra", "mountain"]), (b, p, pal) => pine(b, p, pal.needles!, pal.bark!, true), { needles: R.PINE, bark: C.WOOD });
-prop("palm", "a palm: a leaning ringed trunk, drooping fronds and coconuts, at x, z; scale (1), seed which way it leans", TREE_INFO(["coast", "verdura"]), (b, p, pal) => palm(b, p, pal.leaves!), { leaves: R.PALM });
-prop("lush-tree", "a tree of Verdura: a broad teal crown in blossom, flowering vines hanging, at x, z; scale (1)", TREE_INFO(["verdura"], 1.3), (b, p, pal) => lushTree(b, p, pal.leaves!, pal.bark!), { leaves: R.LUSH, bark: R.ELFWOOD });
+tree("elf-tree", "a Llanowar tree: an oak's shape in the elves' vivid green on mossy bark, at x, z; scale (1.2)", TREE_INFO(["llanowar"]), (b, p, pal) => oakOf(b, { ...p, scale: p.scale ?? 1.2 }, pal), { leaves: R.ELF_LEAF, bark: R.ELFWOOD });
+tree("dead-tree", "a dead tree: a bare, crooked trunk and branches, at x, z; scale (1), seed its branches", TREE_INFO(["swamp", "morass", "waste", "volcanic"]), (b, p, pal) => deadTree(b, p, pal.bark!), { bark: R.DEADWOOD });
+tree("mossy-dead-tree", "a dead tree of the Morass, hung with grey moss from every branch, at x, z; scale (1)", TREE_INFO(["morass", "swamp"]), (b, p, pal) => deadTree(b, p, pal.bark!, pal.moss!), { bark: R.DEADWOOD, moss: R.HANGING_MOSS });
+tree("cypress", "a swamp cypress: a flared foot, knees round it, olive tiers hung with moss, at x, z; scale (1)", TREE_INFO(["swamp", "morass"]), cypressOf, CYPRESS_PALETTE);
+tree("swamp-tree", "a drowned, moss-hung tree of the Morass and Amjad at x, z (the cypress); scale (1)", TREE_INFO(["swamp", "morass"]), cypressOf, CYPRESS_PALETTE);
+tree("pine", "a pine: tiers of blue-green needles on a straight trunk, at x, z; scale (1)", TREE_INFO(["tundra", "keld", "mountain", "forest"]), (b, p, pal) => pine(b, p, pal.needles!, pal.bark!, false), { needles: R.PINE, bark: C.WOOD });
+tree("snowy-fir", "a fir under snow: each tier capped white, at x, z; scale (1)", TREE_INFO(["keld", "tundra", "mountain"]), (b, p, pal) => pine(b, p, pal.needles!, pal.bark!, true), { needles: R.PINE, bark: C.WOOD });
+tree("palm", "a palm: a leaning ringed trunk, drooping fronds and coconuts, at x, z; scale (1), seed which way it leans", TREE_INFO(["coast", "verdura"]), (b, p, pal) => palm(b, p, pal.leaves!), { leaves: R.PALM });
+tree("lush-tree", "a tree of Verdura: a broad teal crown in blossom, flowering vines hanging, at x, z; scale (1)", TREE_INFO(["verdura"], 1.3), (b, p, pal) => lushTree(b, p, pal.leaves!, pal.bark!), { leaves: R.LUSH, bark: R.ELFWOOD });
 
 // --- Undergrowth and small growing things ------------------------------------------------------------------------------------
 
@@ -484,8 +529,8 @@ prop(
     const seed = sd(p);
     const random = seeded(seed + 1);
     const leaf = foliage(pal.bush!);
-    b.blob(p.x - 0.3, 0.32, p.z + 0.1, 0.5, 0.36, 0.45, leaf, [seed, 1]);
-    b.blob(p.x + 0.35, 0.26, p.z - 0.15, 0.42, 0.3, 0.38, leaf, [seed + 5, 3]);
+    bl(b, p.x - 0.3, 0.32, p.z + 0.1, 0.5, 0.36, 0.45, leaf, [seed, 1]);
+    bl(b, p.x + 0.35, 0.26, p.z - 0.15, 0.42, 0.3, 0.38, leaf, [seed + 5, 3]);
     fern(b, p.x + 0.1 + (random() - 0.5) * 0.4, p.z + 0.35, 0.9, pal.leaves!, seed);
     fern(b, p.x - 0.5, p.z - 0.35, 0.7, pal.leaves!, seed + 2);
   },
@@ -499,7 +544,7 @@ prop(
   (b, p, pal) => {
     const r = num(p, "r", 0.5);
     const petals = { pink: [C.PINK[4]!, C.PINK[3]!, 0xfff8f0], white: [0xfff8f0, C.CLOTH_WHITE[3]!], gold: [C.GOLD[4]!, C.GOLD[3]!], blue: [C.BLUE[5]!, C.BLUE[4]!, 0xfff8f0] }[str(p, "petals", "pink")] ?? [C.PINK[4]!];
-    b.blob(p.x, r * 0.8, p.z, r, r * 0.85, r, blossom(pal.leaves!, petals), [p.x * 16, p.z * 16]);
+    bl(b, p.x, r * 0.8, p.z, r, r * 0.85, r, blossom(pal.leaves!, petals), [p.x * 16, p.z * 16]);
   },
   { leaves: R.LUSH },
 );
@@ -513,7 +558,7 @@ prop(
     const leaf = foliage(pal.leaves!);
     for (let i = 0; i < 4; i++) {
       const r = 0.22 + random() * 0.18;
-      b.blob(p.x + (random() - 0.5) * 0.8, r * 0.6, p.z + (random() - 0.5) * 0.6, r, r * 0.7, r * 0.9, leaf, [i * 5 + seed, i]);
+      bl(b, p.x + (random() - 0.5) * 0.8, r * 0.6, p.z + (random() - 0.5) * 0.6, r, r * 0.7, r * 0.9, leaf, [i * 5 + seed, i]);
     }
     const twig = bark(R.DEADWOOD);
     for (let i = 0; i < 3; i++) {
@@ -536,15 +581,15 @@ prop(
   { category: "plant", biomes: ["forest", "llanowar", "swamp", "keld"], footprint: { rect: [-1.1, -0.3, 1.1, 0.3], blocks: true } },
   (b, p, pal) => {
     const l = num(p, "length", 2.2) * s1(p);
-    const t = ((p.rot ?? 0) * Math.PI) / 2 + (p.turn ?? 0);
+    const t = turnOf(p);
     b.at(p.x, 0, p.z, t, () => {
       const bk = bark(pal.bark!);
       limb(b, [-l / 2, 0.26, 0], [l / 2, 0.24, 0], 0.27, 0.24, bk, 8);
       const rings = fitted(ringsMaterial());
       disc(b, [l / 2 + 0.002, 0.24, 0], [1, 0, 0], 0.24, rings);
       disc(b, [-l / 2 - 0.002, 0.26, 0], [-1, 0, 0], 0.27, rings);
-      b.blob(-l * 0.15, 0.48, 0.02, 0.34, 0.08, 0.2, foliage(R.MOSS), [3, 1]);
-      b.blob(l * 0.2, 0.42, 0.22, 0.12, 0.04, 0.1, material("cap-red", () => capPicture("red"), { smooth: true }));
+      bl(b, -l * 0.15, 0.48, 0.02, 0.34, 0.08, 0.2, foliage(R.MOSS), [3, 1]);
+      bl(b, l * 0.2, 0.42, 0.22, 0.12, 0.04, 0.1, material("cap-red", () => capPicture("red"), { smooth: true }));
     });
   },
   { bark: C.WOOD },
@@ -552,7 +597,7 @@ prop(
 
 function mushroom(b: MeshBuilder, x: number, z: number, h: number, r: number, cap: Material, stem: Material): void {
   b.cylinder(x, z, 0, h, r * 0.28, 6, { mat: stem });
-  b.blob(x, h, z, r, r * 0.45, r, cap);
+  bl(b, x, h, z, r, r * 0.45, r, cap);
 }
 
 prop(
@@ -584,7 +629,7 @@ prop(
       return q;
     }, { smooth: true });
     frustum(b, p.x, p.z, 0, 1.8 * s, 0.26 * s, 0.18 * s, 8, stem);
-    b.blob(p.x, 1.85 * s, p.z, 1.1 * s, 0.45 * s, 1.1 * s, cap);
+    bl(b, p.x, 1.85 * s, p.z, 1.1 * s, 0.45 * s, 1.1 * s, cap);
     mushroom(b, p.x + 0.55 * s, p.z + 0.3 * s, 0.35 * s, 0.25 * s, cap, stem);
   },
 );
@@ -676,7 +721,7 @@ prop(
   (b, p, pal) => {
     const r = num(p, "r", 0.6);
     rocks(b, p.x, p.z, r, sd(p), rock(pal.stone!, R.MOSS), 1);
-    b.blob(p.x - r * 0.1, r * 1.0, p.z - r * 0.05, r * 0.7, r * 0.25, r * 0.6, foliage(pal.moss!), [3, 4]);
+    bl(b, p.x - r * 0.1, r * 1.0, p.z - r * 0.05, r * 0.7, r * 0.25, r * 0.6, foliage(pal.moss!), [3, 4]);
   },
   { stone: C.COBBLE, moss: R.MOSS },
 );

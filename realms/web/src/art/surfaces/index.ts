@@ -4,7 +4,7 @@ import { material } from "../paint/materials";
 import { type Palette, type Ramp, withDefaults } from "../paint/palette";
 import type { Pixmap } from "../paint/pixmap";
 import * as T from "../paint/textures";
-import { defineBiomes } from "./biomes";
+import { bankOf, defineBiomes } from "./biomes";
 
 // The ground, by surface id: what a tile's `surface` names (world/format.ts, TileData). Each is a tiling picture 64
 // texels square (four tiles), painted from its palette, and how it meets its neighbours: where two surfaces meet, the
@@ -32,6 +32,11 @@ export interface SurfaceLook {
    * cannot color tufts draws them green: so only green-ish surfaces carry `tufts` until it can (conversion.md).
    */
   readonly tuftRamp?: Ramp;
+  /**
+   * The face of its banks where the ground steps down from it (render/terrain.ts draws banks on height steps): earth under
+   * grass, dark rock in the mountains, peat in the Morass, ice under snow. Tiled, its top row the ground's edge.
+   */
+  readonly cliff?: Material;
 }
 
 export interface SurfaceEntry {
@@ -59,7 +64,10 @@ export const SURFACES = {
   /** A surface's look under a palette (over its own). */
   look(id: string, palette?: Palette): SurfaceLook {
     const e = SURFACES.get(id);
-    return e.look(withDefaults(e.palette, palette));
+    const look = e.look(withDefaults(e.palette, palette));
+    // Every surface's bank, as biomes.ts gives it, where the surface does not name its own.
+    const cliff = look.cliff ?? bankOf(id);
+    return cliff ? { ...look, cliff } : look;
   },
 };
 
@@ -97,4 +105,4 @@ defineSurface("crypt-floor", "a crypt's cold flags, bones and grime", {}, () => 
 // --- The world's biomes, roads and waters (biomes.ts) ----------------------------------------------------------------------
 
 defineBiomes(defineSurface);
-export { PRIORITY, SURFACE_GROUPS } from "./biomes";
+export { BANKS, PRIORITY, SURFACE_GROUPS, bankOf } from "./biomes";

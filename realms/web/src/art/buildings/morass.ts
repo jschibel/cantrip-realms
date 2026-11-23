@@ -563,6 +563,7 @@ function morass(building: BuildingData, pal: Palette): Built {
       const floors = P.num("floors", 3);
       return go(1.4 + 2.1 * floors + 2.8, tower(m, floors));
     }
+    case "barn":
     case "warehouse":
       return go(7, stiltHouse(building, m, {
         rise: 2.0,
@@ -591,6 +592,9 @@ BUILDINGS.define(
   morass,
   MORASS,
 );
+
+// The world's name for the style (world/format.ts STYLES: the Morass's, the Vess estate's villages).
+BUILDINGS.define("urborg", "the Morass's style under the world's name for it: see morass", morass, MORASS);
 
 showcase("morass", [
   { kind: "house", w: 5, d: 5 },

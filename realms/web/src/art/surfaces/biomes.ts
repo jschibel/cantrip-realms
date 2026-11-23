@@ -64,16 +64,61 @@ export const SURFACE_GROUPS: Readonly<Record<string, readonly string[]>> = {
   grassland: ["grass", "plains", "meadow", "pasture"],
   farmland: ["wheat", "furrows", "straw", "crop-rows", "stubble"],
   forest: ["forest-floor", "leaf-litter", "moss", "needles", "elf-moss"],
-  swamp: ["swamp-mud", "mire", "marsh", "bog"],
+  swamp: ["swamp-mud", "mire", "mud", "marsh", "bog"],
   cold: ["tundra", "snow", "ice", "snow-track"],
-  mountain: ["bedrock", "scree", "gravel"],
-  coast: ["sand", "wet-sand", "shingle", "sea", "ford"],
+  mountain: ["bedrock", "rock", "scree", "gravel"],
+  coast: ["sand", "wet-sand", "shingle", "sea", "shallows", "ford"],
   fire: ["ash", "basalt", "lava"],
-  waste: ["waste", "salt-flat"],
+  waste: ["waste", "cracked-earth", "salt-flat"],
   phyrexian: ["phyrexian-ground", "plating", "oil"],
-  roads: ["dirt", "cart-track", "cobbles", "setts", "flagstones", "marble-paving", "mud-track", "boardwalk", "boardwalk-ns"],
-  waters: ["stream", "river", "lake", "sea", "bog", "lava", "oil", "ford"],
+  roads: ["dirt", "road", "cart-track", "cobbles", "setts", "flagstones", "marble-paving", "mud-track", "boardwalk", "boardwalk-ns", "planks"],
+  waters: ["stream", "river", "lake", "sea", "shallows", "bog", "lava", "oil", "ford"],
 };
+
+// --- Banks ---------------------------------------------------------------------------------------------------------------
+
+type BankKind = "earth" | "rock" | "peat" | "ice" | "sand" | "basalt" | "masonry" | "metal";
+const BANK_LOOKS: Readonly<Record<string, { readonly ramp: Ramp; readonly kind: BankKind; readonly fringe: Ramp | null }>> = {
+  earth: { ramp: C.DIRT, kind: "earth", fringe: C.GRASS },
+  "dry-earth": { ramp: C.DIRT, kind: "earth", fringe: R.PLAINS },
+  loam: { ramp: R.LOAM, kind: "earth", fringe: R.MOSS },
+  "bare-earth": { ramp: C.DIRT, kind: "earth", fringe: null },
+  peat: { ramp: R.MUD, kind: "peat", fringe: R.REED },
+  rock: { ramp: R.GRANITE, kind: "rock", fringe: null },
+  "frozen-rock": { ramp: R.GRANITE, kind: "rock", fringe: R.TUNDRA },
+  ice: { ramp: R.ICE, kind: "ice", fringe: R.SNOW },
+  sand: { ramp: R.SAND, kind: "sand", fringe: null },
+  basalt: { ramp: R.BASALT, kind: "basalt", fringe: null },
+  waste: { ramp: R.WASTE, kind: "earth", fringe: null },
+  masonry: { ramp: C.COBBLE, kind: "masonry", fringe: null },
+  marble: { ramp: R.MARBLE, kind: "masonry", fringe: null },
+  metal: { ramp: R.PHYREXIAN, kind: "metal", fringe: R.OIL },
+};
+
+/** Which bank each surface steps down with (render/terrain.ts draws banks on height steps), by bank look. */
+export const BANKS: Readonly<Record<string, string>> = {
+  grass: "earth", meadow: "earth", pasture: "earth", marsh: "peat", moss: "loam", "elf-moss": "loam",
+  plains: "dry-earth", wheat: "dry-earth", furrows: "bare-earth", straw: "bare-earth", "crop-rows": "bare-earth", stubble: "dry-earth",
+  dirt: "bare-earth", "cart-track": "bare-earth", road: "bare-earth", "mud-track": "peat",
+  "forest-floor": "loam", "leaf-litter": "loam", needles: "loam",
+  "swamp-mud": "peat", mire: "peat", mud: "peat", bog: "peat",
+  tundra: "frozen-rock", snow: "ice", ice: "ice", "snow-track": "ice",
+  bedrock: "rock", rock: "rock", scree: "rock", gravel: "rock",
+  sand: "sand", "wet-sand": "sand", shingle: "sand", ford: "sand", sea: "sand", shallows: "sand",
+  ash: "basalt", basalt: "basalt", lava: "basalt",
+  waste: "waste", "cracked-earth": "waste", "salt-flat": "waste",
+  "phyrexian-ground": "metal", plating: "metal", oil: "metal",
+  cobbles: "masonry", setts: "masonry", flagstones: "masonry", "marble-paving": "marble", boardwalk: "peat", "boardwalk-ns": "peat", planks: "peat",
+  stream: "earth", river: "earth", lake: "earth",
+};
+
+/** A surface's bank material, if it has one. */
+export function bankOf(id: string): Material | undefined {
+  const name = BANKS[id];
+  const look = name ? BANK_LOOKS[name] : undefined;
+  if (!look) return undefined;
+  return material(`bank-${name}`, () => G.bank(look.ramp, look.kind, look.fringe), {});
+}
 
 type Define = (id: string, about: string, palette: Palette, look: (palette: Palette) => SurfaceLook) => void;
 
@@ -202,7 +247,23 @@ export function defineBiomes(define: Define): void {
   define("snow-track", "packed snow: a trodden track, slush and footprints", {}, () => ({ picture: G.snowTrack(), priority: PRIORITY.track + 0.1 }));
   define("boardwalk", "a boardwalk going east-west, its planks laid north-south", { wood: R.WEATHERED }, (p) => ({ picture: G.boardwalk("x", ramp(p, "wood")), priority: PRIORITY.cobbles }));
   define("boardwalk-ns", "a boardwalk going north-south, its planks laid east-west", { wood: R.WEATHERED }, (p) => ({ picture: G.boardwalk("z", ramp(p, "wood")), priority: PRIORITY.cobbles }));
+
+  // --- The world generator's names (realms/web/scripts/worldgen/ids.ts), where they differ from the ones above ----------
+  define("mud", "black mud of the Caligo Morass and Amjad, walked (the mire)", { mud: R.MIRE }, (p) => ({ picture: G.mire(ramp(p, "mud")), priority: PRIORITY.mud + 0.05 }));
+  define("rock", "bare mountain rock, walked in the passes (bedrock)", { stone: R.GRANITE }, (p) => ({ picture: G.bedrock(ramp(p, "stone")), priority: PRIORITY.bedrock }));
+  define("cracked-earth", "dry cracked earth of the desolate waste", { earth: R.WASTE }, (p) => ({ picture: G.waste(ramp(p, "earth")), priority: PRIORITY.waste }));
+  define("road", "a packed gravel road between the towns", {}, () => ({ picture: G.roadGravel(), priority: PRIORITY.track + 0.08 }));
+  define("planks", "boards: docks, piers, boardwalks over the Morass (laid east-west)", { wood: R.WEATHERED }, (p) => ({ picture: G.boardwalk("z", ramp(p, "wood")), priority: PRIORITY.cobbles }));
+  define("shallows", "shallow water by the coasts and in lakes: a hole, clear water over sand below", {}, () => ({
+    picture: tile64(G.waterOf(SHALLOW, 186)),
+    priority: PRIORITY.water,
+    hole: true,
+    under: { material: liquid("shallows", () => G.shallowsBed(), [1, 2], [1 / 32, 1 / 32]), y: -0.06, spread: 0.75 },
+  }));
 }
+
+/** Shallow water's ramp: pale, sandy-green blue. */
+const SHALLOW: Ramp = [0x1c4a6a, 0x26668a, 0x3684a6, 0x4ea2bc, 0x74c0d0, 0xa6dce6, 0xe0f8fc];
 
 /** A 32-square liquid laid out four times to fill a 64-square picture. */
 function tile64(p: Pixmap): Pixmap {

@@ -359,3 +359,14 @@ export function glowing(color: Rgb): Material {
 export function cutout(name: string, paint: () => Pixmap, twoSided = true): Material {
   return material(name, paint, { cutout: true, twoSided });
 }
+
+/** Runs `draw` moved to (x, y, z), turned about the vertical and scaled evenly by `scale` (a statue filling its plinth). */
+export function atScaled(b: MeshBuilder, x: number, y: number, z: number, turn: number, scale: number, draw: () => void): void {
+  const saved = b.matrix;
+  b.matrix = saved.clone().multiply(new THREE.Matrix4().makeTranslation(x, y, z).multiply(new THREE.Matrix4().makeRotationY(turn)).multiply(new THREE.Matrix4().makeScale(scale, scale, scale)));
+  try {
+    draw();
+  } finally {
+    b.matrix = saved;
+  }
+}

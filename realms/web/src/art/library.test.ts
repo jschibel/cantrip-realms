@@ -62,11 +62,32 @@ describe("the props", () => {
     });
   }
 
+  it("trees and dense growth have a far stand-in of about a hundred triangles, and are a few hundred near", () => {
+    for (const [id, info] of PROP_CATALOGUE) {
+      if (info.category !== "tree") continue;
+      const built = PROPS.build(id, example(id));
+      expect(built.far, id).toBeDefined();
+      expect(triangles(built.far!), id).toBeLessThanOrEqual(130);
+      expect(triangles(built.far!), id).toBeLessThan(triangles(built.model));
+      expect(finite(built.far!)).toBe(true);
+      expect(triangles(built.model), id).toBeLessThanOrEqual(id === "giant-tree" || id === "great-tree" || id === "lush-tree" ? 800 : 500);
+    }
+  });
+
+  it("stand on the world generator's footprints: a dungeon's entrance over args.w by args.d, its door at its front's middle", () => {
+    const cave = { id: "cave-mouth", x: 10, z: 20, rot: 1, args: { w: 4, d: 6 } };
+    expect(tilesOf(cave).tiles).toHaveLength(24);
+    const door = PROPS.build("cave-mouth", cave).doorway!;
+    expect(door[0]).toBeCloseTo(10, 0);
+    expect(door[2]).toBeCloseTo(23, 0);
+  });
+
   it("say which tiles they stand on, turned and along their lines", () => {
     const fence = tilesOf({ id: "fence", x: 0.5, z: 0.5, args: { to: [4.5, 0.5] } });
     expect(fence.tiles.map(([x]) => x).sort()).toEqual([0, 1, 2, 3, 4]);
     expect(fence.blocks).toBe(true);
     expect(tilesOf({ id: "giant-tree", x: 5.5, z: 5.5 }).tiles).toHaveLength(9);
+    expect(tilesOf({ id: "statue", x: 5.5, z: 5.5, args: { size: 3 } }).tiles).toHaveLength(9);
     const log = tilesOf({ id: "log", x: 5.5, z: 5.5, rot: 1 });
     expect(new Set(log.tiles.map(([x]) => x)).size).toBe(1);
     expect(log.tiles.length).toBeGreaterThanOrEqual(2);
@@ -117,7 +138,7 @@ describe("the buildings", () => {
 
   it("dress in any region's palette", () => {
     for (const style of styles) {
-      const s = SHOWCASE[style]![0]!;
+      const s = SHOWCASE[style]?.[0] ?? SHOWCASE.morass![0]!;
       for (const pal of ["benalish", "keldon", "tolarian", "morass", "village"]) {
         const built = BUILDINGS.build(style, { id: "p", style, kind: s.kind, x: 0, z: 0, w: s.w, d: s.d, rot: 0, params: s.params }, PALETTES.get(pal));
         expect(triangles(built.model), `${style} in ${pal}`).toBeGreaterThan(0);

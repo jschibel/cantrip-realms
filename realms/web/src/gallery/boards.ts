@@ -1,5 +1,5 @@
 import { BUILDINGS, SHOWCASE } from "../art/buildings";
-import { PROP_CATALOGUE, PROPS } from "../art/props";
+import { PROP_CATALOGUE, PROPS, tilesOf } from "../art/props";
 import { SURFACES, SURFACE_GROUPS } from "../art/surfaces";
 import { hash2 } from "../art/paint/pixmap";
 import { fbm } from "../art/paint/procedural";
@@ -35,6 +35,8 @@ export interface Board {
   readonly lights?: readonly LightData[];
   /** Where the camera looks first (tiles); the board's middle by default. */
   readonly focus?: readonly [number, number];
+  /** Banks to show, each a surface's `cliff` standing three quarters of a tile high along x0..x1 at z, facing south. */
+  readonly banks?: readonly { readonly surface: string; readonly x0: number; readonly x1: number; readonly z: number }[];
   /** The places worth a picture each (a style's rows of buildings), for the screenshots; the focus by default. */
   readonly views?: readonly (readonly [number, number])[];
 }
@@ -60,6 +62,8 @@ function surfaceBoard(id: string, title: string, ids: readonly string[], backdro
     return ids[row * perRow + col];
   };
   const labels = ids.map((s, i) => ({ text: s, x: 1 + (i % perRow) * (pw + 1) + pw / 2, z: 1 + Math.floor(i / perRow) * (pd + 2) + pd + 0.6 }));
+  // Each patch's bank along its back edge, as the renderer draws it where the ground steps down.
+  const banks = ids.map((s, i) => ({ surface: s, x0: 1 + (i % perRow) * (pw + 1) + 0.5, x1: 1 + (i % perRow) * (pw + 1) + pw - 0.5, z: 1 + Math.floor(i / perRow) * (pd + 2) + 1.5 }));
   const holes = ids.filter((s) => SURFACES.look(s).hole);
   // Each hole surface in a block of its own (render/ground.ts discards one hole a block).
   const blocks: [number, number, number, number][] = [];
@@ -78,6 +82,7 @@ function surfaceBoard(id: string, title: string, ids: readonly string[], backdro
     d,
     ground: (x, z) => patch(x, z) ?? backdrop,
     blocks: blocks.length ? blocks : undefined,
+    banks,
     props: [],
     buildings: [],
     labels,
@@ -128,7 +133,8 @@ function propBoard(id: string, title: string, ids: readonly string[], ground: st
     const info = PROP_CATALOGUE.get(pid)!;
     const fp = info.footprint;
     const to = info.sample.args?.to as [number, number] | undefined;
-    const [fw, fd] = "rect" in fp ? [fp.rect[2] - fp.rect[0], fp.rect[3] - fp.rect[1]] : to ? [Math.abs(to[0]) + 1, Math.abs(to[1]) + 1] : [1, 1];
+    const sized = "sized" in fp ? extent(pid) : undefined;
+    const [fw, fd] = "rect" in fp ? [fp.rect[2] - fp.rect[0], fp.rect[3] - fp.rect[1]] : sized ? sized : to ? [Math.abs(to[0]) + 1, Math.abs(to[1]) + 1] : [1, 1];
     const cw = Math.max(3, Math.ceil(fw) + 2);
     const cd = Math.max(4, Math.ceil(fd) + 3);
     if (x + cw > WIDTH) {
@@ -136,18 +142,24 @@ function propBoard(id: string, title: string, ids: readonly string[], ground: st
       z += rowDepth;
       rowDepth = 0;
     }
-    const line = !("rect" in fp);
-    const ax = line ? x + 1 : x + cw / 2;
-    const az = line ? z + 0.5 : "rect" in fp ? z + 0.5 - fp.rect[1] : z + 1.5;
+    const line = !("rect" in fp) && !sized;
+    const ax = sized ? x + 1 : line ? x + 1 : x + cw / 2;
+    const az = sized ? z + 0.5 : line ? z + 0.5 : "rect" in fp ? z + 0.5 - fp.rect[1] : z + 1.5;
     const gate = info.sample.args?.gate as [number, number] | undefined;
     const args = to ? { ...info.sample.args, to: [ax + to[0], az + to[1]], ...(gate ? { gate: [az + gate[0], az + gate[1]] } : {}) } : info.sample.args;
     props.push({ ...info.sample, id: pid, x: ax, z: az, ...(args ? { args } : {}) });
-    labels.push({ text: pid, x: line ? ax + (to ? to[0] / 2 : 0) : ax, z: line ? az + (to ? Math.max(0, to[1]) : 0) + 0.9 : az + ("rect" in fp ? fp.rect[3] : 0) + 0.6 });
+    labels.push({ text: pid, x: sized ? ax + fw / 2 : line ? ax + (to ? to[0] / 2 : 0) : ax, z: sized ? az + fd + 0.6 : line ? az + (to ? Math.max(0, to[1]) : 0) + 0.9 : az + ("rect" in fp ? fp.rect[3] : 0) + 0.6 });
     x += cw;
     rowDepth = Math.max(rowDepth, cd);
   }
   const d = z + rowDepth + 1;
   return { id, title, w: WIDTH, d, ground: () => ground, props, buildings: [], labels };
+}
+
+/** A sized prop's footprint at its defaults (a dungeon entrance's), across and deep. */
+function extent(id: string): [number, number] {
+  const { tiles } = tilesOf({ id, x: 0, z: 0 });
+  return [Math.max(...tiles.map(([x]) => x)) + 1, Math.max(...tiles.map(([, z]) => z)) + 1];
 }
 
 const byCategory = (...cats: string[]) => [...PROP_CATALOGUE.values()].filter((p) => cats.includes(p.category)).map((p) => p.id);

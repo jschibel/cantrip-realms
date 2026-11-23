@@ -9,8 +9,8 @@ import * as R from "../paint/ramps";
 import * as T from "../paint/textures";
 import { along, centred, describe, over, prop } from "./catalogue";
 import * as D from "./draw";
-import { PX, bannerMaterial, bark, cloth, cutout, disc, flames, foliage, frustum, glowing, limb, lump, planks, ringsMaterial, rock, wood } from "./kit";
-import { bool, needs, num, point, str } from "./registry";
+import { PX, atScaled, bannerMaterial, bark, cloth, cutout, disc, flames, foliage, frustum, glowing, limb, lump, planks, ringsMaterial, rock, wood } from "./kit";
+import { bool, needs, num, point, str, turnOf } from "./registry";
 
 // The country's and the road's made things: fences, walls and hedges; ruins and statues; torches, fire bowls, campfires
 // and lanterns; signposts, waymarkers by tier, banners, quest boards and waystones; wells, carts and wagons, hay, wood,
@@ -29,7 +29,7 @@ function alongLine(b: MeshBuilder, p: PropData, draw: (length: number) => void):
   b.at(p.x, p.y ?? 0, p.z, Math.atan2(-dz, dx), () => draw(length));
 }
 
-const turned = (p: PropData) => ((p.rot ?? 0) * Math.PI) / 2 + (p.turn ?? 0);
+const turned = turnOf;
 
 // --- Pictures -----------------------------------------------------------------------------------------------------------
 
@@ -414,9 +414,9 @@ function statue(b: MeshBuilder, x: number, z: number, kind: "knight" | "angel", 
 
 prop(
   "statue",
-  "a statue on a plinth at x, z: args.figure knight|angel (knight), of its palette's stone; turned by rot",
-  { category: "ruin", biomes: ["town", "plains", "waste"], footprint: centred(1.2, 1.2), sample: { args: { figure: "angel" } } },
-  (b, p, pal) => b.at(p.x, 0, p.z, turned(p), () => statue(b, 0, 0, str<string>(p, "figure", "knight") === "angel" ? "angel" : "knight", pal.stone!)),
+  "a statue on a plinth at x, z: args.figure knight|angel (knight), of its palette's stone; args.size the tiles across it fills (1.2: a town's centrepiece 2 or 3), turned by rot",
+  { category: "ruin", biomes: ["town", "plains", "waste"], footprint: { rect: [-0.6, -0.6, 0.6, 0.6], blocks: true, sizeArg: true }, sample: { args: { figure: "angel", size: 2 } } },
+  (b, p, pal) => atScaled(b, p.x, 0, p.z, turned(p), (p.scale ?? 1) * (num(p, "size", 1.2) / 1.2), () => statue(b, 0, 0, str<string>(p, "figure", "knight") === "angel" ? "angel" : "knight", pal.stone!)),
   { stone: C.LIMESTONE },
 );
 

@@ -249,8 +249,8 @@ export function forestFloor(soil: Ramp = R.LOAM, moss: Ramp = R.MOSS, seed = 107
       const mossy = fbm(x, y, 16, SIZE, seed + 9);
       let c = n < 0.35 ? soil[2]! : n < 0.65 ? soil[3]! : soil[4]!;
       if (hash2(x, y, seed) < 0.06) c = soil[1]!;
-      if (mossy > 0.6) c = mossy > 0.72 ? moss[4]! : moss[3]!;
-      if (mossy > 0.6 && hash2(x, y, seed + 4) < 0.1) c = moss[5]!;
+      if (mossy > 0.64) c = mossy > 0.74 ? moss[3]! : moss[2]!;
+      if (mossy > 0.64 && hash2(x, y, seed + 4) < 0.1) c = moss[4]!;
       p.set(x, y, c);
     }
   }
@@ -408,7 +408,7 @@ export function tundra(r: Ramp = R.TUNDRA, seed = 113): Pixmap {
       const n = fbm(x, y, 16, SIZE, seed);
       let c = n < 0.35 ? r[2]! : n < 0.62 ? r[3]! : r[4]!;
       if (hash2(x, y, seed) < 0.05) c = r[1]!;
-      if (fbm(x, y, 8, SIZE, seed + 3) > 0.72) c = R.LICHEN[hash2(x, y, seed + 2) < 0.5 ? 2 : 3]!;
+      if (fbm(x, y, 16, SIZE, seed + 3) > 0.74 && hash2(x, y, seed + 5) < 0.6) c = R.LICHEN[hash2(x, y, seed + 2) < 0.5 ? 2 : 3]!;
       if (hash2(x, y, seed + 6) < 0.025) c = R.SNOW[5]!;
       p.set(x, y, c);
     }
@@ -1024,6 +1024,89 @@ export function boardwalk(along: "x" | "z", r: Ramp = R.WEATHERED, seed = 138): 
         p.set(x, y, R.WEATHERED[6]!);
       }
     }
+  }
+  return p;
+}
+
+// --- Banks ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * A bank's face where the ground steps down, 32 square, its top row the ground's edge: strata of a ramp, stones or roots
+ * in them, and a fringe of what grows on top (`fringe`, none for bare stone). Tiled up and along the bank.
+ */
+export function bank(r: Ramp, kind: "earth" | "rock" | "peat" | "ice" | "sand" | "basalt" | "masonry" | "metal", fringe: Ramp | null, seed = 140): Pixmap {
+  const p = new Pixmap(32, 32);
+  const random = seeded(seed);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const band = Math.floor((y + Math.round(valueNoise(x, 0, 8, 32, seed) * 3)) / (kind === "rock" || kind === "basalt" ? 6 : 4));
+      let c = at(r, 2 + (band % 3));
+      if (kind === "basalt" && x % 6 === 0) c = r[1]!;
+      if (kind === "masonry") c = (y % 8 === 0 || (x + (Math.floor(y / 8) % 2) * 6) % 12 === 0) ? r[1]! : at(r, 3 + (hash2(Math.floor(x / 12), Math.floor(y / 8), seed) < 0.5 ? 0 : 1));
+      if (kind === "metal") c = x % 8 === 0 ? r[1]! : x % 8 === 1 ? r[5]! : y % 10 === 0 ? r[2]! : r[3]!;
+      if (kind === "ice" && hash2(x, y, seed) < 0.05) c = r[6]!;
+      if ((kind === "earth" || kind === "peat") && hash2(x, y, seed) < 0.06) c = r[1]!;
+      p.set(x, y, c);
+    }
+  }
+  if (kind === "earth" || kind === "sand" || kind === "rock") for (let k = 0; k < 8; k++) pebble(p, Math.floor(random() * 32), 4 + Math.floor(random() * 26), C.COBBLE[4]!, C.COBBLE[5]!, r[0]!, random() < 0.5);
+  if (kind === "earth" || kind === "peat") {
+    // Roots hanging down the face.
+    for (let k = 0; k < 4; k++) {
+      let x = Math.floor(random() * 32);
+      for (let y = 3; y < 10 + random() * 10; y++) {
+        p.set(x, y, r[1]!);
+        if (random() < 0.3) x += random() < 0.5 ? 1 : -1;
+      }
+    }
+  }
+  if (kind === "rock" || kind === "basalt") for (let k = 0; k < 4; k++) crack(p, Math.floor(random() * 32), Math.floor(random() * 32), 5, r[0]!, random);
+  if (fringe) {
+    // The ground's edge: a lip of what grows on top, ragged, hanging over the face.
+    for (let x = 0; x < 32; x++) {
+      const h = 2 + Math.floor(hash2(x, 1, seed) * 3);
+      for (let y = 0; y < h; y++) p.set(x, y, y === h - 1 ? fringe[1]! : y === 0 ? fringe[Math.min(fringe.length - 1, 4)]! : fringe[3]!);
+    }
+  }
+  return p;
+}
+
+/** A packed gravel road: grey-brown grit rolled flat, a pebble here and there. */
+export function roadGravel(seed = 142): Pixmap {
+  const p = new Pixmap(SIZE, SIZE);
+  const d = C.DIRT;
+  const g = R.GRANITE;
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const n = fbm(x, y, 16, SIZE, seed);
+      let c = n < 0.4 ? g[3]! : n < 0.66 ? d[3]! : g[4]!;
+      const h = hash2(x, y, seed);
+      if (h < 0.12) c = g[2]!;
+      else if (h > 0.9) c = g[5]!;
+      p.set(x, y, c);
+    }
+  }
+  const random = seeded(seed + 1);
+  for (let k = 0; k < 40; k++) pebble(p, Math.floor(random() * SIZE), Math.floor(random() * SIZE), g[4]!, g[6]!, g[1]!, random() < 0.5);
+  return p;
+}
+
+/** The bed of shallow water: sand and pebbles seen through a film of pale water (the shallows' `under`). */
+export function shallowsBed(seed = 143): Pixmap {
+  const p = sand(R.SAND, seed);
+  const w = 0x4ea2bc;
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const c = p.get(x, y);
+      const mix = (s: number) => Math.round(((c >> s) & 0xff) * 0.5 + ((w >> s) & 0xff) * 0.5);
+      p.set(x, y, (mix(16) << 16) | (mix(8) << 8) | mix(0));
+    }
+  }
+  const random = seeded(seed + 1);
+  for (let k = 0; k < 16; k++) {
+    const x = Math.floor(random() * SIZE);
+    const y = Math.floor(random() * SIZE);
+    for (let i = 0; i < 4; i++) p.set(x + i, y, i === 1 ? 0xffffff : 0xa6dce6);
   }
   return p;
 }

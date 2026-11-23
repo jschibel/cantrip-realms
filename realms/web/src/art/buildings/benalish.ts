@@ -604,6 +604,7 @@ function benalish(building: BuildingData, pal: Palette): Built {
       return go(8.7, (b, x0, z0, x1, z1) => library(b, x0, z0, x1, z1, pal, trade));
     case "tower":
       return go(2.4 + P.num("floors", 3) * 2.2 + 3.5, (b, x0, z0, x1, z1) => tower(b, x0, z0, x1, z1, pal, trade, P.num("floors", 3)));
+    case "barn":
     case "warehouse":
       return go(5.6, (b, x0, z0, x1, z1) => warehouse(b, x0, z0, x1, z1, pal));
     case "gatehouse":

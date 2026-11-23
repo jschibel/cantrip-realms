@@ -540,6 +540,7 @@ function tolarian(building: BuildingData, pal: Palette): Built {
       return go(9, library(m, trade ?? "books"));
     case "tower":
       return go(2.4 + P.num("floors", 3) * 2.2 + 3.5, tower(m, trade ?? "magic", P.num("floors", 3)));
+    case "barn":
     case "warehouse":
       return go(5, warehouse(m));
     case "gatehouse":

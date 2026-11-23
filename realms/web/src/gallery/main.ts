@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { BUILDINGS } from "../art/buildings";
-import { MeshBuilder } from "../art/paint/builder";
+import { MeshBuilder, type Model, tiled } from "../art/paint/builder";
 import { namedPalette } from "../art/paint/palette";
 import { PROPS } from "../art/props";
 import type { Built } from "../art/recipe";
@@ -19,6 +19,7 @@ import { type Board, boardById, boards } from "./boards";
 //   ?heading=left|front|right   Q and E turn; ?zoom=0|1|2, the mouse wheel, + and - zoom
 //   arrow keys or WASD          move the view; ?focus=x,z looks at a place (tiles)
 //   ?test                       publishes globalThis.galleryTest (the boards, the clock, a frame reader)
+//   ?far                        props draw their far stand-ins (Built.far), as at the far zoom step (?zoom=2)
 //   ?manual                     the clock moves only when a test advances it; ?nolabels hides the names
 
 THREE.ColorManagement.enabled = false;
@@ -50,6 +51,17 @@ function groundOf(b: Board, x0: number, z0: number, x1: number, z1: number): { i
   return { ids, looks };
 }
 
+/** A board's banks: each a surface's `cliff` as a step half a tile high, facing south, as the renderer draws a bank. */
+function banksOf(b: Board): Model {
+  const m = new MeshBuilder();
+  for (const k of b.banks ?? []) {
+    const cliff = SURFACES.look(k.surface).cliff;
+    if (!cliff) continue;
+    m.box(k.x0, 0, k.z - 0.5, k.x1, 0.75, k.z, { south: tiled(cliff), east: tiled(cliff), west: tiled(cliff) });
+  }
+  return m.model();
+}
+
 function buildPlace(b: Board): Place {
   const place = new Place("#1a2a22");
   const blocks = b.blocks ?? [[0, 0, b.w, b.d] as const];
@@ -67,10 +79,16 @@ function buildPlace(b: Board): Place {
       }),
     );
   }
+  // At the far zoom step (or with ?far) props draw their far stand-ins, as the renderer does there.
+  const farAway = query.has("far") || query.get("zoom") === "2";
   const pieces: Built[] = [
     ...b.buildings.map((bd) => BUILDINGS.build(bd.style, bd, namedPalette(bd.palette))),
-    ...b.props.map((p) => PROPS.build(p.id, p, namedPalette(p.tint))),
+    ...b.props.map((p) => {
+      const built = PROPS.build(p.id, p, namedPalette(p.tint));
+      return farAway && built.far ? { ...built, model: built.far } : built;
+    }),
     { model: under.model() },
+    { model: banksOf(b) },
   ];
   place.addPieces(pieces, "gallery");
   for (const l of b.lights ?? []) place.addLight(l);

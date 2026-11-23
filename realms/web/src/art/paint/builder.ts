@@ -103,15 +103,17 @@ export function meshesOf(model: Model, name = "built", shadows = true): THREE.Gr
 
 type V3 = readonly [number, number, number];
 
-let sphere: { pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute; index: THREE.BufferAttribute | null } | null = null;
+const spheres = new Map<number, { pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute; index: THREE.BufferAttribute | null }>();
 
-/** The low sphere every blob is squashed from, made once (blobs are many: a crown is several). */
-function unitSphere(): NonNullable<typeof sphere> {
-  if (!sphere) {
-    const geometry = new THREE.IcosahedronGeometry(1, 2);
-    sphere = { pos: geometry.getAttribute("position"), index: geometry.getIndex() };
+/** The low sphere blobs are squashed from, made once a detail (blobs are many: a crown is several). */
+function unitSphere(detail: number): { pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute; index: THREE.BufferAttribute | null } {
+  let s = spheres.get(detail);
+  if (!s) {
+    const geometry = new THREE.IcosahedronGeometry(1, detail);
+    s = { pos: geometry.getAttribute("position"), index: geometry.getIndex() };
+    spheres.set(detail, s);
   }
-  return sphere;
+  return s;
 }
 
 export class MeshBuilder {
@@ -463,8 +465,8 @@ export class MeshBuilder {
    * A rounded blob - a tree's crown, a bush, a pot's belly - as a low sphere squashed to (rx, ry, rz), smooth-shaded,
    * its tiled texture laid on as the three-quarter camera sees it so its texels are not stretched.
    */
-  blob(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, mat: Material, offset: readonly [number, number] = [0, 0]): void {
-    const { pos, index } = unitSphere();
+  blob(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number, mat: Material, offset: readonly [number, number] = [0, 0], detail = 2): void {
+    const { pos, index } = unitSphere(detail);
     const image = mat.map?.image as { width: number; height: number } | undefined;
     const w = (image?.width ?? TEXELS) / TEXELS;
     const h = (image?.height ?? TEXELS) / TEXELS;

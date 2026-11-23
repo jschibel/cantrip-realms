@@ -503,6 +503,7 @@ function vess(building: BuildingData, pal: Palette): Built {
       return go(5.6, smithy(m, trade ?? "smith"));
     case "tower":
       return go(1.2 + P.num("floors", 3) * 2.2 + 6, tower(m, trade ?? "magic", P.num("floors", 3)));
+    case "barn":
     case "warehouse":
       return go(6.4, warehouse(m));
     case "gatehouse":

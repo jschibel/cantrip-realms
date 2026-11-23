@@ -441,6 +441,7 @@ function village(building: BuildingData, pal: Palette): Built {
       return go(5.4, cottage(m, building, 1, trade ?? "books", true));
     case "tower":
       return go(0.4 + P.num("floors", 3) * 1.9 + 4, crookedTower(m, trade ?? "magic", P.num("floors", 3)));
+    case "barn":
     case "warehouse":
       return go(6.0, barn(m));
     case "gatehouse":
