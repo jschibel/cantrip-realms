@@ -35,12 +35,12 @@ export function roomShell(b: MeshBuilder, r: RoomSpec): void {
   }
   b.box(-t, 0, -t, w + t, h, 0, { top: r.top });
   // The side walls: blocks the full depth of the room.
-  b.box(-t, 0, -t, 0, h, d + t, { east: r.side, top: r.top, south: r.side });
-  b.box(w, 0, -t, w + t, h, d + t, { west: r.side, top: r.top, south: r.side });
+  b.box(-t, 0, -t, 0, h, d + t, { east: r.side, top: r.top, south: r.top });
+  b.box(w, 0, -t, w + t, h, d + t, { west: r.side, top: r.top, south: r.top });
   // The front wall, low, with its gap.
   const [g0, g1] = r.exit;
-  b.box(0, 0, d, g0, r.front, d + t, { north: r.side, top: r.top, south: r.side });
-  b.box(g1, 0, d, w, r.front, d + t, { north: r.side, top: r.top, south: r.side });
+  b.box(0, 0, d, g0, r.front, d + t, { north: r.side, top: r.top, south: r.top, east: r.side });
+  b.box(g1, 0, d, w, r.front, d + t, { north: r.side, top: r.top, south: r.top, west: r.side });
 }
 
 /** A grid of the room's floor, every tile open. */

@@ -51,6 +51,8 @@ export interface FigureSpec {
 }
 
 const PX = 1 / 16;
+/** How far figures lean back from the three-quarter camera. */
+const LEAN = (25 * Math.PI) / 180;
 
 // --- Painting helpers -------------------------------------------------------------------------------------------
 
@@ -172,6 +174,11 @@ function paintAtlas(spec: FigureSpec): { atlas: Pixmap; rects: Map<string, [numb
 
 const figureMaterials = new Map<string, THREE.Material>();
 
+/** Colors that glow wherever a figure is painted with them: a ghoul's eyes, a skeleton's. */
+const GHOUL_EYE = 0xd8f060;
+const BONE_EYE = 0xff4a3a;
+const GLOWS = new Set<Rgb>([GHOUL_EYE, BONE_EYE]);
+
 interface Joint {
   readonly name: string;
   readonly group: THREE.Group;
@@ -184,6 +191,10 @@ export class Figure {
   facing = 0;
   private targetFacing = 0;
   private readonly body = new THREE.Group();
+  /** Turns the figure to its facing, inside the lean. */
+  private readonly turn = new THREE.Group();
+  /** Leans the whole figure back from the camera (see `setLean`). */
+  private readonly lean = new THREE.Group();
   private readonly joints = new Map<string, Joint>();
   private phase = 0;
   private time = Math.random() * 10;
@@ -193,11 +204,29 @@ export class Figure {
 
   constructor(readonly spec: FigureSpec) {
     this.root.name = spec.name;
-    this.root.add(this.body);
-    let material = figureMaterials.get(spec.name);
+    this.root.add(this.lean);
+    this.lean.add(this.turn);
+    this.turn.add(this.body);
+    let material = figureMaterials.get(spec.name) as THREE.MeshLambertMaterial | undefined;
     const { atlas, rects } = paintAtlas(spec);
     if (!material) {
       material = lit(textureOf(atlas, false), { cutout: true });
+      // Eyes that glow in the dark: the texels painted in a glow color light themselves.
+      const glows = new Pixmap(atlas.width, atlas.height, 0);
+      let any = false;
+      for (let y = 0; y < atlas.height; y++) {
+        for (let x = 0; x < atlas.width; x++) {
+          if (atlas.alpha(x, y) > 0 && GLOWS.has(atlas.get(x, y))) {
+            glows.set(x, y, atlas.get(x, y));
+            any = true;
+          }
+        }
+      }
+      if (any) {
+        material.emissive = new THREE.Color("#ffffff");
+        material.emissiveMap = textureOf(glows, false);
+        material.emissiveIntensity = 0.9;
+      }
       material.name = `figure:${spec.name}`;
       figureMaterials.set(spec.name, material);
     }
@@ -226,6 +255,19 @@ export class Figure {
     this.height = new THREE.Box3().setFromObject(this.root).max.y;
   }
 
+  /**
+   * The sprite cheat, in 3D. A 16-bit RPG draws its map from above but its people from the front; seen from the
+   * three-quarter camera a 3D figure shows the whole top of its head instead. So, in that view, a figure leans back from
+   * the camera by `angle` about its feet and is squashed upright by just enough that its front still shows one texel to
+   * a pixel - and its top shrinks to a sliver, as a sprite's does. `amount` (0-1) blends it in, so it eases with the
+   * camera; the isometric view needs none.
+   */
+  setLean(amount: number, angle = LEAN): void {
+    const a = angle * amount;
+    this.lean.rotation.x = -a;
+    this.lean.scale.y = 1 / (Math.cos(a) + Math.sin(a));
+  }
+
   /** Turns to face a direction on the ground (x, z), smoothly. */
   face(dx: number, dz: number): void {
     if (dx === 0 && dz === 0) return;
@@ -240,7 +282,7 @@ export class Figure {
     let delta = this.targetFacing - this.facing;
     delta = Math.atan2(Math.sin(delta), Math.cos(delta));
     this.facing += delta * Math.min(1, dt * 14);
-    this.root.rotation.y = this.facing;
+    this.turn.rotation.y = this.facing;
 
     // Two steps a cycle; a cycle every 0.56 s at walking pace.
     this.phase += dt * (speed > 0.1 ? Math.max(1.6, speed) * 3.2 : 0);
@@ -559,7 +601,7 @@ export function skeleton(): FigureSpec {
         "..WbWbWb..",
         "...bbbb...",
       ],
-      { K, R: C.RED[4]!, W: b[5]!, b: b[2]! },
+      { K, R: BONE_EYE, W: b[5]!, b: b[2]! },
       0,
       0,
     ),
@@ -628,7 +670,7 @@ export function ghoul(): FigureSpec {
         "..KKKKKKK..",
         "...........",
       ],
-      { h: g[1]!, d: g[2]!, Y: 0xd8f060, K, W: C.BONE[4]! },
+      { h: g[1]!, d: g[2]!, Y: GHOUL_EYE, K, W: C.BONE[4]! },
       0,
       0,
     ),

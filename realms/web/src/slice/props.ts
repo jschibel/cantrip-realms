@@ -25,12 +25,12 @@ export const pics = {
   sign: () => material("sign", () => P.goblinSign()),
   display: () => material("display", () => P.displayWindow()),
   banner: () => material("banner", () => P.banner(), { cutout: true, twoSided: true }),
-  crate: () => material("crate", () => P.crateSide()),
-  barrelSide: () => material("barrel-side", () => P.barrelSide(), { smooth: true }),
+  crate: (n = 16) => material(`crate-${n}`, () => P.crateSide(n)),
+  barrelSide: (h = 13) => material(`barrel-side-${h}`, () => P.barrelSide(30, h), { smooth: true }),
   barrelTop: () => material("barrel-top", () => P.barrelTop()),
   awning: () => material("awning", () => P.awning(), { twoSided: true }),
   valance: () => material("valance", () => P.valance(), { cutout: true, twoSided: true }),
-  produce: (kind: "apples" | "cabbages" | "carrots" | "bread" | "fish") => material(`produce-${kind}`, () => P.produce(kind)),
+  produce: (kind: "apples" | "cabbages" | "carrots" | "bread" | "fish", n = 16) => material(`produce-${kind}-${n}`, () => P.produce(kind, n)),
   gravestone: () => material("gravestone", () => P.gravestone(), { cutout: true }),
   cryptGate: () => material("crypt-gate", () => P.cryptGate()),
   water: () => material("water", () => T.water(13)),
@@ -45,7 +45,7 @@ function waterfall(): Pixmap {
   const p = new Pixmap(32, 16);
   p.fill(0, 0);
   for (let x = 0; x < 32; x++) {
-    if (x % 3 === 2) continue;
+    if (x % 4 !== 1 && x % 7 !== 3) continue;
     for (let y = 0; y < 16; y++) {
       const c = (x * 5 + y) % 9 === 0 ? 0xffffff : (x + y * 3) % 7 === 0 ? C.WATER[6]! : x % 3 === 0 ? C.WATER[5]! : C.WATER[4]!;
       p.set(x, y, c);
@@ -210,7 +210,7 @@ export function displayAt(b: MeshBuilder, x: number, z: number): void {
     [x + 1.1, y, z],
     [x - 1.1, y, z],
   ], (c) => c[0], (c) => -c[2] + c[1]);
-  b.card(fitted(pics.valance()), x - 1.1, y - 0.72, x + 1.1, y - 0.35, z + 0.7);
+  b.card({ mat: pics.valance(), offset: [0, -(y - 0.72) * 16] }, x - 1.1, y - 0.72, x + 1.1, y - 0.345, z + 0.7);
 }
 
 /** A banner on an iron rod from the wall. */
@@ -290,16 +290,18 @@ export function bush(b: MeshBuilder, x: number, z: number, r = 0.45, flowering =
 // --- Goods ----------------------------------------------------------------------------------------------------------
 
 export function barrel(b: MeshBuilder, x: number, z: number, h = 0.8): void {
-  b.cylinder(x, z, 0, h, 0.3, 10, fitted(pics.barrelSide()), fitted(pics.barrelTop()), 0.12, 3);
+  // Staves once round a 0.3 radius are 30 texels; the picture is as tall as the barrel.
+  b.cylinder(x, z, 0, h, 0.3, 10, fitted(pics.barrelSide(Math.round(h * 16))), fitted(pics.barrelTop()), 0.12, 3);
 }
 
 /** A crate, its edges rounded a texel, with produce heaped in it (or its lid on). */
 export function crate(b: MeshBuilder, x: number, z: number, size = 0.75, goods?: "apples" | "cabbages" | "carrots" | "bread" | "fish", y = 0, turn = 0): void {
   b.at(x, y, z, turn, () => {
     const s = size / 2;
-    const side = fitted(pics.crate());
-    b.roundedBox(-s, 0, -s, s, size, s, PX, { south: side, north: side, east: side, west: side, top: goods ? fitted(pics.produce(goods)) : side });
-    if (goods) b.blob(0, size, 0, s * 0.85, 0.12, s * 0.85, pics.produce(goods), [0, 0]);
+    const n = Math.round(size * 16);
+    const side = fitted(pics.crate(n));
+    b.roundedBox(-s, 0, -s, s, size, s, PX, { south: side, north: side, east: side, west: side, top: goods ? fitted(pics.produce(goods, n)) : side });
+    if (goods) b.blob(0, size, 0, s * 0.85, 0.12, s * 0.85, pics.produce(goods, n), [0, 0]);
   });
 }
 
@@ -320,18 +322,24 @@ export function pot(b: MeshBuilder, x: number, z: number, y = 0, r = 0.2): void 
  * which the scene slides along a texel at a time.
  */
 export function fountain(b: MeshBuilder, x: number, z: number): Material {
-  const lime = tiled(surfaces.limestone());
   const water = pics.water();
-  b.cylinder(x, z, 0, 0.55, 1.75, 8, { mat: surfaces.limestone() }, undefined, 0, 1, 6);
-  b.cylinder(x, z, 0.55, 0.68, 1.85, 8, { mat: surfaces.flagstone() }, fitted(surfaces.flagstone()), 0, 1, 6);
-  b.cylinder(x, z, 0.4, 0.45, 1.5, 8, { mat: water }, fitted(water));
-  b.cylinder(x, z, 0.45, 1.6, 0.28, 8, { mat: surfaces.limestone() }, undefined, 0, 1, 2);
-  b.cylinder(x, z, 1.6, 1.85, 0.9, 8, { mat: surfaces.limestone() }, fitted(water), -0.25, 1, 3);
-  b.cylinder(x, z, 1.85, 2.5, 0.16, 6, { mat: surfaces.limestone() });
-  b.cylinder(x, z, 2.5, 2.62, 0.32, 6, { mat: surfaces.flagstone() }, fitted(surfaces.flagstone()));
-  // Water spilling from the bowl's lip into the basin, as a fringe of falling sheets.
-  b.cylinder(x, z, 0.45, 1.78, 0.95, 8, { mat: pics.waterfall() }, undefined, 0, 1, 4);
-  void lime;
+  const stone = surfaces.limestone();
+  // The basin: a low octagonal wall with a broad rim, and water within.
+  b.cylinder(x, z, 0, 0.5, 1.8, 8, { mat: stone }, undefined, 0, 1, 6);
+  b.cylinder(x, z, 0.5, 0.64, 1.9, 8, { mat: surfaces.flagstone() }, undefined, 0, 1, 6);
+  b.ring(x, z, 0.64, 1.5, 1.9, 8, surfaces.flagstone());
+  b.cylinder(x, z, 0.4, 0.64, 1.5, 8, { mat: stone }, undefined, 0, 1, 5);
+  b.cylinder(x, z, 0.0, 0.44, 1.49, 8, { mat: water }, fitted(water));
+  // The pillar and the upper bowl, water brimming in it and spilling in streams.
+  b.cylinder(x, z, 0.44, 1.55, 0.26, 8, { mat: stone }, undefined, 0, 1, 2);
+  b.cylinder(x, z, 1.55, 1.85, 0.85, 8, { mat: surfaces.flagstone() }, undefined, -0.3, 1, 3);
+  b.ring(x, z, 1.85, 0.7, 0.85, 8, surfaces.flagstone());
+  b.cylinder(x, z, 1.6, 1.8, 0.7, 8, { mat: water }, fitted(water));
+  b.cylinder(x, z, 0.46, 1.84, 0.88, 8, { mat: pics.waterfall() }, undefined, 0, 1, 4);
+  // A finial: a gilded sun of Benalia over the bowl, a jet rising from it.
+  b.cylinder(x, z, 1.8, 2.25, 0.12, 6, { mat: stone });
+  b.cylinder(x, z, 2.25, 2.4, 0.22, 8, { mat: gold() }, { mat: gold() });
+  b.cylinder(x, z, 2.4, 2.9, 0.05, 6, { mat: pics.waterfall() });
   return water;
 }
 
@@ -358,7 +366,7 @@ export function stall(b: MeshBuilder, x0: number, z: number, width: number): voi
     [x1 + 0.2, 2.55, z - 1.0],
     [x0 - 0.2, 2.55, z - 1.0],
   ], (c) => c[0], (c) => -c[2] + c[1]);
-  b.card(fitted(pics.valance()), x0 - 0.2, 1.78, x1 + 0.2, 2.15, z + 0.55);
+  b.card({ mat: pics.valance(), offset: [0, -1.775 * 16] }, x0 - 0.2, 1.775, x1 + 0.2, 2.15, z + 0.55);
 }
 
 /** A mausoleum: a dark stone house of the dead with pillars, a pediment and an iron gate - the way into the crypt. */
@@ -376,17 +384,17 @@ export function mausoleum(b: MeshBuilder, x0: number, x1: number, z0: number, z1
     b.box(x - 0.28, 2.5, z1 + 0.05, x + 0.28, 2.7, z1 + 0.55, sides(stone));
   }
   b.box(xm - 1.6, 2.6, z1, xm + 1.6, 2.9, z1 + 0.6, sides(stone));
-  b.card(fitted(pics.cryptGate()), xm - 0.6, 0.3, xm + 0.6, 2.1, z1 + 0.01);
+  b.card(fitted(pics.cryptGate()), xm - 0.625, 0.3, xm + 0.625, 2.175, z1 + 0.01);
   b.gableRoof(x0 - 0.2, z0 - 0.2, x1 + 0.2, z1 + 0.7, 2.9, 1.0, surfaces.slate(), stone);
   // A carved skull over the gate.
-  b.card(fitted(material("skull-relief", () => P.bones(7), { cutout: true })), xm - 0.3, 2.1, xm + 0.3, 2.6, z1 + 0.02);
+  b.card(fitted(material("skull-relief", () => P.skull(), { cutout: true })), xm - 5 / 32, 2.3, xm + 5 / 32, 2.3 + 5 / 16, z1 + 0.02);
 }
 
 export function gravestone(b: MeshBuilder, x: number, z: number, turn = 0): void {
   b.at(x, 0, z, turn, () => {
     const face = fitted(pics.gravestone());
-    b.box(-0.3, 0, -0.06, 0.3, 0.8, 0.06, { south: face, north: face });
-    b.box(-0.27, 0, -0.06, 0.27, 0.55, 0.06, sides(tiled(surfaces.cobbleWall())));
+    b.box(-0.375, 0, -0.06, 0.375, 1.0, 0.06, { south: face, north: face });
+    b.box(-0.34, 0, -0.06, 0.34, 0.68, 0.06, sides(tiled(surfaces.cobbleWall())));
     b.box(-0.35, 0, -0.15, 0.35, 0.08, 0.2, sides(tiled(surfaces.cobbleWall())));
   });
 }

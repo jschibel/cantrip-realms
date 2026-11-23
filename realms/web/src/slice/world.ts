@@ -164,8 +164,8 @@ export class Actor {
 
 /** Sunlight for the open air: a warm sun from the south-west, high, casting shadows; a cool sky over everything. */
 export function sunlight(scene: THREE.Scene, centreX: number, centreZ: number, reach: number): THREE.DirectionalLight {
-  const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.92, 0.78), 0.66 * Math.PI);
-  sun.position.set(-9, 20, 11);
+  const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.92, 0.78), 0.86 * Math.PI);
+  sun.position.set(-15, 17, 9);
   sun.castShadow = true;
   sun.shadow.mapSize.set(4096, 4096);
   sun.shadow.bias = -0.0006;
@@ -175,7 +175,7 @@ export function sunlight(scene: THREE.Scene, centreX: number, centreZ: number, r
   holder.position.set(centreX, 0, centreZ);
   holder.add(sun, sun.target);
   scene.add(holder);
-  scene.add(new THREE.HemisphereLight(new THREE.Color(0.62, 0.7, 1.0), new THREE.Color(0.5, 0.42, 0.5), 0.5 * Math.PI));
+  scene.add(new THREE.HemisphereLight(new THREE.Color(0.6, 0.68, 1.0), new THREE.Color(0.52, 0.42, 0.5), 0.46 * Math.PI));
   return sun;
 }
 

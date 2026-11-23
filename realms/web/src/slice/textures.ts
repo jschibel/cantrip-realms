@@ -61,27 +61,27 @@ export function grass(seed = 1, flowers = true): Pixmap {
 /** Cobbles: rounded stones of a few cool greys and the odd warm one, set in dark joints with moss in places. */
 export function cobbles(seed = 2): Pixmap {
   const size = 64;
-  const points = jitteredPoints(size, size, 7, 6, 0.55, seed);
-  const map = voronoi(size, size, points, 1.15, 1.25);
+  const points = jitteredPoints(size, size, 8, 7, 0.5, seed);
+  const map = voronoi(size, size, points, 1.1, 1.2);
   const at = cellAt(map, size, size);
   const k = C.COBBLE;
   const l = C.LIMESTONE;
   const random = seeded(seed + 5);
   const shades = points.map(() => {
     const r = random();
-    if (r < 0.15) return { base: l[3]!, light: l[4]!, lighter: l[5]!, dark: l[2]!, speckle: 0.06, speckleColor: l[2]! };
-    if (r < 0.55) return { base: k[3]!, light: k[4]!, lighter: k[5]!, dark: k[2]!, speckle: 0.05, speckleColor: k[2]! };
-    return { base: k[4]!, light: k[5]!, lighter: k[6]!, dark: k[3]!, speckle: 0.05, speckleColor: k[3]! };
+    if (r < 0.12) return { base: l[4]!, light: l[5]!, lighter: l[5]!, dark: l[3]!, speckle: 0.03, speckleColor: l[3]! };
+    if (r < 0.55) return { base: k[4]!, light: k[5]!, lighter: k[6]!, dark: k[3]!, speckle: 0.03, speckleColor: k[3]! };
+    return { base: k[5]!, light: k[6]!, lighter: k[6]!, dark: k[4]!, speckle: 0.03, speckleColor: k[4]! };
   });
   const p = new Pixmap(size, size);
-  paintCells(p, at, (id) => shades[id]!, k[1]!, seed);
-  // The joints: darkest where they are deepest, a little moss where the noise says so.
+  paintCells(p, at, (id) => shades[id]!, k[2]!, seed);
+  // The joints: darker where they are deepest, a little moss where the noise says so.
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (at(x, y) >= 0) continue;
       const enclosed = at(x, y - 1) < 0 && at(x, y + 1) < 0 && at(x - 1, y) < 0;
-      if (enclosed) p.set(x, y, k[0]!);
-      if (fbm(x, y, 12, size, seed + 9) > 0.68 && hash2(x, y, seed) < 0.6) p.set(x, y, C.MEADOW[hash2(x, y, 4) < 0.5 ? 1 : 2]!);
+      if (enclosed) p.set(x, y, k[1]!);
+      if (fbm(x, y, 12, size, seed + 9) > 0.76 && hash2(x, y, seed) < 0.5) p.set(x, y, C.MEADOW[hash2(x, y, 4) < 0.5 ? 1 : 2]!);
     }
   }
   return p;
@@ -167,10 +167,9 @@ export function floorboards(seed = 5): Pixmap {
         for (let j = 0; j < plank; j++) {
           const y = row * plank + j;
           let c = base;
-          if (j === 0) c = light;
-          if (j === plank - 1) c = w[1]!;
+          if (j === 0 && (i + row) % 3 !== 0) c = light;
+          if (j === plank - 1) c = w[2]!;
           if (i === 0) c = w[1]!;
-          if (i === 1 && j > 0 && j < plank - 1) c = light;
           p.set(x + i, y, c);
         }
       }

@@ -302,7 +302,15 @@ export class MeshBuilder {
    * once round (or `wraps` times), smooth-shaded; with a top face fitted (a lid).
    */
   cylinder(cx: number, cz: number, y0: number, y1: number, r: number, segments: number, side: Face, top?: Face, bulge = 0, rings = 1, wraps = 1): void {
-    const [u0, v0, u1, v1] = side.fit ?? [0, 0, 1, 1];
+    // A tiled side is laid on at the world's density: round the circumference and up the height.
+    let [u0, v0, u1, v1] = side.fit ?? [0, 0, 1, 1];
+    if (!side.fit) {
+      const image = side.mat.map?.image as { width: number; height: number } | undefined;
+      const tw = (image?.width ?? TEXELS) / TEXELS;
+      const th = (image?.height ?? TEXELS) / TEXELS;
+      const around = Math.round((2 * Math.PI * r) / tw) || 1;
+      [u0, v0, u1, v1] = [0, y0 / th, around / wraps, y1 / th];
+    }
     const radius = (t: number) => r * (1 + bulge * Math.sin(Math.PI * t));
     const ring = (t: number) => y0 + (y1 - y0) * t;
     for (let k = 0; k < rings; k++) {
@@ -345,6 +353,16 @@ export class MeshBuilder {
         uvs.push([tu0 + ((Math.sin(a) + 1) / 2) * (tu1 - tu0), tv0 + ((1 - Math.cos(a)) / 2) * (tv1 - tv0)]);
       }
       this.polygon(top.mat, corners, uvs, corners.map(() => [0, 1, 0] as V3));
+    }
+  }
+
+  /** A flat ring facing up at height y, between radii r0 and r1, tiled by its material from the world grid. */
+  ring(cx: number, cz: number, y: number, r0: number, r1: number, segments: number, mat: Material): void {
+    for (let i = 0; i < segments; i++) {
+      const a0 = (i / segments) * Math.PI * 2;
+      const a1 = ((i + 1) / segments) * Math.PI * 2;
+      const p = (a: number, r: number): V3 => [cx + Math.sin(a) * r, y, cz + Math.cos(a) * r];
+      this.quad({ mat }, [p(a0, r1), p(a1, r1), p(a1, r0), p(a0, r0)], (c) => c[0], (c) => -c[2]);
     }
   }
 

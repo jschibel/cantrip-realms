@@ -16,6 +16,7 @@ import { Actor, type Door, type SceneId, type SliceScene, centre } from "./world
 //   ?test             publishes globalThis.sliceTest (screen places of everything, the state, a frame reader)
 //   ?still            the townsfolk stand still (for screenshots)
 //   ?edges=0          no outlines or edge highlights, to compare
+//   ?manual           the clock moves only when a test advances it; ?nohud hides the labels
 
 THREE.ColorManagement.enabled = false;
 
@@ -155,9 +156,7 @@ function clampFocus(p: THREE.Vector3): THREE.Vector3 {
   const halfX = (renderer.width * v.wppX) / 2;
   const halfZ = (renderer.height * v.wppY) / Math.sin(v.pitch) / 2;
   const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
-  // Tall things at the back of a room stand above its floor: let the view reach up over them.
-  const lift = current.inside ? 1.6 : 0;
-  return new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 - lift + halfZ, z1 - halfZ));
+  return new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 + halfZ, z1 - halfZ));
 }
 
 // --- Input -------------------------------------------------------------------------------------------------------------
@@ -239,16 +238,26 @@ window.addEventListener("resize", () => renderer.setView(transition ? renderer.v
 
 let last = performance.now();
 let time = 0;
+/** With ?manual the clock stands still until a test advances it (sliceTest.advance), so clips are evenly timed. */
+const manual = query.has("manual");
 function frame(now: number): void {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  tick(dt);
+  if (!manual) tick(dt);
   renderer.render(current.scene);
   requestAnimationFrame(frame);
 }
 
+/** How much of the three-quarter view's figure lean applies: all of it looking north, none looking from a corner. */
+function leanAmount(): number {
+  return Math.max(0, 1 - Math.abs(renderer.view.yaw) / (Math.PI / 4));
+}
+
 function tick(dt: number): void {
   time += dt;
+  const lean = leanAmount();
+  player.figure.setLean(lean);
+  for (const a of current.actors) a.figure.setLean(lean);
   player.update(dt);
   if (pendingDoor && !player.moving && player.tile.x === pendingDoor.tile.x && player.tile.z === pendingDoor.tile.z) startDoor(pendingDoor);
   for (const a of current.actors) {
@@ -298,6 +307,10 @@ if (query.has("test")) {
       ];
     },
     setOutside,
+    /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual). */
+    advance(seconds: number) {
+      for (let t = 0; t < seconds - 1e-6; t += 1 / 60) tick(1 / 60);
+    },
     /** Renders a frame now and returns its scene pixels (base64 RGBA, top row first). */
     frame() {
       const { width, height, rgba } = renderer.readFrame(current.scene);

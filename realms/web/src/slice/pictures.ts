@@ -267,40 +267,43 @@ export function banner(cloth: readonly Rgb[] = C.BLUE, trim: readonly Rgb[] = C.
 }
 
 /** A crate's side, 16 by 16: a nailed frame round horizontal boards with a diagonal brace. */
-export function crateSide(): Pixmap {
+export function crateSide(n = 16): Pixmap {
   const w = C.WOOD;
-  const p = new Pixmap(16, 16);
-  for (let y = 0; y < 16; y++) {
-    for (let x = 0; x < 16; x++) {
+  const p = new Pixmap(n, n);
+  const e = n - 1;
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
       let c = y % 4 === 3 ? w[2]! : y % 4 === 0 ? w[5]! : w[4]!;
-      const frame = x < 2 || x > 13 || y < 2 || y > 13;
-      if (frame) c = x === 0 || y === 0 ? w[5]! : x === 15 || y === 15 ? w[1]! : w[3]!;
+      const frame = x < 2 || x > e - 2 || y < 2 || y > e - 2;
+      if (frame) c = x === 0 || y === 0 ? w[5]! : x === e || y === e ? w[1]! : w[3]!;
       if (!frame && Math.abs(x - y) <= 1) c = x - y === 1 ? w[2]! : w[3]!;
       p.set(x, y, c);
     }
   }
   for (const [x, y] of [
     [1, 1],
-    [14, 1],
-    [1, 14],
-    [14, 14],
+    [e - 1, 1],
+    [1, e - 1],
+    [e - 1, e - 1],
   ] as const)
     p.set(x, y, C.IRON[5]!);
   return p;
 }
 
 /** A barrel's staves once round, 32 by 16, with two iron hoops. */
-export function barrelSide(): Pixmap {
+export function barrelSide(width = 32, height = 16): Pixmap {
   const w = C.WOOD;
-  const p = new Pixmap(32, 16);
-  for (let y = 0; y < 16; y++) {
-    for (let x = 0; x < 32; x++) {
+  const p = new Pixmap(width, height);
+  const h1 = Math.round(height * 0.18);
+  const h2 = height - h1 - 2;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
       const stave = Math.floor(x / 4);
       let c = stave % 2 ? w[4]! : w[3]!;
       if (x % 4 === 0) c = w[2]!;
       if (x % 4 === 1) c = stave % 2 ? w[5]! : w[4]!;
-      if (y === 2 || y === 12) c = C.IRON[4]!;
-      if (y === 3 || y === 13) c = C.IRON[2]!;
+      if (y === h1 || y === h2) c = C.IRON[4]!;
+      if (y === h1 + 1 || y === h2 + 1) c = C.IRON[2]!;
       if (y === 0) c = w[2]!;
       p.set(x, y, c);
     }
@@ -358,15 +361,15 @@ export function valance(): Pixmap {
 }
 
 /** Produce heaped in a crate, seen from above, 16 by 16: apples, cabbages, carrots or loaves. */
-export function produce(kind: "apples" | "cabbages" | "carrots" | "bread" | "fish"): Pixmap {
-  const p = new Pixmap(16, 16);
+export function produce(kind: "apples" | "cabbages" | "carrots" | "bread" | "fish", n = 16): Pixmap {
+  const p = new Pixmap(n, n);
   const random = seeded(kind.length * 31);
   const base = { apples: C.RED, cabbages: C.GRASS, carrots: C.FIRE, bread: C.STRAW, fish: C.IRON }[kind];
   p.fill(C.WOOD[1]!);
   const r = kind === "carrots" || kind === "fish" ? 2 : 3;
   for (let k = 0; k < 40; k++) {
-    const cx = 2 + Math.floor(random() * 12);
-    const cy = 2 + Math.floor(random() * 12);
+    const cx = 2 + Math.floor(random() * (n - 4));
+    const cy = 2 + Math.floor(random() * (n - 4));
     for (let y = -r; y <= r; y++) {
       for (let x = -r; x <= r; x++) {
         const d = kind === "carrots" || kind === "fish" ? Math.abs(x) * 0.6 + Math.abs(y) * 1.4 : Math.hypot(x, y);
@@ -407,16 +410,16 @@ export function gravestone(seed = 3): Pixmap {
 
 /** An iron grille over darkness, 16 by 24: a crypt's gate. */
 export function cryptGate(): Pixmap {
-  const p = new Pixmap(16, 24);
-  for (let y = 0; y < 24; y++) {
-    for (let x = 0; x < 16; x++) {
-      let c = y < 10 ? C.INK : C.DUNGEON[0]!;
-      if (y > 18) c = C.DUNGEON[1]!;
+  const p = new Pixmap(20, 30);
+  for (let y = 0; y < 30; y++) {
+    for (let x = 0; x < 20; x++) {
+      let c = y < 12 ? C.INK : C.DUNGEON[0]!;
+      if (y > 22) c = C.DUNGEON[1]!;
       // Steps going down into the dark.
-      if (y > 14 && (y - 15) % 3 === 0) c = C.DUNGEON[2]!;
+      if (y > 16 && (y - 17) % 3 === 0) c = C.DUNGEON[2]!;
       if (x % 4 === 1) c = C.IRON[3]!;
       if (x % 4 === 2) c = C.IRON[1]!;
-      if (y === 3 || y === 20) c = x % 4 === 1 ? C.IRON[4]! : C.IRON[2]!;
+      if (y === 4 || y === 25) c = x % 4 === 1 ? C.IRON[4]! : C.IRON[2]!;
       if (y === 0 && x % 4 === 1) c = C.GOLD[3]!;
       p.set(x, y, c);
     }
@@ -538,11 +541,11 @@ export function counterFront(): Pixmap {
 }
 
 /** The hearth's stone front, 32 by 32: blocks round a sooty arch, logs on the fire-dogs. */
-export function hearth(): Pixmap {
+export function hearth(w = 44, h = 36): Pixmap {
   const l = C.COBBLE;
-  const p = new Pixmap(32, 32);
-  for (let y = 0; y < 32; y++) {
-    for (let x = 0; x < 32; x++) {
+  const p = new Pixmap(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
       const course = Math.floor(y / 5);
       const shift = course % 2 ? 4 : 0;
       let c = l[4]!;
@@ -552,40 +555,44 @@ export function hearth(): Pixmap {
     }
   }
   // The mantel.
-  for (let x = 0; x < 32; x++) {
+  for (let x = 0; x < w; x++) {
     p.set(x, 6, C.WOOD[6]!);
     p.set(x, 7, C.WOOD[4]!);
     p.set(x, 8, C.WOOD[4]!);
     p.set(x, 9, C.WOOD[2]!);
   }
   // The opening: an arch, black with soot at the top, glowing embers below.
-  for (let y = 12; y < 32; y++) {
-    for (let x = 6; x < 26; x++) {
-      const dx = x - 15.5;
-      if (y < 18 && dx * dx + (y - 18) * (y - 18) * 2.2 > 100) continue;
-      let c = y < 20 ? C.INK : y < 26 ? 0x2a1418 : 0x3a1a14;
-      if (y > 28) c = C.FIRE[0]!;
+  const mid = (w - 1) / 2;
+  const half = w * 0.32;
+  for (let y = 12; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = x - mid;
+      if (Math.abs(dx) > half) continue;
+      if (y < 19 && dx * dx + (y - 19) * (y - 19) * 2.2 > half * half) continue;
+      let c = y < 21 ? C.INK : y < h - 6 ? 0x2a1418 : 0x3a1a14;
+      if (y > h - 4) c = C.FIRE[0]!;
       p.set(x, y, c);
     }
   }
-  // Logs.
-  for (let x = 9; x < 23; x++) {
-    p.set(x, 28, C.WOOD[3]!);
-    p.set(x, 29, C.WOOD[1]!);
+  // Logs on fire-dogs.
+  for (let x = Math.round(mid - half + 3); x < Math.round(mid + half - 2); x++) {
+    p.set(x, h - 4, C.WOOD[3]!);
+    p.set(x, h - 3, C.WOOD[1]!);
   }
-  for (let x = 11; x < 21; x++) p.set(x, 27, C.WOOD[4]!);
+  for (let x = Math.round(mid - half + 5); x < Math.round(mid + half - 4); x++) p.set(x, h - 5, C.WOOD[4]!);
   return p;
 }
 
 /** Flames, 16 by 16, cut out: one of three frames, stepped. */
-export function flame(frame: number): Pixmap {
+export function flame(frame: number, n = 16): Pixmap {
   const f = C.FIRE;
-  const p = new Pixmap(16, 16);
+  const p = new Pixmap(n, n);
   p.fill(0, 0);
-  for (let y = 0; y < 16; y++) {
-    for (let x = 0; x < 16; x++) {
-      const dx = (x - 7.5) / 7.5;
-      const t = y / 15;
+  const m = (n - 1) / 2;
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const dx = (x - m) / m;
+      const t = y / (n - 1);
       const sway = Math.sin(t * 6 + frame * 2.1) * 0.12 * (1 - t);
       const tongue = valueNoise(x * 2 + frame * 5, y * 0.6 - frame * 3, 3, 64, 9) * 0.5;
       const width = t * 0.9 + tongue * (1 - t) * 0.6;
@@ -603,16 +610,18 @@ export function flame(frame: number): Pixmap {
 }
 
 /** A rug, 48 by 32: deep red with a blue and gold border, a medallion, fringed ends. */
-export function rug(): Pixmap {
+export function rug(w = 64, h = 40): Pixmap {
   const r = C.RED;
   const g = C.GOLD;
   const b = C.BLUE;
-  const p = new Pixmap(48, 32);
-  for (let y = 0; y < 32; y++) {
-    for (let x = 0; x < 48; x++) {
+  const p = new Pixmap(w, h);
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
       let c = r[2]!;
-      const edge = Math.min(x - 2, 45 - x, y, 31 - y);
-      if (x < 2 || x > 45) {
+      const edge = Math.min(x - 2, w - 3 - x, y, h - 1 - y);
+      if (x < 2 || x > w - 3) {
         c = y % 2 ? 0xf4e8c8 : 0xd8c8a8;
       } else if (edge < 1) c = r[1]!;
       else if (edge < 2) c = g[3]!;
@@ -620,8 +629,8 @@ export function rug(): Pixmap {
       else if (edge < 6) c = g[3]!;
       else {
         // The field: a diamond lattice and a medallion.
-        const dx = Math.abs(x - 23.5);
-        const dy = Math.abs(y - 15.5);
+        const dx = Math.abs(x - cx);
+        const dy = Math.abs(y - cy);
         const m = dx / 1.5 + dy;
         if (m < 4) c = g[4]!;
         else if (m < 5) c = r[4]!;
@@ -665,10 +674,18 @@ export function clay(ramp: readonly Rgb[] = C.ROOF): Pixmap {
 // --- The crypt ---
 
 /** A sarcophagus's lid, 16 by 32: a knight carved in relief, hands on a sword. */
-export function sarcophagusLid(): Pixmap {
+export function sarcophagusLid(w = 16, h = 32): Pixmap {
   const s = C.DUNGEON;
-  const p = new Pixmap(16, 32);
-  for (let y = 0; y < 32; y++) for (let x = 0; x < 16; x++) p.set(x, y, x === 0 || y === 0 ? s[6]! : x === 15 || y === 31 ? s[2]! : s[4]!);
+  const p = new Pixmap(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let c = x === 0 || y === 0 ? s[6]! : x === w - 1 || y === h - 1 ? s[2]! : s[4]!;
+      // A carved border two texels in from the edge.
+      if ((x === 2 || x === w - 3) && y > 1 && y < h - 2) c = x === 2 ? s[3]! : s[5]!;
+      if ((y === 2 || y === h - 3) && x > 1 && x < w - 2) c = y === 2 ? s[3]! : s[5]!;
+      p.set(x, y, c);
+    }
+  }
   const effigy = sprite(
     [
       "....HHHH....",
@@ -698,10 +715,10 @@ export function sarcophagusLid(): Pixmap {
     ],
     { H: s[6]!, h: s[5]!, k: s[3]!, S: s[6]!, s: s[5]!, i: C.BONE[4]! },
   );
-  p.blit(effigy, 2, 4);
+  p.blit(effigy, Math.floor((w - 12) / 2), Math.floor((h - 24) / 2));
   // The carving's shadow edge, under and right of the relief.
-  for (let y = 31; y > 0; y--) {
-    for (let x = 15; x > 0; x--) {
+  for (let y = h - 1; y > 0; y--) {
+    for (let x = w - 1; x > 0; x--) {
       if (p.get(x, y) === s[4] && (p.get(x - 1, y) === s[5] || p.get(x, y - 1) === s[5])) p.set(x, y, s[3]!);
     }
   }
@@ -709,19 +726,21 @@ export function sarcophagusLid(): Pixmap {
 }
 
 /** A sarcophagus's side, 32 by 12: three sunken panels. */
-export function sarcophagusSide(): Pixmap {
+export function sarcophagusSide(w = 32, h = 12): Pixmap {
   const s = C.DUNGEON;
-  const p = new Pixmap(32, 12);
-  for (let y = 0; y < 12; y++) {
-    for (let x = 0; x < 32; x++) {
+  const p = new Pixmap(w, h);
+  const panels = Math.max(1, Math.round(w / 11));
+  const pw = w / panels;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
       let c = s[4]!;
       if (y === 0) c = s[6]!;
-      if (y === 11) c = s[2]!;
-      const px = x % 11;
-      if (px >= 2 && px <= 9 && y >= 3 && y <= 9) {
+      if (y === h - 1) c = s[2]!;
+      const px = x - Math.floor(x / pw) * pw;
+      if (px >= 2 && px <= pw - 2 && y >= 3 && y <= h - 3) {
         c = s[3]!;
-        if (y === 3 || px === 2) c = s[2]!;
-        if (y === 9 || px === 9) c = s[5]!;
+        if (y === 3 || px < 3) c = s[2]!;
+        if (y === h - 3 || px > pw - 3) c = s[5]!;
       }
       p.set(x, y, c);
     }

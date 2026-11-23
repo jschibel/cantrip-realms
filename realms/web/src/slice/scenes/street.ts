@@ -186,8 +186,8 @@ export function buildStreet(seed = 1): SliceScene {
   sunlight(scene, 20, 13, 34);
 
   const doors: Door[] = [
-    { name: "door:shop", tile: { x: 13, z: 10 }, step: [0, -1], to: "shop", arrive: { x: 6, z: 9 }, arriveFacing: [0, -1], at: new THREE.Vector3(13.5, 1, 10) },
-    { name: "door:crypt", tile: { x: 35, z: 9 }, step: [0, -1], to: "crypt", arrive: { x: 7, z: 11 }, arriveFacing: [0, -1], at: new THREE.Vector3(35.5, 1, 8.5) },
+    { name: "door:shop", tile: { x: 13, z: 10 }, step: [0, -1], to: "shop", arrive: { x: 6, z: 6 }, arriveFacing: [0, -1], at: new THREE.Vector3(13.5, 1, 10) },
+    { name: "door:crypt", tile: { x: 35, z: 9 }, step: [0, -1], to: "crypt", arrive: { x: 7, z: 6 }, arriveFacing: [0, -1], at: new THREE.Vector3(35.5, 1, 8.5) },
   ];
 
   const actors = [
@@ -210,7 +210,7 @@ export function buildStreet(seed = 1): SliceScene {
     doors,
     actors,
     start: { x: 13, z: 12 },
-    bounds: [0, 3, W, H],
+    bounds: [0, 0, W, H],
     update(_dt, time) {
       // Water moves a whole texel at a time.
       waterMap.offset.set(Math.floor(time * 3) / 32, Math.floor(time * 5) / 32);

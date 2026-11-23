@@ -17,7 +17,8 @@ import { pointLight, roomGrid, roomShell } from "./room";
 // a ghoul hunches about the pillars. The stair at the front climbs back up to the churchyard.
 
 const W = 14;
-const D = 11;
+const D = 8;
+const WALL = 3.2;
 
 export function buildCrypt(): SliceScene {
   const scene = new THREE.Scene();
@@ -32,17 +33,17 @@ export function buildCrypt(): SliceScene {
   const b = new MeshBuilder();
   const brick = tiled(surfaces.cryptBrick());
   const dark = tiled(material("crypt-dark", () => T.ashlar([C.DUNGEON[0]!, ...C.DUNGEON.slice(0, 6)], 29, 8, 12, 20)));
-  const top = tiled(material("crypt-top", () => T.flagstones(C.DUNGEON.slice(0, 5).concat([C.DUNGEON[4]!, C.DUNGEON[5]!]), 31)));
+  const top = tiled(material("crypt-top", () => T.flagstones([C.DUNGEON[0]!, ...C.DUNGEON.slice(0, 6)], 31)));
   roomShell(b, {
     width: W,
     depth: D,
-    height: 3.6,
-    thickness: 0.9,
-    front: 0.8,
+    height: WALL,
+    thickness: 0.875,
+    front: 0.75,
     back: [
-      { to: 0.45, face: dark, proud: 2 / 16 },
-      { to: 3.25, face: brick },
-      { to: 3.6, face: dark, proud: 3 / 16 },
+      { to: 0.4375, face: dark, proud: 2 / 16 },
+      { to: WALL - 0.3125, face: brick },
+      { to: WALL, face: dark, proud: 3 / 16 },
     ],
     side: brick,
     top,
@@ -51,125 +52,115 @@ export function buildCrypt(): SliceScene {
 
   // The ossuary wall: niches of skulls between buttresses, banners, torches in sconces.
   const ossuary = material("ossuary", () => ossuaryPicture());
-  for (const x of [1.2, 4.6, 8.4, 11.8]) {
-    b.box(x - 0.55, 0.9, -0.05, x + 0.55, 2.4, 0.01, { south: fitted(ossuary) });
-  }
-  for (const x of [0, 2.9, 6.5, 7.5, 10.1, 14]) b.box(x - 0.2, 0, 0, x + 0.2, 3.6, 0.25, sides(dark));
+  for (const x of [1.4375, 4.5, 9.5, 12.5625]) b.box(x - 0.5625, 0.75, -0.05, x + 0.5625, 2.25, 0.01, { south: fitted(ossuary) });
+  for (const x of [0, 3.0, 6.25, 7.75, 11.0, 14]) b.box(x - 0.1875, 0, 0, x + 0.1875, WALL, 0.25, sides(dark));
   const banner = material("tattered", () => Pic.tatteredBanner(), { cutout: true, twoSided: true });
-  for (const x of [6.0, 8.0]) {
-    b.box(x - 0.45, 3.0, 0.2, x + 0.45, 3.06, 0.32, sides(flat(C.IRON[2]!)));
-    b.card(fitted(banner), x - 0.4, 1.0, x + 0.4, 3.0, 0.3);
+  for (const x of [5.25, 8.75]) {
+    b.box(x - 0.4375, 2.75, 0.18, x + 0.4375, 2.8125, 0.3, sides(flat(C.IRON[2]!)));
+    b.card(fitted(banner), x - 0.375, 0.75, x + 0.375, 2.75, 0.28);
   }
-  const flames = [0, 1, 2].map((f) => material(`flame-${f}`, () => Pic.flame(f), { glowing: true, cutout: true }));
   const fires: THREE.Group[][] = [[], [], []];
-  const fireAt = (x: number, y: number, z: number, size: number) => {
-    flames.forEach((m, i) => {
+  const fireAt = (x: number, y: number, z: number, n: number) => {
+    [0, 1, 2].forEach((f) => {
+      const m = material(`flame-${f}-${n}`, () => Pic.flame(f, n), { glowing: true, cutout: true });
       const fb = new MeshBuilder();
-      fb.card(fitted(m), x - size / 2, y, x + size / 2, y + size, z);
+      fb.card(fitted(m), x - n / 32, y, x + n / 32, y + n / 16, z);
       const g = fb.build("flame", false);
       scene.add(g);
-      fires[i]!.push(g);
+      fires[f]!.push(g);
     });
   };
-  for (const x of [2.9, 10.1]) {
-    b.box(x - 0.08, 1.9, 0.25, x + 0.08, 2.0, 0.6, sides(flat(C.IRON[2]!)));
-    b.cylinder(x, 0.6, 2.0, 2.15, 0.12, 6, { mat: flat(C.IRON[3]!) }, { mat: flat(C.FIRE[0]!) });
-    fireAt(x, 2.1, 0.62, 0.45);
+  for (const x of [3.0, 11.0]) {
+    b.box(x - 0.0625, 1.75, 0.25, x + 0.0625, 1.875, 0.6, sides(flat(C.IRON[2]!)));
+    b.cylinder(x, 0.6, 1.875, 2.0, 0.125, 6, { mat: flat(C.IRON[3]!) }, { mat: flat(C.FIRE[0]!) });
+    fireAt(x, 1.95, 0.62, 10);
   }
 
   // Cobwebs in the corners.
   const web = material("cobweb", () => Pic.cobweb(), { cutout: true, twoSided: true });
-  b.card(fitted(web), 0.0, 2.5, 1.1, 3.6, 0.27);
-  b.at(W, 2.5, 0.27, 0, () => b.quad(fitted(web), [[0, 0, 0], [-1.1, 0, 0], [-1.1, 1.1, 0], [0, 1.1, 0]], (c) => c[0], (c) => c[1]));
+  b.card(fitted(web), 0.0, WALL - 1, 1.0, WALL, 0.27);
+  b.at(W, WALL - 1, 0.27, 0, () => b.quad(fitted(web), [[0, 0, 0], [-1, 0, 0], [-1, 1, 0], [0, 1, 0]], (c) => c[0], (c) => c[1]));
 
   // Pillars.
-  for (const [x, z] of [[2.5, 3.5], [11.5, 3.5], [2.5, 7.5], [11.5, 7.5]] as const) {
-    b.roundedBox(x - 0.42, 0, z - 0.42, x + 0.42, 0.3, z + 0.42, 1.5 / 16, sides(fitted(surfaces.cryptStone())));
-    b.box(x - 0.3, 0.3, z - 0.3, x + 0.3, 2.5, z + 0.3, sides(brick));
-    b.roundedBox(x - 0.42, 2.5, z - 0.42, x + 0.42, 2.8, z + 0.42, 1.5 / 16, sides(fitted(surfaces.cryptStone())));
+  const pillarStone = fitted(surfaces.cryptStone());
+  for (const [x, z] of [[2.5, 2.5], [11.5, 2.5], [2.5, 6.0], [11.5, 6.0]] as const) {
+    b.roundedBox(x - 0.4375, 0, z - 0.4375, x + 0.4375, 0.3125, z + 0.4375, 1.5 / 16, sides(pillarStone));
+    b.box(x - 0.3125, 0.3125, z - 0.3125, x + 0.3125, 2.375, z + 0.3125, sides(brick));
+    b.roundedBox(x - 0.4375, 2.375, z - 0.4375, x + 0.4375, 2.6875, z + 0.4375, 1.5 / 16, sides(pillarStone));
     grid.setWalkable(Math.floor(x), Math.floor(z), false);
   }
-  b.card(fitted(web), 11.2, 1.9, 11.9, 2.6, 7.93);
+  b.card(fitted(web), 11.0, 1.75, 11.75, 2.5, 6.44);
   // A broken pillar's drum, fallen.
-  b.at(4.2, 0, 9.3, 0.6, () => b.cylinder(0, 0, 0, 0.35, 0.32, 8, { mat: surfaces.cryptBrick() }, fitted(surfaces.cryptStone())));
-  grid.setWalkable(4, 9, false);
+  b.at(4.3, 0, 7.2, 0.6, () => b.cylinder(0, 0, 0, 0.375, 0.3125, 8, { mat: surfaces.cryptBrick() }, fitted(surfaces.cryptStone())));
+  grid.setWalkable(4, 7, false);
 
   // The dais and its sarcophagus, braziers at its corners.
   const stone = tiled(surfaces.cryptStone());
-  b.box(4.6, 0, 1.6, 9.4, 0.22, 6.4, sides(stone));
-  b.box(5.0, 0.22, 2.0, 9.0, 0.42, 6.0, sides(stone));
-  const lid = material("sarcophagus-lid", () => Pic.sarcophagusLid());
-  const side = material("sarcophagus-side", () => Pic.sarcophagusSide());
-  b.box(6.2, 0.42, 2.6, 7.8, 1.15, 5.4, { south: fitted(side, [0, 0, 22, 12]), north: fitted(side, [0, 0, 22, 12]), east: fitted(side), west: fitted(side) });
-  b.roundedBox(6.1, 1.15, 2.5, 7.9, 1.32, 5.5, 1 / 16, { top: fitted(lid), south: tiled(surfaces.cryptStone()), east: tiled(surfaces.cryptStone()), west: tiled(surfaces.cryptStone()), north: tiled(surfaces.cryptStone()) });
-  blockArea(grid, 6.2, 2.6, 7.8, 5.4);
-  const braziers = [
-    [5.25, 6.6],
-    [8.75, 6.6],
-  ] as const;
-  for (const [x, z] of braziers) {
-    b.cylinder(x, z, 0, 0.1, 0.22, 8, { mat: flat(C.IRON[2]!) });
-    b.cylinder(x, z, 0.1, 0.75, 0.05, 6, { mat: flat(C.IRON[3]!) });
-    b.cylinder(x, z, 0.75, 1.0, 0.3, 8, { mat: flat(C.IRON[2]!) }, { mat: material("embers", () => embers(), { glowing: true }) }, 0.15);
-    fireAt(x, 0.95, z + 0.01, 0.7);
+  b.box(4.5, 0, 0.5, 9.5, 0.1875, 4.75, sides(stone));
+  b.box(5.0, 0.1875, 0.75, 9.0, 0.375, 4.4, sides(stone));
+  const lid = material("sarcophagus-lid", () => Pic.sarcophagusLid(24, 40));
+  const end = material("sarcophagus-end", () => Pic.sarcophagusSide(24, 12));
+  const side = material("sarcophagus-side", () => Pic.sarcophagusSide(40, 12));
+  b.box(6.25, 0.375, 1.25, 7.75, 1.125, 3.75, { south: fitted(end), north: fitted(end), east: fitted(side), west: fitted(side) });
+  b.roundedBox(6.1875, 1.125, 1.1875, 7.8125, 1.3125, 3.8125, 1 / 16, { top: fitted(lid), south: stone, east: stone, west: stone, north: stone });
+  blockArea(grid, 6.25, 1.25, 7.75, 3.75);
+  for (const [x, z] of [[5.0, 5.0], [9.0, 5.0]] as const) {
+    b.cylinder(x, z, 0, 0.125, 0.25, 8, { mat: flat(C.IRON[2]!) });
+    b.cylinder(x, z, 0.125, 0.75, 0.0625, 6, { mat: flat(C.IRON[3]!) });
+    b.cylinder(x, z, 0.75, 1.0, 0.3125, 8, { mat: flat(C.IRON[2]!) }, { mat: material("embers", () => embers(), { glowing: true }) }, 0.15);
+    fireAt(x, 0.95, z + 0.01, 12);
     grid.setWalkable(Math.floor(x), Math.floor(z), false);
   }
-  for (const [x, z] of [[5.3, 2.3], [8.7, 2.3], [5.3, 5.7], [8.7, 5.7]] as const) candles(b, x, 0.42, z);
+  for (const [x, z] of [[5.3, 1.05], [8.7, 1.05], [5.3, 4.1], [8.7, 4.1]] as const) candles(b, x, 0.375, z);
 
-  // Coffins left open against the west wall; bones and grime about the floor.
-  coffin(b, 0.2, 5.0, true);
-  coffin(b, 0.2, 7.2, false);
-  grid.block(0, 5, 0, 8);
+  // Coffins left open against the west wall; bones and a little grime about the floor.
+  coffin(b, 0.2, 3.3, true);
+  coffin(b, 0.2, 5.5, false);
+  grid.block(0, 3, 0, 7);
   const bones = [1, 2, 3, 5].map((s) => material(`bones-${s}`, () => Pic.bones(s), { cutout: true }));
   const grime = material("grime", () => Pic.grime(4), { cutout: true, flat: true });
   const random = seeded(17);
-  for (let k = 0; k < 9; k++) {
-    const x = 1 + random() * (W - 2);
-    const z = 1 + random() * (D - 2);
-    b.decal(fitted(bones[k % bones.length]!), x - 0.5, z - 0.5, x + 0.5, z + 0.5, 0.004 + k * 0.0004);
+  for (const [x, z] of [[3.6, 4.6], [10.4, 5.3], [12.5, 7.2], [1.8, 1.4], [8.5, 6.8], [12.8, 3.6]] as const) {
+    b.decal(fitted(bones[Math.floor(random() * bones.length)]!), x - 0.5, z - 0.5, x + 0.5, z + 0.5, 0.004 + random() * 0.002);
   }
-  for (let k = 0; k < 7; k++) {
-    const x = random() * W;
-    const z = random() * D;
-    const s = 1 + random() * 1.5;
-    b.decal(fitted(grime), x - s, z - s, x + s, z + s, 0.002);
-  }
+  void grime;
   // Rubble and pots by the east wall.
-  P.pot(b, 13.4, 9.3, 0, 0.2);
-  P.pot(b, 12.9, 9.6, 0, 0.15);
-  for (const [x, z, s] of [[13.2, 1.1, 0.35], [12.6, 0.8, 0.25], [13.5, 1.6, 0.22]] as const) b.at(x, 0, z, s * 3, () => b.roundedBox(-s / 2, 0, -s / 2, s / 2, s * 0.8, s / 2, 1 / 16, sides(fitted(surfaces.cryptStone()))));
+  P.pot(b, 13.4, 7.3, 0, 0.2);
+  P.pot(b, 12.9, 7.6, 0, 0.15);
+  for (const [x, z, s] of [[13.2, 1.1, 0.375], [12.6, 0.85, 0.25], [13.5, 1.6, 0.25]] as const) b.at(x, 0, z, s * 3, () => b.roundedBox(-s / 2, 0, -s / 2, s / 2, s * 0.8, s / 2, 1 / 16, sides(fitted(surfaces.cryptStone()))));
   grid.block(12, 0, 13, 1);
-  grid.block(12, 9, 13, 9);
+  grid.block(12, 7, 13, 7);
 
   // The stair up, climbing south out of the front wall's gap.
+  const tread = material("tread", () => Pic.stepTread());
   for (let i = 0; i < 4; i++) {
-    const z = D + 0.2 + i * 0.35;
-    b.box(6, 0, z, 8, 0.18 * (i + 1), z + 0.35, { top: fitted(material("tread", () => Pic.stepTread())), south: tiled(surfaces.cryptBrick()) });
+    const z = D + 0.125 + i * 0.375;
+    b.box(6, 0, z, 8, 0.1875 * (i + 1), z + 0.375, { top: tiled(tread), south: tiled(surfaces.cryptBrick()) });
   }
   for (let x = 0; x < W; x++) grid.setWalkable(x, 0, false);
 
   scene.add(b.build("crypt"));
 
   // Light: almost none but the fires; a cold glow down the stair.
-  scene.add(new THREE.HemisphereLight(new THREE.Color(0.34, 0.36, 0.7), new THREE.Color(0.16, 0.12, 0.22), 0.6 * Math.PI));
+  scene.add(new THREE.HemisphereLight(new THREE.Color(0.36, 0.38, 0.74), new THREE.Color(0.16, 0.12, 0.22), 0.58 * Math.PI));
   const fireLights = [
-    pointLight(scene, 5.25, 1.6, 6.9, new THREE.Color(1.0, 0.55, 0.22), 9, 7),
-    pointLight(scene, 8.75, 1.6, 6.9, new THREE.Color(1.0, 0.55, 0.22), 9, 7),
-    pointLight(scene, 2.9, 2.4, 1.0, new THREE.Color(1.0, 0.6, 0.3), 6, 5.5),
-    pointLight(scene, 10.1, 2.4, 1.0, new THREE.Color(1.0, 0.6, 0.3), 6, 5.5),
+    pointLight(scene, 5.0, 1.5, 5.3, new THREE.Color(1.0, 0.55, 0.22), 9, 7),
+    pointLight(scene, 9.0, 1.5, 5.3, new THREE.Color(1.0, 0.55, 0.22), 9, 7),
+    pointLight(scene, 3.0, 2.3, 1.0, new THREE.Color(1.0, 0.6, 0.3), 6, 5.5),
+    pointLight(scene, 11.0, 2.3, 1.0, new THREE.Color(1.0, 0.6, 0.3), 6, 5.5),
   ];
-  pointLight(scene, 7, 1.5, D + 1.2, new THREE.Color(0.45, 0.6, 1.0), 6, 5);
+  pointLight(scene, 7, 1.2, D + 1.3, new THREE.Color(0.45, 0.6, 1.0), 2.5, 3.5);
 
   const actors = [
-    new Actor(skeleton(), { x: 3, z: 9 }, grid, { beat: { stops: [{ x: 3, z: 9 }, { x: 11, z: 9 }, { x: 12, z: 5 }, { x: 10, z: 2 }], pause: 2 } }, "skeleton", seeded(3)),
-    new Actor(ghoul(), { x: 1, z: 2 }, grid, { wander: { home: { x: 3, z: 2 }, reach: 2, pause: [1, 3] } }, "ghoul", seeded(5)),
+    new Actor(skeleton(), { x: 3, z: 7 }, grid, { beat: { stops: [{ x: 3, z: 7 }, { x: 10, z: 7 }, { x: 12, z: 4 }, { x: 10, z: 1 }], pause: 2 } }, "skeleton", seeded(3)),
+    new Actor(ghoul(), { x: 1, z: 1 }, grid, { wander: { home: { x: 2, z: 1 }, reach: 2, pause: [1, 3] } }, "ghoul", seeded(5)),
   ];
   actors[0]!.speed = 1.9;
   actors[1]!.speed = 1.6;
   for (const a of actors) scene.add(a.figure.root);
 
   const doors: Door[] = [
-    { name: "door:street", tile: { x: 7, z: 10 }, step: [0, 1], to: "street", arrive: { x: 35, z: 9 }, arriveFacing: [0, 1], at: new THREE.Vector3(7, 0.6, D + 0.6) },
+    { name: "door:street", tile: { x: 7, z: 7 }, step: [0, 1], to: "street", arrive: { x: 35, z: 9 }, arriveFacing: [0, 1], at: new THREE.Vector3(7, 0.6, D + 0.6) },
   ];
   return {
     id: "crypt",
@@ -179,8 +170,8 @@ export function buildCrypt(): SliceScene {
     grid,
     doors,
     actors,
-    start: { x: 7, z: 9 },
-    bounds: [-0.9, -0.9, W + 0.9, D + 1.6],
+    start: { x: 7, z: 6 },
+    bounds: [-0.875, -0.875 - WALL, W + 0.875, D + 1.6],
     update(_dt, time) {
       const f = Math.floor(time * 8) % 3;
       fires.forEach((list, i) => list.forEach((g) => (g.visible = i === f)));

@@ -18,7 +18,7 @@ import { pointLight, roomGrid, roomShell, windowLight } from "./room";
 // barrels, crates and sacks in the corners. Daylight falls in through the back windows, the fire glows orange.
 
 const W = 12;
-const D = 10;
+const D = 8;
 
 export function buildShop(): SliceScene {
   const scene = new THREE.Scene();
@@ -27,11 +27,7 @@ export function buildShop(): SliceScene {
 
   // The floor: boards, and hearthstones before the fire.
   const tiles: number[][] = [];
-  for (let z = 0; z < D; z++) {
-    const row: number[] = [];
-    for (let x = 0; x < W; x++) row.push(z === 0 && x >= 1 && x <= 3 ? 1 : 0);
-    tiles.push(row);
-  }
+  for (let z = 0; z < D; z++) tiles.push(Array.from({ length: W }, (_, x) => (z === 0 && x >= 1 && x <= 3 ? 1 : 0)));
   tiles.push(Array.from({ length: W }, (_, x) => (x >= 5 && x <= 6 ? 0 : -1)));
   scene.add(buildGround(tiles, [{ picture: T.floorboards(5), priority: 1 }, { picture: T.flagstones(C.COBBLE, 33), priority: 2 }]));
 
@@ -39,103 +35,100 @@ export function buildShop(): SliceScene {
   const wainscot = tiled(material("wainscot", () => Pic.wainscot()));
   const plaster = tiled(surfaces.plaster());
   const beam = tiled(surfaces.darkTimber());
-  const wallTop = tiled(material("wall-top", () => T.timber(17, C.DARKWOOD)));
+  const wallTop = tiled(material("wall-top", () => wallTopPicture()));
   roomShell(b, {
     width: W,
     depth: D,
-    height: 3.2,
+    height: 3.0,
     thickness: 0.75,
-    front: 0.7,
+    front: 0.6,
     back: [
       { to: 1.0, face: wainscot, proud: PX },
-      { to: 2.9, face: plaster },
-      { to: 3.2, face: beam, proud: 2 * PX },
+      { to: 2.75, face: plaster },
+      { to: 3.0, face: beam, proud: 2 * PX },
     ],
     side: plaster,
     top: wallTop,
     exit: [5, 7],
   });
   // Posts in the back wall, framing it in bays.
-  for (const x of [0, 4.0, 8.0, W]) b.box(x - 0.12, 0, 0, x + 0.12, 3.2, 0.1, sides(beam));
+  for (const x of [0, 4.0, 8.0, W]) b.box(x - 0.125, 0, 0, x + 0.125, 3.0, 0.1, sides(beam));
   // The doorframe in the front wall.
-  for (const x of [4.9, 7.0]) b.box(x, 0, D, x + 0.1, 0.9, D + 0.75, sides(beam));
+  for (const x of [4.875, 7.0]) b.box(x, 0, D, x + 0.125, 0.8, D + 0.75, sides(beam));
 
   // The hearth in the back wall's first bay.
-  const hearth = material("hearth", () => Pic.hearth());
-  b.box(0.6, 0, 0, 3.4, 2.4, 0.4, { south: fitted(hearth), top: tiled(surfaces.cobbleWall()), east: tiled(surfaces.cobbleWall()), west: tiled(surfaces.cobbleWall()) });
-  b.box(0.45, 1.85, 0, 3.55, 2.0, 0.55, sides(tiled(surfaces.timber())));
-  b.box(0.8, 2.4, 0, 3.2, 3.2, 0.25, sides(tiled(surfaces.cobbleWall())));
-  const flames = [0, 1, 2].map((f) => material(`flame-${f}`, () => Pic.flame(f), { glowing: true, cutout: true }));
+  const hearth = material("hearth", () => Pic.hearth(44, 36));
+  const stone = tiled(surfaces.cobbleWall());
+  b.box(0.625, 0, 0, 3.375, 2.25, 0.4, { south: fitted(hearth), top: stone, east: stone, west: stone });
+  b.box(0.5, 1.75, 0, 3.5, 1.875, 0.55, sides(tiled(surfaces.timber())));
+  b.box(0.875, 2.25, 0, 3.125, 3.0, 0.25, sides(stone));
+  const flames = [0, 1, 2].map((f) => material(`flame-${f}-16`, () => Pic.flame(f, 16), { glowing: true, cutout: true }));
   const fire = flames.map((m) => {
     const fb = new MeshBuilder();
-    fb.card(fitted(m), 1.35, 0.15, 2.65, 1.2, 0.42);
+    fb.card(fitted(m), 1.5, 0.05, 2.5, 1.05, 0.42);
     const g = fb.build("fire", false);
     scene.add(g);
     return g;
   });
-  // On the mantel: candles, a pot, and a goblin's prize (a skull).
-  candle(b, 0.75, 2.0, 0.3);
-  candle(b, 3.25, 2.0, 0.3);
-  P.pot(b, 2.7, 0.3, 2.0, 0.12);
-  b.card(fitted(material("mantel-skull", () => Pic.bones(3), { cutout: true })), 1.4, 2.0, 2.0, 2.6, 0.32);
+  // On the mantel: candles, a pot, and a goblin's prize - a skull.
+  candle(b, 0.75, 1.875, 0.3);
+  candle(b, 3.25, 1.875, 0.3);
+  P.pot(b, 2.75, 0.3, 1.875, 0.12);
+  b.card(fitted(material("mantel-skull", () => Pic.skull(), { cutout: true })), 1.6, 1.875, 1.6 + 5 / 16, 1.875 + 5 / 16, 0.32);
 
-  // The back wall's middle bay: a window and the bookcases.
-  shelf(b, 4.2, false);
-  shelf(b, 6.9, true, 7);
-  b.card(fitted(material("window-in", () => Pic.windowPicture(true), { glow: 0.6 })), 5.1, 1.2, 6.1, 2.4, 0.02);
-  // The last bay, behind the counter: wares and a rack of blades.
-  shelf(b, 8.2, true, 3);
-  shelf(b, 10.6, true, 9);
-  bladeRack(b, 9.4, 1.4);
-  b.card(fitted(material("poster-a", () => Pic.poster(2))), 4.25, 2.0, 4.85, 2.75, 0.02);
-  b.card(fitted(material("poster-b", () => Pic.poster(5))), 7.15, 2.1, 7.75, 2.85, 0.02);
-  b.box(10.0, 2.15, 0, 10.6, 2.85, 0.06, { south: fitted(material("shield", () => shieldPicture())) });
+  // The back wall's middle bay: the window between the bookcases, a poster.
+  shelf(b, 4.25, false);
+  shelf(b, 6.75, true, 7);
+  b.card(fitted(material("window-in", () => Pic.windowPicture(true), { glow: 0.6 })), 5.5, 1.125, 6.5, 2.25, 0.02);
+  b.card(fitted(material("poster-a", () => Pic.poster(2))), 5.6875, 2.3125, 6.3125, 2.6875 + 0.0625, 0.02);
+  // The last bay, behind the counter: wares, a rack of blades, a shield.
+  shelf(b, 8.25, true, 3);
+  shelf(b, 10.75, true, 9);
+  bladeRack(b, 9.75, 1.25);
+  b.box(9.4375, 2.0, 0, 10.0625, 2.75, 0.06, { south: fitted(material("shield", () => shieldPicture())) });
 
   // The counter, an L round Grizzlegom: boards on top, panels in front.
   const front = tiled(material("counter", () => Pic.counterFront()));
   const top = tiled(material("counter-top", () => T.floorboards(19)));
-  b.box(6.2, 0, 3.4, 11.0, 1.05, 4.1, { south: front, north: front, west: front, east: front, top });
-  b.box(6.2, 0, 2.0, 6.9, 1.05, 3.4, { west: front, east: front, top, north: front });
-  b.box(6.1, 1.05, 3.3, 11.1, 1.12, 4.2, sides(tiled(surfaces.darkTimber())));
-  blockArea(grid, 6.2, 3.4, 11.0, 4.1);
-  blockArea(grid, 6.2, 2.0, 6.9, 3.4);
-  // On it: scales, a pile of coin, a ledger, a candle, a jar of something.
-  scales(b, 7.4, 1.12, 3.75);
-  coins(b, 8.4, 1.12, 3.7);
-  b.box(9.2, 1.12, 3.5, 9.8, 1.2, 3.95, { top: fitted(material("ledger", () => ledger())), south: tiled(surfaces.darkTimber()), east: tiled(surfaces.darkTimber()) });
-  candle(b, 10.5, 1.12, 3.75);
-  P.pot(b, 6.55, 3.0, 1.12, 0.13);
-  // Behind the counter, barrels and a crate of stock.
-  P.barrel(b, 11.3, 1.2, 0.85);
-  P.crate(b, 11.3, 2.3, 0.65, "fish");
-  grid.block(11, 1, 11, 2);
+  b.box(6.25, 0, 2.25, 11.25, 1.0, 3.0, { south: front, north: front, west: front, east: front, top });
+  b.box(6.25, 0, 1.0, 7.0, 1.0, 2.25, { west: front, east: front, top, north: front });
+  b.box(6.125, 1.0, 2.125, 11.375, 1.0625, 3.125, sides(tiled(surfaces.darkTimber())));
+  blockArea(grid, 6.25, 2.25, 11.25, 3.0);
+  blockArea(grid, 6.25, 1.0, 7.0, 2.25);
+  // On it: scales, a pile of coin, a ledger, a candle, a pot.
+  scales(b, 7.5, 1.0625, 2.6);
+  coins(b, 8.5, 1.0625, 2.55);
+  b.box(9.25, 1.0625, 2.35, 9.875, 1.125, 2.85, { top: fitted(material("ledger", () => ledger())), south: tiled(surfaces.darkTimber()), east: tiled(surfaces.darkTimber()) });
+  candle(b, 10.75, 1.0625, 2.6);
+  P.pot(b, 6.6, 1.6, 1.0625, 0.13);
+  // Behind the counter, a barrel and a crate of stock.
+  P.barrel(b, 11.45, 1.05, 0.875);
+  P.crate(b, 11.4, 1.95, 0.625, "fish");
 
   // A table for cards, two stools.
-  b.box(1.4, 0.7, 4.6, 3.4, 0.82, 5.8, sides(tiled(surfaces.timber()), tiled(surfaces.boards())));
-  for (const [x, z] of [[1.55, 4.75], [3.15, 4.75], [1.55, 5.55], [3.15, 5.55]] as const) b.box(x, 0, z, x + 0.12, 0.7, z + 0.12, sides(tiled(surfaces.darkTimber())));
-  b.decal(fitted(material("cards", () => cardsPicture(), { cutout: true })), 1.8, 4.9, 2.9, 5.6, 0.83);
-  candle(b, 3.0, 0.82, 5.0);
-  for (const [x, z] of [[2.4, 4.1], [2.4, 6.4]] as const) stool(b, x, z);
-  blockArea(grid, 1.4, 4.6, 3.4, 5.8);
+  b.box(1.5, 0.6875, 3.5, 3.5, 0.8125, 4.5, sides(tiled(surfaces.timber()), tiled(surfaces.boards())));
+  for (const [x, z] of [[1.625, 3.625], [3.25, 3.625], [1.625, 4.25], [3.25, 4.25]] as const) b.box(x, 0, z, x + 0.125, 0.6875, z + 0.125, sides(tiled(surfaces.darkTimber())));
+  b.decal(fitted(material("cards", () => cardsPicture(), { cutout: true })), 1.875, 3.6875, 2.875, 4.3125, 0.82);
+  candle(b, 3.1, 0.8125, 3.8);
+  for (const [x, z] of [[2.5, 3.0], [2.5, 5.0]] as const) stool(b, x, z);
+  blockArea(grid, 1.5, 3.5, 3.5, 4.5);
 
   // The rug before the counter.
-  b.box(3.6, 0, 5.0, 8.4, PX, 8.2, { top: fitted(material("rug", () => Pic.rug())) });
+  b.box(3.75, 0, 4.25, 7.75, PX, 6.75, { top: fitted(material("rug", () => Pic.rug(64, 40))) });
 
   // Corners: barrels and sacks by the door, crates, pots along the wall.
-  P.barrel(b, 0.55, 8.4);
-  P.barrel(b, 1.3, 9.2, 0.75);
-  P.sack(b, 0.6, 9.35);
-  P.crate(b, 10.6, 8.5, 0.75, "apples");
-  P.crate(b, 11.45, 8.6, 0.6, undefined, 0, 0.2);
-  P.crate(b, 11.45, 8.6, 0.5, "carrots", 0.6, -0.1);
-  P.sack(b, 11.4, 9.5);
+  P.barrel(b, 0.55, 6.4);
+  P.barrel(b, 1.3, 7.2, 0.75);
+  P.sack(b, 0.6, 7.35);
+  P.crate(b, 10.6, 6.5, 0.75, "apples");
+  P.crate(b, 11.45, 6.6, 0.625, undefined, 0, 0.2);
+  P.crate(b, 11.45, 6.6, 0.5, "carrots", 0.625, -0.1);
+  P.sack(b, 11.4, 7.5);
   P.pot(b, 3.85, 0.45, 0, 0.18);
   P.pot(b, 0.4, 1.0, 0, 0.16);
-  for (const [x, z] of [[0, 8], [1, 9], [0, 9], [10, 8], [11, 8], [11, 9], [3, 0], [0, 1]] as const) grid.setWalkable(x, z, false);
+  for (const [x, z] of [[0, 6], [1, 7], [0, 7], [10, 6], [11, 6], [11, 7], [11, 1], [11, 0]] as const) grid.setWalkable(x, z, false);
   for (let x = 0; x < W; x++) grid.setWalkable(x, 0, false);
-  grid.block(0, 1, 3, 1);
-  grid.block(4, 1, 5, 1);
-  grid.block(7, 1, 11, 1);
+  grid.block(0, 1, 0, 1);
 
   scene.add(b.build("shop"));
 
@@ -144,18 +137,22 @@ export function buildShop(): SliceScene {
   const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.9, 0.75), 0.25 * Math.PI);
   sun.position.set(-4, 10, 8);
   scene.add(sun);
-  windowLight(scene, 5.6, 4.2, -1.6, 5.8, 3.2, 26);
+  windowLight(scene, 6.0, 4.0, -1.6, 6.0, 3.6, 40);
   const fireLight = pointLight(scene, 2, 1.0, 1.2, new THREE.Color(1.0, 0.55, 0.25), 9, 7.5);
-  pointLight(scene, 10.5, 1.6, 3.8, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);
-  pointLight(scene, 3.0, 1.4, 5.2, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);
+  pointLight(scene, 10.75, 1.6, 2.7, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);
+  pointLight(scene, 3.1, 1.4, 3.9, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);
 
-  const vendor = new Actor(goblin(true), { x: 8, z: 2 }, grid, { rest: [0, 1], watch: 5 }, "Grizzlegom");
+  // Goblins are short: Grizzlegom stands on a crate to see over his counter.
+  const vendor = new Actor(goblin(true), { x: 8, z: 1 }, grid, { rest: [0, 1], watch: 5 }, "Grizzlegom");
+  vendor.position.set(8.5, 0.5, 1.75);
   scene.add(vendor.figure.root);
+  const stand = new MeshBuilder();
+  P.crate(stand, 8.5, 1.75, 0.5);
+  scene.add(stand.build("stand"));
 
   const doors: Door[] = [
-    { name: "door:street", tile: { x: 6, z: 9 }, step: [0, 1], to: "street", arrive: { x: 13, z: 10 }, arriveFacing: [0, 1], at: new THREE.Vector3(6, 0.8, 10) },
+    { name: "door:street", tile: { x: 6, z: 7 }, step: [0, 1], to: "street", arrive: { x: 13, z: 10 }, arriveFacing: [0, 1], at: new THREE.Vector3(6, 0.8, 8) },
   ];
-  // The door's own tile beyond the room: walkable only to step out.
   return {
     id: "shop",
     title: "Grizzlegom's Goblins",
@@ -164,8 +161,9 @@ export function buildShop(): SliceScene {
     grid,
     doors,
     actors: [vendor],
-    start: { x: 6, z: 8 },
-    bounds: [-0.75, -0.75, W + 0.75, D + 0.75],
+    start: { x: 6, z: 6 },
+    // The view's reach, as the camera sees it: from the back wall's top to the front wall's foot.
+    bounds: [-0.75, -0.75 - 3.0, W + 0.75, D + 0.75],
     update(_dt, time) {
       const f = Math.floor(time * 8) % 3;
       fire.forEach((g, i) => (g.visible = i === f));
@@ -173,6 +171,13 @@ export function buildShop(): SliceScene {
       fireLight.intensity = 8 + [0, 1.6, 0.7][f]!;
     },
   };
+}
+
+/** The tops of the walls: a dark beam, as a 16-bit room's border is drawn. */
+function wallTopPicture(): Pixmap {
+  const p = T.timber(17, C.DARKWOOD);
+  for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) if ((x + y * 3) % 11 === 0) p.set(x, y, C.DARKWOOD[1]!);
+  return p;
 }
 
 // --- The shop's own furniture -----------------------------------------------------------------------------------------
