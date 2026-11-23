@@ -4,38 +4,40 @@ import { HEX_SIZE, type Hex, fromWorld, key, toWorld } from "../hex";
 import type { GameMap } from "../maps/gameMap";
 import type { NpcData, Terrain } from "../maps/schema";
 import { fnv1a32, mulberry32 } from "../random";
+import { celMaterial, lightOutdoors, lightUnderground } from "../look";
 import { Boxes, TINTS, buildFixture, buildProp } from "./props";
 
 // The three.js scene for a local map: a prism for every hex (one instanced mesh, so a map of a thousand hexes is one
 // draw), the scenery merged into two meshes, the people of the map standing at their places, chests, the glowing
 // ways out, the sun and the sky's fill light (or a dungeon's gloom and its braziers), and the marker under the hex
-// the pointer is over. Colors are picked near the palette's, so little is lost when the post pass snaps them to it.
+// the pointer is over. Colors are the palette's (palette.ts): a terrain is one color, so hexes of it join without a seam
+// and a step up shows by its side faces' darker band, and the ground is never outlined (look.ts).
 
 const SHADES: Record<Terrain, readonly string[]> = {
-  grass: ["#4f7a34", "#5a8538", "#6b963e"],
-  meadow: ["#6b963e", "#8fb350", "#6b963e"],
-  dirt: ["#8f6340", "#9a6c45", "#a9794e"],
-  road: ["#b5855a", "#a9794e"],
-  cobble: ["#8c909c", "#7a7f8e", "#b3b5bc"],
-  stone: ["#6b7080", "#7a7f8e", "#8c909c"],
-  rock: ["#4f5363", "#3b3c4a", "#5a5e6e"],
-  sand: ["#d6ae7e", "#cfa676"],
-  water: ["#2b5d80", "#2f6488"],
-  "deep-water": ["#1d3f5c", "#12263a"],
-  swamp: ["#434c36", "#2c3326", "#5d6646"],
-  mud: ["#4a3122", "#6b4630", "#5a3528"],
-  moss: ["#3a5f2c", "#434c36", "#5d6646"],
-  snow: ["#f2efe6", "#d8d6d0"],
-  ice: ["#c6e5ee", "#93c8dc"],
-  ash: ["#3b3c4a", "#4f5363", "#2a2b36"],
-  lava: ["#e86a3a", "#c8432c", "#f1b44c"],
-  floor: ["#6b7080", "#4f5363"],
-  wood: ["#8f6340", "#6b4630"],
-  marble: ["#d8d6d0", "#f2efe6", "#b3b5bc"],
-  crystal: ["#a97fd0", "#62a4c2", "#93c8dc"],
-  forest: ["#2a4524", "#3a5f2c"],
-  hills: ["#6b963e", "#8f6340"],
-  mountain: ["#6b7080", "#8c909c"],
+  grass: ["#43722c"],
+  meadow: ["#5e9134"],
+  dirt: ["#9a663c"],
+  road: ["#c08b55"],
+  cobble: ["#757b8c"],
+  stone: ["#575c6e"],
+  rock: ["#3e4252"],
+  sand: ["#ddb27a"],
+  water: ["#33739a"],
+  "deep-water": ["#22557c"],
+  swamp: ["#39422c"],
+  mud: ["#4d2f1f"],
+  moss: ["#525d3c"],
+  snow: ["#d5e2ea"],
+  ice: ["#84bfd3"],
+  ash: ["#2e3140"],
+  lava: ["#f58a3a"],
+  floor: ["#575c6e"],
+  wood: ["#73472b"],
+  marble: ["#979cab"],
+  crystal: ["#7a32b0"],
+  forest: ["#2f5424"],
+  hills: ["#5e9134"],
+  mountain: ["#757b8c"],
 };
 
 /** A terrain's main color, for the minimap and the world map. */
@@ -47,7 +49,7 @@ const GLOWS: ReadonlySet<Terrain> = new Set(["lava"]);
 /** The depth every hex prism reaches below the ground plane, so steps between heights show as cliffs. */
 const BASE = 1.5;
 
-const SKIES: Record<string, string> = { W: "#93c8dc", U: "#62a4c2", B: "#5d6646", R: "#b5855a", G: "#8fb350", hub: "#93c8dc" };
+const SKIES: Record<string, string> = { W: "#84bfd3", U: "#5296b5", B: "#525d3c", R: "#9a663c", G: "#5e9134", hub: "#84bfd3" };
 
 /** Someone standing at their place in the map: an innkeeper, a vendor, an armorer, a townsperson. */
 export interface Resident {
@@ -71,23 +73,24 @@ export class World {
   constructor(readonly map: GameMap) {
     const dungeon = map.kind === "dungeon";
     const tint = TINTS[map.region ?? "hub"]!;
-    this.scene.background = new THREE.Color(dungeon ? "#0d0f14" : SKIES[map.region ?? "hub"]!);
+    this.scene.background = new THREE.Color(dungeon ? "#0b0c10" : SKIES[map.region ?? "hub"]!);
     const random = mulberry32(fnv1a32(map.id));
 
     // Ground: one instanced mesh of lit prisms, one of glowing ones.
     const tiles = [...map.all];
-    const prism = new THREE.CylinderGeometry(HEX_SIZE * 0.999, HEX_SIZE * 0.999, 1, 6, 1, false, Math.PI / 2);
+    // A hair over a hex, so neighbours overlap and no pinhole of sky shows where three meet.
+    const prism = new THREE.CylinderGeometry(HEX_SIZE * 1.004, HEX_SIZE * 1.004, 1, 6, 1, false, Math.PI / 2);
     const lit = tiles.filter((t) => !GLOWS.has(t.terrain));
     const glowing = tiles.filter((t) => GLOWS.has(t.terrain));
     const matrix = new THREE.Matrix4();
     for (const [group, material] of [
-      [lit, new THREE.MeshToonMaterial({ color: "#ffffff" })],
+      [lit, celMaterial({ outlined: false, ground: true })],
       [glowing, new THREE.MeshBasicMaterial({ color: "#ffffff" })],
     ] as const) {
       if (group.length === 0) continue;
       const mesh = new THREE.InstancedMesh(prism, material, group.length);
       mesh.receiveShadow = true;
-      mesh.castShadow = material instanceof THREE.MeshToonMaterial;
+      mesh.castShadow = material instanceof THREE.MeshLambertMaterial;
       const hexes: Hex[] = [];
       group.forEach((tile, i) => {
         const { x, z } = toWorld(tile.hex);
@@ -142,7 +145,7 @@ export class World {
     // The ways out: a ring of light on the hex, and a mote over it, gold to the world map, blue to another map.
     for (const exit of map.data.exits) {
       const h = { q: exit.q, r: exit.r };
-      const color = exit.to === "world" ? "#f1b44c" : "#62a4c2";
+      const color = exit.to === "world" ? "#ffc94a" : "#84bfd3";
       const ring = new THREE.RingGeometry(HEX_SIZE * 0.55, HEX_SIZE * 0.85, 6, 1, Math.PI / 2);
       ring.rotateX(-Math.PI / 2);
       const mark = new THREE.Group();
@@ -156,38 +159,17 @@ export class World {
       mark.traverse((o) => this.clickable.set(o, h));
     }
 
-    // Light: the sun and sky outdoors; in a dungeon, gloom and a warm light at each brazier.
+    // Light: the sun and sky outdoors; in a dungeon, gloom and a pool of light at each brazier.
     if (dungeon) {
-      this.scene.add(new THREE.HemisphereLight("#d8d6d0", "#3b3c4a", 1.9));
-      const moon = new THREE.DirectionalLight("#f2efe6", 1.3);
-      moon.position.set(-10, 30, 6);
-      this.scene.add(moon, moon.target);
-      let lamps = 0;
-      for (const tile of tiles) {
-        if (tile.prop !== "brazier" || lamps >= 8) continue;
-        const lamp = new THREE.PointLight("#f1b44c", 10, 8, 1.5);
-        lamp.position.copy(this.surface(tile.hex)).add(new THREE.Vector3(0, 1.2, 0));
-        this.scene.add(lamp);
-        lamps++;
-      }
+      const lamps = tiles.filter((t) => t.prop === "brazier").map((t) => this.surface(t.hex).add(new THREE.Vector3(0, 1.2, 0)));
+      lightUnderground(this.scene, lamps);
     } else {
-      const sun = new THREE.DirectionalLight("#fff2d6", 2.2);
-      sun.position.set(-18, 30, 10);
-      sun.castShadow = true;
-      sun.shadow.mapSize.set(2048, 2048);
-      const reach = map.data.radius * 1.8 + 4;
-      sun.shadow.camera.left = -reach;
-      sun.shadow.camera.right = reach;
-      sun.shadow.camera.top = reach;
-      sun.shadow.camera.bottom = -reach;
-      sun.shadow.camera.far = 120;
-      this.scene.add(sun, sun.target);
-      this.scene.add(new THREE.HemisphereLight("#c6e5ee", "#434c36", 1.1));
+      lightOutdoors(this.scene, map.data.radius * 1.8 + 4);
     }
 
     const ring = new THREE.RingGeometry(HEX_SIZE * 0.78, HEX_SIZE * 0.95, 6, 1, Math.PI / 2);
     ring.rotateX(-Math.PI / 2);
-    this.markerMaterial = new THREE.MeshBasicMaterial({ color: "#f1b44c", side: THREE.DoubleSide });
+    this.markerMaterial = new THREE.MeshBasicMaterial({ color: "#ffc94a", side: THREE.DoubleSide });
     this.marker = new THREE.Mesh(ring, this.markerMaterial);
     this.marker.visible = false;
     this.scene.add(this.marker);
@@ -249,7 +231,7 @@ export class World {
   }
 
   /** Shows the marker on a hex, or hides it; its color says what a click there would do. */
-  mark(h: Hex | null, color = "#f1b44c"): void {
+  mark(h: Hex | null, color = "#ffc94a"): void {
     this.marker.visible = h !== null;
     if (h) {
       this.marker.position.copy(this.surface(h)).add(new THREE.Vector3(0, 0.02, 0));

@@ -1,6 +1,7 @@
 // Writes realms/content/models/*.vox.json (realms/docs/interfaces.md, "Models"): the four player bodies, the gear
 // pieces each slot shows, and the mobs' base models. Each is painted into voxel grids with a few shape helpers - boxes,
-// ellipsoids, recolouring by position - at one voxel to a scene pixel, so they read as pixel art in the overworld.
+// ellipsoids, recolouring by position - at one voxel to a scene pixel, so they read as pixel art in the overworld: a
+// clear silhouette and a few bold areas of color (no stripes or speckles, which the overworld's pixels turn to noise).
 // The output is deterministic; a model may be tuned by hand after, and src/voxel/models.test.ts checks every file.
 //
 //   npm run models
@@ -203,13 +204,12 @@ function humanoid(spec: Humanoid): Built {
   const gap = tw - 2 * lw;
   const legX = gap / 2 + lw / 2;
 
-  // The torso: cloth, a belt with a buckle, a stripe of trim down the front, a neckline.
+  // The torso: one area of cloth, a belt with a buckle, the shoulders in trim, a neckline.
   const torso = new Grid(tw, th, td);
   torso.box(0, 0, 0, tw - 1, th - 1, td - 1, c.cloth);
   const mid0 = Math.floor((tw - 1) / 2);
   const mid1 = Math.ceil((tw - 1) / 2);
   torso.box(0, 0, 0, tw - 1, 0, td - 1, c.leather);
-  torso.box(mid0, 1, td - 1, mid1, th - 2, td - 1, c.trim);
   torso.box(mid0, 0, td - 1, mid1, 0, td - 1, c.trim);
   torso.box(0, th - 1, 0, tw - 1, th - 1, td - 1, c.trim);
   torso.box(mid0, th - 1, td - 1, mid1, th - 1, td - 1, c.skin);
@@ -248,7 +248,8 @@ function humanoid(spec: Humanoid): Built {
     head.box(sx + s - 1, sideFrom, back, sx + s - 1, s - 1, front - 2, hair);
     if (style !== "cropped") head.box(sx, s - 1, front, sx + s - 1, s - 1, front, hair);
     if (style === "long") head.box(sx + 1, 0, back, sx + s - 2, 1, back, hair);
-    if (style === "tail" && m.z > 0) head.box(sx + s / 2 - 1, 1, back - 1, sx + s / 2, s - 2, back - 1, hair);
+    const half = Math.floor(s / 2);
+    if (style === "tail" && m.z > 0) head.box(sx + half - 1, 1, back - 1, sx + half, s - 2, back - 1, hair);
   }
   spec.paintHead?.(head, { x: sx, z: sz, s });
 
@@ -284,26 +285,28 @@ function humanoid(spec: Humanoid): Built {
 // ---------------------------------------------------------------------------------------------------------------------
 // The player's bodies (design.md, A1): "$0" skin, "$1" hair, "$2" cloth, "$3" trim, "$4" leather.
 
-const BODY_PALETTE = ["$0", "$1", "$2", "$3", "$4", "#1a1c24", "#3b3c4a"];
+const BODY_PALETTE = ["$0", "$1", "$2", "$3", "$4", "#1b1d26", "#575c6e"];
+/** The bodies' skull: a head a little large for the body, so a figure reads as a person at a glance. */
+const HEAD = 7;
 const BODY_COLORS = { skin: 0, hair: 1, cloth: 2, trim: 3, leather: 4, eyes: 5, trousers: 6 };
 
 function body(id: string, shape: Pick<Humanoid, "torso" | "arm" | "leg" | "hair">): VoxModel {
-  const built = humanoid({ skull: 6, headMargin: { x: 0, top: 0, z: shape.hair === "tail" ? 1 : 0 }, colors: BODY_COLORS, ...shape });
+  const built = humanoid({ skull: HEAD, headMargin: { x: 0, top: 0, z: shape.hair === "tail" ? 1 : 0 }, colors: BODY_COLORS, ...shape });
   return { id, kind: "body", voxel: VOXEL, palette: BODY_PALETTE, parts: built.parts, attach: built.attach };
 }
 
 const bodies: VoxModel[] = [
-  body("body-lithe", { torso: [6, 8, 3], arm: [2, 8], leg: [2, 10], hair: "long" }),
-  body("body-broad", { torso: [8, 8, 4], arm: [3, 8], leg: [3, 9], hair: "cropped" }),
-  body("body-tall", { torso: [7, 9, 4], arm: [2, 9], leg: [2, 12], hair: "tail" }),
-  body("body-stocky", { torso: [8, 7, 5], arm: [3, 7], leg: [3, 7], hair: "short" }),
+  body("body-lithe", { torso: [6, 7, 3], arm: [2, 7], leg: [2, 8], hair: "long" }),
+  body("body-broad", { torso: [8, 7, 4], arm: [3, 7], leg: [3, 8], hair: "cropped" }),
+  body("body-tall", { torso: [7, 8, 4], arm: [2, 8], leg: [2, 10], hair: "tail" }),
+  body("body-stocky", { torso: [8, 6, 5], arm: [3, 6], leg: [3, 6], hair: "short" }),
 ];
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Gear (design.md, A4): "$0" and "$1" are the item's look.palette. Each piece is made for a body region of the size its
 // `fit` gives and stretched to the body it is worn on.
 
-const GEAR_PALETTE = ["$0", "$1", "#0d0f14"];
+const GEAR_PALETTE = ["$0", "$1", "#0b0c10"];
 
 function gear(id: string, parts: VoxPart[]): VoxModel {
   return { id, kind: "gear", voxel: VOXEL, palette: GEAR_PALETTE, parts };
@@ -320,7 +323,7 @@ const circlet = (() => {
   g.set(0, 0, 0, -1).set(7, 0, 0, -1).set(0, 0, 7, -1).set(7, 0, 7, -1);
   g.box(3, 0, 7, 4, 1, 7, 1);
   g.set(3, 1, 7, 1).set(4, 1, 7, 1);
-  return gear("circlet", [part("band", g, { mount: "head-top", pivot: [0, 0, 0], origin: [4, 3, 4] })]);
+  return gear("circlet", [part("band", g, { mount: "head-top", pivot: [0, 0, 0], origin: [4, 3, 4], fit: [6, 0, 6] })]);
 })();
 
 const helm = (() => {
@@ -336,7 +339,7 @@ const helm = (() => {
   g.box(3, 6, 1, 4, 6, 6, 1);
   g.box(0, 4, 0, 7, 4, 7, 0);
   g.box(1, 4, 7, 6, 4, 7, 1);
-  return gear("helm", [part("helm", g, { mount: "head-top", pivot: [0, 0, 0], origin: [4, 4, 4] })]);
+  return gear("helm", [part("helm", g, { mount: "head-top", pivot: [0, 0, 0], origin: [4, 4, 4], fit: [6, 0, 6] })]);
 })();
 
 const amulet = (() => {
@@ -461,7 +464,7 @@ function mob(id: string, palette: string[], parts: VoxPart[]): VoxModel {
 
 // A soldier: helmet and mail in "$0", tabard "$1", the shield's device "$2"; a spear and a kite shield.
 const soldier = (() => {
-  const P = ["$0", "$1", "$2", "#c08a62", "#1a1c24", "#3b3c4a", "#6b4630", "#4a3122", "#d8d6d0"];
+  const P = ["$0", "$1", "$2", "#d29f72", "#1b1d26", "#575c6e", "#73472b", "#4d2f1f", "#e0e0e3"];
   const [metal, tabard, device, skin, eyes, dark, wood, leather, steel] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   const built = humanoid({
     skull: 6,
@@ -515,7 +518,7 @@ const soldier = (() => {
 
 // A ghoul: grey flesh "$0", rags "$1"; hunched, long-armed, with burning eyes and claws.
 const ghoul = (() => {
-  const P = ["$0", "$1", "#e86a3a", "#2a2b36", "#f2efe6", "#1a1c24"];
+  const P = ["$0", "$1", "#f58a3a", "#2e3140", "#f2f7f8", "#1b1d26"];
   const [flesh, rags, eye, dark, bone] = [0, 1, 2, 3, 4];
   const built = humanoid({
     skull: 6,
@@ -538,14 +541,11 @@ const ghoul = (() => {
       // A hump of spine, ribs showing through torn rags.
       g.each((x, y, z, now) => (z === 0 && y >= 3 && x >= 1 && x <= g.w - 2 ? flesh : now >= 0 ? undefined : undefined));
       g.paint(rags, (_x, y) => y <= 2);
-      g.paint(rags, (x, y, z) => z === 0 && y >= 3 && x % 3 === 0);
-      g.paint(dark, (x, y, z) => z === g.d - 1 && y >= 3 && y <= 5 && y % 2 === 1 && x >= 1 && x <= g.w - 2);
-      g.paint(flesh, (x, y, z) => z === g.d - 1 && (x === 3) && y >= 3);
     },
     paintArm: (g) => {
       g.paint(flesh, () => true);
       g.paint(rags, (_x, y) => y >= g.h - 3);
-      g.paint(bone, (x, y, z) => y === 0 && (x + z) % 2 === 0);
+      g.paint(bone, (_x, y) => y === 0);
     },
     paintLeg: (g) => {
       g.paint(flesh, (_x, y) => y <= 3);
@@ -569,8 +569,9 @@ function wing(length: number, height: number, c: { main: number; edge: number },
     return y <= top && y >= Math.max(0, bottom) ? c.main : undefined;
   });
   if (kind === "feather") {
-    g.paint(c.edge, (x, y) => (x + y) % 4 === 0 && y < height - 2);
-    g.paint(c.edge, (_x, y, z) => z === 0 && y === height - 1);
+    // The leading edge along the top, and the long flight feathers below.
+    g.paint(c.edge, (x, y) => y === height - 1 - Math.round((x / (length - 1)) ** 2 * 2));
+    g.paint(c.edge, (x, y) => g.get(x, y - 1, 0) < 0 && x > length / 3);
   } else {
     g.paint(c.edge, (x, y) => y === height - 1 - Math.round((x / (length - 1)) ** 2 * 2) || x % 4 === 3);
   }
@@ -579,7 +580,7 @@ function wing(length: number, height: number, c: { main: number; edge: number },
 
 // An angel: robes "$0", hair "$1", wings "$2"; a halo of light.
 const angel = (() => {
-  const P = ["$0", "$1", "$2", "#e8c39b", "#1d3f5c", "#b3b5bc", "#f1b44c", "#f1b44c"];
+  const P = ["$0", "$1", "$2", "#f0caa0", "#173a5c", "#bcbfc9", "#ffc94a", "#ffc94a"];
   const [robes, hair, feathers, skin, eyes, shade, gold] = [0, 1, 2, 3, 4, 5, 6];
   const built = humanoid({
     skull: 6,
@@ -608,12 +609,11 @@ const angel = (() => {
 
 // A drake: scales "$0", belly and horns "$1", wing membranes "$2"; four legs, a long neck and a spaded tail.
 const drake = (() => {
-  const P = ["$0", "$1", "$2", "#f1b44c", "#0d0f14", "#f2efe6"];
+  const P = ["$0", "$1", "$2", "#ffc94a", "#0b0c10", "#f2f7f8"];
   const [scales, belly, membrane, eye, dark, tooth] = [0, 1, 2, 3, 4, 5];
   const body = new Grid(9, 8, 15);
   body.ellipsoid(4.5, 4, 7.5, 4.6, 4.1, 7.6, scales);
   body.paint(belly, (_x, y) => y <= 1);
-  body.paint(dark, (x, y, z) => y >= 7 && x === 4 && z % 3 === 0);
   const neck = new Grid(5, 12, 11);
   neck.each((x, y, z) => {
     // The neck rises forward from the shoulders to the head.
@@ -628,7 +628,6 @@ const drake = (() => {
   neck.set(0, 10, 6, eye).set(4, 10, 6, eye);
   neck.box(0, 11, 3, 0, 11, 4, belly).box(4, 11, 3, 4, 11, 4, belly);
   neck.set(0, 11, 2, belly).set(4, 11, 2, belly);
-  neck.paint(dark, (x, y, z) => x === 2 && z <= 3 && y % 2 === 0 && y >= 2);
   const leg = () => {
     const g = new Grid(3, 8, 4);
     g.box(0, 2, 0, 2, 7, 2, scales);
@@ -659,7 +658,7 @@ const drake = (() => {
 
 // An elf: cloak "$0", leather "$1", hair "$2"; pointed ears, a hood down, a longbow on the back.
 const elf = (() => {
-  const P = ["$0", "$1", "$2", "#e8c39b", "#1c2e1a", "#6b4630", "#f2efe6", "#3e9a4a"];
+  const P = ["$0", "$1", "$2", "#f0caa0", "#1f3a1c", "#73472b", "#f2f7f8", "#1fbf62"];
   const [cloak, leather, hair, skin, eyes, wood, string] = [0, 1, 2, 3, 4, 5, 6];
   const built = humanoid({
     skull: 6,
@@ -701,7 +700,7 @@ const elf = (() => {
 
 // A goblin: skin "$0", rags "$1"; small, with a big head, bigger ears and a club.
 const goblin = (() => {
-  const P = ["$0", "$1", "#f1b44c", "#1a1c24", "#6b4630", "#f2efe6", "#4a3122"];
+  const P = ["$0", "$1", "#ffc94a", "#1b1d26", "#73472b", "#f2f7f8", "#4d2f1f"];
   const [skin, rags, eye, dark, wood, tooth, leather] = [0, 1, 2, 3, 4, 5, 6];
   const built = humanoid({
     skull: 7,
@@ -736,7 +735,7 @@ const goblin = (() => {
 
 // A wurm: hide "$0", belly and ridges "$1", maw "$2"; a head reared up and a body of segments that undulate.
 const wurm = (() => {
-  const P = ["$0", "$1", "$2", "#f2efe6", "#f1b44c", "#0d0f14"];
+  const P = ["$0", "$1", "$2", "#f2f7f8", "#ffc94a", "#0b0c10"];
   const [hide, ridge, maw, tooth, eye, dark] = [0, 1, 2, 3, 4, 5];
   const head = new Grid(11, 12, 11);
   head.ellipsoid(5.5, 6, 5.5, 5.4, 5.8, 5.4, hide);
@@ -755,7 +754,6 @@ const wurm = (() => {
     g.ellipsoid(size / 2, size / 2, 3, size / 2, size / 2, 3.3, hide);
     g.paint(ridge, (_x, y) => y <= 1);
     g.paint(ridge, (x, y) => y >= size - 2 && Math.abs(x + 0.5 - size / 2) <= 1);
-    g.paint(dark, (_x, _y, z) => z === 0 && i % 2 === 0);
     const name = `segment-${i + 1}`;
     // Every segment lies on the ground: the first under the reared head, each next behind the one before.
     parts.push(
@@ -774,7 +772,7 @@ const wurm = (() => {
 
 // A construct: stone or metal "$0", bands "$1", a glowing core "$2"; a heavy golem with block fists.
 const construct = (() => {
-  const P = ["$0", "$1", "$2", "#2a2b36", "#0d0f14"];
+  const P = ["$0", "$1", "$2", "#2e3140", "#0b0c10"];
   const [stone, band, core, shade, dark] = [0, 1, 2, 3, 4];
   const torso = new Grid(12, 10, 7);
   torso.box(0, 0, 0, 11, 9, 6, stone);
@@ -796,7 +794,6 @@ const construct = (() => {
     g.box(0, 0, 0, 3, 3, 3, shade);
     g.paint(band, (_x, y) => y === 4 || y === 10);
     g.paint(stone, (_x, y) => y <= 3 && y >= 1);
-    g.paint(dark, (x, y, z) => y === 0 && (x + z) % 2 === 1);
     return g;
   };
   const leg = () => {
@@ -820,7 +817,7 @@ const construct = (() => {
 
 // A spirit: pale "$0", its shade "$1", glowing eyes "$2"; it floats, trailing a wisp where legs would be.
 const spirit = (() => {
-  const P = ["$0", "$1", "$2", "#0d0f14"];
+  const P = ["$0", "$1", "$2", "#0b0c10"];
   const [pale, shade, eye, dark] = [0, 1, 2, 3];
   const body = new Grid(12, 24, 9);
   body.each((x, y, z) => {
@@ -837,8 +834,8 @@ const spirit = (() => {
     const dz = (z + 0.5 - cz) / rz;
     return dx * dx + dz * dz <= 1 ? pale : undefined;
   });
-  body.paint(shade, (_x, y, z) => y < 12 && (y + z) % 3 === 0);
-  body.paint(shade, (_x, y) => y === 23 || y === 15);
+  // The wisp in its shade below the shoulders' hem.
+  body.paint(shade, (_x, y) => y < 12 || y === 15);
   body.box(4, 17, 8, 7, 21, 8, dark);
   const eyes = new Grid(4, 1, 1);
   eyes.set(0, 0, 0, eye).set(3, 0, 0, eye);
@@ -858,7 +855,7 @@ const spirit = (() => {
 
 // A Phyrexian: metal "$0", sinew "$1", a sickly accent "$2"; tall and sinewy, a skull of a face, spines and a blade arm.
 const phyrexian = (() => {
-  const P = ["$0", "$1", "$2", "#0d0f14", "#e86a3a", "#d8d6d0"];
+  const P = ["$0", "$1", "$2", "#0b0c10", "#f58a3a", "#e0e0e3"];
   const [metal, sinew, accent, dark, eye, bone] = [0, 1, 2, 3, 4, 5];
   const built = humanoid({
     skull: 6,
@@ -882,19 +879,17 @@ const phyrexian = (() => {
       g.box(k.x + 2, k.s - 2, k.z - 1, k.x + 3, k.s, k.z - 1, metal);
     },
     paintTorso: (g) => {
-      // Ribs of metal over red sinew, a glowing seam.
-      g.paint(metal, (_x, y) => y % 2 === 0);
-      g.paint(sinew, (x, _y, z) => z === g.d - 1 && (x === 2 || x === 3));
-      g.paint(accent, (x, y, z) => z === g.d - 1 && (x === 2 || x === 3) && y >= 3 && y <= 6);
-      g.paint(metal, (_x, y) => y === g.h - 1);
+      // A metal chest over sinew, a glowing seam down it.
+      g.paint(metal, (_x, y) => y >= 5);
+      g.paint(accent, (x, y, z) => z === g.d - 1 && (x === 2 || x === 3) && y >= 3 && y <= 7);
     },
     paintArm: (g) => {
       g.paint(sinew, () => true);
-      g.paint(metal, (_x, y) => y % 3 === 0);
+      g.paint(metal, (_x, y) => y >= g.h - 3);
       g.paint(dark, (_x, y) => y === 0);
     },
     paintLeg: (g) => {
-      g.paint(metal, (_x, y) => y % 3 === 1 || y <= 1);
+      g.paint(metal, (_x, y) => y <= 5);
     },
   });
   const spines = new Grid(10, 5, 3);

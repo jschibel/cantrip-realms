@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { AttachPoint, VoxModel, VoxPart } from "./voxel/format";
 import { greedyMesh } from "./voxel/mesher";
+import { celMaterial } from "./look";
 import { getModel } from "./voxel/models";
 
 // A body in the overworld (design.md A1, A4; tech.md B5): a voxel model (realms/content/models) cut into parts - legs,
@@ -11,28 +12,41 @@ import { getModel } from "./voxel/models";
 export const BODIES = ["lithe", "broad", "tall", "stocky"] as const;
 export type Body = (typeof BODIES)[number];
 
-/** The six skin-and-hair palettes a character is made with (design.md A1). */
+/** The six skin-and-hair palettes a character is made with (design.md A1), in the palette's skin ramp. */
 export const SKIN_PALETTES: readonly { readonly name: string; readonly skin: string; readonly hair: string }[] = [
-  { name: "Fair, brown hair", skin: "#e8c39b", hair: "#9c6a1e" },
-  { name: "Fair, red hair", skin: "#e8c39b", hair: "#c8432c" },
-  { name: "Olive, black hair", skin: "#c08a62", hair: "#2e1f17" },
-  { name: "Bronze, black hair", skin: "#b5855a", hair: "#0d0f14" },
-  { name: "Umber, dark hair", skin: "#8a5539", hair: "#1a1c24" },
-  { name: "Deep, silver hair", skin: "#5a3528", hair: "#b3b5bc" },
+  { name: "Fair, brown hair", skin: "#f0caa0", hair: "#73472b" },
+  { name: "Fair, red hair", skin: "#f0caa0", hair: "#d0521f" },
+  { name: "Olive, black hair", skin: "#d29f72", hair: "#1b1d26" },
+  { name: "Bronze, black hair", skin: "#b07448", hair: "#2e1c14" },
+  { name: "Umber, dark hair", skin: "#87502f", hair: "#1b1d26" },
+  { name: "Deep, silver hair", skin: "#5e3424", hair: "#bcbfc9" },
 ];
 
 export type ManaColor = "W" | "U" | "B" | "R" | "G";
 
-/** Each color's cloth and its darker trim, from the plane's palette (palette.ts). */
+/**
+ * Each color's cloth and its darker trim, from the palette's identity ramps (palette.ts): saturated, in hues the land
+ * does not use, so a character stands out from wherever they stand.
+ */
 export const CLOTH: Readonly<Record<ManaColor, { readonly cloth: string; readonly trim: string }>> = {
-  W: { cloth: "#f4ecc2", trim: "#f1b44c" },
-  U: { cloth: "#5b8fd6", trim: "#1d3f5c" },
-  B: { cloth: "#4b2f5e", trim: "#1a1c24" },
-  R: { cloth: "#c8432c", trim: "#7a1f24" },
-  G: { cloth: "#3e9a4a", trim: "#2a4524" },
+  W: { cloth: "#fff8de", trim: "#e09a2a" },
+  U: { cloth: "#3f62e8", trim: "#142266" },
+  B: { cloth: "#7a32b0", trim: "#2a0f3d" },
+  R: { cloth: "#e02a3a", trim: "#520a14" },
+  G: { cloth: "#1fbf62", trim: "#0a4026" },
 };
-const UNCOLORED = { cloth: "#8c909c", trim: "#4f5363" };
-const LEATHER = "#4a3122";
+const UNCOLORED = { cloth: "#979cab", trim: "#575c6e" };
+const LEATHER = "#4d2f1f";
+
+/**
+ * How much bigger than the scenery a figure is drawn - every character and mob - so that people read first in any
+ * scene (tech.md, B5): larger than life, as pixel-art games draw them.
+ */
+export const FIGURE_SCALE = 1.5;
+
+/** The ring under the player, in the lightest of their color's ramp. */
+export const RING_COLORS: Readonly<Record<ManaColor, string>> = { W: "#fff8de", U: "#85a6ff", B: "#b06ee6", R: "#ff7a6a", G: "#7af0a6" };
+const RING = new THREE.RingGeometry(0.58, 0.72, 32, 1).rotateX(-Math.PI / 2);
 
 export const SLOTS = ["head", "neck", "body", "hands", "feet", "ring1", "ring2", "relic"] as const;
 export type Slot = (typeof SLOTS)[number];
@@ -70,8 +84,8 @@ export function bodyPalette(a: Appearance): string[] {
   return [skin.skin, skin.hair, cloth.cloth, trim, LEATHER];
 }
 
-// One toon material for every lit voxel and one unlit for glows: the colors are in the vertices.
-const LIT = new THREE.MeshToonMaterial({ color: "#ffffff", vertexColors: true });
+// One outlined cel material for every lit voxel and one unlit for glows: the colors are in the vertices.
+const LIT = celMaterial({ vertexColors: true, outlined: true });
 const GLOW = new THREE.MeshBasicMaterial({ color: "#ffffff", vertexColors: true });
 
 // Meshes are shared between characters drawn alike: a part in one palette is meshed once.
@@ -136,10 +150,12 @@ export class Character {
   private time = 0;
   private walking = 0;
   private action: { kind: "cast" | "interact"; t: number } | null = null;
+  private ring: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial> | null = null;
 
   private constructor(readonly name: string) {
     this.root.name = name;
     this.root.add(this.body);
+    this.body.scale.setScalar(FIGURE_SCALE);
   }
 
   /** A player's character: their body, palette and colors, wearing their gear. */
@@ -153,7 +169,7 @@ export class Character {
   static mob(name: string, model: MobModel): Character {
     const c = new Character(name);
     const vox = getModel(model.mesh) ?? getModel("humanoid");
-    c.body.scale.setScalar(model.size ?? 1);
+    c.body.scale.setScalar((model.size ?? 1) * FIGURE_SCALE);
     if (vox) c.build(vox, model.palette);
     return c;
   }
@@ -210,6 +226,20 @@ export class Character {
       worn.push({ part, group, rest: group.position.clone(), order: 0 });
     }
     this.gear.set(slot, worn);
+  }
+
+  /** Shows a ring on the ground under the character (the player's, in their color), or takes it away. */
+  showRing(color: string | null): void {
+    if (this.ring) {
+      this.ring.removeFromParent();
+      this.ring.material.dispose();
+      this.ring = null;
+    }
+    if (!color) return;
+    this.ring = new THREE.Mesh(RING, new THREE.MeshBasicMaterial({ color }));
+    this.ring.name = "ring";
+    this.ring.position.y = 0.03;
+    this.root.add(this.ring);
   }
 
   /** Turns to face a point on the ground. */

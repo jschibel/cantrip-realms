@@ -55,27 +55,28 @@ test("look: character creation", async ({ page }) => {
 });
 
 test("look: walking past mobs on grass", async ({ page }) => {
-  // From beside the meadow's first spawn, a walk that passes two hexes from its mob, framed on the player.
+  // Across the meadow's first spawn, a walk that passes near its mob, framed on the player.
   const meadow = mapData("benalish-meadow");
   const s1 = meadow.spawns.find((s) => s.id === "s1")!;
   const home = hex(s1.q, s1.r);
   const open = new Set(meadow.tiles.filter((t) => t[4] === 0).map((t) => `${t[0]},${t[1]}`));
   const things = new Set([...meadow.npcs, ...meadow.chests, ...meadow.exits, ...meadow.spawns].map((t) => `${t.q},${t.r}`));
   const free = (h: { q: number; r: number }) => open.has(`${h.q},${h.r}`) && !things.has(`${h.q},${h.r}`);
-  const ring = spiral(home, 3).filter((h) => distance(h, home) === 3 && free(h));
+  const ring = spiral(home, 5).filter((h) => distance(h, home) === 5 && free(h) && findPath(h, home, (x) => free(x) || (x.q === home.q && x.r === home.r)) !== null);
   ring.sort((a, b) => a.q - b.q || a.r - b.r);
   const start = ring[0]!;
-  const goal = ring.reduce((far, h) => (distance(h, start) > distance(far, start) ? h : far), ring[0]!);
+  const goal = ring.reduce((far, h) => (distance(h, start) > distance(far, start) && findPath(start, h, free) ? h : far), ring[0]!);
   expect(findPath(start, goal, free), "a walk past the spawn").not.toBeNull();
 
   await openRealm(page, { at: `benalish-meadow:${start.q},${start.r}` });
   await settle(page);
   const view = page.viewportSize()!;
-  const clip = { x: view.width / 2 - 200, y: view.height / 2 - 130, width: 400, height: 240 };
+  // The camera follows the player's feet, which stay at the middle of the view.
+  const clip = { x: view.width / 2 - 180, y: view.height / 2 - 190, width: 360, height: 270 };
   await clickHex(page, goal.q, goal.r);
   const shots: { png: Buffer; at: number }[] = [];
   const began = Date.now();
-  while (Date.now() - began < 6000) {
+  while (Date.now() - began < 10000) {
     shots.push({ png: await page.screenshot({ clip }), at: Date.now() });
     if (shots.length > 4 && !(await player(page)).moving) break;
   }
@@ -109,13 +110,12 @@ test("look: walking past mobs on grass", async ({ page }) => {
     }
     const picks = 8;
     const stripCanvas = document.createElement("canvas");
-    stripCanvas.width = (w / 2) * 4;
-    stripCanvas.height = (h / 2) * 2;
+    stripCanvas.width = w * 4;
+    stripCanvas.height = h * 2;
     const sg = stripCanvas.getContext("2d")!;
-    sg.imageSmoothingEnabled = false;
     for (let i = 0; i < picks; i++) {
       const img = images[Math.floor((i * (images.length - 1)) / (picks - 1))]!;
-      sg.drawImage(img, w / 4, h / 4, w / 2, h / 2, (i % 4) * (w / 2), Math.floor(i / 4) * (h / 2), w / 2, h / 2);
+      sg.drawImage(img, (i % 4) * w, Math.floor(i / 4) * h);
     }
     strip = stripCanvas.toDataURL("image/png").split(",")[1]!;
     return { w, h, frames, strip };
