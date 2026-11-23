@@ -24,8 +24,12 @@ interface Point {
 const slice = <T>(page: Page, read: string): Promise<T> =>
   page.evaluate((r) => r.split(".").reduce((o: any, k) => o?.[k], (globalThis as any).sliceTest), read) as Promise<T>;
 
+/**
+ * Opens the slice on its manual clock (?manual): the game stands still until a test advances it (sliceTest.advance), so
+ * no test waits on the wall clock - what moves, moves by exactly the game time the test gives it.
+ */
 async function open(page: Page, query: string): Promise<void> {
-  await page.goto(`/slice.html?test&${query}`);
+  await page.goto(`/slice.html?test&manual&${query}`);
   await page.waitForFunction(() => (globalThis as any).sliceTest?.ready === true, undefined, { timeout: 30_000 });
 }
 
@@ -59,7 +63,7 @@ for (const scene of ["street", "shop", "crypt"] as const) {
     page.on("pageerror", (e) => errors.push(e.message));
     await open(page, `scene=${scene}&still`);
     expect(await slice<string>(page, "scene")).toBe(scene);
-    await page.waitForTimeout(500);
+    await advance(page, 0.5);
     const frame = await readFrame(page);
     expect(colorCount(frame), "a scene full of painted color").toBeGreaterThan(200);
     expect(errors).toEqual([]);
@@ -73,9 +77,10 @@ interface CameraView {
   readonly snapped: boolean;
 }
 
-/** Waits for the camera to settle, then says which heading it settled at (and that it is a true three-quarter view). */
+/** Gives the camera a second and a half of game time (it is there to the eye in under half a second, to the last hair in about one), then says which heading it settled at (and that it is a true three-quarter view). */
 async function settledHeading(page: Page): Promise<"left" | "front" | "right"> {
-  await expect.poll(() => slice<boolean>(page, "cameraSettled"), { timeout: 10_000 }).toBe(true);
+  await advance(page, 1.5);
+  expect(await slice<boolean>(page, "cameraSettled"), "settled").toBe(true);
   const v = await slice<CameraView>(page, "view");
   expect(v.snapped, "snapped to whole pixels once settled").toBe(true);
   expect(v.pitch).toBeCloseTo(Math.PI / 4, 6);
@@ -92,11 +97,11 @@ test("slice: the camera turns 45 degrees either way and no further, by key and b
 
   // E: it eases round to the right - part-way through it is between headings - and settles at 45 degrees.
   await page.keyboard.press("e");
-  await page.waitForTimeout(120);
+  await advance(page, 0.1);
   const mid = await slice<CameraView>(page, "view");
-  expect(mid.yaw > 0 && mid.yaw < Math.PI / 4, "mid-turn").toBe(true);
+  expect(mid.yaw > 0.05 && mid.yaw < Math.PI / 4 - 0.05, "mid-turn after a tenth of a second").toBe(true);
+  expect(mid.snapped, "gliding while it turns").toBe(false);
   expect(await settledHeading(page)).toBe("right");
-  await page.waitForTimeout(300);
   await page.screenshot({ path: join(out, "street-right45.png") });
   // A third step the same way is refused: it never goes past 45 degrees.
   await page.keyboard.press("e");
@@ -113,7 +118,6 @@ test("slice: the camera turns 45 degrees either way and no further, by key and b
   expect(await settledHeading(page)).toBe("front");
   await left.click();
   expect(await settledHeading(page)).toBe("left");
-  await page.waitForTimeout(300);
   await page.screenshot({ path: join(out, "street-left45.png") });
   await page.keyboard.press("q");
   expect(await settledHeading(page)).toBe("left");
@@ -133,53 +137,67 @@ test("slice: a click walks to the tile, and on to it after the button is let go"
   await open(page, "still&at=10,12");
   const to = await tileOnPage(page, 14, 12);
   await page.mouse.click(to.x, to.y);
-  await expect.poll(async () => (await playerOf(page)).tile, { timeout: 10_000 }).toEqual({ x: 14, z: 12 });
-  await expect.poll(async () => (await playerOf(page)).moving).toBe(false);
+  // Four tiles at 4.2 a second: there in under a second of game time, and standing.
+  await advance(page, 0.5);
+  expect((await playerOf(page)).moving, "still walking half-way").toBe(true);
+  await advance(page, 1);
+  expect(await playerOf(page)).toMatchObject({ tile: { x: 14, z: 12 }, moving: false });
 });
 
 test("slice: holding the button walks after the cursor, turning with it and never stopping, then stops on release", async ({ page }) => {
-  // Distances are kept modest: on software WebGL in the test browser the game's clock runs slower than the wall's.
   await open(page, "still&at=12,12");
+  await advance(page, 0.2);
+  const stops: string[] = [];
+  /** Advances the game a tenth of a second at a time, noting where the player is and whether it ever stood. */
+  const walk = async (seconds: number): Promise<{ x: number; z: number }[]> => {
+    const at: { x: number; z: number }[] = [];
+    for (let t = 0; t < seconds - 1e-6; t += 0.1) {
+      await advance(page, 0.1);
+      const p = await playerOf(page);
+      at.push(p.at);
+      if (!p.moving) stops.push(`stood at ${p.at.x.toFixed(2)},${p.at.z.toFixed(2)}`);
+    }
+    return at;
+  };
+
+  // Press ahead of the player, east along the street, and hold: it walks east after the cursor.
   const start = await playerOf(page);
-  // Press ahead of the player, to the east, and hold: it walks east after the cursor.
   await page.mouse.move(start.x + 180, start.y);
   await page.mouse.down();
-  const stops: string[] = [];
-  const sample = async (seconds: number, xs: number[]) => {
-    const until = Date.now() + seconds * 1000;
-    while (Date.now() < until) {
-      const p = await playerOf(page);
-      xs.push(p.at.x);
-      if (!p.moving) stops.push(`stood at ${p.at.x.toFixed(2)}`);
-      await page.waitForTimeout(40);
-    }
-  };
-  await page.waitForTimeout(350);
-  const east: number[] = [];
-  await sample(1.5, east);
-  expect(east.at(-1)! - east[0]!, "walked east").toBeGreaterThan(0.8);
-  expect(await slice<boolean>(page, "dragging")).toBe(true);
+  await advance(page, 0.35);
+  expect(await slice<boolean>(page, "dragging"), "a hold, after 0.3 s").toBe(true);
+  const east = await walk(1.0);
+  for (let i = 1; i < east.length; i++) expect(east[i]!.x, "heading east every tenth").toBeGreaterThan(east[i - 1]!.x);
+  // At 4.2 tiles a second, a second's walk is about four tiles (a diagonal step or two among them).
+  expect(east.at(-1)!.x - east[0]!.x).toBeGreaterThan(3);
+  for (const p of east) expect(Math.abs(p.z - start.at.z), "along the street").toBeLessThan(1.1);
 
-  // Sweep the cursor round to the west of the player, in small moves, button still down: it turns and walks west.
+  // Sweep the cursor round to the west of the player in small moves, a twentieth of a second apart, button held.
   const now = await playerOf(page);
-  for (let i = 1; i <= 8; i++) await page.mouse.move(now.x + 180 - i * 50, now.y + 30 * Math.sin(i / 2));
-  const west: number[] = [];
-  await sample(2.0, west);
-  const turnAt = Math.max(...west);
-  expect(west.at(-1)!, "turned round and walked west").toBeLessThan(turnAt - 0.8);
+  for (let i = 1; i <= 8; i++) {
+    await page.mouse.move(now.x + 180 - i * 50, now.y + 30 * Math.sin(i / 2));
+    await advance(page, 0.05);
+  }
+  const west = await walk(1.2);
+  const furthest = Math.max(now.at.x, ...west.map((p) => p.x));
+  // It finishes the step it was on (at most a tile further east), then walks west every tenth after that.
+  expect(furthest - now.at.x, "no more than the step under way past the turn").toBeLessThan(1.5);
+  const after = west.slice(west.findIndex((p) => p.x === furthest) + 1);
+  for (let i = 1; i < after.length; i++) expect(after[i]!.x, "heading west every tenth").toBeLessThanOrEqual(after[i - 1]!.x + 1e-9);
+  expect(west.at(-1)!.x).toBeLessThan(furthest - 2.5);
 
   // A camera turn while dragging: it keeps walking after the cursor.
   await page.keyboard.press("e");
-  const turning: number[] = [];
-  await sample(0.8, turning);
+  await walk(0.8);
   expect(stops, "never stood still while the button was held").toEqual([]);
 
-  // Let go: it finishes the step it is on and stops, within a tile.
+  // Let go: it finishes the step it is on - at most a tile, a diagonal one - and stands.
   const released = (await playerOf(page)).at;
   await page.mouse.up();
-  await expect.poll(async () => (await playerOf(page)).moving, { timeout: 5_000 }).toBe(false);
-  const rest = (await playerOf(page)).at;
-  expect(Math.hypot(rest.x - released.x, rest.z - released.z), "stopped after the step under way").toBeLessThan(1.5);
+  await advance(page, 0.5);
+  const rest = await playerOf(page);
+  expect(rest.moving).toBe(false);
+  expect(Math.hypot(rest.at.x - released.x, rest.at.z - released.z), "stopped after the step under way").toBeLessThanOrEqual(Math.SQRT2 + 1e-6);
   expect(await slice<boolean>(page, "dragging")).toBe(false);
 });
 
@@ -190,7 +208,6 @@ test("slice: the rooms turn too, their near wall cut down", async ({ page }) => 
   ] as const) {
     await open(page, `scene=${scene}&still&heading=${heading}`);
     expect(await settledHeading(page)).toBe(heading);
-    await page.waitForTimeout(400);
     expect(colorCount(await readFrame(page))).toBeGreaterThan(200);
     await page.screenshot({ path: join(out, `${scene}-${heading}45.png`) });
   }
@@ -205,8 +222,10 @@ test("slice: through the shop's door and back out, by clicking", async ({ page }
     expect(await slice<string>(page, "scene")).toBe(from);
     const door = await page.evaluate(() => ((globalThis as any).sliceTest.entities as { kind: string; x: number; y: number }[]).find((e) => e.kind === "door")!);
     await page.mouse.click(door.x, door.y);
-    await expect.poll(() => slice<string>(page, "scene"), { timeout: 20_000 }).toBe(to);
-    await expect.poll(() => slice<boolean>(page, "transitioning"), { timeout: 20_000 }).toBe(false);
+    // A couple of tiles' walk and the doorway's second: three seconds of game time is ample.
+    await advance(page, 3);
+    expect(await slice<string>(page, "scene")).toBe(to);
+    expect(await slice<boolean>(page, "transitioning")).toBe(false);
   }
 });
 
@@ -219,8 +238,9 @@ test("slice: down into the crypt from the churchyard and back up, by clicking", 
     expect(await slice<string>(page, "scene")).toBe(from);
     const door = await page.evaluate((t) => ((globalThis as any).sliceTest.entities as { kind: string; to: string; x: number; y: number }[]).find((e) => e.kind === "door" && e.to === t)!, to);
     await page.mouse.click(door.x, door.y);
-    await expect.poll(() => slice<string>(page, "scene"), { timeout: 20_000 }).toBe(to);
-    await expect.poll(() => slice<boolean>(page, "transitioning"), { timeout: 20_000 }).toBe(false);
+    await advance(page, 3);
+    expect(await slice<string>(page, "scene")).toBe(to);
+    expect(await slice<boolean>(page, "transitioning")).toBe(false);
   }
   // Back on the street, at the heading it left at.
   expect(await settledHeading(page)).toBe("right");
@@ -313,7 +333,7 @@ test("slice clip: street-rotate", async ({ page }) => {
   test.skip(!shots, "pictures only with SLICE_SHOTS");
   test.setTimeout(240_000);
   // The camera stepping round about the player: right, back to the front, left, and back - at 20 frames a second.
-  await open(page, "manual&nohud&heading=front&at=14,13");
+  await open(page, "nohud&heading=front&at=14,13");
   await advance(page, 0.5);
   const frames: Frame[] = [];
   const record = async (seconds: number) => {
@@ -334,7 +354,7 @@ for (const c of clips) {
   test(`slice clip: ${c.name}`, async ({ page }) => {
     test.skip(!shots, "pictures only with SLICE_SHOTS");
     test.setTimeout(240_000);
-    await open(page, `manual&nohud&${c.query}`);
+    await open(page, `nohud&${c.query}`);
     await advance(page, 0.5);
     const frames = await recordWalk(page, c.to, c.seconds);
     if (c.then) frames.push(...(await recordWalk(page, c.then, c.thenSeconds ?? 2)));
