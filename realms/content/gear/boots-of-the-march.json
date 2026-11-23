@@ -15,7 +15,7 @@
       "turn": 2
     }
   ],
-  "text": "During your second turn, you may play an additional land.",
+  "text": "At the beginning of your upkeep, if it's your second turn, you may play an additional land this turn.",
   "look": {
     "mesh": "boots",
     "palette": [

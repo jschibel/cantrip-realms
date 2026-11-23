@@ -1,0 +1,56 @@
+# mana-on-turn over its range: Bot1 wears seven, one for each mana it may add and turns 1 to 4 - {W} and {G} on its first
+# turn, {U} and {C} on its second, {B} and {C}{C} on its third, {R} on its fourth. Each "at the beginning of your
+# precombat main phase, if it's your Nth turn, add ..." triggers there and uses the stack (CR 605.1b: no mana ability), so
+# both of a turn's are passed through before the pool holds both, and the pool empties as the phase ends (CR 500.4). No
+# trigger on Bot2's turns, on the postcombat main phase (CR 505.1a), or on Bot1's fifth turn.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: mana-on-turn, turn 1, mana {W}; emblem Gear test: mana-on-turn, turn 1, mana {G}; emblem Gear test: mana-on-turn, turn 2, mana {U}; emblem Gear test: mana-on-turn, turn 2, mana {C}; emblem Gear test: mana-on-turn, turn 3, mana {B}; emblem Gear test: mana-on-turn, turn 3, mana {C}{C}; emblem Gear test: mana-on-turn, turn 4, mana {R}
+Bot2: maximum 20
+
+[Actions]
+[T1 Bot1.Main1]
+Bot1.Triggers(Gear test: mana-on-turn, turn 1, mana {W}; Gear test: mana-on-turn, turn 1, mana {G})
+? Stack.Count = 2
+Bot1.Pass
+Bot2.Pass
+Bot1.Pass
+Bot2.Pass
+? Bot1.Mana = {W}{G}
+[T1 Bot1.Main2]
+? Stack.Count = 0
+? Bot1.Mana = 
+[T2 Bot2.Main1]
+? Stack.Count = 0
+[T3 Bot1.Main1]
+Bot1.Triggers(Gear test: mana-on-turn, turn 2, mana {U}; Gear test: mana-on-turn, turn 2, mana {C})
+? Stack.Count = 2
+Bot1.Pass
+Bot2.Pass
+Bot1.Pass
+Bot2.Pass
+? Bot1.Mana = {U}{C}
+[T5 Bot1.Main1]
+Bot1.Triggers(Gear test: mana-on-turn, turn 3, mana {B}; Gear test: mana-on-turn, turn 3, mana {C}{C})
+? Stack.Count = 2
+Bot1.Pass
+Bot2.Pass
+Bot1.Pass
+Bot2.Pass
+? Bot1.Mana = {B}{C}{C}
+[T7 Bot1.Main1]
+? Stack = Gear test: mana-on-turn, turn 4, mana {R}
+Bot1.Pass
+Bot2.Pass
+? Bot1.Mana = {R}
+[T9 Bot1.Main1]
+? Stack.Count = 0
+
+[Expect]
+Bot1.Mana = 

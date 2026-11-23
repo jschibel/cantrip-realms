@@ -1,0 +1,22 @@
+# opponent-mills-on-turn at the far end of its range, turn 4 and four cards, with three cards left in Bot2's library at its
+# fourth upkeep (turn 8): it mills the three there are (CR 701.17b) - its draw step to come would then lose it the game
+# (CR 704.5b), which is past this scenario's end.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x13
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: opponent-mills-on-turn, turn 4, count 4
+Bot2: maximum 20
+
+[Actions]
+[T8 Bot2.Upkeep]
+? Stack = Gear test: opponent-mills-on-turn, turn 4, count 4
+? Bot2.Library.Count = 3
+
+[Expect]
+Bot2.Graveyard.Count = 3
+Bot2.Library.Count = 0

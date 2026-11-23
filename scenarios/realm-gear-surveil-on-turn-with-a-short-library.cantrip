@@ -1,0 +1,29 @@
+# surveil-on-turn at the far end of its range, turn 6 and three cards, with only two cards left in Bot1's library at its
+# sixth upkeep (turn 11): it looks at the two there are (CR 701.25a, 701.25d: a surveil of fewer cards than asked is still
+# a surveil), puts one into its graveyard and keeps the other on top, then draws it. Its fifth upkeep has no trigger.
+
+[Bot1 Deck]
+Forest x11
+Island
+Mountain
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: surveil-on-turn, turn 6, count 3
+Bot2: maximum 20
+
+[Actions]
+[T9 Bot1.Upkeep]
+? Stack.Count = 0
+[T11 Bot1.Upkeep]
+? Stack = Gear test: surveil-on-turn, turn 6, count 3
+Bot1.Arrange(Mountain | Island)
+[T11 Bot1.Main1]
+
+[Expect]
+Bot1.Surveilled = 3 requested, 2 looked
+Bot1.Graveyard = Island
+Bot1.Library.Count = 0
+Bot1.Hand.Count = 12

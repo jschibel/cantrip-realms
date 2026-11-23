@@ -1,0 +1,33 @@
+# scry-on-turn over the middle and the far end of its range: Bot1 wears "scry 2 on your second turn" and "scry 1 on your
+# sixth turn". On turn 3 (its second) it scries 2 and bottoms both Islands, drawing a Forest; on turns 5 to 9 nothing; on
+# turn 11 (its sixth) it scries 1 and bottoms the Mountain then on top, drawing a Forest again.
+
+[Bot1 Deck]
+Forest x7
+Island x2
+Forest x4
+Mountain
+Forest x26
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: maximum 20; emblem Gear test: scry-on-turn, turn 2, count 2; emblem Gear test: scry-on-turn, turn 6, count 1
+Bot2: maximum 20
+
+[Actions]
+[T3 Bot1.Upkeep]
+? Stack = Gear test: scry-on-turn, turn 2, count 2
+Bot1.Arrange(| Island; Island)
+[T5 Bot1.Upkeep]
+? Stack.Count = 0
+[T9 Bot1.Upkeep]
+? Stack.Count = 0
+[T11 Bot1.Upkeep]
+? Stack = Gear test: scry-on-turn, turn 6, count 1
+Bot1.Arrange(| Mountain)
+[T11 Bot1.Main1]
+
+[Expect]
+Bot1.Hand = Forest; Forest; Forest; Forest; Forest; Forest; Forest; Forest; Forest; Forest; Forest; Forest

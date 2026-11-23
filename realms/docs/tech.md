@@ -9,7 +9,7 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
   1. `gh repo fork cantrip-rs/cantrip-rs --fork-name cantrip-realms` under jschibel.
   2. In the local clone, add the remote `upstream` = cantrip-rs.
   3. Merge upstream `main` into the fork's `main` regularly, through `tools/realms/sync-upstream.cmd`.
-- **Layout:** the fork adds `realms/` (game code and content) and a few project heads. It touches upstream files only at documented seams, to keep merges clean. CLAUDE.md gets a Realms section.
+- **Layout:** the fork adds `realms/` (game code and content) and a few project heads. It touches upstream files only at documented seams, to keep merges clean. CLAUDE.md gets a Realms section. The one seam inside the engine's folders is new files only: the gear's card files and test in `crates/cantrip-cards` and its scenarios `scenarios/realm-gear-*` (B3), which an upstream merge never meets.
 
 ### B2. What is upstream, and what never goes there
 cantrip-rs is only for playing Magic in a browser and for training AI. Nothing of this game's design or code goes there.
@@ -31,17 +31,11 @@ and this fork has them by the sync:
 **Cards.** The game draws on the cards the trunk has (its own card work goes on there regardless). A card the game
 would like that the trunk lacks (a boss's namesake, say) is asked of the owner, never added here or there unasked.
 
-### B3. Gear (fork only)
-- Gear is "cards" whose abilities work from the command zone: one typeless definition per item with effects, named
-  `"<item name> (gear)"`, in this fork's card crate (new files only, so the sync never conflicts). It starts in its
-  seat's command zone through `SeatVariant` emblems. The fork's own `cantrip-native-host` and `cantrip-wasm` then know it
-  with no hook and no extra binary, and the server's verifier replays on the fork's native host.
-- **Effect families** (gear.md) are built only from what the engine already has, in fork-only code. A family that would
-  need an engine change is left out until the owner decides on a hook.
-- **Item definitions** live in `realms/content/gear/*.json` (interfaces.md). How each becomes its card is milestone 4's,
-  written up in gear.md as built.
-- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated scenario.
-  Every line is covered. The no-rules-deviation bar applies in full.
+### B3. Gear in the engine (fork: card files of `crates/cantrip-cards`, realms/docs/gear.md)
+- **Effect families** are written once in Rust, each a parameterised `const fn` making a command-zone ability from `cantrip-mechanics` and the core's verbs (draw, scry, surveil, tokens, mana, counters, haste, life, prevention, discard, mill), never a new core brick and never in an upstream module: they are `crates/cantrip-cards/src/cards/realm_gear.rs`, a new file of the card crate that defines no card.
+- **Item definitions** live in `realms/content/gear/*.json`. `tools/realms/gear-cards.py` generates one card file per item with effects, `realm_gear_<item>.rs`, holding its typeless emblem, and validates each item against its slot's families and its rarity's budget. The card crate's own build script registers them as it registers every card, so the engine's one card table has them: no hook, no second table.
+- **The fork's WASM build** (`cantrip-wasm`) and its native **replay verifier** (`cantrip-native-host`) are the stock ones built from the fork, which has the gear's card files.
+- **Testing:** every family gets `.cantrip` scenarios over its parameter range, and every item gets a generated smoke scenario, all in the stock corpus (`scenarios/realm-gear-*.cantrip`). Coverage is `tools/realms/gear-coverage.py`, card-coverage.py for the gear. The no-rules-deviation bar applies in full.
 
 ### B4. Server (fork: `realms/dotnet/Cantrip.Realms.Server`, ASP.NET Core)
 - **Auth:** reuses the `SiteSignIn` code (Discord OAuth with PKCE and a sealed cookie) with the game's own Discord application and keys. The player id is `discord-{id}`.
@@ -102,7 +96,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 
 ### B8. Deployment (provider-neutral, separate from cantrip-rs.dev)
 - **One container image:** `realms/deploy/Dockerfile` is a multi-stage build.
-  - A Rust stage builds the native replay verifier, `cantrip-native-host` linked with `realms-gear`, for linux-x64 and linux-arm64.
+  - A Rust stage builds the native replay verifier, `cantrip-native-host` built from the fork (its card table has the gear), for linux-x64 and linux-arm64.
   - A .NET stage publishes `Cantrip.Realms.Server`.
   - The final image is the ASP.NET runtime with both, and it exposes the API, the WebSocket and `/healthz`.
   - All configuration comes from environment variables: the database URL, the Discord client id and secret, the cookie-key directory or KMS, and the CDN base URL.
@@ -136,8 +130,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 | 0 | The fork, the design docs (`realms/docs/design.md` = Part A, `tech.md` = Part B), and a spike of the two-layer page | fork | three.js and Uno layers swap on one page; `realmBridge` round-trips |
 | 1 | Per-player setup and Vanguard objects (B2.1) | upstream (a generic hook) | scenarios for life, hand sizes and command objects; `test.cmd` passes |
 | 2 | The WASM engine and `?local` bot play (B2.2) | upstream (the owner's call) | determinism check passes; a whole bot game in a browser with no server |
-| 3 | Data pipelines (B7); the game draws on the cards the trunk has | fork | prices and pools generated; card imports keep landing |
-| 4 | `realms-gear`: about 25 effect families, the generator, scenarios | fork | every family and item covered and passing |
+| 3 | Data pipelines (B7); the game draws on the cards the trunk has | fork | prices and pools generated |
+| 4 | Gear in the engine (B3): the effect families, the generator, scenarios | fork | every family and item covered and passing |
 | 5 | The realm server (B4): accounts, collection, decks, ante, gear, vendors, encounters, replay check, loot, presence | fork | server tests pass (B10) |
 | 6 | The overworld (B5): renderer, maps, movement, mobs, world map, HUD, map editor | fork | you can walk Dominaria and see other players |
 | 7 | Card screens in `?realm` (B6): duel, spell table, vendor, loot, gear | fork | the whole loop plays end to end in a browser |
@@ -146,7 +140,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 | 10 | Deployment (B8): image, compose, CI/CD, CDN, then a closed beta | fork | it runs at the chosen host and domain, deployed by CI |
 | 11 | PvP duel zone and ladders (B9) | fork | arena tables and ladder events run |
 
-The work runs through the existing worktree pool and agents: card agents for B2.5, and separate agents for the server, the overworld, the card screens and content. Each piece lands on its repository's `main` and is pushed right away.
+The work runs through agents in worktrees of this fork, one per piece (the server, the overworld, gear, the card screens, content), each merged into this fork's `main` and pushed. Nothing of it goes to cantrip-rs (B2).
 
 ### C5. The balance lab (milestone 9)
 - **Gear costs:** `tools/realms/balance.cmd` uses `Cantrip.BotLab` to run tactical-vs-tactical games on reference mob decks, with and without each item, spread over the worker pool (`tools\cantrip-workers.cmd`). Each effect's cost is fitted to the change in log-odds of winning.
@@ -158,7 +152,7 @@ The work runs through the existing worktree pool and agents: card agents for B2.
 - **Engine (the upstream hooks, done):**
   - Run `tools\test.cmd` for core and host changes; the Rust workspace includes the new scenarios.
   - Run the WASM-versus-native determinism check over bench games and the scenario corpus.
-- **Gear:** `realms` scenarios for every family and item, through the corpus runner on the fork's card table, and coverage of the gear crate.
+- **Gear:** `realm-gear-*` scenarios for every family and item, in the stock corpus (the fork's card table has the gear's card files), coverage of the gear's files (`tools/realms/gear-coverage.py`), and the determinism check over them.
 - **Server:** xUnit tests for these areas.
 
   | Area | What the tests cover |

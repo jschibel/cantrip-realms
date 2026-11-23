@@ -1,0 +1,26 @@
+# extra-land-on-turn at turn 1: "At the beginning of your upkeep, if it's your first turn, you may play an additional land
+# this turn." On turn 1 Bot1 plays two lands and is offered no third (CR 305.2); on its second turn (turn 3) one, the
+# permission having ended with its turn (CR 514.2) and the trigger not coming again.
+
+[Bot1 Deck]
+Forest x40
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: emblem Gear test: extra-land-on-turn, turn 1
+
+[Actions]
+[T1 Bot1.Main1]
+Bot1.Hand.Forest.Play
+Bot1.Hand.Forest.Play
+! Bot1.Hand.Forest.Play
+[T3 Bot1.Main1]
+? Stack.Count = 0
+Bot1.Hand.Forest.Play
+! Bot1.Hand.Forest.Play
+
+[Expect]
+Bot1.Battlefield.Count = 3
+Bot1.LandsPlayed = 1

@@ -1,0 +1,23 @@
+# scry-on-turn with nothing to look at: Bot1's library is empty on its first upkeep (its whole deck is its opening hand), so
+# "scry 3" looks at no cards and asks nothing (CR 701.22a: the top cards, of which there are none); the ability resolves and
+# the turn goes on. Bot1 plays first and does not draw on turn 1 (CR 103.8a), so nothing else empties into a loss.
+
+[Bot1 Deck]
+Forest x7
+
+[Bot2 Deck]
+Island x40
+
+[Variant]
+Bot1: emblem Gear test: scry-on-turn, turn 1, count 3
+
+[Actions]
+[T1 Bot1.Upkeep]
+? Stack = Gear test: scry-on-turn, turn 1, count 3
+[T1 Bot1.Main1]
+? Stack.Count = 0
+? Bot1.Library.Count = 0
+
+[Expect]
+Bot1.Hand.Count = 7
+Bot1.Status = (absent)

@@ -3,7 +3,7 @@
 What the realm's parts agree on: the content files, the server's HTTP API, the presence protocol and the spawn
 algorithm. `design.md` is the game, `tech.md` how it is built; this is the contract between the overworld
 (`realms/web`), the card layer (`?realm` in `Cantrip.Client.Web`), the realm server (`realms/dotnet`) and the gear in the
-engine (`realms/crates/realms-gear`). A change here changes every side that reads it, in the same commit.
+engine (the gear's card files, realms/docs/gear.md). A change here changes every side that reads it, in the same commit.
 
 All JSON is UTF-8, PascalCase on the wire between C# and anything else (as `Cantrip.Protocol` is), camelCase in the
 content files (as `content/mtg/cards/*.json` is). Gold is an integer. Times are UTC ISO-8601.
@@ -39,8 +39,8 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   "rarity": "uncommon",
   "gold": 1200,
   "stats": { "life": 0, "hand": 0, "maxHand": 1 },
-  "effects": [{ "family": "draw-on-turn", "turn": 3, "count": 1 }],
-  "text": "Your maximum hand size is increased by one.\nAt the beginning of your draw step on your third turn, draw a card.",
+  "effects": [{ "family": "draw-on-turn", "turn": 4, "count": 1 }],
+  "text": "Your maximum hand size is increased by one.\nAt the beginning of your draw step, if it's your fourth turn, draw a card.",
   "look": { "mesh": "circlet", "palette": ["#f1b44c", "#5b8fd6"] },
   "unique": false
 }
@@ -49,8 +49,12 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `slot` is one of `head`, `neck`, `body`, `hands`, `feet`, `ring`, `relic` (a ring fits either ring slot).
 - `stats` change the setup values (design.md A1): `life` the starting life, `hand` the starting hand size, `maxHand` the
   maximum hand size; negative refunds points.
-- `effects` are the item's abilities, each an effect family and its parameters (gear.md, M4). The engine has one emblem
-  definition per item, named `"<name> (gear)"`, generated from this file; an item with no effects has none.
+- `effects` are the item's abilities, each an effect family and its parameters (`turn`, `count`, `mana`, `token`: gear.md's
+  table). The engine has one emblem definition per item, named `"<name> (gear)"`: a card file generated from this file by
+  `tools/realms/gear-cards.py`, which refuses an effect its slot may not carry or points over its rarity's budget. An item
+  with no effects has none.
+- `text` is what the item does in words: its stat lines, then its effects' rules text, as the generator writes it (it
+  rewrites a `text` that differs).
 - `gold` is what an armorer sells it for; it buys at half.
 - `look` is how it shows on a character: a gear mesh of `realms/content/models` (below) and its palette.
 
