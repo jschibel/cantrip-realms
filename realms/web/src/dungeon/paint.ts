@@ -1,10 +1,10 @@
 // The dungeons' own colors and pictures: their floors (64 by 64, seamless, seeded, as every surface), their walls'
 // faces, and the pictures their props wear. Painted from ramps dark to light, as the slice paints.
 
-import * as C from "../../art/paint/colors";
-import { crack, fbm, valueNoise } from "../../art/paint/procedural";
-import { Pixmap, type Rgb, hash2, rgb, seeded } from "../../art/paint/pixmap";
-import * as T from "../../art/paint/textures";
+import * as C from "../art/paint/colors";
+import { crack, fbm, valueNoise } from "../art/paint/procedural";
+import { Pixmap, type Rgb, hash2, rgb, seeded } from "../art/paint/pixmap";
+import * as T from "../art/paint/textures";
 
 const ramp = (...hex: string[]): Rgb[] => hex.map(rgb);
 

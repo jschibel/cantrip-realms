@@ -3,16 +3,16 @@
 // a foundry's forges, anvils and crucibles, a time-rift, and the Phyrexian pylons, altars and vats. Things against a
 // wall take its face's z and turn with `rot` (1 west, 2 north, 3 east); the rest stand by their middle at x, z.
 
-import { MeshBuilder, fitted, sides, tiled } from "../../art/paint/builder";
-import * as C from "../../art/paint/colors";
-import { flat, material, stock } from "../../art/paint/materials";
-import type { Ramp } from "../../art/paint/palette";
-import * as Pic from "../../art/paint/pictures";
-import { Pixmap, hash2 } from "../../art/paint/pixmap";
-import * as T from "../../art/paint/textures";
-import { bool, drawn, num, point, str } from "../../art/props/registry";
-import type { Frames } from "../../art/recipe";
-import type { PropData } from "../../world/format";
+import { MeshBuilder, fitted, sides, tiled } from "../art/paint/builder";
+import * as C from "../art/paint/colors";
+import { flat, material, stock } from "../art/paint/materials";
+import type { Ramp } from "../art/paint/palette";
+import * as Pic from "../art/paint/pictures";
+import { Pixmap, hash2 } from "../art/paint/pixmap";
+import * as T from "../art/paint/textures";
+import { bool, drawn, num, point, str } from "../art/props/registry";
+import type { Frames } from "../art/recipe";
+import type { PropData } from "../world/format";
 import * as P from "./paint";
 
 const PX = 1 / 16;

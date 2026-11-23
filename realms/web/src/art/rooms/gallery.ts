@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { assembleFloor, generateDungeonFloor, gridOfFloor } from "../../dungeon/squares";
-import type { RunFloor } from "../../dungeon/squares/types";
+import { type RunFloor, assembleFloor, generateDungeonFloor, gridOfFloor } from "../../dungeon";
 import { Actor, behaviourOf } from "../../render/actor";
 import { assembleInterior } from "../../render/assemble";
 import { CameraRig, type Framing, HEADING_NAMES } from "../../render/camera";

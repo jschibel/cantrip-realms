@@ -1,35 +1,36 @@
-// Dungeon floors generated in the browser from the run (interfaces.md, "Dungeons"; tech.md B5): one generator per
-// theme carves the floor, and the floor builder places exactly what the run's floor holds. Single-player and never
-// replicated: the server hands out the seed and the encounters, and checks each duel against them.
+// A run's floor, generated in the browser from the run's seed (interfaces.md, "Dungeons"): the theme's carver opens
+// the floor, the run's contract is placed on it (finish.ts), and the theme dresses it. The same request gives the same
+// floor, on every machine.
 
-import type { Theme } from "../world/schema";
-import { type Carver, type Floor, FloorBuilder, type FloorRequest, type Look, finish } from "./floor";
-import { CASTLE_LOOK, carveCastle } from "./themes/castle";
-import { CAVES_LOOK, carveCaves } from "./themes/caves";
-import { CRYPT_LOOK, carveCrypt } from "./themes/crypt";
-import { FOUNDRY_LOOK, carveFoundry } from "./themes/foundry";
-import { HOLLOW_LOOK, carveHollow } from "./themes/hollow";
-import { PORTAL_LOOK, carvePortal } from "./themes/portal";
-import { TOWER_LOOK, carveTower } from "./themes/tower";
+import type { Theme } from "../world/format";
+import { type ThemeDef, finish } from "./finish";
+import { Plan, VOID } from "./plan";
+import { CASTLE } from "./themes/castle";
+import { CAVES } from "./themes/caves";
+import { CRYPT } from "./themes/crypt";
+import { FOUNDRY } from "./themes/foundry";
+import { HOLLOW } from "./themes/hollow";
+import { PORTAL } from "./themes/portal";
+import { TOWER } from "./themes/tower";
+import type { DungeonFloor, FloorRequest } from "./types";
 
-export const GENERATORS: Record<Theme, { readonly look: Look; readonly carve: Carver }> = {
-  caves: { look: CAVES_LOOK, carve: carveCaves },
-  castle: { look: CASTLE_LOOK, carve: carveCastle },
-  tower: { look: TOWER_LOOK, carve: carveTower },
-  crypt: { look: CRYPT_LOOK, carve: carveCrypt },
-  hollow: { look: HOLLOW_LOOK, carve: carveHollow },
-  foundry: { look: FOUNDRY_LOOK, carve: carveFoundry },
-  portal: { look: PORTAL_LOOK, carve: carvePortal },
+export const THEME_DEFS: Record<Theme, ThemeDef> = {
+  caves: CAVES,
+  castle: CASTLE,
+  tower: TOWER,
+  crypt: CRYPT,
+  hollow: HOLLOW,
+  foundry: FOUNDRY,
+  portal: PORTAL,
 };
 
-/** A floor of a run: the same request gives the same floor. */
-export function generateFloor(request: FloorRequest): Floor {
-  const { look, carve } = GENERATORS[request.theme];
-  const b = new FloorBuilder(`${request.theme}:${request.seed}:${request.floor}`, look);
-  const rooms = carve(b, request);
+export function generateDungeonFloor(request: FloorRequest): DungeonFloor {
+  const theme = THEME_DEFS[request.theme];
+  const [w, d] = theme.size(request);
+  const plan = new Plan(w, d, `${request.theme}:${request.seed}:${request.floor}`, theme.floor);
+  // The portal's islands hang in the void; everything else is dug out of rock.
+  if (request.theme === "portal") plan.cells.fill(VOID);
+  const rooms = theme.carve(plan, request);
   if (rooms.length === 0) throw new Error(`${request.theme}: no rooms`);
-  return finish(b, rooms, request);
+  return finish(plan, rooms, request, theme);
 }
-
-export type { Floor, FloorRequest, RunFloor, Spot } from "./floor";
-export { bossIndex, wardenIndex } from "./floor";

@@ -3,14 +3,11 @@
 // furnish and light it, the spell table's NPC on the first floor, and where the run's way up, way down, way out and
 // encounters stand. The same request always gives the same floor.
 
-import type { LightData, NpcData, PropData, Theme, TileData, XZ } from "../../world/format";
+import type { RunFloor } from "../net/api";
+import type { LightData, NpcData, PropData, Theme, TileData, XZ } from "../world/format";
 
-/** What the run's floor holds (`POST /api/dungeon/enter`'s `Floors`). */
-export interface RunFloor {
-  readonly Encounters: readonly { readonly Index: number; readonly Mob: string }[];
-  readonly Warden: string | null;
-  readonly Boss: string | null;
-}
+/** What the run's floor holds: one of `POST /api/dungeon/enter`'s `Floors`. */
+export type { RunFloor };
 
 export interface FloorRequest {
   readonly theme: Theme;

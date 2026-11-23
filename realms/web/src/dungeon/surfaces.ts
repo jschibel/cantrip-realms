@@ -2,9 +2,9 @@
 // Water, lava and the stairwell are holes: what lies under them shows - water and lava scroll a texel at a time, and
 // lava glows.
 
-import type { Material } from "../../art/paint/builder";
-import { material } from "../../art/paint/materials";
-import { defineSurface } from "../../art/surfaces";
+import type { Material } from "../art/paint/builder";
+import { material } from "../art/paint/materials";
+import { defineSurface } from "../art/surfaces";
 import * as P from "./paint";
 
 const scroll = (m: Material, rate: readonly [number, number], step: readonly [number, number]): Material => {

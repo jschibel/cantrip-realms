@@ -4,8 +4,8 @@
 // walked to from the arrival without stepping onto a stair or the way out, which are walked onto only to be taken.
 // Then the theme dresses the floor where nobody's way is cut, and the floor's lights are chosen.
 
-import type { LightData, NpcData, TileData } from "../../world/format";
-import { BLOCKED } from "../../world/format";
+import type { LightData, NpcData, TileData } from "../world/format";
+import { BLOCKED } from "../world/format";
 import { FLOOR, LAVA, type Plan, type Room, STEPS, VOID, WALL, WATER, wallKind } from "./plan";
 import type { DungeonFloor, FloorRequest, Spot } from "./types";
 

@@ -4,14 +4,14 @@
 // is drawn twice, full and low, the low one shown while the camera is swung round toward its side (a room's side
 // walls). Where the floor meets the void (a chasm, the portal's islands) its edge drops away in a skirt.
 
-import { type Face, MeshBuilder, tiled } from "../../art/paint/builder";
-import * as C from "../../art/paint/colors";
-import { flat, material, stock } from "../../art/paint/materials";
-import * as Pic from "../../art/paint/pictures";
-import { hash2 } from "../../art/paint/pixmap";
-import * as T from "../../art/paint/textures";
-import type { Built, Cutaway, LightSpec } from "../../art/recipe";
-import type { Theme } from "../../world/format";
+import { type Face, MeshBuilder, tiled } from "../art/paint/builder";
+import * as C from "../art/paint/colors";
+import { flat, material, stock } from "../art/paint/materials";
+import * as Pic from "../art/paint/pictures";
+import { hash2 } from "../art/paint/pixmap";
+import * as T from "../art/paint/textures";
+import type { Built, Cutaway, LightSpec } from "../art/recipe";
+import type { Theme } from "../world/format";
 import { type Cell, VOID, WALL, type WallKind, wallKind } from "./plan";
 import * as P from "./paint";
 

@@ -3,8 +3,8 @@
 // run holds on it, and the theme dresses it. Walking is eight-way, never cutting a corner past a tile one cannot stand
 // on - as world/grid.ts walks - so everything here that asks "can one get there" asks it that way.
 
-import type { LightData, PropData } from "../../world/format";
-import { fnv1a32, mulberry32 } from "../../random";
+import type { LightData, PropData } from "../world/format";
+import { fnv1a32, mulberry32 } from "../random";
 
 /** What a tile is made of. */
 export const WALL = 0;
