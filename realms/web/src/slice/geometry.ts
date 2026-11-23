@@ -187,25 +187,48 @@ export class MeshBuilder {
    * are bent in towards the box's middle, so every edge is two narrow facets and every corner a few - a chunky,
    * rounded block (a head, a crate) whose faces keep their pictures texel for texel, the border texels on the bends.
    */
-  roundedBox(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, r: number, faces: BoxFaces): void {
+  roundedBox(
+    x0: number,
+    y0: number,
+    z0: number,
+    x1: number,
+    y1: number,
+    z1: number,
+    r: number,
+    faces: BoxFaces,
+    /**
+     * `steps` cuts each border strip into more facets, so an edge curves round rather than being chamfered; `warp`
+     * reshapes the rounded block afterwards (a head's jaw drawn in, its crown domed), its pictures riding along.
+     */
+    options: { readonly steps?: number; readonly warp?: (c: V3) => V3 } = {},
+  ): void {
+    const steps = options.steps ?? 1;
+    const warp = options.warp ?? ((c: V3) => c);
     const lo = new THREE.Vector3(x0 + r, y0 + r, z0 + r);
     const hi = new THREE.Vector3(x1 - r, y1 - r, z1 - r);
     const round = (c: V3): V3 => {
       const p = new THREE.Vector3(...c);
       const inner = p.clone().clamp(lo, hi);
       const d = p.clone().sub(inner);
-      if (d.lengthSq() < 1e-12) return c;
+      if (d.lengthSq() < 1e-12) return warp(c);
       inner.addScaledVector(d.normalize(), r);
-      return [inner.x, inner.y, inner.z];
+      return warp([inner.x, inner.y, inner.z]);
     };
-    // Each face as a 3-by-3 grid of cells, cut at r from its edges; corners counter-clockwise from the bottom left.
+    // Each face as a grid of cells: its middle, and its border strips (r wide) cut into `steps` facets each; corners
+    // counter-clockwise from the bottom left.
+    const cuts = (size: number) => {
+      const out = [0];
+      for (let k = 1; k <= steps; k++) out.push((r * k) / steps / size);
+      for (let k = steps; k >= 0; k--) out.push(1 - (r * k) / steps / size);
+      return out;
+    };
     const grid = (face: Face | undefined, corner: (s: number, t: number) => V3, width: number, height: number) => {
       if (!face) return;
-      const ss = [0, r / width, 1 - r / width, 1];
-      const ts = [0, r / height, 1 - r / height, 1];
+      const ss = cuts(width);
+      const ts = cuts(height);
       const [u0, v0, u1, v1] = face.fit ?? [0, 0, 1, 1];
-      for (let j = 0; j < 3; j++) {
-        for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < ts.length - 1; j++) {
+        for (let i = 0; i < ss.length - 1; i++) {
           const quad: [number, number][] = [
             [ss[i]!, ts[j]!],
             [ss[i + 1]!, ts[j]!],

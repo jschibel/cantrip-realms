@@ -39,6 +39,27 @@ interface PartSpec {
   readonly tilt?: readonly [number, number];
   /** How far its edges are rounded, in texels: by default a third of its thinnest side, at most 2. */
   readonly round?: number;
+  /** A head's shaping (see `headShape`). */
+  readonly shape?: HeadShape;
+}
+
+/**
+ * How a head is shaped from its rounded block, so it reads as a skull and not a box: its edges curved in `steps`
+ * facets; its jaw and the back of its lower head drawn in towards the chin by `jaw` (0-1) - cheeks and a chin, not a
+ * flat bottom; its crown domed up by `dome` of its height; its back rounded out by `back` of its depth.
+ */
+export interface HeadShape {
+  readonly steps: number;
+  readonly jaw: number;
+  readonly dome: number;
+  readonly back: number;
+}
+
+const HEAD: HeadShape = { steps: 3, jaw: 0.16, dome: 0.08, back: 0.1 };
+
+/** Gives a figure's head its rounding and shape: a skull, not a block. */
+function shapeHead(parts: PartSpec[], shape: HeadShape = HEAD, round = 3): PartSpec[] {
+  return parts.map((p) => (p.name === "head" ? { ...p, round, shape } : p));
 }
 
 export interface FigureSpec {
@@ -266,7 +287,28 @@ export class Figure {
       const face = (key: string) => fitted(mat, rects.get(`${part.name}:${key}`));
       const faces = { south: face("front"), north: face("back"), east: face("left"), west: face("right"), top: face("top"), bottom: face("bottom") };
       const round = part.round ?? Math.min(2, Math.floor(Math.min(w, h, d) / 3));
-      if (round > 0) b.roundedBox(bx * PX, by * PX, bz * PX, (bx + w) * PX, (by + h) * PX, (bz + d) * PX, round * PX, faces);
+      const shape = part.shape;
+      const warp = shape
+        ? ([x, y, z]: readonly [number, number, number]): [number, number, number] => {
+            // In the part's own texels: across from its middle, up from its foot, back from its face.
+            const cx = (bx + w / 2) * PX;
+            const ny = (y / PX - by) / h;
+            const nb = ((bz + d) * PX - z) / (d * PX);
+            const nx = (x - cx) / ((w / 2) * PX);
+            const low = Math.max(0, (0.55 - ny) / 0.55);
+            // The jaw: narrower towards the chin, the lower back of the head tucked in under the skull.
+            let wx = cx + (x - cx) * (1 - shape.jaw * low * low);
+            let wz = z + nb * d * PX * shape.jaw * 0.8 * low * low;
+            // The back of the skull rounded out, most at its middle height.
+            wz -= nb * nb * d * PX * shape.back * Math.sin(Math.PI * Math.min(1, ny));
+            // The crown domed, most at its middle.
+            const top = Math.max(0, (ny - 0.6) / 0.4);
+            const wy = y + h * PX * shape.dome * top * Math.max(0, 1 - nx * nx) * Math.max(0, 1 - (nb - 0.5) * (nb - 0.5) * 4);
+            wx = cx + (wx - cx) * (1 + 0.04 * Math.sin(Math.PI * Math.min(1, ny)));
+            return [wx, wy, wz];
+          }
+        : undefined;
+      if (round > 0) b.roundedBox(bx * PX, by * PX, bz * PX, (bx + w) * PX, (by + h) * PX, (bz + d) * PX, round * PX, faces, { steps: shape?.steps ?? 1, warp });
       else b.box(bx * PX, by * PX, bz * PX, (bx + w) * PX, (by + h) * PX, (bz + d) * PX, faces);
       const built = b.build(part.name);
       for (const child of [...built.children]) group.add(child);
@@ -436,7 +478,7 @@ export function hero(): FigureSpec {
     bottom: cloth(S, 3, false),
   };
   const parts = humanoid({
-    head: [12, 10, 8],
+    head: [12, 10, 10],
     torso: [10, 7, 6],
     arm: [3, 8, 3],
     leg: [4, 5, 4],
@@ -444,7 +486,7 @@ export function hero(): FigureSpec {
     faces: { head: { front: face, left: side, right: side, back, top: hairCrown(hair) }, torso, arm, leg: legFaces(C.SLATE, C.WOOD, 2) },
     fills: { head: S[4]!, torso: tunic[3]!, arm: tunic[3]!, leg: C.SLATE[2]! },
   });
-  parts.push({ name: "hair", parent: "head", size: [14, 4, 10], at: [0, 7.5, 0], box: [-7, 0, -5.5], faces: { front: capFront, left: capSide, back: capSide, top: hairCrown(hair) }, fill: hair[3]!, round: 2 });
+  parts.push({ name: "hair", parent: "head", size: [13, 5, 11], at: [0, 7, 0], box: [-6.5, 0, -6.75], faces: { front: capFront, left: capSide, back: capSide, top: hairCrown(hair) }, fill: hair[3]!, round: 2.4, shape: { steps: 3, jaw: 0, dome: 0.55, back: 0.1 } });
   parts.push({
     name: "cape",
     parent: "torso",
@@ -454,7 +496,7 @@ export function hero(): FigureSpec {
     faces: { front: cloth(C.RED, 2), back: layer(cloth(C.RED, 3), (p) => p.vline(3, 0, 11, C.RED[2]!), (p) => p.vline(7, 0, 11, C.RED[2]!), rows(0, 0, C.GOLD[3]!)) },
     fill: C.RED[3]!,
   });
-  return { name: "hero", parts };
+  return { name: "hero", parts: shapeHead(parts) };
 }
 
 /** A knight of Benalia: a closed helm with a blue plume, white and gold tabard over mail, a kite shield, a spear. */
@@ -491,7 +533,7 @@ export function knight(): FigureSpec {
     for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) if ((x + y) % 2 === 0) p.set(x, y, iron[2]!);
   }, rows(0, 1, iron[5]!));
   const parts = humanoid({
-    head: [12, 10, 10],
+    head: [12, 10, 11],
     torso: [10, 7, 6],
     arm: [3, 8, 3],
     leg: [4, 5, 4],
@@ -536,7 +578,7 @@ export function knight(): FigureSpec {
     faces: { front: layer(cloth(C.WOOD, 4), rows(0, 3, iron[5]!), rows(0, 0, iron[6]!)), left: layer(cloth(C.WOOD, 3), rows(0, 3, iron[4]!)), top: cloth(iron, 6, false) },
     fill: C.WOOD[4]!,
   });
-  return { name: "knight", parts, stride: 0.6, armSwing: 0.35 };
+  return { name: "knight", parts: shapeHead(parts, { steps: 3, jaw: 0.1, dome: 0.1, back: 0.08 }), stride: 0.6, armSwing: 0.35 };
 }
 
 /** Grizzlegom: a goblin shopkeeper, green and grinning, with ears out to here, a purple vest and gold buttons. */
@@ -584,7 +626,7 @@ export function goblin(vendor = true): FigureSpec {
   };
   const arm: PartFaces = { front: layer(cloth(g, 3), rows(0, 2, vendor ? C.CLOTH_WHITE[3]! : C.WOOD[3]!), rows(5, 6, g[4]!)), top: cloth(C.CLOTH_WHITE, 3, false) };
   const parts = humanoid({
-    head: [14, 10, 8],
+    head: [14, 10, 10],
     torso: [9, 7, 6],
     arm: [3, 7, 3],
     leg: [3, 4, 3],
@@ -598,11 +640,11 @@ export function goblin(vendor = true): FigureSpec {
   });
   parts.push({ name: "ear.l", parent: "head", size: [7, 3, 2], at: [7, 6, 0], box: [0, -1, -1], faces: { front: ear, back: ear, top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0, 0.35] });
   parts.push({ name: "ear.r", parent: "head", size: [7, 3, 2], at: [-7, 6, 0], box: [-7, -1, -1], faces: { front: ear, back: ear, top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0, -0.35] });
-  parts.push({ name: "nose", parent: "head", size: [3, 3, 3], at: [0, 4, 4], box: [-1.5, -1, 0], faces: { front: layer(cloth(g, 4), rows(0, 0, g[5]!)), top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0.3, 0] });
+  parts.push({ name: "nose", parent: "head", size: [3, 3, 3], at: [0, 4, 5], box: [-1.5, -1, 0], faces: { front: layer(cloth(g, 4), rows(0, 0, g[5]!)), top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0.3, 0] });
   if (vendor) {
     parts.push({ name: "hat", parent: "head", size: [8, 4, 6], at: [0, 9.5, -0.5], box: [-4, 0, -3], faces: { front: layer(cloth(C.RED, 3), rows(3, 3, C.GOLD[3]!), rows(0, 0, C.RED[4]!)), left: layer(cloth(C.RED, 2), rows(3, 3, C.GOLD[2]!)), top: layer(cloth(C.RED, 4, false), stamp(["G"], { G: C.GOLD[4]! }, 3, 2)) }, fill: C.RED[3]!, round: 1.5 });
   }
-  return { name: vendor ? "grizzlegom" : "goblin", parts, stride: 0.9, armSwing: 0.9 };
+  return { name: vendor ? "grizzlegom" : "goblin", parts: shapeHead(parts, { steps: 3, jaw: 0.08, dome: 0.06, back: 0.1 }), stride: 0.9, armSwing: 0.9 };
 }
 
 /** A skeleton warrior: a grinning skull with red pin-prick eyes, a ribcage, bare bones and a notched sword. */
@@ -639,7 +681,7 @@ export function skeleton(): FigureSpec {
   };
   const bone: Paint = layer(cloth(b, 4), (p) => p.vline(p.width - 1, 0, p.height, b[2]!), rows(0, 0, b[5]!));
   const parts = humanoid({
-    head: [10, 9, 9],
+    head: [10, 9, 10],
     torso: [8, 7, 5],
     arm: [2, 8, 2],
     leg: [2, 6, 2],
@@ -670,7 +712,7 @@ export function skeleton(): FigureSpec {
     },
     fill: C.IRON[4]!,
   });
-  return { name: "skeleton", parts, stride: 0.8, armSwing: 0.5 };
+  return { name: "skeleton", parts: shapeHead(parts, { steps: 3, jaw: 0.22, dome: 0.1, back: 0.12 }), stride: 0.8, armSwing: 0.5 };
 }
 
 /** A ghoul: hunched and grey-green, with sunken glowing eyes, ragged clothes and long clawed arms. */
@@ -704,7 +746,7 @@ export function ghoul(): FigureSpec {
     for (let x = 0; x < p.width; x++) p.put(x, p.height - 1, x % 2 ? C.BONE[4]! : K);
   });
   const parts = humanoid({
-    head: [11, 9, 9],
+    head: [11, 9, 10],
     torso: [10, 7, 6],
     arm: [3, 11, 3],
     leg: [3, 5, 3],
@@ -718,7 +760,7 @@ export function ghoul(): FigureSpec {
   });
   const head = parts.find((p) => p.name === "head")!;
   parts[parts.indexOf(head)] = { ...head, tilt: [-0.4, 0], at: [0, 6, 1] };
-  return { name: "ghoul", parts, stride: 0.55, armSwing: 0.25, hunch: 0.4 };
+  return { name: "ghoul", parts: shapeHead(parts), stride: 0.55, armSwing: 0.25, hunch: 0.4 };
 }
 
 /** A headscarf from above: cloth with a knot of white dots. */
@@ -759,7 +801,7 @@ export function townswoman(): FigureSpec {
     },
   );
   const parts = humanoid({
-    head: [12, 10, 8],
+    head: [12, 10, 10],
     torso: [10, 7, 6],
     arm: [3, 7, 3],
     leg: [4, 5, 4],
@@ -771,5 +813,5 @@ export function townswoman(): FigureSpec {
     },
     fills: { head: S[4]!, torso: dress[3]!, arm: dress[3]!, leg: dress[2]! },
   });
-  return { name: "townswoman", parts, stride: 0.35, armSwing: 0.4 };
+  return { name: "townswoman", parts: shapeHead(parts), stride: 0.35, armSwing: 0.4 };
 }

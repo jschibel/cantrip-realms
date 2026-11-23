@@ -106,7 +106,8 @@ const cast: Figure[] = [];
 if (query.has("cast")) {
   [knight(), goblin(true), goblin(false), townswoman(), skeleton(), ghoul()].forEach((spec, i) => {
     const f = new Figure(spec);
-    f.root.position.set(startTile.x + 0.5 + (i < 3 ? -3 + i : i - 2), 0, startTile.z + 0.5);
+    // Two tiles apart, so that seen from a 45-degree heading too each stands clear of the next.
+    f.root.position.set(startTile.x + 0.5 + (i < 3 ? -6 + 2 * i : 2 * (i - 2)), 0, startTile.z + 0.5);
     f.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
     current.scene.add(f.root);
     cast.push(f);
