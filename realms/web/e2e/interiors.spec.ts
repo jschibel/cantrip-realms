@@ -44,7 +44,7 @@ test("the inn: its keeper lets you rest, and its spell table opens the spellbook
   await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 20_000 }).toBe("spell-table");
   await clickControl(page, "layer:close");
   await expect.poll(() => realm<string>(page, "screen")).toBe("world");
-  const keeper = await entity(page, (e) => e.kind === "inn", "the innkeeper");
+  const keeper = await entity(page, (e) => e.kind === "innkeeper", "the innkeeper");
   await page.mouse.click(keeper.x, keeper.y);
   await expect.poll(() => realm<string>(page, "screen"), { timeout: 20_000 }).toBe("dialog");
   await clickControl(page, "dialog:rest");

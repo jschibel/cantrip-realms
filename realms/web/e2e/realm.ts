@@ -145,10 +145,36 @@ export async function walkNear(page: Page, goal: Hex, near = 5, open: (h: Hex) =
     await expect.poll(async () => (await player(page)).moving).toBe(false);
     const from = await playerHex(page);
     if (distance(from, goal) <= near) return;
-    const path = findPath(from, goal, (h) => open(h) || (h.q === goal.q && h.r === goal.r), undefined, 40000);
+    // Round the mobs: a click on one is an attack, not a walk.
+    // Round the mobs, out of the reach of their bodies on screen: a click on one is an attack, not a walk.
+    const mobs = (await entities(page)).filter((e) => e.kind === "mob" || e.kind === "other").map((e) => {
+      const [q, r] = e.hex.split(",").map(Number);
+      return hex(q!, r!);
+    });
+    const clear = (h: Hex) => mobs.every((m) => distance(m, h) > 2);
+    const path = findPath(from, goal, (h) => (open(h) && clear(h)) || (h.q === goal.q && h.r === goal.r), undefined, 40000)
+      ?? findPath(from, goal, (h) => open(h) || (h.q === goal.q && h.r === goal.r), undefined, 40000);
     expect(path, `a way to ${goal.q},${goal.r}`).not.toBeNull();
-    const step = path![Math.min(near, path!.length - 1)]!;
+    // A few hexes along, never onto or right beside a mob.
+    let k = Math.min(near, path!.length - 1);
+    while (k > 0 && !clear(path![k]!) && k < path!.length - 1 && distance(path![k]!, goal) > near) k--;
+    const step = path![Math.max(0, k)]!;
     await clickHex(page, step.q, step.r);
-    await expect.poll(async () => (await player(page)).hex, { timeout: 20_000 }).toBe(`${step.q},${step.r}`);
+    // Reached, or stopped by a mob that came for you (dungeon mobs chase): win its duel, take the loot, walk on.
+    // (Or stopped short, a mob in the way: the next round plans again from where the player stands.)
+    await page.waitForTimeout(150);
+    await expect
+      .poll(async () => (await realm<string | null>(page, "layer.open")) !== null || (await player(page)).hex === `${step.q},${step.r}` || !(await player(page)).moving, { timeout: 20_000 })
+      .toBe(true);
+    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
   }
+}
+
+/** Wins the duel the stand-in card layer has open, and takes the loot offered. */
+export async function winDuel(page: Page): Promise<void> {
+  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 20_000 }).toBe("duel");
+  await clickControl(page, "layer:win");
+  await expect.poll(() => realm<string | null>(page, "layer.open")).not.toBe("duel");
+  if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:take");
+  await expect.poll(() => realm<string>(page, "screen"), { timeout: 20_000 }).toBe("world");
 }

@@ -89,6 +89,8 @@ interface Patch {
   readonly residents: Resident[];
   readonly clickable: THREE.Object3D[];
   readonly motes: THREE.Object3D[];
+  /** Each building drawn apart, so one standing between the camera and the player can be cut away. */
+  readonly buildings: { readonly group: THREE.Group; readonly box: THREE.Box3 }[];
 }
 
 export type SceneMode = "outdoor" | "indoor" | "dungeon";
@@ -157,7 +159,7 @@ export class World {
   addPatch(k: string, data: PatchData): void {
     if (this.patches.has(k)) this.removePatch(k);
     const group = new THREE.Group();
-    const patch: Patch = { group, residents: [], clickable: [], motes: [] };
+    const patch: Patch = { group, residents: [], clickable: [], motes: [], buildings: [] };
     const random = mulberry32(fnv1a32(data.seed));
     const tint = TINTS[data.tint] ?? TINTS.hub!;
 
@@ -188,24 +190,36 @@ export class World {
       group.add(mesh);
     }
 
-    // Scenery, merged.
+    // Scenery, merged; buildings each on their own, to be cut away when they hide the player.
     const boxes = new Boxes();
     for (const prop of data.props) {
       const h = hex(prop.q, prop.r);
       const { x, z } = toWorld(h);
-      const square = prop.kind === "building" || prop.kind === "entrance" || prop.kind === "gate" || prop.kind === "wall" || prop.kind === "tower" || prop.kind === "waymarker";
-      boxes.at(x, this.space.heightAt(h), z, square ? 0 : random() * Math.PI);
+      const y = this.space.heightAt(h);
+      if (prop.kind === "building") {
+        const own = new Boxes();
+        own.at(x, y, z, 0);
+        buildStructure(own, prop, tint, random);
+        const built = own.build();
+        group.add(built);
+        const w = (prop.w ?? 3) / 2 + 0.3;
+        const d = (prop.d ?? 3) / 2 + 0.3;
+        patch.buildings.push({ group: built, box: new THREE.Box3(new THREE.Vector3(x - w, y, z - d), new THREE.Vector3(x + w, y + (prop.h ?? 3) * 1.6 + 1, z + d)) });
+        continue;
+      }
+      const square = prop.kind === "entrance" || prop.kind === "gate" || prop.kind === "wall" || prop.kind === "tower" || prop.kind === "waymarker";
+      boxes.at(x, y, z, square ? 0 : random() * Math.PI);
       buildStructure(boxes, prop, tint, random);
     }
     if (!boxes.empty) group.add(boxes.build());
 
     // People, fixtures, chests, and an unseen column over each that clicks catch.
-    const column = new THREE.CylinderGeometry(0.75, 0.75, 1.8, 6, 1, false, Math.PI / 2);
+    const column = new THREE.CylinderGeometry(0.5, 0.5, 1.6, 6, 1, false, Math.PI / 2);
     const unseen = new THREE.MeshBasicMaterial();
     const catcher = (h: Hex) => {
       const c = new THREE.Mesh(column, unseen);
       c.visible = false;
-      c.position.copy(this.surface(h)).add(new THREE.Vector3(0, 0.9, 0));
+      c.position.copy(this.surface(h)).add(new THREE.Vector3(0, 0.8, 0));
       group.add(c);
       this.clickable.set(c, h);
       patch.clickable.push(c);
@@ -238,7 +252,6 @@ export class World {
       panel.rotation.y = wall.turn;
       group.add(panel);
       this.doors.set(key(h), { panel, turn: wall.turn, opening: 0 });
-      catcher(h);
     }
     // Ways in and out: a ring of light on the hex and a mote over it.
     const ways: [Hex, string][] = [
@@ -257,7 +270,6 @@ export class World {
       mark.position.copy(this.surface(h)).add(new THREE.Vector3(0, 0.03, 0));
       group.add(mark);
       patch.motes.push(mote);
-      catcher(h);
     }
     // A dungeon's braziers light it (the look's light underground, once, for its one floor).
     if (this.mode === "dungeon" && !this.lit) {
@@ -401,26 +413,43 @@ export class World {
 
   /** The hex under a ray: a person's, a fixture's, a chest's, a door's, or the ground's where the ray meets it. */
   pick(ray: THREE.Raycaster): Hex | null {
-    const hits = ray.intersectObjects([...this.clickable.keys()], false);
-    const owner = hits[0] && this.clickable.get(hits[0].object);
-    if (owner) return owner;
     // The ground: meet the plane at the height of the hex last found, until the hex found stops changing.
     let height = 0;
     let found: Hex | null = null;
     const point = new THREE.Vector3();
     for (let k = 0; k < 5; k++) {
       const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -height);
-      if (!ray.ray.intersectPlane(plane, point)) return found;
+      if (!ray.ray.intersectPlane(plane, point)) break;
       const h = fromWorld(point.x, point.z);
       if (found && found.q === h.q && found.r === h.r) break;
       found = h;
       height = this.space.heightAt(h);
     }
-    return found && this.space.tile(found) ? found : null;
+    const ground = found && this.space.tile(found) ? found : null;
+    // Someone or something stood up in the way: only when the ray meets it before it meets the ground.
+    const hits = ray.intersectObjects([...this.clickable.keys()], false);
+    const hit = hits[0];
+    const owner = hit && this.clickable.get(hit.object);
+    if (owner && (!ground || hit.distance < ray.ray.origin.distanceTo(point) - 0.05)) return owner;
+    return ground;
   }
 
-  update(seconds: number, focus: THREE.Vector3): void {
+  /**
+   * One frame: the motes bob, the residents breathe, doors swing, the sun follows; and a building between the camera
+   * (`eye`) and the player (`focus`) is cut away while it hides them.
+   */
+  update(seconds: number, focus: THREE.Vector3, eye?: THREE.Vector3): void {
     this.time += seconds;
+    if (eye) {
+      const from = focus.clone().add(new THREE.Vector3(0, 0.8, 0));
+      const sight = new THREE.Ray(from, eye.clone().sub(from).normalize());
+      for (const patch of this.patches.values()) {
+        for (const b of patch.buildings) {
+          const near = Math.abs(b.box.min.x - focus.x) < 16 && Math.abs(b.box.min.z - focus.z) < 16;
+          b.group.visible = !(near && sight.intersectsBox(b.box));
+        }
+      }
+    }
     for (const patch of this.patches.values()) {
       for (const mote of patch.motes) {
         mote.position.y = 0.9 + Math.sin(this.time * 2.5) * 0.12;

@@ -1054,7 +1054,7 @@ export class Overworld {
           const t = this.ease.t * this.ease.t * (3 - 2 * this.ease.t);
           this.focus.lerpVectors(this.ease.from, this.ease.to, t);
         } else this.focus.copy(this.character.root.position);
-        this.scene.update(seconds, this.focus);
+        this.scene.update(seconds, this.focus, this.pixels.camera.position);
         minimap -= seconds;
         if (minimap <= 0) {
           this.hud.drawMap(this.space, this.dots(), this.attuned);

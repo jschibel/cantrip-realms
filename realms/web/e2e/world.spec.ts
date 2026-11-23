@@ -50,7 +50,7 @@ test("the HUD names the area and its tier, and says so on crossing into a harder
 });
 
 test("the regional map shows the tier zones, with a legend, the dungeons and towers marked; the whole map opens", async ({ page }) => {
-  await openRealm(page, { at: "new-argive", extra: "&mobs=0" });
+  await openRealm(page, { at: "benalia-1", extra: "&mobs=0" });
   type MapState = { drawn: number[]; markers: { id: string; kind: string; tier: number; lit: boolean | null }[]; open: boolean };
   await expect.poll(async () => (await realm<MapState | null>(page, "map"))?.markers.length ?? 0).toBeGreaterThan(0);
   const map = (await realm<MapState>(page, "map"))!;
@@ -60,9 +60,9 @@ test("the regional map shows the tier zones, with a legend, the dungeons and tow
     const zone = await page.evaluate(([q, r]) => (globalThis as any).realmTest.zoneAt(q, r), [sample.at.q, sample.at.r] as const);
     expect(zone, `tier ${sample.tier} at ${sample.at.q},${sample.at.r}`).toEqual({ drawn: sample.tier, data: sample.tier });
   }
-  // Near the capital: its own mage tower, dormant, with its tier.
-  const spire = map.markers.find((m) => m.id === "argive-spire")!;
-  expect(spire).toMatchObject({ kind: "tower", tier: 1, lit: false });
+  // The mage tower beside you, dormant, with its tier; the dungeons near it with theirs.
+  expect(map.markers.find((m) => m.id === "benalia-1")).toMatchObject({ kind: "tower", lit: false, tier: 1 });
+  expect(map.markers.some((m) => m.kind === "dungeon" && m.tier >= 1)).toBe(true);
   const legend = (await realm<{ name: string; text: string }[]>(page, "controls")).find((c) => c.name === "hud:legend")!;
   expect(legend.text).toMatch(/1\s*2\s*3\s*4/);
   expect(legend.text).toMatch(/dungeon/);

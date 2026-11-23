@@ -33,10 +33,10 @@ test("engaging a wanderer asks for a duel; winning offers loot and the mob is go
   expect((await realm<string[]>(page, "messages")).some((m) => /You defeated the/.test(m))).toBe(true);
 });
 
-test("losing a duel wakes you at your home town's inn", async ({ page }) => {
+test("losing a duel wakes you outside your inn: the start town's, with none set", async ({ page }) => {
   await engage(page);
   await clickControl(page, "layer:lose");
-  await expect.poll(() => realm<string>(page, "message"), { timeout: 20_000 }).toMatch(/You lost the duel, and wake at the inn in New Benalia/);
+  await expect.poll(() => realm<string>(page, "message"), { timeout: 20_000 }).toMatch(/You lost the duel, and wake at the inn in New Argive/);
   await waitReady(page);
-  expect(await realm<{ name: string; tier: number }>(page, "area")).toMatchObject({ name: "New Benalia", tier: 0 });
+  expect(await realm<{ name: string; tier: number }>(page, "area")).toMatchObject({ name: "New Argive", tier: 0 });
 });

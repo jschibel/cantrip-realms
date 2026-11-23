@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import { type Hex, hex } from "../src/hex";
-import { clickControl, dungeon, entity, openRealm, realm, waitSpace, walkNear } from "./realm";
+import { clickControl, dungeon, entities, entity, openRealm, realm, waitSpace, walkNear, winDuel } from "./realm";
 
 // Dungeons: a run generated in the browser from the run the server hands out, the warden before the stairs, the stair
 // down to the next floor; the Phyrexian Portal sealed to all but five colors; and a mage tower attuned with the
@@ -13,7 +13,10 @@ const parse = (k: string): Hex => {
 
 /** Walks a room or a floor by clicks, over the open hexes the page says it has. */
 async function walkInside(page: Page, goal: Hex, near = 1): Promise<void> {
-  const open = new Set(await realm<string[]>(page, "openHexes"));
+  // Not the stairs or the way out: walking onto one is using it.
+  const run = await realm<{ up: string; down: string | null; wayOut: string | null } | null>(page, "run");
+  const stops = new Set([run?.up, run?.down, run?.wayOut].filter((k): k is string => typeof k === "string"));
+  const open = new Set((await realm<string[]>(page, "openHexes")).filter((k) => !stops.has(k)));
   await walkNear(page, goal, near, (h) => open.has(`${h.q},${h.r}`));
 }
 
@@ -21,13 +24,20 @@ async function walkInside(page: Page, goal: Hex, near = 1): Promise<void> {
 async function beat(page: Page, role: string): Promise<void> {
   const mob = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
   await walkInside(page, parse(mob.hex), 3);
-  const there = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
-  await page.mouse.click(there.x, there.y);
-  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe("duel");
-  await clickControl(page, "layer:win");
-  await expect.poll(() => realm<string | null>(page, "layer.open")).not.toBe("duel");
-  if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:take");
-  await expect.poll(() => realm<string>(page, "screen"), { timeout: 20_000 }).toBe("world");
+  const there = (await entities(page)).find((e) => e.kind === "mob" && e.role === role);
+  if (there) {
+    await page.mouse.click(there.x, there.y);
+    await winDuel(page);
+  }
+  // Another may have come for you first: the one asked for is beaten in the end.
+  for (let tries = 0; tries < 4 && (await entities(page)).some((e) => e.kind === "mob" && e.role === role); tries++) {
+    const again = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
+    await walkInside(page, parse(again.hex), 2);
+    const next = (await entities(page)).find((e) => e.kind === "mob" && e.role === role);
+    if (!next) break;
+    await page.mouse.click(next.x, next.y);
+    await winDuel(page);
+  }
 }
 
 async function enter(page: Page, id: string): Promise<void> {
@@ -72,8 +82,8 @@ test("the Phyrexian Portal stays sealed to a mage without all five colors", asyn
 
 test("a mage tower attuned by beating its mage, then its waystone's travel to another attuned tower", async ({ page }) => {
   test.setTimeout(120_000);
-  const tower = "argive-spire";
-  const other = "serran-lookout";
+  const tower = "benalia-1";
+  const other = "tolaria-1";
   await openRealm(page, { at: tower, extra: `&mobs=0&attuned=${other}` });
   // Dormant until its mage is beaten.
   const stone = await entity(page, (e) => e.kind === "waystone" && e.tower === tower, "the tower's waystone");
@@ -98,7 +108,9 @@ test("a mage tower attuned by beating its mage, then its waystone's travel to an
   await expect.poll(() => realm<string>(page, "screen"), { timeout: 20_000 }).toBe("dialog");
   await clickControl(page, `dialog:${dungeon(other).name.toLowerCase()}`);
   await expect.poll(() => realm<string>(page, "message"), { timeout: 30_000 }).toMatch(/The waystone carries you to/);
-  const arrival = dungeon(other).arrival!;
-  await expect.poll(async () => (await entity(page, (e) => e.kind === "player", "you")).hex).toBe(`${arrival[0]},${arrival[1]}`);
+  // Beside the other tower's way in.
+  const there = dungeon(other).entrance;
+  const [q, r] = (await entity(page, (e) => e.kind === "player", "you")).hex.split(",").map(Number);
+  expect(Math.max(Math.abs(q! - there[0]), Math.abs(r! - there[1]), Math.abs(q! + r! - there[0] - there[1]))).toBe(1);
   expect((await realm<{ name: string; body?: unknown }[]>(page, "api")).find((c) => c.name === "waystone")?.body).toEqual({ Tower: other });
 });

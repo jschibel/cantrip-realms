@@ -433,7 +433,18 @@ export class Hud {
         const p = pic.at({ q, r });
         const [red, green, blue, alpha] = g.getImageData(Math.round(p.x), Math.round(p.y), 1, 1).data;
         if (!alpha) return 0;
-        return Math.max(0, TIER_COLORS.findIndex((c, t) => t > 0 && rgb(c)[0] === red && rgb(c)[1] === green && rgb(c)[2] === blue));
+        // A canvas keeps its colors premultiplied, so a translucent one reads back near itself, not exactly.
+        let best = 0;
+        let gap = 40;
+        TIER_COLORS.forEach((c, t) => {
+          const [cr, cg, cb] = rgb(c);
+          const d = Math.abs(cr - red!) + Math.abs(cg - green!) + Math.abs(cb - blue!);
+          if (t > 0 && d < gap) {
+            gap = d;
+            best = t;
+          }
+        });
+        return best;
       },
     };
   }
