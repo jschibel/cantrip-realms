@@ -344,7 +344,8 @@ and no other vendor deals in it:
   `d` (UTC) its caravan is in `towns[d mod towns.length]` from `hour` o'clock UTC for `hours` hours (within the day), a
   schedule of the date alone. Each visit brings 3 cards of its plane's off-plane cards, which leave with it; it buys any
   off-plane card at half, and that card too leaves with it. It trades only while its caravan is in the character's town:
-  the character in the world within the town's radius (in tiles, Chebyshev: Places), or in a building of the town (409 `NotNear` otherwise). The
+  the character in the world within the town's radius (in tiles, Chebyshev: Places), or in a building of the town (409
+  `NotNear` otherwise). The
   traders' towns are New Benalia, Capashen Hold, the Llanowar elfhames, Keld and Walassa's Tolarian Academy
   (`new-benalia`, `capashen-hold`, `llanowar`, `keld`, `tolarian-academy`), each with a pitch (world.json's `pitches`)
   where the overworld stands a trader's caravan while its visit lasts; their hours are set so that one caravan at a time
@@ -356,7 +357,8 @@ interiors, entrances' dungeons as world.json places them, dungeons' mobs, warden
 town, inns' towns, traders' towns, an interior's `town` its doors' town); every tile a character is put on or meets
 something at is open (inns, doors, exits - each on or beside a door into its interior -, entries, entrances, spawns,
 pitches - each in its town -), and every ferry's lane is a walk from its `from` to its `to`; every chunk is its file's
-(`cx`, `cz`) and 32 by 32 well-formed tiles; every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
+(`cx`, `cz`) and 32 by 32 well-formed tiles; every mob's deck, gear, creature and mesh resolve; every mob is met
+somewhere and every shop is kept
 somewhere; every relic is a card from a boss and in no pool; the off-plane pool shares no card with any pool, its cards
 are legal and priced and its tags are planes; every record of cards.json is a card the engine has, priced by the formula, its
 relic flag relics.json's; every trader's plane is a plane not walked with cards to bring; and
@@ -428,7 +430,8 @@ player with no character is 404 `NoCharacter`.
 - `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
   the character at the inn - and the call is refused 409 `Unfinished`); the spawn (404 `NotThere`); that the mob
   is one of the spawn's (409 `NotThere`); that the character is in the world within `radius + 8` tiles of the spawn point
-  (its wander radius, the 6 it chases, and 2 for walking on since the last report; Chebyshev, Places; 409 `NotNear`); that the spawn holds
+  (its wander radius, the 6 it chases, and 2 for walking on since the last report; Chebyshev, Places; 409 `NotNear`);
+  that the spawn holds
   that mob for the character this epoch or the one before (409 `NotThere`) and that it has not been fought in that epoch
   (409 `TooSoon`); and that the deck is legal (422 `IllegalDeck`). Then it commits the duel. A duel not finished within
   24 hours counts as lost.
