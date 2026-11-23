@@ -28,8 +28,8 @@ export interface SurfaceLook {
   /** Cards of standing grass a tile, on average. */
   readonly tufts?: number;
   /**
-   * The ramp standing tufts are painted in, when not the slice's green (dry plains, tundra, reeds). A renderer that
-   * cannot color tufts draws them green: so only green-ish surfaces carry `tufts` until it can (conversion.md).
+   * The ramp standing tufts are painted in, when not the slice's green (dry plains, tundra, reeds): render/grass.ts
+   * paints each tile's tufts in its surface's ramp (flowers only in the green).
    */
   readonly tuftRamp?: Ramp;
   /**

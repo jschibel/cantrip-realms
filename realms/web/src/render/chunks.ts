@@ -172,6 +172,7 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
       },
       seedOf(c.cx, c.cz),
       (x, z) => floorAt(tileAt, x + 0.5, z + 0.5),
+      (i, j) => lookOf(tileAt(x0 + i, z0 + j)?.[1] ?? NO_SURFACE)?.tuftRamp,
     ),
   );
   place.settle(section);

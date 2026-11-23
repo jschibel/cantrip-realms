@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as C from "../art/paint/colors";
 import { bandShader, textureOf } from "./lighting";
+import { type Ramp, rampKey } from "../art/paint/palette";
 import { Pixmap, seeded } from "../art/paint/pixmap";
 import { sprite } from "../art/paint/sprite";
 
@@ -44,15 +45,28 @@ const TUFTS = [
   ],
 ];
 
-/** The tuft cards' picture: the variants side by side. */
-function tuftAtlas(): Pixmap {
-  const g = C.GRASS;
-  const p = new Pixmap(8 * TUFTS.length, 6);
+/** The variants with flowers in them (2 and 3): only the slice's green grass flowers; reeds, plains and frost do not. */
+const FLOWERED = 2;
+
+/** The tuft cards' picture: the variants side by side, a row of them in each ramp, top to bottom. */
+export function tuftAtlas(ramps: readonly Ramp[] = [C.GRASS]): Pixmap {
+  const p = new Pixmap(8 * TUFTS.length, 6 * ramps.length);
   p.fill(0, 0);
-  TUFTS.forEach((rows, i) => {
-    p.blit(sprite(rows, { a: g[5]!, b: g[4]!, c: g[3]!, f: C.PINK[3]!, y: C.GOLD[4]!, w: 0xfff8e8, g: g[2]! }), i * 8, 0);
-  });
+  ramps.forEach((g, row) =>
+    TUFTS.forEach((rows, i) => {
+      p.blit(sprite(rows, { a: g[5]!, b: g[4]!, c: g[3]!, f: C.PINK[3]!, y: C.GOLD[4]!, w: 0xfff8e8, g: g[2]! }), i * 8, row * 6);
+    }),
+  );
   return p;
+}
+
+/** The atlases made, by their ramps: every chunk of a biome shares one texture. */
+const atlases = new Map<string, THREE.DataTexture>();
+function tuftTexture(ramps: readonly Ramp[]): THREE.DataTexture {
+  const key = ramps.map(rampKey).join(",");
+  let t = atlases.get(key);
+  if (!t) atlases.set(key, (t = textureOf(tuftAtlas(ramps), false)));
+  return t;
 }
 
 export interface GrassField {
@@ -65,7 +79,9 @@ export interface GrassField {
 /**
  * Tufts over a block of tiles `width` by `height` from `origin`, `tufts(x, z)` of them on average on each (0 for none:
  * x and z count from the block's corner), each card half a tile wide and lit as the ground is. One instanced mesh draws
- * them all. The tiles are visited row by row, so a block's tufts stand where they did whatever lies round it.
+ * them all. The tiles are visited row by row, so a block's tufts stand where they did whatever lies round it. Each
+ * tile's tufts are painted in `rampAt(x, z)` (its surface's `tuftRamp`), the slice's green where it gives none; only
+ * green tufts have flowers.
  */
 export function grassField(
   width: number,
@@ -75,16 +91,23 @@ export function grassField(
   seed = 9,
   /** The ground's height on a tile in the world (a terrace), for the tufts on it to stand on. */
   heightAt: (x: number, z: number) => number = () => 0,
+  /** The ramp a tile's tufts are painted in (x and z as `tufts` has them); none, the slice's green. */
+  rampAt: (x: number, z: number) => Ramp | undefined = () => undefined,
 ): GrassField {
   const random = seeded(seed);
-  const spots: { x: number; y: number; z: number; variant: number; scale: number }[] = [];
+  const ramps: Ramp[] = [C.GRASS];
+  const spots: { x: number; y: number; z: number; variant: number; tone: number; scale: number }[] = [];
   for (let z = 0; z < height; z++) {
     for (let x = 0; x < width; x++) {
       const perTile = tufts(x, z);
       if (perTile <= 0) continue;
+      const ramp = rampAt(x, z) ?? C.GRASS;
+      let tone = ramps.indexOf(ramp);
+      if (tone < 0) tone = ramps.push(ramp) - 1;
       const n = Math.floor(perTile * (0.5 + random()));
       for (let k = 0; k < n; k++) {
-        spots.push({ x: origin.x + x + random(), y: heightAt(origin.x + x, origin.z + z), z: origin.z + z + random(), variant: random() < 0.85 ? Math.floor(random() * 2) : 2 + Math.floor(random() * 2), scale: 0.85 + random() * 0.3 });
+        const variant = random() < 0.85 ? Math.floor(random() * 2) : 2 + Math.floor(random() * 2);
+        spots.push({ x: origin.x + x + random(), y: heightAt(origin.x + x, origin.z + z), z: origin.z + z + random(), variant: tone === 0 ? variant : variant % FLOWERED, tone, scale: 0.85 + random() * 0.3 });
       }
     }
   }
@@ -94,12 +117,12 @@ export function grassField(
   geometry.translate(0, 0.1875, 0);
   const normals = geometry.getAttribute("normal");
   for (let i = 0; i < normals.count; i++) normals.setXYZ(i, 0, 1, 0);
-  // Which variant each card shows: an offset into the picture.
-  const variants = new Float32Array(spots.length);
-  spots.forEach((s, i) => (variants[i] = s.variant));
-  geometry.setAttribute("variant", new THREE.InstancedBufferAttribute(variants, 1));
+  // Which variant each card shows and in which ramp: a column and a row of the picture (the first row at the top).
+  const variants = new Float32Array(spots.length * 2);
+  spots.forEach((s, i) => variants.set([s.variant, ramps.length - 1 - s.tone], i * 2));
+  geometry.setAttribute("variant", new THREE.InstancedBufferAttribute(variants, 2));
 
-  const texture = textureOf(tuftAtlas(), false);
+  const texture = tuftTexture(ramps);
   const material = new THREE.MeshLambertMaterial({ map: texture, alphaTest: 0.5, side: THREE.DoubleSide });
   material.userData.skipNormal = true;
   const time = { value: 0 };
@@ -108,10 +131,10 @@ export function grassField(
     shader.uniforms.grassTime = time;
     shader.uniforms.grassYaw = yaw;
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\nattribute float variant;\nuniform float grassTime;\nuniform float grassYaw;`)
+      .replace("#include <common>", `#include <common>\nattribute vec2 variant;\nuniform float grassTime;\nuniform float grassYaw;`)
       .replace(
         "#include <uv_vertex>",
-        `#include <uv_vertex>\nvMapUv = vec2((uv.x + variant) / ${TUFTS.length.toFixed(1)}, uv.y);`,
+        `#include <uv_vertex>\nvMapUv = vec2((uv.x + variant.x) / ${TUFTS.length.toFixed(1)}, (uv.y + variant.y) / ${ramps.length.toFixed(1)});`,
       )
       .replace(
         "#include <begin_vertex>",

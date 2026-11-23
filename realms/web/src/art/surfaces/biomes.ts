@@ -179,6 +179,7 @@ export function defineBiomes(define: Define): void {
   define("tundra", "tundra: frost-bitten grass, lichen and pebbles", { grass: R.TUNDRA }, (p) => ({
     picture: G.tundra(ramp(p, "grass")),
     priority: PRIORITY.tundra,
+    tufts: 1,
     tuftRamp: ramp(p, "grass"),
   }));
   define("snow", "snow: soft drifts, blue in their hollows", { snow: R.SNOW }, (p) => ({ picture: G.snow(ramp(p, "snow")), priority: PRIORITY.snow }));

@@ -6,6 +6,7 @@ import { PROPS } from "../art/props";
 import type { Built } from "../art/recipe";
 import { SURFACES, type SurfaceLook } from "../art/surfaces";
 import { CameraRig, type Framing, HEADING_NAMES, NAME_OF, type Zoom } from "../render/camera";
+import { lookOf } from "../render/chunks";
 import { grassField } from "../render/grass";
 import { buildGround } from "../render/ground";
 import { Place } from "../render/place";
@@ -99,7 +100,7 @@ function buildPlace(b: Board): Place {
       const s = b.ground(x, z);
       if (!tuftsOf.has(s)) tuftsOf.set(s, SURFACES.look(s).tufts ?? 0);
       return tuftsOf.get(s)!;
-    }),
+    }, 9, undefined, (x, z) => lookOf(b.ground(x, z))?.tuftRamp),
   );
   return place;
 }
