@@ -1,1 +1,1 @@
-{"id":"orvada-3","name":"The Orvada Tower (3)","theme":"tower","waystone":true,"floors":[1,2],"tier":3,"encounters":[1,2],"mobs":["air-elemental","lord-of-atlantis","river-merfolk"],"warden":"warden-3","boss":"mage-orvada-3","region":"U","entrance":[32,94]}
+{"id":"orvada-3","name":"The Orvadan Tower of the Third Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":3,"encounters":[1,2],"mobs":["air-elemental","lord-of-atlantis","river-merfolk"],"warden":"warden-3","boss":"mage-orvada-3","region":"U","entrance":[32,94]}

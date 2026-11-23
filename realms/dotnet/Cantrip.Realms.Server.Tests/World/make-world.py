@@ -6,10 +6,12 @@ and beside - the generated world.
 
 Writes realms/dotnet/Cantrip.Realms.Server.Tests/World/dominaria/{world/world.json, world/chunks/*.json,
 interiors/*.json, dungeons/*.json}: four by four chunks of 32 hexes (q and r 0 to 127), open grass but for a wall of
-rock in chunk 0_0; every town the vendors name, each with an inn (its innkeeper and a spell table inside) and a shop
-for each of its vendors, New Argive and New Benalia a smithy with an armorer too, and a spell table in New Argive's
-square; spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
-Phyrexian Portal, a cave, and a mage tower for each region and tier with its mage at the top; and two chests. Every mob
+rock in chunk 0_0; the Domains' towns (layout.json's ids and names) the vendors keep shops in and the traders'
+caravans visit, each with an inn (its innkeeper and a spell table inside) and a shop for each of its vendors, New
+Benalia and Capashen Hold a smithy with an armorer too, and a spell table in New Benalia's square; spawns of every
+tier, each listing the roster's wanderers of that tier; the five region dungeons, the Phyrexian Portal, the Hurloon
+caves, and a mage tower for each region and tier with its mage at the top (layout.json's ids, the roster's bosses,
+wardens and mages); and two chests. Every mob
 of realms/content/dominaria/mobs is met somewhere, as the server's content check asks. The same roster gives the same
 files.
 """
@@ -27,22 +29,23 @@ CHUNKS = 4
 # The Domains' five regions (design.md A6): their colors, names and ids.
 REGIONS = [("W", "Benalia", "benalia"), ("U", "Orvada", "orvada"), ("B", "Caligo", "caligo"), ("R", "Keld", "keld"), ("G", "Llanowar", "llanowar")]
 
-# The towns: their kinds and centers. New Benalia, the hub, is the capital, in chunk 0_0; the rest are every town a
-# vendor names.
-TOWNS = {
-    "new-benalia": ("New Benalia", "capital", (16, 16), 10, "benalish"),
-    "new-argive": ("New Argive", "town", (48, 16), 8, "argive"),
-    "tolarian-academy": ("Tolarian Academy", "town", (80, 16), 8, "tolarian"),
-    "urborg": ("Urborg", "town", (112, 16), 8, "urborg"),
-    "keld": ("Keld", "town", (16, 48), 8, "keldon"),
-    "llanowar": ("Llanowar", "town", (48, 48), 8, "llanowar"),
-    "bogwater": ("Bogwater", "village", (80, 48), 5, "urborg"),
-    "capashen-hold": ("Capashen Hold", "village", (112, 48), 5, "benalish"),
-    "ghitu-encampment": ("Ghitu Encampment", "village", (16, 80), 5, "keldon"),
-    "lat-nam": ("Lat-Nam", "village", (48, 80), 5, "tolarian"),
-    "yavimaya-hollow": ("Yavimaya Hollow", "village", (80, 80), 5, "llanowar"),
+# The towns: the Domains' (realms/content/dominaria/layout.json, whose names, kinds and styles they take), each at a
+# center of the test world with the radius of its kind. New Benalia, the hub, is the capital, in chunk 0_0; the rest are
+# every town a vendor keeps a shop in or a trader's caravan visits.
+PLACES = {
+    "new-benalia": (16, 16),
+    "capashen-hold": (48, 16),
+    "tolarian-academy": (80, 16),
+    "vess-estate": (112, 16),
+    "keld": (16, 48),
+    "llanowar": (48, 48),
+    "cabal-crossing": (80, 48),
+    "keldon-watch": (112, 48),
+    "denawa": (16, 80),
+    "steelleaf-glade": (48, 80),
 }
-SMITHIES = ["new-benalia", "new-argive"]
+RADII = {"capital": 10, "town": 8, "village": 5}
+SMITHIES = ["new-benalia", "capashen-hold"]
 
 # Where each door of a town stands, from its center: the inn's first, then a smithy's, then one shop a vendor.
 DOOR_OFFSETS = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, 3), (3, -3), (-2, -2), (2, 2), (-4, 2), (4, -2), (-1, 4), (1, -4)]
@@ -50,14 +53,15 @@ DOOR_OFFSETS = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, 3), (3, -3), (-2, -2), (2
 # The wall of rock nobody walks through: chunk 0_0, q 26, r 2 to 12.
 ROCK = {(26, r) for r in range(2, 13)}
 
-# The five regions' dungeons (design.md A6, "Geography: the Domains"), each with its warden and the boss who unlocks its
-# color: the boss is the mob of the region's color with "boss": true and that "unlocks".
+# The five regions' dungeons (design.md A6, "Geography: the Domains"), by layout.json's ids, names and themes, each
+# with its warden and the boss who unlocks its color: the boss is the mob of the region's color with "boss": true and
+# that "unlocks", as layout.json names it.
 REGION_DUNGEONS = [
-    ("benalish-castle", "The Benalish Castle", "castle", "W", "sanctum-warden", (40, 112)),
-    ("academy-tower", "The Tower of the Tolarian Academy", "tower", "U", "rift-warden", (56, 112)),
-    ("vess-crypts", "The Vess Crypts", "crypt", "B", "tomb-warden", (72, 112)),
-    ("keldon-fortress", "The Keldon Fortress", "caves", "R", "foundry-warden", (88, 112)),
-    ("elfhame-hollow", "The Hollow under the Elfhames", "hollow", "G", "heart-warden", (104, 112)),
+    ("benalish-keep", "W", "sanctum-warden", (40, 112)),
+    ("academy-tower", "U", "rift-warden", (56, 112)),
+    ("vess-crypts", "B", "tomb-warden", (72, 112)),
+    ("keldon-fortress", "R", "foundry-warden", (88, 112)),
+    ("elfhame-hollow", "G", "heart-warden", (104, 112)),
 ]
 PORTAL = ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger", "gitaxian-mindcutter"]
 
@@ -79,6 +83,9 @@ def disc(radius):
 
 
 def main():
+    layout = load(os.path.join(CONTENT, "layout.json"))
+    plans = {t["id"]: t for t in layout["towns"]}
+    dungeon_plans = {d["id"]: d for d in layout["dungeons"]}
     mobs = {m["id"]: m for m in (load(os.path.join(CONTENT, "mobs", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "mobs"))) if f.endswith(".json"))}
     vendors = [load(os.path.join(CONTENT, "vendors", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "vendors"))) if f.endswith(".json")]
 
@@ -108,7 +115,14 @@ def main():
             "exit": {"q": q, "r": r + 1},
         }
 
-    for town, (name, kind, (cq, cr), radius, style) in TOWNS.items():
+    named = {v["town"] for v in vendors if v.get("town")} | {t for v in vendors if v.get("trader") for t in v["trader"]["towns"]}
+    missing = sorted(named - set(PLACES))
+    if missing:
+        raise SystemExit(f"make-world: no place for the towns {', '.join(missing)}")
+    for town, (cq, cr) in PLACES.items():
+        plan = plans[town]
+        name, kind, style = plan["name"], plan["kind"], plan["style"]
+        radius = RADII[kind]
         towns.append({"id": town, "name": name, "kind": kind, "center": [cq, cr], "radius": radius, "style": style})
         doors = iter(DOOR_OFFSETS)
         dq, dr = next(doors)
@@ -120,12 +134,13 @@ def main():
         if town in SMITHIES:
             dq, dr = next(doors)
             interior(f"{town}-smithy", f"{name} Smithy", "smithy", (cq + dq, cr + dr), [{"id": "armorer", "kind": "armorer", "q": 0, "r": -2}])
+        # A shop for each vendor of the town, an exotic wares shop's as any; a traveling trader keeps none.
         for vendor in (v for v in vendors if v.get("town") == town):
             dq, dr = next(doors)
             interior(f"{vendor['id']}-shop", vendor["name"], "shop", (cq + dq, cr + dr), [{"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "q": 0, "r": -2}])
         chunk_of(cq, cr)["npcs"].append({"id": f"{town}-board", "kind": "quest-board", "q": cq + 1, "r": cr + 3})
 
-    # A spell table in New Argive's square, in the world.
+    # A spell table in New Benalia's square, in the world.
     chunks[(0, 0)]["props"].append({"kind": "spell-table", "q": 18, "r": 12})
 
     dungeons = []
@@ -143,8 +158,12 @@ def main():
         return sorted(m["id"] for m in mobs.values() if not m.get("boss") and m["tier"] == tier and not m["id"].startswith("mage-")
                       and "warden" not in m["id"] and m["id"] not in PORTAL and (color is None or m.get("region") == color))
 
-    for id, name, theme, color, warden, at in REGION_DUNGEONS:
+    for id, color, warden, at in REGION_DUNGEONS:
+        plan = dungeon_plans[id]
+        name, theme = plan["name"], plan["theme"]
         boss = next(m["id"] for m in mobs.values() if m.get("boss") and m.get("unlocks") == color)
+        if (plan["boss"], plan["warden"]) != (boss, warden):
+            raise SystemExit(f"make-world: layout.json's {id} has {plan['warden']} and {plan['boss']}, the roster {warden} and {boss}")
         tables = [wanderers(3, color) or wanderers(3), wanderers(4, color) or wanderers(4)]
         dungeon({"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [2, 4], "mobs": tables,
                  "warden": warden, "boss": boss, "region": color}, at)
@@ -152,14 +171,14 @@ def main():
     dungeon({"id": "phyrexian-portal", "name": "The Phyrexian Portal", "theme": "portal", "requires": "WUBRG", "floors": [4, 4], "tier": 4,
              "encounters": [2, 3], "mobs": [PORTAL[:3], PORTAL], "warden": "portal-warden", "boss": "phyrexian-praetor"}, (16, 30))
 
-    dungeon({"id": "keldon-caves", "name": "The Keldon Caves", "theme": "caves", "floors": [1, 2], "tier": 2, "encounters": [1, 3],
-             "mobs": wanderers(2, "R") or wanderers(2), "warden": "warden-2", "boss": (wanderers(2, "R") or wanderers(2))[0], "region": "R"}, (24, 56))
+    dungeon({"id": "hurloon-caves", "name": dungeon_plans["hurloon-caves"]["name"], "theme": "caves", "floors": [1, 2], "tier": 2, "encounters": [1, 3],
+             "mobs": wanderers(2), "warden": "warden-2", "boss": wanderers(2)[0]}, (24, 56))
 
     # A mage tower for each region and tier: <region>-<tier>, its mage mage-<region>-<tier> at the top.
     for i, (color, region_name, region) in enumerate(REGIONS):
         for tier in range(1, 5):
             tower = f"{region}-{tier}"
-            dungeon({"id": tower, "name": f"The {region_name} Tower ({tier})", "theme": "tower", "waystone": True, "floors": [1, 2],
+            dungeon({"id": tower, "name": dungeon_plans[tower]["name"], "theme": "tower", "waystone": True, "floors": [1, 2],
                      "tier": tier, "encounters": [1, 2], "mobs": wanderers(tier, color) or wanderers(tier), "warden": f"warden-{tier}",
                      "boss": f"mage-{region}-{tier}", "region": color}, (8 + 24 * i, 64 + 10 * tier))
 
@@ -168,7 +187,7 @@ def main():
         placed.update(m for t in tables for m in t)
         placed.update([d["warden"], d["boss"]])
 
-    # Spawns: two of each tier, the first in chunk 0_0 near New Argive, each holding every wanderer of the tier.
+    # Spawns: two of each tier, the first in chunk 0_0 near New Benalia, each holding every wanderer of the tier.
     spawn_places = {1: [(10, 4), (44, 36)], 2: [(4, 22), (60, 40)], 3: [(22, 26), (100, 70)], 4: [(30, 6), (120, 120)]}
     counts = {}
     for tier, places in spawn_places.items():

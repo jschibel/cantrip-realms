@@ -155,7 +155,7 @@ public sealed class NativeVerifierTests
         CharacterView me = await browser.Ok<CharacterView>(HttpMethod.Put, "/api/loadout", new { Slots = new Dictionary<string, long?> { ["head"] = worn[0], ["body"] = worn[1] } });
 
         // The warden of Serra's sanctum, who wears plate and a pendant of its own.
-        RunView run = await app.EnterRun(browser, "benalish-castle");
+        RunView run = await app.EnterRun(browser, "benalish-keep");
         RunFloor first = run.Floors[0];
         Assert.Equal("sanctum-warden", first.Warden);
         EncounterView encounter = await RealmApp.Fight(browser, run, 0, first.Encounters.Count, first.Warden!);

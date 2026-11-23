@@ -227,7 +227,9 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
 
   const dungeons: DungeonData[] = layout.dungeons.map((plan) => {
     const site = sites.get(plan.id)!;
-    return dungeonData(plan, colorOf(plan.region), site, Math.max(plan.tier, tierAt(zones, site.entrance)), roster);
+    // A dungeon is at least as hard as the land it stands in; a mage tower is its circle's tier, as its mage and its
+    // mobs are (the roster's mage-<region>-<tier>), wherever it stands.
+    return dungeonData(plan, colorOf(plan.region), site, plan.waystone ? plan.tier : Math.max(plan.tier, tierAt(zones, site.entrance)), roster);
   });
   for (const d of dungeons) files.set(`dungeons/${d.id}.json`, `${JSON.stringify(d, null, 2)}\n`);
 

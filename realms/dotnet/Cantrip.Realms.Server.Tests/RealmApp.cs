@@ -25,12 +25,28 @@ public sealed class RealmApp : WebApplicationFactory<Program>
 {
     private static readonly Lazy<RealmContent> SharedContent = new(() => RealmContent.Load(Root, places: Places));
 
+    private static readonly Lazy<RealmContent> SharedGenerated = new(() => RealmContent.Load(Root));
+
     private readonly string _database = Path.Combine(Path.GetTempPath(), $"cantrip-realm-{Guid.NewGuid():N}.db");
 
     /// <summary>The repository the tests run in.</summary>
     public static string Root => RealmOptions.FindRoot() ?? throw new InvalidOperationException("No repository above the tests.");
 
     public static RealmContent Content => SharedContent.Value;
+
+    /// <summary>The content as the server starts on it: the generated world of realms/content (realms/web's `npm run world`).</summary>
+    public static RealmContent Generated => SharedGenerated.Value;
+
+    /// <summary>The content of a world by name: <c>test</c> (<see cref="Content"/>) or <c>generated</c> (<see cref="Generated"/>).</summary>
+    public static RealmContent Of(string world) => world switch
+    {
+        "test" => Content,
+        "generated" => Generated,
+        _ => throw new ArgumentException($"No world '{world}'.", nameof(world)),
+    };
+
+    /// <summary>Whether this server runs on the generated world rather than the test world.</summary>
+    public bool OnGenerated { get; init; }
 
     /// <summary>The test world (World/make-world.py): its planes' world, interiors and dungeons, read instead of realms/content's.</summary>
     public static string Places => Path.Combine(Root, "realms", "dotnet", "Cantrip.Realms.Server.Tests", "World");
@@ -69,7 +85,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Time);
             services.RemoveAll<RealmContent>();
-            services.AddSingleton(_ => SharedContent.Value);
+            services.AddSingleton(_ => OnGenerated ? SharedGenerated.Value : SharedContent.Value);
             services.RemoveAll<IDuelVerifier>();
             services.AddSingleton<IDuelVerifier>(NativeVerifier ? new NativeDuelVerifier() : Verifier);
             services.RemoveAll<RealmDice>();

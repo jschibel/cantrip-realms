@@ -131,7 +131,7 @@ describe("the world's files", () => {
       const lists = Array.isArray(d.mobs[0]) ? (d.mobs as string[][]) : [d.mobs as string[]];
       // A tower's mage is the roster's `mage-<tower>`.
       for (const mob of [...lists.flat(), d.warden, d.boss]) expect(roster.has(mob), `${d.id}: ${mob}`).toBe(true);
-      if (d.waystone) expect(d.boss).toBe(`mage-${d.id}`);
+      if (d.waystone) expect([d.boss, d.tier]).toEqual([`mage-${d.id}`, Number(d.id.slice(d.id.lastIndexOf("-") + 1))]);
     }
     // Every mob of the roster is met somewhere, as the server's content check asks.
     const met = new Set([...all("spawns").flatMap((s) => s.mobs), ...[...dungeons.values()].flatMap((d) => [...(d.mobs as (string | string[])[]).flat(), d.warden, d.boss])]);

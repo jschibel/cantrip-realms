@@ -33,26 +33,55 @@ public sealed class ContentTests
     }
 
     [Fact]
-    public void Realms_content_with_its_own_world_loads_and_without_one_says_so()
+    public void The_server_starts_on_the_generated_world_of_the_domains()
     {
-        // Until the world generator's world lands in realms/content, the server reads the test world; once it does, the
-        // roster, vendors and dungeons must hold together over it.
-        if (File.Exists(Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "world", "world.json")))
+        // realms/content/dominaria/world, interiors and dungeons, as realms/web/scripts/world.ts writes them from layout.json and
+        // the roster: what the server reads with no REALMS_PLACES.
+        RealmContent content = RealmApp.Generated;
+        RealmWorld world = content.World;
+        Assert.Equal("dominaria", world.Plane);
+        Assert.Equal(400, world.Chunks.Count);
+        Assert.NotEmpty(world.Spawns);
+
+        using JsonDocument layout = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "layout.json")));
+        JsonElement root = layout.RootElement;
+
+        // Its towns are the layout's, each with an inn; New Benalia, where characters start, among them.
+        string[] towns = [.. root.GetProperty("towns").EnumerateArray().Select(town => town.GetProperty("id").GetString()!).Order(StringComparer.Ordinal)];
+        Assert.Equal(towns, content.Towns.Keys.Order(StringComparer.Ordinal));
+        Assert.All(towns, town => Assert.Contains(world.File.Inns, inn => inn.Town == town));
+        Assert.Contains("new-benalia", towns);
+
+        // Every vendor's shop and every trader's town are the world's; the exotic wares shops are New Benalia's and Capashen Hold's.
+        foreach (Vendor vendor in content.Vendors.Values)
         {
-            RealmContent own = RealmContent.Load(RealmApp.Root);
-            Assert.NotEmpty(own.World.Spawns);
+            if (vendor.File.Trader is { } round) Assert.All(round.Towns, town => Assert.Contains(town, content.Towns.Keys));
+            else Assert.Equal(vendor.File.Town, Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id)).Town?.Id);
         }
-        else
+
+        Assert.Equal(["capashen-hold-exotic-wares", "new-benalia-exotic-wares"], content.Vendors.Values.Where(vendor => vendor.Kind == Vendor.ExoticShop).Select(vendor => vendor.Id).Order(StringComparer.Ordinal));
+
+        // Its dungeons are the layout's, and those that name their mobs name the roster's: the region dungeons' bosses who
+        // unlock its colors, the towers' mages, the wardens.
+        string[] dungeons = [.. root.GetProperty("dungeons").EnumerateArray().Select(dungeon => dungeon.GetProperty("id").GetString()!).Order(StringComparer.Ordinal)];
+        Assert.Equal(dungeons, content.Dungeons.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(["garna", "liliana", "lyra-dawnbringer", "rofellos", "teferi"], content.Dungeons.Values.Select(dungeon => content.Mobs[dungeon.File.Boss]).Where(boss => boss.File.Unlocks is not null).Select(boss => boss.Id).Order(StringComparer.Ordinal));
+        foreach (string region in Regions)
         {
-            RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(RealmApp.Root));
-            Assert.Contains("No plane has a world (<plane>/world/world.json).", refused.Problems);
+            for (int tier = 1; tier <= 4; tier++)
+            {
+                RealmDungeon tower = content.Dungeons[$"{region}-{tier}"];
+                Assert.Equal(("tower", true, $"mage-{region}-{tier}"), (tower.File.Theme, tower.File.Waystone, tower.File.Boss));
+            }
         }
     }
 
-    [Fact]
-    public void Everything_the_world_names_is_there_and_everything_there_is_met()
+    [Theory]
+    [InlineData("test")]
+    [InlineData("generated")]
+    public void Everything_the_world_names_is_there_and_everything_there_is_met(string over)
     {
-        RealmContent content = RealmApp.Content;
+        RealmContent content = RealmApp.Of(over);
         RealmWorld world = content.World;
 
         // Spawns: their mobs, each of the spawn's tier, none a boss; on open ground.
@@ -149,10 +178,12 @@ public sealed class ContentTests
         Assert.Contains(wanderers, mob => mob.File.Creature == "Serra Angel");
     }
 
-    [Fact]
-    public void Each_region_has_a_mage_for_every_tier_of_tower()
+    [Theory]
+    [InlineData("test")]
+    [InlineData("generated")]
+    public void Each_region_has_a_mage_for_every_tier_of_tower(string over)
     {
-        RealmContent content = RealmApp.Content;
+        RealmContent content = RealmApp.Of(over);
         foreach (string region in Regions)
         {
             for (int tier = 1; tier <= 4; tier++)
@@ -162,7 +193,7 @@ public sealed class ContentTests
                 Assert.Equal((tier, false), (mage.File.Tier, mage.File.Boss));
                 Assert.Contains(mage.Deck.Entries, entry => entry.Card == mage.File.Creature);
 
-                // Its tower, in the test world: one or two floors, the mage at the top, a waystone.
+                // Its tower: the mage at the top, a waystone.
                 RealmDungeon dungeon = content.Dungeons[tower];
                 Assert.Equal(("tower", true, mage.Id, tier), (dungeon.File.Theme, dungeon.File.Waystone, dungeon.File.Boss, dungeon.File.Tier));
             }
@@ -350,7 +381,7 @@ public sealed class ContentTests
             Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"interior\":\"new-benalia-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
             Edit(Path.Combine(places, "dungeons", "phyrexian-portal.json"), json => json.Replace("\"requires\":\"WUBRG\"", "\"requires\":\"WX\"", StringComparison.Ordinal));
-            Edit(Path.Combine(places, "dungeons", "keldon-caves.json"), json => json.Replace("\"boss\":\"", "\"boss\":\"x", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "dungeons", "hurloon-caves.json"), json => json.Replace("\"boss\":\"", "\"boss\":\"x", StringComparison.Ordinal));
 
             RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(root, Path.Combine(RealmApp.Root, "content"), Path.Combine(root, "places")));
             Assert.Contains(refused.Problems, problem => problem.Contains("missing.txt", StringComparison.Ordinal));
@@ -364,7 +395,7 @@ public sealed class ContentTests
             Assert.Contains(refused.Problems, problem => problem.Contains("leads into 'nowhere', which is no interior.", StringComparison.Ordinal));
             Assert.Contains("interior new-benalia-smithy: no door of the world leads into it.", refused.Problems);
             Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
-            Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon keldon-caves: its boss 'x", StringComparison.Ordinal));
+            Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon hurloon-caves: its boss 'x", StringComparison.Ordinal));
         }
         finally
         {

@@ -25,8 +25,9 @@ set REALMS_DEV_SIGNIN=1
 dotnet run --project realms\dotnet\Cantrip.Realms.Server --urls http://localhost:5080
 ```
 
-Until the world generator's world is in `realms/content/dominaria/world`, the server has no world to stand characters in
-and refuses to start; point it at the tests' world meanwhile:
+It starts on the world the generator writes (`realms/content/dominaria/world`, its interiors and dungeons: `npm run
+world` in `realms/web`), the Domains, with new characters outside New Benalia's inn. `REALMS_PLACES` points it at
+another world instead, such as the tests' small one:
 
 ```
 set REALMS_PLACES=%CD%\realms\dotnet\Cantrip.Realms.Server.Tests\World
@@ -84,9 +85,11 @@ dotnet test realms\dotnet\Cantrip.Realms.sln --filter "Category!=WallClock"
 
 runs everything but the native engine's whole games, against a fake clock and a fake duel verifier, over the roster,
 gear and vendors of `realms/content` and the tests' own small world (`Cantrip.Realms.Server.Tests/World`: four by four
-chunks, every town the vendors name with its inn and shops, spawns of every tier, the region dungeons, the Portal, a
-cave and the twenty mage towers). `World/make-world.py` writes it from the roster and the vendors; run it after either
-changes. The duel verifier's
+chunks, the Domains' towns the vendors keep shops in and the traders visit, with their inns and shops, spawns of every
+tier, the region dungeons, the Portal, the Hurloon caves and the twenty mage towers, by `layout.json`'s ids).
+`World/make-world.py` writes it from the layout, the roster and the vendors; run it after any of them changes. The
+content checks run over the generated world too (`RealmApp.Generated`), since the server starts on it, and a server
+test plays on it (`new RealmApp { OnGenerated = true }`). The duel verifier's
 own tests play whole duels on the native engine (build it first, as above):
 
 ```

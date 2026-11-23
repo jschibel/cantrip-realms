@@ -59,7 +59,7 @@ public sealed class ArmorerChestTests
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
         await browser.Inside("new-benalia-inn");
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Inside("new-argive-smithy");
+        await browser.Inside("capashen-hold-smithy");
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-benalia/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 

@@ -48,7 +48,7 @@ public sealed class DealerTests
         Assert.All(content.Starters.Values.SelectMany(decks => decks.Values), deck => Assert.DoesNotContain(deck.Entries, entry => content.Cards.IsOffPlane(entry.Card)));
 
         // The exotic shops are New Benalia's and one more big town's; the traders round the five towns.
-        Assert.Equal(["keld", "new-benalia"], content.Vendors.Values.Where(vendor => vendor.Kind == Vendor.ExoticShop).Select(vendor => vendor.File.Town).Order(StringComparer.Ordinal));
+        Assert.Equal(["capashen-hold", "new-benalia"], content.Vendors.Values.Where(vendor => vendor.Kind == Vendor.ExoticShop).Select(vendor => vendor.File.Town).Order(StringComparer.Ordinal));
         List<Vendor> traders = [.. content.Vendors.Values.Where(vendor => vendor.Kind == Vendor.Traveler)];
         Assert.True(traders.Count >= 10);
         Assert.All(traders, trader => Assert.Equal(["capashen-hold", "keld", "llanowar", "new-benalia", "tolarian-academy"], trader.File.Trader!.Towns.Order(StringComparer.Ordinal)));
