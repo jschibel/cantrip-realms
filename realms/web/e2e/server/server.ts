@@ -1,6 +1,5 @@
 import { type APIRequestContext, type Page, expect } from "@playwright/test";
-import { DIRECTIONS, type Hex, hex } from "../../src/hex";
-import { dungeon, openWorld, realm } from "../realm";
+import { type Tile, dungeon, openWorld, realm } from "../realm";
 
 // What the suites against the real realm server share (playwright.config.ts here): the server's address, the page's
 // query, the development sign-in, the API as the server answers it, and the development calls a test arranges with
@@ -9,7 +8,7 @@ import { dungeon, openWorld, realm } from "../realm";
 export const SERVER = process.env.REALMS_E2E_SERVER!;
 
 /** The page's query: the real server, the stand-in card layer, the test hooks, and nothing left to chance. */
-export const query = (extra = "") => `/?server=${encodeURIComponent(SERVER)}&cards=stub&test&wander=0&encounters=never${extra}`;
+export const query = (extra = "") => `/?server=${encodeURIComponent(SERVER)}&cards=stub&test&manual&wander=0&encounters=never${extra}`;
 
 /** Signs a player in on the server by the development sign-in: the cookie goes to the page's browser context. */
 export async function signIn(request: APIRequestContext, id: number, name: string): Promise<void> {
@@ -35,16 +34,19 @@ export async function character(request: APIRequestContext, id: number, name: st
   await post(request, "api/character", { Name: name, Body: "tall", Palette: 1, Color: color });
 }
 
-/** Puts the signed-in character on a hex of the world (or an interior) at once: a test's start, test-only (POST /dev/place). */
-export const place = (request: APIRequestContext, at: Hex, space = "world") => post(request, "dev/place", { Space: space, Q: at.q, R: at.r });
+/** Puts the signed-in character on a tile of the world (or an interior) at once: a test's start, test-only (POST /dev/place). */
+export const place = (request: APIRequestContext, at: Tile, space = "world") => post(request, "dev/place", { Space: space, X: at.x, Z: at.z });
 
 /** Has the server judge the signed-in player's duels as said, a stand-in win counting (POST /dev/verdict); null replays them. */
 export const verdict = (request: APIRequestContext, outcome: "won" | "lost" | null) => post(request, "dev/verdict", { Outcome: outcome });
 
-/** The hex beside a dungeon's way in where leaving it puts a character: its first open neighbour in hex.ts's order. */
-export function besideEntrance(id: string): Hex {
-  const [q, r] = dungeon(id).entrance;
-  return DIRECTIONS.map((d) => hex(q + d.q, r + d.r)).find(openWorld)!;
+/** The server's order of the eight steps (Tile.Steps): south, east, west, north, then the diagonals. */
+const STEPS = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
+
+/** The tile beside a dungeon's way in where leaving it puts a character: its first open neighbour in the server's order. */
+export function besideEntrance(id: string): Tile {
+  const [x, z] = dungeon(id).entrance;
+  return STEPS.map(([dx, dz]) => ({ x: x + dx, z: z + dz })).find(openWorld)!;
 }
 
 export interface Me {
@@ -53,8 +55,8 @@ export interface Me {
   readonly Body: string;
   readonly Identity: string;
   readonly Space: string;
-  readonly Q: number;
-  readonly R: number;
+  readonly X: number;
+  readonly Z: number;
   readonly AnteValue: number;
   readonly Attuned: readonly string[];
   readonly Loadout: Record<string, { readonly InstanceId: number } | null>;

@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { entity, openNear, realm, waitReady, world } from "../realm";
+import { advance, entity, openNear, realm, until, waitReady, world } from "../realm";
 
 // Both layers on one page against the real realm server (playwright.config.ts here): the overworld frames the real card
 // layer - the web client's ?realm page, on an origin of its own - and a duel started in the world is dealt and played on
@@ -12,7 +12,7 @@ const SERVER = process.env.REALMS_E2E_SERVER!;
 const CARDS = process.env.REALMS_E2E_CARDS!;
 
 const query = (extra = "") =>
-  `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never${extra}`;
+  `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&manual&wander=0&encounters=never${extra}`;
 
 async function signIn(request: APIRequestContext, id: number, name: string): Promise<void> {
   const response = await request.post(new URL("dev/signin", SERVER).toString(), { data: { Id: id, Name: name } });
@@ -65,7 +65,8 @@ test("a duel started in the world is played in the real card layer, and its log 
   // By a spawn of the wilds near New Benalia, where the test puts the character (POST /dev/place, test-only); the card
   // layer boots behind the world meanwhile.
   const spawn = spawnNear("new-benalia");
-  const placed = await page.request.post(new URL("dev/place", SERVER).toString(), { data: { Space: "world", Q: openNear(spawn, 6).q, R: openNear(spawn, 6).r } });
+  const start = openNear(spawn, 6);
+  const placed = await page.request.post(new URL("dev/place", SERVER).toString(), { data: { Space: "world", X: start.x, Z: start.z } });
   expect(placed.ok(), await placed.text()).toBe(true);
   await page.goto(query());
   await waitReady(page);
@@ -74,7 +75,7 @@ test("a duel started in the world is played in the real card layer, and its log 
   // The scout engaged: the encounter starts on the server and the duel opens in the card layer, dealt on its engine.
   const scout = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await page.mouse.click(scout.x, scout.y);
-  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe("duel");
+  await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "the duel", 60);
   await expect
     .poll(async () => {
       const state = await cardState(page);
@@ -96,9 +97,10 @@ test("a duel started in the world is played in the real card layer, and its log 
 
   // Back in the world, waking outside the start town's inn.
   await expect.poll(() => realm<string | null>(page, "layer.open")).toBe(null);
-  await expect.poll(() => realm<string>(page, "message"), { timeout: 30_000 }).toMatch(/You lost the duel, and wake at the inn/);
-  const me = (await (await page.request.get(new URL("api/me", SERVER).toString())).json()) as { Space: string; Q: number; R: number };
+  await until(page, async () => /You lost the duel, and wake at the inn/.test((await realm<string>(page, "message")) ?? ""), "woken at the inn", 60);
+  const me = (await (await page.request.get(new URL("api/me", SERVER).toString())).json()) as { Space: string; X: number; Z: number };
   const capital = world().towns.find((t) => t.kind === "capital")!;
   const inn = world().inns.find((i) => i.town === capital.id)!;
-  expect(me).toMatchObject({ Space: "world", Q: inn.q, R: inn.r });
+  expect(me).toMatchObject({ Space: "world", X: inn.x, Z: inn.z });
+  void advance;
 });
