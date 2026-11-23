@@ -7,6 +7,7 @@ import * as T from "../paint/textures";
 import type { Frames } from "../recipe";
 import * as D from "./draw";
 import { bool, drawn, num, point } from "./registry";
+import type { PropData } from "../../world/format";
 
 // Furniture by id: a shop's hearth, shelves, counter and wares, and a crypt's ossuary, pillars, dais, braziers and
 // coffins. Most stand against a room's back wall (z = 0, facing south) or on its floor; each says where its anchor is.
@@ -28,16 +29,44 @@ function flames(n: number, card: (b: MeshBuilder, face: ReturnType<typeof fitted
   };
 }
 
+/** A wall prop's turn: its `rot` in quarter turns as a building's (1 faces west, 2 north, 3 east), and its `turn`. */
+const wallTurn = (p: PropData): number => (-(p.rot ?? 0) * Math.PI) / 2 - (p.turn ?? 0);
+
+/**
+ * Draws something that hangs on or stands against a wall: `draw(x, z)` with its wall's face at `z` (facing south) and
+ * its middle or left at `x`, as each entry says. The wall is the prop's own `z` - a room's back wall is 0 - and its
+ * `rot` turns it to face another way, about its anchor.
+ */
+function onWall(b: MeshBuilder, p: PropData, draw: (x: number, z: number) => void): void {
+  const turn = wallTurn(p);
+  if (turn === 0) draw(p.x, p.z);
+  else b.at(p.x, 0, p.z, turn, () => draw(0, 0));
+}
+
+/**
+ * Where a point `dx`, `dz` from a wall prop's anchor (in its own frame, facing south) lands once it is turned: a
+ * flame's foot. Flames are cards facing the camera whatever wall they burn on, so they are drawn there unturned.
+ */
+function wallSpot(p: PropData, dx: number, dz: number): [number, number] {
+  const t = wallTurn(p);
+  if (t === 0) return [p.x + dx, p.z + dz];
+  const c = Math.cos(t);
+  const s = Math.sin(t);
+  return [p.x + dx * c + dz * s, p.z - dx * s + dz * c];
+}
+
 // --- A shop ------------------------------------------------------------------------------------------------------------
 
-drawn("hearth", "a stone hearth in the back wall, its middle at x, its fire burning", (b, p) => {
-  const x = p.x;
+drawn("hearth", "a stone hearth against a wall (its face at z), its middle at x, its fire burning", (b, p) => {
   const hearth = material("hearth", () => Pic.hearth(44, 36));
   const stone = tiled(stock.cobbleWall());
-  b.box(x - 1.375, 0, 0, x + 1.375, 2.25, 0.4, { south: fitted(hearth), top: stone, east: stone, west: stone });
-  b.box(x - 1.5, 1.75, 0, x + 1.5, 1.875, 0.55, sides(tiled(stock.timber())));
-  b.box(x - 1.125, 2.25, 0, x + 1.125, 3.0, 0.25, sides(stone));
-  return { frames: [flames(16, (fb, face) => fb.card(face, x - 0.5, 0.05, x + 0.5, 1.05, 0.42))] };
+  onWall(b, p, (x, z) => {
+    b.box(x - 1.375, 0, z, x + 1.375, 2.25, z + 0.4, { south: fitted(hearth), top: stone, east: stone, west: stone });
+    b.box(x - 1.5, 1.75, z, x + 1.5, 1.875, z + 0.55, sides(tiled(stock.timber())));
+    b.box(x - 1.125, 2.25, z, x + 1.125, 3.0, z + 0.25, sides(stone));
+  });
+  const [fx, fz] = wallSpot(p, 0, 0.42);
+  return { frames: [flames(16, (fb, face) => fb.card(face, fx - 0.5, 0.05, fx + 0.5, 1.05, fz))] };
 });
 
 drawn("candle", "a candle in a brass dish at x, z, standing at y", (b, p) => candle(b, p.x, p.y ?? 0, p.z));
@@ -47,29 +76,29 @@ drawn("skull", "a skull ornament on a shelf: its left at x, its foot at y, its f
   b.card(fitted(material("mantel-skull", () => Pic.skull(), { cutout: true })), p.x, y, p.x + 5 / 16, y + 5 / 16, p.z);
 });
 
-drawn("bookshelf", "a tall shelf against the back wall from x, of books or (args.goods) bottled wares, its seed", (b, p) => {
+drawn("bookshelf", "a tall shelf against a wall (its face at z) from x, of books or (args.goods) bottled wares, its seed", (b, p) => {
   const goods = bool(p, "goods");
   const seed = p.seed ?? 5;
   const front = fitted(material(`shelf-${goods ? "goods" : "books"}-${seed}`, () => Pic.bookshelf(seed, goods)));
-  b.box(p.x, 0, 0, p.x + 1.0, 2.0, 0.45, { south: front, top: tiled(stock.darkTimber()), east: tiled(stock.timber()), west: tiled(stock.timber()) });
+  onWall(b, p, (x, z) => b.box(x, 0, z, x + 1.0, 2.0, z + 0.45, { south: front, top: tiled(stock.darkTimber()), east: tiled(stock.timber()), west: tiled(stock.timber()) }));
 });
 
-drawn("back-window", "a window in the back wall, daylight behind it, from x to x + 1, its sill at y", (b, p) => {
+drawn("back-window", "a window in a wall (its face at z), daylight behind it, from x to x + 1, its sill at y", (b, p) => {
   const y = p.y ?? 1.125;
-  b.card(fitted(material("window-in", () => Pic.windowPicture(true), { glow: 0.6 })), p.x, y, p.x + 1, y + 1.125, 0.02);
+  onWall(b, p, (x, z) => b.card(fitted(material("window-in", () => Pic.windowPicture(true), { glow: 0.6 })), x, y, x + 1, y + 1.125, z + 0.02));
 });
 
-drawn("poster", "a poster on the back wall: its left at x, its foot at y; its seed", (b, p) => {
+drawn("poster", "a poster on a wall (its face at z): its left at x, its foot at y; its seed", (b, p) => {
   const seed = p.seed ?? 2;
   const y = p.y ?? 0;
-  b.card(fitted(material(seed === 2 ? "poster-a" : `poster-${seed}`, () => Pic.poster(seed))), p.x, y, p.x + 0.625, y + 0.4375, 0.02);
+  onWall(b, p, (x, z) => b.card(fitted(material(seed === 2 ? "poster-a" : `poster-${seed}`, () => Pic.poster(seed))), x, y, x + 0.625, y + 0.4375, z + 0.02));
 });
 
-drawn("blade-rack", "a rack of blades on the back wall, its middle at x, its foot at y", (b, p) => bladeRack(b, p.x, p.y ?? 1.25));
+drawn("blade-rack", "a rack of blades on a wall (its face at z), its middle at x, its foot at y", (b, p) => onWall(b, p, (x, z) => bladeRack(b, x, p.y ?? 1.25, z)));
 
-drawn("shield", "a shield hung on the back wall: its left at x, its foot at y", (b, p) => {
+drawn("shield", "a shield hung on a wall (its face at z): its left at x, its foot at y", (b, p) => {
   const y = p.y ?? 2.0;
-  b.box(p.x, y, 0, p.x + 0.625, y + 0.75, 0.06, { south: fitted(material("shield", () => shieldPicture())) });
+  onWall(b, p, (x, z) => b.box(x, y, z, x + 0.625, y + 0.75, z + 0.06, { south: fitted(material("shield", () => shieldPicture())) }));
 });
 
 drawn(
@@ -110,27 +139,30 @@ drawn("rug", "a rug from x, z to args.to", (b, p) => {
 
 const cryptDark = () => tiled(material("crypt-dark", () => T.ashlar([C.DUNGEON[0]!, ...C.DUNGEON.slice(0, 6)], 29, 8, 12, 20)));
 
-drawn("ossuary", "a niche of skulls in the back wall, its middle at x", (b, p) => {
+drawn("ossuary", "a niche of skulls in a wall (its face at z), its middle at x", (b, p) => {
   const ossuary = material("ossuary", () => ossuaryPicture());
-  b.box(p.x - 0.5625, 0.75, -0.05, p.x + 0.5625, 2.25, 0.01, { south: fitted(ossuary) });
+  onWall(b, p, (x, z) => b.box(x - 0.5625, 0.75, z - 0.05, x + 0.5625, 2.25, z + 0.01, { south: fitted(ossuary) }));
 });
 
-drawn("buttress", "a buttress of dark stone against the back wall, its middle at x, args.h high", (b, p) => {
-  b.box(p.x - 0.1875, 0, 0, p.x + 0.1875, num(p, "h", 3.2), 0.25, sides(cryptDark()));
+drawn("buttress", "a buttress of dark stone against a wall (its face at z), its middle at x, args.h high", (b, p) => {
+  onWall(b, p, (x, z) => b.box(x - 0.1875, 0, z, x + 0.1875, num(p, "h", 3.2), z + 0.25, sides(cryptDark())));
 });
 
-drawn("tattered-banner", "a tattered banner on an iron rod against the back wall, its middle at x", (b, p) => {
+drawn("tattered-banner", "a tattered banner on an iron rod against a wall (its face at z), its middle at x", (b, p) => {
   const banner = material("tattered", () => Pic.tatteredBanner(), { cutout: true, twoSided: true });
-  const x = p.x;
-  b.box(x - 0.4375, 2.75, 0.18, x + 0.4375, 2.8125, 0.3, sides(flat(C.IRON[2]!)));
-  b.card(fitted(banner), x - 0.375, 0.75, x + 0.375, 2.75, 0.28);
+  onWall(b, p, (x, z) => {
+    b.box(x - 0.4375, 2.75, z + 0.18, x + 0.4375, 2.8125, z + 0.3, sides(flat(C.IRON[2]!)));
+    b.card(fitted(banner), x - 0.375, 0.75, x + 0.375, 2.75, z + 0.28);
+  });
 });
 
-drawn("torch", "a torch in an iron sconce on the back wall at x, its flame burning", (b, p) => {
-  const x = p.x;
-  b.box(x - 0.0625, 1.75, 0.25, x + 0.0625, 1.875, 0.6, sides(flat(C.IRON[2]!)));
-  b.cylinder(x, 0.6, 1.875, 2.0, 0.125, 6, { mat: flat(C.IRON[3]!) }, { mat: flat(C.FIRE[0]!) });
-  return { frames: [flameAt(x, 1.95, 0.62, 10)] };
+drawn("torch", "a torch in an iron sconce on a wall (its face at z) at x, its flame burning", (b, p) => {
+  onWall(b, p, (x, z) => {
+    b.box(x - 0.0625, 1.75, z + 0.25, x + 0.0625, 1.875, z + 0.6, sides(flat(C.IRON[2]!)));
+    b.cylinder(x, z + 0.6, 1.875, 2.0, 0.125, 6, { mat: flat(C.IRON[3]!) }, { mat: flat(C.FIRE[0]!) });
+  });
+  const [fx, fz] = wallSpot(p, 0, 0.62);
+  return { frames: [flameAt(fx, 1.95, fz, 10)] };
 });
 
 drawn("cobweb", "a cobweb: its corner at x, y, z, args.size across, args.flip to hang it from its right", (b, p) => {
@@ -230,14 +262,14 @@ function coins(b: MeshBuilder, x: number, y: number, z: number): void {
   for (const [dx, dz, h] of [[0, 0, 0.12], [0.14, 0.06, 0.08], [-0.1, 0.1, 0.05], [0.06, -0.12, 0.04]] as const) b.cylinder(x + dx, z + dz, y, y + h, 0.08, 8, { mat: flat(C.GOLD[3]!) }, { mat: gold });
 }
 
-function bladeRack(b: MeshBuilder, x: number, y: number): void {
-  b.box(x - 0.55, y + 1.0, 0, x + 0.55, y + 1.08, 0.15, sides(tiled(stock.darkTimber())));
-  b.box(x - 0.55, y, 0, x + 0.55, y + 0.08, 0.15, sides(tiled(stock.darkTimber())));
+function bladeRack(b: MeshBuilder, x: number, y: number, z = 0): void {
+  b.box(x - 0.55, y + 1.0, z, x + 0.55, y + 1.08, z + 0.15, sides(tiled(stock.darkTimber())));
+  b.box(x - 0.55, y, z, x + 0.55, y + 0.08, z + 0.15, sides(tiled(stock.darkTimber())));
   for (const [i, dx] of [-0.36, -0.12, 0.12, 0.36].entries()) {
     const steel = flat(C.IRON[5]!);
-    b.box(x + dx - 0.03, y + 0.05, 0.08, x + dx + 0.03, y + (i % 2 ? 1.05 : 0.95), 0.12, sides(steel));
-    b.box(x + dx - 0.1, y + 0.18, 0.06, x + dx + 0.1, y + 0.23, 0.14, sides(flat(C.GOLD[3]!)));
-    b.box(x + dx - 0.03, y, 0.08, x + dx + 0.03, y + 0.18, 0.12, sides(flat(C.WOOD[2]!)));
+    b.box(x + dx - 0.03, y + 0.05, z + 0.08, x + dx + 0.03, y + (i % 2 ? 1.05 : 0.95), z + 0.12, sides(steel));
+    b.box(x + dx - 0.1, y + 0.18, z + 0.06, x + dx + 0.1, y + 0.23, z + 0.14, sides(flat(C.GOLD[3]!)));
+    b.box(x + dx - 0.03, y, z + 0.08, x + dx + 0.03, y + 0.18, z + 0.12, sides(flat(C.WOOD[2]!)));
   }
 }
 
