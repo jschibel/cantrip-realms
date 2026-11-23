@@ -17,6 +17,11 @@ import { cuttableOf } from "./xray";
 // `addGrass`) add to its first section, which is the scene itself; `section(key)` makes another, `removeSection(key)`
 // takes it out and frees what it alone holds.
 //
+// A chunk's moving parts are merged too (`addMoving(pieces, true)`): its buildings' cut-aways for the player into one
+// group a material, re-merged without the ones dropped while the player stands behind them (a few such sets kept), and
+// its flames - all burning in step anyway - into one group a frame. Its trees and hedgerows have far stand-ins
+// (`Built.far`), merged apart and shown instead of them at the furthest zoom (`setDetail`).
+//
 // Out of doors at world scale the place pools its lights (`poolLights`): the fires and lamps of every chunk are specs,
 // and a fixed set of lights takes the nearest of them each frame - so streaming a chunk in or out never changes how many
 // lights the shaders are compiled for. Its sun follows the camera (`followSun`), its shadows always round the view.
@@ -27,6 +32,22 @@ interface LiveCutaway {
   readonly low: THREE.Group;
   readonly when: Cutaway["when"];
 }
+
+/**
+ * A chunk's cut-aways for the player, merged: the whole of every one not dropped in one group a material, a group for
+ * each set of them dropped (made when first wanted, the last few kept), and each one's cut-down cap.
+ */
+interface MergedCutaways {
+  readonly fulls: readonly Model[];
+  readonly rects: readonly Rect[];
+  readonly lows: readonly THREE.Group[];
+  /** The whole ones, by the set dropped ("": none, kept always), the most recently shown last. */
+  readonly groups: Map<string, THREE.Group>;
+  shown: string;
+}
+
+/** How many sets of dropped cut-aways a chunk keeps merged besides the one with none dropped. */
+const KEPT_SETS = 3;
 
 /** Small props: what the furthest zoom leaves out, a prop no bigger than this (world units) each way. */
 const DETAIL_SIZE = 1.05;
@@ -42,6 +63,11 @@ export class Section {
   readonly grass: GrassField[] = [];
   /** Shown only near: small props and standing grass. */
   readonly detail: THREE.Object3D[] = [];
+  /** What has a far stand-in: shown near (with the detail), its stand-ins (`far`) at the furthest zoom instead. */
+  readonly near: THREE.Object3D[] = [];
+  readonly far: THREE.Object3D[] = [];
+  /** The player's cut-aways merged (world chunks: `addMoving(pieces, true)`). */
+  readonly merged: MergedCutaways[] = [];
   /** Lights given to the place's pool instead of made (world scale). */
   readonly pooled: LightData[] = [];
 
@@ -58,8 +84,46 @@ export class Section {
     this.add(mesh);
   }
 
-  /** Cut-aways and flames of pieces, each their own meshes. */
-  addMoving(pieces: readonly Built[]): void {
+  /**
+   * Cut-aways and flames of pieces, each their own meshes - or, `merge`d (a world chunk: many buildings, many fires),
+   * the cut-aways for the player as one group a material and the flames as one group a frame (see `MergedCutaways`).
+   */
+  addMoving(pieces: readonly Built[], merge = false): void {
+    if (merge) {
+      const fulls: Model[] = [];
+      const rects: Rect[] = [];
+      const lows: THREE.Group[] = [];
+      const fires = new Map<string, { models: Model[][]; rate: number }>();
+      for (const piece of pieces) {
+        for (const c of piece.cutaways ?? []) {
+          if (!("player" in c.when)) continue;
+          fulls.push(c.full);
+          rects.push(c.when.player);
+          const low = meshesOf(c.low, "cutaway-low");
+          low.visible = false;
+          this.add(low);
+          lows.push(low);
+        }
+        for (const f of piece.frames ?? []) {
+          // Flames step together (floor(time * rate) % frames): those alike merge frame by frame.
+          const key = `${f.rate}:${f.models.length}`;
+          let fire = fires.get(key);
+          if (!fire) fires.set(key, (fire = { models: f.models.map(() => []), rate: f.rate }));
+          f.models.forEach((m, i) => fire!.models[i]!.push(m));
+        }
+      }
+      if (fulls.length > 0) {
+        const all = mergedMeshes(fulls, "cutaways", true);
+        this.add(all);
+        this.merged.push({ fulls, rects, lows, groups: new Map([["", all]]), shown: "" });
+      }
+      for (const { models, rate } of fires.values()) {
+        const groups = models.map((ms) => mergedMeshes(ms, "frame", false, false));
+        for (const g of groups) this.add(g);
+        this.frames.push({ groups, rate });
+      }
+      pieces = pieces.map((p) => ({ model: p.model, cutaways: p.cutaways?.filter((c) => !("player" in c.when)) }));
+    }
     for (const piece of pieces) {
       for (const c of piece.cutaways ?? []) {
         const full = meshesOf(c.full, "cutaway");
@@ -96,17 +160,56 @@ export class Section {
    * merged by material. The streamer does the same a group at a time (`addMoving`, then `addMerged` per group).
    */
   addScenery(pieces: readonly Built[], name: string): THREE.Group[] {
-    this.addMoving(pieces);
-    return sortScenery(pieces.map((p) => p.model), name).map((g) => this.addMerged(g));
+    this.addMoving(pieces, true);
+    return sortScenery(pieces.map((p) => p.model), name, pieces.map((p) => p.far)).map((g) => this.addMerged(g));
   }
 
-  /** One group of sorted scenery merged by material: tall groups take the x-ray's cut, small ones are detail. */
+  /**
+   * One group of sorted scenery merged by material: tall groups take the x-ray's cut, small ones are detail, near ones
+   * give way to their far stand-ins at the furthest zoom.
+   */
   addMerged(g: SceneryGroup): THREE.Group {
     const group = mergedMeshes(g.models, g.label, g.kind === "tall");
     for (const m of g.models) this.noteScrolls(m);
     this.add(group);
     if (g.kind === "small") this.detail.push(group);
+    else if (g.lod === "near") this.near.push(group);
+    else if (g.lod === "far") this.far.push(group);
     return group;
+  }
+
+  /** Shows the player's merged cut-aways with those dropped that the player stands behind (`Place.follow`). */
+  followMerged(player: { readonly x: number; readonly z: number }): void {
+    for (const m of this.merged) {
+      const dropped: number[] = [];
+      m.rects.forEach(([x0, z0, x1, z1], i) => {
+        const inside = player.x > x0 && player.x < x1 && player.z > z0 && player.z < z1;
+        m.lows[i]!.visible = inside;
+        if (inside) dropped.push(i);
+      });
+      const key = dropped.join(",");
+      if (key === m.shown) continue;
+      m.groups.get(m.shown)!.visible = false;
+      let group = m.groups.get(key);
+      if (group) {
+        // The most recently shown last: the oldest goes first.
+        m.groups.delete(key);
+        m.groups.set(key, group);
+      } else {
+        group = mergedMeshes(m.fulls.filter((_, i) => !dropped.includes(i)), "cutaways", true);
+        this.add(group);
+        m.groups.set(key, group);
+        for (const [k, old] of m.groups) {
+          if (m.groups.size <= KEPT_SETS + 1) break;
+          if (k === "" || k === key) continue;
+          old.removeFromParent();
+          old.traverse((o) => (o as THREE.Mesh).isMesh && (o as THREE.Mesh).geometry.dispose());
+          m.groups.delete(k);
+        }
+      }
+      group.visible = true;
+      m.shown = key;
+    }
   }
 
   private noteScrolls(model: Model): void {
@@ -154,6 +257,8 @@ export interface SceneryGroup {
   readonly kind: "tall" | "small" | "rest";
   readonly label: string;
   readonly models: Model[];
+  /** What has a far stand-in ("near"), shown near only, and the stand-ins ("far"), shown at the furthest zoom only. */
+  readonly lod?: "near" | "far";
 }
 
 /** A kind of scenery with more triangles than this is merged in cells of `CELL` tiles, so the view culls it finely. */
@@ -163,34 +268,51 @@ const CELL = 16;
 /**
  * Sorts scenery models into what is tall enough to hide the player, small props, and the rest, each kind one group -
  * or, where a kind is heavy (a forest's trees), one group a cell of 16 by 16 tiles, so what is off screen is culled
- * in smaller pieces and no one merge is a long frame's work.
+ * in smaller pieces and no one merge is a long frame's work. A model with a far stand-in (`fars[i]`, as `Built.far`)
+ * goes to a "near" group of its kind and its stand-in to a "far" one - unless it is small, left out far anyway.
  */
-export function sortScenery(models: readonly Model[], name: string): SceneryGroup[] {
-  const kinds: Record<SceneryGroup["kind"], { model: Model; at: THREE.Vector3; tris: number }[]> = { tall: [], small: [], rest: [] };
-  for (const m of models) {
+export function sortScenery(models: readonly Model[], name: string, fars: readonly (Model | undefined)[] = []): SceneryGroup[] {
+  type Entry = { model: Model; at: THREE.Vector3; tris: number };
+  type Lod = "" | "near" | "far";
+  const kinds: Record<Lod, Record<SceneryGroup["kind"], Entry[]>> = {
+    "": { tall: [], small: [], rest: [] },
+    near: { tall: [], small: [], rest: [] },
+    far: { tall: [], small: [], rest: [] },
+  };
+  const sort = (m: Model, lod: Lod): SceneryGroup["kind"] | null => {
     const box = boxOf(m);
-    if (!box) continue;
+    if (!box) return null;
     const size = box.getSize(new THREE.Vector3());
     const kind = size.y > TALL ? "tall" : size.x <= DETAIL_SIZE && size.z <= DETAIL_SIZE && size.y <= DETAIL_HEIGHT ? "small" : "rest";
-    kinds[kind].push({ model: m, at: box.getCenter(new THREE.Vector3()), tris: m.parts.reduce((n, p) => n + p.indices.length / 3, 0) });
-  }
+    // Small: left out at the furthest zoom, so it needs no stand-in.
+    kinds[kind === "small" && lod === "near" ? "" : lod][kind].push({ model: m, at: box.getCenter(new THREE.Vector3()), tris: m.parts.reduce((n, p) => n + p.indices.length / 3, 0) });
+    return kind;
+  };
+  models.forEach((m, i) => {
+    const far = fars[i];
+    const kind = sort(m, far ? "near" : "");
+    if (far && kind && kind !== "small") sort(far, "far");
+  });
   const out: SceneryGroup[] = [];
-  for (const kind of ["rest", "tall", "small"] as const) {
-    const list = kinds[kind];
-    if (list.length === 0) continue;
-    const label = kind === "rest" ? name : `${name}:${kind}`;
-    if (list.reduce((n, e) => n + e.tris, 0) <= SPLIT_TRIANGLES) {
-      out.push({ kind, label, models: list.map((e) => e.model) });
-      continue;
+  for (const lod of ["", "near", "far"] as const) {
+    for (const kind of ["rest", "tall", "small"] as const) {
+      const list = kinds[lod][kind];
+      if (list.length === 0) continue;
+      const label = `${kind === "rest" ? name : `${name}:${kind}`}${lod ? `:${lod}` : ""}`;
+      const group = (label: string, models: Model[]): SceneryGroup => (lod ? { kind, label, models, lod } : { kind, label, models });
+      if (list.reduce((n, e) => n + e.tris, 0) <= SPLIT_TRIANGLES) {
+        out.push(group(label, list.map((e) => e.model)));
+        continue;
+      }
+      const cells = new Map<string, Model[]>();
+      for (const e of list) {
+        const k = `${Math.floor(e.at.x / CELL)},${Math.floor(e.at.z / CELL)}`;
+        let c = cells.get(k);
+        if (!c) cells.set(k, (c = []));
+        c.push(e.model);
+      }
+      for (const [k, ms] of cells) out.push(group(`${label}@${k}`, ms));
     }
-    const cells = new Map<string, Model[]>();
-    for (const e of list) {
-      const k = `${Math.floor(e.at.x / CELL)},${Math.floor(e.at.z / CELL)}`;
-      let c = cells.get(k);
-      if (!c) cells.set(k, (c = []));
-      c.push(e.model);
-    }
-    for (const [k, ms] of cells) out.push({ kind, label: `${label}@${k}`, models: ms });
   }
   return out;
 }
@@ -198,9 +320,9 @@ export function sortScenery(models: readonly Model[], name: string): SceneryGrou
 /**
  * Models merged straight into meshes, one a material in the order materials are first met (as `mergeModels` and
  * `meshesOf` together make them, but into typed arrays at once: a forest's cell of trees in a few milliseconds).
- * `cut` gives each material its x-ray twin. Casting and taking shadows as `meshesOf` does.
+ * `cut` gives each material its x-ray twin. Casting and taking shadows as `meshesOf` does (none with `shadows` false).
  */
-export function mergedMeshes(models: readonly Model[], name: string, cut: boolean): THREE.Group {
+export function mergedMeshes(models: readonly Model[], name: string, cut: boolean, shadows = true): THREE.Group {
   const byMaterial = new Map<Material, ModelPart[]>();
   for (const m of models) {
     for (const part of m.parts) {
@@ -243,8 +365,8 @@ export function mergedMeshes(models: readonly Model[], name: string, cut: boolea
     const mat = cut ? cuttableOf(material) : material;
     const mesh = new THREE.Mesh(geometry, mat);
     const glowing = !!material.userData.glow;
-    mesh.castShadow = !glowing && !material.userData.flat;
-    mesh.receiveShadow = !glowing;
+    mesh.castShadow = shadows && !glowing && !material.userData.flat;
+    mesh.receiveShadow = shadows && !glowing;
     group.add(mesh);
   }
   return group;
@@ -336,17 +458,33 @@ export class Place {
     this.sections.delete(key);
   }
 
-  /** A newly built section shown as the rest are (small props and grass left out at the furthest zoom). */
+  /**
+   * A newly built section shown as the rest are (small props and grass left out at the furthest zoom, far stand-ins in
+   * place of what has them), its merged cut-aways as the player stands.
+   */
   settle(s: Section): void {
-    for (const o of s.detail) o.visible = this.detailShown;
+    this.showDetail(s);
+    if (this.player) s.followMerged(this.player);
   }
 
-  /** Shows or leaves out the small props and standing grass of every section: the furthest zoom's level of detail. */
+  private showDetail(s: Section): void {
+    for (const o of s.detail) o.visible = this.detailShown;
+    for (const o of s.near) o.visible = this.detailShown;
+    for (const o of s.far) o.visible = !this.detailShown;
+  }
+
+  /**
+   * Shows or leaves out the small props and standing grass of every section, and draws trees and hedgerows near or as
+   * their far stand-ins: the furthest zoom's level of detail.
+   */
   setDetail(shown: boolean): void {
     if (shown === this.detailShown) return;
     this.detailShown = shown;
-    for (const s of this.all()) for (const o of s.detail) o.visible = shown;
+    for (const s of this.all()) this.showDetail(s);
   }
+
+  /** Where the player was last followed (for a section built after). */
+  private player: { readonly x: number; readonly z: number } | null = null;
 
   get detail(): boolean {
     return this.detailShown;
@@ -503,7 +641,9 @@ export class Place {
 
   /** Cuts away what would stand between the camera and the player where they stand (a gate tower over its gateway). */
   follow(player: { readonly x: number; readonly z: number }): void {
+    this.player = { x: player.x, z: player.z };
     for (const s of this.all()) {
+      s.followMerged(player);
       for (const c of s.cutaways) {
         if (!("player" in c.when)) continue;
         const [x0, z0, x1, z1]: Rect = c.when.player;
