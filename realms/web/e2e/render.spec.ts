@@ -170,8 +170,10 @@ function differences(a: Frame, b: Frame, cx: number, cy: number): { count: numbe
   return { count, furthest };
 }
 
+// In the town the player stands just north of a lamp post: the houses south of them drop away by their own cut-aways
+// (art/buildings kit.ts `styled`) while they stand behind one, so what the x-ray cuts there is the lamp.
 for (const [place, at, heading] of [
-  ["town", "128,137", "front"],
+  ["town", "134,133", "front"],
   ["forest", "40,60", "left"],
   ["forest", "40,60", "front"],
   ["forest", "40,60", "right"],
