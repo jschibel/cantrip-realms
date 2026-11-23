@@ -13,15 +13,51 @@ content files (as `content/mtg/cards/*.json` is). Gold is an integer. Times are 
 Everything here is data, read by the server at start and by the overworld at build time (`realms/web` imports what it
 draws). Ids are kebab-case and never reused.
 
-### Planes and pools
+### Cards, planes and pools (`cards.json`, `planes.json`)
 
-- `planes.json`, `prices.json`, `pools/<plane>.json`: `tools/realms/card-economy.py` (the card economy, design.md A5).
-  A relic is priced but in no pool.
-- `prices.json` is `{source, surcharge, cards: {name: {gold, usd, rarity, planes, vintage, identity}}}`: `vintage` is the
-  card's Vintage legality (`legal`, `restricted`, `banned`, `not_legal`) and `identity` its color identity (WUBRG
-  letters), both Scryfall's from the same file as the prices. The realm deals by them - its pools, its deck checks and
-  `/api/catalog`'s legalities and identities - in place of `content/mtg/legality.json`, which lags the cards the engine
-  has; a card prices.json gives none of them for is as that file has it.
+The realm's own card database, in this fork only: `cards.json`, written by `tools/realms/card-economy.py` from Scryfall's
+default-cards file, one record per card the engine has, in name order, a record a line:
+
+```json
+{ "source": "...", "surcharge": {"common": 0.5, "uncommon": 1.0, "rare": 5.0, "mythic": 10.0}, "cards": [
+{"name":"Llanowar Elves","origin":"dominaria","planes":["dominaria"],"sets":["lea","leb","2ed","..."],"usd":0.19,
+ "rarity":"common","gold":69,"vintage":"legal","identity":"G","types":["Creature"],"subtypes":["Elf","Druid"],
+ "universesBeyond":false,"relic":false}
+] }
+```
+
+- `origin` is the plane of the card's first paper printing, by release date; `"multiverse"` when that printing places it
+  on no plane; null for a card never printed on paper. `planes` are every plane it has been printed on, in planes.json's
+  order; `sets` its paper set codes, oldest first.
+- A printing places its card on its set's plane (planes.json's `planes[].sets`), except in a set of one of
+  `reprintSetTypes` (core sets after Beta, Masters, Commander, Secret Lair, promos, ...), where only the card's own first
+  printing does, and only when a plane lists that set (Alpha and Beta, and Dominaria's Commander decks, are
+  Dominaria's). Sets of many planes (`ignoredSets`, each with why) place none, and Universes Beyond printings
+  (`universesBeyondSets`, or the triangle security stamp) are left out of every price and plane. Every expansion and
+  draft-innovation set Scryfall lists is placed, ignored or known as Universes Beyond: the script refuses to write while
+  one is not, so a new set can't slip in unplaced.
+- `usd` is the median TCGplayer market price of its paper printings (the lower middle of an even number, so a real
+  printing's), `rarity` that printing's, `gold` the list price, `round(100 x (usd + surcharge))` (design.md A5); all three
+  null for a card with no paper price.
+- `vintage` is its Vintage legality (`legal`, `restricted`, `banned`, `not_legal`) and `identity` its color identity
+  (WUBRG letters), Scryfall's: the realm deals by them - its pools, its deck checks and `/api/catalog`'s legalities and
+  identities - in place of `content/mtg/legality.json`, which lags the cards the engine has.
+- `types` and `subtypes` are its front face's, for vendor specialties: the engine's own (the catalog's) agree.
+- `universesBeyond` marks a card printed only in Universes Beyond, `relic` one of `relics.json`.
+
+A card is **dealt** - in reach of vendors, loot and starter decks - when it is legal or restricted in Vintage, priced,
+not Universes Beyond and no relic. **The pools are views of `cards.json`, computed by the server as it loads** (and the
+same way by the tools, `tools/realms/realm_cards.py`); there are no pool files:
+
+- a walked plane's pool (planes.json's `"walked": true`: Dominaria) is every dealt card printed on it but the basic
+  lands, which are free (design.md A1);
+- the off-plane pool is every dealt card printed on no walked plane (no basic land), with its planes (perhaps none): the exotic dealers'
+  wares (Vendors, below).
+
+`awaiting-engine.json`, `{comment, cards: [name]}`, names the cards a mob's deck may hold before the engine has them
+(on their way from cantrip-rs, by sync): Rofellos, Llanowar Emissary, the green boss's. The content check lets those
+names alone past the engine, pool and legality checks, and only in mob decks; it refuses a name on the list once the
+engine has it. Until then a duel against that mob can't be dealt.
 
 ### Relics (`relics.json`)
 
@@ -109,8 +145,8 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
     `tomb-warden` the Vess crypts', `foundry-warden` the Keldon fortress's, `heart-warden` the elfhames' hollow's,
     `portal-warden`; tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers and the smaller dungeons of the wilds.
   - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
-    Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `caleria` (G,
-    Lady Caleria of Llanowar); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
+    Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `rofellos` (G,
+    Rofellos, Llanowar Emissary, a mono-green deck; awaiting the engine, above); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
     `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 42 life, a hand of 9, a
     maximum of 10 with its gear), whose deck the script writes out card by card.
 
@@ -226,11 +262,10 @@ world.json; every vendor keeps a shop there: a `vendor` NPC of an interior of th
 **Wares from other planes** (design.md A5) come only through the exotic dealers, who deal in the off-plane pool alone,
 and no other vendor deals in it:
 
-- The off-plane pool is `off-plane.json`, `{comment, cards: {name: [plane, ...]}}` (`card-economy.py`): every card the
-  engine has that is legal or restricted in Vintage (prices.json's `vintage`), priced, no relic, not Universes Beyond, and
-  printed in no set of a walked plane, each with the trader planes it was printed on (perhaps none). A trader plane is a
-  plane of `planes.json` with `"trader": true` (Ravnica, Zendikar, Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet,
-  Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim, Strixhaven); it has no pool file and is not walked.
+- The off-plane pool is the view of `cards.json` above: every dealt card printed on no walked plane, each with the planes
+  it was printed on. A trader's plane is any plane of `planes.json` not walked (the traders' are Ravnica, Zendikar,
+  Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet, Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim and
+  Strixhaven).
 - An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (New Benalia's and Keld's): its stock
   is off-plane cards within its `specialty`; it shows at most 6 cards, gains one at each six-hour mark of the clock (00, 06,
   12, 18 UTC) while it shows fewer, lets a card go unsold after 3 days, and is created with 6 that leave six hours apart.
@@ -249,7 +284,8 @@ interiors, entrances' dungeons as world.json places them, dungeons' mobs, warden
 town, inns' towns, traders' towns); every hex a character is put on or meets something at is open (inns, exits,
 entrances, spawns); every mob's deck, gear, creature and mesh resolve; every mob is met somewhere and every shop is kept
 somewhere; every relic is a card from a boss and in no pool; the off-plane pool shares no card with any pool, its cards
-are legal and priced and its tags are trader planes; every trader's plane is a trader plane with cards to bring; and
+are legal and priced and its tags are planes; every record of cards.json is a card the engine has, priced by the formula, its
+relic flag relics.json's; every trader's plane is a plane not walked with cards to bring; and
 every `requires` is colors' letters (`ContentTests`).
 
 ## The realm server's API (`/api`)

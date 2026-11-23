@@ -126,6 +126,76 @@ public sealed class RelicEntry
     public double Chance { get; init; }
 }
 
+/// <summary>
+/// A card of the realm's card database (<c>realms/content/cards.json</c>, written by <c>tools/realms/card-economy.py</c>):
+/// where it comes from and has been printed, its price, legality and identity, its types for vendor specialties, and
+/// whether it is Universes Beyond or a relic.
+/// </summary>
+public sealed class CardRecord
+{
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>The plane of its first printing; <see cref="Multiverse"/> when that printing places it on none; null unprinted.</summary>
+    public string? Origin { get; init; }
+
+    /// <summary>Every plane it has been printed on.</summary>
+    public IReadOnlyList<string> Planes { get; init; } = [];
+
+    /// <summary>Its paper set codes, oldest first.</summary>
+    public IReadOnlyList<string> Sets { get; init; } = [];
+
+    public decimal? Usd { get; init; }
+
+    public string? Rarity { get; init; }
+
+    /// <summary>Its list price; null for a card with no paper price, which nobody deals in.</summary>
+    public long? Gold { get; init; }
+
+    /// <summary><c>legal</c>, <c>restricted</c>, <c>banned</c> or <c>not_legal</c> in Vintage.</summary>
+    public string Vintage { get; init; } = "not_legal";
+
+    /// <summary>Its color identity, WUBRG letters.</summary>
+    public string Identity { get; init; } = string.Empty;
+
+    public IReadOnlyList<string> Types { get; init; } = [];
+
+    public IReadOnlyList<string> Subtypes { get; init; } = [];
+
+    public bool UniversesBeyond { get; init; }
+
+    public bool Relic { get; init; }
+
+    /// <summary>
+    /// Whether a vendor or loot may deal in it (design.md A5, A3a): legal or restricted in Vintage, priced, not Universes
+    /// Beyond, and no relic. A walked plane's pool is these printed on it; the off-plane pool these printed on none.
+    /// </summary>
+    public bool Dealt => Vintage is "legal" or "restricted" && Gold is not null && !UniversesBeyond && !Relic;
+
+    public const string Multiverse = "multiverse";
+}
+
+/// <summary><c>realms/content/cards.json</c>.</summary>
+public sealed class CardsFile
+{
+    public IReadOnlyList<CardRecord> Cards { get; init; } = [];
+}
+
+/// <summary>A plane of <c>realms/content/planes.json</c>: its name, its sets, and whether a character walks it.</summary>
+public sealed class PlaneEntry
+{
+    public string Name { get; init; } = string.Empty;
+
+    public bool Walked { get; init; }
+
+    public IReadOnlyList<string> Sets { get; init; } = [];
+}
+
+/// <summary><c>realms/content/planes.json</c>.</summary>
+public sealed class PlanesFile
+{
+    public IReadOnlyDictionary<string, PlaneEntry> Planes { get; init; } = new Dictionary<string, PlaneEntry>();
+}
+
 /// <summary><c>realms/content/relics.json</c>.</summary>
 public sealed class RelicsFile
 {

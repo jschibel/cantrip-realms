@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Economy;
+using Cantrip.Decks;
 using Cantrip.Server;
 using Xunit;
 
@@ -108,7 +109,7 @@ public sealed class ContentTests
         foreach (Mob mob in content.Mobs.Values)
         {
             Assert.True(mob.Deck.Entries.Sum(entry => entry.Copies) >= Duel.RealmMinimumDeckSize, mob.Id);
-            Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card), $"{mob.Id}: {entry.Card}"));
+            Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card) || content.AwaitingEngine.Contains(entry.Card), $"{mob.Id}: {entry.Card}"));
             Assert.All(mob.File.Gear, gear => Assert.True(content.Gear.ContainsKey(gear) && content.Gear[gear].Emblem is null, $"{mob.Id} wears {gear}"));
             Assert.Contains(mob.File.Model.Mesh, RealmContent.MobMeshes);
             Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
@@ -200,14 +201,15 @@ public sealed class ContentTests
         Assert.Contains("Black Lotus", relics);
         Assert.Equal(relics, content.Cards.Relics);
 
-        // The pools (as card-economy.py writes them, and as the server reads them), and so every vendor's stock and every
-        // mob's loot, which are filters of them.
+        // The pools (views of cards.json, which marks the relics), and so every vendor's stock and every mob's loot, which are
+        // filters of them; and the off-plane pool.
+        Assert.Equal(relics.Order(StringComparer.Ordinal), content.Records.Values.Where(record => record.Relic).Select(record => record.Name).Order(StringComparer.Ordinal));
         foreach (string plane in content.Cards.Planes)
         {
             Assert.DoesNotContain(content.Cards.Pool(plane), relics.Contains);
-            using JsonDocument file = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "pools", $"{plane}.json")));
-            Assert.DoesNotContain(file.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString()!), relics.Contains);
         }
+
+        Assert.DoesNotContain(content.Cards.OffPlane.Keys, relics.Contains);
 
         Assert.All(content.Vendors.Values, vendor => Assert.DoesNotContain(content.Cards.Filter(vendor.Plane, vendor.File.Specialty), relics.Contains));
         Assert.All(content.Mobs.Values, mob => Assert.DoesNotContain(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot), relics.Contains));
@@ -262,8 +264,27 @@ public sealed class ContentTests
         foreach (Mob mob in content.Mobs.Values)
         {
             Assert.Equal(40, mob.Deck.Entries.Sum(entry => entry.Copies));
-            Assert.Empty(DeckChecks.Problems(content.Cards, [.. mob.Deck.Entries.Select(entry => new Cantrip.Decks.DeckEntry(entry.Card, entry.Copies))], identity: null));
+            List<string> problems = DeckChecks.Problems(content.Cards, [.. mob.Deck.Entries.Select(entry => new Cantrip.Decks.DeckEntry(entry.Card, entry.Copies))], identity: null);
+            Assert.Equal(mob.Deck.Entries.Where(entry => content.AwaitingEngine.Contains(entry.Card)).Select(entry => $"{entry.Card} is not a card the engine plays."), problems);
         }
+    }
+
+    [Fact]
+    public void Only_the_cards_awaiting_the_engine_pass_without_it_and_only_in_a_mobs_deck()
+    {
+        // Rofellos, Llanowar's boss, is on his way from cantrip-rs: the list names him alone, and his deck is built round him.
+        RealmContent content = RealmApp.Content;
+        Assert.Equal(["Rofellos, Llanowar Emissary"], content.AwaitingEngine);
+        Mob rofellos = content.Mobs["rofellos"];
+        Assert.Equal(("Rofellos, Llanowar Emissary", "G", true), (rofellos.File.Creature, rofellos.File.Unlocks, rofellos.File.Boss));
+        Assert.Contains(rofellos.Deck.Entries, entry => entry.Card == rofellos.File.Creature);
+        Assert.Equal("G", CardPool.Letters(rofellos.Deck.Entries.Where(entry => content.Cards.Catalog.ContainsKey(entry.Card)).SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
+
+        // Nowhere else: no other mob, pool, vendor or player's deck holds a card the engine lacks.
+        Assert.All(content.Mobs.Values.Where(mob => mob.Id != "rofellos"), mob => Assert.All(mob.Deck.Entries, entry => Assert.Contains(entry.Card, content.Cards.Catalog.Keys)));
+        Assert.DoesNotContain(content.Cards.Pool("dominaria"), content.AwaitingEngine.Contains);
+        Assert.DoesNotContain(content.Cards.OffPlane.Keys, content.AwaitingEngine.Contains);
+        Assert.Contains("Rofellos, Llanowar Emissary is not a card the engine plays.", DeckChecks.Problems(content.Cards, [new("Rofellos, Llanowar Emissary", 4), new("Forest", 36)], CardPool.Identity("G")));
     }
 
     [Fact]
@@ -318,7 +339,7 @@ public sealed class ContentTests
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
 
             // A relic in a pool, and a relic from a mob that is no boss.
-            Edit(Path.Combine(content, "pools", "dominaria.json"), json => json.Replace("\"cards\": [", "\"cards\": [\n\"Black Lotus\",", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "cards.json"), json => System.Text.RegularExpressions.Regex.Replace(json, "(\\{\"name\":\"Black Lotus\",[^\\n]*)\"relic\":true", "$1\"relic\":false"));
             Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"hurloon-minotaur\"]", StringComparison.Ordinal));
 
             // In the world: a spawn on the rock holding nobody, a spawn of the wrong tier, a door into no building, a dungeon
@@ -335,7 +356,7 @@ public sealed class ContentTests
             Assert.Contains(refused.Problems, problem => problem.Contains("missing.txt", StringComparison.Ordinal));
             Assert.Contains("mob llanowar-elves: its deck does not hold Serra Angel, the creature it is.", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.Contains("slot 'hat'", StringComparison.Ordinal));
-            Assert.Contains("pools/dominaria.json: Black Lotus is a relic, which is in no pool (design.md A3a).", refused.Problems);
+            Assert.Contains("cards.json: Black Lotus: relic is false, but relics.json lists it.", refused.Problems);
             Assert.Contains("relics.json: Mox Pearl drops from 'hurloon-minotaur', which is no boss.", refused.Problems);
             Assert.Contains($"the world: spawn {tier1} stands on (26, 4), which nobody can stand on.", refused.Problems);
             Assert.Contains($"the world: spawn {tier1} holds 'nobody', which is no mob.", refused.Problems);
@@ -365,14 +386,80 @@ public sealed class ContentTests
     [Fact]
     public void A_card_the_deck_sites_legality_data_lacks_is_dealt_by_the_realms_own()
     {
-        // content/mtg/legality.json has no Shivan Dragon; prices.json (Scryfall's legalities, card-economy.py) does.
+        // content/mtg/legality.json has no Shivan Dragon; cards.json (Scryfall's legalities, card-economy.py) does.
         RealmContent content = RealmApp.Content;
         Assert.Contains("Shivan Dragon", content.Cards.Pool("dominaria"));
-        Assert.Equal(("legal", "R"), (content.Cards.Prices["Shivan Dragon"].Vintage, content.Cards.Prices["Shivan Dragon"].Identity));
+        Assert.Equal(("legal", "R"), (content.Records["Shivan Dragon"].Vintage, content.Records["Shivan Dragon"].Identity));
         Assert.Equal("R", CardPool.Letters(content.Cards.Catalog["Shivan Dragon"].Identity));
         Assert.Empty(DeckChecks.Problems(content.Cards, [new("Shivan Dragon", 4), new("Mountain", 36)], CardPool.Identity("R")));
         Assert.Equal(["Shivan Dragon is outside the color identity W."], DeckChecks.Problems(content.Cards, [new("Shivan Dragon", 4), new("Plains", 36)], CardPool.Identity("W")));
         Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", DeckChecks.Problems(content.Cards, [new("Black Lotus", 2), new("Mountain", 38)], identity: null));
+    }
+
+    [Fact]
+    public void The_server_reads_the_realms_card_database_and_every_pool_card_agrees_with_its_record()
+    {
+        RealmContent content = RealmApp.Content;
+        using JsonDocument file = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "cards.json")));
+        Assert.Equal(file.RootElement.GetProperty("cards").GetArrayLength(), content.Records.Count);
+        Assert.All(content.Records.Keys, name => Assert.Contains(name, content.Cards.Catalog.Keys));
+
+        // Where cards come from: Alpha's are Dominaria's; a card first printed in a Commander deck is the multiverse's,
+        // until an expansion prints it on a plane; a Ravnican card is Ravnica's.
+        Assert.Equal(("dominaria", true), (content.Records["Serra Angel"].Origin, content.Records["Serra Angel"].Planes.Contains("dominaria")));
+        Assert.Equal("multiverse", content.Records["True-Name Nemesis"].Origin);
+        Assert.Equal("ravnica", content.Records["Dark Confidant"].Origin);
+        Assert.Contains("lea", content.Records["Llanowar Elves"].Sets);
+
+        HashSet<string> walked = [.. content.Cards.Planes];
+        foreach (string plane in content.Cards.Planes)
+        {
+            foreach (string name in content.Cards.Pool(plane))
+            {
+                CardRecord record = content.Records[name];
+                Assert.True(record.Dealt, name);
+                Assert.Contains(plane, record.Planes);
+                Assert.Equal(record.Gold, content.Cards.Price(name));
+                Assert.Equal(record.Identity, CardPool.Letters(content.Cards.Catalog[name].Identity));
+                Assert.Equal(record.Vintage, content.Cards.Catalog[name].LegalityIn(DeckFormat.VintageKey));
+
+                // Its types and subtypes are the engine's (Kindred was Tribal), so a vendor's specialty reads alike either way.
+                CatalogCard card = content.Cards.Catalog[name];
+                Assert.Equal(
+                    card.Card.CardTypes.Select(type => type.ToString().Replace("Tribal", "Kindred", StringComparison.Ordinal)).Order(StringComparer.Ordinal),
+                    record.Types.Select(type => type.Replace("Tribal", "Kindred", StringComparison.Ordinal)).Order(StringComparer.Ordinal));
+                Assert.Equal(card.Card.Subtypes.Order(StringComparer.Ordinal), record.Subtypes.Order(StringComparer.Ordinal));
+            }
+        }
+
+        // The off-plane pool is every dealt card printed on no walked plane; nothing else is dealt anywhere. Basic lands are
+        // free, and in no pool.
+        bool Basic(CardRecord record) => CardPool.IsBasic(content.Cards.Catalog[record.Name]);
+        Assert.All(content.Records.Values.Where(record => record.Dealt && !Basic(record)), record =>
+            Assert.True(record.Planes.Any(walked.Contains) ? content.Cards.Pool("dominaria").Contains(record.Name) : content.Cards.OffPlane.ContainsKey(record.Name), record.Name));
+        Assert.All(content.Records.Values.Where(record => !record.Dealt), record =>
+            Assert.False(content.Cards.OffPlane.ContainsKey(record.Name) || content.Cards.Pool("dominaria").Contains(record.Name), record.Name));
+        Assert.All(content.Records.Values.Where(record => record.UniversesBeyond), record => Assert.False(record.Dealt, record.Name));
+    }
+
+    [Fact]
+    public void Every_new_card_set_is_placed_on_a_plane_or_deliberately_not()
+    {
+        // planes.json's own consistency, as card-economy.py checks it against Scryfall's whole list of sets: no set two
+        // planes', no set both placed and ignored, and every plane's name.
+        using JsonDocument file = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "planes.json")));
+        JsonElement root = file.RootElement;
+        List<string> placed = [.. root.GetProperty("planes").EnumerateObject().SelectMany(plane => plane.Value.GetProperty("sets").EnumerateArray().Select(set => set.GetString()!))];
+        Assert.Equal(placed.Count, placed.Distinct().Count());
+        HashSet<string> ignored = [.. root.GetProperty("ignoredSets").EnumerateObject().Select(set => set.Name)];
+        HashSet<string> beyond = [.. root.GetProperty("universesBeyondSets").EnumerateArray().Select(set => set.GetString()!)];
+        Assert.DoesNotContain(placed, ignored.Contains);
+        Assert.DoesNotContain(placed, beyond.Contains);
+        Assert.Equal(["dominaria"], root.GetProperty("planes").EnumerateObject().Where(plane => plane.Value.TryGetProperty("walked", out JsonElement walked) && walked.GetBoolean()).Select(plane => plane.Name));
+        Assert.Contains("core", root.GetProperty("reprintSetTypes").EnumerateArray().Select(type => type.GetString()));
+
+        // Every record's sets: a card printed in a set Dominaria places, as a new card, is on Dominaria.
+        Assert.All(RealmApp.Content.Records.Values.Where(record => record.Sets.Contains("dom") || record.Sets.Contains("dmu")), record => Assert.Contains("dominaria", record.Planes));
     }
 
     private static void Edit(string path, Func<string, string> change)

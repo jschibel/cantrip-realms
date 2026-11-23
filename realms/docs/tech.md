@@ -107,7 +107,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Milestone 0 proves this layering** before anything else depends on it.
 
 ### B7. Data pipelines (fork, `tools/realms/`)
-- `fetch-prices.py`: Scryfall default-cards bulk → median paper price and rarity per Oracle card, plus each printing's set. Writes `realms/content/prices.json`; it is run monthly and committed.
+- `card-economy.py`: Scryfall default-cards bulk → the realm's card database, `realms/content/cards.json`: per card the engine has, its origin plane, the planes and sets it was printed in, its median paper price, rarity and list price, its Vintage legality, identity and types, and its Universes Beyond and relic flags (interfaces.md, "Cards, planes and pools"); the pools are views of it. It is run monthly and committed.
 - `planes.json`: set code → plane (Dominaria = Alpha through Mirage-era core, Ice Age, Weatherlight, Urza's, Invasion, Odyssey, Onslaught, Time Spiral, DOM, DMU, DMR, BRO…), with Universes Beyond excluded by Scryfall's set and printing data.
 - `realm-pool.py`: implemented ∩ Vintage-legal ∩ not UB ∩ priced, split by plane, makes the loot and vendor pools.
 - Mob decks: `decks/realms/dominaria/*.txt`, as plain decklists. A drafting tool built on `DeckBuilder` drafts each from a themed pool, then they are tuned by hand.
