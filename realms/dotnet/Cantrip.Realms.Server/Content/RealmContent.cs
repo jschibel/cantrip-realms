@@ -179,7 +179,7 @@ public sealed partial class RealmContent
                 [.. pool.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString() ?? string.Empty)];
         }
 
-        var cards = new CardPool(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices, pools, relicNames);
+        var cards = new CardPool(CardPool.WithRealmLegality(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices), prices, pools, relicNames);
         var content = new RealmContent(root, cards) { Relics = relics };
 
         foreach ((string name, CardPrice price) in prices)

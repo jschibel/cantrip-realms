@@ -4,8 +4,11 @@ using Cantrip.Protocol;
 
 namespace Cantrip.Realms.Server.Content;
 
-/// <summary>A card's price and rarity (<c>realms/content/prices.json</c>).</summary>
-public sealed record CardPrice(long Gold, decimal Usd, string Rarity);
+/// <summary>
+/// A card's price and rarity (<c>realms/content/prices.json</c>), and its Vintage legality and color identity as
+/// card-economy.py read them from Scryfall with the prices (null where the file gives none).
+/// </summary>
+public sealed record CardPrice(long Gold, decimal Usd, string Rarity, string? Vintage = null, string? Identity = null);
 
 /// <summary>
 /// The cards of the realm: the engine's catalog with each card's legality and color identity (the deck editor's,
@@ -156,9 +159,43 @@ public sealed class CardPool
         {
             JsonElement value = card.Value;
             decimal usd = value.TryGetProperty("usd", out JsonElement dollars) && dollars.ValueKind == JsonValueKind.Number ? dollars.GetDecimal() : 0m;
-            prices[card.Name] = new CardPrice(value.GetProperty("gold").GetInt64(), usd, value.GetProperty("rarity").GetString() ?? string.Empty);
+            prices[card.Name] = new CardPrice(
+                value.GetProperty("gold").GetInt64(),
+                usd,
+                value.GetProperty("rarity").GetString() ?? string.Empty,
+                value.TryGetProperty("vintage", out JsonElement vintage) ? vintage.GetString() : null,
+                value.TryGetProperty("identity", out JsonElement identity) ? identity.GetString() : null);
         }
 
         return prices;
+    }
+
+    /// <summary>
+    /// The engine's catalog with the realm's own word on each priced card (design.md A2): the Vintage legality and color
+    /// identity prices.json gives, in place of the deck site's legality data, which lags the cards the engine has. A card
+    /// prices.json says nothing of is left as the catalog has it.
+    /// </summary>
+    public static Dictionary<string, CatalogCard> WithRealmLegality(IReadOnlyDictionary<string, CatalogCard> catalog, IReadOnlyDictionary<string, CardPrice> prices)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(prices);
+        Dictionary<string, CatalogCard> cards = new(StringComparer.Ordinal);
+        foreach ((string name, CatalogCard card) in catalog)
+        {
+            if (!prices.TryGetValue(name, out CardPrice? price) || price.Vintage is null || price.Identity is null)
+            {
+                cards[name] = card;
+                continue;
+            }
+
+            cards[name] = new CatalogCard
+            {
+                Card = card.Card,
+                Identity = [.. Identity(price.Identity)],
+                Legalities = new Dictionary<string, string>(card.Legalities, StringComparer.Ordinal) { [DeckFormat.VintageKey] = price.Vintage },
+            };
+        }
+
+        return cards;
     }
 }

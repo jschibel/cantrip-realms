@@ -5,7 +5,8 @@ the cards loot and vendors draw from.
                                                      # if there is none from today
 
 Writes:
-    realms/content/prices.json        {"source", "surcharge", "cards": {name: {"gold", "usd", "rarity", "planes"}}}
+    realms/content/prices.json        {"source", "surcharge", "cards": {name: {"gold", "usd", "rarity", "planes",
+                                                                               "vintage", "identity"}}}
     realms/content/pools/<plane>.json {"plane", "cards": [name, ...]}
 
 A card's list price is the median TCGplayer market price of its paper printings (Scryfall's prices.usd, else usd_foil,
@@ -13,6 +14,11 @@ else usd_etched), plus a surcharge by the rarity of the printing at that median:
 +$10 mythic. Prices are gold, a hundred to the dollar. The median of an even number of printings is the lower middle one,
 so it is always a real printing's price and rarity. Universes Beyond printings (realms/content/planes.json's sets, and
 any printing with the triangle security stamp) are left out of everything: a card printed only there is in no pool.
+
+A card's Vintage legality and color identity are Scryfall's, from the same default-cards file (every printing carries
+`legalities` and `color_identity`): `vintage` ("legal", "restricted", "banned" or "not_legal") and `identity` (WUBRG
+letters) in prices.json, which the realm server deals by, so the realm never waits on content/mtg/legality.json, an
+upstream file that lags the cards the engine has.
 
 A plane's pool is every card the engine has that is legal or restricted in Vintage (which leaves out ante, Conspiracy
 and Un- cards), has a price, and was printed in one of the plane's sets - except the relics (realms/content/relics.json,
@@ -75,7 +81,6 @@ def main():
     planes = json.load(open(os.path.join(CONTENT, "planes.json"), encoding="utf-8"))
     beyond = set(planes["universes_beyond_sets"])
     plane_of_set = {code: plane for plane, spec in planes["planes"].items() for code in spec["sets"]}
-    legality = json.load(open(os.path.join(ROOT, "content", "mtg", "legality.json"), encoding="utf-8"))["cards"]
     have = engine_names()
     relics = {entry["card"] for entry in json.load(open(os.path.join(CONTENT, "relics.json"), encoding="utf-8"))["relics"]}
 
@@ -101,8 +106,12 @@ def main():
         usd, middle = priced[(len(priced) - 1) // 2]
         rarity = RARITY.get(middle.get("rarity"), "rare")
         on = sorted({plane_of_set[p["set"]] for p in printings[name] if p["set"] in plane_of_set})
-        cards[name] = {"gold": round((usd + SURCHARGE[rarity]) * 100), "usd": usd, "rarity": rarity, "planes": on}
-        vintage = legality.get(name, {}).get("legalities", {}).get("vintage")
+        # Legality and identity are the card's, the same on every printing: the newest printing's (its latest word).
+        newest = max(printings[name], key=lambda p: p.get("released_at", ""))
+        vintage = (newest.get("legalities") or {}).get("vintage", "not_legal")
+        identity = "".join(c for c in "WUBRG" if c in (newest.get("color_identity") or []))
+        cards[name] = {"gold": round((usd + SURCHARGE[rarity]) * 100), "usd": usd, "rarity": rarity, "planes": on,
+                       "vintage": vintage, "identity": identity}
         if vintage in ("legal", "restricted") and name not in relics:
             for plane in on:
                 pools[plane].append(name)
