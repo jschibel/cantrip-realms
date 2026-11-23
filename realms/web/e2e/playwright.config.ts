@@ -7,6 +7,8 @@ const port = 5174;
 
 export default defineConfig({
   testDir: ".",
+  // The suite against the real server is its own (server/playwright.config.ts, npm run e2e:server).
+  testIgnore: ["server/**"],
   timeout: 60_000,
   expect: { timeout: 15_000 },
   fullyParallel: true,

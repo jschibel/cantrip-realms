@@ -253,13 +253,13 @@ export class Overworld {
   }
 
   private walkThen(path: Hex[], then?: () => void): void {
+    // The walk is told from the hex it starts beside: walking steps onto the path's first hex at once.
+    const from = this.player.hex;
     this.player.walk(path, () => {
       this.reportTravel();
       then?.();
     });
-    const to = path.at(-1) ?? this.player.hex;
-    this.presence?.send({ Type: "Move", From: [this.player.hex.q, this.player.hex.r], Path: path.map((s) => [s.q, s.r] as const), Speed: PLAYER_SPEED });
-    void to;
+    this.presence?.send({ Type: "Move", From: [from.q, from.r], Path: path.map((s) => [s.q, s.r] as const), Speed: PLAYER_SPEED });
   }
 
   private walkBeside(h: Hex, then: () => void): void {

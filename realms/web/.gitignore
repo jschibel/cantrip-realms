@@ -5,3 +5,5 @@ src/theme.css
 public/fonts/
 test-results/
 playwright-report/
+# The realm server's store for the e2e suite against it (e2e/server).
+.data/
