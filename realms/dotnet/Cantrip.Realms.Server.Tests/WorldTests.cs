@@ -53,7 +53,7 @@ public sealed class PlacesTests
         await browser.Refused(HttpMethod.Post, "/api/position", new { Space = World, X = -33, Z = 0 }, HttpStatusCode.UnprocessableEntity, Codes.NoSuchPlace);
     }
 
-    [GeneratedWorldFact]
+    [Fact]
     public async Task On_the_generated_world_a_character_starts_outside_new_benalias_inn_walks_and_goes_in()
     {
         // The server as it starts with no REALMS_PLACES: the Domains, realms/content/dominaria/world.

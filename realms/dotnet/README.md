@@ -90,8 +90,7 @@ traders visit, with their inns and shops, spawns of every tier, the region dunge
 the twenty mage towers, by `layout.json`'s ids, a ferry and the traders' pitches). `World/make-world.py` writes it from
 the layout, the roster and the vendors; run it after any of them changes. The content checks run over the generated
 world too (`RealmApp.Generated`), since the server starts on it, and a server test plays on it (`new RealmApp {
-OnGenerated = true }`); those tests (`[GeneratedWorldFact]`) are skipped while `realms/content/dominaria/world` is still
-the hex world. Walking is checked against the golden vectors of `realms/content/walk-vectors.json` (`WalkTests`), which
+OnGenerated = true }`). Walking is checked against the golden vectors of `realms/content/walk-vectors.json` (`WalkTests`), which
 `tools/realms/walk-vectors.ts` writes from the overworld's A* (`node --experimental-transform-types
 tools/realms/walk-vectors.ts`) and the overworld's tests check too. The duel verifier's
 own tests play whole duels on the native engine (build it first, as above):

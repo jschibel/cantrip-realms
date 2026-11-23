@@ -73,8 +73,8 @@ public sealed partial class RealmContent
     public static IReadOnlySet<string> DungeonThemes { get; } = new HashSet<string>(StringComparer.Ordinal) { "caves", "castle", "tower", "crypt", "hollow", "foundry", "portal" };
 
     /// <summary>
-    /// The mob meshes (interfaces.md, "Models"): a mob's <c>model.mesh</c> is one of them, whether or not its model is drawn
-    /// yet (an unknown mesh is drawn as <c>humanoid</c>), and every mob model of realms/content/models is one of them.
+    /// The mob meshes (interfaces.md, "Models"; the figures' <c>realms/web/src/art/figures/mobs.ts</c>): a mob's
+    /// <c>model.mesh</c> is one of them (an unknown mesh is drawn as <c>humanoid</c>).
     /// </summary>
     public static IReadOnlySet<string> MobMeshes { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -84,6 +84,31 @@ public sealed partial class RealmContent
         "warlock", "shaman", "druid", "artificer", "thrull", "djinn", "wraith", "elemental", "yeti", "ape", "golem",
         "boar", "rat", "lhurgoyf", "pegasus", "horse", "elk-rider", "dragon-engine",
         "lyra", "teferi", "liliana", "garna", "rofellos", "praetor",
+    };
+
+    /// <summary>
+    /// The gear meshes (interfaces.md, "Models"; the figures' parts of <c>realms/web/src/art/figures/gear.ts</c>), each with
+    /// the slot of <see cref="GearSlots"/> it is made for: a gear item's <c>look.mesh</c> is one made for its slot, and a
+    /// presence look's slots wear only these.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> GearMeshes { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["circlet"] = "head",
+        ["crown"] = "head",
+        ["helm"] = "head",
+        ["hood"] = "head",
+        ["hat"] = "head",
+        ["amulet"] = "neck",
+        ["armor"] = "body",
+        ["robe"] = "body",
+        ["cloak"] = "body",
+        ["gloves"] = "hands",
+        ["gauntlets"] = "hands",
+        ["boots"] = "feet",
+        ["greaves"] = "feet",
+        ["ring"] = "ring",
+        ["relic"] = "relic",
+        ["orb"] = "relic",
     };
 
     /// <summary>The five colors a character may start in, and the file each starter deck is in.</summary>
@@ -164,9 +189,6 @@ public sealed partial class RealmContent
         return mob.File.Boss ? Relics.Where(relic => relic.Bosses.Contains(mob.Id, StringComparer.Ordinal)) : [];
     }
 
-    /// <summary>The kind of each voxel model of <c>realms/content/models</c> (<c>body</c>, <c>mob</c> or <c>gear</c>), by id.</summary>
-    public IReadOnlyDictionary<string, string> Models { get; private set; } = new Dictionary<string, string>();
-
     /// <summary>Each plane's starter decks, by color letter.</summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, DeckList>> Starters { get; private set; } =
         new Dictionary<string, IReadOnlyDictionary<string, DeckList>>();
@@ -235,7 +257,6 @@ public sealed partial class RealmContent
             else if (record.Gold is { } gold && gold != Pricing.ListPrice(record.Usd!.Value, record.Rarity!)) problems.Add($"{where} is {gold} gold, but ${record.Usd} at {record.Rarity} lists at {Pricing.ListPrice(record.Usd!.Value, record.Rarity!)}.");
         }
 
-        content.Models = ReadModels(Path.Combine(realms, "models"), problems);
         content.Gear = ReadGear(Path.Combine(realms, "gear"), problems);
 
         Dictionary<string, Mob> mobs = new(StringComparer.Ordinal);
@@ -383,43 +404,13 @@ public sealed partial class RealmContent
         return gear;
     }
 
-    private static Dictionary<string, string> ReadModels(string folder, List<string> problems)
-    {
-        Dictionary<string, string> models = new(StringComparer.Ordinal);
-        if (!Directory.Exists(folder)) return models;
-        foreach (string path in Directory.EnumerateFiles(folder, "*.vox.json").Order(StringComparer.Ordinal))
-        {
-            string file = Path.GetFileName(path);
-            try
-            {
-                using JsonDocument model = JsonDocument.Parse(System.IO.File.ReadAllBytes(path));
-                string id = model.RootElement.GetProperty("id").GetString() ?? string.Empty;
-                if (file != id + ".vox.json") problems.Add($"models/{file}: its id '{id}' is its file's name.");
-                else models[id] = model.RootElement.GetProperty("kind").GetString() ?? string.Empty;
-            }
-            catch (Exception problem) when (problem is JsonException or KeyNotFoundException or InvalidOperationException)
-            {
-                problems.Add($"models/{file}: {problem.Message}");
-            }
-        }
-
-        return models;
-    }
-
-    /// <summary>Whether a mesh is a model of a kind (a gear item's look, a mob's model).</summary>
-    private bool IsModel(string mesh, string kind) => Models.TryGetValue(mesh, out string? found) && found == kind;
-
     /// <summary>Checks what refers to what, once everything is read.</summary>
     private void Check(List<string> problems)
     {
-        foreach (GearItem item in Gear.Values.Where(item => !string.IsNullOrWhiteSpace(item.Look.Mesh) && !IsModel(item.Look.Mesh, "gear")))
+        foreach (GearItem item in Gear.Values.Where(item => !string.IsNullOrWhiteSpace(item.Look.Mesh)))
         {
-            problems.Add($"gear {item.Id}: its look '{item.Look.Mesh}' is no gear model of realms/content/models.");
-        }
-
-        foreach ((string model, _) in Models.Where(model => model.Value == "mob" && !MobMeshes.Contains(model.Key)))
-        {
-            problems.Add($"models/{model}.vox.json: a mob model of no mob mesh the content may name (RealmContent.MobMeshes, interfaces.md \"Models\").");
+            if (!GearMeshes.TryGetValue(item.Look.Mesh, out string? slot)) problems.Add($"gear {item.Id}: its look '{item.Look.Mesh}' is none of the gear meshes ({string.Join(", ", GearMeshes.Keys)}).");
+            else if (slot != item.Slot && GearSlots.Contains(item.Slot)) problems.Add($"gear {item.Id}: its look '{item.Look.Mesh}' is made for the {slot} slot, not {item.Slot}.");
         }
 
         foreach (Mob mob in Mobs.Values)

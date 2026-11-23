@@ -309,10 +309,10 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         }
     }
 
-    /// <summary>Whether a slot's look is one: a gear model's mesh and a few colors.</summary>
+    /// <summary>Whether a slot's look is one: a gear mesh (<see cref="RealmContent.GearMeshes"/>) and a few colors.</summary>
     private bool Wearable(SlotLook? look) =>
         look is { Mesh: { Length: > 0 and <= 64 } mesh, Palette: { Count: <= MostLookColors } palette }
-        && content.Models.TryGetValue(mesh, out string? kind) && kind == "gear"
+        && RealmContent.GearMeshes.ContainsKey(mesh)
         && palette.All(color => color is not null && PaletteColor().IsMatch(color));
 
     private static OtherMessage Other(Member member) => new()

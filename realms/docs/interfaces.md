@@ -318,10 +318,9 @@ mob is built bigger in whole texels, so every size stays crisp. `realms/web/cast
   (a chain to a stone on the chest) for the neck; `armor` (plate and pauldrons), `robe` (to the ankles), `cloak` for the
   body; `gloves`, `gauntlets` for the hands; `boots`, `greaves` for the feet; `ring` (a band and a glowing stone, on the
   right hand in `ring1`, the left in `ring2`); `relic` (a talisman) and `orb` (a caged light), each floating round the
-  character. An unknown mesh is worn as nothing. Until the voxel models are retired the server checks a gear look
-  against `realms/content/models` (`RealmContent.Models`, kind `gear`), which has the first nine; `crown`, `hood`, `hat`,
-  `cloak`, `gauntlets`, `greaves` and `orb` are drawn but may be named by content only once that check is a list of
-  these ids.
+  character. An unknown mesh is worn as nothing. A gear item names only these, each in the slot it is made for
+  (`RealmContent.GearMeshes`: a ring's is `ring`, a talisman's and an orb's `relic`), and presence's looks wear only
+  these.
 - **Mob meshes** (a mob's `model.mesh`; `model.size` builds it bigger, 1 as made; `mobs.ts`): each reads its palette
   as the colors its `slots` name, and picks its variations by the words of the mob's id and its creature's name (an
   archer's bow, a mechanic's goggles and wrench, a Triskelion's third arm, a Leveler's tower, a fallen angel's dark
@@ -578,7 +577,7 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
   (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256 steps, or comes
   more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
-  and for loadout slots only a gear mesh of `realms/content/models` and up to eight `#rrggbb` colors.
+  and for loadout slots only a gear mesh (Models, `RealmContent.GearMeshes`) and up to eight `#rrggbb` colors.
 - The overworld reports where it is (`/api/position`) before it sends `Enter` for a space, so the server knows it is there.
 
 ## Spawns

@@ -32,7 +32,7 @@ public sealed class ContentTests
         }
     }
 
-    [GeneratedWorldFact]
+    [Fact]
     public void The_server_starts_on_the_generated_world_of_the_domains()
     {
         // realms/content/dominaria/world, interiors and dungeons, as realms/web/scripts/world.ts writes them from layout.json and
@@ -40,7 +40,8 @@ public sealed class ContentTests
         RealmContent content = RealmApp.Generated;
         RealmWorld world = content.World;
         Assert.Equal("dominaria", world.Plane);
-        Assert.Equal(400, world.Chunks.Count);
+        Assert.Equal((0, 0, 1024, 1216), (world.X0, world.Z0, world.Width, world.Height));
+        Assert.Equal(32 * 38, world.Chunks.Count);
         Assert.NotEmpty(world.Spawns);
 
         using JsonDocument layout = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "layout.json")));
@@ -76,7 +77,7 @@ public sealed class ContentTests
         }
     }
 
-    [GeneratedWorldFact]
+    [Fact]
     public void Everything_the_generated_world_names_is_there_and_everything_there_is_met() => Everything_the_world_names_is_there_and_everything_there_is_met("generated");
 
     [Theory]
@@ -150,8 +151,7 @@ public sealed class ContentTests
             Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
         }
 
-        Assert.All(content.Models.Where(model => model.Value == "mob"), model => Assert.Contains(model.Key, RealmContent.MobMeshes));
-        Assert.All(content.Gear.Values, item => Assert.Equal("gear", content.Models.GetValueOrDefault(item.Look.Mesh)));
+        Assert.All(content.Gear.Values, item => Assert.Equal(item.Slot, RealmContent.GearMeshes.GetValueOrDefault(item.Look.Mesh)));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class ContentTests
         Assert.Contains(wanderers, mob => mob.File.Creature == "Serra Angel");
     }
 
-    [GeneratedWorldFact]
+    [Fact]
     public void Each_region_of_the_generated_world_has_a_mage_for_every_tier_of_tower() => Each_region_has_a_mage_for_every_tier_of_tower("generated");
 
     [Theory]
@@ -442,10 +442,13 @@ public sealed class ContentTests
             string content = Path.Combine(root, "realms", "content");
             string places = Path.Combine(root, "places", "dominaria");
 
-            // A mob whose deck is gone, a mob that is not its creature's deck, and gear in no slot.
+            // A mob whose deck is gone, a mob that is not its creature's deck, gear in no slot, gear that looks like no gear
+            // mesh, and gear that looks like a mesh made for another slot.
             Edit(Path.Combine(content, "dominaria", "mobs", "hurloon-minotaur.json"), json => json.Replace("decks/realms/dominaria/hurloon-minotaur.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
             Edit(Path.Combine(content, "dominaria", "mobs", "llanowar-elves.json"), json => json.Replace("\"creature\": \"Llanowar Elves\"", "\"creature\": \"Serra Angel\"", StringComparison.Ordinal));
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "gear", "benalish-plate.json"), json => json.Replace("\"mesh\": \"armor\"", "\"mesh\": \"tabard\"", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "gear", "boots-of-the-march.json"), json => json.Replace("\"mesh\": \"boots\"", "\"mesh\": \"crown\"", StringComparison.Ordinal));
 
             // A relic in a pool, and a relic from a mob that is no boss.
             Edit(Path.Combine(content, "cards.json"), json => System.Text.RegularExpressions.Regex.Replace(json, "(\\{\"name\":\"Black Lotus\",[^\\n]*)\"relic\":true", "$1\"relic\":false"));
@@ -458,7 +461,7 @@ public sealed class ContentTests
             string tier1 = RealmApp.SpawnOf(1).Id;
             Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"x\":10,\"z\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"x\":26,\"z\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
             Edit(Path.Combine(places, "world", "chunks", "-1_1.json"), json => json.Replace("\"cx\":-1,", "\"cx\":7,", StringComparison.Ordinal));
-            Edit(Path.Combine(places, "world", "chunks", "3_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0]", "\"tiles\":[[0,\"grass\",4]", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "world", "chunks", "3_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0]", "\"tiles\":[[0,\"grass\",8]", StringComparison.Ordinal));
             Edit(Path.Combine(places, "world", "chunks", "2_3.json"), json => json.Replace("\"tiles\":[[0,\"grass\",0],", "\"tiles\":[", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
             Edit(chunk, json => json.Replace("\"interior\":\"new-benalia-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
@@ -469,6 +472,8 @@ public sealed class ContentTests
             Assert.Contains(refused.Problems, problem => problem.Contains("missing.txt", StringComparison.Ordinal));
             Assert.Contains("mob llanowar-elves: its deck does not hold Serra Angel, the creature it is.", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.Contains("slot 'hat'", StringComparison.Ordinal));
+            Assert.Contains(refused.Problems, problem => problem.StartsWith("gear benalish-plate: its look 'tabard' is none of the gear meshes (", StringComparison.Ordinal));
+            Assert.Contains("gear boots-of-the-march: its look 'crown' is made for the head slot, not feet.", refused.Problems);
             Assert.Contains("cards.json: Black Lotus: relic is false, but relics.json lists it.", refused.Problems);
             Assert.Contains("relics.json: Mox Pearl drops from 'hurloon-minotaur', which is no boss.", refused.Problems);
             Assert.Contains($"the world: spawn {tier1} stands on (26, 4), which nobody can stand on.", refused.Problems);
@@ -479,7 +484,7 @@ public sealed class ContentTests
             Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon hurloon-caves: its boss 'x", StringComparison.Ordinal));
             Assert.Contains("chunks/-1_1.json: it says it is chunk 7_1, but its name is -1_1.", refused.Problems);
-            Assert.Contains("chunks/3_3.json: tile 0 is [height (whole texels), surface, flags 0-3], not [0,\"grass\",4].", refused.Problems);
+            Assert.Contains("chunks/3_3.json: tile 0 is [height (whole texels), surface, flags 0-7], not [0,\"grass\",8].", refused.Problems);
             Assert.Contains("chunks/2_3.json: a chunk is 1024 tiles (32 by 32, row by row), not 1023.", refused.Problems);
         }
         finally

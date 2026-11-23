@@ -13,7 +13,7 @@ public sealed record GearStats(int Life, int Hand, int MaxHand)
         new(a.Life + b.Life, a.Hand + b.Hand, a.MaxHand + b.MaxHand);
 }
 
-/// <summary>How an item or a mob shows: a mesh of realms/content/models and its palette.</summary>
+/// <summary>How an item or a mob shows: a gear or mob mesh (<see cref="RealmContent.GearMeshes"/>, <see cref="RealmContent.MobMeshes"/>) and its palette.</summary>
 public sealed class Look
 {
     public string Mesh { get; init; } = string.Empty;

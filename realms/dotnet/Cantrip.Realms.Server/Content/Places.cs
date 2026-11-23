@@ -64,8 +64,8 @@ public abstract class RealmSpace
 
     /// <summary>
     /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (conversion.md): the floor's height in whole texels,
-    /// a surface id or <c>""</c> (nothing: never walked), and flags 1 blocked and 2 bare. Each into a state byte and a
-    /// height, at the index it has in the list.
+    /// a surface id or <c>""</c> (nothing: never walked), and flags 1 blocked, 2 bare and 4 ramp (a slope between two
+    /// levels, walked as any open tile). Each into a state byte and a height, at the index it has in the list.
     /// </summary>
     private protected static void ReadTiles(IReadOnlyList<JsonElement> tiles, byte[] states, short[] heights, string where, List<string> problems)
     {
@@ -73,7 +73,7 @@ public abstract class RealmSpace
         {
             if (!TryTile(tiles[i], out short height, out string surface, out int flags))
             {
-                problems.Add($"{where}: tile {i} is [height (whole texels), surface, flags 0-3], not {tiles[i].GetRawText()}.");
+                problems.Add($"{where}: tile {i} is [height (whole texels), surface, flags 0-7], not {tiles[i].GetRawText()}.");
                 continue;
             }
 
@@ -91,7 +91,7 @@ public abstract class RealmSpace
         flags = 0;
         if (tile.ValueKind != JsonValueKind.Array || tile.GetArrayLength() != 3
             || !tile[0].TryGetInt16(out height) || tile[1].ValueKind != JsonValueKind.String
-            || !tile[2].TryGetInt32(out flags) || flags is < 0 or > 3)
+            || !tile[2].TryGetInt32(out flags) || flags is < 0 or > 7)
         {
             return false;
         }

@@ -45,20 +45,6 @@ public sealed class RealmApp : WebApplicationFactory<Program>
         _ => throw new ArgumentException($"No world '{world}'.", nameof(world)),
     };
 
-    /// <summary>
-    /// Whether the generated world (realms/content/dominaria/world) is in version 2 of the world data, square tiles
-    /// (conversion.md): its world.json gives a <c>tile</c>. The world generator's Domains on squares replace the hex world
-    /// that was there; until they do, the tests over the generated world are skipped (<see cref="GeneratedWorldFactAttribute"/>).
-    /// </summary>
-    public static bool GeneratedIsSquares { get; } = IsSquares(Path.Combine(Root, "realms", "content", "dominaria", "world", "world.json"));
-
-    private static bool IsSquares(string worldJson)
-    {
-        if (!File.Exists(worldJson)) return false;
-        using JsonDocument world = JsonDocument.Parse(File.ReadAllBytes(worldJson));
-        return world.RootElement.TryGetProperty("tile", out _);
-    }
-
     /// <summary>Whether this server runs on the generated world rather than the test world.</summary>
     public bool OnGenerated { get; init; }
 
@@ -310,19 +296,4 @@ public sealed class FakeVerifier : IDuelVerifier
     public static DuelVerdict MobWon { get; } = new(true, [Duel.MobSeat], null);
 
     public static DuelVerdict Tampered { get; } = DuelVerdict.Rejected("Message 3 (AnswerMessage) was refused.");
-}
-
-/// <summary>
-/// A test over the generated world (<see cref="RealmApp.Generated"/>), run once that world is on squares
-/// (<see cref="RealmApp.GeneratedIsSquares"/>) and skipped, saying why, while it is still the hex world.
-/// </summary>
-public sealed class GeneratedWorldFactAttribute : FactAttribute
-{
-    public GeneratedWorldFactAttribute()
-    {
-        if (!RealmApp.GeneratedIsSquares)
-        {
-            Skip = "realms/content/dominaria/world is still the hex world: the World agent's Domains on squares (world data version 2) replace it.";
-        }
-    }
 }
