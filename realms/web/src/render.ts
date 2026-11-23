@@ -85,6 +85,8 @@ export class PixelRenderer {
   constructor(
     readonly canvas: HTMLCanvasElement,
     palette: Palette,
+    /** The CSS size to fill: the window's, unless given (a preview canvas). */
+    private readonly fit: () => { width: number; height: number } = () => ({ width: window.innerWidth, height: window.innerHeight }),
   ) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(1);
@@ -137,9 +139,8 @@ export class PixelRenderer {
 
   /** Fits the scene's pixels to the window: as many as fit at the current scale, the canvas stretched over them. */
   resize(): void {
-    const cssWidth = window.innerWidth;
-    const cssHeight = window.innerHeight;
-    this.scale = Math.min(6, Math.max(2, Math.round(cssHeight / 300)));
+    const { width: cssWidth, height: cssHeight } = this.fit();
+    this.scale = Math.min(6, Math.max(2, Math.round(Math.max(cssHeight, 600) / 300)));
     this.width = Math.ceil(cssWidth / this.scale);
     this.height = Math.ceil(cssHeight / this.scale);
 

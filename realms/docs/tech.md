@@ -65,13 +65,14 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
   - Lighting is stepped toon shading through a **per-plane 48-color palette** (a lookup table), with a Bayer dither in the shadow steps and 1-pixel outlines from depth and normal edges.
   - **The camera snaps to the texel grid**, so nothing shimmers. Effects are billboards drawn at the same pixel scale.
 - **Assets:** **voxel models stored as data** (`realms/content/models/*.vox.json`), written by generator scripts and tuned by hand.
-  - A build step greedy-meshes them into vertex-colored `.glb` files indexed into the palette.
-  - Characters are segmented rigs (head, torso, arms, legs) with keyframed idle, walk, cast and interact animations. Each slot's gear is a voxel piece attached to a bone. Mobs are about 40 base models with palette swaps.
+  - The browser greedy-meshes them when they load (`src/voxel/mesher.ts`) into vertex-colored meshes in the palette's colors, shared between every character drawn alike; they are small enough that no build step is needed.
+  - Characters are segmented rigs (head, torso, arms, legs) with idle, walk, cast and interact animations. Each slot's gear is a voxel piece hung on an attachment point of the body. Mobs are base models with palette swaps (ten so far).
   - Audio: CC0 chiptune tracks and SFX generated with jsfxr.
-- **Maps:** hex JSON (`realms/content/dominaria/maps/*.json`) holding height, terrain, props, walls, exits, spawn points, chests and NPCs. They are produced by a seeded generator plus hand-placed set pieces, edited in a dev-only in-browser map editor (`?editor`), and rendered as voxel terrain chunks.
-- **Play:** click-to-move with A* over hexes; local mob AI (wander, chase); the world-map travel screen with encounter rolls; NPC interaction; the HUD; and other players animated from relayed paths.
+- **Maps:** hex JSON (`realms/content/dominaria/maps/*.json`, interfaces.md) holding height, terrain, props, exits, spawn points, chests and NPCs. They are produced by a seeded generator plus hand-placed set pieces (`scripts/maps.ts`, `npm run maps`), edited in a dev-only in-browser map editor (`?editor`), linted by `validateMap`, and drawn as a prism per hex with the scenery merged into one mesh.
+- **Play:** click-to-move with A* over hexes; local mob AI (wander, chase); the world-map travel screen with encounter rolls; NPC interaction; the HUD and minimap; and other players animated from relayed paths.
 - **The HUD and menus that show no cards** are DOM and CSS built on **the client's Theme tokens and fonts**. A script generates `theme.css` from `Theme.cs`, so the two can't drift.
-- **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name, the way `cantripTest` does.
+- **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against `MockApi`, the API in memory, with presence passed between the browser's own tabs; the card layer's stand-in panels (`?cards=stub`, the offline default) answer its screens. `?at=`, `?now=`, `?wander=0`, `?mobs=0` and `?encounters=` force a state for tests and development (src/main.ts).
+- **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name, the way `cantripTest` does. `npm test` runs vitest; `npm run e2e` runs the Playwright suite (`e2e/`) against the offline overworld with real clicks.
 
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.
