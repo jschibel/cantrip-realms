@@ -15,7 +15,9 @@ so it is always a real printing's price and rarity. Universes Beyond printings (
 any printing with the triangle security stamp) are left out of everything: a card printed only there is in no pool.
 
 A plane's pool is every card the engine has that is legal or restricted in Vintage (which leaves out ante, Conspiracy
-and Un- cards), has a price, and was printed in one of the plane's sets.
+and Un- cards), has a price, and was printed in one of the plane's sets - except the relics (realms/content/relics.json,
+design.md A3a), which drop only from the bosses their entries name and are in no pool, so that no vendor, loot offer or
+starter deck ever holds one. A relic is still priced, for reference.
 """
 
 import datetime
@@ -75,6 +77,7 @@ def main():
     plane_of_set = {code: plane for plane, spec in planes["planes"].items() for code in spec["sets"]}
     legality = json.load(open(os.path.join(ROOT, "content", "mtg", "legality.json"), encoding="utf-8"))["cards"]
     have = engine_names()
+    relics = {entry["card"] for entry in json.load(open(os.path.join(CONTENT, "relics.json"), encoding="utf-8"))["relics"]}
 
     printings = {}
     for card in default_cards():
@@ -100,7 +103,7 @@ def main():
         on = sorted({plane_of_set[p["set"]] for p in printings[name] if p["set"] in plane_of_set})
         cards[name] = {"gold": round((usd + SURCHARGE[rarity]) * 100), "usd": usd, "rarity": rarity, "planes": on}
         vintage = legality.get(name, {}).get("legalities", {}).get("vintage")
-        if vintage in ("legal", "restricted"):
+        if vintage in ("legal", "restricted") and name not in relics:
             for plane in on:
                 pools[plane].append(name)
 

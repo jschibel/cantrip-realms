@@ -90,9 +90,11 @@ owner may extend.
 - **Only from the highest-level bosses.** A relic drops only from the bosses its entry names: the capstone dungeon's
   boss (the Phyrexian praetor that ends the Dominaria arc), and later planes' capstones. The chance is small, about 1 in
   50 per win, in the entry. It is rolled after the duel, apart from the three-card offer and outside the prize cap, since
-  no ante could cover a relic's value.
+  no ante could cover a relic's value. Each relic the boss holds is rolled on its own, so one win may drop more than one,
+  and every relic that drops goes straight to the collection; the duel's result names them.
 - **One per account, ever.** The server keeps a ledger of every relic each account has received. One already in the
-  ledger never drops for that account again, even if the card has since left the collection.
+  ledger never drops for that account again, and is not even rolled, even if the card has since left the collection.
+  Each account's ledger is its own.
 - **Never anywhere else.** Relics are in no plane's pool: no vendor sells or buys one, no loot offer holds one, no starter
   deck has one.
 - **Kept.** A relic can't be put in the ante and can't be sold, so it is never lost or passed on. A deck holds one copy at
@@ -168,6 +170,12 @@ owner may extend.
   - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
   - You can fight them again each week for loot.
   - **Capstone:** once all five colors are unlocked, the Phyrexian Portal opens. A five-color praetor boss ends the Dominaria arc, and later planes come in as data packs.
+- **The Phyrexian Portal** (the capstone dungeon):
+  - It stands on the world map just south of New Argive, on its own road from the hub, and belongs to no region.
+  - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then the world map shows it sealed and can't enter it, and the server refuses to let a character stand on any of its floors or start a duel there.
+  - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
+  - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears: 42 life, a starting hand of 9 and a maximum hand of 10. Its deck is the strongest the Dominaria pool allows. It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
+  - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and offer, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
 - **Mobs:**
   - About 60 types, each with a themed 40-card deck, stats and gear traits. They use the same Vanguard-object system as the player, which is what makes them harder.
   - Behavior: they wander within a home radius and give chase when you come within 6 hexes, a little slower than you walk. They respawn 10 minutes after you leave the map.

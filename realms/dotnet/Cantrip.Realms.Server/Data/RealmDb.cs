@@ -96,6 +96,22 @@ public sealed class UnlockRow
     public long At { get; set; }
 }
 
+/// <summary>
+/// A relic an account has received (<c>relics</c>, design.md A3a): the ledger a relic never drops twice from, kept whatever
+/// becomes of the card. One row per account and relic, ever.
+/// </summary>
+public sealed class RelicRow
+{
+    public string PlayerId { get; set; } = string.Empty;
+
+    public string Card { get; set; } = string.Empty;
+
+    public long At { get; set; }
+
+    /// <summary>The duel whose win dropped it.</summary>
+    public string Duel { get; set; } = string.Empty;
+}
+
 /// <summary>A card vendor's own state (<c>vendors</c>): its purse, and the last hour it was brought up to.</summary>
 public sealed class VendorRow
 {
@@ -239,6 +255,8 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
 
     public DbSet<UnlockRow> Unlocks => Set<UnlockRow>();
 
+    public DbSet<RelicRow> Relics => Set<RelicRow>();
+
     public DbSet<VendorRow> Vendors => Set<VendorRow>();
 
     public DbSet<VendorStockRow> VendorStock => Set<VendorStockRow>();
@@ -308,6 +326,15 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             row.ToTable("unlocks");
             row.HasKey(unlock => new { unlock.PlayerId, unlock.Color });
             row.Property(unlock => unlock.Color).HasMaxLength(1);
+        });
+
+        modelBuilder.Entity<RelicRow>(row =>
+        {
+            row.ToTable("relics");
+            row.HasKey(relic => new { relic.PlayerId, relic.Card });
+            row.Property(relic => relic.PlayerId).HasMaxLength(64);
+            row.Property(relic => relic.Card).HasMaxLength(160);
+            row.Property(relic => relic.Duel).HasMaxLength(64);
         });
 
         modelBuilder.Entity<VendorRow>(row =>

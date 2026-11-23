@@ -96,4 +96,26 @@ describe("Dominaria's maps", () => {
     }
     expect(maps.get("benalish-meadow")?.kind).toBe("wilderness");
   });
+
+  it("has the capstone: the Phyrexian Portal by the hub, 3-5 floors sealed to all but five colors, the praetor's hall last", async () => {
+    const floors = [...maps.values()].filter((m) => m.id.startsWith("phyrexian-portal-")).sort((a, b) => a.floor! - b.floor!);
+    expect(floors.length).toBeGreaterThanOrEqual(3);
+    expect(floors.length).toBeLessThanOrEqual(5);
+    floors.forEach((floor, i) => {
+      expect(floor.kind).toBe("dungeon");
+      expect(floor.floor).toBe(i + 1);
+      expect(floor.requires).toBe("WUBRG");
+      expect(floor.region).toBeUndefined();
+    });
+    // Only the portal is sealed, and it is entered from the world map.
+    expect([...maps.values()].filter((m) => m.requires !== undefined).map((m) => m.id).sort()).toEqual(floors.map((f) => f.id).sort());
+    expect(maps.get("world")!.exits.some((e) => e.to === floors[0]!.id)).toBe(true);
+    expect(floors[0]!.npcs.some((n) => n.kind === "spell-table")).toBe(true);
+    const last = floors[floors.length - 1]!;
+    expect(last.spawns.find((s) => s.id === "boss")?.mobs).toEqual(["phyrexian-praetor"]);
+    expect(mobInfo("phyrexian-praetor").known).toBe(true);
+    for (const floor of floors) expect(floor.spawns.some((s) => s.mobs.includes("portal-warden")), floor.id).toBe(true);
+    const at = await worldLocation(floors[0]!.id, load);
+    expect(at && Math.max(Math.abs(at.q), Math.abs(at.r), Math.abs(at.q + at.r))).toBeLessThanOrEqual(6);
+  });
 });

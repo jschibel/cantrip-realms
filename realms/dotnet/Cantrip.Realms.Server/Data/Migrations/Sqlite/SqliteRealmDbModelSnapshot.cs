@@ -266,6 +266,29 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.ToTable("quests", (string)null);
                 });
 
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.RelicRow", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Card")
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("At")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Duel")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PlayerId", "Card");
+
+                    b.ToTable("relics", (string)null);
+                });
+
             modelBuilder.Entity("Cantrip.Realms.Server.Data.UnlockRow", b =>
                 {
                     b.Property<string>("PlayerId")

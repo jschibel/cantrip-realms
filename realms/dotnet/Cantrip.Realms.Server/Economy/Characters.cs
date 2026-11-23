@@ -204,10 +204,27 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             throw Refusal.Unprocessable(Codes.NoSuchPlace, "Nobody can stand there.");
         }
 
+        await RequireOpen(player, map).ConfigureAwait(false);
+
         row.Map = map.Id;
         row.Q = request.Q;
         row.R = request.R;
         await db.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Refuses a character a map that is locked to them (<c>requires</c>, interfaces.md "Maps"): one whose colors are not all
+    /// in their identity, as the Phyrexian Portal's are not until all five are unlocked (design.md A6).
+    /// </summary>
+    public async Task RequireOpen(string player, RealmMap map)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        if (map.File.Requires is not { } requires) return;
+        string identity = await Identity(player).ConfigureAwait(false);
+        if (!requires.All(identity.Contains))
+        {
+            throw Refusal.Conflict(Codes.Locked, $"{map.File.Name} is sealed: it opens to a mage who has unlocked {CardPool.Letters(CardPool.Identity(requires))}.");
+        }
     }
 
     /// <summary>The inn a character who loses on a map wakes at: its map and hex.</summary>

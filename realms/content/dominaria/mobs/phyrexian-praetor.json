@@ -1,0 +1,41 @@
+{
+  "id": "phyrexian-praetor",
+  "name": "Phyrexian Praetor",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/phyrexian-praetor.txt",
+  "stats": {
+    "life": 30,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "mantle-of-the-ancients",
+    "crown-of-the-ages",
+    "thran-amulet"
+  ],
+  "prize": 6000,
+  "goldRange": [
+    1500,
+    1500
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "WUBRG",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "phyrexian",
+    "palette": [
+      "#f2efe6",
+      "#7a1f24",
+      "#0d0f14"
+    ],
+    "size": 1.9
+  },
+  "boss": true
+}

@@ -101,13 +101,18 @@ public sealed class ContentTests
             {
                 Assert.All(mobs, mob => Assert.True(mob.File.Boss || mob.File.Tier >= (map.File.Floor == 1 ? 2 : 3), $"{map.Id}: {mob.Id} is tier {mob.File.Tier}"));
                 Assert.Contains(mobs, mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal));
+
+                // Beyond the Phyrexian Portal, tier 4 and up on every floor.
+                if (map.File.Requires is not null) Assert.All(mobs, mob => Assert.Equal(4, mob.File.Tier));
             }
         }
 
-        // Five floor wardens of tier 4, and five bosses who unlock the five colors.
-        Assert.Equal(5, content.Mobs.Values.Count(mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal) && mob.File.Tier == 4 && !mob.File.Boss));
+        // Six floor wardens of tier 4 (the five dungeons' and the portal's); five bosses who unlock the five colors, and
+        // the capstone's praetor, who unlocks none.
+        Assert.Equal(6, content.Mobs.Values.Count(mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal) && mob.File.Tier == 4 && !mob.File.Boss));
         List<Mob> bosses = [.. content.Mobs.Values.Where(mob => mob.File.Boss)];
-        Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).Order(StringComparer.Ordinal)));
+        Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).OfType<string>().Order(StringComparer.Ordinal)));
+        Assert.Equal(["phyrexian-praetor"], bosses.Where(boss => boss.File.Unlocks is null).Select(boss => boss.Id));
         Assert.All(bosses, boss => Assert.Equal(6000, boss.File.Prize));
         Assert.Contains("Lyra Dawnbringer", content.Mobs["lyra-dawnbringer"].Deck.Entries.Select(entry => entry.Card));
         Assert.Contains("Teferi, Hero of Dominaria", content.Mobs["teferi"].Deck.Entries.Select(entry => entry.Card));
@@ -122,6 +127,62 @@ public sealed class ContentTests
 
         // An armorer in New Argive and each home town.
         Assert.Equal(6, content.Maps.Values.Count(map => map.File.Npcs.Any(npc => npc.Kind == Armorers.Kind)));
+    }
+
+    [Fact]
+    public void No_pool_vendor_stock_loot_offer_or_starter_deck_can_hold_a_relic()
+    {
+        RealmContent content = RealmApp.Content;
+        HashSet<string> relics = [.. content.Relics.Select(relic => relic.Card)];
+        Assert.Contains("Black Lotus", relics);
+        Assert.Equal(relics, content.Cards.Relics);
+
+        // The pools (as card-economy.py writes them, and as the server reads them), and so every vendor's stock and every
+        // mob's loot, which are filters of them.
+        foreach (string plane in content.Cards.Planes)
+        {
+            Assert.DoesNotContain(content.Cards.Pool(plane), relics.Contains);
+            using JsonDocument file = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "pools", $"{plane}.json")));
+            Assert.DoesNotContain(file.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString()!), relics.Contains);
+        }
+
+        Assert.All(content.Vendors.Values, vendor => Assert.DoesNotContain(content.Cards.Filter(vendor.Plane, vendor.File.Specialty), relics.Contains));
+        Assert.All(content.Mobs.Values, mob => Assert.DoesNotContain(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot), relics.Contains));
+        Assert.All(content.Starters.Values.SelectMany(decks => decks.Values), deck => Assert.DoesNotContain(deck.Entries, entry => relics.Contains(entry.Card)));
+        Assert.All(content.Mobs.Values, mob => Assert.DoesNotContain(mob.Deck.Entries, entry => relics.Contains(entry.Card)));
+
+        // Even a pool that lists one, a vendor that names one or a loot filter that asks for one gets none.
+        var listed = new CardPool(content.Cards.Catalog, content.Cards.Prices, new Dictionary<string, IReadOnlyList<string>> { ["dominaria"] = ["Black Lotus", "Mox Pearl", "Llanowar Elves"] }, content.Cards.Relics);
+        Assert.Equal(["Llanowar Elves"], listed.Pool("dominaria"));
+        Assert.Empty(listed.Filter("dominaria", new CardFilter { Names = ["Black Lotus", "Mox Pearl"] }));
+    }
+
+    [Fact]
+    public void The_phyrexian_portal_is_the_capstone_sealed_to_all_but_five_colors()
+    {
+        RealmContent content = RealmApp.Content;
+        List<RealmMap> floors = [.. content.Maps.Values.Where(map => map.Id.StartsWith("phyrexian-portal-", StringComparison.Ordinal)).OrderBy(map => map.File.Floor)];
+        Assert.InRange(floors.Count, 3, 5);
+        Assert.All(floors, floor =>
+        {
+            Assert.Equal("dungeon", floor.File.Kind);
+            Assert.Equal("WUBRG", floor.File.Requires);
+            Assert.Null(floor.File.Region);
+        });
+        Assert.Equal(Enumerable.Range(1, floors.Count), floors.Select(floor => floor.File.Floor!.Value));
+        Assert.Contains(content.Maps[RealmContent.World].File.Exits, exit => exit.To == floors[0].Id);
+        Assert.All(content.Maps.Values.Where(map => map.File.Requires is not null), map => Assert.Contains(map, floors));
+
+        // The boss hall on the last floor: the praetor, five colors, its deck round the pool's one praetor.
+        MapSpawn boss = floors[^1].Spawn("boss")!;
+        Assert.Equal(["phyrexian-praetor"], boss.Mobs);
+        Mob praetor = content.Mobs["phyrexian-praetor"];
+        Assert.True(praetor.File.Boss);
+        Assert.Null(praetor.File.Unlocks);
+        Assert.Equal(6000, praetor.File.Prize);
+        Assert.Contains("Sheoldred, the Apocalypse", praetor.Deck.Entries.Select(entry => entry.Card));
+        Assert.Equal("WUBRG", CardPool.Letters(praetor.Deck.Entries.SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
+        Assert.All(floors.SkipLast(1), floor => Assert.DoesNotContain(floor.File.Spawns, spawn => spawn.Mobs.Contains("phyrexian-praetor")));
     }
 
     [Fact]
@@ -188,11 +249,19 @@ public sealed class ContentTests
             Edit(Path.Combine(content, "dominaria", "maps", "benalish-meadow.json"), json => json.Replace("{\"id\":\"s2\",\"q\":-6,\"r\":9,\"mobs\":[\"phyrexian-scout\",\"benalish-deserter\"]", "{\"id\":\"s2\",\"q\":-3,\"r\":3,\"mobs\":[\"nobody\"]", StringComparison.Ordinal));
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
 
+            // A relic in a pool, a relic from a mob that is no boss, and a map locked to colors that are none.
+            Edit(Path.Combine(content, "pools", "dominaria.json"), json => json.Replace("\"cards\": [", "\"cards\": [\n\"Black Lotus\",", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-scout\"]", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "dominaria", "maps", "phyrexian-portal-2.json"), json => json.Replace("\"requires\": \"WUBRG\"", "\"requires\": \"WX\"", StringComparison.Ordinal));
+
             RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(root, Path.Combine(RealmApp.Root, "content")));
             Assert.Contains(refused.Problems, problem => problem.Contains("missing.txt", StringComparison.Ordinal));
             Assert.Contains(refused.Problems, problem => problem.Contains("spawn s2 stands on (-3, 3)", StringComparison.Ordinal));
             Assert.Contains(refused.Problems, problem => problem.Contains("'nobody', which is no mob", StringComparison.Ordinal));
             Assert.Contains(refused.Problems, problem => problem.Contains("slot 'hat'", StringComparison.Ordinal));
+            Assert.Contains("pools/dominaria.json: Black Lotus is a relic, which is in no pool (design.md A3a).", refused.Problems);
+            Assert.Contains("relics.json: Mox Pearl drops from 'phyrexian-scout', which is no boss.", refused.Problems);
+            Assert.Contains("map phyrexian-portal-2: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
         }
         finally
         {

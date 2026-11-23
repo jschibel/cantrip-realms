@@ -12,6 +12,7 @@ export function formatMap(map: MapData): string {
     kind: map.kind,
     ...(map.region !== undefined ? { region: map.region } : {}),
     ...(map.floor !== undefined ? { floor: map.floor } : {}),
+    ...(map.requires !== undefined ? { requires: map.requires } : {}),
     radius: map.radius,
     ...(map.inn !== undefined ? { inn: map.inn } : {}),
   };

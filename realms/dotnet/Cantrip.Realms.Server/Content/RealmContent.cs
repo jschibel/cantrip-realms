@@ -139,6 +139,16 @@ public sealed partial class RealmContent
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
 
+    /// <summary>The relics (design.md A3a), in <c>relics.json</c>'s order.</summary>
+    public IReadOnlyList<RelicEntry> Relics { get; private set; } = [];
+
+    /// <summary>The relics a boss may drop, in <c>relics.json</c>'s order; none for any other mob.</summary>
+    public IEnumerable<RelicEntry> RelicsOf(Mob mob)
+    {
+        ArgumentNullException.ThrowIfNull(mob);
+        return mob.File.Boss ? Relics.Where(relic => relic.Bosses.Contains(mob.Id, StringComparer.Ordinal)) : [];
+    }
+
     /// <summary>The kind of each voxel model of <c>realms/content/models</c> (<c>body</c>, <c>mob</c> or <c>gear</c>), by id.</summary>
     public IReadOnlyDictionary<string, string> Models { get; private set; } = new Dictionary<string, string>();
 
@@ -160,6 +170,8 @@ public sealed partial class RealmContent
         List<string> problems = [];
 
         Dictionary<string, CardPrice> prices = CardPool.ReadPrices(Path.Combine(realms, "prices.json"));
+        List<RelicEntry> relics = ReadRelics(Path.Combine(realms, "relics.json"), problems);
+        HashSet<string> relicNames = new(relics.Select(relic => relic.Card), StringComparer.Ordinal);
         Dictionary<string, IReadOnlyList<string>> pools = new(StringComparer.Ordinal);
         foreach (string file in Directory.EnumerateFiles(Path.Combine(realms, "pools"), "*.json").Order(StringComparer.Ordinal))
         {
@@ -168,8 +180,8 @@ public sealed partial class RealmContent
                 [.. pool.RootElement.GetProperty("cards").EnumerateArray().Select(card => card.GetString() ?? string.Empty)];
         }
 
-        var cards = new CardPool(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices, pools);
-        var content = new RealmContent(root, cards);
+        var cards = new CardPool(DeckCatalog.ByName(cardContent ?? Path.Combine(root, "content")), prices, pools, relicNames);
+        var content = new RealmContent(root, cards) { Relics = relics };
 
         foreach ((string name, CardPrice price) in prices)
         {
@@ -188,6 +200,11 @@ public sealed partial class RealmContent
             foreach (string name in pool.Where(name => !cards.Catalog.ContainsKey(name)))
             {
                 problems.Add($"pools/{plane}.json: {name} is not a card the engine plays.");
+            }
+
+            foreach (string name in pool.Where(relicNames.Contains))
+            {
+                problems.Add($"pools/{plane}.json: {name} is a relic, which is in no pool (design.md A3a).");
             }
         }
 
@@ -245,6 +262,20 @@ public sealed partial class RealmContent
         content.Check(problems);
 
         return problems.Count == 0 ? content : throw new RealmContentException(problems);
+    }
+
+    private static List<RelicEntry> ReadRelics(string path, List<string> problems)
+    {
+        if (!System.IO.File.Exists(path)) return [];
+        try
+        {
+            return [.. JsonSerializer.Deserialize<RelicsFile>(System.IO.File.ReadAllBytes(path), Json)?.Relics ?? []];
+        }
+        catch (JsonException problem)
+        {
+            problems.Add($"relics.json: {problem.Message}");
+            return [];
+        }
     }
 
     private static Dictionary<string, GearItem> ReadGear(string folder, List<string> problems)
@@ -317,6 +348,20 @@ public sealed partial class RealmContent
             CheckMob(mob, problems);
         }
 
+        HashSet<string> relics = new(StringComparer.Ordinal);
+        foreach (RelicEntry relic in Relics)
+        {
+            string where = $"relics.json: {relic.Card}";
+            if (!relics.Add(relic.Card)) problems.Add($"{where} is listed twice.");
+            if (!Cards.Catalog.ContainsKey(relic.Card)) problems.Add($"{where} is not a card the engine plays.");
+            if (relic.Chance is <= 0 or > 1 || double.IsNaN(relic.Chance)) problems.Add($"{where}: its chance is more than 0 and at most 1.");
+            if (relic.Bosses.Count == 0) problems.Add($"{where} drops from no boss.");
+            foreach (string boss in relic.Bosses.Where(boss => !Mobs.TryGetValue(boss, out Mob? mob) || !mob.File.Boss))
+            {
+                problems.Add($"{where} drops from '{boss}', which is no boss.");
+            }
+        }
+
         foreach (RealmMap map in Maps.Values)
         {
             CheckMap(map, problems);
@@ -348,6 +393,7 @@ public sealed partial class RealmContent
                 problems.AddRange(DeckProblems(deck, plane, CardPool.Identity(color)).Select(problem => $"{where}: {problem}"));
                 foreach (DeckListEntry entry in deck.Entries)
                 {
+                    if (Cards.IsRelic(entry.Card)) problems.Add($"{where}: {entry.Card} is a relic, which no starter deck holds.");
                     if (Cards.Catalog.TryGetValue(entry.Card, out var card) && !CardPool.IsBasic(card)
                         && Cards.Prices.TryGetValue(entry.Card, out CardPrice? price) && price.Rarity is not ("common" or "uncommon"))
                     {
@@ -363,9 +409,9 @@ public sealed partial class RealmContent
         MobFile file = mob.File;
         string where = $"mob {mob.Id}";
         if (string.IsNullOrWhiteSpace(file.Name)) problems.Add($"{where}: no name.");
-        if (file.Boss ? file.Unlocks is not { Length: 1 } || CardPool.Color(file.Unlocks[0]) is null : file.Tier is < 1 or > 4)
+        if (file.Boss ? file.Unlocks is not null && (file.Unlocks.Length != 1 || CardPool.Color(file.Unlocks[0]) is null) : file.Tier is < 1 or > 4)
         {
-            problems.Add(file.Boss ? $"{where}: a boss unlocks one color, W U B R or G." : $"{where}: tier {file.Tier} is not 1 to 4.");
+            problems.Add(file.Boss ? $"{where}: a boss unlocks one color, W U B R or G, or none (a capstone)." : $"{where}: tier {file.Tier} is not 1 to 4.");
         }
 
         if (file.Stats.Life < 1 || file.Stats.Hand is < 0 or > 254 || file.Stats.MaxHand < 0)
@@ -400,6 +446,10 @@ public sealed partial class RealmContent
         if (string.IsNullOrWhiteSpace(file.Name)) problems.Add($"{where}: no name.");
         if (!MapKinds.Contains(file.Kind)) problems.Add($"{where}: kind '{file.Kind}' is none of {string.Join(", ", MapKinds)}.");
         if (file.Kind == "dungeon" && file.Floor is null) problems.Add($"{where}: a dungeon floor says which floor it is.");
+        if (file.Requires is { } requires && (requires.Length == 0 || requires.Any(letter => CardPool.Color(letter) is null)))
+        {
+            problems.Add($"{where}: it requires '{requires}', which is not colors' letters (W U B R G).");
+        }
 
         HashSet<string> spawns = new(StringComparer.Ordinal);
         foreach (MapSpawn spawn in file.Spawns)

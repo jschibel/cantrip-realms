@@ -101,8 +101,29 @@ public sealed class MobFile
 
     public bool Boss { get; init; }
 
-    /// <summary>The color a boss unlocks when beaten.</summary>
+    /// <summary>The color a boss unlocks when beaten; none for a plane's capstone boss, which ends its arc instead.</summary>
     public string? Unlocks { get; init; }
+}
+
+/// <summary>
+/// A relic (<c>realms/content/relics.json</c>, design.md A3a): a card that drops only from the bosses named, at
+/// <see cref="Chance"/> on each win, and at most once per account ever.
+/// </summary>
+public sealed class RelicEntry
+{
+    public string Card { get; init; } = string.Empty;
+
+    /// <summary>The mobs (bosses) it drops from.</summary>
+    public IReadOnlyList<string> Bosses { get; init; } = [];
+
+    /// <summary>The chance of it dropping on each win against one of them, more than 0 and at most 1.</summary>
+    public double Chance { get; init; }
+}
+
+/// <summary><c>realms/content/relics.json</c>.</summary>
+public sealed class RelicsFile
+{
+    public IReadOnlyList<RelicEntry> Relics { get; init; } = [];
 }
 
 public sealed class MapProp
@@ -199,6 +220,12 @@ public sealed class MapFile
     public string? Region { get; init; }
 
     public int? Floor { get; init; }
+
+    /// <summary>
+    /// The colors, as letters, a character's identity must hold to set foot on this map; null for a map open to everyone.
+    /// The Phyrexian Portal's floors require all five (design.md A6).
+    /// </summary>
+    public string? Requires { get; init; }
 
     public int Radius { get; init; }
 

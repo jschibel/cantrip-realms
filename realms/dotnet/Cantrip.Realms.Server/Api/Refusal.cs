@@ -52,4 +52,6 @@ public static class Codes
     public const string Empty = "Empty";
     public const string NoSuchPlace = "NoSuchPlace";
     public const string NotSignedIn = "NotSignedIn";
+    public const string Relic = "Relic";
+    public const string Locked = "Locked";
 }

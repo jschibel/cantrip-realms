@@ -32,6 +32,14 @@ describe("validateMap", () => {
     expect(validateMap(village(), new Set(["test-village"]))).toEqual([]);
   });
 
+  it("takes the colors a map requires as letters in WUBRG order, and never on a town", () => {
+    const floor = village({ kind: "dungeon", floor: 1, inn: { map: "new-argive", q: 0, r: 0 }, npcs: [], requires: "WUBRG" });
+    expect(validateMap(floor)).toEqual([]);
+    expect(validateMap({ ...floor, requires: "GW" })).toEqual(["requires GW is not colors' letters in WUBRG order"]);
+    expect(validateMap({ ...floor, requires: "" })).toEqual(["requires  is not colors' letters in WUBRG order"]);
+    expect(validateMap(village({ requires: "W" }))).toEqual(["a village is open to everyone: only a place beyond one is locked"]);
+  });
+
   it("finds a map that is not one", () => {
     expect(validateMap(null)).toEqual(["a map is a JSON object"]);
     expect(validateMap({ id: "Bad Id", kind: "castle" }).length).toBeGreaterThan(2);

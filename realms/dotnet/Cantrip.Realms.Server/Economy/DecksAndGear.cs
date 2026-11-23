@@ -76,6 +76,11 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
             problems.Add($"{card.Name} is a basic land, free to every deck: it can't be anted.");
         }
 
+        foreach (CardCount card in ante.Where(card => content.Cards.IsRelic(card.Name)))
+        {
+            problems.Add($"{card.Name} is a relic, which is never lost: it can't be anted.");
+        }
+
         Dictionary<string, int> owned = await db.Collection.Where(row => row.PlayerId == player)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
         foreach (IGrouping<string, CardCount> named in main.Concat(ante).Where(card => !characters.IsBasic(card.Name))

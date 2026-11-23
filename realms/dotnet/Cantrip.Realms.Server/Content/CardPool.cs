@@ -10,7 +10,8 @@ public sealed record CardPrice(long Gold, decimal Usd, string Rarity);
 /// <summary>
 /// The cards of the realm: the engine's catalog with each card's legality and color identity (the deck editor's,
 /// <see cref="Cantrip.Server.Decks.DeckCatalog"/>), each card's list price, and each plane's pool - what loot and vendors
-/// draw from (design.md A5). Basic lands are in no pool here: they are free and never part of a collection (design.md A1).
+/// draw from (design.md A5). Basic lands are in no pool here: they are free and never part of a collection (design.md A1);
+/// nor are the relics (design.md A3a), which drop only from the bosses their entries name.
 /// </summary>
 public sealed class CardPool
 {
@@ -19,13 +20,16 @@ public sealed class CardPool
     public CardPool(
         IReadOnlyDictionary<string, CatalogCard> catalog,
         IReadOnlyDictionary<string, CardPrice> prices,
-        IReadOnlyDictionary<string, IReadOnlyList<string>> pools)
+        IReadOnlyDictionary<string, IReadOnlyList<string>> pools,
+        IReadOnlySet<string>? relics = null)
     {
+        ArgumentNullException.ThrowIfNull(pools);
         Catalog = catalog;
         Prices = prices;
+        Relics = relics ?? new HashSet<string>(StringComparer.Ordinal);
         _pools = pools.ToDictionary(
             plane => plane.Key,
-            plane => (IReadOnlyList<string>)[.. plane.Value.Where(name => catalog.TryGetValue(name, out CatalogCard? card) && !IsBasic(card) && prices.ContainsKey(name))
+            plane => (IReadOnlyList<string>)[.. plane.Value.Where(name => catalog.TryGetValue(name, out CatalogCard? card) && !IsBasic(card) && prices.ContainsKey(name) && !Relics.Contains(name))
                 .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)],
             StringComparer.Ordinal);
     }
@@ -34,6 +38,11 @@ public sealed class CardPool
     public IReadOnlyDictionary<string, CatalogCard> Catalog { get; }
 
     public IReadOnlyDictionary<string, CardPrice> Prices { get; }
+
+    /// <summary>The relics' names (design.md A3a): in no pool, never anted or sold, one copy at most in a deck.</summary>
+    public IReadOnlySet<string> Relics { get; }
+
+    public bool IsRelic(string name) => Relics.Contains(name);
 
     public IEnumerable<string> Planes => _pools.Keys;
 

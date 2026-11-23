@@ -6,8 +6,8 @@ namespace Cantrip.Realms.Server.Content;
 /// <summary>
 /// The realm's deck rules (design.md A2), over the deck editor's own card rules (<see cref="DeckRules"/>): at least forty
 /// cards and no maximum; no more copies of a card than <see cref="DeckRules.MostCopies"/> allows in Vintage (four, any
-/// number of a basic land), one of a card restricted there; every card legal or restricted in Vintage; and, for a
-/// character, every card's color identity within theirs (<see cref="DeckRules.Within"/>).
+/// number of a basic land), one of a card restricted there, and one of a relic (design.md A3a); every card legal or
+/// restricted in Vintage; and, for a character, every card's color identity within theirs (<see cref="DeckRules.Within"/>).
 /// </summary>
 public static class DeckChecks
 {
@@ -50,12 +50,14 @@ public static class DeckChecks
                 problems.Add($"{named.Key} is not legal in Vintage.");
             }
 
-            int most = legality == Legality.Restricted ? 1 : DeckRules.MostCopies(card, Vintage);
+            int most = legality == Legality.Restricted || cards.IsRelic(named.Key) ? 1 : DeckRules.MostCopies(card, Vintage);
             if (copies > most)
             {
                 problems.Add(legality == Legality.Restricted
                     ? $"{named.Key} is restricted in Vintage: one copy at most, not {copies}."
-                    : $"{named.Key}: {copies} copies, more than the {most} a deck may have.");
+                    : most == 1
+                        ? $"{named.Key} is a relic: one copy at most, not {copies}."
+                        : $"{named.Key}: {copies} copies, more than the {most} a deck may have.");
             }
 
             if (identity is not null && !DeckRules.Within(card, identity))

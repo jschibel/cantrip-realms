@@ -78,7 +78,7 @@ public sealed class NativeVerifierTests
     /// Plays a duel as the browser does: seat 1 by <paramref name="player"/> through a recording transport that settles the
     /// mob's seat before each message, seat 2 by <paramref name="mob"/>. Returns the log and who won.
     /// </summary>
-    private static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob)
+    internal static (List<string> Log, IReadOnlyList<int> Winners) Play(Duel duel, IAutoPlayer player, IAutoPlayer mob)
     {
         IRulesHost rules = NativeDuelVerifier.Deal(duel, NativeHostProcess.Shared);
         using var session = new GameSession(rules);

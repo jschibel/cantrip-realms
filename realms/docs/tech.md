@@ -41,7 +41,7 @@ How the game in `design.md` is built, tested and deployed, and the order it is b
 - **Storage:** **PostgreSQL** through EF Core migrations. SQLite is used for local development and tests through the same EF model.
   - Why not the existing JSON store: buying and selling has to change a player's gold and collection, a vendor's purse and its stock in one atomic transaction, and `EventStore`'s file-at-a-time writes can't do that. This is a server store, not an engine system.
   - Why Postgres: a managed database gives backups and point-in-time restore, and it lets more than one server instance run later.
-  - Tables: players, collection, gear_owned, loadout, deck, ante, unlocks, vendors, vendor_stock, vendor_visits, duels, chests, quests.
+  - Tables: players, collection, gear_owned, loadout, deck, ante, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels, chests, quests.
 - **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and ante save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, quests.
 - **The encounter protocol** (single-player, but it can't be cheated):
   1. **Start:** `POST /encounter/start {map, spawnId}`. The server checks that the spawn exists in that map's **deterministic spawn table** (seeded by player, map and spawn epoch; the client and server share golden test vectors) and that your last reported position is close. It then **commits** the seed, the mob, a snapshot of your deck, loadout and ante, and the prize cap, and returns a duel token.
