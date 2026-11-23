@@ -151,78 +151,93 @@ Design.md A6: one connected world, interiors entered through doors, and dungeons
 overworld's per-map files are gone). The server starts on the generated world; its tests also keep a small world of the
 same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.py`).
 
-- **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains): its landmasses (`center`,
-  `radius`, `wobble`, `stretch`, `turn`), `bays` and `archipelagos`; its `regions` (`{id, name, color or null, biome:
-  heartland|plains|coast|swamp|mountains|volcanic|forest|tundra|waste, style, at, weight, minTier, areas: [4 names]}`,
-  every hex the region's whose `at` is nearest by its `weight`, `minTier` the least tier of its wilds); `mountains`,
-  `rivers` and `lakes`; the `towns` (`{id, name, kind, region, style, at, radius, inn, innkeeper, board, folk, centrepiece,
-  start, home, temple, guild, exotic, caravan}`, `exotic` the id of the town's exotic wares vendor, whose shop is
-  `<vendor>-shop`); the `roads` between towns, dungeons and ferry docks (`ferry:<id>:from`,
-  `ferry:<id>:to`); the `dungeons` (as `dungeons/<id>.json` below, at a place, their mobs, warden and boss mob ids or asked
-  of the roster: `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`); and the `ferries` (`{id, name, from,
-  to}`). Places are axial hexes. The world generator reads it, and the server tests' world takes its towns' and
-  dungeons' ids from it.
-- **The world.** `world/world.json` holds `{size: [width, height], chunk: 32, seed, regions: [{color, name, hexes}] (each
-  colored region and how many hexes of land it has), towns: [{id, name, kind: capital|town|village, center: [q, r],
-  radius, style, region (a color, optional), start, home (a color, optional)}], inns: [{id, town, q, r, interior}] (the
-  hex outside the inn's door, and the inn), dungeons: [{id, q, r}], roads: [{from, to, hexes: [[q, r], ...]}], ferries,
-  pitches, zones, overview}`:
-  - `ferries` are `[{id, name, from: [q, r], to: [q, r], lane: [[q, r], ...]}]`: a ferry to a far isle. `from` and `to` are
-    its docks, open hexes on each shore with a `ferryman` NPC (`ferry` names the ferry) beside each; `lane` runs hex by
-    hex from one dock to the other, open hexes over the water (`lane[0]` is `from`, the last `to`). A passenger rides the
-    lane at a walk (design.md A6: board, the crossing eases by, step off), so a ferry is walking as far as the server is
-    concerned; the overworld lets nobody but a passenger onto a lane.
-  - `pitches` are `[{town, q, r}]`: the open hex of a town's market square where a traveling vendor's caravan stands
-    while the schedule (`GET /api/travelers`) has them in that town (design.md A5); the trader stands on it.
+- **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains), in square tiles `[x, z]`
+  (x east, z south) and lengths in tiles: its `size` (whole chunks each way) and `relief` (how much the land rolls, 1 as
+  designed, 0 flat); its landmasses (`center`, `radius`, `wobble`, `stretch`, `turn`), `bays` and `archipelagos`; its
+  `regions` (`{id, name, color or null, biome: heartland|plains|coast|swamp|mountains|volcanic|forest|tundra|waste,
+  style, at, weight, minTier, areas: [4 names]}`, every tile the region's whose `at` is nearest by its `weight`, `minTier`
+  the least tier of its wilds); `mountains`, `rivers` and `lakes`; the `towns` (`{id, name, kind, region, style, at,
+  radius, inn, innkeeper, board, folk, centrepiece, start, home, temple, guild, exotic, caravan}`, `radius` the tiles
+  from the centre to the walls along x and z, `exotic` the id of the town's exotic wares vendor, whose shop is
+  `<vendor>-shop`); the `roads` between towns, dungeons and ferry docks (`ferry:<id>:from`, `ferry:<id>:to`); the
+  `dungeons` (as `dungeons/<id>.json` below, at a place, their mobs, warden and boss mob ids or asked of the roster:
+  `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`); and the `ferries` (`{id, name, from, to}`, each dock the
+  open shore nearest its place). The world generator reads it (and refuses one whose towns stand within 16 tiles of each
+  other, wall to wall), and the server tests' world takes its towns' and dungeons' ids from it.
+- **The world** is the version-2 format of realms/docs/conversion.md ("The world data, version 2"; types in
+  `realms/web/src/world/format.ts`). Dominaria is 1024 by 1216 tiles from `[0, 0]` (32 by 38 chunks), no `bounds`.
+  `world/world.json` holds `{size: [width, height], chunk: 32, tile: 1, seed, regions: [{color, name, tiles}] (each
+  colored region and how many tiles of land it has), towns: [{id, name, kind: capital|town|village, center: [x, z],
+  radius, style, region (a color, optional), start, home (a color, optional)}], inns: [{id, town, x, z, interior}] (the
+  inn's door tile, outside, which is its interior's `exit`), dungeons: [{id, x, z}], roads: [{from, to, tiles: [[x, z],
+  ...]}] (each road's middle line, tile by tile, edge to edge), ferries, pitches, zones, overview}`:
+  - a town is the square of tiles within `radius` of its `center` along x and along z (Chebyshev distance), its walls
+    the tiles at exactly `radius` (`inTown`, `townAt` in format.ts);
+  - `ferries` are `[{id, name, from: [x, z], to: [x, z], lane: [[x, z], ...]}]`: a ferry to a far isle. `from` and `to`
+    are its docks, open shore tiles with a `ferryman` NPC (`ferry` names the ferry) beside each; `lane` runs from one dock
+    to the other (`lane[0]` is `from`, the last `to`), sea tiles edge to edge, open (a walk of eight-way steps with no
+    corner cut, as every walk is). A passenger rides the lane at a walk (design.md A6: board, the crossing eases by, step
+    off), so a ferry is walking as far as the server is concerned; the overworld lets nobody but a passenger onto a lane.
+    No other sea tile is open but the causeways the roads raise to the near isles;
+  - `pitches` are `[{town, x, z}]`: an open tile of a town's market (or square), open all round, where a traveling
+    vendor's caravan stands while the schedule (`GET /api/travelers`) has them in that town (design.md A5); the trader
+    stands on it;
   - `zones` are the tier zones (design.md A6): `{cell, cols, rows, areas: [{id, name, region (a color or null), tier}],
-    grid}`, the world cut into `cell`-by-`cell` squares of axial hexes, `grid[row][col]` the index in `areas` of the
-    square at `q = col * cell`, `r = row * cell`. An area is a region's band of one tier (named in `layout.json`), or the
-    sea (tier 0); a town within its walls (`radius` of its `center`) is no tier's. A hex's tier is its square's area's.
-  - `overview` is the world from above for the regional map: `{cell, legend: {letter: terrain, T: town, F: woods}, rows}`,
-    a letter for each `cell`-by-`cell` square.
+    grid}`, the world cut into `cell`-by-`cell` squares of tiles from its origin (16: 64 by 76), `grid[row][col]` the
+    index in `areas` of the square at `x = col * cell`, `z = row * cell`. An area is a region's band of one tier (named in
+    `layout.json`), or the sea (tier 0); a town within its walls is no tier's. A tile's tier is its square's area's
+    (`areaAt`, `tierAt`);
+  - `overview` is the world from above for the regional map: `{cell, legend: {letter: surface, T: town, F: woods},
+    rows}`, a letter for each `cell`-by-`cell` square (8).
 
-  `world/chunks/<cq>_<cr>.json` is each 32-by-32 chunk, in the axial hexes of `realms/web/src/hex.ts`:
-  - `tiles` are `[q, r, height, terrain, blocked]`, as before;
-  - `props` are scenery (trees, rocks, walls, lamps): `{q, r, kind}`, and for a `building` (`use`: house, tenement, shop,
-    inn, temple, guildhall, smithy, library, mage-tower, warehouse) or a dungeon's `entrance` (`style` its theme) the box
-    it is drawn as, `w` by `d` world units round its hex, `h` tall, its front toward `front` (`x+`, `x-`, `z+`, `z-`); a
-    `waymarker` stands where the tier rises, in the harder side's `tier`;
-  - `doors` are `[{q, r, interior}]`: walking onto one enters that interior;
-  - `npcs` stand outdoors on blocked hexes, each with an open hex beside it: quest boards, townsfolk, guards, the arena,
-    a dungeon's spell table and a mage tower's `waystone` (`tower` names it) beside its entrance, ferrymen;
-  - `spawns` are `[{id, q, r, mobs, radius, respawnSeconds, tier}]`, with ids unique across the world (`"<cq>_<cr>:<n>"`:
-    the chunk the spawn stands in, and a number);
-  - `chests` are `[{id, q, r, gold: [low, high], respawnSeconds}]`, ids unique across the world (lower-case letters,
-    digits, `-`, `_` and `:`; `"<cq>_<cr>:<n>"` serves);
-  - `entrances` are `[{q, r, dungeon}]`.
+  `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk (conversion.md has every field): its `tiles` (`[height, surface,
+  flags]`, row by row), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
+  `chests`, `entrances` and `waymarkers`, all in tiles but props' places, in world units. In Dominaria:
+  - `npcs` stand outdoors on open tiles: townsfolk and guards who walk, ferrymen. What a player uses but nobody walks
+    through - quest boards, the arena's gate, a dungeon's spell table and a mage tower's `waystone` (`tower` names it) -
+    stands on a blocked tile of its own with `stand` (its middle), an open tile beside it, and a prop of the same id
+    drawn there;
+  - `spawns` are `[{id, x, z, mobs, radius, respawnSeconds, tier}]` on open tiles, with ids unique across the world
+    (`"<cx>_<cz>:<n>"`: the chunk the spawn stands in, and a number);
+  - `chests` are `[{id, x, z, gold: [low, high], respawnSeconds}]`, each on a blocked tile of its own with open ground
+    round it, ids unique across the world (`"<cx>_<cz>:c<n>"`);
+  - `entrances` are `[{x, z, dungeon}]`: the open tile before the dungeon's structure (a prop of its theme over a
+    blocked footprint), walked onto to start a run, with an open step out of it;
+  - `waymarkers` are `[{x, z, tier}]`: where the tier rises, in the harder side's tier, on a blocked tile beside a road
+    or along the boundary.
 
-  A hex `(q, r)` is in chunk `(floor(q / chunk), floor(r / chunk))`: the chunk's file holds exactly its tiles. A spell
-  table in the world is a `{kind: "spell-table", q, r}` prop or a `spell-table` NPC; one stands beside each dungeon's
+  A tile `(x, z)` is in chunk `(floor(x / 32), floor(z / 32))`: the chunk's file holds exactly its tiles, and is named
+  for them. A spell table is a `spell-table` NPC (a `spell-table` prop only draws one); one stands beside each dungeon's
   entrance (its antechamber's, design.md A6).
 
-  A chunk is loaded as the player nears it and dropped as they leave. Every file is written offline by the world
-  generator (`realms/web/scripts/world.ts`, `npm run world`) from `layout.json` and the mob roster, and checked in: the
-  same layout, seed and roster give the same files, and a rerun after the roster changes is all a new roster needs. Set
-  pieces (town squares, the portal's gate) are placed in its code. There is no map editor. The lint
-  (`realms/web/src/world/world.test.ts`) checks the whole world is walked from every inn, every door has its interior and
-  every entrance its dungeon, each spawn's tier is its zone's, tiers grow with distance, and the files are what the
-  generator writes.
-- **Interiors.** `interiors/<id>.json` is a small scene of the same tiles, props and npcs, in hexes of its own, with
-  `name`, `kind` (shop, inn, guildhall, temple, smithy, library, house, tower), `town`, `style`, `exit: {q, r}`, the world
-  hex beside its door where it comes out, and `entry: {q, r}`, its own hex at the door (stepping onto it leaves; one
-  arrives a step in from it). An exotic wares shop (design.md A5) is a shop whose vendor is exotic. Its npcs include the vendors (`"kind": "vendor", "vendor": "<id>"`), the armorer
-  (`armorer`), the innkeeper (`innkeeper`) and the spell table (`spell-table`); vendors and armorers work only inside.
-  An interior belongs to the town whose radius its doors stand in (a vendor file's `town`, an armorer's town); its doors
-  stand in one town at most.
+  A chunk is loaded as the player nears it and dropped as they leave (`gridOfChunks` in load.ts walks the loaded chunks
+  as one ground). Every file is written offline by the world generator (`realms/web/scripts/world.ts`, `npm run world`,
+  about five seconds) from `layout.json` and the mob roster, and checked in: the same layout, seed and roster give the
+  same files, and a rerun after the roster changes is all a new roster needs. Set pieces (town squares, the portal's
+  gate) are placed in its code; there is no map editor. The lint (`lintRealm` in realms/web/src/world/lint.ts, run on
+  Dominaria by `src/world/dominaria.test.ts`) checks the whole world is walked from the first inn (every open tile, and
+  beside everything not stood on), every door has its interior in the town the door stands in, every entrance its
+  dungeon where world.json and the dungeon say, with its spell table (and a tower's waystone) beside it, each spawn's
+  tier is its zone's and its mobs', tiers grow with distance, waymarkers stand at rises, ferries' lanes are walks with a
+  ferryman at each dock, pitches stand open in their towns, every id the art does not have is a documented placeholder,
+  and the files are what the generator writes.
+- **Interiors.** `interiors/<id>.json` is a room in the version-2 format (conversion.md): `{id, name, kind, town, style,
+  w, d, area, tiles, props, npcs, lights, entry: [x, z], exit: [x, z]}`, `exit` the world tile it comes out on - its
+  building's door tile - and `entry` its own tile at the door (stepping onto it leaves; one arrives a step in from it).
+  Kinds: shop, inn, guildhall, temple, smithy, library, house, tower, and `exotic-wares` for an exotic wares shop
+  (design.md A5). Its npcs include the vendors (`"kind": "vendor", "vendor": "<id>"`, id the vendor's), the armorer
+  (`<town>-armorer`, in the smithy), the innkeeper (`<town>-innkeeper`) and the spell tables (`spell-table`:
+  `<town>-inn-spell-table`, `<town>-guild-spell-table`); vendors and armorers work only inside. An interior belongs to
+  the town its door stands in (a vendor file's `town`, an armorer's town); its doors stand in one town at most.
 - **Mage towers** are dungeons of theme `tower` with `"waystone": true`: beating the run's boss attunes the tower to the
-  character (`Character.Attuned: [tower ids]`, kept by the server), and its waystone stands at its entrance in the world.
-  A tower's id is `<region>-<tier>` (regions `benalia`, `llanowar`, `caligo`, `keld`, `orvada`, tiers 1-4), its boss
-  `mage-<tower>`, and its `tier` its circle's wherever it stands (any other dungeon takes at least its zone's tier).
+  character (`Character.Attuned: [tower ids]`, kept by the server), and its waystone stands beside its entrance in the
+  world. A tower's id is `<region>-<tier>` (regions `benalia`, `llanowar`, `caligo`, `keld`, `orvada`, tiers 1-4), its
+  boss `mage-<tower>`, and its `tier` its circle's wherever it stands (any other dungeon takes at least its zone's tier).
 - **Spawn tiers.** Each world spawn point carries `tier`, the tier of the zone it stands in (world.json's `zones`: the
   tier of its distance from the nearest starting area, and at least its region's `minTier`), and lists only mobs of that
-  tier and of its region where the roster has them.
+  tier and of its region where the roster has them; every wanderer of the roster is listed by some spawn.
 - **Dungeons.** `dungeons/<id>.json` is `{id, name, theme: caves|castle|tower|crypt|hollow|foundry|portal, entrance:
-  [q, r], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
+  [x, z], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
   floor (the last for the floors past it) or one list for all], warden, boss, region (a color, optional), waystone
   (optional)}`. The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
   names one if it may have two); the `boss` waits on the last floor; neither is a floor's encounter. A run's layout is

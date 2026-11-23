@@ -95,22 +95,17 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   log("ferries");
 
   const roads = new Roads(land);
-  const endOf = (id: string, toward: string): number => {
+  /** Where a road may end at a place: a dock, a dungeon's entrance, or any of a town's gates. */
+  const endsOf = (id: string): number[] => {
     const dock = docks.get(id);
-    if (dock !== undefined) return dock;
+    if (dock !== undefined) return [dock];
     const town = towns.find((t) => t.data.id === id);
-    if (town) {
-      const gate = town.gates.get(toward);
-      if (gate === undefined) throw new Error(`${id} has no gate toward ${toward}`);
-      return gate;
-    }
-    return sites.get(id)!.entrance;
+    if (town) return [...town.gates.values()];
+    return [sites.get(id)!.entrance];
   };
   // Main roads first, so the others join them.
   for (const link of [...links.filter((l) => l.main), ...links.filter((l) => !l.main)]) {
-    const a = endOf(link.a, link.b);
-    const b = endOf(link.b, link.a);
-    if (!roads.lay(link.a, link.b, a, b, link.main)) throw new Error(`no road from ${link.a} (${land.xOf(a)},${land.zOf(a)}) to ${link.b} (${land.xOf(b)},${land.zOf(b)})`);
+    if (!roads.lay(link.a, link.b, endsOf(link.a), endsOf(link.b), link.main)) throw new Error(`no road from ${link.a} to ${link.b}`);
   }
   log("roads");
 

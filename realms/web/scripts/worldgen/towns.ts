@@ -34,7 +34,7 @@ export interface BuiltTown {
   readonly buildings: BuildingData[];
   readonly interiors: InteriorSpec[];
   readonly npcs: NpcData[];
-  /** The road's end outside each gate, by the target the gate was made toward. */
+  /** The road's end outside each gate a road may leave by, by the side it is on (n, e, s, w). */
   readonly gates: Map<string, number>;
   /** The inn's door tile, outside. */
   readonly inn: { readonly x: number; readonly z: number; readonly interior: string };
@@ -46,7 +46,7 @@ export interface TownSpec {
   readonly plan: TownLayout;
   readonly index: number;
   readonly color: Region | null;
-  /** Where the roads out of it go: a gate faces each. */
+  /** Where the roads out of it go. */
   readonly targets: readonly { readonly id: string; readonly at: readonly [number, number] }[];
   readonly vendors: readonly { readonly id: string; readonly name: string }[];
   readonly exotic: { readonly id: string; readonly name: string } | null;
@@ -192,22 +192,19 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
   }
 
-  // Gates toward the roads (and the harbour): one a side, at its middle, where the avenue meets the wall.
+  // Gates on every side that meets dry land (and the harbour's), one a side at its middle, where the avenue meets the
+  // wall: a road leaves by whichever is cheapest to its end (roads.ts), a bay or a cliff before one gate or not.
   const gateWidth = capital ? 5 : 3;
   const half = (gateWidth - 1) / 2;
   const gates = new Map<string, number>();
   const gateSides = new Set<Side>();
-  // A road leaves by the side facing its target, unless the sea comes up to that side's gate: then by the next best.
   const dry = (side: Side) => [1, 2, 3].every((out) => !land.isSea(I(cx + side.dx * (R + out), cz + side.dz * (R + out))));
-  const roadSide = (at: readonly [number, number]): Side => {
-    const dx = at[0] - cx;
-    const dz = at[1] - cz;
-    const ranked = [...SIDES].sort((p, q) => q.dx * dx + q.dz * dz - (p.dx * dx + p.dz * dz));
-    return ranked.find(dry) ?? sideToward(dx, dz);
-  };
-  for (const t of spec.targets) gateSides.add(roadSide(t.at));
+  for (const side of SIDES) if (dry(side)) gateSides.add(side);
+  if (gateSides.size === 0) {
+    const t = spec.targets[0];
+    gateSides.add(t ? sideToward(t.at[0] - cx, t.at[1] - cz) : SIDES[0]);
+  }
   if (harbour) gateSides.add(harbour);
-  if (gateSides.size === 0) gateSides.add(SIDES[0]);
   const outsideOf = (side: Side) => I(cx + side.dx * (R + 1), cz + side.dz * (R + 1));
   for (const side of SIDES.filter((s) => gateSides.has(s))) {
     for (let t = -half; t <= half; t++) {
@@ -223,8 +220,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
     land.fixtures.push({ id: "gatehouse", x: cx + side.dx * R + 0.5, z: cz + side.dz * R + 0.5, rot: side.rot, args: { width: gateWidth, style, size: plan.kind } });
   }
-  for (const t of spec.targets) gates.set(t.id, outsideOf(roadSide(t.at)));
-  if (harbour) gates.set("harbour", outsideOf(harbour));
+  for (const side of SIDES) if (gateSides.has(side) && (side !== harbour || dry(side))) gates.set(side.name, outsideOf(side));
 
   wallProps(land, plan, cx, cz, R, [...gateSides], half);
 
@@ -411,7 +407,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
 
   // The rest: rows round every block, south fronts first, then west and east, then north; tenements toward the middle of
   // a big town, warehouses by the harbour and the gates, barns in a village.
-  const harbourGate = harbour ? outsideOf(harbour) : null;
+  const harbourGate: number | null = harbour ? outsideOf(harbour) : null;
   let count = 0;
   const generic = (b: Block, s: Side) => {
     const length = sideLength(b, s);

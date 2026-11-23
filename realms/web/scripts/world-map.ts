@@ -89,6 +89,12 @@ function draw(x0: number, z0: number, x1: number, z1: number, scale: number, zon
   return p;
 }
 
+// A crop of the world for a closer look: `npm run world:map -- <out-dir> crop x0 z0 x1 z1 [scale]`.
+if (process.argv[3] === "crop") {
+  const [x0, z0, x1, z1, scale] = process.argv.slice(4).map(Number);
+  writeFileSync(join(out, `crop-${x0}-${z0}.png`), draw(x0!, z0!, x1!, z1!, scale || 3).png());
+  process.exit(0);
+}
 writeFileSync(join(out, "world.png"), draw(0, 0, W, H, 1).png());
 writeFileSync(join(out, "zones.png"), draw(0, 0, W, H, 1, true).png());
 for (const t of world.towns) {

@@ -32,9 +32,9 @@ export class Roads {
     this.main = new Uint8Array(land.size);
   }
 
-  private cost(i: number, a: number, b: number): number {
+  private cost(i: number, ends: ReadonlySet<number>): number {
     const g = this.land;
-    if (i === a || i === b) return 1;
+    if (ends.has(i)) return 1;
     const use = g.use[i]!;
     if (g.town[i] !== 0) return NONE;
     if (use === Use.Wall || use === Use.Building || use === Use.Door || use === Use.Dock) return NONE;
@@ -50,32 +50,43 @@ export class Roads {
     return 1;
   }
 
-  /** Lays the road from tile `a` to tile `b`; false when there is no way. */
-  lay(from: string, to: string, a: number, b: number, main = false): boolean {
+  /**
+   * Lays the cheapest road from any of the tiles `starts` (a town's gates) to any of `goals`; false when there is no
+   * way.
+   */
+  lay(from: string, to: string, starts: readonly number[], goals: readonly number[], main = false): boolean {
     const g = this.land;
     this.spent.fill(NONE);
     this.closed.fill(0);
-    const bx = g.xOf(b);
-    const bz = g.zOf(b);
+    const ends = new Set([...starts, ...goals]);
+    const targets = new Set(goals);
     const heap = new Heap();
-    this.spent[a] = 0;
-    this.came[a] = -1;
-    const h = (i: number) => (Math.abs(g.xOf(i) - bx) + Math.abs(g.zOf(i) - bz)) * 0.35;
-    heap.push(a, h(a));
+    const h = (i: number) => {
+      let best = Infinity;
+      for (const t of goals) best = Math.min(best, Math.abs(g.xOf(i) - g.xOf(t)) + Math.abs(g.zOf(i) - g.zOf(t)));
+      return best * 0.35;
+    };
+    for (const a of starts) {
+      this.spent[a] = 0;
+      this.came[a] = -1;
+      heap.push(a, h(a));
+    }
+    let b = -1;
     const near: number[] = [];
     let found = false;
     while (heap.size > 0) {
       const i = heap.pop();
       if (this.closed[i]) continue;
       this.closed[i] = 1;
-      if (i === b) {
+      if (targets.has(i)) {
         found = true;
+        b = i;
         break;
       }
       const here = this.spent[i]!;
       for (const n of g.n4(i, near)) {
         if (this.closed[n]) continue;
-        const c = this.cost(n, a, b);
+        const c = this.cost(n, ends);
         if (c === NONE) continue;
         const slope = Math.abs(g.height[n]! - g.height[i]!);
         // Turning costs a little, so roads run straight where the land lets them.

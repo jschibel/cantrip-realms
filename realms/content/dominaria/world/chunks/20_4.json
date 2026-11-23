@@ -105,8 +105,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"20_4:1","x":649,"z":132,"mobs":["fallen-angel","shivan-dragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"20_4:2","x":659,"z":147,"mobs":["sengir-vampire","serra-angel","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"20_4:1","x":649,"z":132,"mobs":["mahamoti-djinn","serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"20_4:2","x":665,"z":145,"mobs":["karplusan-yeti","sengir-vampire","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

@@ -80,7 +80,7 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"21_5:1","x":674,"z":172,"mobs":["fallen-angel","serra-paragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"21_5:1","x":696,"z":167,"mobs":["marhault-elsdragon","sibilant-spirit","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

@@ -54,9 +54,11 @@
   ],
   "buildings": [],
   "npcs": [
-    {"id":"denawa-guard-2","x":161,"z":785,"kind":"guard","name":"Denawa guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"wizard","speed":2.2,"behaviour":{"beat":{"stops":[[161,785],[153,785]],"pause":3.5},"watch":4}}
+    {"id":"denawa-guard-4","x":161,"z":785,"kind":"guard","name":"Denawa guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"wizard","speed":2.2,"behaviour":{"beat":{"stops":[[161,785],[153,785]],"pause":3.5},"watch":4}}
   ],
-  "spawns": [],
+  "spawns": [
+    {"id":"5_24:1","x":172,"z":794,"mobs":["azure-drake","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

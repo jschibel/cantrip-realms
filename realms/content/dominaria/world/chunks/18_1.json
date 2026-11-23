@@ -31,7 +31,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[3,"tundra",0],[3,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",3],[3,"snow",0],[3,"snow",0],[3,"snow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[3,"tundra",0],[3,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",3],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[3,"tundra",0],[3,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",0],
-    [0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[3,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[6,"tundra",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",3],
+    [0,"shallows",1],[1,"ice",0],[1,"ice",0],[1,"ice",0],[1,"ice",0],[3,"tundra",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[6,"tundra",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",3],[4,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",0],[3,"snow",3],
     [1,"ice",0],[1,"ice",0],[1,"ice",0],[4,"tundra",0],[4,"tundra",0],[4,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[3,"snow",0],[3,"snow",3],[3,"snow",0],[3,"snow",0],
     [1,"ice",0],[4,"tundra",0],[4,"tundra",0],[5,"tundra",0],[5,"tundra",0],[5,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[6,"tundra",0],[7,"tundra",0],[7,"tundra",0],[7,"tundra",0],[6,"tundra",0],[6,"snow",0],[6,"snow",0],[6,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[5,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[4,"snow",0],[3,"snow",0],[3,"snow",3],[3,"snow",0],[3,"snow",0],[2,"snow",0]
   ],
@@ -48,10 +48,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_1:1","x":587,"z":57,"mobs":["serra-angel","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"18_1:2","x":604,"z":60,"mobs":["marhault-elsdragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"18_1:1","x":607,"z":53,"mobs":["mahamoti-djinn","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"18_1:2","x":580,"z":61,"mobs":["serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"18_1:c1","x":602,"z":61,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }
