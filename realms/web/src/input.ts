@@ -1,35 +1,56 @@
 import type { Overworld } from "./game";
+import { ZOOM_EASE } from "./render/camera";
+import { WalkInput } from "./render/pointer";
 
-// The mouse on the world, in the style of Fallout's: the hex under the pointer is marked in the color of what a click
-// would do there - walk, attack, talk, open, go through - and the cursor changes to match; what it is over (a
-// wanderer's name and tier, a waymarker's tier, a door's building) is shown beside it; a click does it.
+// The mouse and keys on the world. A click walks there, or walks up to what was clicked and uses it (a person, a mob,
+// a chest, a door); held, the walk follows the cursor (render/pointer.ts). What the pointer is over is named beside it
+// - a wanderer's name and tier, a door's room - and the cursor shows what a click would do. Q and E turn the camera a
+// heading; the wheel, + and - step the outdoor zoom.
 
-export function bindInput(game: Overworld): void {
+export function bindInput(game: Overworld): WalkInput {
   const canvas = game.canvas;
-  const under = (e: PointerEvent) => {
-    const ray = game.pixels.rayAt(e.clientX, e.clientY);
-    const mob = game.mobUnder(ray);
-    return { mob, hex: mob ? mob.walker.hex : game.scene.pick(ray) };
+  const stage = game.stage;
+  const input = new WalkInput(stage, canvas);
+  input.enabled = () => game.screen === "world" && !game.paused;
+  const arrived = stage.onArrive;
+  stage.onArrive = (spot) => {
+    input.cancel();
+    arrived(spot);
   };
   canvas.addEventListener("pointermove", (e) => {
-    if (!game.scene || game.screen !== "world") {
+    if (game.screen !== "world") {
       game.hud.showTooltip(null);
+      canvas.dataset.cursor = "none";
       return;
     }
-    const { mob, hex } = under(e);
-    game.hoverAt(hex, mob);
+    const floor = stage.floorTileAt(e.clientX, e.clientY);
+    const tile = stage.doorAt(floor) ? floor : stage.pick(e.clientX, e.clientY);
+    game.hoverIntent = game.paused ? "none" : game.intentAt(tile);
     canvas.dataset.cursor = game.hoverIntent;
-    game.hud.showTooltip(game.describe(hex, mob), e.clientX, e.clientY);
+    game.hud.showTooltip(game.describe(tile), e.clientX, e.clientY);
   });
   canvas.addEventListener("pointerleave", () => {
-    game.scene?.mark(null);
     canvas.dataset.cursor = "none";
     game.hud.showTooltip(null);
   });
-  canvas.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0 || !game.scene || game.screen !== "world") return;
-    const { mob, hex } = under(e);
-    game.hud.showTooltip(null);
-    game.click(hex, mob);
+  window.addEventListener("keydown", (e) => {
+    if (e.repeat || game.screen !== "world" || (e.target as HTMLElement | null)?.tagName === "INPUT") return;
+    if (e.key === "q" || e.key === "Q") game.turn(-1);
+    if (e.key === "e" || e.key === "E") game.turn(1);
+    if (e.key === "+" || e.key === "=") game.zoomBy(-1);
+    if (e.key === "-" || e.key === "_") game.zoomBy(1);
   });
+  // The wheel: a notch a step, and no faster than a step per easing.
+  let wheelAt = -Infinity;
+  canvas.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      if (Math.abs(e.deltaY) < 1 || stage.time - wheelAt < ZOOM_EASE * 0.6) return;
+      wheelAt = stage.time;
+      game.zoomBy(e.deltaY > 0 ? 1 : -1);
+    },
+    { passive: false },
+  );
+  return input;
 }

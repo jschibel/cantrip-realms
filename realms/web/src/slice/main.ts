@@ -1,15 +1,13 @@
 import * as THREE from "three";
 import { Figure, figureSpec } from "../art/figures";
-import { namedPalette } from "../art/paint/palette";
 import { seeded } from "../art/paint/pixmap";
-import { Actor, behaviourOf, centre } from "../render/actor";
-import { assembleInterior, assembleWorld } from "../render/assemble";
-import { CameraRig, type Framing, HEADING_NAMES, type Heading, NAME_OF, ZOOM_EASE, type Zoom } from "../render/camera";
-import type { Place } from "../render/place";
-import { type View, blendViews } from "../render/view";
-import { type InteriorData, type NpcData, type Rect, type XZ, frontStep } from "../world/format";
-import type { Grid, Tile } from "../world/grid";
-import { globSource, gridOfInterior, gridOfWorld, loadChunks, loadInterior, loadWorld } from "../world/load";
+import { centre } from "../render/actor";
+import { HEADING_NAMES, type Heading, NAME_OF, ZOOM_EASE, type Zoom } from "../render/camera";
+import { type BenchLeg, runBench, yieldFrame } from "../render/bench";
+import { WalkInput } from "../render/pointer";
+import { StreamedWorld, WorldPlaces } from "../render/spots";
+import { Stage } from "../render/stage";
+import { globSource, loadWorld } from "../world/load";
 
 // The art slice (slice.html): New Benalia's street, Grizzlegom's Goblins inside, and a crypt below the churchyard, in
 // the 3D pixel-art look - a real 3D scene drawn small and shown in big pixels, on square tiles, seen as a 16-bit RPG
@@ -23,6 +21,7 @@ import { globSource, gridOfInterior, gridOfWorld, loadChunks, loadInterior, load
 //                     The mouse wheel, + and - (or the zoom buttons) step it, easing; it is remembered. Rooms are
 //                     always seen at the closest scale.
 //   ?scene=street|shop|crypt   where to start; ?at=x,z the tile
+//   ?world=large      the renderer's large synthetic world (fixtures/large-world) instead of the street
 //   ?test             publishes globalThis.sliceTest (screen places of everything, the state, a frame reader)
 //   ?still            the townsfolk stand still (for screenshots)
 //   ?edges=0          no outlines or edge highlights, to compare
@@ -57,145 +56,64 @@ const askedZoom = Number(query.get("zoom") ?? "x");
 
 // --- The places: the world's street and country, and the rooms behind its doors ----------------------------------------
 
-/** "street" for the world outside, else an interior's id. */
-type SceneId = string;
-
-/** A door as the page walks through it: stand on `tile`, step `step`, come out in `to` on `arrive` facing `arriveFacing`. */
-interface Door {
-  readonly tile: Tile;
-  readonly step: readonly [number, number];
-  readonly to: SceneId;
-  readonly arrive: Tile;
-  readonly arriveFacing: readonly [number, number];
-  /** The doorway itself, for the iris to close on. */
-  readonly at: THREE.Vector3;
-  readonly name: string;
-}
-
-/** A place as the page holds it: what is drawn, where one walks, its doors and the figures living there. */
-interface SliceScene extends Framing {
-  readonly id: SceneId;
-  readonly title: string;
-  readonly place: Place;
-  readonly scene: THREE.Scene;
-  readonly grid: Grid;
-  readonly doors: readonly Door[];
-  readonly actors: readonly Actor[];
-  readonly start: Tile;
-  readonly bounds: Rect;
-}
-
-// The world's data is read up front (it is small); each place is put together the first time it is visited.
-const source = globSource(
-  () => import("../../fixtures/slice-world/world.json"),
-  import.meta.glob("../../fixtures/slice-world/chunks/*.json", { import: "default" }),
-  import.meta.glob("../../fixtures/slice-world/interiors/*.json", { import: "default" }),
-);
+// The world is streamed round the player (render/chunks.ts), each room built the first time it is needed or ahead of
+// time while the player is near its door (render/spots.ts).
+// ?world=large is the renderer's large synthetic world instead (fixtures/large-world): 8 by 8 chunks of town, forest,
+// hills and lake, for the streaming tests and the benchmark.
+const large = query.get("world") === "large";
+const source = large
+  ? (await import("../../fixtures/large-world/source")).largeSource()
+  : globSource(
+      () => import("../../fixtures/slice-world/world.json"),
+      import.meta.glob("../../fixtures/slice-world/chunks/*.json", { import: "default" }),
+      import.meta.glob("../../fixtures/slice-world/interiors/*.json", { import: "default" }),
+    );
 const world = await loadWorld(source);
-const chunks = await loadChunks(source, world);
-const rooms = new Map<string, InteriorData>();
-for (const id of new Set(chunks.flatMap((c) => c.buildings.flatMap((b) => (b.interior ? [b.interior] : []))))) rooms.set(id, await loadInterior(source, id));
 const town = world.towns.find((t) => t.start) ?? world.towns[0]!;
-const tileOf = ([x, z]: XZ): Tile => ({ x, z });
-
-/** The figures that live in a place, as its NPCs say: their look, their manner and their pace. */
-function actorsOf(npcs: readonly NpcData[], grid: Grid, place: Place): Actor[] {
-  const actors = npcs.map((n) => {
-    const spec = figureSpec(n.figure ?? "townswoman", n.palette ? namedPalette(n.palette) : undefined);
-    const a = new Actor(spec, { x: n.x, z: n.z }, grid, behaviourOf(n.behaviour), n.name ?? n.id, n.seed !== undefined ? seeded(n.seed) : Math.random);
-    if (n.stand) a.position.set(...n.stand);
-    return a;
-  });
-  for (const a of actors) place.addFigure(a.figure.root);
-  npcs.forEach((n, i) => {
-    if (n.speed !== undefined) actors[i]!.speed = n.speed;
-  });
-  return actors;
-}
-
-function buildStreet(): SliceScene {
-  const built = assembleWorld(world, chunks);
-  const grid = gridOfWorld(world, chunks);
-  const actors = actorsOf(chunks.flatMap((c) => c.npcs), grid, built.place);
-  const doors: Door[] = built.doors.map((d) => {
-    const room = rooms.get(d.to)!;
-    return {
-      name: `door:${d.to}`,
-      tile: tileOf(d.tile),
-      step: d.step,
-      to: d.to,
-      // One arrives a step in from the room's door, facing in.
-      arrive: { x: room.entry[0], z: room.entry[1] - 1 },
-      arriveFacing: [0, -1],
-      at: new THREE.Vector3(...d.at),
-    };
-  });
-  return { id: "street", title: town.name, inside: false, turns: true, place: built.place, scene: built.place.scene, grid, doors, actors, start: tileOf(town.center), bounds: built.bounds };
-}
-
-function buildRoom(id: SceneId): SliceScene {
-  const room = rooms.get(id)!;
-  const built = assembleInterior(room);
-  const grid = gridOfInterior(room);
-  const actors = actorsOf(room.npcs, grid, built.place);
-  // Out through the room's door onto the world's tile before the building's door, facing out of the building.
-  const building = chunks.flatMap((c) => c.buildings).find((b) => b.interior === id && b.door?.[0] === room.exit[0] && b.door?.[1] === room.exit[1]);
-  const doors: Door[] = [
-    {
-      name: "door:street",
-      tile: tileOf(room.entry),
-      step: [0, 1],
-      to: "street",
-      arrive: tileOf(room.exit),
-      arriveFacing: frontStep(building?.rot ?? 0),
-      at: new THREE.Vector3(...built.doorway),
-    },
-  ];
-  return { id, title: room.name, inside: true, turns: true, place: built.place, scene: built.place.scene, grid, doors, actors, start: { x: room.entry[0], z: room.entry[1] - 1 }, bounds: built.bounds };
-}
-
-const scenes = new Map<SceneId, SliceScene>();
-const sceneOf = (id: SceneId) => {
-  let s = scenes.get(id);
-  if (!s) {
-    s = id === "street" ? buildStreet() : buildRoom(id);
-    scenes.set(id, s);
-  }
-  return s;
-};
+const street = new StreamedWorld(world, source, "street", town.name, { x: town.center[0], z: town.center[1] });
+const places = new WorldPlaces(street, source);
 
 const asked = query.get("scene") ?? "";
-const startId: SceneId = rooms.has(asked) ? asked : "street";
-let current = sceneOf(startId);
-const rig = new CameraRig(
-  canvas,
-  HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0,
-  askedZoom === 0 || askedZoom === 1 || askedZoom === 2 ? askedZoom : (storedZoom() ?? 0),
-  current,
-);
+const roomFirst = asked && asked !== "street" ? await places.read(asked).catch(() => null) : null;
+const first = roomFirst ? places.room(roomFirst.id, roomFirst) : street;
+const startAt = query.get("at")?.split(",").map(Number);
+const startTile = startAt && startAt.length === 2 ? { x: startAt[0]!, z: startAt[1]! } : first.start;
+const manual = query.has("manual");
+const stage = new Stage(canvas, {
+  heading: HEADING_NAMES[query.get("heading") ?? ""] ?? storedHeading() ?? 0,
+  zoom: askedZoom === 0 || askedZoom === 1 || askedZoom === 2 ? askedZoom : (storedZoom() ?? 0),
+  spot: first,
+  start: startTile,
+  player: figureSpec("hero"),
+  random: seeded(7),
+  manual,
+  spots: places,
+});
+stage.still = still;
+await stage.settle();
+await places.ready();
+const rig = stage.rig;
 const renderer = rig.renderer;
 if (query.get("edges") === "0") renderer.setEdges(0, 0);
-/** A place's view: the rig's, for the place. */
-const viewFor = (s: Framing): View => rig.viewFor(s);
-
-const startAt = query.get("at")?.split(",").map(Number);
-const startTile = startAt && startAt.length === 2 ? { x: startAt[0]!, z: startAt[1]! } : current.start;
-let player = new Actor(figureSpec("hero"), startTile, current.grid, {}, "player", seeded(7));
-player.speed = 4.2;
-current.place.addFigure(player.figure.root);
-const focus = player.position.clone();
-renderer.focus.copy(focus);
+const input = new WalkInput(stage, canvas);
+stage.onArrive = () => {
+  input.cancel();
+  updateHud();
+};
 
 // ?cast lines every figure up beside the start, facing the camera (?cast=walk: walking on the spot), to judge them.
-const cast: Figure[] = [];
 if (query.has("cast")) {
   ["knight", "grizzlegom", "goblin", "townswoman", "skeleton", "ghoul"].map((id) => figureSpec(id)).forEach((spec, i) => {
     const f = new Figure(spec);
     // Two tiles apart, so that seen from a 45-degree heading too each stands clear of the next.
     f.root.position.set(startTile.x + 0.5 + (i < 3 ? -6 + 2 * i : 2 * (i - 2)), 0, startTile.z + 0.5);
     f.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
-    current.place.addFigure(f.root);
-    cast.push(f);
+    stage.current.place.addFigure(f.root);
+    if (query.get("cast") === "walk") {
+      const update = f.update.bind(f);
+      f.update = (dt: number) => update(dt, 3);
+    }
+    stage.extras.push(f);
   });
 }
 
@@ -253,6 +171,7 @@ document.body.append(placeLabel, help, turns);
 const showHud = !query.has("nohud");
 placeLabel.hidden = help.hidden = turns.hidden = !showHud;
 function updateHud(): void {
+  const current = stage.current;
   placeLabel.textContent = current.title;
   turnLeft.disabled = !current.turns || rig.heading === -1;
   turnRight.disabled = !current.turns || rig.heading === 1;
@@ -264,79 +183,11 @@ function updateHud(): void {
 }
 updateHud();
 
-// --- Going through doors -------------------------------------------------------------------------------------------
-
-interface Transition {
-  readonly door: Door;
-  readonly from: View;
-  t: number;
-  phase: "in" | "out";
-  readonly focusFrom: THREE.Vector3;
-}
-let transition: Transition | null = null;
-let pendingDoor: Door | null = null;
-const IN = 0.55;
-const OUT = 0.45;
-
-function startDoor(door: Door): void {
-  pendingDoor = null;
-  // Going through ends a hold: in the next room the button must be pressed again.
-  hold = null;
-  // A camera turn under way gives way to the doorway's own easing, which starts from wherever the camera is.
-  rig.halt();
-  player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
-  transition = { door, from: renderer.view, t: 0, phase: "in", focusFrom: focus.clone() };
-}
-
-function arrive(door: Door): void {
-  current.place.removeFigure(player.figure.root);
-  current = sceneOf(door.to);
-  const next = new Actor(figureSpec("hero"), door.arrive, current.grid, {}, "player", seeded(7));
-  next.speed = player.speed;
-  player = next;
-  // Out of the doorway a step, then onto the tile.
-  const back = centre(door.arrive).add(new THREE.Vector3(-door.arriveFacing[0] * 0.8, 0, -door.arriveFacing[1] * 0.8));
-  player.position.copy(back);
-  player.figure.face(door.arriveFacing[0], door.arriveFacing[1]);
-  player.walkTo(centre(door.arrive));
-  current.place.addFigure(player.figure.root);
-  focus.copy(rig.clampFocus(player.position, current));
-  updateHud();
-}
-
-
-function stepTransition(dt: number): void {
-  const tr = transition;
-  if (!tr) return;
-  tr.t += dt;
-  if (tr.phase === "in") {
-    const k = Math.min(1, tr.t / IN);
-    // The camera eases towards where it will be on the other side (into the room's view going in), closing on the door.
-    const target = viewFor(sceneOf(tr.door.to));
-    renderer.setView(blendViews(tr.from, current.inside && !sceneOf(tr.door.to).inside ? tr.from : target, k));
-    focus.lerpVectors(tr.focusFrom, tr.door.at.clone().setY(0), k * k);
-    renderer.iris = { at: tr.door.at, radius: Math.max(0, (1 - k) * 260) };
-    if (k >= 1) {
-      arrive(tr.door);
-      transition = { door: tr.door, from: renderer.view, t: 0, phase: "out", focusFrom: focus.clone() };
-    }
-  } else {
-    const k = Math.min(1, tr.t / OUT);
-    renderer.setView(blendViews(tr.from, viewFor(current), k));
-    renderer.iris = { at: player.position.clone().setY(0.7), radius: k * 280 };
-    if (k >= 1) {
-      renderer.iris = null;
-      renderer.setView(viewFor(current));
-      transition = null;
-    }
-  }
-}
-
 // --- The camera ------------------------------------------------------------------------------------------------------
 
 /** Steps the outdoor zoom out (+1) or in (-1); in a room, or past the last step, it does nothing. */
 function zoomBy(step: -1 | 1): void {
-  if (transition || !rig.zoomBy(step, current)) return;
+  if (!stage.zoomBy(step)) return;
   try {
     localStorage.setItem(ZOOM_KEY, String(rig.zoom));
   } catch {
@@ -350,7 +201,7 @@ function zoomBy(step: -1 | 1): void {
 
 /** Steps the camera one heading left or right; a step past 45 degrees, or in a room that does not turn, does nothing. */
 function turn(step: -1 | 1): void {
-  if (transition || !rig.turn(step, current)) return;
+  if (!stage.turn(step)) return;
   try {
     localStorage.setItem(HEADING_KEY, NAME_OF[rig.heading]);
   } catch {
@@ -362,157 +213,7 @@ function turn(step: -1 | 1): void {
   updateHud();
 }
 
-// --- Input -------------------------------------------------------------------------------------------------------------
-
-const raycaster = new THREE.Raycaster();
-/** The tile under a point on the page: the first thing the ray meets, read a hair towards the camera. */
-function tileAt(x: number, y: number): { x: number; z: number } | null {
-  const ray = renderer.rayAt(x, y);
-  raycaster.ray.copy(ray);
-  const hits = raycaster.intersectObjects(current.scene.children, true).filter((h) => !isFigure(h.object));
-  const hit = hits[0];
-  let point: THREE.Vector3 | null = null;
-  if (hit && hit.point.y < 3.2) point = hit.point.clone().addScaledVector(ray.direction, -0.02);
-  if (!point) {
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    point = ray.intersectPlane(plane, new THREE.Vector3());
-  }
-  if (!point) return null;
-  return { x: Math.floor(point.x), z: Math.floor(point.z) };
-}
-
-function isFigure(o: THREE.Object3D): boolean {
-  for (let p: THREE.Object3D | null = o; p; p = p.parent) if (p === player.figure.root || current.actors.some((a) => a.figure.root === p)) return true;
-  return false;
-}
-
-/** Walks to a tile; a door's tile (or the doorway itself) walks there and goes through. */
-function clickTile(tile: { x: number; z: number }): void {
-  if (transition) return;
-  const door = current.doors.find((d) => (d.tile.x === tile.x && d.tile.z === tile.z) || (d.tile.x + d.step[0] === tile.x && d.tile.z + d.step[1] === tile.z));
-  if (door) {
-    pendingDoor = door;
-    if (player.tile.x === door.tile.x && player.tile.z === door.tile.z && !player.moving) startDoor(door);
-    else if (!player.goTo(door.tile)) pendingDoor = null;
-    return;
-  }
-  pendingDoor = null;
-  const to = reachableNear(tile, 2);
-  if (to) player.goTo(to);
-}
-
-/**
- * The tile to walk to for a tile pointed at: itself if one can stand there, else the open tile nearest it within
- * `reach` - of those equally near, the one nearest the player, so a walk heads for the near side of what is in the way.
- */
-function reachableNear(tile: { x: number; z: number }, reach: number): { x: number; z: number } | null {
-  if (current.grid.walkable(tile.x, tile.z)) return tile;
-  let best: { x: number; z: number } | null = null;
-  let bestD = Infinity;
-  const me = player.tile;
-  for (let dz = -reach; dz <= reach; dz++) {
-    for (let dx = -reach; dx <= reach; dx++) {
-      const t = { x: tile.x + dx, z: tile.z + dz };
-      const d = Math.hypot(dx, dz) + 0.01 * Math.hypot(t.x - me.x, t.z - me.z);
-      if (current.grid.walkable(t.x, t.z) && d < bestD) {
-        best = t;
-        bestD = d;
-      }
-    }
-  }
-  return best;
-}
-
-// --- Holding the button: walking after the cursor ---------------------------------------------------------------------
-//
-// A press is a click as it always was. Held, it becomes a drag once the pointer reaches another tile or has been down
-// HOLD_AFTER seconds. From then the player is re-aimed at the tile under the cursor the moment that tile is more than
-// REPATH_DISTANCE tiles from where the current path goes - measured from that path-to tile, not from the player - so a
-// fast sweep is answered at once, on the very event that crosses the distance; and every RETARGET_EVERY seconds besides,
-// for a cursor drifting slowly (or the view moving under a still one). So the walk always heads where the cursor is now,
-// at every heading and while the camera turns, follows or zooms. Re-aiming keeps the step being walked (Actor.retarget): no snap, no
-// restarted stride. A cursor over something blocked walks to the open tile nearest it. A held walk goes up to a door but
-// never through it - only a click goes in (a press on the door, or holding still on it) - so sweeping past the shop
-// never pulls you inside. Letting go of a drag (or the cursor leaving the window, or the window losing focus) finishes
-// the step under way and stops there.
-
-const HOLD_AFTER = 0.3;
-const RETARGET_EVERY = 0.1;
-const REPATH_DISTANCE = 1.25;
-let hold: {
-  x: number;
-  y: number;
-  tile: string;
-  since: number;
-  last: number;
-  dragging: boolean;
-  /** Where the current path goes: the tile the last re-aim chose. */
-  target: { x: number; z: number } | null;
-} | null = null;
-const tileKey = (t: { x: number; z: number } | null) => (t ? `${t.x},${t.z}` : "");
-
-function holdStep(): void {
-  if (!hold || transition) return;
-  hold.last = time;
-  const pointed = tileAt(hold.x, hold.y);
-  if (!pointed) return;
-  // Holding still on the door clicked keeps going in; anywhere else, the held walk only walks.
-  if (pendingDoor && isDoorTile(pointed)) return;
-  pendingDoor = null;
-  const to = reachableNear(pointed, 4);
-  if (to) {
-    player.retarget(to);
-    hold.target = to;
-  }
-}
-
-function release(): void {
-  if (!hold) return;
-  if (hold.dragging && !transition && !pendingDoor) player.stopAfterStep();
-  hold = null;
-}
-
-window.addEventListener("pointermove", (e) => {
-  if (!hold) return;
-  // A release missed outside the window ends the hold all the same.
-  if ((e.buttons & 1) === 0) return release();
-  hold.x = e.clientX;
-  hold.y = e.clientY;
-  const under = floorTileAt(e.clientX, e.clientY);
-  if (!hold.dragging && tileKey(under) !== hold.tile) hold.dragging = true;
-  if (!hold.dragging || !under) return;
-  const from = hold.target;
-  if (!from || Math.hypot(under.x - from.x, under.z - from.z) > REPATH_DISTANCE) holdStep();
-});
-window.addEventListener("pointerup", (e) => {
-  if (e.button === 0) release();
-});
-window.addEventListener("blur", release);
-document.documentElement.addEventListener("pointerleave", release);
-
-function stepHold(): void {
-  if (!hold) return;
-  if (!hold.dragging && time - hold.since >= HOLD_AFTER) hold.dragging = true;
-  if (hold.dragging && time - hold.last >= RETARGET_EVERY) holdStep();
-}
-
-/** The tile on the floor under a point on the page, whatever stands in front of it. */
-function floorTileAt(x: number, y: number): { x: number; z: number } | null {
-  const point = renderer.rayAt(x, y).intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
-  return point ? { x: Math.floor(point.x), z: Math.floor(point.z) } : null;
-}
-
-const isDoorTile = (t: { x: number; z: number } | null) =>
-  !!t && current.doors.some((d) => (d.tile.x === t.x && d.tile.z === t.z) || (d.tile.x + d.step[0] === t.x && d.tile.z + d.step[1] === t.z));
-
-canvas.addEventListener("pointerdown", (e) => {
-  if (e.button !== 0) return;
-  // A doorway seen past the corner of a wall (the camera swung round) still takes you through it.
-  const floor = floorTileAt(e.clientX, e.clientY);
-  const tile = isDoorTile(floor) ? floor : tileAt(e.clientX, e.clientY);
-  if (tile) clickTile(tile);
-  hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), since: time, last: time, dragging: false, target: tile };
-});
+// --- Keys and the wheel ------------------------------------------------------------------------------------------------
 
 window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
@@ -527,55 +228,24 @@ canvas.addEventListener(
   "wheel",
   (e) => {
     e.preventDefault();
-    if (Math.abs(e.deltaY) < 1 || time - wheelAt < ZOOM_EASE * 0.6) return;
-    wheelAt = time;
+    if (Math.abs(e.deltaY) < 1 || stage.time - wheelAt < ZOOM_EASE * 0.6) return;
+    wheelAt = stage.time;
     zoomBy(e.deltaY > 0 ? 1 : -1);
   },
   { passive: false },
 );
-window.addEventListener("resize", () => renderer.setView(transition || rig.turning ? { ...renderer.view, scale: viewFor(current).scale } : viewFor(current)));
+window.addEventListener("resize", () => stage.resize());
 
 // --- The loop --------------------------------------------------------------------------------------------------------
 
 let last = performance.now();
-let time = 0;
 /** With ?manual the clock stands still until a test advances it (sliceTest.advance), so clips are evenly timed. */
-const manual = query.has("manual");
 function frame(now: number): void {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (!manual) tick(dt);
-  renderer.render(current.scene);
+  if (!manual) stage.tick(dt);
+  stage.render();
   requestAnimationFrame(frame);
-}
-
-/** How far figures lean back from the camera (characters.ts, setLean), at every heading. */
-const LEAN = (25 * Math.PI) / 180;
-
-function tick(dt: number): void {
-  time += dt;
-  for (const f of cast) f.update(dt, query.get("cast") === "walk" ? 3 : 0);
-  stepHold();
-  player.update(dt);
-  if (pendingDoor && !player.moving && player.tile.x === pendingDoor.tile.x && player.tile.z === pendingDoor.tile.z) startDoor(pendingDoor);
-  for (const a of current.actors) {
-    if (still) a.figure.update(dt, 0);
-    else a.update(dt, player);
-  }
-  stepTransition(dt);
-  if (!transition) rig.stepTurn(dt, current);
-  if (!transition) rig.stepZoom(dt);
-  if (!transition) renderer.snap = rig.settled;
-  current.place.update(time, renderer.view.yaw, viewFor(current).yaw);
-  current.place.follow(player.position);
-  if (!transition) {
-    const target = rig.clampFocus(player.position, current);
-    focus.lerp(target, Math.min(1, dt * 8));
-  }
-  renderer.focus.copy(focus);
-  // Every figure leans for the camera as it is this frame, so the lean turns with the camera and never lags it.
-  const { pitch, yaw } = renderer.view;
-  for (const f of [player.figure, ...current.actors.map((a) => a.figure), ...cast]) f.setLean(LEAN, pitch, yaw);
 }
 requestAnimationFrame(frame);
 
@@ -583,10 +253,12 @@ requestAnimationFrame(frame);
 
 if (query.has("test")) {
   const screen = (p: THREE.Vector3) => renderer.toScreen(p);
+  const floorOf = (x: number, z: number) => stage.current.floorAt?.(x + 0.5, z + 0.5) ?? 0;
+  (globalThis as Record<string, unknown>).sliceStage = stage;
   (globalThis as Record<string, unknown>).sliceTest = {
     ready: true,
     get scene() {
-      return current.id;
+      return stage.current.id;
     },
     /** The heading: "left", "front" or "right". */
     get heading() {
@@ -598,10 +270,10 @@ if (query.has("test")) {
     },
     /** Whether the button is held down walking the player after the cursor. */
     get dragging() {
-      return hold?.dragging ?? false;
+      return input.dragging;
     },
     get cameraSettled() {
-      return rig.settled && transition === null;
+      return rig.settled && stage.transition === null;
     },
     /** The outdoor zoom step, and the screen pixels to each scene pixel now. */
     get zoom() {
@@ -609,36 +281,44 @@ if (query.has("test")) {
     },
     zoomBy,
     get transitioning() {
-      return transition !== null;
+      return stage.transition !== null;
     },
     get player() {
-      const s = screen(player.position.clone().setY(0.4));
-      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z }, goal: player.goal };
+      const player = stage.player;
+      const s = screen(player.position.clone().setY(player.position.y + 0.4));
+      return { tile: player.tile, moving: player.moving, x: s.x, y: s.y, at: { x: player.position.x, z: player.position.z }, height: player.position.y, goal: player.goal };
     },
     /** Where a tile's middle is on the page. */
     tile(x: number, z: number) {
-      return screen(centre({ x, z }));
+      return screen(centre({ x, z }, floorOf(x, z)));
     },
     walkable(x: number, z: number) {
-      return current.grid.walkable(x, z);
+      return stage.current.grid.walkable(x, z);
     },
     get entities() {
       return [
-        ...current.doors.map((d) => ({ name: d.name, kind: "door", to: d.to, tile: d.tile, ...screen(centre(d.tile)) })),
-        ...current.actors.map((a) => ({ name: a.name, kind: "figure", tile: a.tile, moving: a.moving, ...screen(a.position.clone().setY(0.4)) })),
+        ...stage.current.doors.map((d) => ({ name: d.name, kind: "door", to: d.to, tile: d.tile, ...screen(centre(d.tile, floorOf(d.tile.x, d.tile.z))) })),
+        ...stage.current.actors.map((a) => ({ name: a.name, kind: "figure", tile: a.tile, moving: a.moving, ...screen(a.position.clone().setY(a.position.y + 0.4)) })),
       ];
     },
     turn,
     /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual). */
     advance(seconds: number) {
-      for (let t = 0; t < seconds - 1e-6; t += 1 / 60) tick(1 / 60);
+      // A turn of the event loop between frames, as between animation frames, so a chunk's or a room's file read
+      // while walking is in by the next (never a wait on the clock).
+      return (async () => {
+        for (let t = 0; t < seconds - 1e-6; t += 1 / 60) {
+          stage.tick(1 / 60);
+          await yieldFrame();
+        }
+      })();
     },
     /**
      * Renders a frame now and returns the middle `w` by `h` of the window as it is shown - the scene's pixels at the
      * screen's scale - so a clip shows the zoom (base64 RGBA, top row first).
      */
     shown(w: number, h: number) {
-      renderer.render(current.scene);
+      stage.render();
       const rect = canvas.getBoundingClientRect();
       const out = document.createElement("canvas");
       out.width = w;
@@ -653,9 +333,41 @@ if (query.has("test")) {
       for (let i = 0; i < data.length; i += 8192) s += String.fromCharCode(...data.subarray(i, i + 8192));
       return { width: w, height: h, rgba: btoa(s) };
     },
+    /** The renderer's benchmark (render/bench.ts): walks the legs on the manual clock, timing every frame. */
+    bench(legs: BenchLeg[], maxFrames?: number) {
+      return runBench(stage, legs, maxFrames);
+    },
+    /** What the stage holds now: the chunks read and built, the draw calls of the last frame, the detail level, the lights. */
+    get render() {
+      const s = stage.current.streamer;
+      return {
+        loaded: s?.loadedKeys ?? [],
+        built: s?.builtKeys ?? [],
+        idle: s?.idle ?? true,
+        window: s?.window ?? null,
+        calls: renderer.stats.calls,
+        detail: stage.current.place.detail,
+        lights: stage.current.place.pooledNow.filter((l) => l !== null).length,
+        xray: stage.current.inside ? null : true,
+      };
+    },
+    /** Turns the x-ray off (or on again), to compare. */
+    set xray(on: boolean) {
+      stage.xray = on;
+    },
+    /** Where the floor is on a tile. */
+    floor(x: number, z: number) {
+      return stage.current.floorAt?.(x + 0.5, z + 0.5) ?? 0;
+    },
+    /** Walks the player to a tile by the shortest way (true if there is one). */
+    walkTo(x: number, z: number) {
+      const to = stage.reachableNear({ x, z }, 3);
+      return !!to && stage.player.goTo(to);
+    },
     /** Renders a frame now and returns its scene pixels (base64 RGBA, top row first). */
     frame() {
-      const { width, height, rgba } = renderer.readFrame(current.scene);
+      stage.render();
+      const { width, height, rgba } = renderer.readFrame(stage.current.place.scene);
       let s = "";
       for (let i = 0; i < rgba.length; i += 8192) s += String.fromCharCode(...rgba.subarray(i, i + 8192));
       return { width, height, rgba: btoa(s) };

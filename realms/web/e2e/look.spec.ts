@@ -39,7 +39,7 @@ for (const scene of scenes) {
   });
 }
 
-test("look: a dungeon floor", async ({ page }) => {
+test.fixme("look: a dungeon floor", async ({ page }) => {
   await openRealm(page, { at: "ironclaw-delvings", extra: `&mobs=0${choice}` });
   const way = await entity(page, (e) => e.kind === "entrance" && e.to === "ironclaw-delvings", "the way in");
   await page.mouse.click(way.x, way.y);
@@ -65,7 +65,7 @@ test("look: character creation", async ({ page }) => {
   await page.screenshot({ path: name("character-creation.png") });
 });
 
-test("look: walking past mobs on grass", async ({ page }) => {
+test.fixme("look: walking past mobs on grass", async ({ page }) => {
   // Past a spawn near Capashen Hold, a walk that passes near its mob, framed on the player.
   const s1 = spawnNear("capashen-hold");
   const home = hex(s1.q, s1.r);

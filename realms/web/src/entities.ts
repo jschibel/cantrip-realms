@@ -1,177 +1,103 @@
-import * as THREE from "three";
-import type { Character } from "./character";
-import { type Hex, distance, equals, findPath, neighbors, spiral } from "./hex";
-import type { SpawnData } from "./world/schema";
+import { FIGURES, figureSpec } from "./art/figures";
+import type { FigureSpec } from "./art/figures/rig";
 import type { MobInfo } from "./mobs";
+import { Actor } from "./render/actor";
+import type { SpawnData } from "./world/format";
+import type { Grid, Tile } from "./world/grid";
 
-// What walks the ground hex by hex: the player, the mobs, and the other players in the same area, each a Walker
-// that steps along a path at a speed. Mobs think for themselves (wander near their spawn, chase the player within
-// six hexes, a little slower than the player walks); other players walk the paths the relay sends.
+// What walks the world besides the townsfolk (render/spots.ts stands those): the mobs of the spawn points and the
+// other players in the same place, each an Actor on the place's grid (render/actor.ts: squares, eight ways, never a cut
+// corner). Mobs think for themselves - wander near their spawn, chase the player within six tiles a little slower than
+// they walk, and engage once beside them; other players walk the paths the relay sends.
 
-/** World units of the hex under a walker, for standing on it. */
-export type Surface = (h: Hex) => THREE.Vector3;
-
-export class Walker {
-  path: Hex[] = [];
-  private readonly from = new THREE.Vector3();
-  private readonly to = new THREE.Vector3();
-  private t = 1;
-  /** Called on reaching the end of a path. */
-  private arrived: () => void = () => {};
-  /** Called on stepping onto each hex. */
-  onStep: (h: Hex) => void = () => {};
-
-  constructor(
-    readonly character: Character,
-    public hex: Hex,
-    /** Hexes a second. */
-    public speed: number,
-    private readonly surface: Surface,
-  ) {
-    this.place(hex);
-  }
-
-  place(h: Hex): void {
-    this.hex = h;
-    this.path = [];
-    this.t = 1;
-    this.arrived = () => {};
-    this.character.root.position.copy(this.surface(h));
-  }
-
-  walk(path: Hex[], arrived: () => void = () => {}): void {
-    this.path = [...path];
-    this.arrived = arrived;
-    if (this.t >= 1) this.next();
-  }
-
-  stop(): void {
-    this.path = [];
-    this.arrived = () => {};
-  }
-
-  get moving(): boolean {
-    return this.t < 1;
-  }
-
-  /** Where the walk is headed: the last hex of the path, or the hex it is stepping onto, or where it stands. */
-  get goal(): Hex {
-    return this.path.at(-1) ?? this.hex;
-  }
-
-  update(seconds: number): void {
-    if (this.t < 1) {
-      this.t = Math.min(1, this.t + seconds * this.speed);
-      this.character.root.position.lerpVectors(this.from, this.to, this.t);
-      if (this.t >= 1) this.next();
-    }
-    this.character.animate(seconds, this.t < 1);
-  }
-
-  /** Jumps partway along: a walk the relay says began some time ago. */
-  skip(seconds: number): void {
-    let left = seconds;
-    while (left > 0 && (this.t < 1 || this.path.length > 0)) {
-      if (this.t >= 1) this.next();
-      const need = (1 - this.t) / this.speed;
-      if (need > left) {
-        this.update(left);
-        return;
-      }
-      this.update(need);
-      left -= need;
-    }
-  }
-
-  private next(): void {
-    const step = this.path.shift();
-    if (!step) {
-      const arrived = this.arrived;
-      this.arrived = () => {};
-      arrived();
-      return;
-    }
-    this.from.copy(this.surface(this.hex));
-    this.to.copy(this.surface(step));
-    this.hex = step;
-    this.t = 0;
-    this.character.face(this.to.x, this.to.z);
-    this.onStep(step);
-  }
-}
-
-export const PLAYER_SPEED = 3.4;
+/** Tiles a second: at most 5, the fastest walk the server takes. */
+export const PLAYER_SPEED = 4.2;
 export const CHASE_RANGE = 6;
 const WANDER_SPEED = 1.4;
 const CHASE_SPEED = 2.6;
 
-/** A spawn point's mob, walking the map. */
+/** Tiles apart, as the server measures nearness: the most of the two axes (a diagonal step is one). */
+export const chebyshev = (a: Tile, b: Tile): number => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
+
+/** A mob's figure: its model's mesh if the figures have it, else the nearest likeness by its words. */
+export function mobFigure(info: MobInfo): FigureSpec {
+  const mesh = info.model.mesh;
+  if (FIGURES.has(mesh)) return figureSpec(mesh);
+  const guess = /skelet|bone|lich|dead/.test(info.id) ? "skeleton" : /ghoul|zombie|ghast/.test(info.id) ? "ghoul" : /knight|soldier|guard/.test(info.id) ? "knight" : "goblin";
+  return figureSpec(guess);
+}
+
+/** A spawn point's mob, walking the world. */
 export class Mob {
   /** Seconds until it next picks somewhere to wander, or may engage again. */
   rest = 3 + Math.random() * 2;
   engaged = false;
+  private retarget = 0;
 
   constructor(
-    readonly walker: Walker,
+    readonly actor: Actor,
     readonly info: MobInfo,
     readonly spawn: SpawnData,
     readonly epoch: number,
-    /** A dungeon run's encounter: the floor and its index (the warden's and the boss's are negative). */
+    /** A dungeon run's encounter: the floor and its index (the warden's and the boss's are past the encounters). */
     readonly run?: { readonly floor: number; readonly index: number; readonly role: string },
   ) {}
 
-  get home(): Hex {
-    return { q: this.spawn.q, r: this.spawn.r };
+  static make(info: MobInfo, spawn: SpawnData, epoch: number, grid: Grid, floor: ((x: number, z: number) => number) | null, run?: Mob["run"]): Mob {
+    const actor = new Actor(mobFigure(info), { x: spawn.x, z: spawn.z }, grid, {}, info.name);
+    actor.floor = floor;
+    actor.place({ x: spawn.x, z: spawn.z });
+    actor.speed = WANDER_SPEED;
+    return new Mob(actor, info, spawn, epoch, run);
+  }
+
+  get home(): Tile {
+    return { x: this.spawn.x, z: this.spawn.z };
   }
 
   /**
-   * One frame of thought. `free` is whether a hex can be walked onto (nobody else on it); returns true when the mob
-   * reaches the player and a duel should start.
+   * One frame of thought: true when the mob is beside the player, both standing, and a duel should start. `free(t)` is
+   * whether a tile can be stood on (open, nobody else there).
    */
-  think(seconds: number, player: Walker, free: (h: Hex) => boolean, wander: boolean): boolean {
+  think(seconds: number, player: Actor, free: (t: Tile) => boolean, wander: boolean): boolean {
     if (this.engaged) return false;
     this.rest -= seconds;
-    const near = distance(this.walker.hex, player.hex);
-
-    if (near <= 1 && this.rest <= 0 && !player.moving && !this.walker.moving) return true;
-
+    const me = this.actor.tile;
+    const near = chebyshev(me, player.tile);
+    if (near <= 1 && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
     if (near <= CHASE_RANGE && this.rest <= 0) {
-      // Chasing: a step toward beside the player at a time, re-planned every step.
-      this.walker.speed = CHASE_SPEED;
-      if (!this.walker.moving && this.walker.path.length === 0 && near > 1) {
-        const stand = besides(this.walker.hex, player.hex, free);
-        const path = stand && findPath(this.walker.hex, stand, free);
-        if (path && path.length > 0) this.walker.walk(path.slice(0, 1));
+      // Chasing: toward the free tile beside the player nearest it, re-aimed a few times a second.
+      this.actor.speed = CHASE_SPEED;
+      this.retarget -= seconds;
+      if (near > 1 && this.retarget <= 0) {
+        this.retarget = 0.4;
+        const p = player.tile;
+        const beside: Tile[] = [];
+        for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) beside.push({ x: p.x + dx, z: p.z + dz });
+        const stand = beside.filter((t) => free(t) || (t.x === me.x && t.z === me.z)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
+        if (stand) this.actor.retarget(stand);
       }
       return false;
     }
-
-    // Wandering within its spawn's radius.
-    this.walker.speed = WANDER_SPEED;
-    if (wander && !this.walker.moving && this.walker.path.length === 0 && this.rest <= 0) {
-      const choices = spiral(this.home, this.spawn.radius).filter(free);
-      const goal = choices[Math.floor(Math.random() * choices.length)];
-      const path = goal && findPath(this.walker.hex, goal, free);
-      if (path) this.walker.walk(path);
+    this.actor.speed = WANDER_SPEED;
+    if (wander && !this.actor.moving && this.rest <= 0) {
+      const r = this.spawn.radius;
+      for (let tries = 0; tries < 8; tries++) {
+        const t = { x: this.home.x + Math.round((Math.random() * 2 - 1) * r), z: this.home.z + Math.round((Math.random() * 2 - 1) * r) };
+        if (free(t) && this.actor.goTo(t)) break;
+      }
       this.rest = 2 + Math.random() * 3;
     }
     return false;
   }
 }
 
-/** The free hex next to `target` nearest `from`, or null when it is walled in. */
-export function besides(from: Hex, target: Hex, free: (h: Hex) => boolean): Hex | null {
-  const open = neighbors(target).filter((h) => free(h) || equals(h, from));
-  open.sort((a, b) => distance(a, from) - distance(b, from) || a.q - b.q || a.r - b.r);
-  return open[0] ?? null;
-}
-
-/** Another player on this map instance, as the relay tells it. */
+/** Another player in this place, as the relay tells it. */
 export interface Visitor {
   /** The connection's number on the relay. */
   readonly player: number;
   name: string;
   /** Their colors, as letters in WUBRG order. */
   identity: string;
-  readonly walker: Walker;
+  readonly actor: Actor;
 }

@@ -1,0 +1,158 @@
+import * as THREE from "three";
+import { type Material, MeshBuilder, type Model } from "../art/paint/builder";
+import { material } from "../art/paint/materials";
+import * as T from "../art/paint/textures";
+import { NO_SURFACE, RAMP, TEXELS_PER_TILE, type TileData } from "../world/format";
+
+// The ground's shape: each tile's floor at its height, the bank down to a lower neighbour drawn as a face of rock, and
+// a ramp tile sloped from the level before it to the level after it. Heights are whole texels (world/format.ts), so a
+// terrace's edge is a whole number of pixels high and its face a band of rock the camera sees head on; a hill is
+// terraces, as a 16-bit RPG draws its hills, and a ramp (or a stair of low steps) is the way up one.
+//
+// A tile's corners are the heights the ground's mesh is drawn at (`cornersOf`); `floorAt` is the same surface sampled
+// anywhere, for what stands or walks on it (figures, grass). Everything is read through `tileAt`, so a chunk drawn on
+// its own sees its neighbours' edge tiles and its banks meet theirs.
+
+export { RAMP };
+
+/** Reads a tile by world coordinates: null where there is no tile (past the world, or a chunk not loaded). */
+export type TileAt = (x: number, z: number) => TileData | null;
+
+const hasGround = (t: TileData | null): t is TileData => t !== null && t[1] !== NO_SURFACE;
+const levelOf = (t: TileData): number => t[0] / TEXELS_PER_TILE;
+const isRamp = (t: TileData | null): boolean => t !== null && (t[2] & RAMP) !== 0;
+
+/** A tile's four corner heights, world units: north-west, north-east, south-east, south-west. */
+export type Corners = readonly [number, number, number, number];
+
+/**
+ * The corners of a tile's floor. A flat tile is level at its height. A ramp slopes along the axis its neighbours differ
+ * most on: each of its two ends meets the neighbour there - at that neighbour's height, or half-way to it where the
+ * neighbour is a ramp as well (a ramp of several tiles is one even slope).
+ */
+export function cornersOf(tileAt: TileAt, x: number, z: number): Corners {
+  const t = tileAt(x, z);
+  if (!t) return [0, 0, 0, 0];
+  const h = levelOf(t);
+  if (!isRamp(t)) return [h, h, h, h];
+  const end = (n: TileData | null): number => {
+    if (!hasGround(n)) return h;
+    const nh = levelOf(n);
+    return isRamp(n) ? (h + nh) / 2 : nh;
+  };
+  const north = end(tileAt(x, z - 1));
+  const south = end(tileAt(x, z + 1));
+  const west = end(tileAt(x - 1, z));
+  const east = end(tileAt(x + 1, z));
+  if (Math.abs(north - south) >= Math.abs(east - west)) return [north, north, south, south];
+  return [west, east, east, west];
+}
+
+/** The floor's height at a point (world units), the tile's corners blended across it: what a figure stands on. */
+export function floorAt(tileAt: TileAt, x: number, z: number): number {
+  const tx = Math.floor(x);
+  const tz = Math.floor(z);
+  const t = tileAt(tx, tz);
+  if (!t) return 0;
+  if (!isRamp(t)) return levelOf(t);
+  const [nw, ne, se, sw] = cornersOf(tileAt, tx, tz);
+  const fx = x - tx;
+  const fz = z - tz;
+  return (nw * (1 - fx) + ne * fx) * (1 - fz) + (sw * (1 - fx) + se * fx) * fz;
+}
+
+/** The rock of a bank, unless the surface on top names its own (`cliff`). */
+const defaultBank = (): Material => material("bank-rock", () => T.rock(19));
+
+/**
+ * The faces of the banks of a block of tiles: where a tile's edge stands above its neighbour's, a face of rock from the
+ * one down to the other, facing out of the higher tile. Where there is no neighbour (the world's edge, the dark round a
+ * room) the face goes down to the ground's zero. `bankOf(tile)` names a surface's own bank material, if it has one.
+ */
+export function banksOf(tileAt: TileAt, x0: number, z0: number, cols: number, rows: number, bankOf: (t: TileData) => Material | undefined = () => undefined): Model {
+  const b = new MeshBuilder();
+  for (let z = z0; z < z0 + rows; z++) {
+    for (let x = x0; x < x0 + cols; x++) {
+      const t = tileAt(x, z);
+      if (!hasGround(t)) continue;
+      const mine = cornersOf(tileAt, x, z);
+      const mat = bankOf(t) ?? defaultBank();
+      const image = mat.map?.image as { width: number; height: number } | undefined;
+      const w = (image?.width ?? 32) / 16;
+      const h = (image?.height ?? 32) / 16;
+      // Each edge: its two ends (corner indices of mine, and of the neighbour's facing them), the neighbour, and the face.
+      const edges: { readonly dx: number; readonly dz: number; readonly a: readonly [number, number]; readonly n: readonly [number, number]; readonly ends: readonly [readonly [number, number], readonly [number, number]] }[] = [
+        // North edge: from the north-east corner to the north-west, facing north.
+        { dx: 0, dz: -1, a: [1, 0], n: [2, 3], ends: [[x + 1, z], [x, z]] },
+        // South edge: west to east, facing south.
+        { dx: 0, dz: 1, a: [3, 2], n: [0, 1], ends: [[x, z + 1], [x + 1, z + 1]] },
+        // West edge: north to south... seen from the west, south-west then north-west.
+        { dx: -1, dz: 0, a: [0, 3], n: [1, 2], ends: [[x, z], [x, z + 1]] },
+        // East edge: south-east then north-east.
+        { dx: 1, dz: 0, a: [2, 1], n: [3, 0], ends: [[x + 1, z + 1], [x + 1, z]] },
+      ];
+      for (const e of edges) {
+        const n = tileAt(x + e.dx, z + e.dz);
+        const theirs = hasGround(n) ? cornersOf(tileAt, x + e.dx, z + e.dz) : null;
+        const top0 = mine[e.a[0]]!;
+        const top1 = mine[e.a[1]]!;
+        const bottom0 = theirs ? Math.min(top0, theirs[e.n[0]]!) : Math.min(top0, 0);
+        const bottom1 = theirs ? Math.min(top1, theirs[e.n[1]]!) : Math.min(top1, 0);
+        if (top0 - bottom0 < 1e-4 && top1 - bottom1 < 1e-4) continue;
+        const [p0, p1] = e.ends;
+        // The face, counter-clockwise seen from outside: the two bottom ends, then the tops.
+        const corners: [number, number, number][] = [
+          [p0[0], bottom0, p0[1]],
+          [p1[0], bottom1, p1[1]],
+          [p1[0], top1, p1[1]],
+          [p0[0], top0, p0[1]],
+        ];
+        // Across the face left to right as it is seen: east along a south face, west along a north one, and so on.
+        const along = (c: readonly number[]) => (e.dz !== 0 ? c[0]! * e.dz : -c[2]! * e.dx);
+        b.polygon(
+          mat,
+          corners,
+          corners.map((c) => [along(c) / w, c[1] / h] as [number, number]),
+        );
+      }
+    }
+  }
+  return b.model();
+}
+
+/**
+ * The floor of a block of tiles as triangles, a quad per tile with ground (corners at `cornersOf`): positions, normals
+ * and uvs for the ground's mesh (render/ground.ts paints it).
+ */
+export function floorGeometry(tileAt: TileAt, x0: number, z0: number, cols: number, rows: number, y = 0): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  const n = new THREE.Vector3();
+  const u = new THREE.Vector3();
+  const v = new THREE.Vector3();
+  for (let z = z0; z < z0 + rows; z++) {
+    for (let x = x0; x < x0 + cols; x++) {
+      if (!hasGround(tileAt(x, z))) continue;
+      const [nw, ne, se, sw] = cornersOf(tileAt, x, z);
+      const base = positions.length / 3;
+      positions.push(x, y + sw, z + 1, x + 1, y + se, z + 1, x + 1, y + ne, z, x, y + nw, z);
+      // One facing for the whole quad (a ramp is a plane along one axis).
+      u.set(1, se - sw, 0);
+      v.set(0, nw - sw, -1);
+      n.crossVectors(u, v).normalize();
+      for (let k = 0; k < 4; k++) normals.push(n.x, n.y, n.z);
+      uvs.push(0, 0, 1, 0, 1, 1, 0, 1);
+      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeBoundingSphere();
+  geometry.computeBoundingBox();
+  return geometry;
+}

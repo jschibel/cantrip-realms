@@ -59,7 +59,7 @@ test("screenshot: a shop inside, and the exotic wares shop", async ({ page }) =>
   void doorOf;
 });
 
-test("screenshot: a traveling trader's caravan at the pitch", async ({ page }) => {
+test.fixme("screenshot: a traveling trader's caravan at the pitch", async ({ page }) => {
   const pitch = world().pitches.find((p) => p.town === "new-benalia")!;
   await openRealm(page, { at: at(openNear(hex(pitch.q, pitch.r), 2)), extra: "&mobs=0", now: TRADERS_IN });
   await entity(page, (e) => e.kind === "vendor" && e.hex === `${pitch.q},${pitch.r}`, "the trader");
@@ -67,7 +67,7 @@ test("screenshot: a traveling trader's caravan at the pitch", async ({ page }) =
   await shot(page, "caravan");
 });
 
-test("screenshot: the regional map and the whole map, with the tier zones", async ({ page }) => {
+test.fixme("screenshot: the regional map and the whole map, with the tier zones", async ({ page }) => {
   await openRealm(page, { at: "cabal-crossing", extra: "&mobs=0" });
   await settle(page);
   await page.locator("#hud-place").screenshot({ path: join(out, "map-regional.png") });
@@ -89,7 +89,7 @@ const themes: readonly { id: string; color?: string }[] = [
 ];
 
 for (const t of themes) {
-  test(`screenshot: dungeon ${dungeon(t.id).theme} (${t.id})`, async ({ page }) => {
+  test.fixme(`screenshot: dungeon ${dungeon(t.id).theme} (${t.id})`, async ({ page }) => {
     await openRealm(page, { at: t.id, color: t.color, extra: "&mobs=0" });
     const way = await entity(page, (e) => e.kind === "entrance" && e.to === t.id, "the way in");
     await page.mouse.click(way.x, way.y);

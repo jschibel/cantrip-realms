@@ -188,7 +188,8 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
   - `tiles`: one entry per tile, `[height, surface, flags]`, row by row (z then x), so a chunk is 1,024 entries.
     `height` is in texels (a sixteenth of a tile, so a dais of 3/16 is 3 and a terrace of 3/4 is 12), `surface` a
     surface id or `""` (nothing: not drawn, never walked), `flags` 1 blocked, 2 bare (nothing grows up off it - no
-    standing grass under a tree or a house). A tile past the world's edge is blocked.
+    standing grass under a tree or a house), 4 ramp (its floor slopes between its neighbours' levels: see "The
+    renderer at world scale"). A tile past the world's edge is blocked.
   - `props`: `[{id, x, z, y?, rot? (0..3), turn? (radians), scale?, tint? (a palette name), seed?, args?}]`. `x`, `z`
     (and `y`) are world units, fractions allowed: the prop's anchor, as its registry entry says; `args` are its own
     (a line's far end `to`, a crate's `goods`). A prop belongs to the chunk its anchor is in.
@@ -276,8 +277,9 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
 - **The ground** is drawn per block of tiles, its texels counted from the world's origin (`buildGround`'s `anchor`),
   so chunks drawn apart join without a seam. Standing grass is laid out row by row over the world; per chunk it would
   stand elsewhere (it is random), which is fine.
-- **Heights** in the tiles are walked (and grass stands at them), but the ground is drawn flat: a rise is a prop
-  (`terrace`). Drawing terrain from heights is the Renderer's.
+- **Heights** in the tiles are walked, and drawn (phase 2): floors at their heights, banks of rock between levels,
+  ramps (see "The renderer at world scale"). The `terrace` prop is no longer needed for a rise; the sample's two are
+  gone.
 - **Palettes** are threaded through the Benalish house (stone, plaster, roof, timber, darkTimber), trees, bushes and
   hedges (leaves), surfaces whose painters take a ramp (flagstones, hearthstone), the shop's walls and every figure's
   main slots. The rest paint their own colors still: parameterize as you add styles.
@@ -798,6 +800,66 @@ prints the placeholders still named. Known today and used: surfaces `grass`, `co
   `foundry-gate`, `phyrexian-portal`, `flower-bed`, `hay-bale`, `wood-pile`; indoors: `bed`, `altar`, `pew`, `anvil`,
   `forge`, `weapon-rack`, `armor-stand`, `curio-cabinet`, `planar-mirror`, `orrery`, `lectern`;
 - figures: `townsman`, `elf`, `wizard`, `humanoid` (a Keldon warrior), `ferryman`.
+
+## The renderer at world scale (phase 2, Renderer)
+
+What the Renderer built on top of the interfaces above, and what the other modules and integration rely on.
+
+- **The stage** (`render/stage.ts`) is the frame every page runs, the slice's and the game's alike: the `CameraRig`, the
+  `Spot` the player is in (a `Framing` with its `place`, `grid`, `doors`, `actors`, `start`, optional `floorAt` and
+  `streamer`), walking and doors (`clickTile`, `startDoor`, `arrive`; the slice's iris and camera easing; `Spots.through`
+  says where a door leads, and may answer a promise - the iris stays shut until it settles, and opens back on the place
+  if it fails), `pick` / `floorTileAt` / `pickFigure`, `tick(dt)` and `render()`. The page hooks `intercept` (a click on
+  a person, a chest), `onArrive`, `onTile`, `beforeTick`. `WalkInput` (`render/pointer.ts`) is click and hold-to-walk.
+- **The world** is a `StreamedWorld` (`render/spots.ts`): its chunks read and built round the view by the
+  `ChunkStreamer` (`render/chunks.ts`) - read within the view's reach plus 30 tiles, built within it plus 6 once their
+  eight neighbours are read, dropped past it plus 26 - each chunk a `Section` of the place, built a step at a time
+  (`buildChunk`, a generator: the ground, the banks and water, recipes time-sliced at 2.5 ms, a merge per group, the
+  grass), at most 4 ms a frame (or 3 steps a frame on a manual clock). The walk grid is a window over the chunks read,
+  remade as they come and go, so a path is a bounded search; `onGrid` / the stage hand it to every actor. A chunk's
+  ground map carries a border of its neighbours' tiles, so it joins them without a seam. `WorldPlaces` gives the rooms:
+  each read as soon as its chunk is built, built ahead while the player is within 14 tiles of its door (one a half
+  second), the last ten kept; `extra` resolves the page's own ways (a dungeon's entrance, a run's stairs).
+- **Terrain** (`render/terrain.ts`): each tile's floor at its height; where a tile's edge stands above its neighbour's,
+  a face of rock down to it (a surface's look may name its own bank material as an optional `cliff`; else
+  `bank-rock`); a **ramp** tile (flag `RAMP` = 4, the one format addition: `world/format.ts` and the lint accept it)
+  slopes along the axis its neighbours differ most on, from the level on one side to the level on the other, half-way to
+  a ramp neighbour, so a run of ramps is one even slope. `floorAt(x, z)` is the surface anywhere; figures and grass stand
+  on it. Terrain ground is outlined where a terrace's edge stands in front of lower ground (normal-pass kind 0.875). For
+  the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
+  terrace's rim is best blocked except where a ramp meets it (the grid does not know edges). Rooms are still drawn level.
+- **Cut-aways at every heading** (`render/xray.ts`): a circle of 26 scene pixels round the player is cut out of tall
+  scenery (anything over 1.6 high: buildings, trees, walls) that is nearer the camera than the player's chest by 0.55
+  and higher than their knees, in the color and normal passes alike, so the outline pass rims the hole. Recipes' own
+  cut-aways (`player` rects, `camera` sides) work as before. Off indoors.
+- **Shadows** follow the camera: the sun's shadow camera is fitted to the view's ground at its heading and zoom (plus 6
+  high past its edges), its middle snapped in texels along the sun's axes, 2048 square (the all-at-once
+  `assembleWorld` keeps 4096). **Lights** of the chunks (fires, lamps) go to a pool of eight point lights given to the
+  nearest each frame, so streaming never changes the shaders' light count.
+- **The far zoom** (step 2) leaves out small props (no more than 1.05 by 1.05 by 1.35) and standing grass.
+- **Merging:** each chunk's scenery is sorted into tall (x-ray), small (detail) and the rest, each merged by material
+  straight into typed arrays; a kind over 24,000 triangles (a forest) is merged in 16-tile cells so the view culls it
+  finely.
+- **The benchmark** (`npm run bench`, `e2e/bench`): a scripted walk through the large synthetic world's town and
+  forest at 1080p on the manual clock, every frame timed to `gl.finish`, streaming on its real budget. On the RTX 4080
+  of the machine it was written on (ANGLE/D3D11): mean frame 0.7-1.6 ms, p99 1.4-8 ms, one frame in about 14,000 over
+  16.7 ms (a first-time building's paint); 170-730 draw calls a frame over all passes (shadow, color, normals, post);
+  155k-330k triangles in town, 1.9M (closest) to 3.5M (furthest) in the dense forest, whose trees are ~650 triangles
+  each. No integrated GPU was at hand: the forest's triangle count is the number to watch on one (cheaper trees, or a
+  far-zoom tree, would be the Art library's lever).
+- **Fixtures:** `fixtures/large-world/source.ts` is an 8 by 8 chunk synthetic world as a `WorldSource` (a dense town
+  with shops and rooms, a forest, terraced hills with ramps, a lake, fields, roads, townsfolk, lamps, spawns), for the
+  renderer's tests and benchmark: `slice.html?world=large`, and the game page's `?world=large`.
+- **The game page** (`index.html`, `src/main.ts`, `game.ts`, `entities.ts`, `input.ts`, `testHooks.ts`) runs on the
+  stage over a version-2 world: `?world=slice` (default for now) or `?world=large`; integration points it at the
+  generated Domains. Positions are `{Space, X, Z}` (sent with `Q`/`R` beside them until `net/api.ts` switches),
+  presence paths `[x, z]` from the open tile the player stands on along the grid's path, speeds at most 5 tiles a
+  second, nearness Chebyshev. The player is `figureSpec("hero")` until the Characters agent's bodies are mapped from
+  the character's appearance; mobs' figures come from their model's mesh id when the figures have it (`mobFigure`).
+  The minimap is drawn on squares (`Hud.drawSquares`). Dungeon runs are plumbed (`Overworld.floors`, `FloorPlan`:
+  the generator on squares gives a floor's `Spot`, arrival and encounters) but no floor builder is connected, and
+  `Overworld.dungeons` is empty until the world's `dungeons/<id>.json` are read. Ferries say they are not running.
+  `realmTest` publishes tiles as `{x, z}`; the e2e suites written for the hex world are left to integration.
 
 ## The server (`realms/dotnet`)
 

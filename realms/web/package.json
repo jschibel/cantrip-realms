@@ -13,7 +13,8 @@
     "world": "vite-node scripts/world.ts",
     "e2e": "node scripts/theme.mjs && playwright test -c e2e/playwright.config.ts",
     "e2e:server": "node scripts/theme.mjs && playwright test -c e2e/server/playwright.config.ts",
-    "world:map": "vite-node scripts/world-map.ts"
+    "world:map": "vite-node scripts/world-map.ts",
+    "bench": "node scripts/theme.mjs && playwright test -c e2e/bench/playwright.config.ts"
   },
   "dependencies": {
     "@msgpack/msgpack": "3.1.2",
