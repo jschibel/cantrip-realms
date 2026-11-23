@@ -267,6 +267,222 @@ Types in `realms/web/src/world/format.ts`; the sample is `realms/web/fixtures/sl
 - `render/assemble.ts` puts all loaded chunks in one `Place`; the chunk manager should keep `Place` per chunk (or
   `addPieces` per chunk) and use `assembleWorld`'s per-chunk loop as its model.
 
+## The art library (phase 2, Art library agent)
+
+What the World agent places and the Renderer draws. Every id below is in a registry; `realms/web/gallery.html` (dev
+only: `npm run dev`, then `/gallery.html`) shows them all on boards at the three headings and every zoom step, and its
+pictures are in `realms/web/e2e/screenshots/art/`. `npx vite-node scripts/art-ids.ts` reprints the tables of "Art ids"
+from the registries; `src/art/library.test.ts` builds every id from its own example at every heading.
+
+### Changes to shared modules (backward compatible)
+
+- `art/paint/palette.ts`: `definePalette(name, palette)` names a palette from the module that owns it (`PALETTES` reads
+  as before). The regions' and biomes' palettes are in `art/paint/regions.ts`, imported by the surface, prop and
+  building modules (so any page that uses the registries has them).
+- `art/paint/ramps.ts` (new): every biome's and region's ramps, plus `TIER` (the tier colors 1-4 as ramps, matching
+  hud.ts's). `art/paint/terrain.ts` (new): the biomes' ground pictures. Neither changes anything existing.
+- `art/paint/builder.ts`: `blob` makes its unit sphere once and `polygon` inverts the builder's transform once a
+  transform instead of once a polygon - the same geometry, many times faster (a Llanowar tree-house: 100 ms to 7).
+- `art/surfaces/index.ts`: `SurfaceLook.tuftRamp?` (the color standing tufts should take); the biomes are defined from
+  `biomes.ts` by one call at the end; `PRIORITY` and `SURFACE_GROUPS` exported.
+- `art/props`: `catalogue.ts` (footprints, `tilesOf`), `kit.ts` (limb, frustum, lump, materials from ramps),
+  `nature.ts`, `country.ts`, `wilds.ts`; `index.ts` imports them and exports `PROP_CATALOGUE`, `tilesOf`,
+  `ENTRANCE_THEMES`. `drawn` and `draw.ts` are unchanged.
+- `art/buildings`: `kit.ts` (`styled`, `splitAt`, doors, windows, trade signs, roofs), `registry.ts` gains `SHOWCASE` /
+  `showcase` (each style's kinds and recommended footprints), a file per style. The Benalish `house`, `shop` and
+  `mausoleum` draw exactly as before (now cut away as below).
+
+### What the World agent needs
+
+- **Surfaces** meet by `priority` (biomes.ts's ladder): waters -1 (holes), paving 0, cobbles 1, fields 2 (all equal, so
+  fields meet in straight seams), tracks 3, bare stone and sand 3.3-4.4, forest floor 4.8, grass 5-5.5, snow 6, ash
+  6.5, Phyrexian ground 7. Lay a biome's surfaces as `SURFACE_GROUPS` lists them.
+- **Props** stand where `tilesOf(prop)` says: mark those tiles blocked when `blocks`, and bare (flag 2) under trees,
+  rocks and anything solid. Footprints are about the anchor (trees, rocks: the trunk's or the lump's middle); line props
+  run from (x, z) to `args.to`, area props cover (x, z) to `args.to`. `town-wall`'s gate and a `fence-gate` are to be
+  left walkable. Each catalogue entry's `biomes` says where it belongs and `sample` is a working example of its args.
+- **Lights:** a prop's recipe makes no light. Lit props (`torch-post`, `fire-bowl`, `campfire`, `lantern-post`,
+  `lamp-post`, `waystone`) carry `light` in the catalogue - add it to the chunk's `lights` at the prop's anchor plus
+  `light.at` (turned with the prop).
+- **Buildings:** `style` one of the eight below, `kind` one of its kinds (default `house`), footprint `w` x `d` as the
+  showcase sizes recommend (any size draws). The front faces `rot` 0 (south); rot 1 and 3 are fine; rot 2 shows its back
+  (plainer) to the camera, so prefer fronts toward the camera or the sides. The door tile is in front of the door's middle
+  (`params.doorAt`, tiles from the west end, else the front's middle; the Vess `manor`'s door is at its court's back
+  wall, its tile inside the court, the court walkable). Gatehouses (and the Phyrexian `portal`) have a walkable passage,
+  the middle 2 tiles of their width, front to back. `wall` runs along its footprint's longer side.
+- Shops' signs show `params.trade` (weapons, armor, potions, magic, books, food, bread, drink, inn, smith, cards,
+  general, jewels, herbs, fish, tailor, temple, guild, arena, goblin), defaulting by kind (shop general, inn inn,
+  smithy smith, library books, temple temple, guildhall guild, tower magic).
+- Palettes: a building's `palette` or a prop's `tint` names one of "Named palettes" (a region's dresses any style; a
+  biome's recolors trees and stone; `tier-1`..`tier-4` the tier banners).
+
+### What the Renderer needs
+
+- **Cut-aways:** every building (all styles) returns `cutaways: [{full, low, when: {player}}]`: above `CUT` (1.25) it is
+  in `full`, and `low` is a cap over its footprint at that height; it drops while the player stands north of it within
+  its height (and inside a gatehouse's passage). Its `model` is the ground floor. Each building's `full` is its own
+  meshes in `Place` today (one per material), so a town makes many: merging the cut-aways per chunk into a few groups
+  that toggle together, or switching by a vertex attribute, is the Renderer's call. `params.cutaway: false` turns it off.
+- **Flames** (`frames`) come from props (torches, fire bowls, campfires, the foundry's chimney) and from buildings (the
+  Keldon inn, temple and smithy, the Llanowar smithy): `assembleWorld` must keep a building's `frames` as it does a prop's.
+- **Holes:** `render/ground.ts` discards only the first hole surface of a block (`holeId`), and reads at most 16
+  surfaces a block. Each hole's own picture is its liquid, so a second hole in a block shows still water, not a gap;
+  for rivers meeting the sea, or lava beside oil, the shader should take every hole (a hole flag per surface).
+- **Tufts:** surfaces with `tufts` are green (grass, meadow, pasture, plains, marsh). `tuftRamp` is the color tufts
+  should take (plains gold-green, marsh reeds, tundra frost): `grassField` paints every tuft from C.GRASS today; once it
+  takes a ramp per tile, tundra can have tufts too (set `tufts` on it then).
+- Scrolling materials (water, lava, oil, the Phyrexian portal's membrane) are marked as the slice's stream is.
+
+### Art ids
+
+#### Surfaces
+
+| Group | Id (priority; hole; tufts) |
+| --- | --- |
+| grassland | `grass` (5; tufts 3), `plains` (5.2; tufts 2), `meadow` (5.3; tufts 4), `pasture` (5.1; tufts 1) |
+| farmland | `wheat` (2), `furrows` (2), `straw` (2), `crop-rows` (2), `stubble` (2) |
+| forest | `forest-floor` (4.8), `leaf-litter` (4.8), `moss` (4.85), `needles` (4.8), `elf-moss` (4.85) |
+| swamp | `swamp-mud` (4.2), `mire` (4.25), `marsh` (5.4; tufts 2), `bog` (-1; hole) |
+| cold | `tundra` (5.5), `snow` (6), `ice` (3.5), `snow-track` (3.1) |
+| mountain | `bedrock` (3.3), `scree` (4.4), `gravel` (1.5) |
+| coast | `sand` (4), `wet-sand` (3.8), `shingle` (3.8), `sea` (-1; hole), `ford` (4.6) |
+| fire | `ash` (6.5), `basalt` (3.6), `lava` (-1; hole) |
+| waste | `waste` (4.1), `salt-flat` (3.4) |
+| phyrexian | `phyrexian-ground` (7), `plating` (0), `oil` (-1; hole) |
+| roads | `dirt` (3), `cart-track` (3.05), `cobbles` (1), `setts` (1.05), `flagstones` (0), `marble-paving` (0), `mud-track` (3), `boardwalk` (1), `boardwalk-ns` (1) |
+| waters | `stream` (-1; hole), `river` (-1; hole), `lake` (-1; hole), `sea` (-1; hole), `bog` (-1; hole), `lava` (-1; hole), `oil` (-1; hole), `ford` (4.6) |
+| indoors | `floorboards` (1), `hearthstone` (2), `crypt-floor` (1) |
+
+#### Props (outdoors)
+
+Footprint: `WxD` tiles about the anchor (unturned; `rect` offsets where not centred), `line` (x, z to args.to, its width) or `area` (x, z to args.to); **B** blocks walking. `tilesOf(prop)` gives the tiles.
+
+| Category | Id | Footprint | Biomes | Light |
+| --- | --- | --- | --- | --- |
+| entrance | `entrance-caves` | rect [-2.5, -4, 2.5, 0] **B** | mountain, keld, tundra |  |
+| entrance | `entrance-castle` | rect [-3.5, -3, 3.5, 0] **B** | plains, farmland |  |
+| entrance | `entrance-tower` | rect [-2, -4, 2, 0] **B** | coast, plains, mountain, any |  |
+| entrance | `entrance-crypt` | rect [-1.5, -3, 1.5, 0] **B** | swamp, morass, town, waste |  |
+| entrance | `entrance-hollow` | rect [-2.5, -4, 2.5, 0] **B** | llanowar, forest, verdura |  |
+| entrance | `entrance-foundry` | rect [-2.5, -3, 2.5, 0] **B** | mountain, keld, volcanic |  |
+| entrance | `entrance-portal` | rect [-2.5, -2, 2.5, 0] **B** | phyrexian, waste |  |
+| fence | `fence` | line 0.3 **B** | plains, farmland, town, keld |  |
+| fence | `picket-fence` | line 0.3 **B** | town, farmland, plains |  |
+| fence | `wattle-fence` | line 0.3 **B** | farmland, plains, llanowar, swamp |  |
+| fence | `stone-wall` | line 0.6 **B** | plains, farmland, mountain, tundra, keld |  |
+| fence | `palisade` | line 0.4 **B** | keld, tundra, forest, swamp |  |
+| fence | `hedge` | line 0.8 **B** | town, plains, farmland |  |
+| fence | `fence-gate` | 1.6x0.3 | farmland, plains, town |  |
+| fence | `railings` | line 0.2 **B** | town |  |
+| fence | `hedge-wall` | line 0.7 **B** | town, plains |  |
+| fence | `hedgerow` | line 0.9 **B** | farmland, plains |  |
+| fence | `town-wall` | line 1.5 **B** | town |  |
+| goods | `well` | 1.6x1.6 **B** | town, farmland, plains |  |
+| goods | `cart` | 2.4x1.2 **B** | town, farmland, road |  |
+| goods | `wagon` | rect [-1.7, -0.75, 1.9, 0.75] **B** | town, farmland, road |  |
+| goods | `hay-bale` | 1x0.7 **B** | farmland, plains, town |  |
+| goods | `haystack` | 1.8x1.8 **B** | farmland, plains |  |
+| goods | `woodpile` | 1.8x0.9 **B** | forest, keld, town, farmland |  |
+| goods | `trough` | 1.6x0.7 **B** | farmland, town, road |  |
+| goods | `crate-stack` | 1.6x1.2 **B** | town, coast, road |  |
+| goods | `barrel` | 0.6x0.6 **B** | town, road, coast |  |
+| goods | `crate` | 0.75x0.75 **B** | town, road, coast |  |
+| goods | `sack` | 0.6x0.5 | town, farmland |  |
+| goods | `pot` | 0.4x0.4 | town |  |
+| light | `torch-post` | 0.3x0.3 **B** | any | at [0, 2, 0] |
+| light | `fire-bowl` | 0.8x0.8 **B** | keld, town, waste, volcanic | at [0, 1.4, 0] |
+| light | `campfire` | 1.2x1.2 **B** | any | at [0, 0.6, 0] |
+| light | `lantern-post` | 0.3x0.3 **B** | swamp, morass, town, road | at [0.6, 1.8, 0] |
+| light | `lamp-post` | 0.4x0.4 **B** | town, road | at [0, 2.4, 0] |
+| mountain | `crag` | 2.4x2.4 **B** | mountain, keld, volcanic, waste |  |
+| mountain | `cliff` | line 1.2 **B** | mountain, keld, coast |  |
+| mountain | `mountain` | 10x10 **B** | mountain, keld, tundra |  |
+| mountain | `terrace` | area | plains, town |  |
+| phyrexian | `phyrexian-wreck` | 3x2.4 **B** | phyrexian, waste |  |
+| phyrexian | `phyrexian-spike` | 1x1 **B** | phyrexian, waste |  |
+| phyrexian | `phyrexian-ribs` | 4x2.4 **B** | phyrexian, waste |  |
+| phyrexian | `oil-vent` | 1.4x1.4 **B** | phyrexian, waste |  |
+| plant | `fern` | 0.5x0.5 | forest, llanowar, verdura, swamp |  |
+| plant | `undergrowth` | 1.5x1.5 **B** | forest, llanowar, verdura |  |
+| plant | `giant-fern` | 1x1 **B** | verdura, llanowar |  |
+| plant | `flowering-bush` | 0.8x0.8 **B** | verdura, plains, town |  |
+| plant | `scrub` | 1x1 | coast, waste, mountain, tundra |  |
+| plant | `stump` | 0.6x0.6 **B** | forest, plains, llanowar, keld |  |
+| plant | `log` | 2.2x0.6 **B** | forest, llanowar, swamp, keld |  |
+| plant | `mushrooms` | 0.6x0.6 | forest, llanowar, swamp, morass |  |
+| plant | `giant-mushroom` | 1x1 **B** | llanowar, morass |  |
+| plant | `reeds` | 0.8x0.8 | swamp, morass, coast, plains |  |
+| plant | `lily-pads` | 1x1 | swamp, plains, verdura |  |
+| plant | `wildflowers` | 1x1 | plains, farmland, verdura, town |  |
+| plant | `bush` | 0.8x0.8 **B** | plains, town, forest |  |
+| rock | `rock` | 1x1 **B** | any |  |
+| rock | `rock-pile` | 1x1 | any |  |
+| rock | `mossy-rock` | 1.2x1.2 **B** | forest, llanowar, swamp, verdura |  |
+| rock | `snowy-rock` | 1.2x1.2 **B** | tundra, keld, mountain |  |
+| rock | `standing-stone` | 0.8x0.8 **B** | plains, tundra, keld, mountain, waste |  |
+| rock | `boulder-field` | area | mountain, tundra, waste, keld |  |
+| rock | `boulder` | 1x1 **B** | plains, forest, mountain |  |
+| ruin | `ruined-wall` | line 0.8 **B** | plains, waste, forest, mountain, swamp |  |
+| ruin | `column` | 1x1 **B** | plains, waste, coast, town |  |
+| ruin | `ruined-arch` | 3.2x0.8 | plains, waste, forest, mountain |  |
+| ruin | `rubble-heap` | 1.5x1.5 **B** | plains, waste, town, mountain |  |
+| ruin | `statue` | 1.2x1.2 **B** | town, plains, waste |  |
+| ruin | `gravestone` | 0.8x0.4 **B** | town, swamp, morass |  |
+| ruin | `ruined-tower` | 5x5 **B** | plains, waste |  |
+| sign | `signpost` | 0.3x0.3 **B** | road, any |  |
+| sign | `waymarker` | 0.8x0.8 **B** | any |  |
+| sign | `tier-banner` | 0.3x0.3 **B** | road, any |  |
+| sign | `banner-pole` | 0.3x0.3 **B** | town, road, any |  |
+| sign | `milestone` | 0.5x0.5 **B** | road |  |
+| sign | `quest-board` | 1.8x0.5 **B** | town |  |
+| sign | `waystone` | 1x1 **B** | any | at [0, 2.6, 0] |
+| street | `canopy-stall` | rect [0, -1.1, 3, 0.4] **B** | town |  |
+| street | `anvil` | 0.8x0.6 **B** | town, keld |  |
+| street | `bench` | 1.6x0.5 **B** | town |  |
+| street | `market-stall` | rect [0, -1, 3.4, 0.35] **B** | town |  |
+| street | `fountain` | 4x4 **B** | town |  |
+| travel | `caravan-wagon` | rect [-1.7, -0.8, 1.9, 0.8] **B** | road, town, plains, waste |  |
+| travel | `caravan` | rect [-1.7, -0.8, 1.9, 2.6] **B** | road, town, plains, waste |  |
+| travel | `tent` | 2x2.4 **B** | any |  |
+| travel | `pavilion` | 3.2x3.2 **B** | town, plains, road |  |
+| tree | `oak` | 0.6x0.6 **B** | plains, farmland, forest, town |  |
+| tree | `birch` | 0.6x0.6 **B** | plains, forest, tundra |  |
+| tree | `giant-tree` | 3x3 **B** | llanowar, forest |  |
+| tree | `elf-tree` | 0.6x0.6 **B** | llanowar |  |
+| tree | `dead-tree` | 0.6x0.6 **B** | swamp, morass, waste, volcanic |  |
+| tree | `mossy-dead-tree` | 0.6x0.6 **B** | morass, swamp |  |
+| tree | `cypress` | 0.6x0.6 **B** | swamp, morass |  |
+| tree | `pine` | 0.6x0.6 **B** | tundra, keld, mountain, forest |  |
+| tree | `snowy-fir` | 0.6x0.6 **B** | keld, tundra, mountain |  |
+| tree | `palm` | 0.6x0.6 **B** | coast, verdura |  |
+| tree | `lush-tree` | 0.78x0.78 **B** | verdura |  |
+| tree | `tree` | 0.6x0.6 **B** | plains, town, forest |  |
+| water | `wooden-bridge` | line 2 | any |  |
+| water | `ford-stones` | line 0.8 | any |  |
+| water | `dock` | area | coast, swamp, town |  |
+| water | `rowboat` | 1x2.6 **B** | coast, swamp, town |  |
+| water | `ferry` | 2.5x4 **B** | coast, swamp, town |  |
+| water | `sailboat` | 1.6x4.6 **B** | coast, town |  |
+| water | `stepping-stone` | 0.6x0.6 | any |  |
+| water | `bridge` | area | any |  |
+
+#### Building styles
+
+| Style | Kinds at their showcase footprints (w x d tiles, facing south) |
+| --- | --- |
+| `benalish` | house (slice) 6x4, house (cottage) 4x4, shop 7x4, tenement 5x4, inn 8x5, smithy 6x5, guildhall 9x6, temple 7x9, library 8x6, tower 4x4, warehouse 8x5, mausoleum 5x4, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+| `morass` | house 5x5, house (hut) 4x4, shop 6x5, tenement 4x5, inn 7x6, temple 6x8, guildhall 8x6, smithy 6x5, library 6x6, tower 4x4, warehouse 8x6, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+| `llanowar` | house 5x5, house (small) 4x4, shop 6x5, inn 6x6, tenement 5x5, temple 7x7, guildhall 8x6, smithy 6x5, library 6x6, tower 4x4, warehouse 6x5, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+| `keldon` | house (longhouse) 7x4, house (small, thatch) 5x4, shop 7x5, inn 9x6, temple 7x8, guildhall 10x6, smithy 6x5, library 7x5, tower 3x3, warehouse 5x5, gatehouse 6x3, wall-tower 2x2, wall 6x1 |
+| `tolarian` | house (small) 4x4, house (two floors) 6x5, shop 6x4, inn 8x6, smithy 6x5, guildhall 10x6, temple 8x9, library 9x10, tower 4x4, tower (slender) 3x3, warehouse 8x5, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+| `vess` | manor 14x9, house (cottage) 4x4, house 6x4, shop 6x4, inn 8x5, smithy 6x5, temple 6x9, guildhall 8x5, library 8x6, tower 3x3, warehouse 7x5, mausoleum 4x5, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+| `village` | house (cottage) 4x3, house (two floors) 5x4, house (whitewashed) 6x4, shop 5x4, inn 7x5, smithy 5x5, temple 4x6, guildhall 6x4, library 5x4, tower 3x3, warehouse 7x5, gatehouse 6x1, wall-tower 3x3, wall 6x1 |
+| `phyrexian` | portal 9x4, hall 7x6, spire 3x3, spire (small) 2x2, vat 4x4, obelisk 2x2, gatehouse 6x3, wall-tower 3x3, wall 6x1 |
+
+#### Named palettes
+
+`default`, `autumn`, `dark-hair`, `benalish`, `benalish-slate`, `llanowar`, `morass`, `keldon`, `tolarian`, `vess`, `village`, `phyrexian`, `whitewash`, `thatch`, `red-cloth`, `green-cloth`, `purple-cloth`, `teal-cloth`, `summer`, `spring`, `elfhame`, `verdura`, `swamp`, `winter`, `blighted`, `granite`, `basalt`, `sandstone`, `marble`, `cobble`, `ice`, `phyrexian-stone`, `tier-1`, `tier-2`, `tier-3`, `tier-4`
+
 ## The server (`realms/dotnet`)
 
 Positions are tiles `{Space, X, Z}`. A walk is eight-way steps with no corner-cutting past a blocked tile. Presence
