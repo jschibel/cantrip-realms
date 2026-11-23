@@ -13,8 +13,21 @@ import { drawn, turnOf } from "./registry";
 // covers - to mark them blocked (`blocks`) and bare (nothing grows up through it). Footprints are given unturned about
 // the prop's anchor; `tilesOf` turns and scales them as the prop is placed.
 
-/** Where a prop stands: a rectangle about its anchor, or a line from its anchor to `args.to`. */
-export type Footprint =
+/**
+ * A way through a prop (a gatehouse's gap, a town wall's gate): what of it stands solid, and the passage, both placed
+ * (world units). `tilesOf` covers the solid rectangles and leaves out every tile the passage crosses, so it stays
+ * walkable whatever the shape round it. None (null: its args do not say where the way is), the shape as it stands.
+ */
+export interface Gateway {
+  readonly solid: readonly Rect[];
+  readonly open: Rect;
+}
+
+/**
+ * Where a prop stands: a rectangle about its anchor, or a line from its anchor to `args.to` - and, for a prop with a way
+ * through it, `gateway`: the tiles are then its solid parts', its passage left out.
+ */
+export type Footprint = (
   | {
       /** The rectangle it covers about its anchor before turning, world units: [x0, z0, x1, z1]. */
       readonly rect: Rect;
@@ -40,7 +53,8 @@ export type Footprint =
        */
       readonly sized: readonly [number, number];
       readonly blocks: boolean;
-    };
+    }
+) & { readonly gateway?: (p: PropData) => Gateway | null };
 
 export interface PropInfo {
   readonly id: string;
@@ -102,7 +116,16 @@ export function tilesOf(p: PropData): { readonly tiles: readonly XZ[]; readonly 
     for (let z = Math.floor(z0 + e); z <= Math.floor(z1 - e); z++) for (let x = Math.floor(x0 + e); x <= Math.floor(x1 - e); x++) tiles.set(key(x, z), [x, z]);
   };
   const to = p.args?.to;
-  if ("sized" in fp) {
+  const gateway = fp.gateway?.(p);
+  if (gateway) {
+    const { solid, open } = gateway;
+    // The passage's tiles first, set aside; then the solid parts' without them.
+    addRect(...open);
+    const passage = new Set(tiles.keys());
+    tiles.clear();
+    for (const r of solid) addRect(...r);
+    for (const k of passage) tiles.delete(k);
+  } else if ("sized" in fp) {
     const turnedRound = ((((p.rot ?? 0) % 4) + 4) % 4) % 2 === 1;
     const [dw, dd] = turnedRound ? [fp.sized[1], fp.sized[0]] : fp.sized;
     const w = typeof p.args?.w === "number" ? (p.args.w as number) : dw;

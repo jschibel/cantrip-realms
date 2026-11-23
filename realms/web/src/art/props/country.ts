@@ -1051,7 +1051,24 @@ describe("bush", { category: "plant", biomes: ["plains", "town", "forest"], foot
 describe("hedgerow", { category: "fence", biomes: ["farmland", "plains"], footprint: along(0.9), sample: { args: { to: [5, 0] } } });
 describe("boulder", { category: "rock", biomes: ["plains", "forest", "mountain"], footprint: centred(1, 1), sample: { seed: 1 } });
 describe("stepping-stone", { category: "water", biomes: ["any"], footprint: centred(0.6, 0.6, false) });
-describe("town-wall", { category: "fence", biomes: ["town"], footprint: { line: 1.5, blocks: true }, sample: { args: { to: [0, 10], gate: [4, 6] } } });
+describe("town-wall", {
+  category: "fence",
+  biomes: ["town"],
+  // The wall along its line and the gate's towers, the gateway between args.gate's z's left walkable (draw.ts townWall).
+  footprint: {
+    line: 1.5,
+    blocks: true,
+    gateway: (p) => {
+      if (!Array.isArray(p.args?.to) || !Array.isArray(p.args?.gate)) return null;
+      const { x } = p;
+      const z1 = point(p, "to")[1];
+      const [g0, g1] = point(p, "gate");
+      const [za, zb] = [Math.min(p.z, z1), Math.max(p.z, z1)];
+      return { solid: [[x - 0.75, za - 0.75, x + 0.75, zb + 0.75], [x - 1.25, g0 - 2, x + 0.5, g0], [x - 1.25, g1, x + 0.5, g1 + 2]], open: [x - 1.25, g0, x + 0.75, g1] };
+    },
+  },
+  sample: { args: { to: [0, 10], gate: [4, 6] } },
+});
 describe("bridge", { category: "water", biomes: ["any"], footprint: { area: true, blocks: false }, sample: { args: { to: [4, 2], y: 0.25 } } });
 describe("terrace", { category: "mountain", biomes: ["plains", "town"], footprint: { area: true, blocks: false }, sample: { args: { to: [4, 3], y: 0.75 } } });
 describe("ruined-tower", { category: "ruin", biomes: ["plains", "waste"], footprint: centred(5, 5), sample: { args: { r: 2.2, low: 1.4, high: 4.5 } } });

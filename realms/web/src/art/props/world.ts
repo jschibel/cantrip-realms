@@ -92,7 +92,23 @@ PROPS.define(
     return { ...t, cutaways: [...(t.cutaways ?? []), { full: lintel, low: { parts: [] }, when: { player: gap } }] };
   },
 );
-describe("gatehouse", { category: "fence", biomes: ["town"], footprint: { rect: [-3.5, -1, 3.5, 1], blocks: true }, sample: { args: { width: 3, style: "tolarian" } } });
+describe("gatehouse", {
+  category: "fence",
+  biomes: ["town"],
+  // Two towers 2 tiles square either side of the gap, its passage (args.width tiles, front to back) left walkable.
+  footprint: {
+    rect: [-3.5, -1, 3.5, 1],
+    blocks: true,
+    gateway: (p) => {
+      const h = num(p, "width", 3) / 2;
+      const { x, z } = p;
+      return (((p.rot ?? 0) % 4) + 4) % 2 === 0
+        ? { solid: [[x - h - 2, z - 1, x - h, z + 1], [x + h, z - 1, x + h + 2, z + 1]], open: [x - h, z - 1, x + h, z + 1] }
+        : { solid: [[x - 1, z - h - 2, x + 1, z - h], [x - 1, z + h, x + 1, z + h + 2]], open: [x - 1, z - h, x + 1, z + h] };
+    },
+  },
+  sample: { args: { width: 3, style: "tolarian" } },
+});
 
 // --- Growing and standing things ----------------------------------------------------------------------------------------
 
