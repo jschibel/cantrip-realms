@@ -3,7 +3,7 @@
   "cz": 31,
   "tiles": [
     [12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],
-    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],
+    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",1],[12,"forest-floor",1],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],
     [12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[12,"forest-floor",1],[12,"forest-floor",1],[12,"forest-floor",1],[12,"forest-floor",1],[12,"moss",0],
     [12,"grass",1],[12,"grass",1],[12,"grass",0],[12,"grass",1],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[12,"moss",1],
@@ -232,13 +232,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_31:1","x":600,"z":1000,"mobs":["arrogant-wurm","birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"18_31:2","x":581,"z":1004,"mobs":["commander-eesha","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"18_31:3","x":587,"z":1020,"mobs":["air-elemental","guardian-of-new-benalia"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"18_31:1","x":606,"z":1005,"mobs":["arrogant-wurm","birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"18_31:2","x":578,"z":1009,"mobs":["arrogant-wurm","commander-eesha","guardian-of-new-benalia"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [
-    {"id":"18_31:c1","x":590,"z":993,"gold":[180,380],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

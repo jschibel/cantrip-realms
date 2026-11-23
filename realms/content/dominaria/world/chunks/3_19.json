@@ -86,7 +86,7 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"3_19:1","x":124,"z":608,"mobs":["coral-merfolk","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"3_19:1","x":124,"z":608,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

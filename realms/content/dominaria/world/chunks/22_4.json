@@ -64,7 +64,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"22_4:1","x":722,"z":149,"mobs":["tombstalker","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"22_4:1","x":722,"z":149,"mobs":["fallen-angel","karplusan-yeti"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

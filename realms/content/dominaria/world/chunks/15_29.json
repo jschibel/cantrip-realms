@@ -75,9 +75,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_29:1","x":502,"z":932,"mobs":["benalish-knight","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"15_29:2","x":511,"z":952,"mobs":["benalish-knight","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"15_29:3","x":494,"z":953,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"15_29:1","x":492,"z":940,"mobs":["benalish-knight","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"15_29:2","x":509,"z":945,"mobs":["longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

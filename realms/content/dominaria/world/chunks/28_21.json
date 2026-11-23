@@ -176,8 +176,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"28_21:1","x":911,"z":680,"mobs":["abomination","birds-of-paradise","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"28_21:2","x":920,"z":697,"mobs":["air-elemental","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"28_21:1","x":922,"z":692,"mobs":["arrogant-wurm","lord-of-atlantis","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

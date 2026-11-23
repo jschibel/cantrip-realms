@@ -167,7 +167,8 @@
     {"id":"cabal-crossing-quest-board","x":446,"z":483,"kind":"quest-board","name":"Notice board","text":["Cultists seen in the Drowned Wood. They wave."],"stand":[446.5,0.6875,483.5]}
   ],
   "spawns": [
-    {"id":"13_15:1","x":443,"z":509,"mobs":["lost-soul","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"13_15:1","x":426,"z":504,"mobs":["bog-wraith","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"13_15:2","x":443,"z":509,"mobs":["lost-soul","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

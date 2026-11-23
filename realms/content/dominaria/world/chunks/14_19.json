@@ -24,7 +24,7 @@
     [0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
     [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[60,"rock",1],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
     [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
-    [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
+    [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
     [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],
     [0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],
     [0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[84,"snow",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],
@@ -94,10 +94,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_19:1","x":460,"z":608,"mobs":["bog-wraith","elven-riders","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"14_19:2","x":455,"z":628,"mobs":["bog-wraith","craw-wurm"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"14_19:1","x":455,"z":628,"mobs":["bog-wraith","craw-wurm"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"14_19:c1","x":461,"z":630,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

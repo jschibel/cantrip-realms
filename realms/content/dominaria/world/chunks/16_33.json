@@ -70,10 +70,7 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"16_33:1","x":516,"z":1073,"mobs":["serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"16_33:2","x":527,"z":1087,"mobs":["serra-angel","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [
     {"id":"16_33:c1","x":519,"z":1086,"gold":[300,500],"respawnSeconds":86400}
   ],

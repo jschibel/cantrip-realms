@@ -65,7 +65,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_37:1","x":452,"z":1187,"mobs":["rorix-bladewing","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"14_37:1","x":459,"z":1184,"mobs":["sibilant-spirit","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"14_37:2","x":475,"z":1191,"mobs":["rorix-bladewing","sengir-vampire","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

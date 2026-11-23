@@ -5,7 +5,7 @@
     [12,"snow",0],[12,"snow",3],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
-    [12,"snow",3],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",3],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
+    [12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",3],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",3],[12,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",1],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
@@ -33,7 +33,7 @@
     [84,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[36,"scree",1],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[24,"scree",1],[24,"scree",1],[24,"scree",1],[24,"scree",3],[24,"scree",1],[24,"scree",1],[24,"scree",1],[24,"scree",1],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"tundra",0],
     [72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",1],[24,"scree",1],[24,"scree",1],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"tundra",3],[12,"tundra",0],
     [24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[24,"scree",1],[21,"scree",4],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",1],[24,"scree",1],[24,"scree",0],[24,"scree",1],[24,"scree",1],[12,"scree",0],[12,"scree",0],[15,"scree",4],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0]
+    [24,"scree",0],[24,"scree",0],[24,"scree",1],[24,"scree",1],[24,"scree",0],[24,"scree",1],[24,"scree",1],[12,"scree",0],[12,"scree",0],[15,"scree",4],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0]
   ],
   "props": [
     {"id":"pine","x":573.5,"z":128.375,"seed":3,"scale":1.0625},
@@ -76,15 +76,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_4:1","x":545,"z":140,"mobs":["fallen-angel","mahamoti-djinn","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_4:2","x":572,"z":158,"mobs":["karplusan-yeti","sibilant-spirit","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_4:3","x":553,"z":159,"mobs":["karplusan-yeti","serra-paragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"17_4:1","x":559,"z":159,"mobs":["sibilant-spirit","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"17_4:c1","x":544,"z":131,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": [
-    {"x":559,"z":159,"tier":4}
+    {"x":554,"z":159,"tier":4}
   ]
 }

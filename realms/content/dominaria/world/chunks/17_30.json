@@ -90,9 +90,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_30:1","x":566,"z":962,"mobs":["commander-eesha","guardian-of-new-benalia"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"17_30:2","x":547,"z":965,"mobs":["commander-eesha","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"17_30:3","x":566,"z":989,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"17_30:1","x":544,"z":965,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"17_30:2","x":565,"z":966,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"17_30:3","x":555,"z":983,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"17_30:4","x":572,"z":984,"mobs":["commander-eesha","guardian-of-new-benalia","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

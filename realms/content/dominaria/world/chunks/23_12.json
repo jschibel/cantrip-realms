@@ -23,7 +23,7 @@
     [24,"scree",3],[24,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",3],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",1],[9,"rock",4],[12,"rock",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],
     [24,"scree",3],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",1],[12,"rock",1],[12,"rock",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],
     [24,"scree",3],[24,"scree",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",1],[12,"rock",1],[0,"rock",0],[0,"rock",3],[0,"scree",0],
-    [24,"rock",3],[24,"rock",3],[24,"rock",1],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"scree",1],[12,"scree",1],[0,"scree",0],
+    [24,"rock",3],[24,"rock",3],[24,"rock",1],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"scree",1],[12,"scree",1],[0,"scree",0],
     [24,"rock",3],[24,"rock",3],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",1],
     [24,"rock",3],[24,"rock",3],[24,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [24,"rock",3],[24,"rock",3],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],
@@ -107,11 +107,13 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"23_12:1","x":765,"z":392,"mobs":["mahamoti-djinn","rorix-bladewing"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"23_12:2","x":749,"z":399,"mobs":["enormous-baloth","serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"23_12:3","x":763,"z":411,"mobs":["marhault-elsdragon","rorix-bladewing","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"23_12:1","x":741,"z":388,"mobs":["rorix-bladewing","sengir-vampire","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"23_12:2","x":762,"z":391,"mobs":["mahamoti-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"23_12:3","x":763,"z":411,"mobs":["marhault-elsdragon","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"23_12:c1","x":742,"z":405,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

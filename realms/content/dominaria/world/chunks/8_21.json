@@ -79,8 +79,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"8_21:1","x":283,"z":693,"mobs":["bog-imp","bog-rats","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"8_21:2","x":261,"z":694,"mobs":["elvish-warrior","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"8_21:1","x":273,"z":691,"mobs":["ironclaw-orcs","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

@@ -23,7 +23,7 @@
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"sand",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],
@@ -69,12 +69,10 @@
     {"id":"orvada-2-waystone","x":106,"z":797,"kind":"waystone","name":"The waystone of the Orvadan Tower of the Second Circle","stand":[106.5,0.5625,797.5],"tower":"orvada-2"}
   ],
   "spawns": [
-    {"id":"3_24:1","x":98,"z":771,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"3_24:2","x":114,"z":785,"mobs":["azure-drake","merfolk-raiders","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"3_24:1","x":113,"z":770,"mobs":["soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"3_24:2","x":96,"z":783,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [
-    {"id":"3_24:c1","x":96,"z":789,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [
     {"x":106,"z":778,"dungeon":"orvada-1"},
     {"x":106,"z":795,"dungeon":"orvada-2"}

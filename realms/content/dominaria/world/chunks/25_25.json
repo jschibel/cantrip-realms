@@ -33,7 +33,7 @@
     [0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],
     [0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],
     [0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",2],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",2],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],
-    [0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"dirt",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3]
+    [0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"dirt",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",3]
   ],
   "props": [
     {"id":"tree","x":808.625,"z":800.375,"seed":9,"scale":0.9375},
@@ -304,11 +304,12 @@
     {"id":"elfhame-hollow-spell-table","x":812,"z":821,"kind":"spell-table","name":"Spell table","stand":[812.5,0.25,821.5]}
   ],
   "spawns": [
-    {"id":"25_25:1","x":815,"z":802,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"25_25:2","x":804,"z":815,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"25_25:3","x":831,"z":824,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"25_25:1","x":816,"z":800,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"25_25:2","x":804,"z":814,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"25_25:c1","x":824,"z":831,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [
     {"x":812,"z":823,"dungeon":"elfhame-hollow"}
   ],

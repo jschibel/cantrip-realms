@@ -41,7 +41,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_32:1","x":486,"z":1055,"mobs":["elvish-archers","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"15_32:1","x":486,"z":1055,"mobs":["lord-of-atlantis","northern-paladin","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

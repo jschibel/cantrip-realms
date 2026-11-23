@@ -30,7 +30,7 @@
     [24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",1],[0,"rock",3],[0,"rock",3],[0,"rock",3],
     [24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",2],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",1],[0,"rock",3],[0,"rock",3],
     [24,"ash",0],[24,"ash",0],[24,"ash",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",1],[0,"rock",3],[0,"rock",3],
-    [36,"scree",1],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",1],[0,"rock",3],
+    [36,"scree",1],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",1],[0,"rock",3],
     [36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",2],[24,"scree",3],[24,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",1],
     [36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",1],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [72,"rock",1],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0]
@@ -108,12 +108,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"24_14:1","x":778,"z":460,"mobs":["enormous-baloth","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"24_14:2","x":787,"z":479,"mobs":["sengir-vampire","serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"24_14:1","x":783,"z":460,"mobs":["mahamoti-djinn","tarmogoyf","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"24_14:2","x":777,"z":476,"mobs":["fallen-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"24_14:c1","x":777,"z":476,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

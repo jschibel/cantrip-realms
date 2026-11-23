@@ -88,7 +88,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_25:1","x":304,"z":806,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"9_25:1","x":297,"z":805,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"9_25:2","x":319,"z":807,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
     {"id":"9_25:c1","x":290,"z":809,"gold":[50,150],"respawnSeconds":86400}

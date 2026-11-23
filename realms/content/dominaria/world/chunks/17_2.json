@@ -67,9 +67,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_2:1","x":567,"z":76,"mobs":["serra-angel","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_2:2","x":553,"z":88,"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"17_2:3","x":575,"z":94,"mobs":["sengir-vampire","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"17_2:1","x":565,"z":71,"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"17_2:2","x":575,"z":94,"mobs":["sengir-vampire","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"17_2:3","x":555,"z":95,"mobs":["serra-paragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

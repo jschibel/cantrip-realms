@@ -5,7 +5,7 @@
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",2],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],
-    [0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"planks",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],
+    [0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"planks",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],
     [0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",0],[0,"road",0],[0,"road",0],[0,"road",0],[0,"road",0],[0,"road",0],[0,"road",0],[0,"road",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"dirt",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],
     [0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],
     [0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],
@@ -55,11 +55,9 @@
     {"id":"verdura-ferry-ferryman-from","x":546,"z":1026,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"17_32:1","x":570,"z":1028,"mobs":["air-elemental","arrogant-wurm","frost-giant"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"17_32:1","x":570,"z":1028,"mobs":["abomination","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [
-    {"id":"17_32:c1","x":565,"z":1027,"gold":[180,380],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

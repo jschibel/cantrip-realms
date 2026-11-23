@@ -4,7 +4,7 @@
   "tiles": [
     [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
+    [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],
     [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"furrows",0],[12,"meadow",2],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
@@ -78,10 +78,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"12_23:1","x":414,"z":740,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"12_23:2","x":395,"z":754,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"12_23:1","x":408,"z":753,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"12_23:2","x":389,"z":756,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"12_23:c1","x":414,"z":738,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

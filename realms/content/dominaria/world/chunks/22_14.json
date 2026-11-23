@@ -32,7 +32,7 @@
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"grass",1],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[36,"scree",1],
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"scree",1],[24,"scree",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
-    [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
+    [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
     [12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0]
   ],
   "props": [
@@ -76,11 +76,13 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"22_14:1","x":712,"z":455,"mobs":["sibilant-spirit","tarmogoyf","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"22_14:2","x":730,"z":473,"mobs":["marhault-elsdragon","sengir-vampire","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"22_14:3","x":706,"z":479,"mobs":["serra-paragon","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"22_14:1","x":712,"z":455,"mobs":["marhault-elsdragon","sengir-vampire","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"22_14:2","x":726,"z":467,"mobs":["mahamoti-djinn","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"22_14:3","x":710,"z":476,"mobs":["serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"22_14:c1","x":726,"z":478,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

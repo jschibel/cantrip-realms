@@ -289,8 +289,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_18:1","x":627,"z":584,"mobs":["bog-wraith","merfolk-raiders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_18:2","x":616,"z":599,"mobs":["merfolk-raiders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"19_18:1","x":635,"z":596,"mobs":["azure-drake","cradle-guard","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"19_18:2","x":612,"z":602,"mobs":["azure-drake","benalish-knight"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

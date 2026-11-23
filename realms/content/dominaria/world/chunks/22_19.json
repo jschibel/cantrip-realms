@@ -29,7 +29,7 @@
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",1],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",2],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],
+    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",1],[12,"rock",0],[12,"rock",3],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",2],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],
@@ -94,9 +94,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"22_19:1","x":712,"z":626,"mobs":["sibilant-spirit","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"22_19:1","x":705,"z":623,"mobs":["marhault-elsdragon","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"22_19:2","x":723,"z":627,"mobs":["sengir-vampire","serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"22_19:c1","x":734,"z":635,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": [
     {"x":725,"z":639,"tier":4}

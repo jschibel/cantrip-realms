@@ -33,7 +33,7 @@
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
+    [12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
   ],
   "props": [
     {"id":"bush","x":325.625,"z":544.5,"seed":11,"scale":1},
@@ -80,11 +80,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"10_17:1","x":335,"z":546,"mobs":["azure-drake","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"10_17:2","x":350,"z":560,"mobs":["merfolk-raiders","sandbar-serpent","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"10_17:3","x":335,"z":569,"mobs":["moor-fiend","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"10_17:1","x":334,"z":553,"mobs":["lost-soul","merfolk-raiders","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"10_17:2","x":323,"z":568,"mobs":["azure-drake","benalish-knight","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"10_17:c1","x":320,"z":575,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

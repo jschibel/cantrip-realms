@@ -21,7 +21,7 @@
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",1],[0,"rock",3],[0,"rock",3],[0,"rock",3],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",1],[0,"rock",3],[0,"rock",3],[0,"rock",3],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[48,"rock",1],[48,"rock",1],[48,"rock",1],[36,"rock",1],[36,"rock",1],[24,"rock",1],[24,"rock",1],[12,"rock",1],[0,"rock",3],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[48,"rock",1],[48,"rock",1],[36,"rock",1],[24,"rock",1],[24,"rock",1],[12,"rock",1],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [12,"scree",0],[12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[48,"rock",1],[48,"rock",1],[36,"rock",1],[24,"rock",1],[24,"rock",1],[12,"rock",1],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [12,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"snow",1],[72,"snow",1],[72,"snow",1],[60,"snow",1],[48,"snow",1],[36,"rock",1],[36,"rock",1],[24,"rock",1],[12,"rock",1],[12,"rock",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"snow",1],[84,"snow",1],[84,"snow",1],[84,"snow",1],[72,"snow",1],[60,"snow",1],[48,"snow",1],[48,"snow",1],[36,"rock",1],[24,"rock",1],[12,"rock",1],[0,"rock",3],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[84,"rock",1],[84,"snow",1],[96,"snow",1],[96,"snow",1],[84,"snow",1],[84,"snow",1],[72,"snow",1],[60,"snow",1],[48,"snow",1],[36,"rock",1],[24,"rock",1],[24,"rock",1],[12,"rock",1],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],
@@ -33,7 +33,7 @@
     [12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[60,"rock",1],[12,"rock",3],[12,"rock",3],[12,"rock",3],[12,"rock",1],[0,"rock",0],[0,"forest-floor",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [12,"rock",0],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[12,"rock",3],[12,"rock",3],[12,"rock",1],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [12,"rock",0],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[12,"rock",3],[12,"rock",3],[12,"rock",1],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],
-    [12,"rock",0],[12,"rock",3],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[12,"rock",3],[12,"rock",1],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",3],[0,"sand",0]
+    [12,"rock",0],[12,"rock",3],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[60,"rock",1],[12,"rock",3],[12,"rock",1],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",3]
   ],
   "props": [
     {"id":"reeds","x":742.4375,"z":618.5,"seed":6},
@@ -62,13 +62,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"23_19:1","x":737,"z":619,"mobs":["serra-angel","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"23_19:1","x":740,"z":622,"mobs":["rorix-bladewing","serra-paragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"23_19:c1","x":740,"z":627,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": [
-    {"x":766,"z":639,"tier":4}
+    {"x":767,"z":639,"tier":4}
   ]
 }

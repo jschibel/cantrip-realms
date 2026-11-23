@@ -21,7 +21,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",3],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",2],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",3],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"dirt",0],[0,"dirt",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
@@ -67,10 +67,12 @@
     {"id":"stahaan-ferry-ferryman-from","x":209,"z":484,"kind":"ferryman","ferry":"stahaan-ferry","name":"The ferryman of the Stahaan Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [
-    {"id":"6_15:1","x":222,"z":493,"mobs":["cradle-guard","craw-wurm","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"6_15:2","x":208,"z":503,"mobs":["cradle-guard","moor-fiend","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"6_15:1","x":222,"z":493,"mobs":["craw-wurm","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"6_15:2","x":203,"z":501,"mobs":["azure-drake","craw-wurm"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"6_15:c1","x":213,"z":499,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

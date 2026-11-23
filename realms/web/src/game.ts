@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { type Appearance, type GearLook, figureSpec, lookFigure, playerFigure } from "./art/figures";
 import { meshesOf } from "./art/paint/builder";
+import { assembleFloor, generateDungeonFloor, gridOfFloor } from "./dungeon";
+import { besideEntrance } from "./world/realm";
 import { PROPS } from "./art/props";
 import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
@@ -62,6 +64,10 @@ export interface FloorPlan {
   readonly spot: Spot;
   readonly arrive: Tile;
   readonly encounters: readonly { readonly x: number; readonly z: number; readonly mob: string; readonly index: number; readonly role: string }[];
+  /** The floor's ways: back up (out of the run, on the first floor), down the stair, out after the boss. */
+  readonly up?: Tile | null;
+  readonly down?: Tile | null;
+  readonly wayOut?: Tile | null;
 }
 
 interface ActiveRun {
@@ -114,8 +120,8 @@ export class Overworld {
   readonly mobs: Mob[] = [];
   readonly visitors = new Map<number, Visitor>();
   run: ActiveRun | null = null;
-  /** Draws a dungeon run's floor (the dungeon generator on squares); null until there is one. */
-  floors: ((run: { readonly dungeon: DungeonData; readonly seed: number; readonly floor: number; readonly floors: number; readonly run: RunFloor }) => FloorPlan) | null = null;
+  /** Draws a dungeon run's floor: the dungeon generator on squares (`dungeon/`), unless a test gives its own. */
+  floors: (run: { readonly id: string; readonly dungeon: DungeonData; readonly seed: number; readonly floor: number; readonly floors: number; readonly run: RunFloor }) => FloorPlan = (r) => this.floorPlan(r);
   /** What is going on: walking ("world"), a dialog, a card screen, loading. */
   screen = "loading";
   hoverIntent: Intent = "none";
@@ -305,6 +311,10 @@ export class Overworld {
   private otherWay(door: StageDoor, from: Spot): Arrival | Promise<Arrival> | null {
     if (door.kind === "entrance") return this.enterRun(door.to.slice("dungeon:".length));
     if (door.kind === "down" && this.run) return this.descend();
+    if (from.id.startsWith("run:") && door.name === "way-out" && this.run && !this.bossBeaten(this.run)) {
+      this.say("The way out opens once the boss is beaten.");
+      throw new Error("boss");
+    }
     if (from.id.startsWith("run:") && door.to === "world") return this.leaveRun(true);
     return null;
   }
@@ -562,8 +572,8 @@ export class Overworld {
 
   private async enterRun(id: string): Promise<Arrival> {
     const dungeon = this.dungeons.get(id);
-    if (!dungeon || !this.floors) {
-      this.say(dungeon ? `The way into ${dungeon.name} is shut for now.` : "The way in is shut.");
+    if (!dungeon) {
+      this.say("The way in is shut.");
       throw new Error("no floors");
     }
     if (dungeon.requires && ![...dungeon.requires].every((c) => this.data.Identity.includes(c))) {
@@ -582,7 +592,7 @@ export class Overworld {
 
   private showFloor(run: ActiveRun): Arrival {
     for (const m of [...this.mobs]) if (m.run) this.removeMob(m);
-    const plan = this.floors!({ dungeon: run.dungeon, seed: run.seed, floor: run.floor, floors: run.floors.length, run: run.floors[run.floor]! });
+    const plan = this.floors({ id: run.id, dungeon: run.dungeon, seed: run.seed, floor: run.floor, floors: run.floors.length, run: run.floors[run.floor]! });
     run.plan = plan;
     for (const e of plan.encounters) {
       if (run.beaten.has(`${run.floor}:${e.index}`)) continue;
@@ -590,6 +600,11 @@ export class Overworld {
       this.addMob(e.mob, spawn, 0, plan.spot, { floor: run.floor, index: e.index, role: e.role });
     }
     return { spot: plan.spot, tile: plan.arrive, facing: [0, 1] };
+  }
+
+  private bossBeaten(run: ActiveRun): boolean {
+    const last = run.floors.length - 1;
+    return run.beaten.has(`${last}:${run.floors[last]!.Encounters.length + 1}`);
   }
 
   private async descend(): Promise<Arrival> {
@@ -609,9 +624,34 @@ export class Overworld {
     if (told) await this.api.leaveDungeon({ Run: run.id }).catch(() => {});
     this.run = null;
     for (const m of [...this.mobs]) if (m.run) this.removeMob(m);
-    const at = { x: run.dungeon.entrance[0], z: run.dungeon.entrance[1] + 1 };
+    // Out where the server puts one: the first open step from the entrance (realm.ts, besideEntrance).
+    const [x, z] = await besideEntrance(run.dungeon.entrance, this.source);
     this.say(`You leave ${run.dungeon.name}.`);
-    return this.toWorld(at);
+    return this.toWorld({ x, z });
+  }
+
+  /** A run's floor as the stage walks it: generated, assembled, its ways up, down and out as doors. */
+  private floorPlan(r: { readonly id: string; readonly dungeon: DungeonData; readonly seed: number; readonly floor: number; readonly floors: number; readonly run: RunFloor }): FloorPlan {
+    const f = generateDungeonFloor({ theme: r.dungeon.theme, seed: r.seed, floor: r.floor, floors: r.floors, run: r.run });
+    const built = assembleFloor(f);
+    const grid = gridOfFloor(f);
+    const id = `run:${r.id}`;
+    const tile = (t: readonly [number, number]): Tile => ({ x: t[0], z: t[1] });
+    const way = (t: readonly [number, number], name: string, kind: string, to: string, at?: THREE.Vector3): StageDoor => ({
+      name,
+      tile: tile(t),
+      step: [0, -1],
+      to,
+      at: at ?? new THREE.Vector3(t[0] + 0.5, grid.heightAt(t[0], t[1]) + 0.6, t[1] + 0.2),
+      kind,
+    });
+    const doors: StageDoor[] = [way(f.up, "way-up", "leave", "world", new THREE.Vector3(...built.doorway))];
+    if (f.down) doors.push(way(f.down, "stairs-down", "down", "down"));
+    if (f.wayOut) doors.push(way(f.wayOut, "way-out", "leave", "world"));
+    this.roomNpcs.set(id, f.npcs);
+    const title = r.floors > 1 ? `${r.dungeon.name}, floor ${r.floor + 1}` : r.dungeon.name;
+    const spot: Spot = { id, title, inside: true, turns: true, place: built.place, grid, doors, actors: [], start: tile(f.arrive), bounds: built.bounds };
+    return { spot, arrive: tile(f.arrive), encounters: f.spots, up: tile(f.up), down: f.down ? tile(f.down) : null, wayOut: f.wayOut ? tile(f.wayOut) : null };
   }
 
   /** The world at a tile, its chunks there read and built first (the iris is shut meanwhile). */
@@ -813,7 +853,7 @@ export class Overworld {
     const lane = at(ferry.from) <= at(ferry.to) ? ferry.lane : [...ferry.lane].reverse();
     const far = lane.at(-1)!;
     const choice = await this.dialog(npc.name ?? "The ferryman", [`${ferry.name} crosses to ${this.townNear(far)}. Step aboard?`], [
-      { caption: "Cross", value: "cross" as string | null, primary: true },
+      { caption: "Board", value: "cross" as string | null, primary: true },
       { caption: "Stay", value: null },
     ]);
     if (choice !== "cross") return;
@@ -832,6 +872,23 @@ export class Overworld {
     this.player.walkPath(lane.slice(1).map(([x, z]) => ({ x, z })));
     this.say(`You board ${ferry.name}.`);
     this.stepRide();
+  }
+
+  /** The traders standing at their pitches, for tests. */
+  get traderActors(): { readonly actor: Actor; readonly npc: NpcData }[] {
+    return [...this.traders.values()];
+  }
+
+  /** The NPCs of the room the player is in (none in the world, whose are its chunks'). */
+  get roomNpcsHere(): readonly NpcData[] {
+    return this.inWorld ? [] : (this.roomNpcs.get(this.spot.id) ?? []);
+  }
+
+  /** A run under way, for tests: its id, floor and the floor's ways. */
+  get runState(): { readonly id: string; readonly floor: number; readonly floors: number; readonly up: Tile | null; readonly down: Tile | null; readonly wayOut: Tile | null } | null {
+    const r = this.run;
+    if (!r?.plan) return null;
+    return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null };
   }
 
   /** Whether the player is crossing on a ferry now. */
@@ -921,7 +978,10 @@ export class Overworld {
     const log = Array.isArray(closed.result?.log) ? (closed.result.log as string[]) : [];
     const result = await this.api.finishEncounter({ Token: start.Token, Log: log });
     if (result.Outcome === "won") {
-      if (run && mob.run) run.beaten.add(`${mob.run.floor}:${mob.run.index}`);
+      if (run && mob.run) {
+        run.beaten.add(`${mob.run.floor}:${mob.run.index}`);
+        if (mob.run.role === "boss" && run.dungeon.waystone) this.say(`The waystone of ${run.dungeon.name} is attuned to you.`);
+      }
       else this.beaten.add(`${mob.spawn.id}|${mob.epoch}`);
       this.removeMob(mob);
       this.say(`You defeated the ${mob.info.name}: ${gold(result.Gold)} gold.`);

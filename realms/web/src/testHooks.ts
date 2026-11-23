@@ -6,6 +6,7 @@ import { MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
 import { yieldFrame } from "./render/bench";
 import { NAME_OF } from "./render/camera";
+import { CHUNK, OBJECT_KINDS, areaAt, chunkKey } from "./world/format";
 import type { WalkInput } from "./render/pointer";
 
 // Playwright's view of the page (?test): where everything is, by name, with its position on the page in CSS pixels,
@@ -96,13 +97,28 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const at = (p: THREE.Vector3, lift: number) => o.stage.toScreen(p.clone().add(new THREE.Vector3(0, lift, 0)));
       const floor = (x: number, z: number) => o.spot.floorAt?.(x + 0.5, z + 0.5) ?? 0;
       const p = o.player;
+      // The chunks round the player (the world), or the room's own lists.
+      const near = o.inWorld
+        ? [...o.world.streamer.builtKeys].map((k) => o.world.streamer.data.get(k)).filter((c) => c && Math.abs(c.cx * CHUNK + 16 - p.tile.x) < 48 && Math.abs(c.cz * CHUNK + 16 - p.tile.z) < 48)
+        : [];
+      const things = o.inWorld ? near.flatMap((c) => c!.npcs) : o.roomNpcsHere;
+      const npcs = new Map(things.map((n) => [n.name ?? n.id, n]));
+      const markers = near.flatMap((c) => c!.waymarkers);
+      const chests = near.flatMap((c) => c!.chests);
       return [
         { name: o.data.Name, kind: "player", id: "player", tile: p.tile, moving: p.moving, ...at(p.position, 0.6) },
         ...o.mobs
           .filter((m) => m.actor.figure.root.parent === o.spot.place.scene)
           .map((m) => ({ name: m.info.name, kind: "mob", id: m.info.id, spawn: m.spawn.id, tier: m.spawn.tier, role: m.run?.role ?? null, tile: m.actor.tile, moving: m.actor.moving, ...at(m.actor.position, 0.6) })),
         ...[...o.visitors.values()].map((v) => ({ name: v.name, kind: "other", id: v.player, tile: v.actor.tile, moving: v.actor.moving, ...at(v.actor.position, 0.6) })),
-        ...o.spot.actors.map((a) => ({ name: a.name, kind: "npc", id: a.name, tile: a.tile, moving: a.moving, ...at(a.position, 0.6) })),
+        ...o.spot.actors.map((a) => {
+          const n = npcs.get(a.name);
+          return { name: a.name, kind: n?.kind ?? "npc", id: n?.vendor ?? n?.id ?? a.name, tile: a.tile, moving: a.moving, ...at(a.position, 0.6) };
+        }),
+        ...o.traderActors.map(({ actor, npc }) => ({ name: npc.name ?? npc.id, kind: npc.kind, id: npc.vendor ?? npc.id, tile: actor.tile, moving: actor.moving, ...at(actor.position, 0.6) })),
+        ...things.filter((n) => OBJECT_KINDS.has(n.kind)).map((n) => ({ name: n.name ?? n.kind, kind: n.kind, id: n.tower ?? n.id, tile: { x: n.x, z: n.z }, ...at(centre({ x: n.x, z: n.z }, floor(n.x, n.z)), 0.5) })),
+        ...markers.map((w) => ({ name: `Tier ${w.tier}`, kind: "waymarker", id: `${w.x},${w.z}`, tier: w.tier, tile: { x: w.x, z: w.z }, ...at(centre({ x: w.x, z: w.z }, floor(w.x, w.z)), 0.8) })),
+        ...chests.map((c) => ({ name: "A chest", kind: "chest", id: c.id, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.3) })),
         ...o.spot.doors.map((d) => ({ name: d.name, kind: d.kind ?? "door", id: d.to, to: d.to, tile: d.tile, ...at(centre(d.tile, floor(d.tile.x, d.tile.z)), 0) })),
       ];
     },
@@ -115,6 +131,46 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     get api() {
       const o = game();
       return o?.api instanceof MockApi ? o.api.calls.map((c) => ({ ...c })) : [];
+    },
+    /** The regional map as drawn: each tier's zone's pixels, the markers on it, whether the whole map is open. */
+    get map() {
+      const o = live();
+      if (!o) return null;
+      const hud = o.hud;
+      return { drawn: hud.hasWorldMap ? hud.zones().drawn : [], markers: hud.mapState.markers.map((m) => ({ id: m.id, kind: m.kind, tier: m.tier, lit: m.lit ?? null })), centre: hud.mapState.centre, open: hud.mapOpen };
+    },
+    /** The tier the map draws at a world tile, and the world's data's. */
+    zoneAt(x: number, z: number) {
+      const o = live();
+      if (!o) return null;
+      return { drawn: o.hud.zones().tierAt(x, z), data: areaAt(o.worldData, x, z)?.tier ?? 0 };
+    },
+    /** The open tiles of the place, as "x,z", within `reach` of the player. */
+    openTiles(reach = 40) {
+      const o = live();
+      if (!o) return [];
+      const me = o.player.tile;
+      const out: string[] = [];
+      for (let z = me.z - reach; z <= me.z + reach; z++) for (let x = me.x - reach; x <= me.x + reach; x++) if (o.spot.grid.walkable(x, z)) out.push(`${x},${z}`);
+      return out;
+    },
+    /** The path the place's grid finds from the player to a tile (tiles, eight ways), or null. */
+    pathTo(x: number, z: number) {
+      const o = live();
+      if (!o) return null;
+      return o.spot.grid.path(o.player.tile, { x, z }) ?? null;
+    },
+    /** A dungeon run under way: its floor, and the floor's ways (`up`, `down`, `wayOut`) as tiles. */
+    get run() {
+      return live()?.runState ?? null;
+    },
+    /** Whether the player is crossing on a ferry. */
+    get ferrying() {
+      return live()?.ferrying ?? false;
+    },
+    /** The chunk a world tile is in, as its key. */
+    chunkOf(x: number, z: number) {
+      return chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK));
     },
     /** Where a tile of the current place is on the page. */
     screenOfTile(x: number, z: number) {

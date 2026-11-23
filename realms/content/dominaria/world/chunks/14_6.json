@@ -60,8 +60,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_6:1","x":475,"z":195,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"14_6:2","x":472,"z":214,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"14_6:1","x":475,"z":192,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"14_6:2","x":471,"z":213,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

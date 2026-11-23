@@ -371,8 +371,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_15:1","x":627,"z":488,"mobs":["craw-wurm","elven-riders","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_15:2","x":621,"z":508,"mobs":["merfolk-raiders","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"19_15:1","x":627,"z":488,"mobs":["cradle-guard","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"19_15:2","x":621,"z":504,"mobs":["azure-drake","orcish-artillery","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

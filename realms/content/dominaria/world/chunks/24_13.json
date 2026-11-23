@@ -71,7 +71,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"24_13:1","x":778,"z":422,"mobs":["rorix-bladewing","tarmogoyf","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"24_13:1","x":778,"z":422,"mobs":["mahamoti-djinn","marhault-elsdragon","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

@@ -24,6 +24,7 @@ import { type BuildingKind, S } from "./ids";
 import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
 import type { Form, TownLayout } from "./layout";
 import { REGION_OF_STYLE } from "./rooms";
+import { tilesOf } from "../../src/art/props";
 
 export interface InteriorSpec {
   readonly id: string;
@@ -590,7 +591,12 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     const ez = Math.round(pz + uz * 6);
     if (!harbour || !land.isSea(I(ex, ez))) gates.set(`gate-${gates.size + 1}`, I(ex, ez));
     gateMouths.push({ x: px, z: pz, ux, uz, inner: [Math.round(px - ux * 5), Math.round(pz - uz * 5)] });
-    if (walled && F.enclosure !== "hedge") land.fixtures.push({ id: "gatehouse", x: px + 0.5, z: pz + 0.5, rot: rotOf(ux, uz), args: { width: gateWidth, style, kind: F.enclosure, size: plan.kind } });
+    if (walled && F.enclosure !== "hedge") {
+      const gatehouse: PropData = { id: "gatehouse", x: px + 0.5, z: pz + 0.5, rot: rotOf(ux, uz), args: { width: gateWidth, style, kind: F.enclosure, size: plan.kind } };
+      land.fixtures.push(gatehouse);
+      // Its towers stand on their tiles (the passage between them stays the street it was cleared to).
+      for (const [x, z] of tilesOf(gatehouse).tiles) if (land.inside(x, z)) land.block(I(x, z));
+    }
     return true;
   };
   for (const w of wanted) {

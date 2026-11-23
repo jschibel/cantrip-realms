@@ -7,7 +7,7 @@
     [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",1],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],
+    [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"meadow",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",0],[0,"cobbles",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
@@ -92,10 +92,10 @@
     {"id":"capashen-hold-b31","style":"benalish","kind":"house","x":391,"z":888,"w":5,"d":5,"rot":3,"params":{"ground":2.375,"upper":1.6875,"roof":"tile","rise":1.8125,"chimney":3.375,"wall":"limestone","openings":[{"at":2.5,"kind":"door"},{"at":2.5,"kind":"windowUp"}]}}
   ],
   "npcs": [],
-  "spawns": [],
-  "chests": [
-    {"id":"12_27:c1","x":414,"z":869,"gold":[50,150],"respawnSeconds":86400}
+  "spawns": [
+    {"id":"12_27:1","x":414,"z":869,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

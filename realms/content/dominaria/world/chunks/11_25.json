@@ -68,7 +68,7 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"11_25:1","x":360,"z":809,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"11_25:1","x":378,"z":810,"mobs":["benalish-hero","davenant-archer"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

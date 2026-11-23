@@ -112,7 +112,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_13:1","x":438,"z":430,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"13_13:1","x":424,"z":416,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"13_13:2","x":437,"z":427,"mobs":["bog-imp","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"13_13:3","x":419,"z":439,"mobs":["bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

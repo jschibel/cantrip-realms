@@ -2,7 +2,7 @@
   "cx": 17,
   "cz": 15,
   "tiles": [
-    [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],
+    [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],
     [12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",2],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],
@@ -228,9 +228,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_15:1","x":564,"z":485,"mobs":["air-elemental","frost-giant","marton-stromgald"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"17_15:1","x":556,"z":486,"mobs":["eater-of-the-dead","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"17_15:2","x":544,"z":501,"mobs":["air-elemental","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"17_15:c1","x":571,"z":480,"gold":[180,380],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

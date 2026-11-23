@@ -8,7 +8,7 @@
     [24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[27,"scree",4],[24,"scree",0],[24,"scree",0],[36,"scree",1],[36,"scree",1],[36,"scree",3],
+    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[27,"scree",4],[24,"scree",0],[24,"scree",0],[36,"scree",1],[36,"scree",1],[36,"scree",3],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[36,"scree",1],[33,"scree",4],[36,"scree",1],[36,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[36,"scree",1],[36,"scree",1],[36,"scree",1],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",3],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[36,"scree",1],[36,"scree",1],[36,"scree",1],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[48,"scree",1],[48,"scree",1],[48,"scree",1],[48,"scree",3],
@@ -83,10 +83,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_18:1","x":559,"z":577,"mobs":["cradle-guard","keldon-warlord","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"17_18:1","x":575,"z":580,"mobs":["benalish-knight","cradle-guard"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_18:2","x":558,"z":584,"mobs":["elven-riders","orcish-artillery","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"17_18:3","x":556,"z":603,"mobs":["elven-riders","longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [
-    {"id":"17_18:c1","x":551,"z":582,"gold":[100,250],"respawnSeconds":86400}
+    {"id":"17_18:c1","x":563,"z":582,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

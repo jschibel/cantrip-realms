@@ -142,8 +142,8 @@
     {"id":"benalish-watchtower-spell-table","x":634,"z":785,"kind":"spell-table","name":"Spell table","stand":[634.5,0.625,785.5]}
   ],
   "spawns": [
-    {"id":"19_24:1","x":633,"z":770,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"19_24:2","x":616,"z":787,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"19_24:1","x":608,"z":777,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"19_24:2","x":623,"z":794,"mobs":["durkwood-boars","elvish-warrior"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [

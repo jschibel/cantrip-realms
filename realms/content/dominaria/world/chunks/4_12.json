@@ -29,7 +29,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",2],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",1],[24,"rock",1],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",3],[24,"rock",1],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",1],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[24,"rock",3],[24,"rock",1],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[21,"rock",4],[24,"rock",1],[24,"rock",1],[24,"rock",1],[24,"rock",1],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",3],[24,"rock",1],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[21,"rock",4],[24,"rock",1],[24,"rock",1],[24,"rock",1],[24,"rock",1],
     [0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",1],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[24,"rock",1],[12,"rock",0],[15,"rock",4],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",3],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",1],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",2],[0,"rock",0],[0,"rock",0],[0,"rock",0],[12,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[24,"rock",1],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",1],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
@@ -58,11 +58,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"4_12:1","x":156,"z":408,"mobs":["fallen-angel","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"4_12:1","x":144,"z":406,"mobs":["fallen-angel","karplusan-yeti"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"4_12:c1","x":144,"z":411,"gold":[300,500],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

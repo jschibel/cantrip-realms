@@ -139,7 +139,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"14_14:1","x":476,"z":476,"mobs":["elven-riders","merfolk-raiders","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"14_14:1","x":475,"z":473,"mobs":["azure-drake","cradle-guard","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

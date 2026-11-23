@@ -482,7 +482,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"23_21:1","x":750,"z":690,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"23_21:1","x":751,"z":690,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

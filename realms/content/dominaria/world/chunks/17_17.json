@@ -205,8 +205,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"17_17:1","x":545,"z":546,"mobs":["benalish-knight","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"17_17:2","x":560,"z":557,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"17_17:1","x":555,"z":562,"mobs":["azure-drake","lost-soul","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

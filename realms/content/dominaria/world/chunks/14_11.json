@@ -5,7 +5,7 @@
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
-    [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
+    [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",1],[12,"tundra",0],[12,"tundra",1],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
@@ -108,10 +108,11 @@
     {"id":"caligo-3-waystone","x":456,"z":368,"kind":"waystone","name":"The waystone of the Caligo Tower of the Third Circle","stand":[456.5,0.125,368.5],"tower":"caligo-3"}
   ],
   "spawns": [
-    {"id":"14_11:1","x":469,"z":357,"mobs":["bog-wraith","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"14_11:2","x":465,"z":377,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"14_11:1","x":464,"z":363,"mobs":["bog-wraith","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"14_11:c1","x":463,"z":355,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [
     {"x":454,"z":368,"dungeon":"caligo-3"}
   ],

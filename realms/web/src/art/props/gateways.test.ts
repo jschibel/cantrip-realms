@@ -14,7 +14,7 @@ describe("ways through props", () => {
         expect(blocks).toBe(true);
         const h = (width - 1) / 2;
         const across = rot % 2 === 0;
-        const at = (a: number, d: number) => (across ? [10 + a, 20 + d] : [10 + d, 20 + a]) as const;
+        const at = (a: number, d: number): [number, number] => (across ? [10 + a, 20 + d] : [10 + d, 20 + a]);
         // The gap, and a row in front of and behind it: open.
         for (let a = -h; a <= h; a++) for (const d of [-1, 0, 1]) expect(has(tiles, ...at(a, d)), `w${width} r${rot} gap ${a},${d}`).toBe(false);
         // Each tower: two tiles across, two units deep about the anchor's row (so over three rows), blocked.

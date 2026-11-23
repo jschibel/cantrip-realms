@@ -2,9 +2,9 @@
   "cx": 19,
   "cz": 31,
   "tiles": [
-    [12,"forest-floor",3],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"forest-floor",0],
+    [12,"forest-floor",3],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"forest-floor",0],
     [12,"forest-floor",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"grass",0],
-    [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",2],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],
+    [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",2],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",3],
     [12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],
     [12,"moss",0],[12,"moss",1],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",3],[12,"moss",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"moss",3],[0,"moss",3],[12,"moss",1],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],
@@ -185,15 +185,13 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_31:1","x":624,"z":999,"mobs":["birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"19_31:2","x":612,"z":1013,"mobs":["arrogant-wurm","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"19_31:3","x":637,"z":1018,"mobs":["birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"19_31:1","x":624,"z":999,"mobs":["arrogant-wurm","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"19_31:2","x":638,"z":1010,"mobs":["arrogant-wurm","birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"19_31:3","x":623,"z":1022,"mobs":["arrogant-wurm","birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [
-    {"id":"19_31:c1","x":621,"z":992,"gold":[180,380],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": [
-    {"x":634,"z":992,"tier":3}
+    {"x":639,"z":994,"tier":3}
   ]
 }

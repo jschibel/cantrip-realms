@@ -9,7 +9,7 @@
     [120,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[36,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",3],[24,"grass",0],[24,"grass",1],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [120,"snow",1],[120,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",3],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",1],[12,"grass",0],[12,"grass",0],
     [132,"snow",1],[120,"snow",1],[108,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",3],[24,"grass",1],[12,"grass",3],
-    [144,"snow",1],[132,"snow",1],[120,"snow",1],[108,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],
+    [144,"snow",1],[132,"snow",1],[120,"snow",1],[108,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],
     [156,"snow",1],[144,"snow",1],[132,"snow",1],[120,"snow",1],[108,"rock",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],
     [156,"snow",1],[156,"snow",1],[144,"snow",1],[132,"snow",1],[120,"snow",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[84,"rock",1],[72,"rock",1],[36,"scree",0],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",2],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],
     [156,"snow",1],[156,"snow",1],[156,"snow",1],[144,"snow",1],[132,"snow",1],[120,"snow",1],[108,"rock",1],[96,"rock",1],[84,"rock",1],[72,"rock",1],[60,"rock",1],[36,"scree",3],[36,"scree",1],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",3],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],[24,"grass",0],
@@ -76,8 +76,12 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
-  "chests": [],
+  "spawns": [
+    {"id":"24_15:1","x":795,"z":480,"mobs":["mahamoti-djinn","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
+  ],
+  "chests": [
+    {"id":"24_15:c1","x":788,"z":487,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

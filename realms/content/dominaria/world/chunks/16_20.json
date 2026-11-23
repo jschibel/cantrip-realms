@@ -3,7 +3,7 @@
   "cz": 20,
   "tiles": [
     [24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",3],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
-    [24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[36,"rock",1],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
+    [24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[36,"rock",1],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",3],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
     [24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[36,"rock",1],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
     [24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",3],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
     [24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[36,"rock",1],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",3],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",3],[36,"rock",0],[36,"rock",0],[36,"rock",0],[36,"rock",0],
@@ -93,9 +93,12 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"16_20:1","x":539,"z":648,"mobs":["elven-riders","lost-soul","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"16_20:1","x":539,"z":648,"mobs":["keldon-warlord","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"16_20:2","x":515,"z":649,"mobs":["elven-riders","keldon-warlord","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"16_20:c1","x":533,"z":641,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

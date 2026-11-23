@@ -16,7 +16,7 @@
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
-    [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
+    [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [12,"rock",3],[12,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [12,"rock",3],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],[12,"rock",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
@@ -88,10 +88,12 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"5_13:1","x":189,"z":422,"mobs":["karplusan-yeti","marhault-elsdragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"5_13:2","x":174,"z":437,"mobs":["mahamoti-djinn","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"5_13:1","x":189,"z":422,"mobs":["serra-paragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"5_13:2","x":165,"z":438,"mobs":["karplusan-yeti","mahamoti-djinn","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"5_13:c1","x":184,"z":430,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

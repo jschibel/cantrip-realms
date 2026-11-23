@@ -60,9 +60,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"6_16:1","x":210,"z":521,"mobs":["azure-drake","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"6_16:2","x":200,"z":536,"mobs":["keldon-warlord","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"6_16:3","x":223,"z":542,"mobs":["merfolk-raiders","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"6_16:1","x":207,"z":527,"mobs":["lost-soul","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"6_16:2","x":223,"z":542,"mobs":["lost-soul","orcish-artillery","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

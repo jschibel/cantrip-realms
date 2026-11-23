@@ -11,7 +11,7 @@
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
     [12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
-    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
+    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],[12,"wheat",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
@@ -81,11 +81,9 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"8_15:1","x":277,"z":481,"mobs":["azure-drake","craw-wurm","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"8_15:1","x":274,"z":484,"mobs":["bog-wraith","cradle-guard","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"8_15:c1","x":274,"z":489,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

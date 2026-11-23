@@ -76,7 +76,7 @@
     {"id":"stahaan-caves-spell-table","x":157,"z":417,"kind":"spell-table","name":"Spell table","stand":[157.5,1.0625,417.5]}
   ],
   "spawns": [
-    {"id":"4_13:1","x":144,"z":422,"mobs":["shivan-dragon","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"4_13:1","x":137,"z":422,"mobs":["sengir-vampire","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [

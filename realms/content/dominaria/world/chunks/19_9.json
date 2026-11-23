@@ -52,7 +52,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_9:1","x":619,"z":312,"mobs":["enormous-baloth","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"19_9:1","x":617,"z":312,"mobs":["mahamoti-djinn","tarmogoyf","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

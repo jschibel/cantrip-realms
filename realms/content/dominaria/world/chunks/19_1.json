@@ -80,7 +80,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_1:1","x":624,"z":48,"mobs":["sengir-vampire","serra-angel","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"19_1:1","x":624,"z":48,"mobs":["sengir-vampire","serra-angel","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"19_1:2","x":637,"z":62,"mobs":["sengir-vampire","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

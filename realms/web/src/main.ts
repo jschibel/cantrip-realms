@@ -14,7 +14,7 @@ import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
 import { publishTestHooks } from "./testHooks";
 import { type WorldSource, globSource, loadWorld } from "./world/load";
-import { DOMINARIA, DUNGEONS } from "./world/realm";
+import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 
 // The overworld page (tech.md, B5-B6), drawn by the renderer's stage (render/stage.ts) over a version-2 world. Its
 // query says where everything comes from:
@@ -26,7 +26,7 @@ import { DOMINARIA, DUNGEONS } from "./world/realm";
 //                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
 //   ?test           publishes globalThis.realmTest; ?manual holds the clock until a test advances it.
 // and, for development and tests, forces a state rather than waiting on chance:
-//   ?at=world:x,z | <town> | <interior>  start there (a town at its middle); ?heading=left|front|right, ?zoom=0..2;
+//   ?at=world:x,z | <town> | <dungeon> | <interior>  start there (a town at its middle, a dungeon outside its entrance); ?heading=left|front|right, ?zoom=0..2;
 //   ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home, ?mobs=0 leaves them out;
 //   ?name=&color=&body=&palette= makes the offline character without the screen; ?attuned=<tower>,... starts the
 //   offline character with those mage towers' waystones attuned.
@@ -98,7 +98,7 @@ async function boot(): Promise<void> {
     world,
     source === DOMINARIA ? DUNGEONS : new Map(),
   );
-  const start = parseAt(query.get("at"), world.towns);
+  const start = await parseAt(query.get("at"), world.towns, source);
   // The start is the game's to make; input binds to its stage once it stands.
   const started = game.start(character, start);
   await started;
@@ -111,8 +111,8 @@ function socketUrl(server: string): string {
   return url.toString();
 }
 
-/** `world:x,z`, a town (its middle), or a room's id (`<interior>`, `<interior>:x,z`). */
-function parseAt(at: string | null, towns: readonly { readonly id: string; readonly center: readonly [number, number] }[]): Start | undefined {
+/** `world:x,z`, a town (its middle), a dungeon (outside its entrance), or a room's id (`<interior>`, `<interior>:x,z`). */
+async function parseAt(at: string | null, towns: readonly { readonly id: string; readonly center: readonly [number, number] }[], source: WorldSource): Promise<Start | undefined> {
   if (!at) return undefined;
   const [space, where] = at.split(":");
   if (!space) return undefined;
@@ -121,5 +121,10 @@ function parseAt(at: string | null, towns: readonly { readonly id: string; reado
   if (space === "world") return { space: "world", tile };
   const town = towns.find((t) => t.id === space);
   if (town) return { space: "world", tile: { x: town.center[0], z: town.center[1] } };
+  const dungeon = source === DOMINARIA ? DUNGEONS.get(space) : undefined;
+  if (dungeon) {
+    const [dx, dz] = await besideEntrance(dungeon.entrance);
+    return { space: "world", tile: { x: dx, z: dz } };
+  }
   return { space, tile };
 }

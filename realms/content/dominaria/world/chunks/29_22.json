@@ -345,7 +345,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"29_22:1","x":942,"z":722,"mobs":["eater-of-the-dead","elvish-archers","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"29_22:1","x":950,"z":705,"mobs":["mahamoti-djinn","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"29_22:2","x":942,"z":722,"mobs":["arrogant-wurm","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

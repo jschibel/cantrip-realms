@@ -213,8 +213,8 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"14_35:1","x":454,"z":1143,"mobs":["rorix-bladewing","tempest-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"14_35:2","x":471,"z":1145,"mobs":["enormous-baloth","sengir-vampire","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"14_35:1","x":454,"z":1143,"mobs":["marhault-elsdragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"14_35:2","x":471,"z":1145,"mobs":["fallen-angel","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

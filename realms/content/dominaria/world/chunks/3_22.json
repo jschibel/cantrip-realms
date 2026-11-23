@@ -70,7 +70,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"3_22:1","x":107,"z":728,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"3_22:1","x":103,"z":724,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

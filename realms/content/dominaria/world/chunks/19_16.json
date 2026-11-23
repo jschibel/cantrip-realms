@@ -203,9 +203,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_16:1","x":635,"z":520,"mobs":["benalish-knight","cradle-guard","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_16:2","x":611,"z":526,"mobs":["benalish-knight","cradle-guard","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_16:3","x":631,"z":543,"mobs":["merfolk-raiders","pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"19_16:1","x":632,"z":518,"mobs":["azure-drake","bog-wraith","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"19_16:2","x":611,"z":526,"mobs":["orcish-artillery","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"19_16:3","x":631,"z":543,"mobs":["azure-drake","keldon-warlord","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],
