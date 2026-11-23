@@ -1,0 +1,27 @@
+{
+  "id": "brawlers-gloves",
+  "name": "Brawler's Gloves",
+  "slot": "hands",
+  "rarity": "common",
+  "gold": 400,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "first-creature-counters",
+      "count": 1
+    }
+  ],
+  "text": "The first creature you cast each game enters with an additional +1/+1 counter on it.",
+  "look": {
+    "mesh": "gloves",
+    "palette": [
+      "#6b3f22",
+      "#a8432f"
+    ]
+  },
+  "unique": false
+}

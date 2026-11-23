@@ -1,0 +1,12 @@
+{
+  "id": "argive-curio-dealer",
+  "name": "The Curio Dealer",
+  "town": "new-argive",
+  "specialty": {
+    "rarities": [
+      "rare",
+      "mythic"
+    ]
+  },
+  "purse": 50000
+}

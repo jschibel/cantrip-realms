@@ -1,0 +1,15 @@
+# The white starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
+
+2 Benalish Hero
+2 Angelic Wall
+2 Longbow Archer
+2 Shimmering Barrier
+2 Benalish Knight
+2 Standing Troops
+2 Wall of Swords
+2 Abbey Gargoyles
+2 Destroy Evil
+2 Mana Tithe
+2 Healing Salve
+1 Path to Exile
+17 Plains

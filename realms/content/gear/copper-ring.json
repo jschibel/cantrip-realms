@@ -1,0 +1,22 @@
+{
+  "id": "copper-ring",
+  "name": "Copper Ring",
+  "slot": "ring",
+  "rarity": "common",
+  "gold": 300,
+  "stats": {
+    "life": 1,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You start the game with 1 additional life.",
+  "look": {
+    "mesh": "ring",
+    "palette": [
+      "#b8733a",
+      "#b8733a"
+    ]
+  },
+  "unique": false
+}

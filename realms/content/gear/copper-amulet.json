@@ -1,0 +1,22 @@
+{
+  "id": "copper-amulet",
+  "name": "Copper Amulet",
+  "slot": "neck",
+  "rarity": "common",
+  "gold": 300,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by one.",
+  "look": {
+    "mesh": "amulet",
+    "palette": [
+      "#b8733a",
+      "#3f8f6b"
+    ]
+  },
+  "unique": false
+}

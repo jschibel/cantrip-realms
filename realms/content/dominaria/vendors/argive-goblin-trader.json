@@ -1,0 +1,11 @@
+{
+  "id": "argive-goblin-trader",
+  "name": "Grizzlegom's Goblins",
+  "town": "new-argive",
+  "specialty": {
+    "subtypes": [
+      "Goblin"
+    ]
+  },
+  "purse": 50000
+}

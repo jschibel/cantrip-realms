@@ -1,0 +1,22 @@
+{
+  "id": "leather-cap",
+  "name": "Leather Cap",
+  "slot": "head",
+  "rarity": "common",
+  "gold": 300,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by one.",
+  "look": {
+    "mesh": "cap",
+    "palette": [
+      "#7a5230",
+      "#c9a46a"
+    ]
+  },
+  "unique": false
+}

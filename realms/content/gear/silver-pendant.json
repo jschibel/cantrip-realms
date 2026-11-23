@@ -1,0 +1,22 @@
+{
+  "id": "silver-pendant",
+  "name": "Silver Pendant",
+  "slot": "neck",
+  "rarity": "uncommon",
+  "gold": 1000,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 2
+  },
+  "effects": [],
+  "text": "Your maximum hand size is increased by two.",
+  "look": {
+    "mesh": "pendant",
+    "palette": [
+      "#c9ced8",
+      "#2f5fa8"
+    ]
+  },
+  "unique": false
+}

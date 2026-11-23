@@ -1,0 +1,28 @@
+{
+  "id": "circlet-of-foresight",
+  "name": "Circlet of Foresight",
+  "slot": "head",
+  "rarity": "uncommon",
+  "gold": 1200,
+  "stats": {
+    "life": 0,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [
+    {
+      "family": "draw-on-turn",
+      "turn": 3,
+      "count": 1
+    }
+  ],
+  "text": "Your maximum hand size is increased by one.\nAt the beginning of your draw step on your third turn, draw a card.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#f1b44c",
+      "#5b8fd6"
+    ]
+  },
+  "unique": false
+}

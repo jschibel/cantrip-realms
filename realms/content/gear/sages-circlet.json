@@ -1,0 +1,22 @@
+{
+  "id": "sages-circlet",
+  "name": "Sage's Circlet",
+  "slot": "head",
+  "rarity": "rare",
+  "gold": 4000,
+  "stats": {
+    "life": 0,
+    "hand": 1,
+    "maxHand": 0
+  },
+  "effects": [],
+  "text": "You draw an additional card for your opening hand.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#d8dce4",
+      "#6a4bc4"
+    ]
+  },
+  "unique": false
+}
