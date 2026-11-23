@@ -64,7 +64,8 @@ export function makeZones(grid: Grid, layout: Layout, starts: Iterable<number>, 
       let tier = tierOfDistance(effective);
       // The edges of the world, near the open sea far from any start, are the hardest.
       if (sea[c]! < 12 && fromStart[c]! > 110) tier = 4;
-      line.push(area(regions.indexOf(Math.max(...regions)), tier));
+      const k = regions.indexOf(Math.max(...regions));
+      line.push(area(k, Math.max(tier, layout.regions[k]!.minTier ?? 1)));
     }
     grid2.push(line);
   }

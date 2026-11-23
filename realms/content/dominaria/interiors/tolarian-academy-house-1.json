@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":421,"r":132},
+  "exit": {"q":157,"r":596},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"stone",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"tolarian","h":2.6}
   ],
   "npcs": [
-    {"id":"tolarian-academy-house-1-resident","kind":"townsfolk","name":"Lecturer","text":["Mind the time rifts. A student walked into one and came out last Tuesday."],"q":-1,"r":1}
+    {"id":"tolarian-academy-house-1-resident","kind":"townsfolk","name":"Lecturer","text":["We rebuilt the Academy on Walassa. The old one is best not spoken of."],"q":-1,"r":1}
   ]
 }

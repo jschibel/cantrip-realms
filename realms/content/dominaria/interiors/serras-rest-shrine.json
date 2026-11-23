@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "serras-rest",
   "style": "benalish",
-  "exit": {"q":224,"r":181},
+  "exit": {"q":480,"r":338},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

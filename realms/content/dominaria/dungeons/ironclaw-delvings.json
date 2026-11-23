@@ -1,0 +1,26 @@
+{
+  "id": "ironclaw-delvings",
+  "name": "The Orc Delvings of Ironclaw",
+  "theme": "foundry",
+  "entrance": [
+    357,
+    135
+  ],
+  "floors": [
+    2,
+    3
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "kiki-jiki-mirror-breaker",
+    "trained-orgg",
+    "volcanic-dragon"
+  ],
+  "warden": "warden-4",
+  "boss": "kiki-jiki-mirror-breaker",
+  "region": "R"
+}

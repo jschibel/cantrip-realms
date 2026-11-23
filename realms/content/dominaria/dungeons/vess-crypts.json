@@ -1,0 +1,39 @@
+{
+  "id": "vess-crypts",
+  "name": "The Vess Crypts",
+  "theme": "crypt",
+  "entrance": [
+    43,
+    505
+  ],
+  "floors": [
+    4,
+    5
+  ],
+  "tier": 4,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "bog-wraith",
+      "gurmag-angler",
+      "knight-of-malice",
+      "mass-of-ghouls",
+      "moor-fiend",
+      "stinkweed-imp"
+    ],
+    [
+      "gurmag-angler",
+      "knight-of-malice",
+      "lady-orca",
+      "ramirez-depietro",
+      "stinkweed-imp",
+      "yargle-glutton-of-urborg"
+    ]
+  ],
+  "warden": "tomb-warden",
+  "boss": "sheoldred",
+  "region": "B"
+}

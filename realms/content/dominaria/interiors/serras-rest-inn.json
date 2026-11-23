@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "serras-rest",
   "style": "benalish",
-  "exit": {"q":224,"r":178},
+  "exit": {"q":477,"r":344},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"marble",1],

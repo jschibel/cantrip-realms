@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "llanowar",
   "style": "llanowar",
-  "exit": {"q":161,"r":463},
+  "exit": {"q":523,"r":224},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"moss",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"llanowar","h":0.45}
   ],
   "npcs": [
-    {"id":"llanowar-innkeeper","kind":"innkeeper","name":"The keeper of The Hollow Bough","text":["Welcome to Llanowar. The trees are listening; tip accordingly."],"q":-2,"r":1},
+    {"id":"llanowar-innkeeper","kind":"innkeeper","name":"The keeper of The Hollow Bough","text":["Welcome to the elfhames. The trees are listening; tip accordingly."],"q":-2,"r":1},
     {"id":"llanowar-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

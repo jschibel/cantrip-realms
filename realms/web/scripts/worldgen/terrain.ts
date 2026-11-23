@@ -120,6 +120,10 @@ export function shapeLand(grid: Grid, layout: Layout): void {
           }
           break;
         }
+        case "waste":
+          terrain = m < 0.4 ? "ash" : f < 0.5 ? "rock" : "dirt";
+          steps = Math.max(0, Math.round((e - 0.45) * 5));
+          break;
         case "forest":
           terrain = m < 0.3 ? "meadow" : m < 0.62 ? "grass" : "moss";
           if (f < 0.3) terrain = "forest";
@@ -127,7 +131,7 @@ export function shapeLand(grid: Grid, layout: Layout): void {
           break;
       }
       if (shore && !blocked) {
-        terrain = biome === "swamp" ? "mud" : biome === "volcanic" || biome === "mountains" ? "rock" : biome === "tundra" ? "ice" : "sand";
+        terrain = biome === "swamp" ? "mud" : biome === "volcanic" || biome === "mountains" || biome === "waste" ? "rock" : biome === "tundra" ? "ice" : "sand";
         steps = Math.min(steps, 1);
       }
       grid.terrain[i] = T[terrain];

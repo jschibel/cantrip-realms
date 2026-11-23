@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "steelleaf-glade",
   "style": "llanowar",
-  "exit": {"q":82,"r":455},
+  "exit": {"q":614,"r":165},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"moss",1],

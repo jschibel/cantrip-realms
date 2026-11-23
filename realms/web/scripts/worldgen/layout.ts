@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import type { Region, Theme, TownStyle } from "../../src/world/schema";
 
 /** What a region's land is: its ground, hills, water and scenery (terrain.ts, wilds.ts). */
-export const BIOMES = ["heartland", "plains", "coast", "swamp", "mountains", "volcanic", "forest", "tundra"] as const;
+export const BIOMES = ["heartland", "plains", "coast", "swamp", "mountains", "volcanic", "forest", "tundra", "waste"] as const;
 export type Biome = (typeof BIOMES)[number];
 
 export type At = readonly [number, number];
@@ -48,6 +48,8 @@ export interface RegionLayout {
   readonly at: At;
   /** How far its land reaches against its neighbours' (1 by default). */
   readonly weight?: number;
+  /** The least tier of its wilds, however near a starting area (the hardest lands are tier 4 wherever they are). */
+  readonly minTier?: number;
   /** The names of its bands of tier, 1 to 4. */
   readonly areas: readonly [string, string, string, string];
 }
@@ -78,6 +80,19 @@ export interface TownLayout {
   readonly home?: Region;
   readonly temple: string;
   readonly guild: string;
+  /** An exotic wares shop here (design.md A5): the exotic vendor's id. */
+  readonly exotic?: string;
+  /** A pitch in its market square where traveling vendors from other planes set up their caravans (design.md A5). */
+  readonly caravan?: boolean;
+}
+
+/** A ferry across the sea to a far isle (design.md A6): a dock at each end, a lane over the water between them. */
+export interface FerryLayout {
+  readonly id: string;
+  readonly name: string;
+  /** The two docks: open ground on each shore, the lane run straight between them. */
+  readonly from: At;
+  readonly to: At;
 }
 
 /**
@@ -114,8 +129,10 @@ export interface Layout {
   readonly rivers: readonly { readonly from: At; readonly to: At; readonly lava?: boolean }[];
   readonly lakes: readonly { readonly at: At; readonly radius: number; readonly kind?: "water" | "swamp" | "lava" }[];
   readonly towns: readonly TownLayout[];
+  /** Roads between towns, dungeons and ferry docks (`ferry:<id>:from`, `ferry:<id>:to`). */
   readonly roads: readonly { readonly from: string; readonly to: string; readonly main?: boolean }[];
   readonly dungeons: readonly DungeonLayout[];
+  readonly ferries: readonly FerryLayout[];
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -151,7 +168,9 @@ export function checkLayout(layout: Layout): string[] {
     if (d.road !== undefined && !towns.has(d.road)) problems.push(`dungeon ${d.id}: its road is from no town ${d.road}`);
     if (!on(d.at)) problems.push(`dungeon ${d.id} is off the world`);
   }
-  for (const road of layout.roads) for (const end of [road.from, road.to]) if (!towns.has(end)) problems.push(`a road joins no town ${end}`);
+  const docks = new Set((layout.ferries ?? []).flatMap((f) => [`ferry:${f.id}:from`, `ferry:${f.id}:to`]));
+  for (const road of layout.roads) for (const end of [road.from, road.to]) if (!towns.has(end) && !dungeons.has(end) && !docks.has(end)) problems.push(`a road joins nothing called ${end}`);
+  for (const f of layout.ferries ?? []) for (const end of [f.from, f.to]) if (!on(end)) problems.push(`ferry ${f.id}'s dock is off the world`);
   if (!layout.towns.some((t) => t.start)) problems.push("no town is a starting area");
   return problems;
 }

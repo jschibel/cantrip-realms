@@ -4,7 +4,7 @@
   "kind": "guildhall",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":411,"r":125},
+  "exit": {"q":151,"r":566},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-4,-1,0,"stone",1],

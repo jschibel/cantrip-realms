@@ -1,0 +1,26 @@
+{
+  "id": "parma-caves",
+  "name": "The Ice Caves of Parma",
+  "theme": "caves",
+  "entrance": [
+    120,
+    166
+  ],
+  "floors": [
+    2,
+    3
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "kiki-jiki-mirror-breaker",
+    "trained-orgg",
+    "volcanic-dragon"
+  ],
+  "warden": "warden-4",
+  "boss": "kiki-jiki-mirror-breaker",
+  "region": "R"
+}

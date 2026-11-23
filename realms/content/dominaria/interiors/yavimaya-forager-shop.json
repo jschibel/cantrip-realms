@@ -2,9 +2,9 @@
   "id": "yavimaya-forager-shop",
   "name": "Yavimaya Forager",
   "kind": "shop",
-  "town": "yavimaya-hollow",
+  "town": "steelleaf-glade",
   "style": "llanowar",
-  "exit": {"q":255,"r":401},
+  "exit": {"q":610,"r":169},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"moss",1],

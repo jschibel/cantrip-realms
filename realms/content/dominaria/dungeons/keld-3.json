@@ -1,0 +1,27 @@
+{
+  "id": "keld-3",
+  "name": "The Keldon Tower of the Third Circle",
+  "theme": "tower",
+  "entrance": [
+    167,
+    146
+  ],
+  "floors": [
+    1,
+    2
+  ],
+  "tier": 4,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "flametongue-kavu",
+    "roc-of-kher-ridges",
+    "thundering-giant"
+  ],
+  "warden": "warden-3",
+  "boss": "mage-keld-3",
+  "region": "R",
+  "waystone": true
+}

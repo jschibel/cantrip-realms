@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":176,"r":283},
+  "exit": {"q":409,"r":297},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"benalish","h":2.6}
   ],
   "npcs": [
-    {"id":"new-benalia-house-2-resident","kind":"townsfolk","name":"Old pilgrim","text":["Serra's sanctum fell with her realm. Its angels guard it still, but not for her."],"q":-1,"r":1}
+    {"id":"new-benalia-house-2-resident","kind":"townsfolk","name":"Town crier","text":["Hear ye! Phyrexian stragglers in every Domain! Arm yourselves with cards!"],"q":-1,"r":1}
   ]
 }

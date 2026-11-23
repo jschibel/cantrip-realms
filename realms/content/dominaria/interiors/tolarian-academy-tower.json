@@ -4,7 +4,7 @@
   "kind": "tower",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":421,"r":128},
+  "exit": {"q":167,"r":571},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,1,0,"crystal",1],

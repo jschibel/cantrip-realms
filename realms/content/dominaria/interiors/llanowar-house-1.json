@@ -1,10 +1,10 @@
 {
   "id": "llanowar-house-1",
-  "name": "A house in Llanowar",
+  "name": "A house in The Elfhames of Llanowar",
   "kind": "house",
   "town": "llanowar",
   "style": "llanowar",
-  "exit": {"q":142,"r":464},
+  "exit": {"q":516,"r":235},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"moss",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"llanowar","h":2.6}
   ],
   "npcs": [
-    {"id":"llanowar-house-1-resident","kind":"townsfolk","name":"Elvish ranger","text":["The forest is listening. Walk softly and it may even like you."],"q":-1,"r":1}
+    {"id":"llanowar-house-1-resident","kind":"townsfolk","name":"Elvish ranger","text":["Across the Suder the forest begins, and it does not end politely."],"q":-1,"r":1}
   ]
 }

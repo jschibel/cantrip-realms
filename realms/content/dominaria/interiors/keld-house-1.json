@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":316,"r":486},
+  "exit": {"q":144,"r":269},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"keldon","h":2.6}
   ],
   "npcs": [
-    {"id":"keld-house-1-resident","kind":"townsfolk","name":"Keldon warrior","text":["Fight me. No? Then fight the goblins, they're asking for it."],"q":-1,"r":1}
+    {"id":"keld-house-1-resident","kind":"townsfolk","name":"Keldon warrior","text":["Fight me. No? Then fight the giants, they're asking for it."],"q":-1,"r":1}
   ]
 }

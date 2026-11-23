@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":175,"r":298},
+  "exit": {"q":359,"r":380},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"benalish","h":2.6}
   ],
   "npcs": [
-    {"id":"new-benalia-house-1-resident","kind":"townsfolk","name":"Benalish squire","text":["The Capashens say the meadow's scouts are Phyrexian. Stragglers, I hope."],"q":-1,"r":1}
+    {"id":"new-benalia-house-1-resident","kind":"townsfolk","name":"Benalish herald","text":["Every road in Aerona leads to New Benalia. Most of them come back."],"q":-1,"r":1}
   ]
 }

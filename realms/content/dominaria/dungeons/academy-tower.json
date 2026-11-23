@@ -1,0 +1,39 @@
+{
+  "id": "academy-tower",
+  "name": "The Academy's Tower",
+  "theme": "tower",
+  "entrance": [
+    103,
+    596
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "air-elemental",
+      "fighting-drake",
+      "lord-of-atlantis",
+      "phantom-monster",
+      "segovian-leviathan",
+      "serra-sphinx"
+    ],
+    [
+      "air-elemental",
+      "benthic-behemoth",
+      "lord-of-atlantis",
+      "mahamoti-djinn",
+      "serra-sphinx",
+      "true-name-nemesis"
+    ]
+  ],
+  "warden": "rift-warden",
+  "boss": "teferi",
+  "region": "U"
+}

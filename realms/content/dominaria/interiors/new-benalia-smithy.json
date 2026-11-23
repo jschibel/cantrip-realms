@@ -4,7 +4,7 @@
   "kind": "smithy",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":216,"r":296},
+  "exit": {"q":354,"r":403},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,-1,0,"stone",1],

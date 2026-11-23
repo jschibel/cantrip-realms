@@ -1,10 +1,10 @@
 {
   "id": "llanowar-house-5",
-  "name": "A house in Llanowar",
+  "name": "A house in The Elfhames of Llanowar",
   "kind": "house",
   "town": "llanowar",
   "style": "llanowar",
-  "exit": {"q":200,"r":470},
+  "exit": {"q":506,"r":228},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"moss",1],

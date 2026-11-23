@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "capashen-hold",
   "style": "benalish",
-  "exit": {"q":253,"r":310},
+  "exit": {"q":344,"r":449},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"benalish","h":2.6}
   ],
   "npcs": [
-    {"id":"capashen-hold-house-1-resident","kind":"townsfolk","name":"Capashen guard","text":["Hold's open to honest folk. And mages, I suppose."],"q":-1,"r":1}
+    {"id":"capashen-hold-house-1-resident","kind":"townsfolk","name":"Benalish squire","text":["The Capashens held this land before New Benalia stood."],"q":-1,"r":1}
   ]
 }

@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "keldon-watch",
   "style": "keldon",
-  "exit": {"q":280,"r":547},
+  "exit": {"q":171,"r":153},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

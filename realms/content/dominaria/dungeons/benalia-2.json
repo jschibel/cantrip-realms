@@ -1,10 +1,10 @@
 {
   "id": "benalia-2",
-  "name": "The Serran Tower of the Second Circle",
+  "name": "The Benalish Tower of the Second Circle",
   "theme": "tower",
   "entrance": [
-    231,
-    200
+    393,
+    446
   ],
   "floors": [
     1,

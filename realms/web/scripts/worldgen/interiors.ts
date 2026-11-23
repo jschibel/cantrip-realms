@@ -132,6 +132,17 @@ export function buildInterior(spec: InteriorSpec): InteriorData {
   const back = -D / 2 + 1.8;
   switch (spec.kind) {
     case "shop": {
+      if (spec.exotic) {
+        // Hangings from other planes on the back wall, curios and planar artifacts round the room, the dealer at the counter.
+        for (let x = -W / 2 + 2.5; x <= W / 2 - 2.5; x += 1.5) if (Math.abs(x) > 0.8) room.putNear(x, back + 1.2, "counter");
+        room.personNear(0, back + 1.2, { id: spec.vendor!.id, kind: "vendor", vendor: spec.vendor!.id, name: spec.vendor!.name });
+        for (let x = -W / 2 + 1.5; x <= W / 2 - 1.5; x += 1.5) room.putNear(x, back - 0.3, x % 3 === 0 ? "banner" : "shelf", { style: "arcane" });
+        room.putNear(-W / 2 + 1.6, D / 2 - 2.4, "portal");
+        room.putNear(W / 2 - 1.6, D / 2 - 2.4, "crystal");
+        room.putNear(-W / 2 + 1.6, 0, "crystal");
+        room.putNear(W / 2 - 1.6, 0, "altar");
+        break;
+      }
       // The counter across the back, the vendor at its middle, shelves behind, crates by the walls.
       for (let x = -W / 2 + 2.5; x <= W / 2 - 2.5; x += 1.5) if (Math.abs(x) > 0.8) room.putNear(x, back + 1.2, "counter");
       room.personNear(0, back + 1.2, { id: spec.vendor!.id, kind: "vendor", vendor: spec.vendor!.id, name: spec.vendor!.name });

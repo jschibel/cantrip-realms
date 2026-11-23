@@ -1,0 +1,39 @@
+{
+  "id": "benalish-keep",
+  "name": "The Fallen Benalish Keep",
+  "theme": "castle",
+  "entrance": [
+    440,
+    432
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "abbey-gargoyles",
+      "benalish-knight",
+      "commander-eesha",
+      "savannah-lions",
+      "thunder-spirit",
+      "white-knight"
+    ],
+    [
+      "commander-eesha",
+      "savannah-lions",
+      "serra-angel",
+      "serra-paragon",
+      "thunder-spirit",
+      "torsten-founder-of-benalia"
+    ]
+  ],
+  "warden": "sanctum-warden",
+  "boss": "lyra-dawnbringer",
+  "region": "W"
+}

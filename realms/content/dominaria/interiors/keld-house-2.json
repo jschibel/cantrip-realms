@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":365,"r":459},
+  "exit": {"q":162,"r":263},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],
@@ -53,6 +53,6 @@
     {"q":2,"r":1,"kind":"wall","style":"keldon","h":2.6}
   ],
   "npcs": [
-    {"id":"keld-house-2-resident","kind":"townsfolk","name":"Ghitu smith","text":["The foundry's still running. Nobody's feeding it. Think about that."],"q":-1,"r":1}
+    {"id":"keld-house-2-resident","kind":"townsfolk","name":"Skald","text":["Past the waste lie the Domains. Past Parma lies nothing."],"q":-1,"r":1}
   ]
 }

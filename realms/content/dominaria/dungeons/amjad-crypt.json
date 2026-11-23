@@ -1,0 +1,29 @@
+{
+  "id": "amjad-crypt",
+  "name": "The Crypts of Amjad",
+  "theme": "crypt",
+  "entrance": [
+    606,
+    88
+  ],
+  "floors": [
+    2,
+    3
+  ],
+  "tier": 3,
+  "encounters": [
+    2,
+    3
+  ],
+  "mobs": [
+    "gurmag-angler",
+    "knight-of-malice",
+    "lady-orca",
+    "ramirez-depietro",
+    "stinkweed-imp",
+    "yargle-glutton-of-urborg"
+  ],
+  "warden": "warden-3",
+  "boss": "lady-orca",
+  "region": "B"
+}

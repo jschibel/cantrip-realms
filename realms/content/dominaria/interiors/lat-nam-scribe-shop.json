@@ -2,9 +2,9 @@
   "id": "lat-nam-scribe-shop",
   "name": "The Lat-Nam Scribe",
   "kind": "shop",
-  "town": "lat-nam",
+  "town": "denawa",
   "style": "tolarian",
-  "exit": {"q":340,"r":228},
+  "exit": {"q":212,"r":588},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"stone",1],

@@ -1,0 +1,39 @@
+{
+  "id": "keldon-fortress",
+  "name": "The Keldon Fortress",
+  "theme": "caves",
+  "entrance": [
+    96,
+    257
+  ],
+  "floors": [
+    3,
+    4
+  ],
+  "tier": 3,
+  "encounters": [
+    3,
+    4
+  ],
+  "mobs": [
+    [
+      "blood-knight",
+      "fire-elemental",
+      "flametongue-kavu",
+      "hill-giant",
+      "roc-of-kher-ridges",
+      "thundering-giant"
+    ],
+    [
+      "flametongue-kavu",
+      "kiki-jiki-mirror-breaker",
+      "roc-of-kher-ridges",
+      "thundering-giant",
+      "trained-orgg",
+      "volcanic-dragon"
+    ]
+  ],
+  "warden": "foundry-warden",
+  "boss": "darigaaz",
+  "region": "R"
+}

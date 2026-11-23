@@ -1,10 +1,10 @@
 {
   "id": "benalia-3",
-  "name": "The Serran Tower of the Third Circle",
+  "name": "The Benalish Tower of the Third Circle",
   "theme": "tower",
   "entrance": [
-    83,
-    360
+    274,
+    396
   ],
   "floors": [
     1,

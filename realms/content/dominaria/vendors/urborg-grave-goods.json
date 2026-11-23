@@ -1,7 +1,7 @@
 {
   "id": "urborg-grave-goods",
   "name": "Grave Goods",
-  "town": "urborg",
+  "town": "vess-estate",
   "specialty": {
     "subtypes": [
       "Zombie",

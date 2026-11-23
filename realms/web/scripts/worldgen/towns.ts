@@ -35,6 +35,8 @@ export interface InteriorSpec {
   readonly innkeeper?: { readonly name: string; readonly text: readonly string[] };
   readonly spellTable?: boolean;
   readonly resident?: { readonly name: string; readonly text: readonly string[] };
+  /** An exotic wares shop's: dressed in curios from other planes. */
+  readonly exotic?: boolean;
 }
 
 export interface BuiltTown {
@@ -46,6 +48,8 @@ export interface BuiltTown {
   /** Outside each gate, by the target it was made for. */
   readonly gates: Map<string, number>;
   readonly inn: { q: number; r: number; interior: string };
+  /** Where traveling vendors' caravans pitch, if the town has one. */
+  readonly pitch: { q: number; r: number } | null;
 }
 
 interface Ground {
@@ -408,6 +412,11 @@ export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, inde
     if (!b) throw new Error(`${plan.id}: no room for ${v.id}'s shop`);
     name(b, `${v.id}-shop`, v.name, "shop", { vendor: v });
   });
+  if (plan.exotic) {
+    const b = site("shop", market ?? centre, 4);
+    if (!b) throw new Error(`${plan.id}: no room for the exotic wares shop`);
+    name(b, `${plan.exotic}-shop`, "Wares from Beyond", "shop", { vendor: { id: plan.exotic, name: "Wares from Beyond" }, exotic: true });
+  }
   if (plan.kind !== "village") {
     const guild = site("guildhall", atAngleFrom(centre, 60, Math.round(R * 0.3)), 6);
     if (guild) name(guild, `${plan.id}-guildhall`, plan.guild, "guildhall", { spellTable: true, resident: { name: "Guild master", text: ["Our tables are open to any mage. Build your deck in peace."] } });
@@ -499,6 +508,18 @@ export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, inde
     person(besideStreet(idx(at.q, at.r), used), { id: `${plan.id}-folk-${k + 1}`, kind: "townsfolk", name: folk.name, text: folk.text });
   });
 
+  // The caravan pitch: open paving at the edge of the market (or the square), with room all round for the wagon.
+  let pitch: { q: number; r: number } | null = null;
+  if (plan.caravan) {
+    const square = market ?? centre;
+    const reach = market ? 4 : S - 1;
+    const spot = disc(square, reach)
+      .filter((i) => grid.use[i] === Use.Kept && grid.blocked[i] === 0 && hexDistance(qOf(i), rOf(i), square.q, square.r) === reach && around(i).every((j) => grid.blocked[j] === 0))
+      .sort((a, b) => a - b)[0];
+    if (spot === undefined) throw new Error(`${plan.id}: no room for the caravan pitch`);
+    pitch = { q: qOf(spot), r: rOf(spot) };
+  }
+
   // Gardens and lamps: trees in yards away from the streets, lamps along them, banners round the square.
   for (const i of disc(centre, R - 2)) {
     if (grid.use[i] !== Use.Lot || grid.blocked[i]) continue;
@@ -532,6 +553,7 @@ export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, inde
     npcs,
     gates,
     inn: { q: qOf(inn.exit), r: rOf(inn.exit), interior: `${plan.id}-inn` },
+    pitch,
   };
 }
 

@@ -1,7 +1,7 @@
 {
   "id": "argive-artificer",
   "name": "Argivian Artifacts",
-  "town": "new-argive",
+  "town": "new-benalia",
   "specialty": {
     "types": [
       "Artifact"

@@ -3,8 +3,8 @@
   "name": "The Phyrexian Portal",
   "theme": "portal",
   "entrance": [
-    389,
-    345
+    195,
+    229
   ],
   "requires": "WUBRG",
   "floors": [

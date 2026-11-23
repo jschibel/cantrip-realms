@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "cabal-crossing",
   "style": "urborg",
-  "exit": {"q":515,"r":331},
+  "exit": {"q":193,"r":361},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

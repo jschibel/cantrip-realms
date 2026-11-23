@@ -4,7 +4,7 @@
   "kind": "shop",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":397,"r":143},
+  "exit": {"q":141,"r":591},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"stone",1],

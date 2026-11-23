@@ -96,7 +96,7 @@ export const PROP_KINDS = [
 export type PropKind = (typeof PROP_KINDS)[number];
 
 /** People and places to use: an inn to rest and respawn at, a spell table, vendors, an armorer, a waystone... */
-export const NPC_KINDS = ["innkeeper", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk", "guard", "waystone"] as const;
+export const NPC_KINDS = ["innkeeper", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk", "guard", "waystone", "ferryman"] as const;
 export type NpcKind = (typeof NPC_KINDS)[number];
 
 export const BUILDING_USES = ["house", "tenement", "shop", "inn", "temple", "guildhall", "smithy", "library", "mage-tower", "warehouse"] as const;
@@ -174,6 +174,8 @@ export interface NpcData {
   readonly vendor?: string;
   /** A waystone's tower (a dungeon of theme `tower` with `waystone: true`). */
   readonly tower?: string;
+  /** A ferryman's ferry (world.json's `ferries[].id`). */
+  readonly ferry?: string;
   /** What the overworld calls them: "Grizzlegom", "The Laughing Wurm". */
   readonly name?: string;
   /** What they say when spoken to; a quest board's notices. One line each. */
@@ -269,6 +271,25 @@ export interface WorldDungeon {
   readonly r: number;
 }
 
+/**
+ * A ferry to a far isle (design.md A6): its two docks, open hexes on each shore with a ferryman beside, and the lane
+ * between them - open hexes over the water, from one dock to the other, that a passenger rides across.
+ */
+export interface FerryData {
+  readonly id: string;
+  readonly name: string;
+  readonly from: readonly [number, number];
+  readonly to: readonly [number, number];
+  readonly lane: readonly (readonly [number, number])[];
+}
+
+/** Where traveling vendors from other planes pitch their caravans in a town (design.md A5): an open hex. */
+export interface PitchData {
+  readonly town: string;
+  readonly q: number;
+  readonly r: number;
+}
+
 export interface WorldData {
   readonly size: readonly [number, number];
   readonly chunk: number;
@@ -278,6 +299,8 @@ export interface WorldData {
   readonly inns: readonly InnData[];
   readonly dungeons: readonly WorldDungeon[];
   readonly roads: readonly RoadData[];
+  readonly ferries: readonly FerryData[];
+  readonly pitches: readonly PitchData[];
   readonly zones: Zones;
   readonly overview: Overview;
 }
@@ -404,6 +427,7 @@ function checkNpcs(npcs: unknown, fail: (text: string) => void, on: (h: Hex) => 
     if (npc.kind === "vendor" && (typeof npc.vendor !== "string" || !KEBAB.test(npc.vendor))) fail(`vendor ${npc.id} names no vendor id`);
     if (npc.kind !== "vendor" && npc.vendor !== undefined) fail(`npc ${npc.id} is not a vendor but names one`);
     if (npc.kind === "waystone" && (typeof npc.tower !== "string" || !KEBAB.test(npc.tower))) fail(`waystone ${npc.id} names no tower`);
+    if (npc.kind === "ferryman" && (typeof npc.ferry !== "string" || !KEBAB.test(npc.ferry))) fail(`ferryman ${npc.id} names no ferry`);
     if (npc.text !== undefined && (!Array.isArray(npc.text) || npc.text.some((line) => typeof line !== "string"))) fail(`npc ${npc.id}: text is a list of lines`);
     const h = hex(npc.q, npc.r);
     if (!on(h)) fail(`npc ${npc.id} is off its tiles`);

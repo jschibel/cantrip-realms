@@ -1,10 +1,10 @@
 {
   "id": "benalia-4",
-  "name": "The Serran Tower of the Fourth Circle",
+  "name": "The Benalish Tower of the Fourth Circle",
   "theme": "tower",
   "entrance": [
-    262,
-    92
+    556,
+    425
   ],
   "floors": [
     1,

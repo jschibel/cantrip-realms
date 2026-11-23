@@ -30,14 +30,14 @@ export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[], tow
   const want = hex(plan.at[0], plan.at[1]);
   const good = (i: number) => {
     if (grid.town[i] !== 0) return false;
-    for (const j of disc(hexOf(i), 6)) {
+    for (const j of disc(hexOf(i), 4)) {
       const t = grid.terrain[j]!;
       if (t === T["deep-water"] || grid.town[j] !== 0 || grid.use[j] !== Use.Wild) return false;
     }
     return true;
   };
   let at: Hex | null = null;
-  for (let radius = 0; radius < 40 && !at; radius++) {
+  for (let radius = 0; radius < 70 && !at; radius++) {
     for (const i of disc(want, radius)) {
       if (hexDistance(qOf(i), rOf(i), want.q, want.r) !== radius) continue;
       if (good(i)) {
@@ -127,6 +127,7 @@ const DRESS: Record<Biome, Dress> = {
   volcanic: { trees: ["dead-tree", "pine"], treeShare: 0.025, rocks: ["boulder", "rock", "rock"], rockShare: 0.06, extras: ["bones", "brazier"], extraShare: 0.004 },
   forest: { trees: ["tree", "tree", "pine", "tree"], treeShare: 0.2, rocks: ["rock", "mushroom"], rockShare: 0.015, extras: ["bush", "mushroom", "bush"], extraShare: 0.04 },
   heartland: { trees: ["tree", "bush"], treeShare: 0.035, rocks: ["rock"], rockShare: 0.008, extras: ["fence", "crate"], extraShare: 0.006 },
+  waste: { trees: ["dead-tree"], treeShare: 0.01, rocks: ["boulder", "rock", "bones"], rockShare: 0.04, extras: ["bones"], extraShare: 0.01 },
   mountains: { trees: ["pine", "pine", "dead-tree"], treeShare: 0.05, rocks: ["boulder", "rock"], rockShare: 0.05, extras: ["bones"], extraShare: 0.004 },
   tundra: { trees: ["pine", "dead-tree"], treeShare: 0.03, rocks: ["rock", "boulder", "crystal"], rockShare: 0.03, extras: ["bones"], extraShare: 0.004 },
 };
