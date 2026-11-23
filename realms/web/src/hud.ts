@@ -67,6 +67,8 @@ class WorldPicture {
   readonly minD: number;
   /** Pixels of each tier's zone drawn. */
   readonly drawn = [0, 0, 0, 0, 0];
+  /** The land's bounds on the picture, with a margin of sea. */
+  readonly land = { x: Infinity, y: Infinity, w: 0, h: 0 };
 
   constructor() {
     const corners = [project({ q: 0, r: 0 }), project({ q: WORLD.size[0], r: 0 }), project({ q: 0, r: WORLD.size[1] }), project({ q: WORLD.size[0], r: WORLD.size[1] })];
@@ -103,8 +105,19 @@ class WorldPicture {
         image.data[o + 2] = b;
         image.data[o + 3] = 255;
         tierOf[y * width + x] = areaAt(WORLD.zones, h)?.tier ?? 0;
+        if (view.legend[letter] !== "deep-water") {
+          this.land.x = Math.min(this.land.x, x);
+          this.land.y = Math.min(this.land.y, y);
+          this.land.w = Math.max(this.land.w, x);
+          this.land.h = Math.max(this.land.h, y);
+        }
       }
     }
+    const margin = 24;
+    this.land.x = Math.max(0, this.land.x - margin);
+    this.land.y = Math.max(0, this.land.y - margin);
+    this.land.w = Math.min(width, this.land.w + margin) - this.land.x;
+    this.land.h = Math.min(height, this.land.h + margin) - this.land.y;
     // The tier zones: a wash of each tier's color, and its border drawn solid.
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -387,7 +400,7 @@ export class Hud {
     const canvas = this.fullMap.querySelector<HTMLCanvasElement>("canvas");
     if (!canvas) return;
     const pic = this.world;
-    const crop = { x: pic.base.width * 0.2, y: pic.base.height * 0.2, w: pic.base.width * 0.6, h: pic.base.height * 0.6 };
+    const crop = pic.land;
     const k = Math.min((window.innerWidth - 120) / crop.w, (window.innerHeight - 170) / crop.h);
     canvas.width = Math.round(crop.w * k);
     canvas.height = Math.round(crop.h * k);

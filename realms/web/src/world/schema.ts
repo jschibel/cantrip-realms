@@ -92,6 +92,8 @@ export const PROP_KINDS = [
   "hearth",
   "pew",
   "forge",
+  // A traveling trader's caravan: a wagon and an awning, its goods from other planes.
+  "caravan",
 ] as const;
 export type PropKind = (typeof PROP_KINDS)[number];
 

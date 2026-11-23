@@ -1,11 +1,11 @@
-// Caves (mountains and hills: Keld, Shiv): winding caverns grown by a cellular automaton, chambers joined by passages
-// that wander, an underground lake, a chasm, stalagmites.
+// Caves (mountains and hills: Keld, the Hurloon and Ironclaw Mountains): winding caverns grown by a cellular automaton,
+// chambers joined by passages that wander, an underground lake, a chasm, stalagmites.
 
 import { DIRECTIONS, distance, hex } from "../../hex";
 import { type Carver, type FloorBuilder, type Look, REACH, type Room } from "../floor";
 import { spread } from "./common";
 
-export const CAVES_LOOK: Look = { floor: "rock", wall: "stone", wallHeight: 1.6, decor: ["rock", "boulder", "crystal", "bones", "mushroom"], lights: false };
+export const CAVES_LOOK: Look = { floor: "dirt", wall: "rock", wallHeight: 2.4, decor: ["rock", "boulder", "crystal", "bones", "mushroom"], lights: false };
 
 export const carveCaves: Carver = (b: FloorBuilder) => {
   const R = REACH - 3;

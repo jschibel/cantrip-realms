@@ -49,6 +49,10 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const o = game();
       return o ? { loaded: [...o.world.chunks.keys()].sort(), built: o.worldScene.patchKeys.sort() } : null;
     },
+    /** The traveling vendors in town by the schedule. */
+    get travelers() {
+      return game()?.visits.map((v) => ({ ...v })) ?? [];
+    },
     get run() {
       const o = game();
       return o?.run ? { id: o.run.id, dungeon: o.run.dungeon.id, floor: o.run.floor, floors: o.run.floors.length, down: o.run.plan.down ? key(o.run.plan.down) : null, up: key(o.run.plan.up), wayOut: o.run.plan.wayOut ? key(o.run.plan.wayOut) : null } : null;
@@ -102,6 +106,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
           for (const e of c.data.entrances) things.push([e, { name: `entrance to ${e.dungeon}`, kind: "entrance", id: e.dungeon, to: e.dungeon }]);
           for (const p of c.data.props) if (p.kind === "waymarker") things.push([p, { name: `waymarker ${p.tier}`, kind: "waymarker", id: key(p), tier: p.tier }]);
         }
+        for (const t of o.world.visitors) if (t.kind === "npc") things.push([t.npc, { name: t.npc.name ?? t.npc.kind, kind: t.npc.kind, id: t.npc.id, trader: true }]);
       } else {
         const space = o.space as unknown as { npcs: readonly { q: number; r: number; kind: string; id: string; name?: string }[] };
         for (const n of space.npcs) things.push([n, { name: n.name ?? n.kind, kind: n.kind, id: n.id }]);

@@ -1,5 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
-import { at, entity, mapData, openNear, realm, waitReady } from "../realm";
+import { spawnNear } from "../places";
+import { at, entity, openNear, realm, waitReady, world } from "../realm";
 
 // Both layers on one page against the real realm server (playwright.config.ts here): the overworld frames the real card
 // layer - the web client's ?realm page, on an origin of its own - and a duel started in the world is dealt and played on
@@ -61,21 +62,21 @@ test("a duel started in the world is played in the real card layer, and its log 
   const made = await page.request.post(new URL("api/character", SERVER).toString(), { data: { Name: "Cass", Body: "lithe", Palette: 0, Color: "W" } });
   expect(made.ok(), await made.text()).toBe(true);
 
-  // At Benalish Meadow, by its spawn of a lone Phyrexian scout; the card layer boots behind the world meanwhile.
-  const meadow = mapData("benalish-meadow");
-  const spawn = meadow.spawns.find((s) => s.id === "s1")!;
-  await page.goto(query(`&at=${at(meadow, openNear(meadow, spawn, 6))}`));
+  // By a spawn of the wilds near New Benalia; the card layer boots behind the world meanwhile. (At integration: the
+  // server takes a place only walked to, so the test walks there from the inn.)
+  const spawn = spawnNear("new-benalia");
+  await page.goto(query(`&at=${at(openNear(spawn, 6))}`));
   await waitReady(page);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
 
   // The scout engaged: the encounter starts on the server and the duel opens in the card layer, dealt on its engine.
-  const scout = await entity(page, (e) => e.kind === "mob" && e.spawn === "s1", "the Phyrexian scout");
+  const scout = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await page.mouse.click(scout.x, scout.y);
   await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe("duel");
   await expect
     .poll(async () => {
       const state = await cardState(page);
-      return state?.ready === true && state.prompt.length > 0 && state.realm?.duel?.mob === "Phyrexian Scout";
+      return state?.ready === true && state.prompt.length > 0 && state.realm?.duel?.mob === scout.name;
     }, { timeout: 120_000, message: "the duel dealt in the card layer" })
     .toBe(true);
 
@@ -91,9 +92,11 @@ test("a duel started in the world is played in the real card layer, and its log 
   const outcome = (await finish.json()) as { Outcome: string; Detail: string | null };
   expect(outcome).toMatchObject({ Outcome: "lost", Detail: "The mob won." });
 
-  // Back in the world, waking at the inn the meadow names.
+  // Back in the world, waking outside the start town's inn.
   await expect.poll(() => realm<string | null>(page, "layer.open")).toBe(null);
-  await expect.poll(() => realm<string>(page, "map.id"), { timeout: 30_000 }).toBe(meadow.inn!.map ?? meadow.id);
-  const me = await page.request.get(new URL("api/me", SERVER).toString());
-  expect(((await me.json()) as { Map: string }).Map).toBe(meadow.inn!.map ?? meadow.id);
+  await expect.poll(() => realm<string>(page, "message"), { timeout: 30_000 }).toMatch(/You lost the duel, and wake at the inn/);
+  const me = (await (await page.request.get(new URL("api/me", SERVER).toString())).json()) as { Space: string; Q: number; R: number };
+  const capital = world().towns.find((t) => t.kind === "capital")!;
+  const inn = world().inns.find((i) => i.town === capital.id)!;
+  expect(me).toMatchObject({ Space: "world", Q: inn.q, R: inn.r });
 });

@@ -117,8 +117,12 @@ export function chunk(cq: number, cr: number): ChunkData {
 
 export const chunkOfHex = (h: Hex): ChunkData => chunk(Math.floor(h.q / CHUNK), Math.floor(h.r / CHUNK));
 
-/** Whether a hex of the world is open ground, with nothing on it that walking onto would use. */
+let lanes: Set<string> | null = null;
+
+/** Whether a hex of the world is open ground, with nothing on it that walking onto would use, and no ferry's lane. */
 export function openWorld(h: Hex): boolean {
+  lanes ??= new Set(world().ferries.flatMap((f) => f.lane.slice(1, -1).map(([q, r]) => `${q},${r}`)));
+  if (lanes.has(`${h.q},${h.r}`)) return false;
   if (h.q < 0 || h.r < 0 || h.q >= 640 || h.r >= 640) return false;
   const c = chunkOfHex(h);
   const tile = c.tiles[(h.q - c.cq * CHUNK) * CHUNK + (h.r - c.cr * CHUNK)]!;

@@ -1,11 +1,11 @@
-// Foundry (volcanic land: Shiv): halls of forges and anvils in a winding row, lava channels running across them,
-// gantries over the lava.
+// Foundry (the orcs' delvings in the Ironclaw Mountains, Keldon forges): halls of forges and anvils in a winding row,
+// lava channels running across them, gantries over the lava.
 
 import { type Hex, hex, toWorld } from "../../hex";
 import { type Carver, type FloorBuilder, type Look, type Room } from "../floor";
 import { hexAt } from "./common";
 
-export const FOUNDRY_LOOK: Look = { floor: "ash", wall: "rock", wallHeight: 2.0, decor: ["anvil", "crate", "barrel", "forge"], lights: true };
+export const FOUNDRY_LOOK: Look = { floor: "stone", wall: "ash", wallHeight: 2.4, decor: ["anvil", "crate", "barrel", "forge"], lights: true };
 
 export const carveFoundry: Carver = (b: FloorBuilder) => {
   const rooms: Room[] = [];

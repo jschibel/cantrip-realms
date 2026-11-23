@@ -154,6 +154,17 @@ export type EncounterAt =
   | { readonly Spawn: string; readonly Mob: string }
   | { readonly Run: string; readonly Floor: number; readonly Index: number; readonly Mob: string };
 
+/** A traveling vendor's visit to a town (design.md A5): who, from which plane, where, and until when. */
+export interface TravelerVisit {
+  readonly Vendor: string;
+  /** The planeswalker trader's name. */
+  readonly Name: string;
+  readonly Plane: string;
+  readonly Town: string;
+  /** UTC ISO-8601: when the caravan leaves. */
+  readonly Until: string;
+}
+
 /** A refused call: the server's error code and its words. */
 export class ApiError extends Error {
   constructor(
@@ -193,6 +204,8 @@ export interface RealmApi {
   leaveDungeon(body: { Run: string }): Promise<void>;
   /** Travels from the attuned tower's waystone the character stands at to another attuned tower's. */
   waystone(body: { Tower: string }): Promise<{ Place: Place }>;
+  /** The traveling vendors in town now, by the server's schedule. */
+  travelers(): Promise<{ Visits: readonly TravelerVisit[] }>;
 }
 
 /** The realm server over HTTP: same-origin `/api`, or the server `base` names, on the signed-in cookie. */
@@ -250,4 +263,5 @@ export class HttpApi implements RealmApi {
     await this.call<unknown>("POST", "dungeon/leave", body);
   };
   waystone = (body: { Tower: string }) => this.call<{ Place: Place }>("POST", "waystone", body);
+  travelers = () => this.call<{ Visits: readonly TravelerVisit[] }>("GET", "travelers");
 }

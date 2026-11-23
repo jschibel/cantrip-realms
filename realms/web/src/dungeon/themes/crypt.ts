@@ -1,11 +1,11 @@
-// Crypt (swamps: Urborg): catacombs dug as a maze of narrow ways, ossuaries where they meet, flooded tombs, coffins
-// and bones along the walls.
+// Crypt (swamps and dark realms: the Caligo Morass, Amjad): catacombs dug as a maze of narrow ways, ossuaries where
+// they meet, flooded tombs, coffins and bones along the walls.
 
 import { type Hex, hex } from "../../hex";
 import { type Carver, type FloorBuilder, type Look, type Room } from "../floor";
 import { hexAt } from "./common";
 
-export const CRYPT_LOOK: Look = { floor: "stone", wall: "rock", wallHeight: 1.8, decor: ["coffin", "bones", "coffin", "pillar"], lights: true };
+export const CRYPT_LOOK: Look = { floor: "stone", wall: "ash", wallHeight: 2.4, decor: ["coffin", "bones", "coffin", "pillar"], lights: true };
 
 export const carveCrypt: Carver = (b: FloorBuilder) => {
   // A maze on a coarse grid of cells 11 world units apart, dug by a walk that turns back when stuck.

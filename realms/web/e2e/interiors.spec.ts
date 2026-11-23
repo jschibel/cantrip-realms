@@ -59,3 +59,17 @@ test("the quest board stands outside the inn's door", async ({ page }) => {
   await clickControl(page, "dialog:close");
   await expect.poll(() => realm<string>(page, "screen")).toBe("world");
 });
+
+test("the exotic wares shop: the dealer in wares from other planes, among curios", async ({ page }) => {
+  const shop = "exotic-new-benalia-shop";
+  const { exit } = doorOf(shop);
+  await openRealm(page, { at: at(openNear(exit, 2)), extra: "&mobs=0" });
+  const way = await entity(page, (e) => e.kind === "door" && e.to === shop, "the shop's door");
+  await page.mouse.click(way.x, way.y);
+  await waitSpace(page, shop);
+  const dealer = await entity(page, (e) => e.kind === "vendor", "the dealer");
+  expect(dealer.id).toBe("exotic-new-benalia");
+  await page.mouse.click(dealer.x, dealer.y);
+  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 20_000 }).toBe("vendor");
+  expect((await realm<{ screen: string; args: { id?: string } }[]>(page, "layer.requests")).at(-1)).toMatchObject({ screen: "vendor", args: { id: "exotic-new-benalia" } });
+});

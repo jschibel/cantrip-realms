@@ -1,11 +1,11 @@
-// Root hollow (forests: Llanowar, Yavimaya): organic tunnels through living roots, worn by wandering, opening into
-// glades under the canopy; mushrooms and moss.
+// Root hollow (forests: Llanowar, the Durkwood, Verdura): organic tunnels through living roots, worn by wandering,
+// opening into glades under the canopy; mushrooms and moss.
 
 import { DIRECTIONS, distance, hex } from "../../hex";
 import { type Carver, type FloorBuilder, type Look, REACH, type Room } from "../floor";
 import { spread } from "./common";
 
-export const HOLLOW_LOOK: Look = { floor: "moss", wall: "forest", wallHeight: 1.8, decor: ["mushroom", "bush", "reeds", "mushroom"], lights: false };
+export const HOLLOW_LOOK: Look = { floor: "moss", wall: "forest", wallHeight: 2.4, decor: ["mushroom", "bush", "reeds", "mushroom"], lights: false };
 
 export const carveHollow: Carver = (b: FloorBuilder) => {
   const glades: Room[] = spread(b, 6, 9, REACH - 6).map((at) => ({ at, size: 3 }));

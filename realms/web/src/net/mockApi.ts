@@ -9,6 +9,15 @@ import { mulberry32 } from "../random";
 import { DUNGEONS, WORLD, besideEntrance, innOf, startTown } from "../world/content";
 
 const INNS = WORLD.inns;
+
+/** The stand-in schedule's traders: planeswalkers from other planes, each with their own vendor id. */
+export const MOCK_TRADERS: readonly { readonly Vendor: string; readonly Name: string; readonly Plane: string }[] = [
+  { Vendor: "trader-ravnica", Name: "Ral Zarek", Plane: "Ravnica" },
+  { Vendor: "trader-zendikar", Name: "Nahiri", Plane: "Zendikar" },
+  { Vendor: "trader-innistrad", Name: "Sorin Markov", Plane: "Innistrad" },
+  { Vendor: "trader-kamigawa", Name: "Tamiyo", Plane: "Kamigawa" },
+  { Vendor: "trader-theros", Name: "Ajani Goldmane", Plane: "Theros" },
+];
 import {
   ApiError,
   type Character,
@@ -22,6 +31,7 @@ import {
   type Place,
   type RealmApi,
   type Run,
+  type TravelerVisit,
   type VendorView,
 } from "./api";
 
@@ -368,6 +378,22 @@ export class MockApi implements RealmApi {
     this.inn = room.town;
     this.update({ Inn: room.id });
     return { Inn: room.id };
+  }
+
+  /**
+   * The stand-in schedule (design.md A5): the day in six-hour turns; in each, every trader keeps a caravan for four hours
+   * in one of the towns with a pitch, the next town each turn.
+   */
+  async travelers(): Promise<{ Visits: readonly TravelerVisit[] }> {
+    this.log("travelers");
+    const towns = WORLD.pitches.map((p) => p.town);
+    const seconds = this.now();
+    const turn = Math.floor(seconds / 21600);
+    const until = turn * 21600 + 4 * 3600;
+    if (seconds >= until || towns.length === 0) return { Visits: [] };
+    return {
+      Visits: MOCK_TRADERS.slice(0, towns.length).map((t, k) => ({ ...t, Town: towns[(k + turn) % towns.length]!, Until: new Date(until * 1000).toISOString() })),
+    };
   }
 
   async enterDungeon(body: { Dungeon: string }): Promise<Run> {

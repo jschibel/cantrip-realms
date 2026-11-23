@@ -116,7 +116,7 @@ export function buildInterior(spec: InteriorSpec): InteriorData {
     if (outside.length === 0) continue;
     tile[4] = 1;
     const far = outside.some((d) => toWorld(d).x + toWorld(d).z < -0.5);
-    room.props.set(key(h), { q: h.q, r: h.r, kind: "wall", style: spec.style, h: far ? 2.6 : 0.45 });
+    room.props.set(key(h), { q: h.q, r: h.r, kind: "wall", style: spec.style, h: far ? 2.2 : 0.3 });
   }
   // The door: in the middle of the near (+z) wall.
   const door = [...room.tiles.values()]

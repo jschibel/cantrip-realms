@@ -94,6 +94,18 @@ export class WorldSpace implements Space {
   readonly kind = "world" as const;
   readonly name = "Dominaria";
   readonly chunks = new Map<string, LoadedChunk>();
+  /** Those who come and go - a traveling trader at a caravan pitch - standing on a hex for a while. */
+  private readonly visiting = new Map<string, Thing>();
+
+  /** Stands someone on a hex for a while (null takes them away): the hex is theirs, not open ground, meanwhile. */
+  visit(h: Hex, thing: Thing | null): void {
+    if (thing) this.visiting.set(key(h), thing);
+    else this.visiting.delete(key(h));
+  }
+
+  get visitors(): Thing[] {
+    return [...this.visiting.values()];
+  }
 
   chunkAt(h: Hex): LoadedChunk | undefined {
     const { cq, cr } = chunkOf(h);
@@ -123,12 +135,12 @@ export class WorldSpace implements Space {
   }
 
   thing(h: Hex): Thing | undefined {
-    return this.chunkAt(h)?.things.get(key(h));
+    return this.visiting.get(key(h)) ?? this.chunkAt(h)?.things.get(key(h));
   }
 
   passable = (h: Hex): boolean => {
     const c = this.chunkAt(h);
-    return c !== undefined && c.blocked[c.index(h)] === 0;
+    return c !== undefined && c.blocked[c.index(h)] === 0 && !this.visiting.has(key(h));
   };
 
   /** The spawn points of the loaded chunks. */

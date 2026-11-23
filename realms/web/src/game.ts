@@ -6,11 +6,13 @@ import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { DIRECTIONS, type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
 import { mobInfo } from "./mobs";
-import { ApiError, type Character as CharacterData, type Place, type RealmApi, type RunFloor, identityOf } from "./net/api";
+import { ApiError, type Character as CharacterData, type Place, type RealmApi, type RunFloor, type TravelerVisit, identityOf } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Look, Presence, ServerMessage } from "./net/presence";
 import { DOMINARIA } from "./palette";
 import { PixelRenderer } from "./render";
+import { boat } from "./scene/buildings";
+import { Boxes } from "./scene/props";
 import { World, skyOf } from "./scene/world";
 import { showDialog } from "./screens/dialog";
 import { Iris } from "./screens/iris";
@@ -98,6 +100,13 @@ export class Overworld {
   private readonly focus = new THREE.Vector3();
   private ease: { from: THREE.Vector3; to: THREE.Vector3; t: number; ms: number } | null = null;
   private prebuildTimer = 0;
+  /** The hexes of the ferries' lanes: open water nobody walks but a passenger. */
+  private readonly lanes = new Set(WORLD.ferries.flatMap((f) => f.lane.slice(1, -1).map(([q, r]) => `${q},${r}`)));
+  /** On a ferry now: its boat under the player. */
+  private riding: THREE.Object3D | null = null;
+  /** The traveling vendors in town, by the server's schedule, and when it was last asked. */
+  visits: readonly TravelerVisit[] = [];
+  private travelersTimer = 0;
 
   constructor(
     readonly canvas: HTMLCanvasElement,
@@ -315,6 +324,7 @@ export class Overworld {
     this.worldScene.addPatch(k, { tiles, props: data.props, npcs: data.npcs, chests: data.chests, doors: data.doors, entrances: data.entrances, leaves: [], tint: areaAt(WORLD.zones, centre)?.region ?? "hub", seed: k });
     for (const chest of data.chests) if (this.opened.has(`${chest.id}|${spawnEpoch(chest, this.options.now())}`)) this.worldScene.setChest(chest.id, true);
     if (this.space === this.world) this.spawnWorldMobs();
+    this.showCaravans();
   }
 
   private dropMobsOf(k: string): void {
@@ -382,6 +392,7 @@ export class Overworld {
           this.say(`You cross into ${area.name}: tier ${area.tier}.${was && was.tier > 0 ? " The wilds grow harder." : ""}`);
           this.hud.flashArea();
         } else if (!arriving) this.say(town ? `${town.name}.` : `${area.name}: tier ${area.tier}.`);
+        if (town) this.announceTraveler(town.id);
       }
     } else if (this.space.kind === "interior") {
       if (this.area?.name !== this.space.name) {
@@ -412,7 +423,10 @@ export class Overworld {
 
   /** Whether `who` may step onto a hex: open ground nobody else stands on, and no door or stair on the way. */
   free = (who: Walker, goal?: Hex) => (h: Hex): boolean =>
-    this.space.passable(h) && (!this.isStopIn(this.space, h) || (goal !== undefined && equals(h, goal))) && !this.walkers().some((w) => w !== who && equals(w.hex, h));
+    this.space.passable(h) &&
+    (!this.isStopIn(this.space, h) || (goal !== undefined && equals(h, goal))) &&
+    (this.space !== this.world || !this.lanes.has(key(h)) || (who === this.player && this.riding !== null)) &&
+    !this.walkers().some((w) => w !== who && equals(w.hex, h));
 
   mobAt(h: Hex): Mob | undefined {
     return this.mobs.find((m) => equals(m.walker.hex, h) || equals(m.walker.goal, h));
@@ -497,13 +511,13 @@ export class Overworld {
     else this.say("You can't get there.");
   }
 
-  private walkThen(path: Hex[], then?: () => void): void {
+  private walkThen(path: Hex[], then?: () => void, speed = PLAYER_SPEED): void {
     const from = this.player.hex;
     this.player.walk(path, () => {
       this.report(true);
       then?.();
     });
-    if (this.space.kind !== "dungeon") this.presence?.send({ Type: "Move", From: [from.q, from.r], Path: path.map((s) => [s.q, s.r] as const), Speed: PLAYER_SPEED });
+    if (this.space.kind !== "dungeon") this.presence?.send({ Type: "Move", From: [from.q, from.r], Path: path.map((s) => [s.q, s.r] as const), Speed: speed });
   }
 
   private walkBeside(h: Hex, then: () => void): void {
@@ -800,6 +814,9 @@ export class Overworld {
       case "waystone":
         await this.waystone(npc);
         break;
+      case "ferryman":
+        await this.ferry(npc);
+        break;
       case "quest-board":
         await this.dialog(npc.name ?? "Quest board", npc.text && npc.text.length > 0 ? npc.text : ["Nothing is posted."], [{ caption: "Close", value: "close", primary: true }]);
         break;
@@ -848,6 +865,92 @@ export class Overworld {
         this.say(`The waystone carries you to ${DUNGEONS.get(choice)?.name ?? choice}.`);
       };
     });
+  }
+
+  /**
+   * A ferry to a far isle (design.md A6): the ferryman takes you aboard at the dock, the boat carries you along the
+   * lane across the water - the crossing easing by under you, at a walk's pace the server allows - and you step off on
+   * the far shore. Seamless, as a door is.
+   */
+  async ferry(npc: NpcData): Promise<void> {
+    const ferry = WORLD.ferries.find((f) => f.id === npc.ferry);
+    if (!ferry) return;
+    const here = this.player.hex;
+    const fromHere = distance(here, hex(ferry.from[0], ferry.from[1])) <= distance(here, hex(ferry.to[0], ferry.to[1]));
+    const lane = (fromHere ? ferry.lane : [...ferry.lane].reverse()).map(([q, r]) => hex(q, r));
+    const far = lane.at(-1)!;
+    const town = WORLD.towns.slice().sort((a, b) => distance(far, hex(a.center[0], a.center[1])) - distance(far, hex(b.center[0], b.center[1])))[0];
+    const go = await this.dialog(npc.name ?? "The ferryman", [`${ferry.name} crosses to the far shore${town ? `, toward ${town.name}` : ""}. Climb aboard?`], [
+      { caption: "Board", value: true, primary: true },
+      { caption: "Stay", value: false },
+    ]);
+    if (!go) return;
+    const dock = lane[0]!;
+    const toDock = equals(this.player.hex, dock) ? [] : findPath(this.player.hex, dock, this.free(this.player, dock));
+    if (!toDock) {
+      this.say("You can't get to the dock.");
+      return;
+    }
+    await new Promise<void>((resolve) => this.walkThen(toDock, resolve));
+    // Aboard: the boat under you, along the lane at the fastest walk the server takes (4 hexes a second).
+    const b = new Boxes();
+    boat(b);
+    this.riding = b.build();
+    this.character.root.add(this.riding);
+    this.say(`You board ${ferry.name}.`);
+    const speed = this.player.speed;
+    this.player.speed = 3.9;
+    await new Promise<void>((resolve) => this.walkThen(lane.slice(1), resolve, 3.9));
+    this.player.speed = speed;
+    this.character.root.remove(this.riding);
+    this.riding = null;
+    // Off onto the shore beside the far dock.
+    const off = this.nearestOpen(this.world, far);
+    const step = findPath(this.player.hex, off, this.free(this.player));
+    if (step) await new Promise<void>((resolve) => this.walkThen(step, resolve));
+    this.say(`You step off ${ferry.name}${town ? ` near ${town.name}` : ""}.`);
+  }
+
+  // --- Traveling vendors ------------------------------------------------------------------------------------------------
+
+  /** Asks the server who is in town, and shows their caravans at the pitches near the player. */
+  private async askTravelers(): Promise<void> {
+    try {
+      this.visits = (await this.api.travelers()).Visits;
+    } catch {
+      this.visits = [];
+    }
+    this.showCaravans();
+  }
+
+  /** The caravans of the traders in town now, at their towns' pitches (design.md A5); gone when they leave. */
+  private showCaravans(): void {
+    const now = this.options.now() * 1000;
+    for (const pitch of WORLD.pitches) {
+      const visit = this.visits.find((v) => v.Town === pitch.town && Date.parse(v.Until) > now);
+      const k = `caravan:${pitch.town}`;
+      const at = hex(pitch.q, pitch.r);
+      const shown = this.worldScene.hasPatch(k);
+      if (visit && !shown && this.world.chunkAt(at)) {
+        const npc: NpcData = { id: visit.Vendor, q: pitch.q, r: pitch.r, kind: "vendor", vendor: visit.Vendor, name: `${visit.Name} of ${visit.Plane}` };
+        this.world.visit(at, { kind: "npc", npc });
+        this.worldScene.addPatch(k, { tiles: [], props: [{ q: pitch.q, r: pitch.r, kind: "caravan" }], npcs: [npc], chests: [], doors: [], entrances: [], leaves: [], tint: "hub", seed: k });
+      } else if (!visit && shown) {
+        this.world.visit(at, null);
+        this.worldScene.removePatch(k);
+      }
+    }
+  }
+
+  /** What the HUD says of a town's traveling vendor, on coming into it. */
+  private announceTraveler(town: string): void {
+    const now = this.options.now() * 1000;
+    const visit = this.visits.find((v) => v.Town === town && Date.parse(v.Until) > now);
+    if (!visit) return;
+    const until = new Date(visit.Until);
+    const clock = `${String(until.getUTCHours()).padStart(2, "0")}:${String(until.getUTCMinutes()).padStart(2, "0")}`;
+    const name = WORLD.towns.find((t) => t.id === town)?.name ?? town;
+    this.say(`A trader from ${visit.Plane} is in ${name} until ${clock}.`);
   }
 
   private async openChest(id: string): Promise<void> {
@@ -1049,6 +1152,11 @@ export class Overworld {
           for (const v of this.visitors.values()) v.walker.update(seconds);
         }
         if (this.space === this.world) this.background(seconds);
+        this.travelersTimer -= seconds;
+        if (this.travelersTimer <= 0) {
+          this.travelersTimer = 60;
+          void this.askTravelers();
+        }
         if (this.ease) {
           this.ease.t = Math.min(1, this.ease.t + (seconds * 1000) / this.ease.ms);
           const t = this.ease.t * this.ease.t * (3 - 2 * this.ease.t);

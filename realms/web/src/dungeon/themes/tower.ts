@@ -1,12 +1,12 @@
-// Mage tower (coasts and islands: Tolaria; and the mage towers whose waystones carry travellers): a round floor, a
-// ring corridor round the stair column, rooms off it - libraries of shelves and time-rift rooms of crystal - and on
-// the top floor the mage's open hall.
+// Mage tower (coasts and isles: the Academy on Walassa; and the mage towers whose waystones carry travellers): a round
+// floor, a ring corridor round the stair column, rooms off it - libraries of shelves and time-rift rooms of crystal -
+// and on the top floor the mage's open hall.
 
 import { distance, hex } from "../../hex";
 import { type Carver, type FloorBuilder, type FloorRequest, type Look, type Room } from "../floor";
 import { around } from "./common";
 
-export const TOWER_LOOK: Look = { floor: "wood", wall: "stone", wallHeight: 2.2, decor: ["bookshelf", "crystal", "table"], lights: true };
+export const TOWER_LOOK: Look = { floor: "wood", wall: "stone", wallHeight: 2.4, decor: ["bookshelf", "crystal", "table"], lights: true };
 
 const O = hex(0, 0);
 

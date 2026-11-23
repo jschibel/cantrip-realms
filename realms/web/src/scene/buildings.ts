@@ -60,6 +60,18 @@ export function buildStructure(b: Boxes, prop: PropData, tint: PropTint, random:
       return prop.h !== undefined ? innerWall(b, prop) : prop.style ? townWall(b, lookOf(prop.style)) : buildProp(b, "wall", tint, random);
     case "tower":
       return prop.style ? townTower(b, lookOf(prop.style)) : buildProp(b, "tower", tint, random);
+    case "caravan":
+      return caravan(b);
+    case "banner":
+      if (prop.style === "arcane") {
+        // A hanging from another plane, in the arcane ramp, worked with gold.
+        b.box(1.2, 1.7, 0.1, "#3a2f5c", 0, 1.25, 0);
+        b.box(1.0, 1.4, 0.12, "#5e5294", 0, 1.25, 0);
+        b.box(0.4, 0.4, 0.14, "#c4bcef", 0, 1.35, 0, { glow: true });
+        b.box(1.3, 0.1, 0.14, "#ffc94a", 0, 2.12, 0);
+        return;
+      }
+      return buildProp(b, "banner", tint, random);
     case "lamp": {
       b.box(0.1, 1.5, 0.1, "#2e3140", 0, 0.75, 0);
       b.box(0.3, 0.3, 0.3, "#ffc94a", 0, 1.6, 0, { glow: true });
@@ -343,9 +355,36 @@ function townTower(b: Boxes, look: Look): void {
 
 function innerWall(b: Boxes, p: PropData): void {
   const look = lookOf(p.style);
-  const h = p.h ?? 2.4;
-  b.box(1.76, h, 1.76, look.wall, 0, h / 2, 0);
-  if (h > 1) b.box(1.78, 0.2, 1.78, look.trim, 0, h - 0.1, 0);
+  const h = p.h ?? 2.2;
+  // Inside, the walls take the style's second color, darker than the outside's, so the room reads against them.
+  b.box(1.76, h, 1.76, look.wall2, 0, h / 2, 0);
+  b.box(1.78, 0.16, 1.78, look.trim, 0, h - 0.08, 0);
+}
+
+/** A traveling trader's caravan, behind where the trader stands: a wagon under an awning of the arcane ramp. */
+function caravan(b: Boxes): void {
+  // The wagon, a step back.
+  b.box(1.6, 0.8, 1.0, "#73472b", -0.9, 0.75, -0.6);
+  b.box(1.7, 0.1, 1.1, "#4d2f1f", -0.9, 1.2, -0.6);
+  for (const [x, z] of [[-1.6, -1.1], [-0.2, -1.1], [-1.6, -0.1], [-0.2, -0.1]] as const) b.box(0.15, 0.6, 0.15, "#2e1c14", x, 0.3, z);
+  // Its hooped cover, and the planar goods on a table before it.
+  b.box(1.5, 0.6, 1.0, "#5e5294", -0.9, 1.5, -0.6);
+  b.box(1.2, 0.3, 0.8, "#8e82c8", -0.9, 1.9, -0.6);
+  b.box(1.4, 0.08, 0.7, "#9a663c", 0.7, 0.75, 0.6);
+  b.box(0.25, 0.25, 0.25, "#c4bcef", 0.4, 0.92, 0.6, { glow: true });
+  b.box(0.2, 0.3, 0.2, "#ffc94a", 0.9, 0.95, 0.5, { glow: true });
+  // An awning on poles.
+  for (const [x, z] of [[0.1, 0.1], [1.3, 0.1], [0.1, 1.1], [1.3, 1.1]] as const) b.box(0.08, 1.6, 0.08, "#4d2f1f", x, 0.8, z);
+  b.box(1.5, 0.08, 1.3, "#3a2f5c", 0.7, 1.62, 0.6);
+}
+
+/** A ferry boat, carrying whoever stands on it across. */
+export function boat(b: Boxes): void {
+  b.box(2.2, 0.35, 1.2, "#73472b", 0, -0.1, 0);
+  b.box(2.4, 0.15, 1.35, "#4d2f1f", 0, 0.12, 0);
+  b.box(0.5, 0.3, 1.0, "#9a663c", 1.0, 0.25, 0);
+  b.box(0.12, 1.6, 0.12, "#4d2f1f", -0.6, 0.9, 0);
+  b.box(0.06, 0.9, 0.9, "#e0e0e3", -0.55, 1.1, 0);
 }
 
 /** A tier's boundary: a stone (or a banner by a road) in the tier's color, its number in glowing pips up its face. */

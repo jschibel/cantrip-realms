@@ -5,7 +5,7 @@ import { toWorld } from "../../hex";
 import { type Carver, type FloorBuilder, type Look, type Room } from "../floor";
 import { hexAt } from "./common";
 
-export const CASTLE_LOOK: Look = { floor: "marble", wall: "stone", wallHeight: 2.0, decor: ["pillar", "statue", "banner", "crate"], lights: true };
+export const CASTLE_LOOK: Look = { floor: "marble", wall: "stone", wallHeight: 2.4, decor: ["pillar", "statue", "banner", "crate"], lights: true };
 
 export const carveCastle: Carver = (b: FloorBuilder) => {
   // A 3-by-3 grid of halls, 13 world units apart; one of them a courtyard.
