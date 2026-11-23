@@ -350,9 +350,10 @@ function headParts(o: Person): { faces: PartFaces; parts: PartSpec[] } {
   if (o.ears === "pointed" || o.ears === "long") {
     const long = o.ears === "long";
     const ear: Paint = layer(cloth(S, 4), (p) => { p.hline(0, 0, p.width, at(S, 5)); p.put(p.width - 1, p.height - 1, 0, 0); p.hline(1, 1, p.width - 2, at(C.PINK, 2)); });
-    const size: V3 = [long ? 6 : 4, 2, 2];
-    parts.push(part("ear.l", size, [w / 2, h - 5, 0], [0, -1, -1], { front: ear, back: ear, top: cloth(S, 5, false) }, at(S, 4), { parent: "head", tilt: [0, long ? 0.35 : 0.55] }));
-    parts.push(part("ear.r", size, [-w / 2, h - 5, 0], [-size[0], -1, -1], { front: flipX(ear), back: flipX(ear), top: cloth(S, 5, false) }, at(S, 4), { parent: "head", tilt: [0, long ? -0.35 : -0.55] }));
+    const size: V3 = [long ? 7 : 4, long ? 3 : 2, 2];
+    const point: Paint = long ? layer(ear, cutTo((x, y, ww) => y > 0 || x < ww - 2)) : ear;
+    parts.push(part("ear.l", size, [w / 2, h - 5, 0], [0, -1, -1], { front: point, back: point, top: cloth(S, 5, false) }, at(S, 4), { parent: "head", tilt: [0, long ? 0.5 : 0.55] }));
+    parts.push(part("ear.r", size, [-w / 2, h - 5, 0], [-size[0], -1, -1], { front: flipX(point), back: flipX(point), top: cloth(S, 5, false) }, at(S, 4), { parent: "head", tilt: [0, long ? -0.5 : -0.55] }));
   } else if (o.ears && typeof o.ears === "object") {
     const fin = full(o.ears.fin);
     const finPaint: Paint = layer(cloth(fin, 4), (p) => { for (let x = 0; x < p.width; x += 2) p.vline(x, 0, p.height, at(fin, 2)); }, cutTo((x, y, ww, hh) => y >= (x * hh) / (ww * 2)));
@@ -566,6 +567,20 @@ function topFaces(o: Person): PartFaces {
       front = withBelt(layer(cloth(S, 3), (p) => { const m = Math.floor(tw / 2); p.hline(m - 3, 2, 2, at(S, 2)); p.hline(m + 1, 2, 2, at(S, 2)); p.vline(m - 1, 3, th - 4, at(S, 2)); p.put(m - 2, 4, at(S, 2)); p.put(m + 1, 4, at(S, 2)); p.hline(0, 0, tw, at(S, 4)); p.hline(m - 3, 1, 6, at(S, 4)); }));
       back = withBelt(layer(cloth(S, 3), (p) => p.vline(Math.floor(tw / 2) - 1, 1, th - 2, at(S, 2))));
       side = withBelt(cloth(S, 3));
+      if (t.trim) {
+        // A strap from the left shoulder to the right hip, studded.
+        const strap = (mirror: boolean): Paint => (p) => {
+          for (let y = 0; y < p.height - 2; y++) {
+            const x0 = Math.round((y * (p.width - 2)) / Math.max(1, p.height - 3));
+            const x = mirror ? p.width - 2 - x0 : x0;
+            p.put(x, y, at(trim, 2));
+            p.put(x + 1, y, at(trim, 3));
+            if (y % 3 === 1) p.put(x + 1, y, at(GOLD, 4));
+          }
+        };
+        front = layer(front, strap(false));
+        back = layer(back, strap(true));
+      }
       break;
     }
     case "leather": {

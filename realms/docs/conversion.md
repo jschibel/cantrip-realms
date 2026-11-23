@@ -282,7 +282,8 @@ The Characters agent's `art/figures` (interfaces.md "Models" is the reference):
 
 - **The rig** (rig.ts) gained part motions (`motion`: a quadruped's `leg`s in diagonal pairs, `wing`s that beat, a
   `tail` or a body of segments that sways, `bob`, an `orbit`ing relic, a cast's `spark`), `glow`ing parts, `hover`, a
-  walking `lean`, a shadow's `footprint` (tiles; the Actor's `blobShadow(0.42)` should take `spec.footprint ?? 0.42`),
+  walking `lean`, `flies` (wings beating standing too), `leans` (how much of the sprite lean a long four-legged body
+  takes), a tilt about y as well (coils curling round), a shadow's `footprint` (tiles; the Actor's `blobShadow(0.42)` should take `spec.footprint ?? 0.42`),
   and two actions: `figure.act("cast" | "interact", seconds?)` and `figure.acting`. The slice's seven figures use none of
   it and move exactly as before.
 - **Players:** `playerFigure({body, palette, identity, slots})` (player.ts), and `lookFigure(Look, Identity)` for presence
@@ -301,7 +302,8 @@ The Characters agent's `art/figures` (interfaces.md "Models" is the reference):
   The gear check still reads `realms/content/models` (gear models); the new gear parts (`crown`, `hood`, `hat`,
   `cloak`, `gauntlets`, `greaves`, `orb`) can be named by content once that check is a list, as MobMeshes is.
 - **The cast page:** `realms/web/cast.html?set=bodies|identities|gear|parts|creatures|roster|bosses|mages|npcs`, with
-  `heading`, `zoom`, `face=front|angle|side`, `walk`, `act=cast|interact`, `ground`; `e2e/figures.spec.ts` renders every
+  `heading`, `zoom`, `face=front|angle|side`, `walk`, `act=cast|interact`, `ground`, `compare` (the slice's knight and
+  goblin first on each page, the yardstick); four-legged beasts stand three-quarters on unless `face` says; `e2e/figures.spec.ts` renders every
   page, `FIGURE_SHOTS=1` writes its pictures to `e2e/screenshots/figures`.
 
 ## The server (`realms/dotnet`)

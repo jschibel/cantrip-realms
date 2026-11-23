@@ -4,6 +4,7 @@ import { CameraRig, type Framing, HEADING_NAMES, NAME_OF } from "../../render/ca
 import { assembleWorld } from "../../render/assemble";
 import { seeded } from "../paint/pixmap";
 import { CAST_SETS, type CastEntry } from "./catalogue";
+import { figureSpec } from "./index";
 import { Figure } from "./rig";
 
 // The cast (cast.html, dev only): every body, palette, gear part, creature, boss and townsperson the figures registry
@@ -16,6 +17,7 @@ import { Figure } from "./rig";
 //   ?walk             walking on the spot      ?act=cast|interact   acting, again and again
 //   ?ground=grass|cobbles|dirt|...   one ground for every row (otherwise each row its own)
 //   ?manual           the clock moves only when a test advances it (castTest.advance)
+//   ?compare          the slice's knight and goblin first on every page, to judge the rest beside
 //   ?test             publishes globalThis.castTest; ?nolabels hides the names
 
 THREE.ColorManagement.enabled = false;
@@ -26,7 +28,9 @@ const setName = query.get("set") ?? "bodies";
 const set = CAST_SETS[setName] ?? CAST_SETS.bodies!;
 const per = Number(query.get("per") ?? set.perPage);
 const page = Number(query.get("page") ?? 0);
-const entries: readonly CastEntry[] = set.entries().slice(page * per, page * per + per);
+// ?compare stands the slice's knight and goblin at the head of the page, the yardstick every figure is judged by.
+const yardstick: CastEntry[] = query.has("compare") ? ["knight", "goblin"].map((id) => ({ id: `slice-${id}`, label: `(slice) ${id}`, spec: () => figureSpec(id) })) : [];
+const entries: readonly CastEntry[] = [...yardstick, ...set.entries().slice(page * per, page * per + per)];
 const cols = Math.min(set.columns, Math.max(1, entries.length));
 const rowsOf = Math.max(1, Math.ceil(entries.length / cols));
 const gapX = set.spacing;
@@ -67,7 +71,7 @@ renderer.focus.set(width / 2, 0, depth / 2);
 window.addEventListener("resize", () => renderer.setView(rig.viewFor(framing)));
 
 // The figures, in rows from the back, each facing the camera (?face=front|angle|side|back; a set's own by default).
-const facing = query.get("face") ?? set.facing ?? "front";
+const facing = query.get("face");
 const random = seeded(17);
 const realRandom = Math.random;
 Math.random = random;
@@ -75,8 +79,9 @@ const figures: { entry: CastEntry; figure: Figure; at: THREE.Vector3 }[] = entri
   const figure = new Figure(entry.spec());
   const at = new THREE.Vector3(4 + (i % cols) * gapX + gapX / 2, 0, 4 + Math.floor(i / cols) * gapZ + gapZ / 2);
   figure.root.position.copy(at);
-  // People face the camera; beasts are turned a little, so their length shows.
-  const turn = facing === "front" ? 0 : facing === "side" ? Math.PI / 2 : facing === "back" ? Math.PI : 0.75;
+  // Everyone faces south, towards the camera at its front heading, as the slice's figures do - but a beast on four legs
+// stands three-quarters on (CastEntry.turn); ?face=front|angle|side|back turns them all.
+  const turn = facing === "front" ? 0 : facing === "side" ? Math.PI / 2 : facing === "back" ? Math.PI : facing === "angle" ? 0.75 : (entry.turn ?? 0);
   figure.face(Math.sin(turn), Math.cos(turn));
   figure.update(1, 0);
   figure.root.traverse((o) => (o.castShadow = o.receiveShadow = true));

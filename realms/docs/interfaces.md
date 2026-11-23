@@ -293,6 +293,10 @@ mob is built bigger in whole texels, so every size stays crisp. `realms/web/cast
     `dragon-engine`, `drake`, `bird`, `serpent`, `wurm`, `insect`;
   - the bosses, each its own: `lyra`, `teferi`, `liliana`, `garna`, `rofellos`, `praetor`.
 
+  A color a mob's palette does not give is the mesh's own (a `knight`'s fourth, its armor, is iron). Big meshes are made
+  big at size 1 (a giant, an ettin, a treefolk, a wurm, a serpent, a dragon, a baloth): `model.size` grows them from
+  there.
+
   An unknown mesh is drawn as `humanoid`; a mob names only these (`RealmContent.MobMeshes`). The voxel model files
   (`models/<id>.vox.json`, `realms/web/src/voxel`) are the old renderer's, retired at integration.
 - **NPC figures** (the world data's `npcs[].figure`, varied by `seed`, recolored by `palette` slots `cloth`, `trim`,

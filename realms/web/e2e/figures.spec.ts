@@ -97,10 +97,12 @@ for (const set of SETS) {
     test.setTimeout(240_000);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    const { pages, count } = await open(page, `set=${set}`);
+    // The creatures and the roster stand beside the slice's knight and goblin, the yardstick they are judged by.
+    const compare = set === "creatures" || set === "roster" ? "&compare" : "";
+    const { pages, count } = await open(page, `set=${set}${compare}`);
     expect(count, `${set} has figures`).toBeGreaterThan(0);
     for (let n = 0; n < pages; n++) {
-      if (n > 0) await open(page, `set=${set}&page=${n}`);
+      if (n > 0) await open(page, `set=${set}&page=${n}${compare}`);
       await advance(page, 0.5);
       const figures = await page.evaluate(() => (globalThis as any).castTest.figures as { id: string; height: number }[]);
       expect(figures.length).toBeGreaterThan(0);
@@ -115,14 +117,14 @@ for (const set of SETS) {
 /** The bodies, the creatures and the bosses from each of the camera's headings. */
 for (const [set, pageCount] of [
   ["bodies", 1],
-  ["creatures", 5],
+  ["creatures", 6],
   ["bosses", 1],
 ] as const) {
   test(`figures: the ${set} from every heading`, async ({ page }) => {
     test.setTimeout(240_000);
     for (const heading of ["left", "right"] as const) {
       for (let n = 0; n < pageCount; n++) {
-        await open(page, `set=${set}&page=${n}&heading=${heading}`);
+        await open(page, `set=${set}&page=${n}&heading=${heading}${set === "creatures" ? "&compare" : ""}`);
         await advance(page, 0.5);
         expect(await page.evaluate(() => (globalThis as any).castTest.heading)).toBe(heading);
         expect(colorCount(await readFrame(page))).toBeGreaterThan(200);

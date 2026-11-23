@@ -147,8 +147,9 @@ defineMob({
 function elfOf([coat, cloak, hairC]: readonly Ramp[], s: number, next: () => number, id: string, druid: boolean): FigureSpec {
   const skins = [rampOf("#e8b88a", 4), rampOf("#c89468", 4), rampOf("#a87650", 4)];
   const skin = choose(next, skins);
-  const archer = has(id, "archer");
   const warrior = has(id, "warrior", "marhault");
+  // An elf with no other calling is an archer.
+  const archer = !druid && !warrior;
   const rider = false;
   void rider;
   return person({
@@ -233,8 +234,11 @@ defineMob({
       gloves: mechanic ? { ramp: leather! } : undefined,
       right: mechanic ? (has(id, "artiller") ? { kind: "hammer" } : { kind: "wrench" }) : { kind: "axe", blade: metal! },
       left: has(id, "artiller") ? { kind: "torch" } : undefined,
+      extras: [horn("tusk.l", "head", [3, 1, 4], [2, 3, 2], BONE, [0.25, -0.15]), horn("tusk.r", "head", [-3, 1, 4], [2, 3, 2], BONE, [0.25, 0.15]), ...bigEars(skin!, 12, 10, 4)],
       spark: full(C.FIRE),
       stride: 0.8,
+      hunch: 0.25,
+      headTilt: -0.18,
       headShape: { steps: 3, jaw: 0.04, dome: 0.04, back: 0.1 },
     });
   },
@@ -244,78 +248,92 @@ defineMob({
 
 defineMob({
   id: "minotaur",
+  scale: 1.1,
   about: "a Hurloon minotaur: a bull's head with horns and a ring through its nose, bare-chested, hooved, a great axe",
   slots: ["hide", "kilt", "horn"],
   palette: ["#7a4a30", "#c8432c", "#e8e4d8"],
   build: ([hide, kilt, hornR], s, next) => {
-    const b = sized({ head: [11, 9, 10], torso: [14, 8, 8], arm: [5, 10, 5], leg: [5, 6, 5] }, s);
+    const b = sized({ head: [11, 9, 10], torso: [15, 9, 8], arm: [5, 11, 5], leg: [5, 7, 5] }, s);
     const [w, h, d] = b.head;
     const H = hide!;
-    const front: Paint = layer(fur(H, 3), (p) => { p.box(2, h - 6, w - 4, 1, at(H, 2)); }, eyes(w, h - 5, { color: EMBER_EYE, size: 1 }), rows(0, 1, at(H, 4)));
+    // A bull's head: a broad brow of fur, eyes red under it, a pale muzzle thrust out with a ring through it, ears out
+    // to the sides and great horns sweeping out and up.
+    const front: Paint = layer(fur(H, 4), rows(0, 1, at(H, 5)), (p) => { p.hline(1, h - 6, w - 2, at(H, 2)); p.hline(2, 0, w - 4, at(H, 6)); }, eyes(w, h - 4, { color: EMBER_EYE, size: 1 }), (p) => { const m = Math.floor(w / 2); p.vline(m - 1, 2, h - 6, at(H, 5)); });
+    const pale = rampOf(at(H, 5));
     const muzzleW = Math.max(5, w - 4);
+    const hr = full(hornR!);
     const parts: PartSpec[] = [
-      part("muzzle", [muzzleW, 4, 4], [0, 0, d / 2 - 1], [-muzzleW / 2, 0, 0], { front: layer(cloth(rampOf(at(H, 2)), 4), (p) => { p.put(1, 1, C.INK); p.put(muzzleW - 2, 1, C.INK); p.hline(1, 3, muzzleW - 2, at(GOLD, 4)); }), top: cloth(H, 4, false), left: cloth(H, 3) }, at(H, 3), { parent: "head", round: 1.2 }),
-      horn("horn.l", "head", [w / 2 - 1, h - 3, 0], [2, 6, 2], hornR!, [0, -1.15]),
-      horn("horn.r", "head", [-w / 2 + 1, h - 3, 0], [2, 6, 2], hornR!, [0, 1.15]),
-      part("ear.l", [3, 2, 2], [w / 2, h - 5, -1], [0, -1, -1], solid(H, 3), at(H, 3), { parent: "head", tilt: [0, -0.3] }),
-      part("ear.r", [3, 2, 2], [-w / 2, h - 5, -1], [-3, -1, -1], solid(H, 3), at(H, 3), { parent: "head", tilt: [0, 0.3] }),
+      part("muzzle", [muzzleW, 5, 5], [0, 0, d / 2 - 1.5], [-muzzleW / 2, 0, 0], { front: layer(cloth(pale, 3), rows(0, 0, at(pale, 4)), (p) => { p.box(1, 1, 2, 2, C.INK); p.box(muzzleW - 3, 1, 2, 2, C.INK); p.hline(1, 4, muzzleW - 2, at(pale, 1)); }), top: layer(cloth(pale, 4, false), rows(0, 1, at(H, 4))), left: cloth(pale, 2), bottom: cloth(pale, 1, false) }, at(pale, 3), { parent: "head", round: 1.5 }),
+      part("ring", [3, 2, 1], [0, 0, 4.5], [-1.5, -1, 0], { front: layer(cloth(GOLD, 5), cutTo((x, y) => !(x === 1 && y === 0))) }, at(GOLD, 5), { parent: "muzzle", round: 0 }),
+      part("ear.l", [4, 2, 2], [w / 2, h - 4, -1], [0, -1, -1], { front: layer(cloth(H, 4), rows(1, 1, at(C.PINK, 2))), top: cloth(H, 5, false) }, at(H, 3), { parent: "head", tilt: [0, -0.4] }),
+      part("ear.r", [4, 2, 2], [-w / 2, h - 4, -1], [-4, -1, -1], { front: layer(cloth(H, 4), rows(1, 1, at(C.PINK, 2))), top: cloth(H, 5, false) }, at(H, 3), { parent: "head", tilt: [0, 0.4] }),
     ];
+    for (const side of [1, -1] as const) {
+      const n = side > 0 ? "horn.l" : "horn.r";
+      const base = Math.round(5 * Math.sqrt(s));
+      parts.push(part(n, [base, 3, 3], [side * (w / 2 - 1), h - 2, 0], side > 0 ? [0, -1.5, -1.5] : [-base, -1.5, -1.5], solid(hr, 4, rows(0, 0, at(hr, 6))), at(hr, 4), { parent: "head", tilt: [0, side * 0.25], round: 0.5 }));
+      parts.push(horn(`${n}.tip`, n, [side * (base - 1), 0, 0], [2, Math.round(6 * Math.sqrt(s)), 2], hr, [-0.15, -side * 0.35]));
+    }
     return person({
       name: "minotaur",
       build: b,
       skin: H,
-      ownHead: { faces: { front, back: fur(H, 3), left: fur(H, 3), right: fur(H, 3), top: fur(H, 4) }, parts },
-      top: { style: "bare", ramp: H },
+      ownHead: { faces: { front, back: fur(H, 4), left: fur(H, 4), right: fur(H, 4), top: fur(H, 5) }, parts },
+      top: { style: "bare", ramp: H, trim: WOOD },
       sleeves: "none",
-      legs: H,
+      legs: rampOf(at(H, 2)),
       belt: WOOD,
-      boots: { ramp: rampOf("#2a2024"), height: 2 },
-      skirt: { ramp: kilt!, length: 3, ragged: true },
-      pauldrons: next() < 0.5 ? { ramp: H, fur: true } : undefined,
+      boots: { ramp: rampOf("#2a2024"), height: 2, big: true },
+      skirt: { ramp: kilt!, trim: GOLD, length: 4, ragged: true },
+      pauldrons: next() < 0.5 ? { ramp: IRON, trim: kilt! } : undefined,
       right: { kind: "axe", big: true },
       spark: full(C.FIRE),
       stride: 0.7,
-      headTilt: 0.15,
+      hunch: 0.12,
       headShape: { steps: 2, jaw: 0.02, dome: 0.04, back: 0.06 },
+      footprint: 0.55 * s,
     });
   },
 });
 
 function giantOf([skin, cloth2, hairC]: readonly Ramp[], s: number, next: () => number, heads: 1 | 2): FigureSpec {
-  const b = sized({ head: [12, 10, 10], torso: [16, 10, 9], arm: [5, 12, 5], leg: [6, 8, 6] }, s);
+  // A huge man: a bare chest under a strap, a fur kilt, long arms with big fists, a face (and a beard) clear of its hair
+  // - two heads, each on a shoulder, for an ettin.
+  const two = heads === 2;
+  const b = sized({ head: two ? [10, 10, 9] : [12, 11, 10], torso: two ? [18, 11, 9] : [16, 11, 9], arm: [5, 13, 5], leg: [6, 9, 6] }, s);
   const spec = person({
-    name: heads === 2 ? "ettin" : "giant",
+    name: two ? "ettin" : "giant",
     build: b,
     skin: skin!,
-    face: { brow: true, mouth: "grim", blush: false },
-    hair: { ramp: hairC!, style: choose(next, ["wild", "long", "crop"] as HairStyle[]) },
-    beard: { ramp: hairC!, style: choose(next, ["long", "full"] as const) },
-    top: { style: "fur", ramp: cloth2! },
+    face: { brow: true, mouth: "fangs", blush: false },
+    hair: { ramp: hairC!, style: choose(next, ["crop", "wild", "bald", "topknot"] as HairStyle[]) },
+    beard: { ramp: hairC!, style: choose(next, ["full", "short"] as const) },
+    top: { style: "bare", ramp: skin!, trim: WOOD },
+    sleeves: "none",
     legs: cloth2!,
     belt: WOOD,
-    boots: { ramp: cloth2!, height: 4 },
-    pauldrons: { ramp: cloth2!, fur: true },
-    skirt: { ramp: WOOD, length: 4, ragged: true },
-    right: { kind: "club", size: 1.5 * s },
+    boots: { ramp: cloth2!, height: 3, big: true },
+    skirt: { ramp: cloth2!, trim: WOOD, length: 4, ragged: true },
+    gloves: { ramp: rampOf(at(skin!, 2)) },
+    right: { kind: "club", size: 1.4 * Math.sqrt(s) },
     spark: full(C.FIRE),
     stride: 0.55,
     armSwing: 0.45,
+    hunch: 0.08,
+    footprint: 0.6 * s,
   });
-  if (heads === 1) return spec;
-  // The second head: the same, beside the first, on a shoulder.
+  if (!two) return spec;
+  // The second head: a copy of the first, the two apart on the shoulders and leaning out from each other.
   const head = spec.parts.find((p) => p.name === "head")!;
-  const second: PartSpec[] = [];
-  const shift = b.head[0] / 2 + 0.5;
-  const moved = spec.parts.map((p) => (p.name === "head" ? { ...p, at: [shift, p.at[1], p.at[2]] as const } : p));
-  for (const p of spec.parts) {
-    if (p.parent === "head") second.push({ ...p, name: `${p.name}.2`, parent: "head.2" });
-  }
-  second.unshift({ ...head, name: "head.2", at: [-shift, head.at[1] - 1, head.at[2]], tilt: [0.05, 0.12] });
+  const shift = b.torso[0] / 2 - b.head[0] / 2 + 1;
+  const moved = spec.parts.map((p) => (p.name === "head" ? { ...p, at: [shift, p.at[1], p.at[2]] as const, tilt: [0, -0.22] as const } : p));
+  const second: PartSpec[] = [{ ...head, name: "head.2", at: [-shift, head.at[1], head.at[2]], tilt: [0.05, 0.22] }];
+  for (const p of spec.parts) if (p.parent === "head") second.push({ ...p, name: `${p.name}.2`, parent: "head.2" });
   return { ...spec, parts: [...moved, ...second] };
 }
 
-defineMob({ id: "giant", about: "a giant: huge, bearded, in furs, with a tree-trunk club", slots: ["skin", "fur", "hair"], palette: ["#d29f72", "#8f6340", "#6e3a26"], build: (r, s, n) => giantOf(r, s, n, 1) });
-defineMob({ id: "ettin", about: "a two-headed giant: two bearded heads on its shoulders, furs, a club", slots: ["skin", "fur", "hair"], palette: ["#c8432c", "#6b963e", "#4a2420"], build: (r, s, n) => giantOf(r, s, n, 2) });
+defineMob({ id: "giant", scale: 1.25, about: "a giant: huge, bearded, in furs, with a tree-trunk club", slots: ["skin", "fur", "hair"], palette: ["#d29f72", "#8f6340", "#6e3a26"], build: (r, s, n) => giantOf(r, s, n, 1) });
+defineMob({ id: "ettin", scale: 1.25, about: "a two-headed giant: two bearded heads on its shoulders, furs, a club", slots: ["skin", "fur", "hair"], palette: ["#c8432c", "#6b963e", "#4a2420"], build: (r, s, n) => giantOf(r, s, n, 2) });
 
 // --- Merfolk, vampires -----------------------------------------------------------------------------------------------
 
@@ -408,6 +426,7 @@ defineMob({
 
 defineMob({
   id: "demon",
+  scale: 1.15,
   about: "a demon: huge and horned, bat wings, a tail, hooves, glowing eyes",
   slots: ["skin", "wings", "horn"],
   palette: ["#7a1f24", "#2a2b36", "#e8e4d8"],
@@ -419,7 +438,8 @@ defineMob({
       skin: skin!,
       face: { eyes: EMBER_EYE, mouth: "fangs", brow: true, blush: false },
       horns: { ramp: hornR!, size: 2.2 },
-      top: { style: "bare", ramp: skin! },
+      top: { style: "plate", ramp: wingR!, trim: hornR!, emblem: full(C.FIRE) },
+      sleeve: skin!,
       sleeves: "none",
       legs: skin!,
       belt: rampOf("#2a2024"),
@@ -427,7 +447,7 @@ defineMob({
       skirt: { ramp: wingR!, length: 3, ragged: true },
       gloves: { ramp: rampOf(at(skin!, 1)) },
       extras: [
-        ...wings({ kind: "bat", ramp: wingR!, trim: rampOf(at(wingR!, 1)), span: Math.round(18 * s), height: Math.round(16 * s), parent: "torso", at: [2, b.torso[1], -b.torso[2] / 2 - 0.5], raise: 0.45, jointed: true }),
+        ...wings({ kind: "bat", ramp: wingR!, trim: rampOf(at(wingR!, 1)), span: Math.round(18 * s), height: Math.round(16 * s), parent: "torso", at: [2, b.torso[1], -b.torso[2] / 2 - 0.5], raise: 0.75, jointed: true }),
         ...chain({ name: "tail", parent: "torso", at: [0, 1, -b.torso[2] / 2], count: 4, first: [3, 3, 4], last: [1, 1, 4], faces: () => solid(skin!, 3), fill: at(skin!, 3), droop: 0.35, sway: 0.3 }),
       ],
       spark: full(C.FIRE),
@@ -538,6 +558,7 @@ defineMob({
 
 defineMob({
   id: "horror",
+  scale: 1.1,
   about: "a horror: a hunched hulk of the swamp, a fanged maw, many eyes, spines down its back, long claws",
   slots: ["skin", "flesh", "spines"],
   palette: ["#4b2f5e", "#7a1f24", "#2a2b36"],
@@ -560,11 +581,11 @@ defineMob({
     return person({
       name: "horror",
       build: b,
-      skin: skin!,
+      skin: flesh!,
       ownHead: { faces: { front: face, back: cloth(skin!, 3), left: layer(cloth(skin!, 3), speckle(skin!, [2], 0.2)), right: layer(cloth(skin!, 3), speckle(skin!, [2], 0.2)), top: cloth(skin!, 4, false) } },
-      top: { style: "bare", ramp: skin! },
+      top: { style: "bare", ramp: flesh!, trim: spines! },
       sleeves: "none",
-      legs: skin!,
+      legs: rampOf(at(flesh!, 2)),
       belt: null,
       skirt: next() < 0.5 ? { ramp: flesh!, length: 2, ragged: true } : undefined,
       gloves: { ramp: flesh! },
@@ -868,11 +889,12 @@ function shaggy(name: string, [furR, face, accent]: readonly Ramp[], s: number, 
   });
 }
 
-defineMob({ id: "yeti", about: "a yeti: shaggy white fur, a blue face, fangs, long arms, hunched", slots: ["fur", "face", "accent"], palette: ["#e8ecf4", "#93c8dc", "#5b8fd6"], build: (r, s, _n, id) => shaggy("yeti", r, s, false, id) });
-defineMob({ id: "ape", about: "a great ape: dark fur, a bare face and hands, knuckles near the ground; a shaman wears bone and feathers and carries a leafy staff", slots: ["fur", "face", "accent"], palette: ["#2a2b36", "#8c909c", "#3e9a4a"], build: (r, s, _n, id) => shaggy("ape", r, s, true, id) });
+defineMob({ id: "yeti", scale: 1.15, about: "a yeti: shaggy white fur, a blue face, fangs, long arms, hunched", slots: ["fur", "face", "accent"], palette: ["#e8ecf4", "#93c8dc", "#5b8fd6"], build: (r, s, _n, id) => shaggy("yeti", r, s, false, id) });
+defineMob({ id: "ape", scale: 1.1, about: "a great ape: dark fur, a bare face and hands, knuckles near the ground; a shaman wears bone and feathers and carries a leafy staff", slots: ["fur", "face", "accent"], palette: ["#2a2b36", "#8c909c", "#3e9a4a"], build: (r, s, _n, id) => shaggy("ape", r, s, true, id) });
 
 defineMob({
   id: "treefolk",
+  scale: 1.2,
   about: "a treefolk: a trunk of bark for a body, a face in it, root legs, branch arms and a crown of leaves",
   slots: ["leaves", "bark", "accent"],
   palette: ["#3e9a4a", "#8f6340", "#d6ae7e"],
@@ -956,7 +978,7 @@ function constructOf(name: string, [body, glow, dark]: readonly Ramp[], s: numbe
 const next3 = (id: string) => id.length % 3;
 
 defineMob({ id: "construct", about: "a construct: a riveted metal soldier, glowing eyes and a glowing core; a Triskelion's three arms, a Leveler's tower on its back", slots: ["metal", "glow", "dark"], palette: ["#8c909c", "#62a4c2", "#2a2b36"], build: (r, s, _n, id) => constructOf("construct", r, s, false, id) });
-defineMob({ id: "golem", about: "a golem: blocks of stone or obsidian, a glowing core and eyes", slots: ["stone", "glow", "dark"], palette: ["#4a4f58", "#f1b44c", "#1a1a24"], build: (r, s, _n, id) => constructOf("golem", r, s, true, id) });
+defineMob({ id: "golem", scale: 1.15, about: "a golem: blocks of stone or obsidian, a glowing core and eyes", slots: ["stone", "glow", "dark"], palette: ["#4a4f58", "#f1b44c", "#1a1a24"], build: (r, s, _n, id) => constructOf("golem", r, s, true, id) });
 
 export type { V3 };
 export { bigEars, quiver, has, human, sized, luma, SLIM, BRUTE, ROBED, SOLDIER, SMALL };

@@ -14,7 +14,16 @@ export interface CastEntry {
   readonly id: string;
   readonly label: string;
   readonly spec: () => FigureSpec;
+  /**
+   * How far it is turned from facing the camera, radians: a four-legged beast stands three-quarters on, since facing the
+   * camera its body is hidden behind its head (and the figures' lean stacks the two into a column).
+   */
+  readonly turn?: number;
 }
+
+/** The meshes on four (or six) legs, shown three-quarters on. */
+const ON_ALL_FOURS = new Set(["beast", "boar", "rat", "cat", "lhurgoyf", "horse", "pegasus", "elk-rider", "insect"]);
+const turnOf = (mesh: string) => (ON_ALL_FOURS.has(mesh) ? 0.65 : 0);
 
 export interface CastSet {
   readonly title: string;
@@ -23,8 +32,6 @@ export interface CastSet {
   readonly columns: number;
   /** Tiles between figures. */
   readonly spacing: number;
-  /** Which way the figures face: the camera, or turned so a beast's length shows. */
-  readonly facing?: "front" | "angle" | "side";
 }
 
 interface GearFile {
@@ -124,33 +131,31 @@ export const CAST_SETS: Readonly<Record<string, CastSet>> = {
   },
   creatures: {
     title: "Mob meshes",
-    perPage: 12,
+    perPage: 10,
     columns: 6,
     spacing: 4,
-    facing: "angle",
-    entries: once(() => MOB_MESHES.ids().map((mesh) => ({ id: `mesh-${mesh}`, label: mesh, spec: () => mobFigure({ mesh, palette: [] }, mesh) }))),
+    entries: once(() => MOB_MESHES.ids().map((mesh) => ({ id: `mesh-${mesh}`, label: mesh, spec: () => mobFigure({ mesh, palette: [] }, mesh), turn: turnOf(mesh) }))),
   },
   roster: {
     title: "The roster",
-    perPage: 12,
+    perPage: 10,
     columns: 6,
     spacing: 4,
-    facing: "angle",
-    entries: once(() => mobFiles.map((m) => ({ id: `mob-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature) }))),
+    entries: once(() => mobFiles.map((m) => ({ id: `mob-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature), turn: turnOf(m.model.mesh) }))),
   },
   bosses: {
     title: "Bosses",
     perPage: 6,
     columns: 3,
     spacing: 6,
-    entries: once(() => mobFiles.filter((m) => m.boss || BOSS_IDS.includes(m.model.mesh)).map((m) => ({ id: `boss-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature) }))),
+    entries: once(() => mobFiles.filter((m) => m.boss || BOSS_IDS.includes(m.model.mesh)).map((m) => ({ id: `boss-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature), turn: turnOf(m.model.mesh) }))),
   },
   mages: {
     title: "The tower mages",
     perPage: 20,
     columns: 5,
     spacing: 4,
-    entries: once(() => mobFiles.filter((m) => m.id.startsWith("mage-")).map((m) => ({ id: `mage-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature) }))),
+    entries: once(() => mobFiles.filter((m) => m.id.startsWith("mage-")).map((m) => ({ id: `mage-${m.id}`, label: m.creature, spec: () => mobFigure(m.model, m.id, m.creature), turn: turnOf(m.model.mesh) }))),
   },
   npcs: {
     title: "Townsfolk",

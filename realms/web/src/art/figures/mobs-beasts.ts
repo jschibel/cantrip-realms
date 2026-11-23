@@ -34,7 +34,9 @@ interface Quad {
   readonly headSides: Paint;
   readonly muzzle?: { readonly size: V3; readonly faces: PartFaces };
   readonly paws?: Ramp;
-  readonly tail?: { readonly count: number; readonly first: V3; readonly last: V3; readonly faces: (i: number) => PartFaces; readonly droop?: number };
+  readonly tail?: { readonly count: number; readonly first: V3; readonly last: V3; readonly faces: (i: number) => PartFaces; readonly droop?: number; readonly curl?: number };
+  /** Aloft: hovering this many texels, its wings beating standing too. */
+  readonly hover?: number;
   readonly headParts?: (w: number, h: number, d: number) => PartSpec[];
   readonly bodyParts?: (w: number, h: number, d: number) => PartSpec[];
   readonly wings?: Omit<WingSpec, "parent" | "at">;
@@ -53,7 +55,7 @@ function quad(o: Quad): FigureSpec {
   parts.push(part("torso", body, [0, lh, 0], [-bw / 2, 0, -bd / 2], { front: o.coat, back: o.coat, left: o.coat, right: flipX(o.coat), top: o.coat, bottom: o.belly ?? o.coat }, o.fill));
   parts.push(...legs4({ body, leg, faces: allSides(o.legPaint), fill: o.fill, paws: o.paws ? { ramp: o.paws } : undefined }));
   let headParent = "torso";
-  let headAt: V3 = [0, bh * 0.55, bd / 2 - 1];
+  let headAt: V3 = [0, bh * 0.42, bd / 2 - 1];
   let headTilt = 0;
   if (o.neck) {
     const neck = v3(o.neck.size, o.s);
@@ -68,15 +70,16 @@ function quad(o: Quad): FigureSpec {
     parts.push(part("muzzle", m, [0, -hh / 2 + m[1] / 2, hd * (2 / 3) - 1], [-m[0] / 2, -m[1] / 2, 0], o.muzzle.faces, o.fill, { parent: "head", round: Math.min(1.5, Math.floor(Math.min(...m) / 3)) }));
   }
   if (o.headParts) parts.push(...o.headParts(hw, hh, hd));
-  if (o.tail) parts.push(...chain({ name: "tail", parent: "torso", at: [0, bh * 0.7, -bd / 2 + 0.5], count: o.tail.count, first: v3(o.tail.first, o.s), last: v3(o.tail.last, o.s), faces: o.tail.faces, fill: o.fill, droop: o.tail.droop ?? 0.35, sway: 0.25 }));
+  if (o.tail) parts.push(...chain({ name: "tail", parent: "torso", at: [0, bh * 0.7, -bd / 2 + 0.5], count: o.tail.count, first: v3(o.tail.first, o.s), last: v3(o.tail.last, o.s), faces: o.tail.faces, fill: o.fill, droop: o.tail.droop ?? 0.35, curl: o.tail.curl, sway: 0.25 }));
   if (o.bodyParts) parts.push(...o.bodyParts(bw, bh, bd));
   if (o.wings) parts.push(...wings({ ...o.wings, span: k(o.wings.span, o.s), height: k(o.wings.height, o.s), parent: "torso", at: [bw / 2 - 1, bh, bd / 4] }));
-  return { name: o.name, parts, stride: o.stride ?? 0.6, armSwing: 0, lean: 0.03, footprint: Math.max(0.45, Math.max(bw, bd) / 26) };
+  return { name: o.name, parts, stride: o.stride ?? 0.6, armSwing: 0, lean: 0.03, footprint: Math.max(0.45, Math.max(bw, bd) / 26), hover: o.hover, flies: o.hover !== undefined, leans: 0.35 };
 }
 
 /** A face for a beast: eyes up top, a nose below. */
 function beastFace(r: Ramp, w: number, h: number, eye: number = C.INK, nose = true): Paint {
-  return layer(fur(r, 3), rows(0, 0, at(r, 4)), eyes(w, Math.max(2, Math.floor(h / 2)), { color: eye, glint: eye === C.INK }), nose ? (p) => { const m = Math.floor(w / 2) - 1; p.put(m, h - 2, C.INK); p.put(m + 1, h - 2, C.INK); } : undefined);
+  // A brow over the eyes, the eyes each with a glint of light, and a nose below.
+  return layer(fur(r, 3), rows(0, 0, at(r, 5)), (p) => p.hline(1, Math.max(2, Math.floor(h / 2)) - 2, w - 2, at(r, 2)), eyes(w, Math.max(2, Math.floor(h / 2)), { color: eye, glint: true }), nose ? (p) => { const m = Math.floor(w / 2) - 1; p.put(m, h - 2, C.INK); p.put(m + 1, h - 2, C.INK); } : undefined);
 }
 
 function ears(kind: "pointed" | "round" | "long", r: Ramp, w: number, h: number, size = 1): PartSpec[] {
@@ -92,7 +95,7 @@ function ears(kind: "pointed" | "round" | "long", r: Ramp, w: number, h: number,
 /** Spikes down a back. */
 function ridge(r: Ramp, count: number, d: number, h: number, size: number): PartSpec[] {
   const out: PartSpec[] = [];
-  for (let i = 0; i < count; i++) out.push(horn(`ridge.${i}`, "torso", [0, h - 1, d / 2 - 2 - (i * (d - 3)) / Math.max(1, count - 1)], [2, k(3 + (i % 2), size), 2], r, [-0.35, 0]));
+  for (let i = 0; i < count; i++) out.push(horn(`ridge.${i}`, "torso", [0, h - 1, d / 2 - 2 - (i * (d - 3)) / Math.max(1, count - 1)], [3, k(4 + 2 * ((i + 1) % 2) + (i < count / 2 ? 2 : 0), size), 3], r, [-0.4, 0]));
   return out;
 }
 
@@ -100,6 +103,7 @@ function ridge(r: Ramp, count: number, d: number, h: number, size: number): Part
 
 defineMob({
   id: "beast",
+  scale: 1.2,
   about: "a great beast (a baloth): a bulky body on thick legs, a horned head with a jaw of tusks, spikes down its back",
   slots: ["hide", "belly", "horn"],
   palette: ["#6b963e", "#8f6340", "#f1b44c"],
@@ -107,7 +111,7 @@ defineMob({
     quad({
       name: "beast",
       s,
-      body: [14, 10, 18],
+      body: [16, 11, 18],
       leg: [5, 6, 5],
       head: [11, 9, 9],
       coat: layer(scales(hide!, 3), speckle(hide!, [2, 5], 0.08)),
@@ -117,7 +121,7 @@ defineMob({
       face: layer(scales(hide!, 3), eyes(11, 3, { color: EMBER_EYE, size: 1 }), rows(6, 8, at(belly!, 2)), (p) => { for (let x = 1; x < 10; x += 3) p.put(x, 6, 0xf4ecd4); }),
       headSides: scales(hide!, 3),
       paws: BONE,
-      headParts: (w, h) => [horn("horn.l", "head", [w / 2 - 2, h / 2 - 1, 1], [2, 5, 2], hornR!, [-0.3, -0.6]), horn("horn.r", "head", [-w / 2 + 2, h / 2 - 1, 1], [2, 5, 2], hornR!, [-0.3, 0.6]), horn("tusk.l", "head", [w / 2 - 2, -h / 2 + 1, 3], [1, 3, 1], BONE, [0.3, -0.3]), horn("tusk.r", "head", [-w / 2 + 2, -h / 2 + 1, 3], [1, 3, 1], BONE, [0.3, 0.3])],
+      headParts: (w, h) => [horn("horn.l", "head", [w / 2 - 2, h / 2 - 1, 1], [3, 8, 3], hornR!, [-0.2, -0.75]), horn("horn.r", "head", [-w / 2 + 2, h / 2 - 1, 1], [3, 8, 3], hornR!, [-0.2, 0.75]), horn("tusk.l", "head", [w / 2 - 2, -h / 2 + 1, 3], [2, 4, 2], BONE, [0.3, -0.3]), horn("tusk.r", "head", [-w / 2 + 2, -h / 2 + 1, 3], [2, 4, 2], BONE, [0.3, 0.3])],
       bodyParts: (w, h, d) => ridge(hornR!, 5, d, h, s),
       tail: { count: 3, first: [4, 4, 5], last: [2, 2, 4], faces: () => allSides(scales(hide!, 3)) },
       stride: 0.5,
@@ -133,19 +137,19 @@ defineMob({
     quad({
       name: "boar",
       s,
-      body: [10, 8, 14],
-      leg: [3, 4, 3],
-      head: [9, 8, 8],
+      body: [12, 9, 14],
+      leg: [3, 5, 3],
+      head: [10, 8, 8],
       coat: fur(hide!, 3),
       legPaint: fur(hide!, 2),
       fill: at(hide!, 3),
       face: beastFace(hide!, 9, 8, C.INK, false),
       headSides: fur(hide!, 3),
-      muzzle: { size: [5, 4, 3], faces: { front: layer(cloth(rampOf(at(hide!, 4)), 3), (p) => { p.put(1, 1, C.INK); p.put(3, 1, C.INK); }), left: fur(hide!, 3), top: fur(hide!, 4) } },
+      muzzle: { size: [6, 5, 4], faces: { front: layer(cloth(rampOf("#d88a8a"), 3), rows(0, 0, at(rampOf("#d88a8a"), 4)), (p) => { p.box(1, 2, 1, 2, C.INK); p.box(4, 2, 1, 2, C.INK); }), left: fur(hide!, 3), top: fur(hide!, 4) } },
       paws: rampOf("#2a2024"),
-      headParts: (w, h, d) => [...ears("pointed", hide!, w, h), horn("tusk.l", "head", [2.5, -h / 2 + 1, d * 0.6], [1, 4, 1], tusk!, [-0.2, -0.5]), horn("tusk.r", "head", [-2.5, -h / 2 + 1, d * 0.6], [1, 4, 1], tusk!, [-0.2, 0.5])],
+      headParts: (w, h, d) => [...ears("pointed", hide!, w, h), horn("tusk.l", "muzzle", [2, 0, 2], [2, 5, 2], tusk!, [0.35, -0.45]), horn("tusk.r", "muzzle", [-2, 0, 2], [2, 5, 2], tusk!, [0.35, 0.45]), horn("bristle.0", "head", [0, h / 2 - 1, 0], [2, 4, 2], mane!, [-0.5, 0])],
       bodyParts: (w, h, d) => [part("mane", [3, 3, d - 2], [0, h - 1, 0], [-1.5, 0, -(d - 2) / 2], { left: layer(fur(mane!, 3), (p) => { for (let x = 0; x < p.width; x += 2) p.put(x, 0, 0, 0); }), right: layer(fur(mane!, 3), (p) => { for (let x = 0; x < p.width; x += 2) p.put(x, 0, 0, 0); }), front: fur(mane!, 3), top: fur(mane!, 4) }, at(mane!, 3), { parent: "torso" })],
-      tail: { count: 2, first: [1, 1, 3], last: [1, 1, 2], faces: () => solid(hide!, 3), droop: 0.8 },
+      tail: { count: 3, first: [1, 1, 2], last: [1, 1, 2], faces: () => solid(hide!, 3), droop: -0.4, curl: 0.9 },
       stride: 0.75,
     }),
 });
@@ -167,9 +171,9 @@ defineMob({
       fill: at(furR!, 3),
       face: beastFace(furR!, 7, 6, at(eye!, 5), false),
       headSides: fur(furR!, 3),
-      muzzle: { size: [3, 3, 4], faces: { front: layer(cloth(furR!, 3), (p) => p.put(1, 0, at(skin!, 4))), left: layer(fur(furR!, 3), (p) => p.put(3, 0, at(skin!, 4))), top: fur(furR!, 4) } },
-      headParts: (w, h) => ears("round", skin!, w, h),
-      tail: { count: 5, first: [1, 1, 3], last: [1, 1, 3], faces: () => solid(skin!, 3), droop: 0.15 },
+      muzzle: { size: [4, 3, 5], faces: { front: layer(cloth(furR!, 4), (p) => { p.put(1, 0, at(skin!, 4)); p.put(2, 0, at(skin!, 4)); p.put(0, 2, 0xf4ecd4); p.put(3, 2, 0xf4ecd4); p.put(1, 2, 0xf4ecd4); p.put(2, 2, 0xf4ecd4); }), left: layer(fur(furR!, 3), (p) => { p.put(4, 0, at(skin!, 4)); p.put(3, 2, 0xf4ecd4); }), top: fur(furR!, 4) } },
+      headParts: (w, h) => [...ears("round", skin!, w + 2, h + 2), part("tooth", [2, 2, 1], [0, -2, 6], [-1, -1, 0], { front: cloth(rampOf("#f4ecd4"), 4) }, 0xf4ecd4, { parent: "muzzle", round: 0 })],
+      tail: { count: 7, first: [1, 1, 3], last: [1, 1, 3], faces: () => solid(skin!, 3), droop: -0.06, curl: 0.32 },
       stride: 0.8,
     }),
 });
@@ -203,6 +207,7 @@ defineMob({
 
 defineMob({
   id: "lhurgoyf",
+  scale: 1.15,
   about: "a lhurgoyf: a hunched reptile beast, a heavy head of jaws, a spiky mane down its back, a thick tail",
   slots: ["hide", "mane", "belly"],
   palette: ["#5d6646", "#8f6340", "#d6ae7e"],
@@ -210,9 +215,9 @@ defineMob({
     quad({
       name: "lhurgoyf",
       s,
-      body: [11, 9, 15],
+      body: [13, 11, 15],
       leg: [4, 5, 4],
-      head: [10, 9, 10],
+      head: [10, 8, 10],
       coat: scales(hide!, 3),
       belly: cloth(belly!, 3),
       legPaint: scales(hide!, 2),
@@ -220,22 +225,25 @@ defineMob({
       face: layer(scales(hide!, 3), eyes(10, 3, { color: GHOUL_EYE, size: 1 }), (p) => { p.box(1, 5, 8, 3, at(hide!, 0)); for (let x = 1; x < 9; x += 2) { p.put(x, 5, 0xf4ecd4); p.put(x + 1, 7, 0xf4ecd4); } }),
       headSides: scales(hide!, 3),
       paws: BONE,
-      bodyParts: (w, h, d) => ridge(mane!, 6, d, h, s),
-      tail: { count: 4, first: [5, 5, 4], last: [2, 2, 4], faces: () => allSides(scales(hide!, 3)), droop: 0.3 },
+      headParts: (w, h) => [horn("crest.0", "head", [0, h / 2 - 1, 0], [3, 6, 3], mane!, [-0.6, 0]), horn("crest.1", "head", [2.5, h / 2 - 1, -1], [2, 5, 2], mane!, [-0.6, -0.4]), horn("crest.2", "head", [-2.5, h / 2 - 1, -1], [2, 5, 2], mane!, [-0.6, 0.4])],
+      bodyParts: (w, h, d) => ridge(mane!, 7, d, h, s),
+      tail: { count: 4, first: [5, 5, 4], last: [2, 2, 4], faces: () => allSides(scales(hide!, 3)), droop: 0.3, curl: 0.2 },
       stride: 0.55,
     }),
 });
 
 defineMob({
   id: "pegasus",
+  scale: 1.1,
   about: "a pegasus: a white horse with feathered wings, a mane and a flowing tail",
   slots: ["coat", "mane", "wings"],
   palette: ["#f2efe6", "#93c8dc", "#e8e4d8"],
-  build: ([coat, mane, wingR], s) => horse("pegasus", coat!, mane!, s, { kind: "feather", ramp: wingR!, trim: rampOf(at(mane!, 4)), span: 15, height: 14, raise: 0.4 }),
+  build: ([coat, mane, wingR], s) => horse("pegasus", coat!, mane!, s, { kind: "feather", ramp: wingR!, trim: rampOf(at(mane!, 4)), span: 18, height: 16, raise: 0.75, jointed: true }),
 });
 
 defineMob({
   id: "horse",
+  scale: 1.1,
   about: "a horse: a long body on long legs, a maned neck and head, a flowing tail",
   slots: ["coat", "mane", "tack"],
   palette: ["#7c4630", "#24141c", "#c8343a"],
@@ -267,6 +275,7 @@ function horse(name: string, coat: Ramp, mane: Ramp, s: number, wing?: Omit<Wing
 
 defineMob({
   id: "elk-rider",
+  scale: 1.1,
   about: "elven riders: an elf with a spear astride an antlered elk",
   slots: ["coat", "cloak", "elk"],
   palette: ["#4f7a34", "#2a4524", "#8f6340"],
@@ -313,7 +322,7 @@ function dragonOf(name: string, [hide, wingR, belly]: readonly Ramp[], s: number
     body: [12, 10, 18],
     leg: [4, 7, 5],
     head: [9, 8, 11],
-    neck: { size: [6, 12, 6], lean: -0.5 },
+    neck: { size: [6, 16, 6], lean: -0.4 },
     coat: layer(skin, engine ? (p) => { for (let x = 1; x < p.width; x += 4) p.put(x, 1, at(GOLD, 4)); } : undefined),
     belly: layer(cloth(belly!, 3), (p) => { for (let y = 0; y < p.height; y += 2) p.hline(0, y, p.width, at(belly!, 2)); }),
     legPaint: skin,
@@ -327,15 +336,16 @@ function dragonOf(name: string, [hide, wingR, belly]: readonly Ramp[], s: number
       part("jaw", [w - 2, 2, d - 3], [0, -h / 2, 0], [-(w - 2) / 2, -2, -d / 3 + 1], { front: layer(cloth(H, 2), (p) => { for (let x = 0; x < p.width; x += 2) p.put(x, 0, 0xf4ecd4); }), left: cloth(H, 2), bottom: cloth(belly!, 3, false) }, at(H, 2), { parent: "head", round: 0.5 }),
     ],
     bodyParts: (w, h, d) => ridge(belly!, 5, d, h, s),
-    tail: { count: 6, first: [6, 6, 5], last: [2, 2, 4], faces: (i) => (i === 5 ? { ...allSides(skin), front: layer(cloth(belly!, 4), pointUp) } : allSides(skin)), droop: 0.12 },
-    wings: { kind: "bat", ramp: wingR!, trim: rampOf(at(H, 2)), span: 22, height: 18, raise: 0.5, jointed: true },
+    tail: { count: 7, first: [6, 6, 5], last: [2, 2, 4], faces: (i) => (i === 6 ? { ...allSides(skin), front: layer(cloth(belly!, 4), pointUp) } : allSides(skin)), droop: 0.1, curl: 0.22 },
+    wings: { kind: "bat", ramp: wingR!, trim: rampOf(at(H, 2)), span: 20, height: 18, raise: 0.75, jointed: true },
+    hover: 6,
     stride: 0.5,
   });
   return { ...spec, footprint: (spec.footprint ?? 0.5) * 1.1 };
 }
 
-defineMob({ id: "dragon", about: "a dragon: a great scaled body on four legs, a long neck, a horned head with a jaw of teeth, vast jointed bat wings, a long spined tail", slots: ["hide", "wings", "belly"], palette: ["#c8432c", "#8f2f2f", "#f1b44c"], build: (r, s) => dragonOf("dragon", r, s, false) });
-defineMob({ id: "dragon-engine", about: "a Phyrexian dragon engine: a dragon of riveted plate, its eyes glowing oil-green, wings of metal sheets", slots: ["plate", "wings", "trim"], palette: ["#8c909c", "#4a4f58", "#c8432c"], build: (r, s) => dragonOf("dragon-engine", r, s, true) });
+defineMob({ id: "dragon", scale: 1.15, about: "a dragon: a great scaled body on four legs, a long neck, a horned head with a jaw of teeth, vast jointed bat wings, a long spined tail", slots: ["hide", "wings", "belly"], palette: ["#c8432c", "#8f2f2f", "#f1b44c"], build: (r, s) => dragonOf("dragon", r, s, false) });
+defineMob({ id: "dragon-engine", scale: 1.15, about: "a Phyrexian dragon engine: a dragon of riveted plate, its eyes glowing oil-green, wings of metal sheets", slots: ["plate", "wings", "trim"], palette: ["#8c909c", "#4a4f58", "#c8432c"], build: (r, s) => dragonOf("dragon-engine", r, s, true) });
 
 defineMob({
   id: "drake",
@@ -356,9 +366,9 @@ defineMob({
       horn("horn.l", "head", [2, 3, -2], [1, 4, 1], belly!, [-1.1, -0.2]),
       horn("horn.r", "head", [-2, 3, -2], [1, 4, 1], belly!, [-1.1, 0.2]),
       ...chain({ name: "tail", parent: "torso", at: [0, bh * 0.5, -bd / 2 + 0.5], count: 5, first: v3([5, 5, 4], s), last: [1, 1, 4], faces: () => allSides(scales(H, 3)), fill: at(H, 3), droop: 0.2, sway: 0.3 }),
-      ...wings({ kind: "bat", ramp: wingR!, trim: rampOf(at(H, 2)), span: k(16, s), height: k(13, s), parent: "torso", at: [bw / 2 - 1, bh - 1, 2], raise: 0.55, jointed: true }),
+      ...wings({ kind: "bat", ramp: wingR!, trim: rampOf(at(H, 2)), span: k(16, s), height: k(13, s), parent: "torso", at: [bw / 2 - 1, bh - 1, 2], raise: 0.8, jointed: true }),
     ];
-    return { name: "drake", parts, stride: 0.7, armSwing: 0, lean: 0.05, hover: 3, footprint: 0.5 * s };
+    return { name: "drake", parts, stride: 0.7, armSwing: 0, lean: 0.05, hover: 5, flies: true, footprint: 0.5 * s };
   },
 });
 
@@ -384,7 +394,7 @@ defineMob({
       ...chain({ name: "tail", parent: "torso", at: [0, bh * 0.4, -bd / 2 + 0.5], count: 3, first: v3([4, 1, 5], s), last: v3([3, 1, 6], s), faces: (i) => ({ top: feathers(i % 2 ? tailR! : wingR!, 4, false), bottom: feathers(tailR!, 3, false), front: cloth(tailR!, 4), left: cloth(tailR!, 3) }), fill: at(tailR!, 4), droop: 0.25, sway: 0.2, axis: "x" }),
       ...wings({ kind: "feather", ramp: wingR!, trim: tailR!, span: k(9, s), height: k(8, s), parent: "torso", at: [bw / 2 - 1, bh - 1, 0], raise: 0.4 }),
     ];
-    return { name: "bird", parts, stride: 0.9, armSwing: 0, lean: 0.05, hover: 4, footprint: 0.35 * s };
+    return { name: "bird", parts, stride: 0.9, armSwing: 0, lean: 0.05, hover: 6, flies: true, footprint: 0.35 * s };
   },
 });
 
@@ -392,60 +402,72 @@ defineMob({
 
 defineMob({
   id: "serpent",
-  about: "a sea serpent: coils along the ground, a neck reared up, a finned head with fangs",
+  scale: 1.3,
+  about: "a sea serpent: thick coils looped on the ground, a neck reared up in an S, a finned head with fangs",
   slots: ["scales", "fins", "belly"],
   palette: ["#2f5fa8", "#93c8dc", "#f4ecc2"],
   build: ([sc, fin, belly], s) => {
     const S = sc!;
     const r = (v: number) => k(v, s);
-    const coils = chain({ name: "coil", parent: "torso", at: [0, 0, -r(3)], count: 6, first: [r(7), r(6), r(5)], last: [r(2), r(2), r(4)], faces: (i) => ({ ...allSides(scales(S, 3)), bottom: cloth(belly!, 3, false), top: scales(S, 4) }), fill: at(S, 3), sway: 0.35, rate: 3 });
+    const bellied: Paint = layer(cloth(belly!, 3), (p) => { for (let y = 0; y < p.height; y += 2) p.hline(0, y, p.width, at(belly!, 2)); });
     const finPaint: Paint = layer(cloth(fin!, 4), (p) => { for (let x = 0; x < p.width; x += 2) p.vline(x, 0, p.height, at(fin!, 2)); }, cutTo((x, y, w, h) => y >= h - 1 - Math.round((x / w) * (h - 1))));
+    // The coils loop round behind and beside the reared neck, thick at the front and tapering to the tail.
+    const coils = chain({ name: "coil", parent: "torso", at: [r(3), r(1), -r(2)], count: 8, first: [r(8), r(7), r(6)], last: [r(2), r(2), r(4)], faces: () => ({ ...allSides(scales(S, 3)), bottom: cloth(belly!, 3, false), top: scales(S, 4) }), fill: at(S, 3), sway: 0.12, rate: 2.4, curl: 0.72, round: 2 });
+    const crest = (n: string, parent: string, len: number): PartSpec => part(n, [1, r(4), len], [0, r(4), -r(2)], [-0.5, 0, -len / 2], { left: finPaint, right: flipX(finPaint), top: cloth(fin!, 4, false) }, at(fin!, 4), { parent });
     const parts: PartSpec[] = [
-      part("torso", [r(8), r(7), r(7)], [0, 0, 0], [-r(4), 0, -r(3.5)], { ...allSides(scales(S, 3)), front: layer(cloth(belly!, 3), (p) => { for (let y = 0; y < p.height; y += 2) p.hline(0, y, p.width, at(belly!, 2)); }) }, at(S, 3), { round: 2 }),
-      part("neck", [r(6), r(12), r(6)], [0, r(5), r(1)], [-r(3), 0, -r(3)], { ...allSides(scales(S, 3)), front: layer(cloth(belly!, 3), (p) => { for (let y = 0; y < p.height; y += 2) p.hline(0, y, p.width, at(belly!, 2)); }) }, at(S, 3), { parent: "torso", tilt: [-0.15, 0], motion: { kind: "tail", delay: 0, amount: 0.12, axis: "z", rate: 2 }, round: 2 }),
-      part("head", [r(8), r(7), r(10)], [0, r(12), r(1)], [-r(4), -r(1), -r(3)], { front: layer(scales(S, 3), eyes(r(8), 2, { color: GHOUL_EYE, size: 1 }), (p) => { p.box(1, p.height - 3, p.width - 2, 2, at(S, 0)); p.put(2, p.height - 3, 0xf4ecd4); p.put(p.width - 3, p.height - 3, 0xf4ecd4); }), back: scales(S, 3), left: scales(S, 3), right: scales(S, 3), top: scales(S, 4) }, at(S, 3), { parent: "neck", tilt: [0.2, 0], round: 2, shape: { ...HEAD, jaw: 0.2 } }),
-      part("fin.l", [r(5), r(6), 1], [r(4), r(4), -r(2)], [0, -r(2), -0.5], { front: finPaint, back: finPaint }, at(fin!, 4), { parent: "head", tilt: [0, 0.3] }),
-      part("fin.r", [r(5), r(6), 1], [-r(4), r(4), -r(2)], [-r(5), -r(2), -0.5], { front: flipX(finPaint), back: flipX(finPaint) }, at(fin!, 4), { parent: "head", tilt: [0, -0.3] }),
-      part("crest", [1, r(5), r(8)], [0, r(3), -r(2)], [-0.5, 0, -r(4)], { left: finPaint, right: flipX(finPaint), top: cloth(fin!, 4, false) }, at(fin!, 4), { parent: "neck" }),
+      part("torso", [r(9), r(8), r(8)], [0, 0, 0], [-r(4.5), 0, -r(4)], { ...allSides(scales(S, 3)), front: bellied }, at(S, 3), { round: 2.5 }),
+      part("neck", [r(7), r(10), r(7)], [0, r(6), r(1)], [-r(3.5), 0, -r(3.5)], { ...allSides(scales(S, 3)), front: bellied }, at(S, 3), { parent: "torso", tilt: [-0.3, 0], motion: { kind: "tail", delay: 0, amount: 0.1, axis: "z", rate: 2 }, round: 2.5 }),
+      part("neck.2", [r(6), r(9), r(6)], [0, r(9), 0], [-r(3), 0, -r(3)], { ...allSides(scales(S, 3)), front: bellied }, at(S, 3), { parent: "neck", tilt: [0.55, 0], motion: { kind: "tail", delay: 0.8, amount: 0.12, axis: "z", rate: 2 }, round: 2 }),
+      part("head", [r(8), r(7), r(11)], [0, r(9), r(1)], [-r(4), -r(1), -r(3)], { front: layer(scales(S, 4), eyes(r(8), 2, { color: GHOUL_EYE, size: 1 }), (p) => { p.box(0, p.height - 3, p.width, 3, at(S, 0)); for (let x = 1; x < p.width - 1; x += 2) p.put(x, p.height - 3, 0xf4ecd4); p.put(1, p.height - 2, 0xf4ecd4); p.put(p.width - 2, p.height - 2, 0xf4ecd4); }), back: scales(S, 3), left: layer(scales(S, 3), (p) => p.put(p.width - 3, 2, GHOUL_EYE)), right: layer(scales(S, 3), (p) => p.put(2, 2, GHOUL_EYE)), top: scales(S, 4) }, at(S, 3), { parent: "neck.2", tilt: [0.35, 0], round: 2, shape: { ...HEAD, jaw: 0.25 } }),
+      part("fin.l", [r(6), r(7), 1], [r(4), r(4), -r(2)], [0, -r(2), -0.5], { front: finPaint, back: finPaint }, at(fin!, 4), { parent: "head", tilt: [0, 0.35] }),
+      part("fin.r", [r(6), r(7), 1], [-r(4), r(4), -r(2)], [-r(6), -r(2), -0.5], { front: flipX(finPaint), back: flipX(finPaint) }, at(fin!, 4), { parent: "head", tilt: [0, -0.35] }),
+      crest("crest", "neck", r(7)),
+      crest("crest.2", "neck.2", r(6)),
       ...coils,
     ];
-    return { name: "serpent", parts, stride: 0, armSwing: 0, lean: 0, footprint: 0.55 * s };
+    return { name: "serpent", parts, stride: 0, armSwing: 0, lean: 0, footprint: 0.6 * s };
   },
 });
 
 defineMob({
   id: "wurm",
-  about: "a wurm: a vast ringed body of segments along the ground, its front reared up into a round maw of teeth",
+  scale: 1.4,
+  about: "a wurm: a vast ringed body coiled along the ground, its front reared up and bent over into a round maw ringed with fangs",
   slots: ["hide", "plates", "maw"],
   palette: ["#3e9a4a", "#8f6340", "#d6ae7e"],
   build: ([hide, platesR, maw], s) => {
     const H = hide!;
     const r = (v: number) => k(v, s);
-    const ringed = (i: number): Paint => layer(scales(H, 3), (p) => { for (let x = 0; x < p.width; x += 3) p.vline(x, 0, p.height, at(platesR!, i % 2 ? 2 : 3)); });
-    const segs = chain({ name: "body", parent: "torso", at: [0, r(4), -r(4)], count: 6, first: [r(10), r(9), r(6)], last: [r(4), r(4), r(5)], faces: (i) => ({ ...allSides(ringed(i)), top: layer(plates(platesR!, 3, 4)), bottom: cloth(maw!, 2, false) }), fill: at(H, 3), sway: 0.3, rate: 2.4, round: 2 });
+    const ringed = (i: number): Paint => layer(scales(H, 3), (p) => { for (let y = 0; y < p.height; y += 3) p.hline(0, y, p.width, at(platesR!, i % 2 ? 2 : 3)); });
+    const ring = (i: number): PartFaces => ({ ...allSides(ringed(i)), top: plates(platesR!, 3, 4), bottom: cloth(maw!, 2, false) });
+    const segs = chain({ name: "body", parent: "torso", at: [0, r(3), -r(4)], count: 7, first: [r(11), r(10), r(7)], last: [r(4), r(4), r(6)], faces: ring, fill: at(H, 3), sway: 0.14, rate: 2, round: 3, curl: 0.5 });
+    const mawPaint: Paint = layer(cloth(maw!, 1), (p) => {
+      const cx = (p.width - 1) / 2;
+      const cy = (p.height - 1) / 2;
+      for (let y = 0; y < p.height; y++) {
+        for (let x = 0; x < p.width; x++) {
+          const d = Math.hypot(x - cx, y - cy) / (p.width / 2);
+          if (d > 0.9) p.put(x, y, at(H, 3));
+          else if (d > 0.7) p.put(x, y, at(maw!, 5));
+          else if (d > 0.5) p.put(x, y, (Math.round(Math.atan2(y - cy, x - cx) * 3) % 2 === 0) ? 0xf4ecd4 : at(maw!, 2));
+          else p.put(x, y, at(maw!, d < 0.25 ? 0 : 1));
+        }
+      }
+    });
+    const hw = r(13);
+    const fangs: PartSpec[] = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+      fangs.push(horn(`fang.${i}`, "head", [Math.cos(a) * hw * 0.32, hw / 2 + Math.sin(a) * hw * 0.32, r(9) - r(4) - 0.5], [2, r(4), 2], full(rampOf("#f4ecd4")), [1.3, -Math.cos(a) * 0.5]));
+    }
     const parts: PartSpec[] = [
-      part("torso", [r(11), r(10), r(8)], [0, 0, 0], [-r(5.5), 0, -r(4)], { ...allSides(ringed(0)), top: plates(platesR!, 3, 4) }, at(H, 3), { round: 2 }),
-      part("head", [r(12), r(12), r(9)], [0, r(7), r(1)], [-r(6), 0, -r(4)], {
-        front: layer(cloth(maw!, 1), (p) => {
-          const cx = (p.width - 1) / 2;
-          const cy = (p.height - 1) / 2;
-          for (let y = 0; y < p.height; y++) {
-            for (let x = 0; x < p.width; x++) {
-              const d = Math.hypot(x - cx, y - cy) / (p.width / 2);
-              if (d > 0.85) p.put(x, y, at(H, 3));
-              else if (d > 0.62) p.put(x, y, (x + y) % 2 ? 0xf4ecd4 : at(maw!, 4));
-              else p.put(x, y, at(maw!, d < 0.3 ? 0 : 1));
-            }
-          }
-        }),
-        back: ringed(1),
-        left: ringed(1),
-        right: ringed(1),
-        top: plates(platesR!, 3, 4),
-      }, at(H, 3), { parent: "torso", tilt: [-0.35, 0], round: 3, motion: { kind: "tail", delay: 0, amount: 0.1, axis: "x", rate: 1.6 } }),
+      part("torso", [r(12), r(10), r(9)], [0, 0, 0], [-r(6), 0, -r(4.5)], ring(0), at(H, 3), { round: 3 }),
+      part("rise", [r(11), r(10), r(9)], [0, r(8), r(1)], [-r(5.5), 0, -r(4.5)], ring(1), at(H, 3), { parent: "torso", tilt: [-0.2, 0], round: 3, motion: { kind: "tail", delay: 0, amount: 0.08, axis: "z", rate: 1.6 } }),
+      part("head", [hw, hw, r(9)], [0, r(9), r(1)], [-hw / 2, 0, -r(4)], { front: mawPaint, back: ringed(1), left: ringed(1), right: ringed(1), top: plates(platesR!, 3, 4), bottom: cloth(maw!, 2, false) }, at(H, 3), { parent: "rise", tilt: [0.75, 0], round: 3, shape: { steps: 3, jaw: 0.08, dome: 0.1, back: 0.15 }, motion: { kind: "tail", delay: 0.6, amount: 0.12, axis: "x", rate: 1.6 } }),
+      ...fangs,
       ...segs,
     ];
-    return { name: "wurm", parts, stride: 0, armSwing: 0, lean: 0, footprint: 0.7 * s };
+    return { name: "wurm", parts, stride: 0, armSwing: 0, lean: 0, footprint: 0.8 * s };
   },
 });
 

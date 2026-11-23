@@ -16,6 +16,8 @@ export interface MobMesh {
   readonly slots: readonly string[];
   /** The colors when a mob names none. */
   readonly palette: readonly string[];
+  /** How big the mesh is at size 1 against a person: a giant, a dragon or a wurm is made big before the mob's size. */
+  readonly scale?: number;
   /**
    * The figure: `ramps` the palette's colors in the order of `slots`, `size` the mob's, `seed` draws its variations,
    * and `words` are the mob's id and its creature's name in lower case, which pick variations by name first.
@@ -59,8 +61,10 @@ export function meshOf(model: MobModel): MobMesh {
  */
 export function mobFigure(model: MobModel, id = model.mesh, creature = ""): FigureSpec {
   const mesh = meshOf(model);
-  const size = model.size && model.size > 0 ? Math.min(3, model.size) : 1;
-  const ramps = rampsOf(model.palette, Math.max(1, mesh.slots.length), mesh.palette);
+  const size = Math.min(3.5, (model.size && model.size > 0 ? Math.min(3, model.size) : 1) * (mesh.scale ?? 1));
+  // A color the mob does not give is the mesh's own (a knight's armor is iron unless its palette says).
+  const colors = mesh.palette.map((own, i) => model.palette[i] ?? own);
+  const ramps = rampsOf(colors, Math.max(1, mesh.slots.length), mesh.palette);
   const words = `${id} ${creature}`.toLowerCase();
   const spec = mesh.build(ramps, size, seeded(hashOf(id)), words);
   return { ...spec, name: `mob:${mesh.id}:${model.palette.join("")}:${size}:${id}:${creature}` };

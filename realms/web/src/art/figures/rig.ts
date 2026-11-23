@@ -34,8 +34,11 @@ export interface PartSpec {
   readonly faces: PartFaces;
   /** Fill for faces not painted. */
   readonly fill: Rgb;
-  /** A fixed tilt, radians about x then z (a goblin's ears, a ghoul's hunch). */
-  readonly tilt?: readonly [number, number];
+  /**
+   * A fixed tilt, radians about x then z (a goblin's ears, a ghoul's hunch), and optionally about y (a serpent's coils
+   * curling round).
+   */
+  readonly tilt?: readonly [number, number] | readonly [number, number, number];
   /** How far its edges are rounded, in texels: by default a third of its thinnest side, at most 2. */
   readonly round?: number;
   /** A head's shaping (see `headShape`). */
@@ -99,6 +102,13 @@ export interface FigureSpec {
   readonly hover?: number;
   /** How wide its shadow is, in tiles (a radius); about 0.42 for a person. */
   readonly footprint?: number;
+  /** Its wings beat standing as well as moving: it is aloft (a dragon, a bird, a drake). */
+  readonly flies?: boolean;
+  /**
+   * How much of the sprite lean (`setLean`) it takes, 1 by default: a long body on four legs takes less, or seen head-on
+   * the lean stands its back up behind its head in a column.
+   */
+  readonly leans?: number;
 }
 
 export const PX = 1 / 16;
@@ -239,7 +249,7 @@ export class Figure {
       group.name = part.name;
       const parent = part.parent ? this.joints.get(part.parent)?.group : this.body;
       group.position.set(part.at[0] * PX, part.at[1] * PX, part.at[2] * PX);
-      if (part.tilt) group.rotation.set(part.tilt[0], 0, part.tilt[1]);
+      if (part.tilt) group.rotation.set(part.tilt[0], part.tilt[2] ?? 0, part.tilt[1]);
       (parent ?? this.body).add(group);
       this.joints.set(part.name, { name: part.name, group, rest: group.rotation.clone(), at: group.position.clone(), motion: part.motion });
       if (part.motion?.kind === "spark") {
@@ -290,7 +300,8 @@ export class Figure {
    * one texel to a pixel (cos pitch / cos(pitch - angle)) - and its top shrinks to a sliver, as a sprite's does. The
    * camera's pitch and turn are passed in, so the lean follows the camera through a doorway's easing.
    */
-  setLean(angle: number, pitch: number, yaw: number): void {
+  setLean(full: number, pitch: number, yaw: number): void {
+    const angle = full * (this.spec.leans ?? 1);
     this.lean.rotation.set(-angle, yaw, 0, "YXZ");
     this.lean.scale.y = Math.cos(pitch) / Math.cos(pitch - angle);
     this.yaw = yaw;
@@ -388,8 +399,9 @@ export class Figure {
         break;
       case "wing": {
         // A slow open and close standing, a quick beat walking, and spread up and wide when casting.
-        const beat = Math.sin(t * 11) * 0.45 * walk;
-        const idle = Math.sin(t * 1.8) * 0.08 * (1 - walk);
+        const aloft = this.spec.flies ? Math.max(walk, 0.7) : walk;
+        const beat = Math.sin(t * (this.spec.flies ? 7 : 11)) * 0.45 * aloft;
+        const idle = Math.sin(t * 1.8) * 0.08 * (1 - aloft);
         g.rotation.set(j.rest.x, j.rest.y - m.side * 0.35 * casting, j.rest.z + m.side * ((m.amount ?? 1) * (beat + idle) + 0.45 * casting));
         break;
       }

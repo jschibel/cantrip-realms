@@ -134,6 +134,8 @@ export function chain(o: {
   readonly fill: Rgb;
   /** Radians each segment bends down from the one before (negative: up, a cat's tail, a scorpion's). */
   readonly droop?: number;
+  /** Radians each segment turns aside from the one before: a tail curling round, a serpent's coils. */
+  readonly curl?: number;
   readonly sway?: number;
   /** Down (y) instead of back (z): a hanging tail of smoke. */
   readonly down?: boolean;
@@ -149,7 +151,7 @@ export function chain(o: {
     const size: V3 = [Math.max(1, Math.round(o.first[0] + (o.last[0] - o.first[0]) * t)), Math.max(1, Math.round(o.first[1] + (o.last[1] - o.first[1]) * t)), Math.max(1, Math.round(o.first[2] + (o.last[2] - o.first[2]) * t))];
     const name = `${o.name}.${i}`;
     const box: V3 = o.down ? [-size[0] / 2, -size[1], -size[2] / 2] : [-size[0] / 2, -size[1] / 2, -size[2]];
-    out.push(part(name, size, pivot, box, o.faces(i, size), o.fill, { parent, tilt: [-(o.droop ?? 0), 0], motion: { kind: "tail", delay: (i + 1) * 0.6, amount: o.sway ?? 0.22, axis: o.axis ?? "y", rate: o.rate }, round: o.round ?? Math.min(2, Math.floor(Math.min(size[0], size[1], size[2]) / 3)) }));
+    out.push(part(name, size, pivot, box, o.faces(i, size), o.fill, { parent, tilt: [-(o.droop ?? 0), 0, o.curl ?? 0], motion: { kind: "tail", delay: (i + 1) * 0.6, amount: o.sway ?? 0.22, axis: o.axis ?? "y", rate: o.rate }, round: o.round ?? Math.min(2, Math.floor(Math.min(size[0], size[1], size[2]) / 3)) }));
     parent = name;
     pivot = o.down ? [0, -size[1] + 0.5, 0] : [0, 0, -size[2] + 0.5];
   }
@@ -163,7 +165,7 @@ export function chain(o: {
 export function legs4(o: { readonly body: V3; readonly leg: V3; readonly faces: PartFaces; readonly fill: Rgb; readonly inset?: number; readonly paws?: { readonly ramp: Ramp; readonly height?: number } }): PartSpec[] {
   const [bw, , bd] = o.body;
   const [lw, lh, ld] = o.leg;
-  const inset = o.inset ?? 1;
+  const inset = o.inset ?? 0;
   const out: PartSpec[] = [];
   const spots: [string, number, number, number, boolean][] = [
     ["leg.fl", bw / 2 - lw / 2 - inset * 0.5, bd / 2 - ld / 2 - inset, 0, true],
@@ -172,7 +174,8 @@ export function legs4(o: { readonly body: V3; readonly leg: V3; readonly faces: 
     ["leg.br", -bw / 2 + lw / 2 + inset * 0.5, -bd / 2 + ld / 2 + inset, 0, false],
   ];
   for (const [name, x, z, phase, front] of spots) {
-    out.push(part(name, o.leg, [x, lh, z], [-lw / 2, -lh, -ld / 2], o.faces, o.fill, { motion: { kind: "leg", phase, amount: 0.55, front } }));
+    // Splayed a little, feet out past the body, so the four legs show from the front as well as the side.
+    out.push(part(name, o.leg, [x, lh, z], [-lw / 2, -lh, -ld / 2], o.faces, o.fill, { tilt: [0, Math.sign(x) * 0.14], motion: { kind: "leg", phase, amount: 0.55, front } }));
     if (o.paws) {
       const ph = o.paws.height ?? 1;
       out.push(part(`${name}.paw`, [lw + 1, ph, ld + 1], [0, -lh, 0.5], [-(lw + 1) / 2, 0, -(ld + 1) / 2], solid(full(o.paws.ramp), 2, rows(0, 0, at(full(o.paws.ramp), 4))), at(full(o.paws.ramp), 2), { parent: name, round: 0 }));
