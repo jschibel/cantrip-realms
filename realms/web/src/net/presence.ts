@@ -1,31 +1,41 @@
 // Presence (realms/docs/interfaces.md, "Presence"): the WebSocket at /realm/ws that shows the other players on your
-// map instance walking, in their gear. Each frame is one MessagePack map: its `Type` names the message, the rest of
-// its keys are the message's fields, PascalCase. Paths are sent, not frames - every client walks the others itself.
-// Offline (?offline) the same messages go between the tabs of one browser over a BroadcastChannel, which stands in
-// for the server's relay so two tabs see each other.
+// map instance walking, in their gear. Each frame is one MessagePack union, `[key, {Field: value, ...}]`, as
+// Cantrip.Protocol's messages are: the key names the message (the tables below), the map holds its fields by name,
+// PascalCase. A time is Unix milliseconds on the server's clock. Paths are sent, not frames - every client walks the
+// others itself. Offline (?offline) the same messages go between the tabs of one browser over a BroadcastChannel,
+// which stands in for the server's relay so two tabs see each other.
 
 import { decode, encode } from "@msgpack/msgpack";
 
 export type At = readonly [number, number];
 
+/** A worn item's look in one slot: its gear mesh and its colors. */
+export interface SlotLook {
+  readonly Mesh: string;
+  readonly Palette: readonly string[];
+}
+
 export interface Look {
+  /** A body: lithe, broad, tall or stocky. */
   readonly Body: string;
   readonly Palette: number;
-  /** Each worn slot's look: the gear mesh and its colors. */
-  readonly Slots: Readonly<Record<string, { readonly Mesh: string; readonly Palette: readonly string[] }>>;
+  /** Each worn slot's look. */
+  readonly Slots: Readonly<Record<string, SlotLook>>;
 }
 
 export interface Other {
-  readonly Player: string;
+  /** A number for the connection, never the player's account. */
+  readonly Player: number;
   readonly Name: string;
-  readonly Identity: readonly string[];
+  /** The player's colors, as letters in WUBRG order. */
+  readonly Identity: string;
   readonly Look: Look;
   /** Where the player's current walk began. */
   readonly At: At;
   /** The hexes of that walk, after `At`; empty when standing. */
   readonly Path: readonly At[];
-  /** When the walk began, UTC ISO-8601. */
-  readonly Since: string;
+  /** When the walk began, Unix milliseconds on the server's clock. */
+  readonly Since: number;
   /** The walk's speed, hexes a second. */
   readonly Speed: number;
 }
@@ -37,24 +47,50 @@ export type ClientMessage =
   | { readonly Type: "Emote"; readonly Emote: string };
 
 export type ServerMessage =
-  | { readonly Type: "Welcome"; readonly Instance: string; readonly Others: readonly Other[] }
+  | { readonly Type: "Welcome"; readonly Instance: number; readonly Player: number; readonly Others: readonly Other[] }
   | ({ readonly Type: "Other" } & Other)
-  | { readonly Type: "Moved"; readonly Player: string; readonly From: At; readonly Path: readonly At[]; readonly Speed: number; readonly Since: string }
-  | { readonly Type: "Looked"; readonly Player: string; readonly Look: Look }
-  | { readonly Type: "Emoted"; readonly Player: string; readonly Emote: string }
-  | { readonly Type: "Left"; readonly Player: string }
-  | { readonly Type: "Refused"; readonly At: At };
+  | { readonly Type: "Moved"; readonly Player: number; readonly From: At; readonly Path: readonly At[]; readonly Speed: number; readonly Since: number }
+  | { readonly Type: "Looked"; readonly Player: number; readonly Look: Look }
+  | { readonly Type: "Emoted"; readonly Player: number; readonly Emote: string }
+  | { readonly Type: "Left"; readonly Player: number }
+  | { readonly Type: "Refused"; readonly Reason: string; readonly At: At };
 
-const SERVER_TYPES = new Set(["Welcome", "Other", "Moved", "Looked", "Emoted", "Left", "Refused"]);
+/** The union keys of each side's messages (interfaces.md, "Presence"). */
+export const CLIENT_KEYS: Readonly<Record<ClientMessage["Type"], number>> = { Enter: 0, Move: 1, Look: 2, Emote: 3 };
+export const SERVER_KEYS: Readonly<Record<ServerMessage["Type"], number>> = { Welcome: 0, Other: 1, Moved: 2, Looked: 3, Emoted: 4, Left: 5, Refused: 6 };
+const CLIENT_TYPES = new Map(Object.entries(CLIENT_KEYS).map(([type, k]) => [k, type]));
+const SERVER_TYPES = new Map(Object.entries(SERVER_KEYS).map(([type, k]) => [k, type]));
 
-export const encodeMessage = (message: ClientMessage | ServerMessage): Uint8Array => encode(message);
+const frame = (key: number, message: { readonly Type: string }): Uint8Array => {
+  const { Type: _, ...fields } = message;
+  return encode([key, fields]);
+};
+
+/** A client message as a frame: `[key, {fields}]`. */
+export const encodeClient = (message: ClientMessage): Uint8Array => frame(CLIENT_KEYS[message.Type], message);
+
+/** A server message as a frame (what the offline relay and the tests make). */
+export const encodeServer = (message: ServerMessage): Uint8Array => frame(SERVER_KEYS[message.Type], message);
+
+function decodeUnion<T>(bytes: ArrayBuffer | Uint8Array, types: ReadonlyMap<number, string>): T | null {
+  let value: unknown;
+  try {
+    value = decode(bytes);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(value) || value.length !== 2 || typeof value[0] !== "number") return null;
+  const type = types.get(value[0]);
+  const fields: unknown = value[1];
+  if (!type || typeof fields !== "object" || fields === null || Array.isArray(fields)) return null;
+  return { ...(fields as Record<string, unknown>), Type: type } as T;
+}
 
 /** A server frame, or null for one that is not a message this client knows (a newer server's, say). */
-export function decodeServer(bytes: ArrayBuffer | Uint8Array): ServerMessage | null {
-  const value = decode(bytes) as { Type?: unknown } | null;
-  if (typeof value !== "object" || value === null || typeof value.Type !== "string" || !SERVER_TYPES.has(value.Type)) return null;
-  return value as ServerMessage;
-}
+export const decodeServer = (bytes: ArrayBuffer | Uint8Array): ServerMessage | null => decodeUnion<ServerMessage>(bytes, SERVER_TYPES);
+
+/** A client frame, or null for one that is none. */
+export const decodeClient = (bytes: ArrayBuffer | Uint8Array): ClientMessage | null => decodeUnion<ClientMessage>(bytes, CLIENT_TYPES);
 
 export interface Presence {
   /** Called with every message from the relay. */
@@ -91,8 +127,8 @@ export class SocketPresence implements Presence {
     socket.binaryType = "arraybuffer";
     socket.onopen = () => {
       this.retry = 500;
-      for (const again of [this.entered, this.looked]) if (again) socket.send(encodeMessage(again));
-      for (const frame of this.queue.splice(0)) socket.send(frame);
+      for (const again of [this.entered, this.looked]) if (again) socket.send(encodeClient(again));
+      for (const queued of this.queue.splice(0)) socket.send(queued);
     };
     socket.onmessage = (e: MessageEvent) => {
       if (!(e.data instanceof ArrayBuffer)) return;
@@ -109,11 +145,15 @@ export class SocketPresence implements Presence {
   }
 
   send(message: ClientMessage): void {
-    if (message.Type === "Enter") this.entered = message;
+    if (message.Type === "Enter") {
+      this.entered = message;
+      // Walks queued on the map before are no walks on this one.
+      this.queue.length = 0;
+    }
     if (message.Type === "Look") this.looked = message;
-    const frame = encodeMessage(message);
-    if (this.connected) this.socket!.send(frame);
-    else if (message.Type !== "Enter" && message.Type !== "Look") this.queue.push(frame);
+    const encoded = encodeClient(message);
+    if (this.connected) this.socket!.send(encoded);
+    else if (message.Type !== "Enter" && message.Type !== "Look") this.queue.push(encoded);
   }
 
   close(): void {
@@ -123,9 +163,9 @@ export class SocketPresence implements Presence {
 }
 
 interface Peer {
-  readonly Player: string;
+  readonly Player: number;
   readonly Name: string;
-  readonly Identity: readonly string[];
+  readonly Identity: string;
 }
 
 /** What a tab tells the others offline: who it is, its map, and the message it would have sent the server. */
@@ -136,7 +176,7 @@ interface Broadcast extends Peer {
   readonly At: At;
   readonly Path: readonly At[];
   readonly Speed: number;
-  readonly Since: string;
+  readonly Since: number;
 }
 
 /**
@@ -152,9 +192,9 @@ export class LocalPresence implements Presence {
   private at: At = [0, 0];
   private path: readonly At[] = [];
   private speed = 0;
-  private since = new Date().toISOString();
+  private since = Date.now();
   /** Which map each other tab is on. */
-  private readonly others = new Map<string, string | null>();
+  private readonly others = new Map<number, string | null>();
 
   constructor(
     private readonly me: Peer,
@@ -213,13 +253,13 @@ export class LocalPresence implements Presence {
       case "Enter":
         this.map = message.Map;
         this.path = [];
-        this.onMessage({ Type: "Welcome", Instance: `offline:${message.Map}`, Others: [] });
+        this.onMessage({ Type: "Welcome", Instance: 1, Player: this.me.Player, Others: [] });
         break;
       case "Move":
         this.at = message.From;
         this.path = message.Path;
         this.speed = message.Speed;
-        this.since = new Date().toISOString();
+        this.since = Date.now();
         break;
       case "Look":
         this.look = { Body: message.Body, Palette: message.Palette, Slots: message.Slots };

@@ -2,7 +2,7 @@ import type { ManaColor } from "./character";
 import type { CardScreens } from "./cardLayer";
 import { type Hex, toWorld } from "./hex";
 import type { GameMap } from "./maps/gameMap";
-import type { Character as CharacterData } from "./net/api";
+import { type Character as CharacterData, identityOf } from "./net/api";
 import { terrainColor } from "./scene/world";
 
 // The HUD (tech.md, B5): who you are and the stats a duel starts from (design.md, A1), your identity's pips, your gold
@@ -44,7 +44,7 @@ export class Hud {
   }
 
   showCharacter(c: CharacterData): void {
-    const pips = c.Identity.map((color) => `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}"></span>`).join("");
+    const pips = identityOf(c).map((color) => `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}"></span>`).join("");
     this.character.innerHTML = `
       <div class="name"><span class="pips">${pips}</span><span data-test="hud:name"></span></div>
       <div class="stats"><span title="Starting life">Life <b>${c.Stats.Life}</b></span><span title="Starting hand size">Hand <b>${c.Stats.Hand}</b></span><span title="Maximum hand size">Max <b>${c.Stats.MaxHand}</b></span></div>

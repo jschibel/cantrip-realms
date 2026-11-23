@@ -61,6 +61,16 @@ public sealed class PresenceTests
     private static int[][] Path(params (int Q, int R)[] steps) => [.. steps.Select(step => new[] { step.Q, step.R })];
 
     [Fact]
+    public void A_frame_is_the_union_the_overworld_writes_byte_for_byte()
+    {
+        // realms/web/src/net/presence.test.ts checks the same bytes from its side.
+        Assert.Equal("920081a34d6170af62656e616c6973682d6d6561646f77", Convert.ToHexStringLower(MessagePackSerializer.Serialize<PresenceClientMessage>(new EnterMessage { Map = "benalish-meadow" })));
+        Assert.Equal(
+            "920183a446726f6d920000a45061746891920100a55370656564cb400c000000000000",
+            Convert.ToHexStringLower(MessagePackSerializer.Serialize<PresenceClientMessage>(new MoveMessage { From = [0, 0], Path = [[1, 0]], Speed = 3.5 })));
+    }
+
+    [Fact]
     public async Task Players_on_a_map_see_each_other_enter_walk_look_emote_and_leave()
     {
         await using var app = new RealmApp();

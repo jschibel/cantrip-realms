@@ -280,6 +280,7 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
   to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
   and for loadout slots only a gear mesh of `realms/content/models` and up to eight `#rrggbb` colors.
+- The overworld reports where it is (`/api/travel`) before it sends `Enter` for a map, so the server knows it is there.
 
 ## Spawns
 

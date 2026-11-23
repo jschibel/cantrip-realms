@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findPath, hex } from "../hex";
 import { GameMap } from "./gameMap";
+import { mobInfo } from "../mobs";
 import { innOf, worldLocation } from "./graph";
 import { type MapData, validateMap } from "./schema";
 
@@ -24,6 +25,14 @@ describe("Dominaria's maps", () => {
       expect(validateMap(map, ids)).toEqual([]);
     });
   }
+
+  it("name only mobs and vendors the content has", () => {
+    const vendors = new Set(Object.keys(import.meta.glob("../../../content/dominaria/vendors/*.json")).map((p) => p.slice(p.lastIndexOf("/") + 1, -".json".length)));
+    for (const map of maps.values()) {
+      for (const spawn of map.spawns) for (const mob of spawn.mobs) expect(mobInfo(mob).known, `${map.id} ${spawn.id}: ${mob}`).toBe(true);
+      for (const npc of map.npcs) if (npc.kind === "vendor") expect(vendors.has(npc.vendor!), `${map.id}: ${npc.vendor}`).toBe(true);
+    }
+  });
 
   it("join up both ways: an exit from one map to another has one back", () => {
     for (const map of maps.values()) {
