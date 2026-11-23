@@ -23,7 +23,8 @@ public sealed class ArmorerChestTests
         ArmorerView evening = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-argive");
         Assert.Equal(morning.Stock.Select(item => item.Id), evening.Stock.Select(item => item.Id));
 
-        await browser.Refused(HttpMethod.Get, "/api/armorer/benalish-meadow", null, HttpStatusCode.NotFound, Codes.NoArmorer);
+        await browser.Refused(HttpMethod.Get, "/api/armorer/keld", null, HttpStatusCode.NotFound, Codes.NoArmorer);
+        await browser.Refused(HttpMethod.Get, "/api/armorer/nowhere", null, HttpStatusCode.NotFound, Codes.NoArmorer);
     }
 
     [Fact]
@@ -31,6 +32,7 @@ public sealed class ArmorerChestTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
+        await browser.Inside("new-argive-smithy");
         ArmorerView shop = await browser.Ok<ArmorerView>(HttpMethod.Get, "/api/armorer/new-argive");
         GearItem item = shop.Stock.Where(item => item.Gold <= Characters.StartingGold).OrderBy(item => item.Gold).First();
 
@@ -51,7 +53,13 @@ public sealed class ArmorerChestTests
         await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, 0)));
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.CannotAfford);
 
-        await browser.Travel("benalish-meadow", new Hex(0, 0));
+        // Out of the smithy, in the street or the inn, the armorer does not trade.
+        await app.Store(db => db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, 5000)));
+        await browser.Put(RealmContent.WorldSpace, RealmApp.Inn("new-argive").At);
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("new-argive-inn");
+        await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("new-benalia-smithy");
         await browser.Refused(HttpMethod.Post, "/api/armorer/new-argive/buy", new { GearId = item.Id }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
@@ -60,27 +68,31 @@ public sealed class ArmorerChestTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        MapChest chest = RealmApp.Content.Maps["benalish-meadow"].Chest("c1")!;
+        const string World = RealmContent.WorldSpace;
+        MapChest chest = RealmApp.Content.World.Chest("0_0:1")!;
 
-        await browser.Travel("benalish-meadow", RealmApp.Away("benalish-meadow", chest.At, 2));
-        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Put(World, RealmApp.Away(chest.At, 2));
+        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.NotNear);
 
-        await browser.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", chest.At));
-        ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" });
+        await browser.Put(World, RealmApp.Beside(World, chest.At));
+        ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
         Assert.InRange(found.Found, chest.Gold[0], chest.Gold[1]);
         Assert.Equal(Characters.StartingGold + found.Found, found.Gold);
 
-        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" }, HttpStatusCode.Conflict, Codes.Empty);
+        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
         app.Time.Advance(TimeSpan.FromSeconds(chest.RespawnSeconds - 1));
-        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" }, HttpStatusCode.Conflict, Codes.Empty);
+        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
         app.Time.Advance(TimeSpan.FromSeconds(1));
-        ChestView again = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" });
+        ChestView again = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
         Assert.Equal(found.Gold + again.Found, again.Gold);
 
         // Another player's chest is full.
         Browser other = await app.Character(2);
-        await other.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", chest.At));
-        await other.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Map = "benalish-meadow", Chest = "c1" });
+        await other.Put(World, RealmApp.Beside(World, chest.At));
+        await other.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
+
+        // A chest is named by its space: none of that name inside a building.
+        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = "new-argive-inn", Chest = chest.Id }, HttpStatusCode.NotFound, Codes.NoSuchPlace);
     }
 }
 
@@ -125,7 +137,7 @@ public sealed class DatabaseTests
         await using var app = new RealmApp();
         await app.SignIn(1);
         List<string> tables = await app.Store(db => db.Database.SqlQueryRaw<string>("SELECT name AS \"Value\" FROM sqlite_master WHERE type = 'table'").ToListAsync());
-        foreach (string table in new[] { "players", "collection", "gear_owned", "loadout", "deck", "ante", "unlocks", "vendors", "vendor_stock", "vendor_visits", "duels", "chests", "quests" })
+        foreach (string table in new[] { "players", "collection", "gear_owned", "loadout", "deck", "ante", "unlocks", "vendors", "vendor_stock", "vendor_visits", "duels", "chests", "quests", "runs", "attuned" })
         {
             Assert.Contains(table, tables);
         }

@@ -1,0 +1,1 @@
+{"id":"benalia-2","name":"The Benalia Tower (2)","theme":"tower","waystone":true,"floors":[1,2],"tier":2,"encounters":[1,2],"mobs":["abbey-gargoyles","benalish-knight","white-knight"],"warden":"warden-2","boss":"mage-benalia-2","region":"W","entrance":[8,84]}

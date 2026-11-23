@@ -33,12 +33,30 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.ToTable("ante", (string)null);
                 });
 
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.AttunedRow", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tower")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("At")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PlayerId", "Tower");
+
+                    b.ToTable("attuned", (string)null);
+                });
+
             modelBuilder.Entity("Cantrip.Realms.Server.Data.ChestRow", b =>
                 {
                     b.Property<string>("PlayerId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Map")
+                    b.Property<string>("Space")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Chest")
@@ -47,7 +65,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("OpenedAt")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("PlayerId", "Map", "Chest");
+                    b.HasKey("PlayerId", "Space", "Chest");
 
                     b.ToTable("chests", (string)null);
                 });
@@ -114,10 +132,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("Gold")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Map")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Mob")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -131,6 +145,11 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
 
                     b.Property<long>("Seed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Space")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Spawn")
                         .IsRequired()
@@ -152,7 +171,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
 
                     b.HasIndex("PlayerId", "State");
 
-                    b.HasIndex("PlayerId", "Map", "Spawn", "Epoch")
+                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch")
                         .IsUnique();
 
                     b.ToTable("duels", (string)null);
@@ -223,7 +242,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("Gold")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Map")
+                    b.Property<string>("Inn")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
@@ -236,11 +255,19 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<int>("Palette")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long>("PlacedAt")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Q")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("R")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Space")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -287,6 +314,53 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.HasKey("PlayerId", "Card");
 
                     b.ToTable("relics", (string)null);
+                });
+
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.RunRow", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Dungeon")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("EndedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Floor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Floors")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Seed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("StartedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "State");
+
+                    b.ToTable("runs", (string)null);
                 });
 
             modelBuilder.Entity("Cantrip.Realms.Server.Data.UnlockRow", b =>

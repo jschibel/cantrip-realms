@@ -6,16 +6,24 @@ using Xunit;
 
 namespace Cantrip.Realms.Server.Tests;
 
-/// <summary>The realm's content (realms/docs/interfaces.md, "Content") reads and holds together, and the checks catch what doesn't.</summary>
+/// <summary>
+/// The realm's content (realms/docs/interfaces.md, "Content") reads and holds together - the roster, gear, vendors and
+/// starters of realms/content over the test world (World/make-world.py) - and the checks catch what doesn't.
+/// </summary>
 public sealed class ContentTests
 {
+    private const string World = RealmContent.WorldSpace;
+
+    private static readonly string[] Regions = ["benalia", "tolaria", "urborg", "shiv", "llanowar"];
+
     [Fact]
-    public void The_sample_content_loads_whole()
+    public void The_content_loads_whole_over_the_test_world()
     {
         RealmContent content = RealmApp.Content;
-        Assert.Contains("benalish-meadow", content.Maps.Keys);
-        Assert.Contains("new-argive", content.Maps.Keys);
-        Assert.True(content.Mobs.Count >= 6);
+        Assert.Equal("dominaria", content.World.Plane);
+        Assert.Equal(16, content.World.Chunks.Count);
+        Assert.Contains("new-argive", content.Towns.Keys);
+        Assert.True(content.Mobs.Count >= 90);
         Assert.True(content.Vendors.Values.Count(vendor => vendor.File.Town == "new-argive") >= 2);
         foreach (string slot in RealmContent.GearSlots)
         {
@@ -24,57 +32,77 @@ public sealed class ContentTests
     }
 
     [Fact]
-    public void Everything_a_map_names_is_there_and_everything_there_is_named_by_a_map()
+    public void Realms_content_with_its_own_world_loads_and_without_one_says_so()
+    {
+        // Until the world generator's world lands in realms/content, the server reads the test world; once it does, the
+        // roster, vendors and dungeons must hold together over it.
+        if (File.Exists(Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "world", "world.json")))
+        {
+            RealmContent own = RealmContent.Load(RealmApp.Root);
+            Assert.NotEmpty(own.World.Spawns);
+        }
+        else
+        {
+            RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(RealmApp.Root));
+            Assert.Contains("No plane has a world (<plane>/world/world.json).", refused.Problems);
+        }
+    }
+
+    [Fact]
+    public void Everything_the_world_names_is_there_and_everything_there_is_met()
     {
         RealmContent content = RealmApp.Content;
-        HashSet<string> mobsNamed = new(StringComparer.Ordinal);
-        HashSet<string> vendorsNamed = new(StringComparer.Ordinal);
-        foreach (RealmMap map in content.Maps.Values)
+        RealmWorld world = content.World;
+
+        // Spawns: their mobs, each of the spawn's tier, none a boss; on open ground.
+        foreach (MapSpawn spawn in world.Spawns)
         {
-            foreach (MapSpawn spawn in map.File.Spawns)
-            {
-                foreach (string mob in spawn.Mobs)
-                {
-                    Assert.True(content.Mobs.ContainsKey(mob), $"{map.Id} spawn {spawn.Id}: no mob '{mob}'");
-                    mobsNamed.Add(mob);
-                }
-            }
-
-            foreach (MapNpc npc in map.File.Npcs.Where(npc => npc.Kind == "vendor"))
-            {
-                Assert.True(content.Vendors.TryGetValue(npc.Vendor!, out Vendor? vendor), $"{map.Id}: no vendor '{npc.Vendor}'");
-                Assert.Equal(map.Id, vendor.File.Town);
-                vendorsNamed.Add(vendor.Id);
-            }
-
-            foreach (MapExit exit in map.File.Exits)
-            {
-                Assert.True(exit.To == RealmContent.World || content.Maps.ContainsKey(exit.To), $"{map.Id}: an exit to no map '{exit.To}'");
-            }
-
-            foreach (MapEncounterZone zone in map.File.Encounters)
-            {
-                Assert.Contains(zone.Map, content.Maps.Keys);
-            }
-
-            // The inn: none on the world map, a town's or village's own, else the inn of a town or village by its map.
-            if (map.File.Kind == RealmContent.World)
-            {
-                Assert.Null(map.File.Inn);
-                continue;
-            }
-
-            MapInn inn = map.File.Inn!;
-            RealmMap town = content.Maps[inn.Map ?? map.Id];
-            Assert.Contains(town.File.Kind, new[] { "town", "village" });
-            Assert.Equal(inn.At, town.File.Inn!.At);
-            Assert.Null(town.File.Inn.Map);
-            Assert.True(town.Walkable(inn.At), $"{map.Id}'s inn");
+            Assert.True(world.Walkable(spawn.At), spawn.Id);
+            Assert.Matches(@"^\d+_\d+:\d+$", spawn.Id);
+            Assert.Equal(world.ChunkOf(spawn.At), (int.Parse(spawn.Id.Split('_')[0], System.Globalization.CultureInfo.InvariantCulture), int.Parse(spawn.Id.Split('_', ':')[1], System.Globalization.CultureInfo.InvariantCulture)));
+            Assert.All(spawn.Mobs, mob => Assert.Equal((spawn.Tier, false), (content.Mobs[mob].File.Tier, content.Mobs[mob].File.Boss)));
         }
 
-        // No mob or vendor nobody meets.
-        Assert.Equal(content.Mobs.Keys.Order(StringComparer.Ordinal), mobsNamed.Order(StringComparer.Ordinal));
-        Assert.Equal(content.Vendors.Keys.Order(StringComparer.Ordinal), vendorsNamed.Order(StringComparer.Ordinal));
+        // Doors lead into interiors, which come out beside them; a vendor's shop is in its town.
+        foreach ((Hex door, string interior) in world.Doors)
+        {
+            RealmInterior inside = content.Interiors[interior];
+            Assert.Contains(door, inside.Doors);
+            Assert.True(world.Walkable(inside.File.Exit!.At), interior);
+        }
+
+        foreach (Vendor vendor in content.Vendors.Values)
+        {
+            RealmInterior shop = Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id));
+            Assert.Equal(vendor.File.Town, shop.Town?.Id);
+        }
+
+        foreach (InnEntry inn in world.File.Inns)
+        {
+            Assert.True(world.Walkable(inn.At), inn.Id);
+            Assert.Contains(inn.Town, content.Towns.Keys);
+        }
+
+        // Dungeons stand where world.json says, an entrance of a chunk leading in; their mobs, wardens and bosses are mobs.
+        foreach (RealmDungeon dungeon in content.Dungeons.Values)
+        {
+            Assert.Equal(dungeon.Id, world.Entrances[dungeon.File.At]);
+            Assert.Contains(world.File.Dungeons, place => place.Id == dungeon.Id && place.At == dungeon.File.At);
+            Assert.All(dungeon.Tables.SelectMany(table => table), mob => Assert.False(content.Mobs[mob].File.Boss, mob));
+            Assert.Contains(dungeon.File.Boss, content.Mobs.Keys);
+            if (dungeon.File.Warden is { } warden) Assert.Contains(warden, content.Mobs.Keys);
+        }
+
+        // No mob nobody meets.
+        HashSet<string> met = [.. world.Spawns.SelectMany(spawn => spawn.Mobs)];
+        foreach (RealmDungeon dungeon in content.Dungeons.Values)
+        {
+            met.UnionWith(dungeon.Tables.SelectMany(table => table));
+            met.Add(dungeon.File.Boss);
+            if (dungeon.File.Warden is { } warden) met.Add(warden);
+        }
+
+        Assert.Equal(content.Mobs.Keys.Order(StringComparer.Ordinal), met.Order(StringComparer.Ordinal));
 
         // Every mob's deck, gear and model resolve.
         foreach (Mob mob in content.Mobs.Values)
@@ -82,34 +110,73 @@ public sealed class ContentTests
             Assert.True(mob.Deck.Entries.Sum(entry => entry.Copies) >= Duel.RealmMinimumDeckSize, mob.Id);
             Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card), $"{mob.Id}: {entry.Card}"));
             Assert.All(mob.File.Gear, gear => Assert.True(content.Gear.ContainsKey(gear) && content.Gear[gear].Emblem is null, $"{mob.Id} wears {gear}"));
-            Assert.Equal("mob", content.Models.GetValueOrDefault(mob.File.Model.Mesh));
+            Assert.Contains(mob.File.Model.Mesh, RealmContent.MobMeshes);
             Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
         }
 
+        Assert.All(content.Models.Where(model => model.Value == "mob"), model => Assert.Contains(model.Key, RealmContent.MobMeshes));
         Assert.All(content.Gear.Values, item => Assert.Equal("gear", content.Models.GetValueOrDefault(item.Look.Mesh)));
     }
 
     [Fact]
-    public void Mobs_grow_from_the_wilderness_to_the_dungeons_and_their_bosses()
+    public void Every_wanderer_is_a_creature_of_dominaria_with_a_deck_built_round_it()
     {
         RealmContent content = RealmApp.Content;
-        foreach (RealmMap map in content.Maps.Values)
-        {
-            List<Mob> mobs = [.. map.File.Spawns.SelectMany(spawn => spawn.Mobs).Distinct().Select(id => content.Mobs[id])];
-            if (map.File.Kind == "wilderness") Assert.All(mobs, mob => Assert.InRange(mob.File.Tier, 1, 2));
-            if (map.File.Kind == "dungeon")
-            {
-                Assert.All(mobs, mob => Assert.True(mob.File.Boss || mob.File.Tier >= (map.File.Floor == 1 ? 2 : 3), $"{map.Id}: {mob.Id} is tier {mob.File.Tier}"));
-                Assert.Contains(mobs, mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal));
+        HashSet<string> pool = [.. content.Cards.Pool("dominaria")];
+        List<Mob> wanderers = [.. content.Mobs.Values.Where(mob => !mob.File.Boss && !mob.Id.StartsWith("mage-", StringComparison.Ordinal)
+            && !mob.Id.Contains("warden", StringComparison.Ordinal) && mob.File.Region is not null)];
 
-                // Beyond the Phyrexian Portal, tier 4 and up on every floor.
-                if (map.File.Requires is not null) Assert.All(mobs, mob => Assert.Equal(4, mob.File.Tier));
-            }
+        // About fifteen a tier for tiers 1 to 4, every region in every tier.
+        for (int tier = 1; tier <= 4; tier++)
+        {
+            List<Mob> ofTier = [.. wanderers.Where(mob => mob.File.Tier == tier)];
+            Assert.InRange(ofTier.Count, 12, 20);
+            Assert.Equal("BGRUW", string.Concat(ofTier.Select(mob => mob.File.Region).Distinct().Order(StringComparer.Ordinal)));
         }
 
-        // Six floor wardens of tier 4 (the five dungeons' and the portal's); five bosses who unlock the five colors, and
-        // the capstone's praetor, who unlocks none.
+        foreach (Mob mob in wanderers)
+        {
+            // The mob is its creature card, named for it, in the pool; and its deck holds two to four of it.
+            Assert.Equal(mob.File.Creature, mob.File.Name);
+            Assert.Contains(mob.File.Creature, pool);
+            Assert.Contains(content.Cards.Catalog[mob.File.Creature].Card.CardTypes, type => type.ToString() == "Creature");
+            Assert.InRange(mob.Deck.Entries.Where(entry => entry.Card == mob.File.Creature).Sum(entry => entry.Copies), 2, 4);
+        }
+
+        Assert.Equal(wanderers.Count, wanderers.Select(mob => mob.File.Creature).Distinct().Count());
+        Assert.Contains(wanderers, mob => mob.File.Creature == "Llanowar Elves" && mob.File.Tier == 1);
+        Assert.Contains(wanderers, mob => mob.File.Creature == "Serra Angel");
+    }
+
+    [Fact]
+    public void Each_region_has_a_mage_for_every_tier_of_tower()
+    {
+        RealmContent content = RealmApp.Content;
+        foreach (string region in Regions)
+        {
+            for (int tier = 1; tier <= 4; tier++)
+            {
+                string tower = $"{region}-{tier}";
+                Mob mage = content.Mobs[$"mage-{tower}"];
+                Assert.Equal((tier, false), (mage.File.Tier, mage.File.Boss));
+                Assert.Contains(mage.Deck.Entries, entry => entry.Card == mage.File.Creature);
+
+                // Its tower, in the test world: one or two floors, the mage at the top, a waystone.
+                RealmDungeon dungeon = content.Dungeons[tower];
+                Assert.Equal(("tower", true, mage.Id, tier), (dungeon.File.Theme, dungeon.File.Waystone, dungeon.File.Boss, dungeon.File.Tier));
+            }
+        }
+    }
+
+    [Fact]
+    public void Wardens_bosses_and_tiers_pay_as_design_A3_says()
+    {
+        RealmContent content = RealmApp.Content;
+
+        // Six dungeon wardens of tier 4 and a warden for each tier; five bosses who unlock the five colors, and the
+        // capstone's praetor, who unlocks none.
         Assert.Equal(6, content.Mobs.Values.Count(mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal) && mob.File.Tier == 4 && !mob.File.Boss));
+        Assert.All(Enumerable.Range(1, 4), tier => Assert.Equal(tier, content.Mobs[$"warden-{tier}"].File.Tier));
         List<Mob> bosses = [.. content.Mobs.Values.Where(mob => mob.File.Boss)];
         Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).OfType<string>().Order(StringComparer.Ordinal)));
         Assert.Equal(["phyrexian-praetor"], bosses.Where(boss => boss.File.Unlocks is null).Select(boss => boss.Id));
@@ -118,15 +185,11 @@ public sealed class ContentTests
         Assert.Contains("Teferi, Hero of Dominaria", content.Mobs["teferi"].Deck.Entries.Select(entry => entry.Card));
         Assert.Contains("Sheoldred, the Apocalypse", content.Mobs["sheoldred"].Deck.Entries.Select(entry => entry.Card));
 
-        // The prize and gold of each tier (design.md A3).
         Dictionary<int, (long Prize, long Low, long High)> tiers = new() { [1] = (100, 20, 60), [2] = (300, 50, 150), [3] = (800, 120, 300), [4] = (2000, 250, 600) };
         foreach (Mob mob in content.Mobs.Values.Where(mob => !mob.File.Boss))
         {
             Assert.Equal(tiers[mob.File.Tier], (mob.File.Prize, mob.File.GoldRange[0], mob.File.GoldRange[1]));
         }
-
-        // An armorer in New Argive and each home town.
-        Assert.Equal(6, content.Maps.Values.Count(map => map.File.Npcs.Any(npc => npc.Kind == Armorers.Kind)));
     }
 
     [Fact]
@@ -161,28 +224,17 @@ public sealed class ContentTests
     public void The_phyrexian_portal_is_the_capstone_sealed_to_all_but_five_colors()
     {
         RealmContent content = RealmApp.Content;
-        List<RealmMap> floors = [.. content.Maps.Values.Where(map => map.Id.StartsWith("phyrexian-portal-", StringComparison.Ordinal)).OrderBy(map => map.File.Floor)];
-        Assert.InRange(floors.Count, 3, 5);
-        Assert.All(floors, floor =>
-        {
-            Assert.Equal("dungeon", floor.File.Kind);
-            Assert.Equal("WUBRG", floor.File.Requires);
-            Assert.Null(floor.File.Region);
-        });
-        Assert.Equal(Enumerable.Range(1, floors.Count), floors.Select(floor => floor.File.Floor!.Value));
-        Assert.Contains(content.Maps[RealmContent.World].File.Exits, exit => exit.To == floors[0].Id);
-        Assert.All(content.Maps.Values.Where(map => map.File.Requires is not null), map => Assert.Contains(map, floors));
+        RealmDungeon portal = content.Dungeons["phyrexian-portal"];
+        Assert.Equal(("portal", "WUBRG", "phyrexian-praetor", "portal-warden"), (portal.File.Theme, portal.File.Requires, portal.File.Boss, portal.File.Warden));
+        Assert.All(portal.Tables.SelectMany(table => table), mob => Assert.Equal(4, content.Mobs[mob].File.Tier));
+        Assert.All(content.Dungeons.Values.Where(dungeon => dungeon.File.Requires is not null), dungeon => Assert.Same(portal, dungeon));
 
-        // The boss hall on the last floor: the praetor, five colors, its deck round the pool's one praetor.
-        MapSpawn boss = floors[^1].Spawn("boss")!;
-        Assert.Equal(["phyrexian-praetor"], boss.Mobs);
         Mob praetor = content.Mobs["phyrexian-praetor"];
         Assert.True(praetor.File.Boss);
         Assert.Null(praetor.File.Unlocks);
         Assert.Equal(6000, praetor.File.Prize);
         Assert.Contains("Sheoldred, the Apocalypse", praetor.Deck.Entries.Select(entry => entry.Card));
         Assert.Equal("WUBRG", CardPool.Letters(praetor.Deck.Entries.SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
-        Assert.All(floors.SkipLast(1), floor => Assert.DoesNotContain(floor.File.Spawns, spawn => spawn.Mobs.Contains("phyrexian-praetor")));
     }
 
     [Fact]
@@ -206,24 +258,38 @@ public sealed class ContentTests
     [Fact]
     public void Every_mob_deck_is_legal_and_forty_cards()
     {
-        foreach (Mob mob in RealmApp.Content.Mobs.Values)
+        RealmContent content = RealmApp.Content;
+        foreach (Mob mob in content.Mobs.Values)
         {
-            Assert.True(mob.Deck.Entries.Sum(entry => entry.Copies) >= 40, mob.Id);
+            Assert.Equal(40, mob.Deck.Entries.Sum(entry => entry.Copies));
+            Assert.Empty(DeckChecks.Problems(content.Cards, [.. mob.Deck.Entries.Select(entry => new Cantrip.Decks.DeckEntry(entry.Card, entry.Copies))], identity: null));
         }
     }
 
     [Fact]
-    public void The_meadow_is_the_overworlds_meadow()
+    public void The_test_world_is_walked_by_chunk_tile_and_town()
     {
-        RealmMap meadow = RealmApp.Content.Maps["benalish-meadow"];
+        RealmWorld world = RealmApp.Content.World;
 
-        // realms/web/src/map.ts: radius 16, the spell table at (-3, 3), the pond at (5, -7) all water, the start clear.
-        Assert.Equal(1 + (3 * 16 * 17), meadow.Tiles.Count);
-        Assert.False(meadow.Walkable(new Hex(-3, 3)));
-        Assert.Contains(new Hex(-3, 3), meadow.SpellTables);
-        Assert.Equal("water", meadow.TileAt(new Hex(5, -7))!.Value.Terrain);
-        Assert.False(meadow.Walkable(new Hex(5, -7)));
-        Assert.True(meadow.Walkable(new Hex(0, 0)));
+        // Four by four chunks of 32 open hexes, but for the rock of chunk 0_0; nothing off its edge.
+        Assert.Equal(32, world.Chunk);
+        Assert.True(world.Walkable(new Hex(0, 0)));
+        Assert.True(world.Walkable(new Hex(127, 127)));
+        Assert.False(world.Walkable(new Hex(26, 5)));
+        Assert.True(world.Has(new Hex(26, 5)));
+        Assert.False(world.Has(new Hex(-1, 0)));
+        Assert.False(world.Has(new Hex(128, 0)));
+        Assert.Equal((0, 0), world.ChunkOf(new Hex(31, 31)));
+        Assert.Equal((1, 3), world.ChunkOf(new Hex(32, 127)));
+        Assert.Equal((-1, -1), world.ChunkOf(new Hex(-1, -32)));
+        Assert.Equal((-2, 0), world.ChunkOf(new Hex(-33, 0)));
+
+        // A building belongs to the town its door stands in.
+        Assert.Equal("new-argive", RealmApp.Content.Interiors["new-argive-inn"].Town?.Id);
+        Assert.Equal("new-argive", RealmApp.Content.TownAt(new Hex(16, 16))?.Id);
+        Assert.Null(RealmApp.Content.TownAt(new Hex(120, 120)));
+        Assert.Contains(world.SpellTables, table => RealmApp.Content.TownAt(table)?.Id == "new-argive");
+        Assert.Contains(new Hex(1, -1), RealmApp.Content.Interiors["new-argive-inn"].SpellTables);
     }
 
     [Fact]
@@ -242,26 +308,42 @@ public sealed class ContentTests
         {
             CopyDirectory(Path.Combine(RealmApp.Root, "realms", "content"), Path.Combine(root, "realms", "content"));
             CopyDirectory(Path.Combine(RealmApp.Root, "decks", "realms"), Path.Combine(root, "decks", "realms"));
+            CopyDirectory(RealmApp.Places, Path.Combine(root, "places"));
             string content = Path.Combine(root, "realms", "content");
+            string places = Path.Combine(root, "places", "dominaria");
 
-            // A mob whose deck is gone, a spawn on a blocked hex holding no mob, and gear in no slot.
-            Edit(Path.Combine(content, "dominaria", "mobs", "phyrexian-scout.json"), json => json.Replace("decks/realms/dominaria/phyrexian-scout.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
-            Edit(Path.Combine(content, "dominaria", "maps", "benalish-meadow.json"), json => json.Replace("{\"id\":\"s2\",\"q\":-6,\"r\":9,\"mobs\":[\"phyrexian-scout\",\"benalish-deserter\"]", "{\"id\":\"s2\",\"q\":-3,\"r\":3,\"mobs\":[\"nobody\"]", StringComparison.Ordinal));
+            // A mob whose deck is gone, a mob that is not its creature's deck, and gear in no slot.
+            Edit(Path.Combine(content, "dominaria", "mobs", "goblin-hero.json"), json => json.Replace("decks/realms/dominaria/goblin-hero.txt", "decks/realms/dominaria/missing.txt", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "dominaria", "mobs", "llanowar-elves.json"), json => json.Replace("\"creature\": \"Llanowar Elves\"", "\"creature\": \"Serra Angel\"", StringComparison.Ordinal));
             Edit(Path.Combine(content, "gear", "leather-cap.json"), json => json.Replace("\"slot\": \"head\"", "\"slot\": \"hat\"", StringComparison.Ordinal));
 
-            // A relic in a pool, a relic from a mob that is no boss, and a map locked to colors that are none.
+            // A relic in a pool, and a relic from a mob that is no boss.
             Edit(Path.Combine(content, "pools", "dominaria.json"), json => json.Replace("\"cards\": [", "\"cards\": [\n\"Black Lotus\",", StringComparison.Ordinal));
-            Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-scout\"]", StringComparison.Ordinal));
-            Edit(Path.Combine(content, "dominaria", "maps", "phyrexian-portal-2.json"), json => json.Replace("\"requires\": \"WUBRG\"", "\"requires\": \"WX\"", StringComparison.Ordinal));
+            Edit(Path.Combine(content, "relics.json"), json => json.Replace("{ \"card\": \"Mox Pearl\", \"bosses\": [\"phyrexian-praetor\"]", "{ \"card\": \"Mox Pearl\", \"bosses\": [\"goblin-hero\"]", StringComparison.Ordinal));
 
-            RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(root, Path.Combine(RealmApp.Root, "content")));
+            // In the world: a spawn on the rock holding nobody, a spawn of the wrong tier, a door into no building, a dungeon
+            // sealed to colors that are none, and one whose boss is nobody.
+            string chunk = Path.Combine(places, "world", "chunks", "0_0.json");
+            string tier1 = RealmApp.SpawnOf(1).Id;
+            Edit(chunk, json => json.Replace($"{{\"id\":\"{tier1}\",\"q\":10,\"r\":4,\"mobs\":[", $"{{\"id\":\"{tier1}\",\"q\":26,\"r\":4,\"mobs\":[\"nobody\",", StringComparison.Ordinal));
+            Edit(chunk, json => json.Replace("\"tier\":2}", "\"tier\":3}", StringComparison.Ordinal));
+            Edit(chunk, json => json.Replace("\"interior\":\"new-argive-smithy\"", "\"interior\":\"nowhere\"", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "dungeons", "phyrexian-portal.json"), json => json.Replace("\"requires\":\"WUBRG\"", "\"requires\":\"WX\"", StringComparison.Ordinal));
+            Edit(Path.Combine(places, "dungeons", "keldon-caves.json"), json => json.Replace("\"boss\":\"", "\"boss\":\"x", StringComparison.Ordinal));
+
+            RealmContentException refused = Assert.Throws<RealmContentException>(() => RealmContent.Load(root, Path.Combine(RealmApp.Root, "content"), Path.Combine(root, "places")));
             Assert.Contains(refused.Problems, problem => problem.Contains("missing.txt", StringComparison.Ordinal));
-            Assert.Contains(refused.Problems, problem => problem.Contains("spawn s2 stands on (-3, 3)", StringComparison.Ordinal));
-            Assert.Contains(refused.Problems, problem => problem.Contains("'nobody', which is no mob", StringComparison.Ordinal));
+            Assert.Contains("mob llanowar-elves: its deck does not hold Serra Angel, the creature it is.", refused.Problems);
             Assert.Contains(refused.Problems, problem => problem.Contains("slot 'hat'", StringComparison.Ordinal));
             Assert.Contains("pools/dominaria.json: Black Lotus is a relic, which is in no pool (design.md A3a).", refused.Problems);
-            Assert.Contains("relics.json: Mox Pearl drops from 'phyrexian-scout', which is no boss.", refused.Problems);
-            Assert.Contains("map phyrexian-portal-2: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
+            Assert.Contains("relics.json: Mox Pearl drops from 'goblin-hero', which is no boss.", refused.Problems);
+            Assert.Contains($"the world: spawn {tier1} stands on (26, 4), which nobody can stand on.", refused.Problems);
+            Assert.Contains($"the world: spawn {tier1} holds 'nobody', which is no mob.", refused.Problems);
+            Assert.Contains(refused.Problems, problem => problem.Contains("is tier 3 but holds", StringComparison.Ordinal));
+            Assert.Contains(refused.Problems, problem => problem.Contains("leads into 'nowhere', which is no interior.", StringComparison.Ordinal));
+            Assert.Contains("interior new-argive-smithy: no door of the world leads into it.", refused.Problems);
+            Assert.Contains("dungeon phyrexian-portal: it requires 'WX', which is not colors' letters (W U B R G).", refused.Problems);
+            Assert.Contains(refused.Problems, problem => problem.StartsWith("dungeon keldon-caves: its boss 'x", StringComparison.Ordinal));
         }
         finally
         {

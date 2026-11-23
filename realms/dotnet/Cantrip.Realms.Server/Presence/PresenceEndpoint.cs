@@ -81,7 +81,7 @@ public static class PresenceEndpoint
             Task writing = Write(socket, outbox.Reader, ending.Token);
             try
             {
-                await Read(socket, hub, member, row, scopes, ending.Token).ConfigureAwait(false);
+                await Read(socket, hub, content, member, row, scopes, ending.Token).ConfigureAwait(false);
             }
             catch (Exception problem) when (problem is OperationCanceledException or WebSocketException or MessagePackSerializationException)
             {
@@ -111,7 +111,7 @@ public static class PresenceEndpoint
         && (string.Equals(from.GetLeftPart(UriPartial.Authority), options.Client?.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase)
             || string.Equals(from.Authority, request.Host.Value, StringComparison.OrdinalIgnoreCase));
 
-    private static async Task Read(WebSocket socket, PresenceHub hub, PresenceHub.Member member, PlayerRow row, IServiceScopeFactory scopes, CancellationToken cancel)
+    private static async Task Read(WebSocket socket, PresenceHub hub, RealmContent content, PresenceHub.Member member, PlayerRow row, IServiceScopeFactory scopes, CancellationToken cancel)
     {
         byte[] buffer = new byte[LargestFrame];
         while (socket.State == WebSocketState.Open && !cancel.IsCancellationRequested)
@@ -141,18 +141,19 @@ public static class PresenceEndpoint
             switch (message)
             {
                 case EnterMessage enter:
-                    // The map the character last reported standing on (/api/travel), at the hex they reported.
+                    // The space the character last reported standing in (/api/position), at the hex they reported: the world
+                    // or an interior, never a dungeon run, which nobody else sees.
                     using (IServiceScope scope = scopes.CreateScope())
                     {
                         PlayerRow now = await scope.ServiceProvider.GetRequiredService<RealmDb>().Players.AsNoTracking()
                             .SingleAsync(stored => stored.Id == row.Id, cancel).ConfigureAwait(false);
-                        if (now.Map != enter.Map)
+                        if (now.Space != enter.Space || content.Space(now.Space) is null)
                         {
-                            member.Send(new RefusedMessage { Reason = "You are not on that map.", At = [now.Q, now.R] });
+                            member.Send(new RefusedMessage { Reason = "You are not there, or nobody else is.", At = [now.Q, now.R] });
                             break;
                         }
 
-                        hub.Enter(member, now.Map, new Hex(now.Q, now.R));
+                        hub.Enter(member, now.Space, new Hex(now.Q, now.R));
                     }
 
                     break;

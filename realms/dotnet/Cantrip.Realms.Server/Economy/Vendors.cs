@@ -299,10 +299,13 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         return new TradeView(row.Gold, await characters.Collection(player).ConfigureAwait(false));
     }
 
-    /// <summary>A vendor trades with a character in its own town.</summary>
+    /// <summary>A vendor trades with a character inside its shop: an interior of its town where it keeps a vendor NPC.</summary>
     private async Task Near(string player, Vendor vendor)
     {
         PlayerRow row = await characters.Require(player).ConfigureAwait(false);
-        if (row.Map != vendor.File.Town) throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades in {vendor.File.Town}.");
+        if (content.Interiors.GetValueOrDefault(row.Space) is not { } shop || !shop.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
+        {
+            throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades in its shop in {vendor.File.Town}.");
+        }
     }
 }

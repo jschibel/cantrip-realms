@@ -103,6 +103,12 @@ public sealed class MobFile
 
     /// <summary>The color a boss unlocks when beaten; none for a plane's capstone boss, which ends its arc instead.</summary>
     public string? Unlocks { get; init; }
+
+    /// <summary>The creature card the mob is (design.md A6): a card of its deck, which the mob is drawn as.</summary>
+    public string Creature { get; init; } = string.Empty;
+
+    /// <summary>The region, by its color, the mob roams or belongs to; none for a mob of no region.</summary>
+    public string? Region { get; init; }
 }
 
 /// <summary>
@@ -126,26 +132,13 @@ public sealed class RelicsFile
     public IReadOnlyList<RelicEntry> Relics { get; init; } = [];
 }
 
-public sealed class MapProp
-{
-    public int Q { get; init; }
+// The world, its interiors and its dungeons (interfaces.md, "The world, interiors and dungeons"), as the world generator
+// (realms/web/scripts/world.ts) writes them.
 
-    public int R { get; init; }
-
-    public string Kind { get; init; } = string.Empty;
-}
-
-public sealed class MapExit
-{
-    public int Q { get; init; }
-
-    public int R { get; init; }
-
-    public string To { get; init; } = string.Empty;
-}
-
+/// <summary>A spawn point of the world: the mobs that may stand there, all of its tier, and how they wander and come back.</summary>
 public sealed class MapSpawn
 {
+    /// <summary><c>"&lt;cq&gt;_&lt;cr&gt;:&lt;n&gt;"</c>: its chunk and its number there, unique across the world.</summary>
     public string Id { get; init; } = string.Empty;
 
     public int Q { get; init; }
@@ -158,6 +151,9 @@ public sealed class MapSpawn
     public int Radius { get; init; }
 
     public int RespawnSeconds { get; init; }
+
+    /// <summary>The tier of its distance from the nearest starting area (design.md A6): every mob of it is of this tier.</summary>
+    public int Tier { get; init; }
 
     public Hex At => new(Q, R);
 }
@@ -185,7 +181,7 @@ public sealed class MapNpc
 
     public int R { get; init; }
 
-    /// <summary><c>inn</c>, <c>spell-table</c>, <c>armorer</c>, <c>vendor</c>, or another the overworld draws.</summary>
+    /// <summary><c>vendor</c>, <c>armorer</c>, <c>innkeeper</c>, <c>spell-table</c>, or another the overworld draws.</summary>
     public string Kind { get; init; } = string.Empty;
 
     /// <summary>The vendor a <c>vendor</c> NPC is.</summary>
@@ -194,74 +190,192 @@ public sealed class MapNpc
     public Hex At => new(Q, R);
 }
 
-/// <summary>Where a character who loses a duel on a map wakes: a hex of that map, or of the map it names.</summary>
-public sealed class MapInn
+/// <summary>A door of the world: walking onto it enters the interior it names.</summary>
+public sealed class MapDoor
 {
     public int Q { get; init; }
 
     public int R { get; init; }
 
-    /// <summary>The map the inn is on, when it is not this one: the nearest town's.</summary>
-    public string? Map { get; init; }
+    public string Interior { get; init; } = string.Empty;
 
     public Hex At => new(Q, R);
 }
 
-/// <summary>A map (<c>realms/content/&lt;plane&gt;/maps/*.json</c>).</summary>
-public sealed class MapFile
+/// <summary>A dungeon's entrance in the world: a cave mouth, a castle gate, a tower door.</summary>
+public sealed class MapEntrance
 {
-    public string Id { get; init; } = string.Empty;
+    public int Q { get; init; }
 
-    public string Name { get; init; } = string.Empty;
+    public int R { get; init; }
 
-    /// <summary><c>town</c>, <c>village</c>, <c>wilderness</c>, <c>dungeon</c> or <c>world</c>.</summary>
-    public string Kind { get; init; } = string.Empty;
+    public string Dungeon { get; init; } = string.Empty;
 
-    public string? Region { get; init; }
+    public Hex At => new(Q, R);
+}
 
-    public int? Floor { get; init; }
+/// <summary>A hex of a place, <c>{q, r}</c>.</summary>
+public sealed class MapHex
+{
+    public int Q { get; init; }
 
-    /// <summary>
-    /// The colors, as letters, a character's identity must hold to set foot on this map; null for a map open to everyone.
-    /// The Phyrexian Portal's floors require all five (design.md A6).
-    /// </summary>
-    public string? Requires { get; init; }
+    public int R { get; init; }
 
-    public int Radius { get; init; }
+    public Hex At => new(Q, R);
+}
 
-    /// <summary>Each <c>[q, r, height, terrain, blocked]</c>.</summary>
+/// <summary>A chunk of the world (<c>world/chunks/&lt;cq&gt;_&lt;cr&gt;.json</c>).</summary>
+public sealed class ChunkFile
+{
+    /// <summary>Each <c>[q, r, height, terrain, blocked]</c>, in the world's hexes.</summary>
     public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
 
-    public IReadOnlyList<MapProp> Props { get; init; } = [];
+    /// <summary>Scenery, the overworld's to draw; the server reads only its spell tables (<c>{kind: "spell-table", q, r}</c>).</summary>
+    public IReadOnlyList<JsonElement> Props { get; init; } = [];
 
-    public IReadOnlyList<MapExit> Exits { get; init; } = [];
+    public IReadOnlyList<MapDoor> Doors { get; init; } = [];
+
+    public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
 
     public IReadOnlyList<MapSpawn> Spawns { get; init; } = [];
 
     public IReadOnlyList<MapChest> Chests { get; init; } = [];
 
-    public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
-
-    public MapInn? Inn { get; init; }
-
-    /// <summary>The world map's encounter zones: where travel may be interrupted, and the map each is fought on.</summary>
-    public IReadOnlyList<MapEncounterZone> Encounters { get; init; } = [];
+    public IReadOnlyList<MapEntrance> Entrances { get; init; } = [];
 }
 
-/// <summary>A zone of the world map where travel may be interrupted, fought on the small map it names.</summary>
-public sealed class MapEncounterZone
+/// <summary>A town of the world: a walled town, a village or the capital.</summary>
+public sealed class TownEntry
 {
+    public string Id { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary><c>town</c>, <c>village</c> or <c>capital</c>.</summary>
+    public string Kind { get; init; } = string.Empty;
+
+    public IReadOnlyList<int> Center { get; init; } = [];
+
+    public int Radius { get; init; }
+
+    public string? Style { get; init; }
+
+    public Hex At => Center is [int q, int r] ? new Hex(q, r) : default;
+}
+
+/// <summary>An inn of the world, at the hex outside its door where a character whose home it is wakes after a lost duel.</summary>
+public sealed class InnEntry
+{
+    public string Id { get; init; } = string.Empty;
+
+    public string Town { get; init; } = string.Empty;
+
     public int Q { get; init; }
 
     public int R { get; init; }
 
-    public int Radius { get; init; }
+    public Hex At => new(Q, R);
+}
 
-    /// <summary>The map an encounter here is fought on: its spawn is the mob.</summary>
-    public string Map { get; init; } = string.Empty;
+/// <summary>Where a dungeon stands in the world (<c>world.json</c>'s <c>dungeons</c>).</summary>
+public sealed class DungeonPlace
+{
+    public string Id { get; init; } = string.Empty;
 
-    /// <summary>The chance of an encounter on each hex travelled off the roads.</summary>
-    public double Chance { get; init; }
+    public int Q { get; init; }
+
+    public int R { get; init; }
+
+    public Hex At => new(Q, R);
+}
+
+/// <summary>A region of the world: its color and name (its hexes are the overworld's to shade).</summary>
+public sealed class RegionEntry
+{
+    public string Color { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+}
+
+/// <summary><c>world/world.json</c>: the world's size and chunking, its regions, towns, inns and dungeons.</summary>
+public sealed class WorldFile
+{
+    public IReadOnlyList<int> Size { get; init; } = [];
+
+    /// <summary>A chunk's side in hexes: chunk (cq, cr) holds the hexes with floor(q / chunk) = cq and floor(r / chunk) = cr.</summary>
+    public int Chunk { get; init; } = 32;
+
+    public IReadOnlyList<RegionEntry> Regions { get; init; } = [];
+
+    public IReadOnlyList<TownEntry> Towns { get; init; } = [];
+
+    public IReadOnlyList<InnEntry> Inns { get; init; } = [];
+
+    public IReadOnlyList<DungeonPlace> Dungeons { get; init; } = [];
+}
+
+/// <summary>An interior (<c>interiors/&lt;id&gt;.json</c>): a small scene of its own, entered through a door of the world.</summary>
+public sealed class InteriorFile
+{
+    public string Id { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary><c>shop</c>, <c>inn</c>, <c>guildhall</c>, <c>temple</c>, <c>smithy</c>, <c>library</c>, <c>house</c> or <c>tower</c>.</summary>
+    public string Kind { get; init; } = string.Empty;
+
+    /// <summary>Each <c>[q, r, height, terrain, blocked]</c>, in the interior's own hexes.</summary>
+    public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
+
+    public IReadOnlyList<JsonElement> Props { get; init; } = [];
+
+    public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
+
+    public IReadOnlyList<MapChest> Chests { get; init; } = [];
+
+    /// <summary>Where its door comes out in the world.</summary>
+    public MapHex? Exit { get; init; }
+}
+
+/// <summary>A dungeon (<c>dungeons/&lt;id&gt;.json</c>): its theme, floors, mobs, warden and boss; the layout is the browser's.</summary>
+public sealed class DungeonFile
+{
+    public string Id { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary><c>caves</c>, <c>castle</c>, <c>tower</c>, <c>crypt</c>, <c>hollow</c>, <c>foundry</c> or <c>portal</c>.</summary>
+    public string Theme { get; init; } = string.Empty;
+
+    public IReadOnlyList<int> Entrance { get; init; } = [];
+
+    /// <summary>The colors, as letters, a character's identity must hold to enter; null for a dungeon open to everyone.</summary>
+    public string? Requires { get; init; }
+
+    /// <summary>How many floors a run has: the fewest and the most.</summary>
+    public IReadOnlyList<int> Floors { get; init; } = [];
+
+    public int Tier { get; init; }
+
+    /// <summary>How many encounters each floor holds besides its warden and boss: the fewest and the most.</summary>
+    public IReadOnlyList<int> Encounters { get; init; } = [];
+
+    /// <summary>The mobs a floor's encounters are drawn from: one list for every floor, or a list per floor (the last for the floors past it).</summary>
+    public JsonElement Mobs { get; init; }
+
+    /// <summary>The mob that keeps each floor's stair (every floor but the last); none for a dungeon of one floor.</summary>
+    public string? Warden { get; init; }
+
+    /// <summary>The mob waiting on the last floor.</summary>
+    public string Boss { get; init; } = string.Empty;
+
+    /// <summary>The color of the region it belongs to, if any.</summary>
+    public string? Region { get; init; }
+
+    /// <summary>A mage tower's: beating its boss attunes its waystone, at its entrance, to the character.</summary>
+    public bool Waystone { get; init; }
+
+    public Hex At => Entrance is [int q, int r] ? new Hex(q, r) : default;
 }
 
 /// <summary>A card vendor (<c>realms/content/&lt;plane&gt;/vendors/*.json</c>).</summary>
@@ -280,5 +394,4 @@ public sealed class VendorFile
     public long Purse { get; init; }
 }
 
-/// <summary>One tile of a map: its height and terrain, and whether anyone may stand on it.</summary>
-public readonly record struct Tile(Hex At, double Height, string Terrain, bool Blocked);
+

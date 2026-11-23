@@ -6,48 +6,6 @@ using Cantrip.Server.Decks;
 
 namespace Cantrip.Realms.Server.Content;
 
-/// <summary>A map as the server walks it: its file, and its tiles by hex.</summary>
-public sealed class RealmMap
-{
-    private readonly Dictionary<Hex, Tile> _tiles;
-
-    public RealmMap(MapFile file, string plane, IEnumerable<Tile> tiles)
-    {
-        File = file;
-        Plane = plane;
-        _tiles = [];
-        foreach (Tile tile in tiles) _tiles.TryAdd(tile.At, tile);
-    }
-
-    public MapFile File { get; }
-
-    public string Id => File.Id;
-
-    /// <summary>The plane the map is on.</summary>
-    public string Plane { get; }
-
-    public IReadOnlyCollection<Tile> Tiles => _tiles.Values;
-
-    public Tile? TileAt(Hex at) => _tiles.TryGetValue(at, out Tile tile) ? tile : null;
-
-    /// <summary>Whether someone may stand on a hex: it is on the map and not blocked.</summary>
-    public bool Walkable(Hex at) => _tiles.TryGetValue(at, out Tile tile) && !tile.Blocked;
-
-    public MapSpawn? Spawn(string id) => File.Spawns.FirstOrDefault(spawn => spawn.Id == id);
-
-    public MapChest? Chest(string id) => File.Chests.FirstOrDefault(chest => chest.Id == id);
-
-    /// <summary>
-    /// The hexes a spell table stands on (design.md A2): a <c>spell-table</c> prop or NPC. A character stands at one on it or
-    /// next to it.
-    /// </summary>
-    public IEnumerable<Hex> SpellTables =>
-        File.Props.Where(prop => prop.Kind == SpellTable).Select(prop => new Hex(prop.Q, prop.R))
-            .Concat(File.Npcs.Where(npc => npc.Kind == SpellTable).Select(npc => npc.At));
-
-    public const string SpellTable = "spell-table";
-}
-
 /// <summary>A mob, with its deck read.</summary>
 public sealed record Mob(MobFile File, string Plane, DeckList Deck)
 {
@@ -92,13 +50,27 @@ public sealed partial class RealmContent
 
     public static IReadOnlySet<string> Rarities { get; } = new HashSet<string>(StringComparer.Ordinal) { "common", "uncommon", "rare", "mythic" };
 
-    public static IReadOnlySet<string> MapKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "town", "village", "wilderness", "dungeon", "world" };
+    /// <summary>The world's space id (interfaces.md, "Places"); an interior's is its own id, a dungeon run's <c>run:&lt;id&gt;</c>.</summary>
+    public const string WorldSpace = "world";
 
-    /// <summary>The people and places of a map a player uses (interfaces.md, "Maps").</summary>
-    public static IReadOnlySet<string> NpcKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "inn", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk" };
+    /// <summary>The kinds of town of the world.</summary>
+    public static IReadOnlySet<string> TownKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "town", "village", "capital" };
 
-    /// <summary>The world map's id: the travel map, whose exits are its places.</summary>
-    public const string World = "world";
+    /// <summary>The kinds of interior.</summary>
+    public static IReadOnlySet<string> InteriorKinds { get; } = new HashSet<string>(StringComparer.Ordinal) { "shop", "inn", "guildhall", "temple", "smithy", "library", "house", "tower" };
+
+    /// <summary>The themes of dungeon (design.md A6), each a generator of realms/web/src/dungeon.</summary>
+    public static IReadOnlySet<string> DungeonThemes { get; } = new HashSet<string>(StringComparer.Ordinal) { "caves", "castle", "tower", "crypt", "hollow", "foundry", "portal" };
+
+    /// <summary>
+    /// The mob meshes (interfaces.md, "Models"): a mob's <c>model.mesh</c> is one of them, whether or not its model is drawn
+    /// yet (an unknown mesh is drawn as <c>humanoid</c>), and every mob model of realms/content/models is one of them.
+    /// </summary>
+    public static IReadOnlySet<string> MobMeshes { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "humanoid", "ghoul", "angel", "drake", "elf", "goblin", "wurm", "construct", "spirit", "phyrexian",
+        "dragon", "bird", "beast", "cat", "merfolk", "insect", "treefolk", "serpent", "giant", "wizard", "knight",
+    };
 
     /// <summary>The five colors a character may start in, and the file each starter deck is in.</summary>
     public static IReadOnlyDictionary<string, string> StarterFiles { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -135,7 +107,30 @@ public sealed partial class RealmContent
 
     public IReadOnlyDictionary<string, Mob> Mobs { get; private set; } = new Dictionary<string, Mob>();
 
-    public IReadOnlyDictionary<string, RealmMap> Maps { get; private set; } = new Dictionary<string, RealmMap>();
+    /// <summary>The world (design.md A6): one plane's, the one a character stands in.</summary>
+    public RealmWorld World { get; private set; } = new(new WorldFile(), string.Empty);
+
+    public IReadOnlyDictionary<string, RealmInterior> Interiors { get; private set; } = new Dictionary<string, RealmInterior>();
+
+    public IReadOnlyDictionary<string, RealmDungeon> Dungeons { get; private set; } = new Dictionary<string, RealmDungeon>();
+
+    /// <summary>The world's towns, by id.</summary>
+    public IReadOnlyDictionary<string, TownEntry> Towns { get; private set; } = new Dictionary<string, TownEntry>();
+
+    /// <summary>The world's inns, by id.</summary>
+    public IReadOnlyDictionary<string, InnEntry> Inns { get; private set; } = new Dictionary<string, InnEntry>();
+
+    /// <summary>A space by its id: the world, or an interior; null for a run's, which the server does not walk, or none.</summary>
+    public RealmSpace? Space(string? id) =>
+        id == WorldSpace ? World : id is not null && Interiors.TryGetValue(id, out RealmInterior? interior) ? interior : null;
+
+    /// <summary>The space id of a dungeon run.</summary>
+    public static string RunSpace(string run) => RunPrefix + run;
+
+    /// <summary>A run's id from its space id; null for a space that is no run's.</summary>
+    public static string? RunOf(string? space) => space is not null && space.StartsWith(RunPrefix, StringComparison.Ordinal) ? space[RunPrefix.Length..] : null;
+
+    public const string RunPrefix = "run:";
 
     public IReadOnlyDictionary<string, Vendor> Vendors { get; private set; } = new Dictionary<string, Vendor>();
 
@@ -161,8 +156,12 @@ public sealed partial class RealmContent
     /// mobs name, and the engine's card catalog under <c>content/</c>.
     /// </summary>
     /// <param name="cardContent">Where the engine's card content is; the repository's <c>content/</c> unless given.</param>
+    /// <param name="places">
+    /// Where each plane's world, interiors and dungeons are read from (<c>&lt;places&gt;/&lt;plane&gt;/world</c>, ...): a test world;
+    /// <c>realms/content</c> unless given.
+    /// </param>
     /// <exception cref="RealmContentException">Anything that does not hold together.</exception>
-    public static RealmContent Load(string repositoryRoot, string? cardContent = null)
+    public static RealmContent Load(string repositoryRoot, string? cardContent = null, string? places = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
         string root = Path.GetFullPath(repositoryRoot);
@@ -212,7 +211,9 @@ public sealed partial class RealmContent
         content.Gear = ReadGear(Path.Combine(realms, "gear"), problems);
 
         Dictionary<string, Mob> mobs = new(StringComparer.Ordinal);
-        Dictionary<string, RealmMap> maps = new(StringComparer.Ordinal);
+        Dictionary<string, RealmInterior> interiors = new(StringComparer.Ordinal);
+        Dictionary<string, RealmDungeon> dungeons = new(StringComparer.Ordinal);
+        List<RealmWorld> worlds = [];
         Dictionary<string, Vendor> vendors = new(StringComparer.Ordinal);
         Dictionary<string, IReadOnlyDictionary<string, DeckList>> starters = new(StringComparer.Ordinal);
         foreach (string plane in pools.Keys)
@@ -226,11 +227,21 @@ public sealed partial class RealmContent
                 }
             }
 
-            foreach ((string file, MapFile map) in Read<MapFile>(Path.Combine(folder, "maps"), problems))
+            string placed = places is null ? folder : Path.Combine(Path.GetFullPath(places), plane);
+            if (ReadWorld(Path.Combine(placed, "world"), plane, problems) is { } world) worlds.Add(world);
+            foreach ((string file, InteriorFile interior) in Read<InteriorFile>(Path.Combine(placed, "interiors"), problems))
             {
-                if (Named(file, map.Id, maps.ContainsKey(map.Id), problems))
+                if (Named(file, interior.Id, interiors.ContainsKey(interior.Id), problems))
                 {
-                    maps[map.Id] = new RealmMap(map, plane, ReadTiles(file, map, problems));
+                    interiors[interior.Id] = new RealmInterior(interior, plane, $"interiors/{file}", problems);
+                }
+            }
+
+            foreach ((string file, DungeonFile dungeon) in Read<DungeonFile>(Path.Combine(placed, "dungeons"), problems))
+            {
+                if (Named(file, dungeon.Id, dungeons.ContainsKey(dungeon.Id), problems))
+                {
+                    dungeons[dungeon.Id] = new RealmDungeon(dungeon, plane, Tables(dungeon, $"dungeons/{file}", problems));
                 }
             }
 
@@ -256,7 +267,12 @@ public sealed partial class RealmContent
         }
 
         content.Mobs = mobs;
-        content.Maps = maps;
+        if (worlds.Count == 1) content.World = worlds[0];
+        else problems.Add(worlds.Count == 0 ? "No plane has a world (<plane>/world/world.json)." : "More than one plane has a world: the server walks one.");
+        content.Towns = content.World.File.Towns.GroupBy(town => town.Id, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        content.Inns = content.World.File.Inns.GroupBy(inn => inn.Id, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        content.Interiors = interiors;
+        content.Dungeons = dungeons;
         content.Vendors = vendors;
         content.Starters = starters;
         content.Check(problems);
@@ -343,6 +359,11 @@ public sealed partial class RealmContent
             problems.Add($"gear {item.Id}: its look '{item.Look.Mesh}' is no gear model of realms/content/models.");
         }
 
+        foreach ((string model, _) in Models.Where(model => model.Value == "mob" && !MobMeshes.Contains(model.Key)))
+        {
+            problems.Add($"models/{model}.vox.json: a mob model of no mob mesh the content may name (RealmContent.MobMeshes, interfaces.md \"Models\").");
+        }
+
         foreach (Mob mob in Mobs.Values)
         {
             CheckMob(mob, problems);
@@ -362,28 +383,15 @@ public sealed partial class RealmContent
             }
         }
 
-        foreach (RealmMap map in Maps.Values)
-        {
-            CheckMap(map, problems);
-        }
-
         foreach (Vendor vendor in Vendors.Values)
         {
             string where = $"vendor {vendor.Id}";
             if (string.IsNullOrWhiteSpace(vendor.File.Name)) problems.Add($"{where}: no name.");
-            if (!Maps.TryGetValue(vendor.File.Town, out RealmMap? town) || town.File.Kind is not ("town" or "village"))
-            {
-                problems.Add($"{where}: its town '{vendor.File.Town}' is not a town's map.");
-            }
-
-            else if (!town.File.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
-            {
-                problems.Add($"{where}: nobody keeps its stall in {vendor.File.Town}: no vendor of the map names it.");
-            }
-
             if (vendor.File.Purse < 0) problems.Add($"{where}: a purse is never less than nothing.");
             if (Cards.Filter(vendor.Plane, vendor.File.Specialty).Count == 0) problems.Add($"{where}: its specialty has no card in the {vendor.Plane} pool.");
         }
+
+        CheckPlaces(problems);
 
         foreach ((string plane, IReadOnlyDictionary<string, DeckList> decks) in Starters)
         {
@@ -424,7 +432,11 @@ public sealed partial class RealmContent
             problems.Add($"{where}: wears '{gear}', which is no gear item.");
         }
 
-        if (!IsModel(file.Model.Mesh, "mob")) problems.Add($"{where}: its model '{file.Model.Mesh}' is no mob model of realms/content/models.");
+        if (!MobMeshes.Contains(file.Model.Mesh)) problems.Add($"{where}: its model '{file.Model.Mesh}' is none of the mob meshes ({string.Join(", ", MobMeshes)}).");
+        if (file.Region is { } region && (region.Length != 1 || CardPool.Color(region[0]) is null)) problems.Add($"{where}: its region '{region}' is no color's letter.");
+        if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
+        else if (!creature.Card.CardTypes.Any(type => type.ToString() is "Creature" or "Planeswalker")) problems.Add($"{where}: its creature {file.Creature} is no creature (or planeswalker) card.");
+        else if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
         if (file.Prize < 0) problems.Add($"{where}: a prize is never less than nothing.");
         if (file.GoldRange is not [long low, long high] || low < 0 || high < low)
         {
@@ -439,99 +451,278 @@ public sealed partial class RealmContent
         problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null).Select(problem => $"{where}'s deck: {problem}"));
     }
 
-    private void CheckMap(RealmMap map, List<string> problems)
+    /// <summary>
+    /// The world, its interiors and its dungeons (interfaces.md, "The world, interiors and dungeons"): towns and inns, doors
+    /// into interiors that exist and belong to one town at most, entrances of dungeons that exist and stand where world.json
+    /// says, spawns of mobs of their tier, chests, the vendors' and armorers' interiors, every hex a character is put on
+    /// walkable, and every mob met somewhere.
+    /// </summary>
+    private void CheckPlaces(List<string> problems)
     {
-        MapFile file = map.File;
-        string where = $"map {map.Id}";
-        if (string.IsNullOrWhiteSpace(file.Name)) problems.Add($"{where}: no name.");
-        if (!MapKinds.Contains(file.Kind)) problems.Add($"{where}: kind '{file.Kind}' is none of {string.Join(", ", MapKinds)}.");
-        if (file.Kind == "dungeon" && file.Floor is null) problems.Add($"{where}: a dungeon floor says which floor it is.");
-        if (file.Requires is { } requires && (requires.Length == 0 || requires.Any(letter => CardPool.Color(letter) is null)))
+        RealmWorld world = World;
+        if (world.Chunk <= 0) problems.Add($"world.json: a chunk is some hexes a side, not {world.Chunk}.");
+        foreach (IGrouping<string, TownEntry> twice in world.File.Towns.GroupBy(town => town.Id, StringComparer.Ordinal).Where(group => group.Count() > 1)) problems.Add($"world.json: two towns '{twice.Key}'.");
+        foreach (TownEntry town in world.File.Towns)
         {
-            problems.Add($"{where}: it requires '{requires}', which is not colors' letters (W U B R G).");
+            string where = $"world.json: town {town.Id}";
+            if (!KebabCase().IsMatch(town.Id)) problems.Add($"{where}: its id is kebab-case.");
+            if (string.IsNullOrWhiteSpace(town.Name)) problems.Add($"{where}: no name.");
+            if (!TownKinds.Contains(town.Kind)) problems.Add($"{where}: kind '{town.Kind}' is none of {string.Join(", ", TownKinds)}.");
+            if (town.Center is not [_, _] || town.Radius <= 0) problems.Add($"{where}: a town has a center [q, r] and a radius.");
         }
 
-        HashSet<string> spawns = new(StringComparer.Ordinal);
-        foreach (MapSpawn spawn in file.Spawns)
+        foreach (IGrouping<string, InnEntry> twice in world.File.Inns.GroupBy(inn => inn.Id, StringComparer.Ordinal).Where(group => group.Count() > 1)) problems.Add($"world.json: two inns '{twice.Key}'.");
+        foreach (InnEntry inn in world.File.Inns)
         {
-            if (!KebabCase().IsMatch(spawn.Id) || !spawns.Add(spawn.Id)) problems.Add($"{where}: spawn '{spawn.Id}' is not a fresh kebab-case id.");
-            if (!map.Walkable(spawn.At)) problems.Add($"{where}: spawn {spawn.Id} stands on {spawn.At}, which nobody can stand on.");
-            if (spawn.Mobs.Count == 0) problems.Add($"{where}: spawn {spawn.Id} has no mobs.");
-            foreach (string mob in spawn.Mobs.Where(mob => !Mobs.ContainsKey(mob))) problems.Add($"{where}: spawn {spawn.Id} holds '{mob}', which is no mob.");
-            if (spawn.Radius < 0 || spawn.RespawnSeconds <= 0) problems.Add($"{where}: spawn {spawn.Id} has a radius of 0 or more and respawns after some seconds.");
+            string where = $"world.json: inn {inn.Id}";
+            if (!KebabCase().IsMatch(inn.Id)) problems.Add($"{where}: its id is kebab-case.");
+            if (!Towns.ContainsKey(inn.Town)) problems.Add($"{where}: its town '{inn.Town}' is no town.");
+            if (!world.Walkable(inn.At)) problems.Add($"{where}: a character wakes at {inn.At}, which nobody can stand on.");
         }
 
-        HashSet<string> chests = new(StringComparer.Ordinal);
-        foreach (MapChest chest in file.Chests)
+        // Doors: each into an interior that exists, from the world; an interior belongs to the town its doors stand in.
+        Dictionary<string, List<Hex>> doors = new(StringComparer.Ordinal);
+        foreach ((Hex at, string interior) in world.Doors)
         {
-            if (!KebabCase().IsMatch(chest.Id) || !chests.Add(chest.Id)) problems.Add($"{where}: chest '{chest.Id}' is not a fresh kebab-case id.");
-            if (map.TileAt(chest.At) is null) problems.Add($"{where}: chest {chest.Id} is off the map at {chest.At}.");
-            if (chest.Gold is not [long low, long high] || low < 0 || high < low) problems.Add($"{where}: chest {chest.Id}'s gold is two amounts, the lower first.");
-            if (chest.RespawnSeconds <= 0) problems.Add($"{where}: chest {chest.Id} refills after some seconds.");
+            if (!world.Has(at)) problems.Add($"the world: a door into {interior} is off the world at {at}.");
+            if (!Interiors.ContainsKey(interior)) problems.Add($"the world: the door at {at} leads into '{interior}', which is no interior.");
+            else (doors.TryGetValue(interior, out List<Hex>? list) ? list : doors[interior] = []).Add(at);
         }
 
-        foreach (MapNpc npc in file.Npcs)
+        foreach (RealmInterior interior in Interiors.Values)
         {
-            if (map.TileAt(npc.At) is null) problems.Add($"{where}: {npc.Id} stands off the map at {npc.At}.");
-            if (!NpcKinds.Contains(npc.Kind)) problems.Add($"{where}: {npc.Id} is a '{npc.Kind}', none of {string.Join(", ", NpcKinds)}.");
-            if (npc.Kind == "vendor" && (npc.Vendor is null || !Vendors.TryGetValue(npc.Vendor, out Vendor? vendor) || vendor.File.Town != map.Id))
+            InteriorFile file = interior.File;
+            string where = $"interior {interior.Id}";
+            if (string.IsNullOrWhiteSpace(file.Name)) problems.Add($"{where}: no name.");
+            if (!InteriorKinds.Contains(file.Kind)) problems.Add($"{where}: kind '{file.Kind}' is none of {string.Join(", ", InteriorKinds)}.");
+            if (file.Exit is not { } exit) problems.Add($"{where}: no exit, where its door comes out in the world.");
+            else if (!world.Walkable(exit.At)) problems.Add($"{where}: its exit at {exit.At} is a hex of the world nobody can stand on.");
+            if (file.Tiles.Count == 0) problems.Add($"{where}: no tiles.");
+            interior.Doors = doors.GetValueOrDefault(interior.Id) ?? [];
+            if (interior.Doors.Count == 0) problems.Add($"{where}: no door of the world leads into it.");
+            List<TownEntry> towns = [.. interior.Doors.Select(TownAt).OfType<TownEntry>().DistinctBy(town => town.Id)];
+            if (towns.Count > 1) problems.Add($"{where}: its doors stand in more than one town ({string.Join(", ", towns.Select(town => town.Id))}).");
+            interior.Town = towns.FirstOrDefault();
+            CheckNpcs(interior, where, problems);
+            CheckChests(interior, interior.File.Chests, where, problems);
+        }
+
+        CheckNpcs(world, "the world", problems);
+        CheckChests(world, world.Chests, "the world", problems);
+
+        foreach (Vendor vendor in Vendors.Values)
+        {
+            string where = $"vendor {vendor.Id}";
+            if (!Towns.ContainsKey(vendor.File.Town)) problems.Add($"{where}: its town '{vendor.File.Town}' is no town of the world.");
+            else if (!Interiors.Values.Any(interior => interior.Town?.Id == vendor.File.Town && interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id)))
+            {
+                problems.Add($"{where}: nobody keeps its shop in {vendor.File.Town}: no vendor NPC of an interior of that town names it.");
+            }
+        }
+
+        // Dungeons: where world.json and the chunks put them, and what their runs hold.
+        Dictionary<string, DungeonPlace> placed = new(StringComparer.Ordinal);
+        foreach (DungeonPlace place in world.File.Dungeons)
+        {
+            if (!placed.TryAdd(place.Id, place)) problems.Add($"world.json: dungeon {place.Id} is placed twice.");
+            if (!Dungeons.ContainsKey(place.Id)) problems.Add($"world.json: dungeon '{place.Id}' has no dungeons/{place.Id}.json.");
+        }
+
+        foreach ((Hex at, string dungeon) in world.Entrances)
+        {
+            if (!Dungeons.ContainsKey(dungeon)) problems.Add($"the world: the entrance at {at} leads into '{dungeon}', which is no dungeon.");
+            if (!world.Walkable(at)) problems.Add($"the world: the entrance of {dungeon} at {at} is a hex nobody can stand on.");
+        }
+
+        foreach (RealmDungeon dungeon in Dungeons.Values)
+        {
+            CheckDungeon(dungeon, placed.GetValueOrDefault(dungeon.Id), problems);
+        }
+
+        foreach (MapSpawn spawn in world.Spawns)
+        {
+            string where = $"the world: spawn {spawn.Id}";
+            if (!world.Walkable(spawn.At)) problems.Add($"{where} stands on {spawn.At}, which nobody can stand on.");
+            if (spawn.Tier is < 1 or > 4) problems.Add($"{where}: tier {spawn.Tier} is not 1 to 4.");
+            if (spawn.Mobs.Count == 0) problems.Add($"{where} has no mobs.");
+            foreach (string id in spawn.Mobs)
+            {
+                if (!Mobs.TryGetValue(id, out Mob? mob)) problems.Add($"{where} holds '{id}', which is no mob.");
+                else if (mob.File.Boss) problems.Add($"{where} holds {id}, a boss, which waits in its dungeon.");
+                else if (mob.File.Tier != spawn.Tier) problems.Add($"{where} is tier {spawn.Tier} but holds {id}, of tier {mob.File.Tier}.");
+            }
+
+            if (spawn.Radius < 0 || spawn.RespawnSeconds <= 0) problems.Add($"{where} has a radius of 0 or more and respawns after some seconds.");
+        }
+
+        HashSet<string> met = [.. world.Spawns.SelectMany(spawn => spawn.Mobs)];
+        foreach (RealmDungeon dungeon in Dungeons.Values)
+        {
+            met.UnionWith(dungeon.Tables.SelectMany(table => table));
+            if (dungeon.File.Warden is { } warden) met.Add(warden);
+            met.Add(dungeon.File.Boss);
+        }
+
+        foreach (Mob mob in Mobs.Values.Where(mob => !met.Contains(mob.Id)))
+        {
+            problems.Add($"mob {mob.Id} is met nowhere: no spawn of the world and no dungeon holds it.");
+        }
+    }
+
+    /// <summary>The town a hex of the world stands in: the one whose center is within its radius (the nearest, if two are).</summary>
+    public TownEntry? TownAt(Hex at) =>
+        World.File.Towns.Where(town => town.Center is [_, _] && town.At.DistanceTo(at) <= town.Radius).MinBy(town => town.At.DistanceTo(at));
+
+    private void CheckNpcs(RealmSpace space, string where, List<string> problems)
+    {
+        foreach (MapNpc npc in space.Npcs)
+        {
+            if (!space.Has(npc.At)) problems.Add($"{where}: {npc.Id} stands off it at {npc.At}.");
+            if (!KebabCase().IsMatch(npc.Kind)) problems.Add($"{where}: {npc.Id} is a '{npc.Kind}', which is no kebab-case kind.");
+            if (npc.Kind is "vendor" or "armorer" && space is not RealmInterior)
+            {
+                problems.Add($"{where}: {npc.Id} is a {npc.Kind}, who works inside a building (an interior), not in the world.");
+            }
+
+            if (npc.Kind == "vendor" && (npc.Vendor is null || !Vendors.TryGetValue(npc.Vendor, out Vendor? vendor) || (space as RealmInterior)?.Town?.Id != vendor.File.Town))
             {
                 problems.Add($"{where}: {npc.Id} is a vendor, but '{npc.Vendor}' is no vendor of this town.");
             }
         }
 
-        foreach (MapExit exit in file.Exits)
+        foreach (Hex table in space.SpellTables.Where(table => !space.Has(table)))
         {
-            if (map.TileAt(new Hex(exit.Q, exit.R)) is null) problems.Add($"{where}: an exit is off the map at ({exit.Q}, {exit.R}).");
-            if (exit.To != World && !Maps.ContainsKey(exit.To)) problems.Add($"{where}: an exit leads to '{exit.To}', which is no map.");
+            problems.Add($"{where}: a spell table stands off it at {table}.");
         }
-
-        foreach (MapEncounterZone zone in file.Encounters)
-        {
-            if (file.Kind != World) problems.Add($"{where}: only the world map has encounter zones.");
-            if (!Maps.TryGetValue(zone.Map, out RealmMap? fought)) problems.Add($"{where}: an encounter zone is fought on '{zone.Map}', which is no map.");
-            else if (fought.File.Spawns.Count == 0) problems.Add($"{where}: an encounter zone is fought on {zone.Map}, which has no spawn to be the mob.");
-            if (map.TileAt(new Hex(zone.Q, zone.R)) is null) problems.Add($"{where}: an encounter zone is off the map at ({zone.Q}, {zone.R}).");
-            if (zone.Chance is < 0 or > 1 || double.IsNaN(zone.Chance)) problems.Add($"{where}: an encounter zone's chance is from 0 to 1.");
-        }
-
-        CheckInn(map, problems);
     }
 
-    /// <summary>
-    /// A map's inn (interfaces.md, "Maps"): none on the world map; a town's or village's an open hex of its own; any other
-    /// map's the inn of a town or village, named by its map and hex.
-    /// </summary>
-    private void CheckInn(RealmMap map, List<string> problems)
+    private static void CheckChests(RealmSpace space, IEnumerable<MapChest> chests, string where, List<string> problems)
     {
-        MapFile file = map.File;
-        string where = $"map {map.Id}";
-        bool settlement = file.Kind is "town" or "village";
-        if (file.Kind == World)
+        HashSet<string> ids = new(StringComparer.Ordinal);
+        foreach (MapChest chest in chests)
         {
-            if (file.Inn is not null) problems.Add($"{where}: the world map names no inn.");
+            if (!ChestId().IsMatch(chest.Id) || !ids.Add(chest.Id)) problems.Add($"{where}: chest '{chest.Id}' is not a fresh id (lower-case letters, digits, '-', '_' and ':').");
+            if (!space.Has(chest.At)) problems.Add($"{where}: chest {chest.Id} is off it at {chest.At}.");
+            if (chest.Gold is not [long low, long high] || low < 0 || high < low) problems.Add($"{where}: chest {chest.Id}'s gold is two amounts, the lower first.");
+            if (chest.RespawnSeconds <= 0) problems.Add($"{where}: chest {chest.Id} refills after some seconds.");
         }
-        else if (file.Inn is not { } inn)
+    }
+
+    [GeneratedRegex("^[a-z0-9][a-z0-9_:-]{0,63}$")]
+    private static partial Regex ChestId();
+
+    private void CheckDungeon(RealmDungeon dungeon, DungeonPlace? place, List<string> problems)
+    {
+        DungeonFile file = dungeon.File;
+        string where = $"dungeon {dungeon.Id}";
+        if (string.IsNullOrWhiteSpace(file.Name)) problems.Add($"{where}: no name.");
+        if (!DungeonThemes.Contains(file.Theme)) problems.Add($"{where}: theme '{file.Theme}' is none of {string.Join(", ", DungeonThemes)}.");
+        if (file.Entrance is not [_, _]) problems.Add($"{where}: its entrance is a hex [q, r].");
+        else if (place is null) problems.Add($"{where}: world.json does not place it.");
+        else if (place.At != file.At) problems.Add($"{where}: its entrance is {file.At}, but world.json places it at {place.At}.");
+        else if (!World.Entrances.TryGetValue(file.At, out string? entered) || entered != dungeon.Id) problems.Add($"{where}: no entrance of a chunk at {file.At} leads into it.");
+
+        if (file.Requires is { } requires && (requires.Length == 0 || requires.Any(letter => CardPool.Color(letter) is null)))
         {
-            problems.Add($"{where}: no inn, so a character who loses here has nowhere to wake.");
+            problems.Add($"{where}: it requires '{requires}', which is not colors' letters (W U B R G).");
         }
-        else if (inn.Map is null)
+
+        if (file.Region is { } region && (region.Length != 1 || CardPool.Color(region[0]) is null)) problems.Add($"{where}: its region '{region}' is no color's letter.");
+        if (file.Floors is not [int fewest, int most] || fewest < 1 || most < fewest) problems.Add($"{where}: its floors are two counts, the fewer first, at least 1.");
+        if (file.Encounters is not [int least, int greatest] || least < 0 || greatest < least) problems.Add($"{where}: its encounters are two counts a floor, the fewer first.");
+        if (file.Tier is < 1 or > 4) problems.Add($"{where}: tier {file.Tier} is not 1 to 4.");
+        if (file.Waystone && file.Theme != "tower") problems.Add($"{where}: only a mage tower has a waystone.");
+
+        foreach (string id in dungeon.Tables.SelectMany(table => table))
         {
-            if (!settlement) problems.Add($"{where}: only a town's or village's inn is its own; any other map names its nearest town's.");
-            if (!map.Walkable(inn.At)) problems.Add($"{where}: its inn is at {inn.At}, which nobody can stand on.");
+            if (!Mobs.TryGetValue(id, out Mob? mob)) problems.Add($"{where} holds '{id}', which is no mob.");
+            else if (mob.File.Boss) problems.Add($"{where}'s floors hold {id}, a boss, who waits on the last floor.");
         }
-        else if (settlement)
+
+        if (file.Encounters is [_, > 0] && (dungeon.Tables.Count == 0 || dungeon.Tables.Any(table => table.Count == 0))) problems.Add($"{where}: a floor with encounters has mobs to draw them from.");
+        if (file.Warden is { } warden && !Mobs.ContainsKey(warden)) problems.Add($"{where}: its warden '{warden}' is no mob.");
+        if (file.Warden is null && file.Floors is [_, > 1]) problems.Add($"{where}: a dungeon of more than one floor has a warden at each stair.");
+        if (!Mobs.ContainsKey(file.Boss)) problems.Add($"{where}: its boss '{file.Boss}' is no mob.");
+    }
+
+    /// <summary>A dungeon's mob tables: one list of ids for every floor, or a list a floor.</summary>
+    private static List<IReadOnlyList<string>> Tables(DungeonFile dungeon, string where, List<string> problems)
+    {
+        JsonElement mobs = dungeon.Mobs;
+        if (mobs.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null) return [];
+        if (mobs.ValueKind == JsonValueKind.Array && mobs.EnumerateArray().All(mob => mob.ValueKind == JsonValueKind.String))
         {
-            problems.Add($"{where}: a {file.Kind}'s inn is its own.");
+            return [[.. mobs.EnumerateArray().Select(mob => mob.GetString()!)]];
         }
-        else if (!Maps.TryGetValue(inn.Map, out RealmMap? town))
+
+        if (mobs.ValueKind == JsonValueKind.Array && mobs.EnumerateArray().All(floor => floor.ValueKind == JsonValueKind.Array && floor.EnumerateArray().All(mob => mob.ValueKind == JsonValueKind.String)))
         {
-            problems.Add($"{where}: its inn is on '{inn.Map}', which is no map.");
+            return [.. mobs.EnumerateArray().Select(floor => (IReadOnlyList<string>)[.. floor.EnumerateArray().Select(mob => mob.GetString()!)])];
         }
-        else if (town.File.Kind is not ("town" or "village") || town.File.Inn is not { Map: null } own || own.At != inn.At)
+
+        problems.Add($"{where}: its mobs are a list of mob ids, or a list of them a floor.");
+        return [];
+    }
+
+    /// <summary>Reads a plane's world: <c>world.json</c> and every chunk of <c>chunks/</c>; null for a plane with none.</summary>
+    private static RealmWorld? ReadWorld(string folder, string plane, List<string> problems)
+    {
+        string path = Path.Combine(folder, "world.json");
+        if (!System.IO.File.Exists(path)) return null;
+        WorldFile? file;
+        try
         {
-            problems.Add($"{where}: its inn is {inn.Map}'s at {inn.At}, which is not that town's or village's own inn.");
+            file = JsonSerializer.Deserialize<WorldFile>(System.IO.File.ReadAllBytes(path), Json);
         }
+        catch (JsonException problem)
+        {
+            problems.Add($"world.json: {problem.Message}");
+            return null;
+        }
+
+        if (file is null || file.Chunk <= 0)
+        {
+            problems.Add("world.json: empty, or a chunk of no hexes.");
+            return null;
+        }
+
+        var world = new RealmWorld(file, plane);
+        foreach ((string name, ChunkFile chunk) in Read<ChunkFile>(Path.Combine(folder, "chunks"), problems))
+        {
+            Match match = ChunkName().Match(name);
+            if (!match.Success)
+            {
+                problems.Add($"chunks/{name}: a chunk's file is named <cq>_<cr>.json.");
+                continue;
+            }
+
+            int cq = int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+            int cr = int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+            world.Add(cq, cr, chunk, $"chunks/{name}", problems);
+        }
+
+        if (world.Chunks.Count == 0) problems.Add("the world has no chunks (world/chunks/<cq>_<cr>.json).");
+        return world;
+    }
+
+    [GeneratedRegex(@"^(-?\d+)_(-?\d+)\.json$")]
+    private static partial Regex ChunkName();
+
+    /// <summary>A tile, <c>[q, r, height, terrain, blocked]</c>: its hex and whether it is blocked.</summary>
+    internal static bool TryTile(JsonElement tile, out Hex at, out bool blocked)
+    {
+        at = default;
+        blocked = false;
+        if (tile.ValueKind != JsonValueKind.Array || tile.GetArrayLength() != 5
+            || !tile[0].TryGetInt32(out int q) || !tile[1].TryGetInt32(out int r) || !tile[2].TryGetDouble(out _)
+            || tile[3].ValueKind != JsonValueKind.String || !tile[4].TryGetInt32(out int closed) || closed is not (0 or 1))
+        {
+            return false;
+        }
+
+        at = new Hex(q, r);
+        blocked = closed == 1;
+        return true;
     }
 
     /// <summary>
@@ -614,28 +805,5 @@ public sealed partial class RealmContent
         }
 
         return read;
-    }
-
-    private static List<Tile> ReadTiles(string file, MapFile map, List<string> problems)
-    {
-        List<Tile> tiles = [];
-        HashSet<Hex> seen = [];
-        foreach (JsonElement tile in map.Tiles)
-        {
-            if (tile.ValueKind != JsonValueKind.Array || tile.GetArrayLength() != 5
-                || !tile[0].TryGetInt32(out int q) || !tile[1].TryGetInt32(out int r) || !tile[2].TryGetDouble(out double height)
-                || tile[3].ValueKind != JsonValueKind.String || !tile[4].TryGetInt32(out int blocked) || blocked is not (0 or 1))
-            {
-                problems.Add($"{file}: a tile is [q, r, height, terrain, blocked]: {tile.GetRawText()}.");
-                continue;
-            }
-
-            var at = new Hex(q, r);
-            if (!seen.Add(at)) problems.Add($"{file}: two tiles at {at}.");
-            else if (at.DistanceTo(new Hex(0, 0)) > map.Radius) problems.Add($"{file}: the tile at {at} is beyond the map's radius {map.Radius}.");
-            else tiles.Add(new Tile(at, height, tile[3].GetString()!, blocked == 1));
-        }
-
-        return tiles;
     }
 }
