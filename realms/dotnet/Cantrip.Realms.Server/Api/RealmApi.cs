@@ -1,0 +1,92 @@
+using Cantrip.Realms.Server.Auth;
+using Cantrip.Realms.Server.Economy;
+
+namespace Cantrip.Realms.Server;
+
+/// <summary>
+/// The realm server's API (realms/docs/interfaces.md, "The realm server's API"): every call needs the signed-in cookie, and a
+/// refused call is an HTTP 4xx with <c>{"Error", "Detail"}</c> (and <c>Problems</c> for a deck or a loadout).
+/// </summary>
+public static class RealmApi
+{
+    public static void MapRealmApi(this IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
+        {
+            if (RealmSignIn.PlayerId(context.HttpContext) is null)
+            {
+                return Results.Json(new ApiError(Codes.NotSignedIn, "Sign in first."), statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            context.HttpContext.Response.Headers.CacheControl = "no-store";
+            try
+            {
+                return await next(context).ConfigureAwait(false);
+            }
+            catch (Refusal refusal)
+            {
+                return Results.Json(new ApiError(refusal.Code, refusal.Message, refusal.Problems), statusCode: refusal.Status);
+            }
+        });
+
+        static string Player(HttpContext context) => RealmSignIn.PlayerId(context)!;
+
+        api.MapGet("/me", async (HttpContext context, Characters characters, Encounters encounters) =>
+        {
+            await characters.Require(Player(context)).ConfigureAwait(false);
+            await encounters.SettleAbandoned(Player(context)).ConfigureAwait(false);
+            return Results.Ok(await characters.View(Player(context)).ConfigureAwait(false));
+        });
+
+        api.MapPost("/character", async (HttpContext context, Characters characters, NewCharacter body) =>
+            Results.Ok(await characters.Create(Player(context), body).ConfigureAwait(false)));
+
+        api.MapGet("/collection", async (HttpContext context, Characters characters) =>
+            Results.Ok(await characters.Collection(Player(context)).ConfigureAwait(false)));
+
+        api.MapGet("/deck", async (HttpContext context, DecksAndGear decks) =>
+            Results.Ok(await decks.View(Player(context)).ConfigureAwait(false)));
+
+        api.MapPut("/deck", async (HttpContext context, DecksAndGear decks, DeckChange body) =>
+            Results.Ok(await decks.Save(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPut("/loadout", async (HttpContext context, DecksAndGear decks, LoadoutChange body) =>
+            Results.Ok(await decks.Wear(Player(context), body).ConfigureAwait(false)));
+
+        api.MapGet("/vendor/{id}", async (HttpContext context, Vendors vendors, string id) =>
+            Results.Ok(await vendors.Visit(Player(context), id).ConfigureAwait(false)));
+
+        api.MapPost("/vendor/{id}/buy", async (HttpContext context, Vendors vendors, string id, CardTrade body) =>
+            Results.Ok(await vendors.Buy(Player(context), id, body).ConfigureAwait(false)));
+
+        api.MapPost("/vendor/{id}/sell", async (HttpContext context, Vendors vendors, string id, CardTrade body) =>
+            Results.Ok(await vendors.Sell(Player(context), id, body).ConfigureAwait(false)));
+
+        api.MapGet("/armorer/{town}", (Armorers armorers, string town) =>
+            Results.Ok(new ArmorerView(armorers.Stock(town))));
+
+        api.MapPost("/armorer/{town}/buy", async (HttpContext context, Armorers armorers, string town, GearBuy body) =>
+            Results.Ok(await armorers.Buy(Player(context), town, body).ConfigureAwait(false)));
+
+        api.MapPost("/armorer/{town}/sell", async (HttpContext context, Armorers armorers, string town, GearSell body) =>
+            Results.Ok(await armorers.Sell(Player(context), town, body).ConfigureAwait(false)));
+
+        api.MapPost("/encounter/start", async (HttpContext context, Encounters encounters, EncounterStart body) =>
+            Results.Ok(await encounters.Start(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/encounter/finish", async (HttpContext context, Encounters encounters, EncounterFinish body) =>
+            Results.Ok(await encounters.Finish(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/encounter/loot", async (HttpContext context, Encounters encounters, LootPicks body) =>
+            Results.Ok(await encounters.Loot(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/chest/open", async (HttpContext context, Chests chests, ChestOpen body) =>
+            Results.Ok(await chests.Open(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/travel", async (HttpContext context, Characters characters, TravelTo body) =>
+        {
+            await characters.Travel(Player(context), body).ConfigureAwait(false);
+            return Results.Ok(new { });
+        });
+    }
+}

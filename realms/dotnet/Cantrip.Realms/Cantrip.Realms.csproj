@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- What the realm's two sides must do identically: the browser that plays a duel and the realm server that checks it.
+       The duel as dealt (Duel), the log of what seat 1 sent (DuelLog), the seat the mob is played by (RealmBot), and the
+       spawn table (Spawns). No server, no engine: the web client can reference it as it references Cantrip.Client. -->
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cantrip.Realms.Server.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" />
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Client\Cantrip.Client.csproj" />
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Protocol\Cantrip.Protocol.csproj" />
+  </ItemGroup>
+
+</Project>

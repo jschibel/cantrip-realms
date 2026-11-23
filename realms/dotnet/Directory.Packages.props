@@ -1,0 +1,22 @@
+<Project>
+
+  <!-- cantrip-rs's pinned versions (dotnet/Directory.Packages.props), and the realm server's own beside them. Every
+       version is exact. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\dotnet\Directory.Packages.props" />
+
+  <ItemGroup>
+    <!-- The realm's store (tech.md B4): one EF Core model, SQLite for development and tests, PostgreSQL in production. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+  </ItemGroup>
+
+  <!-- Test-only -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

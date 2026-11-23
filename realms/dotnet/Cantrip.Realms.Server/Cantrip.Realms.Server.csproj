@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- The realm server (realms/docs/tech.md B4): the economy's authority - characters, collections, decks and the ante,
+       gear, vendors, encounters checked by replaying them on the native engine, loot - and the presence relay. An
+       ASP.NET Core minimal API over one EF Core model, on SQLite or PostgreSQL. -->
+  <PropertyGroup>
+    <AssemblyName>cantrip-realms-server</AssemblyName>
+    <RootNamespace>Cantrip.Realms.Server</RootNamespace>
+    <!-- Every project runs globalization-invariant (dotnet/Directory.Build.props), where naming a culture throws, and the
+         sign-in it shares with the Discord bot's site names them as that does (Cantrip.Discord's project says why). -->
+    <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cantrip.Realms.Server.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cantrip.Realms\Cantrip.Realms.csproj" />
+    <!-- Signing in with Discord and the sealed cookie (SiteSignIn), the Discord bot site's own. -->
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Discord\Cantrip.Discord.csproj" />
+    <!-- Dealing a duel on the native engine behind a GameSession, and the deck catalog. -->
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Server\Cantrip.Server.csproj" />
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Client.Embedded\Cantrip.Client.Embedded.csproj" />
+  </ItemGroup>
+
+</Project>
