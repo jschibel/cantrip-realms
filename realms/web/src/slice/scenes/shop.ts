@@ -137,7 +137,7 @@ export function buildShop(): SliceScene {
   const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.9, 0.75), 0.25 * Math.PI);
   sun.position.set(-4, 10, 8);
   scene.add(sun);
-  windowLight(scene, 6.0, 4.0, -1.6, 6.0, 3.6, 40);
+  windowLight(scene, 6.0, 4.0, -1.6, 6.0, 3.6, 40).castShadow = false;
   const fireLight = pointLight(scene, 2, 1.0, 1.2, new THREE.Color(1.0, 0.55, 0.25), 9, 7.5);
   pointLight(scene, 10.75, 1.6, 2.7, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);
   pointLight(scene, 3.1, 1.4, 3.9, new THREE.Color(1.0, 0.75, 0.4), 2.2, 3.2);

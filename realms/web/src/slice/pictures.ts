@@ -445,19 +445,19 @@ export function bookshelf(seed = 5, goods = false): Pixmap {
     let x = 2;
     while (x < 14) {
       if (goods) {
-        // Jars and bottles.
+        // A goblin's wares: round-bellied potions, lidded jars with labels, a rolled scroll.
         const kind = random();
         const glass = colors[Math.floor(random() * 5)]!;
-        if (kind < 0.5 && x + 3 <= 14) {
-          for (let j = bottom - 5; j < bottom; j++) for (let i = 0; i < 3; i++) p.set(x + i, j, i === 0 ? glass[4]! : i === 2 ? glass[2]! : glass[3]!);
-          p.set(x + 1, bottom - 6, w[4]!);
-          p.set(x, bottom - 4, 0xffffff);
+        if (kind < 0.45 && x + 4 <= 14) {
+          const lit = glass[Math.min(4, glass.length - 1)]!;
+          p.blit(sprite(["..c..", "..n..", ".gGh.", "gGWGh", "gGGGh", ".hhh."], { c: w[3]!, n: lit, g: lit, G: glass[3]!, h: glass[2]!, W: 0xffffff }), x - 1, bottom - 6);
           x += 4;
-        } else if (x + 2 <= 14) {
-          p.set(x, bottom - 7, w[3]!);
-          for (let j = bottom - 6; j < bottom; j++) p.set(x, j, glass[3]!), p.set(x + 1, j, glass[2]!);
-          p.set(x, bottom - 5, glass[5] ?? 0xffffff);
-          x += 3;
+        } else if (kind < 0.8 && x + 4 <= 14) {
+          p.blit(sprite(["LLLL", "jJJk", "jSSk", "jJJk"], { L: C.GOLD[3]!, j: 0xd8c8a8, J: 0xc4b090, k: 0x9a8868, S: C.RED[3]! }), x, bottom - 4);
+          x += 5;
+        } else if (x + 4 <= 14) {
+          p.blit(sprite(["sssS", "sRsS"], { s: 0xf0dcaa, S: 0xc8b080, R: C.RED[3]! }), x, bottom - 2);
+          x += 5;
         } else x++;
         continue;
       }

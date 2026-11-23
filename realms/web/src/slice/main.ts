@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { hero } from "./characters";
+import { Figure, ghoul, goblin, hero, knight, skeleton, townswoman } from "./characters";
 import { seeded } from "./pixmap";
 import { ISOMETRIC, SliceRenderer, THREE_QUARTER, type View, blendViews } from "./renderer";
 import { buildCrypt } from "./scenes/crypt";
@@ -16,6 +16,7 @@ import { Actor, type Door, type SceneId, type SliceScene, centre } from "./world
 //   ?test             publishes globalThis.sliceTest (screen places of everything, the state, a frame reader)
 //   ?still            the townsfolk stand still (for screenshots)
 //   ?edges=0          no outlines or edge highlights, to compare
+//   ?cast             every figure in a row by the start (?cast=walk: walking on the spot)
 //   ?manual           the clock moves only when a test advances it; ?nohud hides the labels
 
 THREE.ColorManagement.enabled = false;
@@ -52,6 +53,18 @@ player.speed = 4.2;
 current.scene.add(player.figure.root);
 const focus = player.position.clone();
 renderer.focus.copy(focus);
+
+// ?cast lines every figure up beside the start, facing the camera (?cast=walk: walking on the spot), to judge them.
+const cast: Figure[] = [];
+if (query.has("cast")) {
+  [knight(), goblin(true), goblin(false), townswoman(), skeleton(), ghoul()].forEach((spec, i) => {
+    const f = new Figure(spec);
+    f.root.position.set(startTile.x + 0.5 + (i < 3 ? -3 + i : i - 2), 0, startTile.z + 0.5);
+    f.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
+    current.scene.add(f.root);
+    cast.push(f);
+  });
+}
 
 // --- The HUD: the place's name, and how to play. -------------------------------------------------------------------
 
@@ -258,6 +271,10 @@ function tick(dt: number): void {
   const lean = leanAmount();
   player.figure.setLean(lean);
   for (const a of current.actors) a.figure.setLean(lean);
+  for (const f of cast) {
+    f.setLean(lean);
+    f.update(dt, query.get("cast") === "walk" ? 3 : 0);
+  }
   player.update(dt);
   if (pendingDoor && !player.moving && player.tile.x === pendingDoor.tile.x && player.tile.z === pendingDoor.tile.z) startDoor(pendingDoor);
   for (const a of current.actors) {

@@ -117,7 +117,7 @@ export function buildStreet(seed = 1): SliceScene {
   grid.setWalkable(17, 8, false);
   grid.setWalkable(18, 8, false);
 
-  // The market corner: a stall before a garden wall, the stallholder behind it.
+  // The market corner: a stall before a garden wall, the stallholder beside it.
   P.hedgeWall(b, 24.6, 32, 5.6);
   P.stall(b, 25.8, 8, 3.4);
   P.barrel(b, 29.8, 7.2);
@@ -193,7 +193,7 @@ export function buildStreet(seed = 1): SliceScene {
   const actors = [
     new Actor(knight(), { x: 3, z: 12 }, grid, { beat: { stops: [{ x: 3, z: 12 }, { x: 29, z: 12 }], pause: 3.5 } }, "Benalish knight"),
     new Actor(goblin(false), { x: 18, z: 9 }, grid, { wander: { home: { x: 18, z: 10 }, reach: 2, pause: [1.5, 4] } }, "goblin"),
-    new Actor(townswoman(), { x: 27, z: 6 }, grid, { rest: [0, 1], watch: 4 }, "stallholder"),
+    new Actor(townswoman(), { x: 30, z: 9 }, grid, { rest: [-1, 1], watch: 4 }, "stallholder"),
   ];
   for (const a of actors) scene.add(a.figure.root);
   actors[0]!.speed = 2.2;

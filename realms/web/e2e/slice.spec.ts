@@ -89,6 +89,22 @@ test("slice: through the shop's door and back out, by clicking", async ({ page }
   }
 });
 
+test("slice: down into the crypt from the churchyard and back up, by clicking", async ({ page }) => {
+  await open(page, "still&outside=iso&at=34,11");
+  for (const [from, to] of [
+    ["street", "crypt"],
+    ["crypt", "street"],
+  ] as const) {
+    expect(await slice<string>(page, "scene")).toBe(from);
+    const door = await page.evaluate((t) => ((globalThis as any).sliceTest.entities as { kind: string; to: string; x: number; y: number }[]).find((e) => e.kind === "door" && e.to === t)!, to);
+    await page.mouse.click(door.x, door.y);
+    await expect.poll(() => slice<string>(page, "scene"), { timeout: 20_000 }).toBe(to);
+    await expect.poll(() => slice<boolean>(page, "transitioning"), { timeout: 20_000 }).toBe(false);
+  }
+  // Back on the street, in the camera it left in.
+  expect(await slice<string>(page, "outside")).toBe("iso");
+});
+
 // --- Pictures for the owner ------------------------------------------------------------------------------------------
 
 /** Where a crop of a size sits in a frame: about its middle (frames differ in size while the view zooms). */

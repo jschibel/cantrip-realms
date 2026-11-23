@@ -108,9 +108,29 @@ function hairAll(ramp: readonly Rgb[]): Paint {
   return (p) => {
     for (let y = 0; y < p.height; y++) {
       for (let x = 0; x < p.width; x++) {
+        // Locks of hair: strands running down in a darker tone, parted into clumps.
         let c = ramp[3]!;
-        if ((x + y * 2) % 5 === 0) c = ramp[4]!;
-        if ((x * 2 + y) % 6 === 0) c = ramp[2]!;
+        if ((x + Math.floor(y / 2)) % 4 === 0) c = ramp[2]!;
+        if (x % 4 === 1 && y % 3 === 0) c = ramp[4]!;
+        p.set(x, y, c);
+      }
+    }
+  };
+}
+
+/**
+ * Hair seen from above, as 16-bit sprites paint it: clumps with dark parting lines, and a band of shine across the
+ * crown (rows from the back of the head, at the top of the picture, to the front, at the bottom).
+ */
+function hairCrown(ramp: readonly Rgb[]): Paint {
+  return (p) => {
+    const shine = Math.floor(p.height * 0.55);
+    for (let y = 0; y < p.height; y++) {
+      for (let x = 0; x < p.width; x++) {
+        let c = ramp[3]!;
+        if ((x + Math.floor(y / 2)) % 4 === 0) c = ramp[2]!;
+        if ((y === shine || y === shine + 1) && x % 4 !== 0 && x > 0 && x < p.width - 1) c = ramp[y === shine ? 4 : 5] ?? ramp[4]!;
+        if (y === p.height - 1) c = ramp[2]!;
         p.set(x, y, c);
       }
     }
@@ -420,10 +440,10 @@ export function hero(): FigureSpec {
     arm: [3, 8, 3],
     leg: [4, 5, 4],
     headLift: 0,
-    faces: { head: { front: face, left: side, right: side, back, top: hairAll(hair) }, torso, arm, leg: legFaces(C.SLATE, C.WOOD, 2) },
+    faces: { head: { front: face, left: side, right: side, back, top: hairCrown(hair) }, torso, arm, leg: legFaces(C.SLATE, C.WOOD, 2) },
     fills: { head: S[4]!, torso: tunic[3]!, arm: tunic[3]!, leg: C.SLATE[2]! },
   });
-  parts.push({ name: "hair", parent: "head", size: [14, 4, 10], at: [0, 8, 0], box: [-7, 0, -5.5], faces: { front: capFront, left: capSide, back: capSide, top: hairAll(hair) }, fill: hair[3]! });
+  parts.push({ name: "hair", parent: "head", size: [14, 4, 10], at: [0, 7.5, 0], box: [-7, 0, -5.5], faces: { front: capFront, left: capSide, back: capSide, top: hairCrown(hair) }, fill: hair[3]!, round: 2 });
   parts.push({
     name: "cape",
     parent: "torso",
@@ -579,7 +599,7 @@ export function goblin(vendor = true): FigureSpec {
   parts.push({ name: "ear.r", parent: "head", size: [7, 3, 2], at: [-7, 6, 0], box: [-7, -1, -1], faces: { front: ear, back: ear, top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0, -0.35] });
   parts.push({ name: "nose", parent: "head", size: [3, 3, 3], at: [0, 4, 4], box: [-1.5, -1, 0], faces: { front: layer(cloth(g, 4), rows(0, 0, g[5]!)), top: cloth(g, 5, false) }, fill: g[4]!, tilt: [0.3, 0] });
   if (vendor) {
-    parts.push({ name: "hat", parent: "head", size: [8, 3, 6], at: [0, 10, -0.5], box: [-4, 0, -3], faces: { front: layer(cloth(C.RED, 3), rows(2, 2, C.GOLD[3]!)), left: layer(cloth(C.RED, 2), rows(2, 2, C.GOLD[2]!)), top: cloth(C.RED, 4, false) }, fill: C.RED[3]! });
+    parts.push({ name: "hat", parent: "head", size: [8, 4, 6], at: [0, 9.5, -0.5], box: [-4, 0, -3], faces: { front: layer(cloth(C.RED, 3), rows(3, 3, C.GOLD[3]!), rows(0, 0, C.RED[4]!)), left: layer(cloth(C.RED, 2), rows(3, 3, C.GOLD[2]!)), top: layer(cloth(C.RED, 4, false), stamp(["G"], { G: C.GOLD[4]! }, 3, 2)) }, fill: C.RED[3]!, round: 1.5 });
   }
   return { name: vendor ? "grizzlegom" : "goblin", parts, stride: 0.9, armSwing: 0.9 };
 }
@@ -700,6 +720,13 @@ export function ghoul(): FigureSpec {
   return { name: "ghoul", parts, stride: 0.55, armSwing: 0.25, hunch: 0.4 };
 }
 
+/** A headscarf from above: cloth with a knot of white dots. */
+function scarfTop(ramp: readonly Rgb[]): Paint {
+  return (p) => {
+    for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) p.set(x, y, (x + y) % 4 === 0 ? 0xfff4dc : y === p.height - 1 ? ramp[2]! : ramp[3]!);
+  };
+}
+
 /** A townswoman at the market stall: a headscarf, a green dress, a white apron. */
 export function townswoman(): FigureSpec {
   const hair = C.HAIR_BROWN;
@@ -736,7 +763,7 @@ export function townswoman(): FigureSpec {
     arm: [3, 7, 3],
     leg: [4, 5, 4],
     faces: {
-      head: { front: face, left: layer(cloth(S, 4, false), hairRows(scarf, (x) => (x < 5 ? 10 : 4))), back: hairAll(scarf), top: hairAll(scarf) },
+      head: { front: face, left: layer(cloth(S, 4, false), hairRows(scarf, (x) => (x < 5 ? 10 : 4))), back: hairAll(scarf), top: scarfTop(scarf) },
       torso: { front: layer(cloth(dress, 3), (p) => p.box(2, 2, 6, 5, C.CLOTH_WHITE[4]!), rows(1, 1, C.CLOTH_WHITE[3]!)), back: layer(cloth(dress, 3), rows(2, 2, C.CLOTH_WHITE[3]!)), left: cloth(dress, 3), top: cloth(dress, 4, false) },
       arm: { front: layer(cloth(dress, 3), rows(5, 6, S[4]!)), top: cloth(dress, 4, false) },
       leg: { front: layer(cloth(dress, 2), (p) => p.box(1, 0, 3, 4, C.CLOTH_WHITE[3]!), rows(4, 4, C.WOOD[1]!)), left: layer(cloth(dress, 2), rows(4, 4, C.WOOD[1]!)) },
