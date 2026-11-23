@@ -1,4 +1,4 @@
-import type { Pixmap, Rgb } from "../paint/pixmap";
+import type { Rgb } from "../paint/pixmap";
 import { sprite } from "../paint/sprite";
 import type { Paint } from "./rig";
 

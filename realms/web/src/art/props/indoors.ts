@@ -16,14 +16,13 @@ import { bool, drawn, num, point } from "./registry";
 const PX = D.PX;
 
 /** Three frames of a flame `n` texels high, drawn as upright cards by `card`. */
-function flames(n: number, card: (b: MeshBuilder, face: ReturnType<typeof fitted>) => void, name: string): Frames {
+function flames(n: number, card: (b: MeshBuilder, face: ReturnType<typeof fitted>) => void): Frames {
   return {
     rate: 8,
     models: [0, 1, 2].map((f) => {
       const m = material(`flame-${f}-${n}`, () => Pic.flame(f, n), { glowing: true, cutout: true });
       const fb = new MeshBuilder();
       card(fb, fitted(m));
-      void name;
       return fb.model();
     }),
   };
@@ -38,7 +37,7 @@ drawn("hearth", "a stone hearth in the back wall, its middle at x, its fire burn
   b.box(x - 1.375, 0, 0, x + 1.375, 2.25, 0.4, { south: fitted(hearth), top: stone, east: stone, west: stone });
   b.box(x - 1.5, 1.75, 0, x + 1.5, 1.875, 0.55, sides(tiled(stock.timber())));
   b.box(x - 1.125, 2.25, 0, x + 1.125, 3.0, 0.25, sides(stone));
-  return { frames: [flames(16, (fb, face) => fb.card(face, x - 0.5, 0.05, x + 0.5, 1.05, 0.42), "fire")] };
+  return { frames: [flames(16, (fb, face) => fb.card(face, x - 0.5, 0.05, x + 0.5, 1.05, 0.42))] };
 });
 
 drawn("candle", "a candle in a brass dish at x, z, standing at y", (b, p) => candle(b, p.x, p.y ?? 0, p.z));
@@ -201,7 +200,7 @@ drawn("rubble", "a fallen block of crypt stone at x, z, args.size across", (b, p
 
 /** A flame's three frames as cards `n` texels high, their foot's middle at x, y, z. */
 function flameAt(x: number, y: number, z: number, n: number): Frames {
-  return flames(n, (fb, face) => fb.card(face, x - n / 32, y, x + n / 32, y + n / 16, z), "flame");
+  return flames(n, (fb, face) => fb.card(face, x - n / 32, y, x + n / 32, y + n / 16, z));
 }
 
 // --- The furniture's own pieces ------------------------------------------------------------------------------------------
