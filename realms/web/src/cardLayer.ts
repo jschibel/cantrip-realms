@@ -42,9 +42,11 @@ export class CardLayer implements CardScreens {
   /** Called whenever the layer's state changes, for the HUD. */
   onChange: () => void = () => {};
 
-  constructor(url: string) {
+  /** `url` is the card layer's page; `server` the realm server, which the card layer calls for what happens inside a screen. */
+  constructor(url: string, server?: string) {
     const address = new URL(url, window.location.href);
     address.searchParams.set("realm", "");
+    if (server) address.searchParams.set("api", new URL(server, window.location.href).toString());
     this.origin = address.origin;
 
     this.frame = document.createElement("iframe");

@@ -18,7 +18,7 @@ import { publishTestHooks } from "./testHooks";
 //   ?server=<url>   the realm server (also VITE_REALM_SERVER); with none, or with ?offline, the API is the in-memory
 //                   MockApi and presence goes between this browser's tabs.
 //   ?cards=<url>    the card layer to frame (also VITE_CARD_LAYER_URL); "stub" for the stand-in panels, which offline
-//                   play uses unless told otherwise.
+//                   play uses unless told otherwise. It is told the realm server (its ?api=), which it calls itself.
 //   ?editor[=<map>] the map editor instead (development builds only).
 //   ?test           publishes globalThis.realmTest.
 // and, for development and tests, forces a state rather than waiting on chance:
@@ -54,7 +54,7 @@ async function boot(): Promise<void> {
   if (api instanceof MockApi) api.now = now;
 
   const cards = query.get("cards") ?? (offline ? "stub" : ((import.meta.env.VITE_CARD_LAYER_URL as string | undefined) ?? "http://localhost:5100/"));
-  const layer: CardScreens = cards === "stub" ? new StubCardLayer() : new CardLayer(cards);
+  const layer: CardScreens = cards === "stub" ? new StubCardLayer() : new CardLayer(cards, offline ? undefined : server);
 
   let game: Overworld | null = null;
   if (query.has("test")) publishTestHooks(() => game, layer);
