@@ -1,0 +1,27 @@
+{
+  "id": "llanowar-1",
+  "name": "The Llanowar Tower of the First Circle",
+  "theme": "tower",
+  "entrance": [
+    220,
+    456
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "elvish-warrior",
+    "giant-spider",
+    "llanowar-elves"
+  ],
+  "warden": "warden-1",
+  "boss": "mage-llanowar-1",
+  "region": "G",
+  "waystone": true
+}

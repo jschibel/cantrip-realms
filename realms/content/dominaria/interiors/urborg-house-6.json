@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":490,"r":242},
+  "exit": {"q":460,"r":289},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

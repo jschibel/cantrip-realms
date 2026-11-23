@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "urborg-ghoul",
-    "cabal-initiate"
+    "bog-imp",
+    "plague-beetle",
+    "scathe-zombies"
   ],
-  "warden": "bog-wraith",
-  "boss": "phyrexian-plaguelord",
+  "warden": "warden-1",
+  "boss": "bog-wraith",
   "region": "B"
 }

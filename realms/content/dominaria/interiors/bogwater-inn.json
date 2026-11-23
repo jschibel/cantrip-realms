@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "bogwater",
   "style": "urborg",
-  "exit": {"q":414,"r":263},
+  "exit": {"q":415,"r":263},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"wood",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"urborg","h":0.45}
   ],
   "npcs": [
-    {"id":"bogwater-innkeeper","kind":"inn","name":"The keeper of The Sunken Cup","text":["The Sunken Cup. Small, but the beds are dry."],"q":-2,"r":1},
+    {"id":"bogwater-innkeeper","kind":"innkeeper","name":"The keeper of The Sunken Cup","text":["The Sunken Cup. Small, but the beds are dry."],"q":-2,"r":1},
     {"id":"bogwater-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

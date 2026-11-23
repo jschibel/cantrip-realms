@@ -4,9 +4,9 @@
 // street, its door between it and the street. A building with a door gets an interior (interiors.ts).
 
 import { DIRECTIONS, type Hex, hex, toWorld } from "../../src/hex";
-import type { BuildingUse, Front, InteriorKind, NpcData, TownData, TownStyle } from "../../src/world/schema";
+import type { BuildingUse, Front, InteriorKind, NpcData, Region, TownData, TownStyle } from "../../src/world/schema";
 import { Grid, STEP, T, Use, angleGap, angleOf, around, disc, hexDistance, hexOf, idx, inside, line, qOf, randomFor, rOf, ringOf, safeToBlock, shuffle } from "./grid";
-import type { TownPlan } from "./plan";
+import type { TownLayout as TownPlan } from "./layout";
 
 export interface Building {
   readonly use: BuildingUse;
@@ -124,7 +124,7 @@ interface Site {
   readonly front: Front;
 }
 
-export function buildTown(grid: Grid, plan: TownPlan, index: number, centre: Hex, targets: readonly { id: string; at: Hex }[], seed: number, vendors: readonly { id: string; name: string }[]): BuiltTown {
+export function buildTown(grid: Grid, plan: TownPlan, color: Region | null, index: number, centre: Hex, targets: readonly { id: string; at: Hex }[], seed: number, vendors: readonly { id: string; name: string }[]): BuiltTown {
   const random = randomFor(seed, `town:${plan.id}`);
   const R = plan.radius;
   const ground = GROUNDS[plan.style];
@@ -313,7 +313,7 @@ export function buildTown(grid: Grid, plan: TownPlan, index: number, centre: Hex
   // Building sites: every way a building can face a street, its door between them.
   const sites: Site[] = [];
   for (const i of disc(centre, R - 1)) {
-    if (grid.use[i] !== Use.Street && grid.use[i] !== Use.Kept) continue;
+    if ((grid.use[i] !== Use.Street && grid.use[i] !== Use.Kept) || grid.blocked[i]) continue;
     const p = worldOf(i);
     for (const front of FRONT_LIST) {
       const n = NORMALS[front];
@@ -522,7 +522,7 @@ export function buildTown(grid: Grid, plan: TownPlan, index: number, centre: Hex
       center: [centre.q, centre.r],
       radius: R,
       style: plan.style,
-      ...(plan.region ? { region: plan.region } : {}),
+      ...(color ? { region: color } : {}),
       start: plan.start,
       ...(plan.home ? { home: plan.home } : {}),
     },

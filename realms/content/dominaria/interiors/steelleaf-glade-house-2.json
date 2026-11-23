@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "steelleaf-glade",
   "style": "llanowar",
-  "exit": {"q":98,"r":444},
+  "exit": {"q":98,"r":453},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"moss",1],

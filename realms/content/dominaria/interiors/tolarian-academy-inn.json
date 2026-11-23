@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":393,"r":151},
+  "exit": {"q":393,"r":149},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"stone",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"tolarian","h":0.45}
   ],
   "npcs": [
-    {"id":"tolarian-academy-innkeeper","kind":"inn","name":"The keeper of The Drowned Lecture","text":["Welcome to the Academy, mage. Mind the time rifts on your way to bed."],"q":-2,"r":1},
+    {"id":"tolarian-academy-innkeeper","kind":"innkeeper","name":"The keeper of The Drowned Lecture","text":["Welcome to the Academy, mage. Mind the time rifts on your way to bed."],"q":-2,"r":1},
     {"id":"tolarian-academy-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

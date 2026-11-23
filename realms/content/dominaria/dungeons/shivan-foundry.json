@@ -10,20 +10,27 @@
     3,
     4
   ],
-  "tier": 4,
+  "tier": 3,
   "encounters": [
     3,
     4
   ],
   "mobs": [
     [
-      "keldon-raider",
-      "shivan-drake",
-      "foundry-construct"
+      "blood-knight",
+      "fire-elemental",
+      "flametongue-kavu",
+      "hill-giant",
+      "roc-of-kher-ridges",
+      "thundering-giant"
     ],
     [
-      "foundry-construct",
-      "flame-elemental"
+      "flametongue-kavu",
+      "kiki-jiki-mirror-breaker",
+      "roc-of-kher-ridges",
+      "thundering-giant",
+      "trained-orgg",
+      "volcanic-dragon"
     ]
   ],
   "warden": "foundry-warden",

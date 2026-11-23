@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DIRECTIONS, distance, hex, key } from "../hex";
 import { THEMES, reach } from "../world/schema";
-import { BOSS_INDEX, type Floor, type RunFloor, WARDEN_INDEX, generateFloor } from "./generate";
+import { type Floor, type RunFloor, bossIndex, generateFloor, wardenIndex } from "./generate";
 
 // Each theme's generator makes valid floors: every open hex reached from the arrival, exactly the run's encounters
 // placed (with the warden before the stairs and the boss on the last floor), the entrance's spell table, and the same
@@ -22,7 +22,7 @@ function check(floor: Floor, run: RunFloor): void {
   expect(isOpen(floor.up), "the way up is open").toBe(true);
   expect(distance(floor.up, floor.arrive)).toBe(1);
 
-  const want = [...run.Encounters.map((e) => `${e.Index}:${e.Mob}:encounter`), ...(run.Warden ? [`${WARDEN_INDEX}:${run.Warden}:warden`] : []), ...(run.Boss ? [`${BOSS_INDEX}:${run.Boss}:boss`] : [])];
+  const want = [...run.Encounters.map((e) => `${e.Index}:${e.Mob}:encounter`), ...(run.Warden ? [`${wardenIndex(run)}:${run.Warden}:warden`] : []), ...(run.Boss ? [`${bossIndex(run)}:${run.Boss}:boss`] : [])];
   expect(floor.spots.map((s) => `${s.index}:${s.mob}:${s.role}`).sort()).toEqual(want.sort());
   const places = new Set<string>();
   for (const s of floor.spots) {

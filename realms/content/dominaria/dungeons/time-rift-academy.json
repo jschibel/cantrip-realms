@@ -3,27 +3,34 @@
   "name": "The Time-Rift Academy",
   "theme": "tower",
   "entrance": [
-    399,
-    57
+    405,
+    74
   ],
   "floors": [
     3,
     4
   ],
-  "tier": 4,
+  "tier": 3,
   "encounters": [
     3,
     4
   ],
   "mobs": [
     [
-      "academy-automaton",
-      "time-drifter",
-      "rift-elemental"
+      "air-elemental",
+      "fighting-drake",
+      "lord-of-atlantis",
+      "phantom-monster",
+      "segovian-leviathan",
+      "serra-sphinx"
     ],
     [
-      "rift-elemental",
-      "temporal-sentinel"
+      "air-elemental",
+      "benthic-behemoth",
+      "lord-of-atlantis",
+      "mahamoti-djinn",
+      "serra-sphinx",
+      "true-name-nemesis"
     ]
   ],
   "warden": "rift-warden",

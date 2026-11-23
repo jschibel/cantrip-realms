@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "llanowar",
   "style": "llanowar",
-  "exit": {"q":182,"r":471},
+  "exit": {"q":142,"r":464},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"moss",1],

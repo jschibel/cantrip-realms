@@ -1,0 +1,1180 @@
+{
+  "seed": 1997,
+  "landmasses": [
+    {
+      "id": "dominaria",
+      "name": "Dominaria",
+      "center": [320, 320],
+      "radius": 286,
+      "wobble": 26
+    }
+  ],
+  "bays": [
+    {
+      "center": [477, -26],
+      "radius": 96
+    }
+  ],
+  "archipelagos": [
+    {
+      "center": [451, 32],
+      "radius": 60,
+      "density": 0.4
+    }
+  ],
+  "regions": [
+    {
+      "id": "argive",
+      "name": "Argive",
+      "color": null,
+      "biome": "heartland",
+      "style": "argive",
+      "at": [320, 320],
+      "weight": 0.8,
+      "areas": ["The Argive Heartland", "The Argive Marches", "The Argive Marches", "The Argive Marches"]
+    },
+    {
+      "id": "benalia",
+      "name": "Benalia",
+      "color": "W",
+      "biome": "plains",
+      "style": "benalish",
+      "at": [185, 271],
+      "areas": ["Benalish Farmlands", "Serran Highlands", "Kjeldoran Steppe", "The Pale Wastes"]
+    },
+    {
+      "id": "tolaria",
+      "name": "Tolaria",
+      "color": "U",
+      "biome": "coast",
+      "style": "tolarian",
+      "at": [406, 130],
+      "areas": ["Tolarian Shore", "Riptide Flats", "Lat-Nam Reaches", "The Drowned Isles"]
+    },
+    {
+      "id": "urborg",
+      "name": "Urborg",
+      "color": "B",
+      "biome": "swamp",
+      "style": "urborg",
+      "at": [508, 252],
+      "areas": ["Urborg Mire", "Cabal Fens", "Twilight Mire", "The Gloom of Yawgmoth"]
+    },
+    {
+      "id": "shiv",
+      "name": "Keld and Shiv",
+      "color": "R",
+      "biome": "volcanic",
+      "style": "keldon",
+      "at": [350, 468],
+      "areas": ["Keldon Coast", "Shivan Highlands", "The Smoldering Crags", "The Burning Wastes"]
+    },
+    {
+      "id": "llanowar",
+      "name": "Llanowar and Yavimaya",
+      "color": "G",
+      "biome": "forest",
+      "style": "llanowar",
+      "at": [150, 480],
+      "areas": ["Llanowar Wilds", "Yavimaya Coast", "Krosan Verge", "The Deep Wild"]
+    }
+  ],
+  "mountains": [
+    {
+      "from": [374, 393],
+      "to": [293, 522],
+      "width": 4
+    },
+    {
+      "from": [438, 445],
+      "to": [245, 599],
+      "width": 5
+    },
+    {
+      "from": [164, 205],
+      "to": [58, 345],
+      "width": 3
+    }
+  ],
+  "rivers": [
+    {
+      "from": [305, 247],
+      "to": [266, 51]
+    },
+    {
+      "from": [404, 241],
+      "to": [629, 29]
+    },
+    {
+      "from": [387, 344],
+      "to": [565, 410]
+    },
+    {
+      "from": [277, 415],
+      "to": [163, 666],
+      "lava": true
+    },
+    {
+      "from": [226, 354],
+      "to": [-22, 444]
+    }
+  ],
+  "lakes": [
+    {
+      "at": [209, 322],
+      "radius": 4,
+      "kind": "water"
+    },
+    {
+      "at": [226, 207],
+      "radius": 5,
+      "kind": "water"
+    },
+    {
+      "at": [347, 199],
+      "radius": 5,
+      "kind": "water"
+    },
+    {
+      "at": [470, 120],
+      "radius": 6,
+      "kind": "water"
+    },
+    {
+      "at": [447, 247],
+      "radius": 6,
+      "kind": "swamp"
+    },
+    {
+      "at": [502, 316],
+      "radius": 4,
+      "kind": "swamp"
+    },
+    {
+      "at": [368, 398],
+      "radius": 4,
+      "kind": "lava"
+    },
+    {
+      "at": [277, 518],
+      "radius": 5,
+      "kind": "lava"
+    },
+    {
+      "at": [221, 439],
+      "radius": 5,
+      "kind": "water"
+    },
+    {
+      "at": [113, 439],
+      "radius": 6,
+      "kind": "water"
+    }
+  ],
+  "towns": [
+    {
+      "id": "new-argive",
+      "name": "New Argive",
+      "kind": "capital",
+      "region": "argive",
+      "style": "argive",
+      "at": [320, 320],
+      "radius": 60,
+      "inn": "The Gilded Sprocket",
+      "innkeeper": ["Welcome to New Argive. Rooms are free for mages; the Argivians are grateful, or say so."],
+      "board": ["The five color-wells of Dominaria are held by guardians. Earn each well's attunement.", "When all five are yours, the Phyrexian Portal south of the city will open. So say the seers.", "The mage towers' waystones carry those who beat their mages from tower to tower.", "The arena opens soon. Practise your duelling."],
+      "folk": [
+        {
+          "name": "Argivian scholar",
+          "text": ["Every road leads here, and every road leads away. Pick one."]
+        },
+        {
+          "name": "Town crier",
+          "text": ["Hear ye! Phyrexian stragglers sighted in every region! Arm yourselves with cards!"]
+        },
+        {
+          "name": "Merchant",
+          "text": ["Eight vendors in one city. Nowhere else on Dominaria can say that."]
+        },
+        {
+          "name": "Old soldier",
+          "text": ["The farther from the walls, the worse the things out there. The waymarkers tell you how bad."]
+        },
+        {
+          "name": "Dock porter",
+          "text": ["The Portal's road runs south out of the gate. Nobody comes back up it."]
+        }
+      ],
+      "centrepiece": "statue",
+      "start": true,
+      "temple": "The Temple of the Thran",
+      "guild": "The Argivian Mages' Guild"
+    },
+    {
+      "id": "new-benalia",
+      "name": "New Benalia",
+      "kind": "town",
+      "region": "benalia",
+      "style": "benalish",
+      "at": [198, 275],
+      "radius": 40,
+      "inn": "The Shining Shield",
+      "innkeeper": ["Welcome to New Benalia, mage. Rest here, and here you wake if a duel goes badly."],
+      "board": ["Bounty: Phyrexian scouts in the Benalish Farmlands.", "Wanted: an escort to Capashen Hold."],
+      "folk": [
+        {
+          "name": "Benalish squire",
+          "text": ["The Capashens say the meadow's scouts are Phyrexian. Stragglers, I hope."]
+        },
+        {
+          "name": "Old pilgrim",
+          "text": ["Serra's sanctum fell with her realm. Its angels guard it still, but not for her."]
+        }
+      ],
+      "centrepiece": "statue",
+      "start": true,
+      "home": "W",
+      "temple": "The Cathedral of Serra",
+      "guild": "The Order of the White Shield"
+    },
+    {
+      "id": "capashen-hold",
+      "name": "Capashen Hold",
+      "kind": "village",
+      "region": "benalia",
+      "style": "benalish",
+      "at": [239, 318],
+      "radius": 15,
+      "inn": "The Capashen Arms",
+      "innkeeper": ["The Capashen Arms. Small, but the beds are dry."],
+      "board": ["Travellers: the roads of Benalia are not safe after dark."],
+      "folk": [
+        {
+          "name": "Capashen guard",
+          "text": ["Hold's open to honest folk. And mages, I suppose."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "serras-rest",
+      "name": "Serra's Rest",
+      "kind": "village",
+      "region": "benalia",
+      "style": "benalish",
+      "at": [227, 178],
+      "radius": 15,
+      "inn": "The Feather and Lance",
+      "innkeeper": ["The Feather and Lance. Small, but the beds are dry."],
+      "board": ["Fallen angels seen over the steppe. Do not approach."],
+      "folk": [
+        {
+          "name": "Shepherd",
+          "text": ["The angels used to bless the flocks. Now they take them."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "tolarian-academy",
+      "name": "Tolarian Academy",
+      "kind": "town",
+      "region": "tolaria",
+      "style": "tolarian",
+      "at": [399, 147],
+      "radius": 40,
+      "inn": "The Drowned Lecture",
+      "innkeeper": ["Welcome to the Academy, mage. Mind the time rifts on your way to bed."],
+      "board": ["Lost: one automaton, answers to nothing.", "Research assistants wanted for the rift. Hazard pay."],
+      "folk": [
+        {
+          "name": "Lecturer",
+          "text": ["Mind the time rifts. A student walked into one and came out last Tuesday."]
+        },
+        {
+          "name": "Fisher",
+          "text": ["The merfolk keep to the shore. Mostly."]
+        }
+      ],
+      "centrepiece": "crystal",
+      "start": true,
+      "home": "U",
+      "temple": "The Shrine of the Tides",
+      "guild": "The Academy's Hall of Mages"
+    },
+    {
+      "id": "lat-nam",
+      "name": "Lat-Nam",
+      "kind": "village",
+      "region": "tolaria",
+      "style": "tolarian",
+      "at": [341, 230],
+      "radius": 15,
+      "inn": "The Scholar's Rest",
+      "innkeeper": ["The Scholar's Rest. Small, but the beds are dry."],
+      "board": ["Tutors wanted. Must not be phased out."],
+      "folk": [
+        {
+          "name": "Scribe",
+          "text": ["Lat-Nam copied every spell ever written. Then someone lost the index."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "tidewater",
+      "name": "Tidewater",
+      "kind": "village",
+      "region": "tolaria",
+      "style": "tolarian",
+      "at": [499, 96],
+      "radius": 15,
+      "inn": "The Barnacle",
+      "innkeeper": ["The Barnacle. Small, but the beds are dry."],
+      "board": ["Boats for hire to the Drowned Isles. No refunds."],
+      "folk": [
+        {
+          "name": "Old salt",
+          "text": ["The islands drown a little more each year. So do the people who go there."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "urborg",
+      "name": "Urborg",
+      "kind": "town",
+      "region": "urborg",
+      "style": "urborg",
+      "at": [491, 258],
+      "radius": 40,
+      "inn": "The Last Lantern",
+      "innkeeper": ["Welcome to Urborg. Keep your boots dry and your deck drier."],
+      "board": ["Bounty: five Urborg ghouls, any condition.", "Do not feed the bog wraiths."],
+      "folk": [
+        {
+          "name": "Gravedigger",
+          "text": ["Business is good. Too good. The ghouls keep getting up again."]
+        },
+        {
+          "name": "Cabal defector",
+          "text": ["The tomb goes down five floors. I went down two."]
+        }
+      ],
+      "centrepiece": "brazier",
+      "start": true,
+      "home": "B",
+      "temple": "The Chapel of the Drowned",
+      "guild": "The Cabal's Old Hall"
+    },
+    {
+      "id": "bogwater",
+      "name": "Bogwater",
+      "kind": "village",
+      "region": "urborg",
+      "style": "urborg",
+      "at": [414, 266],
+      "radius": 15,
+      "inn": "The Sunken Cup",
+      "innkeeper": ["The Sunken Cup. Small, but the beds are dry."],
+      "board": ["Stilts repaired. Inquire within, if the floor holds."],
+      "folk": [
+        {
+          "name": "Bog fisher",
+          "text": ["What's in the water? You don't want to know. I don't."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "cabal-crossing",
+      "name": "Cabal Crossing",
+      "kind": "village",
+      "region": "urborg",
+      "style": "urborg",
+      "at": [523, 324],
+      "radius": 15,
+      "inn": "The Rotten Plank",
+      "innkeeper": ["The Rotten Plank. Small, but the beds are dry."],
+      "board": ["Cultists seen in the Twilight Mire. They wave."],
+      "folk": [
+        {
+          "name": "Lantern keeper",
+          "text": ["Keep the lantern lit and the dead keep their distance. Usually."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "keld",
+      "name": "Keld",
+      "kind": "town",
+      "region": "shiv",
+      "style": "keldon",
+      "at": [347, 455],
+      "radius": 40,
+      "inn": "The Burning Keel",
+      "innkeeper": ["Welcome to Keld. Sit, drink, and if someone shouts, shout back."],
+      "board": ["Bounty: the goblin warband that took the mine cart.", "Dragon sighted over the highlands. Again."],
+      "folk": [
+        {
+          "name": "Keldon warrior",
+          "text": ["Fight me. No? Then fight the goblins, they're asking for it."]
+        },
+        {
+          "name": "Ghitu smith",
+          "text": ["The foundry's still running. Nobody's feeding it. Think about that."]
+        }
+      ],
+      "centrepiece": "brazier",
+      "start": true,
+      "home": "R",
+      "temple": "The Hall of the Fallen",
+      "guild": "The Pyromancers' Lodge"
+    },
+    {
+      "id": "ghitu-encampment",
+      "name": "Ghitu Encampment",
+      "kind": "village",
+      "region": "shiv",
+      "style": "keldon",
+      "at": [357, 377],
+      "radius": 15,
+      "inn": "The Ember Tent",
+      "innkeeper": ["The Ember Tent. Small, but the beds are dry."],
+      "board": ["Fire-walkers wanted. Burn ward supplied."],
+      "folk": [
+        {
+          "name": "Ghitu firebrand",
+          "text": ["Shiv's mountains are hot underfoot. Watch for the lava when it glows."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "keldon-watch",
+      "name": "Keldon Watch",
+      "kind": "village",
+      "region": "shiv",
+      "style": "keldon",
+      "at": [267, 546],
+      "radius": 15,
+      "inn": "The Axe and Ember",
+      "innkeeper": ["The Axe and Ember. Small, but the beds are dry."],
+      "board": ["Raiders out past the crags. Travel in pairs."],
+      "folk": [
+        {
+          "name": "Lookout",
+          "text": ["From up here you can see the drakes circling the Burning Wastes."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "llanowar",
+      "name": "Llanowar",
+      "kind": "town",
+      "region": "llanowar",
+      "style": "llanowar",
+      "at": [166, 465],
+      "radius": 40,
+      "inn": "The Hollow Bough",
+      "innkeeper": ["Welcome to Llanowar. The trees are listening; tip accordingly."],
+      "board": ["Bounty: the wurm eating the north orchard.", "Wanted: anyone who can talk to Multani. Politely."],
+      "folk": [
+        {
+          "name": "Elvish ranger",
+          "text": ["The forest is listening. Walk softly and it may even like you."]
+        },
+        {
+          "name": "Wurm herder",
+          "text": ["They're gentle, really. Just very, very large."]
+        }
+      ],
+      "centrepiece": "tree",
+      "start": true,
+      "home": "G",
+      "temple": "The Grove of Gaea",
+      "guild": "The Druids' Circle"
+    },
+    {
+      "id": "yavimaya-hollow",
+      "name": "Yavimaya Hollow",
+      "kind": "village",
+      "region": "llanowar",
+      "style": "llanowar",
+      "at": [249, 409],
+      "radius": 15,
+      "inn": "The Mossy Hearth",
+      "innkeeper": ["The Mossy Hearth. Small, but the beds are dry."],
+      "board": ["Mind the roots. They move."],
+      "folk": [
+        {
+          "name": "Forager",
+          "text": ["Every mushroom here is edible. Some only once."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    },
+    {
+      "id": "steelleaf-glade",
+      "name": "Steelleaf Glade",
+      "kind": "village",
+      "region": "llanowar",
+      "style": "llanowar",
+      "at": [84, 456],
+      "radius": 15,
+      "inn": "The Iron Acorn",
+      "innkeeper": ["The Iron Acorn. Small, but the beds are dry."],
+      "board": ["The Deep Wild is closed. The Deep Wild does not care."],
+      "folk": [
+        {
+          "name": "Old druid",
+          "text": ["Past the verge the forest is older than the elves, and less forgiving."]
+        }
+      ],
+      "centrepiece": "well",
+      "start": false,
+      "temple": "Shrine",
+      "guild": "Hedge mage's hut"
+    }
+  ],
+  "roads": [
+    {
+      "from": "new-argive",
+      "to": "capashen-hold",
+      "main": true
+    },
+    {
+      "from": "capashen-hold",
+      "to": "new-benalia",
+      "main": true
+    },
+    {
+      "from": "new-benalia",
+      "to": "serras-rest"
+    },
+    {
+      "from": "serras-rest",
+      "to": "tidewater"
+    },
+    {
+      "from": "new-argive",
+      "to": "lat-nam",
+      "main": true
+    },
+    {
+      "from": "lat-nam",
+      "to": "tolarian-academy",
+      "main": true
+    },
+    {
+      "from": "tolarian-academy",
+      "to": "tidewater"
+    },
+    {
+      "from": "tidewater",
+      "to": "cabal-crossing"
+    },
+    {
+      "from": "new-argive",
+      "to": "bogwater",
+      "main": true
+    },
+    {
+      "from": "bogwater",
+      "to": "urborg",
+      "main": true
+    },
+    {
+      "from": "urborg",
+      "to": "cabal-crossing"
+    },
+    {
+      "from": "cabal-crossing",
+      "to": "keldon-watch"
+    },
+    {
+      "from": "new-argive",
+      "to": "ghitu-encampment",
+      "main": true
+    },
+    {
+      "from": "ghitu-encampment",
+      "to": "keld",
+      "main": true
+    },
+    {
+      "from": "keld",
+      "to": "keldon-watch"
+    },
+    {
+      "from": "keldon-watch",
+      "to": "steelleaf-glade"
+    },
+    {
+      "from": "new-argive",
+      "to": "yavimaya-hollow",
+      "main": true
+    },
+    {
+      "from": "yavimaya-hollow",
+      "to": "llanowar",
+      "main": true
+    },
+    {
+      "from": "llanowar",
+      "to": "steelleaf-glade"
+    },
+    {
+      "from": "steelleaf-glade",
+      "to": "serras-rest"
+    }
+  ],
+  "dungeons": [
+    {
+      "id": "serras-fallen-sanctum",
+      "name": "Serra's Fallen Sanctum",
+      "theme": "castle",
+      "region": "benalia",
+      "at": [140, 230],
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "sanctum-warden",
+      "boss": "lyra-dawnbringer",
+      "road": "new-benalia"
+    },
+    {
+      "id": "kjeldoran-watchtower",
+      "name": "The Ruined Kjeldoran Watchtower",
+      "theme": "castle",
+      "region": "benalia",
+      "at": [270, 233],
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2"
+    },
+    {
+      "id": "benalish-barrow-caves",
+      "name": "The Barrow Caves",
+      "theme": "caves",
+      "region": "benalia",
+      "at": [104, 356],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3"
+    },
+    {
+      "id": "benalia-1",
+      "name": "The Serran Tower of the First Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "at": [195, 327],
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-benalia-1",
+      "waystone": true,
+      "road": "new-benalia"
+    },
+    {
+      "id": "benalia-2",
+      "name": "The Serran Tower of the Second Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "at": [231, 200],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-benalia-2",
+      "waystone": true
+    },
+    {
+      "id": "benalia-3",
+      "name": "The Serran Tower of the Third Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "at": [83, 360],
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-benalia-3",
+      "waystone": true
+    },
+    {
+      "id": "benalia-4",
+      "name": "The Serran Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "benalia",
+      "at": [262, 92],
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-benalia-4",
+      "waystone": true
+    },
+    {
+      "id": "time-rift-academy",
+      "name": "The Time-Rift Academy",
+      "theme": "tower",
+      "region": "tolaria",
+      "at": [425, 54],
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "rift-warden",
+      "boss": "teferi",
+      "road": "tolarian-academy"
+    },
+    {
+      "id": "riptide-sea-caves",
+      "name": "The Riptide Sea Caves",
+      "theme": "caves",
+      "region": "tolaria",
+      "at": [417, 198],
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2"
+    },
+    {
+      "id": "lat-nam-watchtower",
+      "name": "The Drowned Watchtower",
+      "theme": "castle",
+      "region": "tolaria",
+      "at": [324, 122],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3"
+    },
+    {
+      "id": "tolaria-1",
+      "name": "The Tolarian Tower of the First Circle",
+      "theme": "tower",
+      "region": "tolaria",
+      "at": [342, 189],
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-tolaria-1",
+      "waystone": true,
+      "road": "tolarian-academy"
+    },
+    {
+      "id": "tolaria-2",
+      "name": "The Tolarian Tower of the Second Circle",
+      "theme": "tower",
+      "region": "tolaria",
+      "at": [474, 119],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-tolaria-2",
+      "waystone": true
+    },
+    {
+      "id": "tolaria-3",
+      "name": "The Tolarian Tower of the Third Circle",
+      "theme": "tower",
+      "region": "tolaria",
+      "at": [333, 94],
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-tolaria-3",
+      "waystone": true
+    },
+    {
+      "id": "tolaria-4",
+      "name": "The Tolarian Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "tolaria",
+      "at": [584, 61],
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-tolaria-4",
+      "waystone": true
+    },
+    {
+      "id": "tomb-of-yawgmoth",
+      "name": "The Tomb of Yawgmoth",
+      "theme": "crypt",
+      "region": "urborg",
+      "at": [586, 240],
+      "floors": [4, 5],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "tomb-warden",
+      "boss": "sheoldred",
+      "road": "urborg"
+    },
+    {
+      "id": "drowned-barrow",
+      "name": "The Drowned Barrow",
+      "theme": "crypt",
+      "region": "urborg",
+      "at": [449, 230],
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2"
+    },
+    {
+      "id": "fen-caves",
+      "name": "The Fen Caves",
+      "theme": "caves",
+      "region": "urborg",
+      "at": [507, 340],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3"
+    },
+    {
+      "id": "urborg-1",
+      "name": "The Urborg Tower of the First Circle",
+      "theme": "tower",
+      "region": "urborg",
+      "at": [459, 231],
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-urborg-1",
+      "waystone": true,
+      "road": "urborg"
+    },
+    {
+      "id": "urborg-2",
+      "name": "The Urborg Tower of the Second Circle",
+      "theme": "tower",
+      "region": "urborg",
+      "at": [504, 316],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-urborg-2",
+      "waystone": true
+    },
+    {
+      "id": "urborg-3",
+      "name": "The Urborg Tower of the Third Circle",
+      "theme": "tower",
+      "region": "urborg",
+      "at": [566, 140],
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-urborg-3",
+      "waystone": true
+    },
+    {
+      "id": "urborg-4",
+      "name": "The Urborg Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "urborg",
+      "at": [541, 388],
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-urborg-4",
+      "waystone": true
+    },
+    {
+      "id": "shivan-foundry",
+      "name": "The Shivan Foundry",
+      "theme": "foundry",
+      "region": "shiv",
+      "at": [381, 518],
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "foundry-warden",
+      "boss": "darigaaz",
+      "road": "keld"
+    },
+    {
+      "id": "goblin-warrens",
+      "name": "The Goblin Warrens",
+      "theme": "caves",
+      "region": "shiv",
+      "at": [290, 448],
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2"
+    },
+    {
+      "id": "old-forge",
+      "name": "The Old Ghitu Forge",
+      "theme": "foundry",
+      "region": "shiv",
+      "at": [452, 418],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3"
+    },
+    {
+      "id": "shiv-1",
+      "name": "The Shivan Tower of the First Circle",
+      "theme": "tower",
+      "region": "shiv",
+      "at": [384, 397],
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-shiv-1",
+      "waystone": true,
+      "road": "keld"
+    },
+    {
+      "id": "shiv-2",
+      "name": "The Shivan Tower of the Second Circle",
+      "theme": "tower",
+      "region": "shiv",
+      "at": [280, 519],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-shiv-2",
+      "waystone": true
+    },
+    {
+      "id": "shiv-3",
+      "name": "The Shivan Tower of the Third Circle",
+      "theme": "tower",
+      "region": "shiv",
+      "at": [459, 435],
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-shiv-3",
+      "waystone": true
+    },
+    {
+      "id": "shiv-4",
+      "name": "The Shivan Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "shiv",
+      "at": [192, 621],
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-shiv-4",
+      "waystone": true
+    },
+    {
+      "id": "heart-of-yavimaya",
+      "name": "The Heart of Yavimaya",
+      "theme": "hollow",
+      "region": "llanowar",
+      "at": [69, 538],
+      "floors": [3, 4],
+      "tier": 3,
+      "encounters": [3, 4],
+      "mobs": [
+        ["@wanderers:2-3"],
+        ["@wanderers:3-4"]
+      ],
+      "warden": "heart-warden",
+      "boss": "multani",
+      "road": "llanowar"
+    },
+    {
+      "id": "elvish-hollow",
+      "name": "The Elvish Hollow",
+      "theme": "hollow",
+      "region": "llanowar",
+      "at": [234, 449],
+      "floors": [1, 2],
+      "tier": 1,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "@wanderer:2"
+    },
+    {
+      "id": "krosan-caves",
+      "name": "The Krosan Caves",
+      "theme": "caves",
+      "region": "llanowar",
+      "at": [91, 438],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "@wanderer:3"
+    },
+    {
+      "id": "llanowar-1",
+      "name": "The Llanowar Tower of the First Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "at": [220, 456],
+      "floors": [1, 1],
+      "tier": 1,
+      "encounters": [1, 2],
+      "mobs": ["@wanderers:1"],
+      "warden": "@warden:1",
+      "boss": "mage-llanowar-1",
+      "waystone": true,
+      "road": "llanowar"
+    },
+    {
+      "id": "llanowar-2",
+      "name": "The Llanowar Tower of the Second Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "at": [111, 447],
+      "floors": [1, 2],
+      "tier": 2,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:2"],
+      "warden": "@warden:2",
+      "boss": "mage-llanowar-2",
+      "waystone": true
+    },
+    {
+      "id": "llanowar-3",
+      "name": "The Llanowar Tower of the Third Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "at": [160, 571],
+      "floors": [1, 2],
+      "tier": 3,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:3"],
+      "warden": "@warden:3",
+      "boss": "mage-llanowar-3",
+      "waystone": true
+    },
+    {
+      "id": "llanowar-4",
+      "name": "The Llanowar Tower of the Fourth Circle",
+      "theme": "tower",
+      "region": "llanowar",
+      "at": [20, 438],
+      "floors": [1, 2],
+      "tier": 4,
+      "encounters": [2, 3],
+      "mobs": ["@wanderers:4"],
+      "warden": "@warden:4",
+      "boss": "mage-llanowar-4",
+      "waystone": true
+    },
+    {
+      "id": "phyrexian-portal",
+      "name": "The Phyrexian Portal",
+      "theme": "portal",
+      "at": [389, 345],
+      "requires": "WUBRG",
+      "floors": [4, 4],
+      "tier": 4,
+      "encounters": [3, 4],
+      "mobs": [
+        ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger"],
+        ["phyrexian-ravager", "gitaxian-mindcutter", "phyrexian-negator", "phyrexian-gorger"]
+      ],
+      "warden": "portal-warden",
+      "boss": "phyrexian-praetor",
+      "road": "new-argive"
+    }
+  ]
+}

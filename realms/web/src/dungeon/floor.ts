@@ -15,9 +15,10 @@ export interface RunFloor {
   readonly Boss: string | null;
 }
 
-/** The `Index` the warden and the boss of a floor are fought by (interfaces.md, the dungeon encounter). */
-export const WARDEN_INDEX = -1;
-export const BOSS_INDEX = -2;
+/** The `Index` a floor's warden is fought by (interfaces.md, the dungeon encounter): the count of its encounters. */
+export const wardenIndex = (run: RunFloor): number => run.Encounters.length;
+/** The `Index` a floor's boss is fought by: one past its warden's. */
+export const bossIndex = (run: RunFloor): number => run.Encounters.length + 1;
 
 export type Role = "encounter" | "warden" | "boss";
 
@@ -266,17 +267,17 @@ export function finish(b: FloorBuilder, rooms: readonly Room[], request: FloorRe
       // On the way to the stairs: the hex two steps back along the walk there, or beside them.
       const back = pathTo(b, arrive, down);
       const at = back.length >= 3 ? back[back.length - 3]! : back.length >= 2 ? back[back.length - 2]! : freeNear(down, 1, 0)!;
-      spots.push({ index: WARDEN_INDEX, mob: request.run.Warden, role: "warden", q: at.q, r: at.r });
+      spots.push({ index: wardenIndex(request.run), mob: request.run.Warden, role: "warden", q: at.q, r: at.r });
       claim(at);
     }
   } else if (request.run.Boss) {
-    spots.push({ index: BOSS_INDEX, mob: request.run.Boss, role: "boss", q: end.at.q, r: end.at.r });
+    spots.push({ index: bossIndex(request.run), mob: request.run.Boss, role: "boss", q: end.at.q, r: end.at.r });
     claim(end.at);
     wayOut = DIRECTIONS.map((d) => hex(end.at.q + d.q, end.at.r + d.r)).filter((h) => b.open(h) && !taken.has(key(h))).sort((x, y) => far(y) - far(x) || x.q - y.q)[0] ?? null;
     if (wayOut) claim(wayOut);
     if (request.run.Warden) {
       const at = freeNear(end.at, 2)!;
-      spots.push({ index: WARDEN_INDEX, mob: request.run.Warden, role: "warden", q: at.q, r: at.r });
+      spots.push({ index: wardenIndex(request.run), mob: request.run.Warden, role: "warden", q: at.q, r: at.r });
       claim(at);
     }
   }

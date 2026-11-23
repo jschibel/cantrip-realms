@@ -143,7 +143,7 @@ export function buildInterior(spec: InteriorSpec): InteriorData {
     case "inn": {
       // The bar along the left wall with its keeper, the hearth at the back, tables, and the spell table.
       for (let z = back; z <= D / 2 - 3.5; z += 1.6) if (Math.abs(z - 0) > 0.8) room.putNear(-W / 2 + 2.6, z, "counter");
-      room.personNear(-W / 2 + 2.6, 0, { id: `${spec.town}-innkeeper`, kind: "inn", name: spec.innkeeper!.name, text: spec.innkeeper!.text });
+      room.personNear(-W / 2 + 2.6, 0, { id: `${spec.town}-innkeeper`, kind: "innkeeper", name: spec.innkeeper!.name, text: spec.innkeeper!.text });
       room.putNear(-W / 2 + 1.2, back, "barrel");
       room.putNear(1, back - 0.4, "hearth");
       for (const [x, z] of [[1, -1], [4, -1.5], [1.5, 2.5], [4.5, 2]] as const) room.putNear(x, z, "table");

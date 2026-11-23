@@ -4,7 +4,7 @@
   "kind": "smithy",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":456,"r":261},
+  "exit": {"q":455,"r":261},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,-1,0,"stone",1],

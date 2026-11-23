@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "exit": {"q":401,"r":157},
+  "exit": {"q":405,"r":163},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

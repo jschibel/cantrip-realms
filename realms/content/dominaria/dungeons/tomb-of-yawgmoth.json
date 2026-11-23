@@ -10,7 +10,7 @@
     4,
     5
   ],
-  "tier": 4,
+  "tier": 3,
   "encounters": [
     3,
     4
@@ -18,12 +18,19 @@
   "mobs": [
     [
       "bog-wraith",
-      "phyrexian-plaguelord",
-      "yawgmoth-cultist"
+      "gurmag-angler",
+      "knight-of-malice",
+      "mass-of-ghouls",
+      "moor-fiend",
+      "stinkweed-imp"
     ],
     [
-      "yawgmoth-cultist",
-      "phyrexian-horror"
+      "gurmag-angler",
+      "knight-of-malice",
+      "lady-orca",
+      "ramirez-depietro",
+      "stinkweed-imp",
+      "yargle-glutton-of-urborg"
     ]
   ],
   "warden": "tomb-warden",

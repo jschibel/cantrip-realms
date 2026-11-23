@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "new-argive",
   "style": "argive",
-  "exit": {"q":379,"r":295},
+  "exit": {"q":362,"r":315},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"wood",1],

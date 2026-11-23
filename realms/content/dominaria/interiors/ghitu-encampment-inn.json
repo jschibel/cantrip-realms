@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"keldon","h":0.45}
   ],
   "npcs": [
-    {"id":"ghitu-encampment-innkeeper","kind":"inn","name":"The keeper of The Ember Tent","text":["The Ember Tent. Small, but the beds are dry."],"q":-2,"r":1},
+    {"id":"ghitu-encampment-innkeeper","kind":"innkeeper","name":"The keeper of The Ember Tent","text":["The Ember Tent. Small, but the beds are dry."],"q":-2,"r":1},
     {"id":"ghitu-encampment-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

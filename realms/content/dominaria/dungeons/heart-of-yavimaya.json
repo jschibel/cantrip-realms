@@ -10,20 +10,27 @@
     3,
     4
   ],
-  "tier": 4,
+  "tier": 3,
   "encounters": [
     3,
     4
   ],
   "mobs": [
     [
-      "yavimaya-wurm",
-      "multani-guard",
-      "krosan-beast"
+      "arrogant-wurm",
+      "birds-of-paradise",
+      "elvish-archers",
+      "eternal-witness",
+      "magnigoth-sentry",
+      "yavimaya-wurm"
     ],
     [
-      "krosan-beast",
-      "yavimaya-ancient"
+      "arrogant-wurm",
+      "birds-of-paradise",
+      "bloodbraid-elf",
+      "elvish-archers",
+      "enormous-baloth",
+      "tarmogoyf"
     ]
   ],
   "warden": "heart-warden",

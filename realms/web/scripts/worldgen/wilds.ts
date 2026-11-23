@@ -5,8 +5,8 @@
 import { type Hex, hex, toWorld } from "../../src/hex";
 import { type ChestData, type NpcData, type PropData, type Region, type SpawnData, type Theme, type Zones, areaAt, chunkKey, CHUNK } from "../../src/world/schema";
 import { Grid, HUB, SIZE, STEP, T, Use, angleOf, around, atAngle, disc, fbm, hexDistance, hexOf, idx, inside, noise, qOf, rOf, randomFor, safeToBlock, shuffle } from "./grid";
-import type { DungeonPlan } from "./plan";
-import { HUB_REGION, REGION_ORDER } from "./terrain";
+import type { Biome, DungeonLayout as DungeonPlan, Layout } from "./layout";
+import { biomeOf } from "./terrain";
 import { footprintOf, frontToward } from "./towns";
 
 const SIZES: Record<Theme, readonly [number, number, number]> = {
@@ -23,13 +23,11 @@ export interface Site {
   readonly plan: DungeonPlan;
   readonly entrance: Hex;
   readonly waystone?: Hex;
-  /** Where waystone travel to it arrives: open ground beside its waystone. */
-  readonly arrival?: Hex;
 }
 
 /** Stands a dungeon's way in where its plan says, as near as the land allows: the structure, the hex before it. */
-export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[]): Site {
-  const want = atAngle(HUB, plan.angle, plan.steps);
+export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[], toward: Hex): Site {
+  const want = hex(plan.at[0], plan.at[1]);
   const good = (i: number) => {
     if (grid.town[i] !== 0) return false;
     for (const j of disc(hexOf(i), 6)) {
@@ -60,7 +58,7 @@ export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[]): Si
     grid.height[i] = grid.height[e]!;
     grid.use[i] = Use.Kept;
   }
-  const front = frontToward(angleOf(at, HUB));
+  const front = frontToward(angleOf(at, toward));
   const [across, deep, tall] = SIZES[plan.theme];
   const along = front === "x+" || front === "x-";
   const w = along ? deep : across;
@@ -73,27 +71,30 @@ export function placeDungeon(grid: Grid, plan: DungeonPlan, npcs: NpcData[]): Si
   for (const i of footprint) grid.blocked[i] = 1;
   grid.prop(idx(anchor.q, anchor.r), { kind: "entrance", style: plan.theme, w: round(w), d: round(d), h: tall, front, use: plan.id });
   grid.use[e] = Use.Door;
-  let waystone: Hex | undefined;
-  let arrival: Hex | undefined;
-  if (plan.waystone) {
-    const beside = around(e)
-      .filter((i) => !footprint.includes(i) && grid.blocked[i] === 0)
+  // Beside the way in: the antechamber's spell table (interfaces.md), and a mage tower's waystone.
+  const beside = (taken: number[]) =>
+    around(e)
+      .filter((i) => !footprint.includes(i) && grid.blocked[i] === 0 && !taken.includes(i))
       .map((i) => hexOf(i))
-      .sort((a, b) => a.q - b.q || a.r - b.r);
-    const spot = beside.find((h) => around(idx(h.q, h.r)).filter((i) => grid.blocked[i] === 0 && i !== e).length >= 2);
+      .sort((a, b) => a.q - b.q || a.r - b.r)
+      .find((h) => around(idx(h.q, h.r)).filter((i) => grid.blocked[i] === 0 && i !== e).length >= 3);
+  const placed: number[] = [];
+  let waystone: Hex | undefined;
+  if (plan.waystone) {
+    const spot = beside(placed);
     if (!spot) throw new Error(`${plan.id}: no room for the waystone`);
     grid.blocked[idx(spot.q, spot.r)] = 1;
+    grid.use[idx(spot.q, spot.r)] = Use.Building;
+    placed.push(idx(spot.q, spot.r));
     waystone = spot;
-    const si = idx(spot.q, spot.r);
-    arrival = around(si)
-      .filter((i) => i !== e && !footprint.includes(i) && grid.blocked[i] === 0)
-      .map((i) => hexOf(i))
-      .sort((a, b) => hexDistance(a.q, a.r, at!.q, at!.r) - hexDistance(b.q, b.r, at!.q, at!.r) || a.q - b.q || a.r - b.r)
-      .find((h) => hexDistance(h.q, h.r, at!.q, at!.r) >= 1);
-    if (!arrival) throw new Error(plan.id + ": no ground beside the waystone");
     npcs.push({ id: `${plan.id}-waystone`, q: spot.q, r: spot.r, kind: "waystone", tower: plan.id, name: `The waystone of ${plan.name.replace(/^The /, "the ")}` });
   }
-  return { plan, entrance: at, ...(waystone ? { waystone } : {}), ...(arrival ? { arrival } : {}) };
+  const table = beside(placed);
+  if (!table) throw new Error(`${plan.id}: no room for the spell table`);
+  grid.blocked[idx(table.q, table.r)] = 1;
+  grid.use[idx(table.q, table.r)] = Use.Building;
+  npcs.push({ id: `${plan.id}-spell-table`, q: table.q, r: table.r, kind: "spell-table", name: "Spell table" });
+  return { plan, entrance: at, ...(waystone ? { waystone } : {}) };
 }
 
 const round = (v: number) => Math.round(v * 100) / 100;
@@ -119,17 +120,20 @@ interface Dress {
   readonly extraShare: number;
 }
 
-const DRESS: Record<Region | "hub", Dress> = {
-  W: { trees: ["tree", "tree", "bush"], treeShare: 0.06, rocks: ["rock", "boulder"], rockShare: 0.015, extras: ["bush", "fence"], extraShare: 0.01 },
-  U: { trees: ["pine", "bush"], treeShare: 0.04, rocks: ["rock", "crystal", "boulder"], rockShare: 0.02, extras: ["reeds", "ruin", "pillar"], extraShare: 0.01 },
-  B: { trees: ["dead-tree", "dead-tree", "mushroom"], treeShare: 0.07, rocks: ["rock", "bones"], rockShare: 0.015, extras: ["reeds", "bones", "mushroom", "coffin"], extraShare: 0.025 },
-  R: { trees: ["dead-tree", "pine"], treeShare: 0.025, rocks: ["boulder", "rock", "rock"], rockShare: 0.06, extras: ["bones", "brazier"], extraShare: 0.004 },
-  G: { trees: ["tree", "tree", "pine", "tree"], treeShare: 0.2, rocks: ["rock", "mushroom"], rockShare: 0.015, extras: ["bush", "mushroom", "bush"], extraShare: 0.04 },
-  hub: { trees: ["tree", "bush"], treeShare: 0.035, rocks: ["rock"], rockShare: 0.008, extras: ["fence", "crate"], extraShare: 0.006 },
+const DRESS: Record<Biome, Dress> = {
+  plains: { trees: ["tree", "tree", "bush"], treeShare: 0.06, rocks: ["rock", "boulder"], rockShare: 0.015, extras: ["bush", "fence"], extraShare: 0.01 },
+  coast: { trees: ["pine", "bush"], treeShare: 0.04, rocks: ["rock", "crystal", "boulder"], rockShare: 0.02, extras: ["reeds", "ruin", "pillar"], extraShare: 0.01 },
+  swamp: { trees: ["dead-tree", "dead-tree", "mushroom"], treeShare: 0.07, rocks: ["rock", "bones"], rockShare: 0.015, extras: ["reeds", "bones", "mushroom", "coffin"], extraShare: 0.025 },
+  volcanic: { trees: ["dead-tree", "pine"], treeShare: 0.025, rocks: ["boulder", "rock", "rock"], rockShare: 0.06, extras: ["bones", "brazier"], extraShare: 0.004 },
+  forest: { trees: ["tree", "tree", "pine", "tree"], treeShare: 0.2, rocks: ["rock", "mushroom"], rockShare: 0.015, extras: ["bush", "mushroom", "bush"], extraShare: 0.04 },
+  heartland: { trees: ["tree", "bush"], treeShare: 0.035, rocks: ["rock"], rockShare: 0.008, extras: ["fence", "crate"], extraShare: 0.006 },
+  mountains: { trees: ["pine", "pine", "dead-tree"], treeShare: 0.05, rocks: ["boulder", "rock"], rockShare: 0.05, extras: ["bones"], extraShare: 0.004 },
+  tundra: { trees: ["pine", "dead-tree"], treeShare: 0.03, rocks: ["rock", "boulder", "crystal"], rockShare: 0.03, extras: ["bones"], extraShare: 0.004 },
 };
 
 /** Scenery over the wilds: woods thicken and thin by a noise, so there are forests and clearings. */
-export function dress(grid: Grid, seed: number): void {
+export function dress(grid: Grid, layout: Layout): void {
+  const seed = layout.seed;
   const random = randomFor(seed, "dress");
   const woods = fbm(`${seed}:woods`, 30, 3);
   const pick = <T>(list: readonly T[]) => list[Math.floor(random() * list.length)]!;
@@ -139,8 +143,7 @@ export function dress(grid: Grid, seed: number): void {
       if (grid.use[i] !== Use.Wild || grid.blocked[i] || grid.town[i] !== 0) continue;
       const t = grid.terrain[i]!;
       if (t === T.sand || t === T.road || t === T.wood) continue;
-      const region = grid.region[i] === HUB_REGION ? "hub" : REGION_ORDER[grid.region[i]!]!;
-      const style = DRESS[region];
+      const style = DRESS[biomeOf(layout, grid.region[i]!)];
       const thick = 0.25 + 1.6 * Math.max(0, woods(q, r) - 0.3);
       const roll = random();
       if (roll < style.treeShare * thick) grid.prop(i, { kind: pick(style.trees) });
@@ -242,17 +245,37 @@ export interface MobFile {
   readonly id: string;
   readonly tier: number;
   readonly boss?: boolean;
+  /** The region it roams, by color (interfaces.md, "Mobs"). */
+  readonly region?: string;
   readonly loot?: { readonly colors?: string };
 }
 
 /** The mobs that wander: no boss, no dungeon warden, no tower's mage. */
-export const wanderers = (roster: readonly MobFile[]) => roster.filter((m) => !m.boss && !m.id.endsWith("-warden") && !m.id.startsWith("mage-"));
+export const wanderers = (roster: readonly MobFile[]) =>
+  roster.filter((m) => !m.boss && !m.id.includes("warden") && !m.id.startsWith("mage-") && !m.id.startsWith("phyrexian-") && m.id !== "gitaxian-mindcutter");
+
+/**
+ * A dungeon's mob list, warden or boss as the layout names it (layout.ts): ids as they are, and the roster asked for
+ * the rest - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`.
+ */
+export function resolveMobs(roster: readonly MobFile[], region: Region | null, spec: string): string[] {
+  const match = /^@(wanderers|wanderer|warden):(\d)(?:-(\d))?$/.exec(spec);
+  if (!match) return [spec];
+  const low = Number(match[2]);
+  const high = Number(match[3] ?? match[2]);
+  if (match[1] === "warden") return [`warden-${low}`];
+  const all = wanderers(roster).filter((m) => m.tier >= low && m.tier <= high);
+  const own = region ? all.filter((m) => m.region === region) : all;
+  const pool = (own.length > 0 ? own : all).map((m) => m.id).sort();
+  if (pool.length === 0) throw new Error(`the roster has no wanderer of tier ${low}-${high}`);
+  return match[1] === "wanderer" ? [pool[0]!] : pool;
+}
 
 /** Two or three mobs of a tier for a spawn in a region: its own colors' first, any of the tier's if it has none. */
 export function mobsFor(roster: readonly MobFile[], tier: number, region: Region | null, random: () => number): string[] {
   const tierMobs = wanderers(roster).filter((m) => m.tier === tier);
   if (tierMobs.length === 0) throw new Error(`the roster has no tier ${tier} mob that wanders`);
-  const own = region ? tierMobs.filter((m) => (m.loot?.colors ?? "").includes(region)) : tierMobs;
+  const own = region ? tierMobs.filter((m) => (m.region !== undefined ? m.region === region : (m.loot?.colors ?? "").includes(region))) : tierMobs;
   const pool = shuffle((own.length > 0 ? own : tierMobs).map((m) => m.id).sort(), random);
   return pool.slice(0, Math.min(pool.length, 2 + Math.floor(random() * 2))).sort();
 }

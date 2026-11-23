@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":352,"r":467},
+  "exit": {"q":351,"r":465},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "llanowar-elves-pack",
-    "elvish-scout"
+    "elvish-warrior",
+    "giant-spider",
+    "llanowar-elves"
   ],
-  "warden": "multani-guard",
-  "boss": "yavimaya-wurm",
+  "warden": "warden-1",
+  "boss": "eternal-witness",
   "region": "G"
 }

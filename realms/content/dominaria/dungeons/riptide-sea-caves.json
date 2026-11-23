@@ -17,9 +17,10 @@
   ],
   "mobs": [
     "coral-merfolk",
-    "tolarian-apprentice"
+    "storm-crow",
+    "wind-drake"
   ],
-  "warden": "time-drifter",
-  "boss": "academy-automaton",
+  "warden": "warden-1",
+  "boss": "fighting-drake",
   "region": "U"
 }

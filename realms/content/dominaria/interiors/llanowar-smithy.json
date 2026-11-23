@@ -4,7 +4,7 @@
   "kind": "smithy",
   "town": "llanowar",
   "style": "llanowar",
-  "exit": {"q":205,"r":437},
+  "exit": {"q":203,"r":439},
   "entry": {"q":-1,"r":3},
   "tiles": [
     [-3,-1,0,"stone",1],

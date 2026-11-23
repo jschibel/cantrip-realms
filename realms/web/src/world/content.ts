@@ -3,7 +3,8 @@
 // in the page.
 
 import worldFile from "../../../content/dominaria/world/world.json";
-import { type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey } from "./schema";
+import { DIRECTIONS, type Hex, hex } from "../hex";
+import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey } from "./schema";
 
 export const WORLD = worldFile as unknown as WorldData;
 
@@ -54,3 +55,25 @@ export function homeTown(color: string): WorldData["towns"][number] {
 
 /** A town's inn. */
 export const innOf = (town: string) => WORLD.inns.find((i) => i.town === town)!;
+
+/** Where a new character begins, and a beaten one with no inn of their own wakes: the capital, else a starting town. */
+export function startTown(): WorldData["towns"][number] {
+  return WORLD.towns.find((t) => t.kind === "capital") ?? WORLD.towns.find((t) => t.start)!;
+}
+
+/**
+ * Where leaving a dungeon, or a waystone's travel to its tower, puts a character (interfaces.md, the dungeon and
+ * waystone calls): beside its entrance, the first open neighbour in hex.ts's order of directions that is no door or
+ * entrance.
+ */
+export async function besideEntrance(entrance: Hex): Promise<Hex> {
+  for (const d of DIRECTIONS) {
+    const h = hex(entrance.q + d.q, entrance.r + d.r);
+    const chunk = await loadChunk(Math.floor(h.q / CHUNK), Math.floor(h.r / CHUNK));
+    if (!chunk) continue;
+    const tile = chunk.tiles[(h.q - chunk.cq * CHUNK) * CHUNK + (h.r - chunk.cr * CHUNK)];
+    const used = chunk.doors.some((x) => x.q === h.q && x.r === h.r) || chunk.entrances.some((x) => x.q === h.q && x.r === h.r);
+    if (tile && tile[4] === 0 && !used) return h;
+  }
+  return entrance;
+}

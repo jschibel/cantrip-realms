@@ -4,7 +4,7 @@
   "kind": "shop",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":198,"r":267},
+  "exit": {"q":192,"r":278},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"marble",1],

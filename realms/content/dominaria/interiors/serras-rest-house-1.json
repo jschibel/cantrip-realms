@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "serras-rest",
   "style": "benalish",
-  "exit": {"q":225,"r":185},
+  "exit": {"q":219,"r":172},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],

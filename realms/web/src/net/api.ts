@@ -44,7 +44,7 @@ export interface Character {
   /** The total list price of the cards in the ante (design.md, A2). */
   readonly AnteValue: number;
   /** The space of the character's place (interfaces.md, "Places"): "world", an interior's id, or "run:<run>". */
-  readonly Map: string;
+  readonly Space: string;
   readonly Q: number;
   readonly R: number;
   readonly Stats: { readonly Life: number; readonly Hand: number; readonly MaxHand: number };
@@ -54,6 +54,8 @@ export interface Character {
   readonly Unlocked: readonly ManaColor[];
   /** The mage towers whose waystones are attuned to the character (design.md A6). */
   readonly Attuned?: readonly string[];
+  /** The character's home inn (world.json's `inns[].id`). */
+  readonly Inn?: string;
 }
 
 /** A character's identity as colors, in WUBRG order. */
@@ -180,7 +182,9 @@ export interface RealmApi {
   /** Takes picks from a win's offer: the collection after. */
   takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection>;
   /** Opens a chest: the character's gold after, and what the chest held. */
-  openChest(body: { Map: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
+  openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
+  /** Makes the inn the character stands in their home: where a lost duel wakes them. */
+  setInn(): Promise<{ Inn: string }>;
   /** Reports where the character is (a world or interior place). */
   position(body: Place): Promise<void>;
   enterDungeon(body: { Dungeon: string }): Promise<Run>;
@@ -233,7 +237,8 @@ export class HttpApi implements RealmApi {
   startEncounter = (body: EncounterAt) => this.call<EncounterStart>("POST", "encounter/start", body);
   finishEncounter = (body: { Token: string; Log: readonly string[] }) => this.call<EncounterResult>("POST", "encounter/finish", body);
   takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<Collection>("POST", "encounter/loot", body);
-  openChest = (body: { Map: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
+  openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
+  setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
   position = async (body: Place) => {
     await this.call<unknown>("POST", "position", body);
   };

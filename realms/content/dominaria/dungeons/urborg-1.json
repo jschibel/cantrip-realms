@@ -1,0 +1,27 @@
+{
+  "id": "urborg-1",
+  "name": "The Urborg Tower of the First Circle",
+  "theme": "tower",
+  "entrance": [
+    459,
+    233
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "bog-imp",
+    "plague-beetle",
+    "scathe-zombies"
+  ],
+  "warden": "warden-1",
+  "boss": "mage-urborg-1",
+  "region": "B",
+  "waystone": true
+}

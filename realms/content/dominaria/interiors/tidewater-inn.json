@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "tidewater",
   "style": "tolarian",
-  "exit": {"q":498,"r":93},
+  "exit": {"q":497,"r":95},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"stone",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"tolarian","h":0.45}
   ],
   "npcs": [
-    {"id":"tidewater-innkeeper","kind":"inn","name":"The keeper of The Barnacle","text":["The Barnacle. Small, but the beds are dry."],"q":-2,"r":1},
+    {"id":"tidewater-innkeeper","kind":"innkeeper","name":"The keeper of The Barnacle","text":["The Barnacle. Small, but the beds are dry."],"q":-2,"r":1},
     {"id":"tidewater-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

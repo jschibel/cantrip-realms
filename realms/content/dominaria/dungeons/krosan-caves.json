@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "yavimaya-wurm",
-    "multani-guard"
+    "eternal-witness",
+    "magnigoth-sentry",
+    "yavimaya-wurm"
   ],
-  "warden": "yavimaya-wurm",
-  "boss": "krosan-beast",
+  "warden": "warden-2",
+  "boss": "arrogant-wurm",
   "region": "G"
 }

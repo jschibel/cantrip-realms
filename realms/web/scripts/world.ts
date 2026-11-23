@@ -1,4 +1,5 @@
-// Writes Dominaria (design.md A6): `npm run world` runs the seeded world generator (worldgen/generate.ts) and writes
+// Writes Dominaria (design.md A6): `npm run world` runs the seeded world generator (worldgen/generate.ts) on the plane's
+// layout (realms/content/dominaria/layout.json: its landmasses, regions, towns, roads and dungeons) and writes
 // realms/content/dominaria/world/ (world.json and every chunk), interiors/ and dungeons/, removing files of those
 // directories it no longer writes. The same seed and mob roster give the same files; after the roster changes
 // (realms/content/dominaria/mobs/*.json), a rerun is all it takes for the spawns to name its mobs.
@@ -8,6 +9,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateChunk, validateDungeon, validateInterior } from "../src/world/schema";
 import { type Vendor, generate } from "./worldgen/generate";
+import { readLayout } from "./worldgen/layout";
 import type { MobFile } from "./worldgen/wilds";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -22,7 +24,7 @@ const readAll = <T>(dir: string): T[] =>
 const started = performance.now();
 const roster = readAll<MobFile>("mobs");
 const vendors = readAll<Vendor>("vendors");
-const result = generate(roster, vendors, undefined, (text) => console.log(`  ${text} (${Math.round(performance.now() - started)} ms)`));
+const result = generate(readLayout(), roster, vendors, (text) => console.log(`  ${text} (${Math.round(performance.now() - started)} ms)`));
 
 let bad = 0;
 for (const [path, text] of result.files) {

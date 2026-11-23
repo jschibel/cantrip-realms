@@ -4,7 +4,7 @@
   "kind": "temple",
   "town": "tidewater",
   "style": "tolarian",
-  "exit": {"q":499,"r":101},
+  "exit": {"q":496,"r":99},
   "entry": {"q":0,"r":4},
   "tiles": [
     [-4,-2,0,"marble",1],

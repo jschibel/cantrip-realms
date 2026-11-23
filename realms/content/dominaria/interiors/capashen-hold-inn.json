@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"benalish","h":0.45}
   ],
   "npcs": [
-    {"id":"capashen-hold-innkeeper","kind":"inn","name":"The keeper of The Capashen Arms","text":["The Capashen Arms. Small, but the beds are dry."],"q":-2,"r":1},
+    {"id":"capashen-hold-innkeeper","kind":"innkeeper","name":"The keeper of The Capashen Arms","text":["The Capashen Arms. Small, but the beds are dry."],"q":-2,"r":1},
     {"id":"capashen-hold-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

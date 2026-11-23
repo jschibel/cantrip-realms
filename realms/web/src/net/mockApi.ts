@@ -6,7 +6,9 @@ import type { Body, ManaColor, Slot } from "../character";
 import { distance, hex } from "../hex";
 import { mobInfo } from "../mobs";
 import { mulberry32 } from "../random";
-import { DUNGEONS, homeTown, innOf } from "../world/content";
+import { DUNGEONS, WORLD, besideEntrance, innOf, startTown } from "../world/content";
+
+const INNS = WORLD.inns;
 import {
   ApiError,
   type Character,
@@ -91,6 +93,8 @@ export class MockApi implements RealmApi {
   private readonly chestsOpened = new Set<string>();
   private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean }>();
   private attuned: string[];
+  /** The town whose inn the character set as home. */
+  private inn: string | null = null;
   private readonly random: () => number;
   private nextToken = 1;
   private nextInstance = 1;
@@ -129,7 +133,8 @@ export class MockApi implements RealmApi {
     const owned: GearInstance[] = kit.map((g) => ({ InstanceId: this.nextInstance++, Gear: g }));
     // A test may make a character of several colors at once ("WUBRG"): the first is the starting one.
     const colors = [...color].filter((l): l is ManaColor => "WUBRG".includes(l));
-    const inn = innOf(homeTown(colors[0] ?? "W").id);
+    // A new character begins at the start town, as the server's do.
+    const inn = innOf(startTown().id);
     this.character = {
       Id: "offline-player",
       Name: name,
@@ -138,7 +143,7 @@ export class MockApi implements RealmApi {
       Identity: "WUBRG".split("").filter((l) => colors.includes(l as ManaColor)).join(""),
       Gold: 2000,
       AnteValue: 0,
-      Map: "world",
+      Space: "world",
       Q: inn.q,
       R: inn.r,
       Stats: { Life: 20 + 3 + 2, Hand: 7, MaxHand: 7 + 1 },
@@ -248,7 +253,8 @@ export class MockApi implements RealmApi {
       if (!live?.live) throw new ApiError(404, "NotThere", "No such run.");
       if (live.floor !== body.Floor) throw new ApiError(409, "NotThere", "You are not on that floor.");
       const floor = live.run.Floors[body.Floor]!;
-      const mob = body.Index === -1 ? floor.Warden : body.Index === -2 ? floor.Boss : floor.Encounters.find((e) => e.Index === body.Index)?.Mob;
+      const n = floor.Encounters.length;
+      const mob = body.Index === n ? floor.Warden : body.Index === n + 1 ? floor.Boss : floor.Encounters.find((e) => e.Index === body.Index)?.Mob;
       if (!mob || mob !== body.Mob) throw new ApiError(409, "NotThere", "No such encounter on this floor.");
       if (live.fought.has(`${body.Floor}:${body.Index}`)) throw new ApiError(409, "TooSoon", "Already beaten in this run.");
       run = { id: body.Run, floor: body.Floor, index: body.Index };
@@ -304,7 +310,7 @@ export class MockApi implements RealmApi {
         live.fought.add(`${encounter.run.floor}:${encounter.run.index}`);
         // Beating a mage tower's boss attunes its waystone (design.md A6).
         const dungeon = DUNGEONS.get(live.dungeon);
-        if (encounter.run.index === -2 && dungeon?.waystone && !this.attuned.includes(dungeon.id)) {
+        if (encounter.run.index === live.run.Floors[encounter.run.floor]!.Encounters.length + 1 && dungeon?.waystone && !this.attuned.includes(dungeon.id)) {
           this.attuned.push(dungeon.id);
           this.update({ Attuned: [...this.attuned] });
         }
@@ -320,8 +326,8 @@ export class MockApi implements RealmApi {
       encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Relics: [], Detail: null };
       // A lost duel ends any run, and the character wakes at the inn of their home town.
       if (encounter.run) this.runs.get(encounter.run.id)!.live = false;
-      const inn = innOf(homeTown(c.Identity[0] ?? "W").id);
-      this.update({ Map: "world", Q: inn.q, R: inn.r });
+      const inn = innOf(this.inn ?? startTown().id);
+      this.update({ Space: "world", Q: inn.q, R: inn.r });
     }
     return encounter.result;
   }
@@ -338,10 +344,10 @@ export class MockApi implements RealmApi {
     return { Cards: { ...this.cards } };
   }
 
-  async openChest(body: { Map: string; Chest: string }): Promise<{ Gold: number; Found: number }> {
+  async openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number }> {
     this.log("openChest", body);
     const c = this.need();
-    const key = `${body.Map}|${body.Chest}`;
+    const key = `${body.Space}|${body.Chest}`;
     if (this.chestsOpened.has(key)) throw new ApiError(409, "Empty", "The chest is empty.");
     this.chestsOpened.add(key);
     const found = 50 + Math.floor(this.random() * 150);
@@ -351,7 +357,17 @@ export class MockApi implements RealmApi {
 
   async position(body: Place): Promise<void> {
     this.log("position", body);
-    if (this.character) this.update({ Map: body.Space, Q: body.Q, R: body.R });
+    if (this.character) this.update({ Space: body.Space, Q: body.Q, R: body.R });
+  }
+
+  async setInn(): Promise<{ Inn: string }> {
+    this.log("setInn");
+    const c = this.need();
+    const room = INNS.find((i) => i.interior === c.Space);
+    if (!room) throw new ApiError(409, "NotNear", "You are not in an inn.");
+    this.inn = room.town;
+    this.update({ Inn: room.id });
+    return { Inn: room.id };
   }
 
   async enterDungeon(body: { Dungeon: string }): Promise<Run> {
@@ -360,7 +376,7 @@ export class MockApi implements RealmApi {
     const dungeon = DUNGEONS.get(body.Dungeon);
     if (!dungeon) throw new ApiError(404, "NotThere", `No dungeon ${body.Dungeon}.`);
     if (dungeon.requires && ![...dungeon.requires].every((l) => c.Identity.includes(l))) throw new ApiError(409, "Locked", `${dungeon.name} is sealed.`);
-    if (c.Map !== "world" || distance(hex(c.Q, c.R), hex(dungeon.entrance[0], dungeon.entrance[1])) > 2) throw new ApiError(409, "NotNear", `You are not at ${dungeon.name}.`);
+    if (c.Space !== "world" || distance(hex(c.Q, c.R), hex(dungeon.entrance[0], dungeon.entrance[1])) > 2) throw new ApiError(409, "NotNear", `You are not at ${dungeon.name}.`);
     const between = (low: number, high: number) => low + Math.floor(this.random() * (high - low + 1));
     const count = between(dungeon.floors[0], dungeon.floors[1]);
     const lists = Array.isArray(dungeon.mobs[0]) ? (dungeon.mobs as string[][]) : [dungeon.mobs as string[]];
@@ -376,7 +392,7 @@ export class MockApi implements RealmApi {
     const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors };
     for (const other of this.runs.values()) other.live = false;
     this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
-    this.update({ Map: `run:${id}` });
+    this.update({ Space: `run:${id}`, Q: 0, R: 0 });
     return run;
   }
 
@@ -385,7 +401,7 @@ export class MockApi implements RealmApi {
     const live = this.runs.get(body.Run);
     if (!live?.live) throw new ApiError(404, "NotThere", "No such run.");
     if (body.Floor !== live.floor + 1 || body.Floor >= live.run.Floors.length) throw new ApiError(409, "NotThere", "There is no stair there.");
-    if (live.run.Floors[live.floor]!.Warden && !live.fought.has(`${live.floor}:-1`)) throw new ApiError(409, "WardenStands", "The warden of the floor bars the stair.");
+    if (live.run.Floors[live.floor]!.Warden && !live.fought.has(`${live.floor}:${live.run.Floors[live.floor]!.Encounters.length}`)) throw new ApiError(409, "WardenStands", "The warden of the floor bars the stair.");
     live.floor = body.Floor;
   }
 
@@ -395,18 +411,21 @@ export class MockApi implements RealmApi {
     if (!live) throw new ApiError(404, "NotThere", "No such run.");
     live.live = false;
     const d = DUNGEONS.get(live.dungeon)!;
-    this.update({ Map: "world", Q: d.entrance[0], R: d.entrance[1] });
+    const out = await besideEntrance(hex(d.entrance[0], d.entrance[1]));
+    this.update({ Space: "world", Q: out.q, R: out.r });
   }
 
   async waystone(body: { Tower: string }): Promise<{ Place: Place }> {
     this.log("waystone", body);
     const c = this.need();
-    const here = [...DUNGEONS.values()].find((d) => d.waystone && d.arrival && c.Map === "world" && distance(hex(c.Q, c.R), hex(d.arrival[0], d.arrival[1])) <= 2);
+    const here = [...DUNGEONS.values()].find((d) => d.waystone && c.Space === "world" && distance(hex(c.Q, c.R), hex(d.entrance[0], d.entrance[1])) <= 1);
     if (!here) throw new ApiError(409, "NotNear", "You are not at a waystone.");
     const there = DUNGEONS.get(body.Tower);
-    if (!this.attuned.includes(here.id) || !there?.arrival || !this.attuned.includes(there.id)) throw new ApiError(409, "NotAttuned", "That waystone is not attuned to you.");
-    const place = { Space: "world", Q: there.arrival[0], R: there.arrival[1] };
-    this.update({ Map: "world", Q: place.Q, R: place.R });
+    if (!there?.waystone) throw new ApiError(404, "NotThere", "No such tower.");
+    if (!this.attuned.includes(here.id) || !this.attuned.includes(there.id)) throw new ApiError(409, "NotAttuned", "That waystone is not attuned to you.");
+    const out = await besideEntrance(hex(there.entrance[0], there.entrance[1]));
+    const place = { Space: "world", Q: out.q, R: out.r };
+    this.update({ Space: "world", Q: place.Q, R: place.R });
     return { Place: place };
   }
 

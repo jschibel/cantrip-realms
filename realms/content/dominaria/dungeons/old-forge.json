@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "keldon-raider",
-    "shivan-drake"
+    "blood-knight",
+    "fire-elemental",
+    "hill-giant"
   ],
-  "warden": "shivan-drake",
-  "boss": "foundry-construct",
+  "warden": "warden-2",
+  "boss": "flametongue-kavu",
   "region": "R"
 }

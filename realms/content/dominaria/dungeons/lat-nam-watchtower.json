@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "academy-automaton",
-    "time-drifter"
+    "fighting-drake",
+    "phantom-monster",
+    "segovian-leviathan"
   ],
-  "warden": "academy-automaton",
-  "boss": "rift-elemental",
+  "warden": "warden-2",
+  "boss": "air-elemental",
   "region": "U"
 }

@@ -32,4 +32,4 @@ export function generateFloor(request: FloorRequest): Floor {
 }
 
 export type { Floor, FloorRequest, RunFloor, Spot } from "./floor";
-export { BOSS_INDEX, WARDEN_INDEX } from "./floor";
+export { bossIndex, wardenIndex } from "./floor";

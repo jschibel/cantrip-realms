@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "kjeldoran-raider",
-    "serra-zealot"
+    "abbey-gargoyles",
+    "benalish-knight",
+    "white-knight"
   ],
-  "warden": "serra-zealot",
-  "boss": "sanctum-guardian",
+  "warden": "warden-2",
+  "boss": "commander-eesha",
   "region": "W"
 }

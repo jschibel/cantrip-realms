@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":485,"r":262},
+  "exit": {"q":496,"r":252},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"wood",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"urborg","h":0.45}
   ],
   "npcs": [
-    {"id":"urborg-innkeeper","kind":"inn","name":"The keeper of The Last Lantern","text":["Welcome to Urborg. Keep your boots dry and your deck drier."],"q":-2,"r":1},
+    {"id":"urborg-innkeeper","kind":"innkeeper","name":"The keeper of The Last Lantern","text":["Welcome to Urborg. Keep your boots dry and your deck drier."],"q":-2,"r":1},
     {"id":"urborg-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

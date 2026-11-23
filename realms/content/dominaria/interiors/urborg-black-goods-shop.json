@@ -4,7 +4,7 @@
   "kind": "shop",
   "town": "urborg",
   "style": "urborg",
-  "exit": {"q":488,"r":255},
+  "exit": {"q":485,"r":262},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-3,0,0,"wood",1],

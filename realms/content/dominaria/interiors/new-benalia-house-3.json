@@ -4,7 +4,7 @@
   "kind": "house",
   "town": "new-benalia",
   "style": "benalish",
-  "exit": {"q":185,"r":288},
+  "exit": {"q":196,"r":301},
   "entry": {"q":0,"r":2},
   "tiles": [
     [-2,-1,0,"marble",1],

@@ -1,0 +1,27 @@
+{
+  "id": "tolaria-1",
+  "name": "The Tolarian Tower of the First Circle",
+  "theme": "tower",
+  "entrance": [
+    342,
+    189
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "coral-merfolk",
+    "storm-crow",
+    "wind-drake"
+  ],
+  "warden": "warden-1",
+  "boss": "mage-tolaria-1",
+  "region": "U",
+  "waystone": true
+}

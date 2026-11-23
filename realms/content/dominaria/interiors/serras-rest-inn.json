@@ -4,7 +4,7 @@
   "kind": "inn",
   "town": "serras-rest",
   "style": "benalish",
-  "exit": {"q":228,"r":175},
+  "exit": {"q":224,"r":178},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-5,0,0,"marble",1],
@@ -121,7 +121,7 @@
     {"q":5,"r":0,"kind":"wall","style":"benalish","h":0.45}
   ],
   "npcs": [
-    {"id":"serras-rest-innkeeper","kind":"inn","name":"The keeper of The Feather and Lance","text":["The Feather and Lance. Small, but the beds are dry."],"q":-2,"r":1},
+    {"id":"serras-rest-innkeeper","kind":"innkeeper","name":"The keeper of The Feather and Lance","text":["The Feather and Lance. Small, but the beds are dry."],"q":-2,"r":1},
     {"id":"serras-rest-inn-spell-table","kind":"spell-table","name":"Spell table","q":4,"r":-4}
   ]
 }

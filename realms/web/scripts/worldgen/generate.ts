@@ -16,7 +16,6 @@ import {
   type NpcData,
   type Overview,
   type PropData,
-  REGIONS as COLORS,
   TERRAINS,
   type TileData,
   type TownData,
@@ -24,16 +23,14 @@ import {
   chunkKey,
   tierAt,
 } from "../../src/world/schema";
-import { Grid, HUB, SIZE, T, Use, atAngle, around, idx, qOf, rOf, terrainName } from "./grid";
+import { Grid, SIZE, T, Use, around, distanceField, idx, qOf, rOf, terrainName } from "./grid";
 import { buildInterior } from "./interiors";
-import { ALL_DUNGEONS, CAPITAL, type DungeonPlan, PORTAL, REGIONS, REGION_NAMES, TOWERS, type TownPlan } from "./plan";
+import type { DungeonLayout, Layout } from "./layout";
 import { Roads } from "./roads";
-import { REGION_ORDER, shapeLand, waters } from "./terrain";
+import { mountains, shapeLand, waters } from "./terrain";
 import { type BuiltTown, buildTown } from "./towns";
-import { type MobFile, type Site, connect, dress, placeDungeon, populate } from "./wilds";
+import { type MobFile, type Site, connect, dress, placeDungeon, populate, resolveMobs } from "./wilds";
 import { makeZones } from "./zones";
-
-export const SEED = 1997;
 
 export interface Vendor {
   readonly id: string;
@@ -49,46 +46,42 @@ export interface Generated {
   readonly mobs: readonly string[];
 }
 
-export function generate(roster: readonly MobFile[], vendors: readonly Vendor[], seed = SEED, log: (text: string) => void = () => {}): Generated {
+export function generate(layout: Layout, roster: readonly MobFile[], vendors: readonly Vendor[], log: (text: string) => void = () => {}): Generated {
+  const seed = layout.seed;
   const grid = new Grid();
-  shapeLand(grid, seed);
-  waters(grid, seed);
+  shapeLand(grid, layout);
+  mountains(grid, layout);
+  waters(grid, layout);
   log("land");
 
   // Where the towns stand, and which roads leave each.
-  const centreOf = new Map<string, ReturnType<typeof hex>>();
-  for (const plan of [CAPITAL, ...REGIONS.flatMap((p) => [p.town, ...p.villages])]) centreOf.set(plan.id, plan.steps === 0 ? HUB : atAngle(HUB, plan.angle, plan.steps));
-  const dungeonAt = new Map<string, ReturnType<typeof hex>>();
-  for (const plan of ALL_DUNGEONS) dungeonAt.set(plan.id, atAngle(HUB, plan.angle, plan.steps));
-  const links: { a: string; b: string; main: boolean }[] = [];
-  REGIONS.forEach((p, k) => {
-    const [near, far] = p.villages;
-    const next = REGIONS[(k + 1) % REGIONS.length]!;
-    links.push({ a: CAPITAL.id, b: near!.id, main: true });
-    links.push({ a: near!.id, b: p.town.id, main: true });
-    links.push({ a: p.town.id, b: far!.id, main: false });
-    links.push({ a: far!.id, b: next.villages[1]!.id, main: false });
-    links.push({ a: p.town.id, b: p.dungeon.id, main: false });
-    for (const t of p.towers) if (t.road) links.push({ a: p.town.id, b: t.id, main: false });
-  });
-  for (const t of TOWERS) if (t.road) links.push({ a: CAPITAL.id, b: t.id, main: false });
-  links.push({ a: CAPITAL.id, b: PORTAL.id, main: false });
+  const at = (p: readonly [number, number]) => hex(p[0], p[1]);
+  const centreOf = new Map(layout.towns.map((t) => [t.id, at(t.at)]));
+  const dungeonAt = new Map(layout.dungeons.map((d) => [d.id, at(d.at)]));
+  const links: { a: string; b: string; main: boolean }[] = layout.roads.map((r) => ({ a: r.from, b: r.to, main: r.main ?? false }));
+  for (const d of layout.dungeons) if (d.road) links.push({ a: d.road, b: d.id, main: false });
+  const colorOf = (region: string | undefined) => layout.regions.find((r) => r.id === region)?.color ?? null;
 
   const towns: BuiltTown[] = [];
-  const townPlans: TownPlan[] = [CAPITAL, ...REGIONS.flatMap((p) => [p.town, ...p.villages])];
+  const townPlans = layout.towns;
   townPlans.forEach((plan, index) => {
     const targets = links
       .filter((l) => l.a === plan.id || l.b === plan.id)
       .map((l) => (l.a === plan.id ? l.b : l.a))
       .map((id) => ({ id, at: centreOf.get(id) ?? dungeonAt.get(id)! }));
     const sold = vendors.filter((v) => v.town === plan.id).sort((a, b) => a.id.localeCompare(b.id));
-    towns.push(buildTown(grid, plan, index, centreOf.get(plan.id)!, targets, seed, sold));
+    towns.push(buildTown(grid, plan, colorOf(plan.region), index, centreOf.get(plan.id)!, targets, seed, sold));
   });
   log("towns");
 
   const outdoor: NpcData[] = towns.flatMap((t) => t.npcs);
   const sites = new Map<string, Site>();
-  for (const plan of ALL_DUNGEONS) sites.set(plan.id, placeDungeon(grid, plan, outdoor));
+  for (const plan of layout.dungeons) {
+    // Its front toward the nearest town.
+    const here = at(plan.at);
+    const near = [...centreOf.values()].sort((x, y) => Math.hypot(x.q - here.q, x.r - here.r) - Math.hypot(y.q - here.q, y.r - here.r))[0]!;
+    sites.set(plan.id, placeDungeon(grid, plan, outdoor, near));
+  }
   log("dungeons");
 
   const roads = new Roads(grid);
@@ -113,7 +106,7 @@ export function generate(roster: readonly MobFile[], vendors: readonly Vendor[],
   }
   log("roads");
 
-  dress(grid, seed);
+  dress(grid, layout);
   const innHex = towns[0]!.inn;
   const joined = connect(grid, idx(innHex.q, innHex.r));
   log(`connect: ${joined.filled} pockets filled, ${joined.joined} stretches joined`);
@@ -123,7 +116,9 @@ export function generate(roster: readonly MobFile[], vendors: readonly Vendor[],
     const t = grid.town[i]!;
     if (t !== 0 && townPlans[t - 1]!.start && grid.use[i] !== Use.Kept) starts.push(i);
   }
-  const zones = makeZones(grid, starts, roads.main);
+  const sea: number[] = [];
+  for (let i = 0; i < SIZE * SIZE; i++) if (grid.terrain[i] === T["deep-water"]) sea.push(i);
+  const zones = makeZones(grid, layout, starts, roads.main, distanceField(sea, 2000));
   log("zones");
 
   const keepAway = [
@@ -182,17 +177,19 @@ export function generate(roster: readonly MobFile[], vendors: readonly Vendor[],
   const interiors: InteriorData[] = towns.flatMap((t) => t.interiors).map(buildInterior);
   for (const room of interiors) files.set(`interiors/${room.id}.json`, formatRecord(room as unknown as Record<string, unknown>, ["tiles", "props", "npcs"]));
 
-  const dungeons: DungeonData[] = ALL_DUNGEONS.map((plan) => {
+  const dungeons: DungeonData[] = layout.dungeons.map((plan) => {
     const site = sites.get(plan.id)!;
-    return dungeonData(plan, site, Math.max(plan.tier, tierAt(zones, site.entrance)));
+    return dungeonData(plan, colorOf(plan.region), site, Math.max(plan.tier, tierAt(zones, site.entrance)), roster);
   });
   for (const d of dungeons) files.set(`dungeons/${d.id}.json`, `${JSON.stringify(d, null, 2)}\n`);
 
   const inns: InnData[] = towns.map((t) => ({ id: `${t.data.id}-inn`, town: t.data.id, q: t.inn.q, r: t.inn.r, interior: t.inn.interior }));
-  const regionCounts = COLORS.map((color) => ({ color, name: REGION_NAMES[color], hexes: 0 }));
+  const colored = layout.regions.filter((r) => r.color !== null);
+  const regionCounts = colored.map((r) => ({ color: r.color!, name: r.name, hexes: 0 }));
   for (let i = 0; i < SIZE * SIZE; i++) {
-    const k = grid.region[i]!;
-    if (k < 5 && grid.terrain[i] !== T["deep-water"] && grid.terrain[i] !== T.water) regionCounts[COLORS.indexOf(REGION_ORDER[k]!)]!.hexes++;
+    const region = layout.regions[grid.region[i]!]!;
+    const k = colored.indexOf(region);
+    if (k >= 0 && grid.terrain[i] !== T["deep-water"] && grid.terrain[i] !== T.water) regionCounts[k]!.hexes++;
   }
   const world: WorldData = {
     size: [SIZE, SIZE],
@@ -233,7 +230,10 @@ export function generate(roster: readonly MobFile[], vendors: readonly Vendor[],
   };
 }
 
-function dungeonData(plan: DungeonPlan, site: Site, tier: number): DungeonData {
+function dungeonData(plan: DungeonLayout, color: DungeonData["region"] | null, site: Site, tier: number, roster: readonly MobFile[]): DungeonData {
+  const ask = (spec: string) => resolveMobs(roster, color ?? null, spec);
+  const nested = Array.isArray(plan.mobs[0]);
+  const mobs = nested ? (plan.mobs as string[][]).map((list) => [...new Set(list.flatMap(ask))]) : [...new Set((plan.mobs as string[]).flatMap(ask))];
   return {
     id: plan.id,
     name: plan.name,
@@ -243,12 +243,11 @@ function dungeonData(plan: DungeonPlan, site: Site, tier: number): DungeonData {
     floors: plan.floors,
     tier,
     encounters: plan.encounters,
-    mobs: plan.mobs,
-    warden: plan.warden,
-    boss: plan.boss,
-    ...(plan.region ? { region: plan.region } : {}),
+    mobs: mobs as DungeonData["mobs"],
+    warden: ask(plan.warden)[0]!,
+    boss: ask(plan.boss)[0]!,
+    ...(color ? { region: color } : {}),
     ...(plan.waystone ? { waystone: true } : {}),
-    ...(site.arrival ? { arrival: [site.arrival.q, site.arrival.r] as const } : {}),
   };
 }
 

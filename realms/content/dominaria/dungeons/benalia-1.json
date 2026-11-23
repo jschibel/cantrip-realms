@@ -1,0 +1,27 @@
+{
+  "id": "benalia-1",
+  "name": "The Serran Tower of the First Circle",
+  "theme": "tower",
+  "entrance": [
+    195,
+    327
+  ],
+  "floors": [
+    1,
+    1
+  ],
+  "tier": 1,
+  "encounters": [
+    1,
+    2
+  ],
+  "mobs": [
+    "benalish-hero",
+    "knight-of-new-benalia",
+    "suntail-hawk"
+  ],
+  "warden": "warden-1",
+  "boss": "mage-benalia-1",
+  "region": "W",
+  "waystone": true
+}

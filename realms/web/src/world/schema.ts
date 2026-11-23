@@ -96,7 +96,7 @@ export const PROP_KINDS = [
 export type PropKind = (typeof PROP_KINDS)[number];
 
 /** People and places to use: an inn to rest and respawn at, a spell table, vendors, an armorer, a waystone... */
-export const NPC_KINDS = ["inn", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk", "guard", "waystone"] as const;
+export const NPC_KINDS = ["innkeeper", "spell-table", "vendor", "armorer", "quest-board", "arena", "townsfolk", "guard", "waystone"] as const;
 export type NpcKind = (typeof NPC_KINDS)[number];
 
 export const BUILDING_USES = ["house", "tenement", "shop", "inn", "temple", "guildhall", "smithy", "library", "mage-tower", "warehouse"] as const;
@@ -317,8 +317,6 @@ export interface DungeonData {
   readonly region?: Region;
   /** A mage tower: beating its boss attunes its waystone (design.md A6). */
   readonly waystone?: boolean;
-  /** A mage tower's: where waystone travel to it arrives, open ground beside its waystone. */
-  readonly arrival?: readonly [number, number];
 }
 
 // --- Geometry ---------------------------------------------------------------------------------------------------------
@@ -527,7 +525,6 @@ export function validateDungeon(data: unknown): string[] {
   for (const [name, id] of [["warden", d.warden], ["boss", d.boss]] as const) if (typeof id !== "string" || !KEBAB.test(id)) fail(`${name} is not a mob id`);
   if (d.region !== undefined && !REGIONS.includes(d.region)) fail(`region ${String(d.region)} is not a color`);
   if (d.waystone !== undefined && (d.waystone !== true || d.theme !== "tower")) fail("only a tower has a waystone");
-  if (d.waystone && !(Array.isArray(d.arrival) && isInt(d.arrival[0]) && isInt(d.arrival[1]))) fail("a waystone tower names where travel to it arrives");
   return problems;
 }
 

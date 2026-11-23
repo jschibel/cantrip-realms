@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "benalish-deserter",
-    "phyrexian-scout"
+    "benalish-hero",
+    "knight-of-new-benalia",
+    "suntail-hawk"
   ],
-  "warden": "kjeldoran-raider",
-  "boss": "serra-zealot",
+  "warden": "warden-1",
+  "boss": "abbey-gargoyles",
   "region": "W"
 }

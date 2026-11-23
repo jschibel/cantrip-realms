@@ -17,9 +17,10 @@
   ],
   "mobs": [
     "bog-wraith",
-    "phyrexian-plaguelord"
+    "mass-of-ghouls",
+    "moor-fiend"
   ],
-  "warden": "phyrexian-plaguelord",
-  "boss": "yawgmoth-cultist",
+  "warden": "warden-2",
+  "boss": "gurmag-angler",
   "region": "B"
 }

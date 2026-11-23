@@ -4,7 +4,7 @@
   "kind": "library",
   "town": "keld",
   "style": "keldon",
-  "exit": {"q":369,"r":438},
+  "exit": {"q":369,"r":440},
   "entry": {"q":0,"r":3},
   "tiles": [
     [-4,-1,0,"wood",1],

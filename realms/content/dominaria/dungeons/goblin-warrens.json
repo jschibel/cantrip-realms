@@ -16,10 +16,11 @@
     3
   ],
   "mobs": [
-    "goblin-warband",
-    "ghitu-firebrand"
+    "balduvian-barbarians",
+    "goblin-hero",
+    "hurloon-minotaur"
   ],
-  "warden": "keldon-raider",
-  "boss": "shivan-drake",
+  "warden": "warden-1",
+  "boss": "blood-knight",
   "region": "R"
 }

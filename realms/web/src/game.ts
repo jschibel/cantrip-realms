@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { CardScreens, Closed } from "./cardLayer";
 import { type Appearance, Character, type GearLook, RING_COLORS, SLOTS, type Slot } from "./character";
-import { type Floor, generateFloor } from "./dungeon/generate";
+import { type Floor, bossIndex, generateFloor, wardenIndex } from "./dungeon/generate";
 import { Mob, PLAYER_SPEED, type Visitor, Walker, besides } from "./entities";
 import { DIRECTIONS, type Hex, distance, equals, findPath, hex, key } from "./hex";
 import { type MinimapDot, Hud, gold } from "./hud";
@@ -15,7 +15,7 @@ import { World, skyOf } from "./scene/world";
 import { showDialog } from "./screens/dialog";
 import { Iris } from "./screens/iris";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { DUNGEONS, WORLD, hasInterior, loadChunk, loadInterior } from "./world/content";
+import { DUNGEONS, WORLD, besideEntrance, hasInterior, loadChunk, loadInterior } from "./world/content";
 import { CHUNK, type DungeonData, type InteriorData, type NpcData, type SpawnData, type Terrain, type ZoneArea, areaAt, chunkKey, chunkOf, townAt } from "./world/schema";
 import { RoomSpace, STOPS, type Space, type Thing, WorldSpace } from "./world/space";
 
@@ -141,7 +141,7 @@ export class Overworld {
     this.character = Character.player(data.Name, this.appearance);
     this.character.showRing(RING_COLORS[this.appearance.identity[0] ?? "W"]);
     this.sendLook();
-    const where = start ?? (data.Map.startsWith("run:") ? { space: "world" } : { space: data.Map, hex: hex(data.Q, data.R) });
+    const where = start ?? (data.Space.startsWith("run:") ? { space: "world" } : { space: data.Space, hex: hex(data.Q, data.R) });
     if (where.space !== "world" && hasInterior(where.space)) await this.goInterior(where.space, where.hex);
     else await this.goWorld(where.hex ?? hex(data.Q, data.R));
     this.screen = "world";
@@ -651,7 +651,7 @@ export class Overworld {
   /** Stands the player on the run's current floor: its scene, and its encounters not yet beaten. */
   private showFloor(run: ActiveRun, at?: Hex): void {
     const plan = run.plan;
-    const bossBeaten = run.beaten.has(`${run.floor}:-2`);
+    const bossBeaten = run.beaten.has(`${run.floor}:${bossIndex(run.floors[run.floor]!)}`);
     const leaves = [plan.up, ...(bossBeaten && plan.wayOut ? [plan.wayOut] : [])];
     const space = new RoomSpace(`run:${run.id}`, "dungeon", run.dungeon.name, plan.tiles, plan.props, plan.npcs, { leave: leaves, down: plan.down });
     const scene = new World(space, "dungeon", "#0b0c10");
@@ -670,7 +670,7 @@ export class Overworld {
   async descend(): Promise<void> {
     const run = this.run;
     if (!run || run.floor >= run.floors.length - 1) return;
-    if (run.floors[run.floor]!.Warden && !run.beaten.has(`${run.floor}:-1`)) {
+    if (run.floors[run.floor]!.Warden && !run.beaten.has(`${run.floor}:${wardenIndex(run.floors[run.floor]!)}`)) {
       this.say("The warden of this floor bars the stair.");
       return;
     }
@@ -703,6 +703,7 @@ export class Overworld {
     }
     await this.api.leaveDungeon({ Run: run.id }).catch(() => {});
     const entrance = hex(run.dungeon.entrance[0], run.dungeon.entrance[1]);
+    const out = await besideEntrance(entrance);
     await this.cross(null, async () => {
       await this.streamAround(entrance, true);
       return async () => {
@@ -710,7 +711,7 @@ export class Overworld {
         this.run = null;
         this.leaveSpace();
         old.dispose();
-        await this.arrive(this.world, this.worldScene, this.nearestOpen(this.world, entrance), true);
+        await this.arrive(this.world, this.worldScene, out, true);
         this.spawnWorldMobs();
         this.say(`You leave ${run.dungeon.name}.`);
       };
@@ -780,14 +781,19 @@ export class Overworld {
         await this.refresh();
         break;
       }
-      case "inn": {
+      case "innkeeper": {
         const choice = await this.dialog(npc.name ?? "The inn", npc.text ?? ["Rest here, and here you wake."], [
           { caption: "Rest", value: "rest", primary: true },
           { caption: "Leave", value: "leave" },
         ]);
         if (choice === "rest") {
-          this.report(true);
-          this.say(`You rest at ${this.space.name}.`);
+          try {
+            await this.api.setInn();
+            await this.refresh();
+            this.say(`You rest at ${this.space.name}. You will wake here.`);
+          } catch (e) {
+            this.say(refusal(e));
+          }
         }
         break;
       }
@@ -847,7 +853,7 @@ export class Overworld {
   private async openChest(id: string): Promise<void> {
     this.character.play("interact");
     try {
-      const { Found } = await this.api.openChest({ Map: this.space.id, Chest: id });
+      const { Found } = await this.api.openChest({ Space: this.space.id, Chest: id });
       const chest = [...this.world.chunks.values()].flatMap((c) => c.data.chests).find((c) => c.id === id);
       if (chest) this.opened.add(`${id}|${spawnEpoch(chest, this.options.now())}`);
       this.scene.setChest(id, true);
@@ -934,10 +940,10 @@ export class Overworld {
       // The server moved the character to their inn.
       await this.cross(null, async () => {
         const at = hex(this.data.Q, this.data.R);
-        if (this.data.Map === "world") await this.streamAround(at, true);
+        if (this.data.Space === "world") await this.streamAround(at, true);
         return async () => {
-          if (this.data.Map !== "world" && hasInterior(this.data.Map)) {
-            const built = await this.buildInterior(this.data.Map);
+          if (this.data.Space !== "world" && hasInterior(this.data.Space)) {
+            const built = await this.buildInterior(this.data.Space);
             this.leaveSpace();
             await this.arrive(built.space, built.scene, this.inward(built.space, hex(built.data.entry.q, built.data.entry.r)), false);
           } else {

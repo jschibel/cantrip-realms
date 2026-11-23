@@ -5,14 +5,14 @@ import { CardLayer, type CardScreens } from "./cardLayer";
 import { StubCardLayer } from "./cardStub";
 import { BODIES, type Body, type ManaColor } from "./character";
 import { Overworld, type Start } from "./game";
-import { DIRECTIONS, hex } from "./hex";
+import { hex } from "./hex";
 import { bindInput } from "./input";
 import { HttpApi, type RealmApi } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import { LocalPresence, type Presence, SocketPresence } from "./net/presence";
 import { createCharacter } from "./screens/create";
 import { publishTestHooks } from "./testHooks";
-import { DUNGEONS, WORLD, hasInterior, innOf } from "./world/content";
+import { DUNGEONS, WORLD, besideEntrance, hasInterior, innOf } from "./world/content";
 
 // The overworld page (tech.md, B5-B6). Its query says where everything comes from:
 //   ?server=<url>   the realm server (also VITE_REALM_SERVER); with none, or with ?offline, the API is the in-memory
@@ -63,7 +63,7 @@ async function boot(): Promise<void> {
 
   game = new Overworld(canvas, api, layer, presence, { wander: query.get("wander") !== "0", mobs: query.get("mobs") !== "0", now });
   bindInput(game);
-  await game.start(character, parseAt(query.get("at")));
+  await game.start(character, await parseAt(query.get("at")));
 }
 
 function socketUrl(server: string): string {
@@ -72,7 +72,7 @@ function socketUrl(server: string): string {
   return url.toString();
 }
 
-function parseAt(at: string | null): Start | undefined {
+async function parseAt(at: string | null): Promise<Start | undefined> {
   if (!at) return undefined;
   const [space, where] = at.split(":");
   if (!space) return undefined;
@@ -85,10 +85,8 @@ function parseAt(at: string | null): Start | undefined {
   }
   const dungeon = DUNGEONS.get(space);
   if (dungeon) {
-    // Before its way in: the open ground the other side of it from the structure is found by the overworld.
-    const e = hex(dungeon.entrance[0], dungeon.entrance[1]);
-    const d = DIRECTIONS[0]!;
-    return { space: "world", hex: dungeon.arrival ? hex(dungeon.arrival[0], dungeon.arrival[1]) : hex(e.q + d.q, e.r + d.r) };
+    // Beside its way in, where leaving it would put you.
+    return { space: "world", hex: await besideEntrance(hex(dungeon.entrance[0], dungeon.entrance[1])) };
   }
   if (hasInterior(space)) return { space, hex: given };
   return undefined;
