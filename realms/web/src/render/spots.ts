@@ -73,9 +73,12 @@ export class StreamedWorld implements Spot {
 
   readonly floorAt = (x: number, z: number): number => this.streamer.floorAt(x, z);
 
-  /** The doors of the chunks built, by what they lead into. */
+  /** Other ways out the page adds (a dungeon's entrance), beside the buildings' doors. */
+  more: () => readonly StageDoor[] = () => [];
+
+  /** The doors of the chunks built, by what they lead into, and the page's other ways out. */
   get doors(): StageDoor[] {
-    return this.streamer.doors.map((d) => ({ name: `door:${d.to}`, tile: { x: d.tile[0], z: d.tile[1] }, step: d.step, to: d.to, at: new THREE.Vector3(...d.at), kind: "door" }));
+    return [...this.streamer.doors.map((d) => ({ name: `door:${d.to}`, tile: { x: d.tile[0], z: d.tile[1] }, step: d.step, to: d.to, at: new THREE.Vector3(...d.at), kind: "door" })), ...this.more()];
   }
 }
 

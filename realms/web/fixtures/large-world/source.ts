@@ -1,4 +1,4 @@
-import type { BuildingData, ChunkData, InteriorData, LightData, NpcData, PropData, TileData, WorldData } from "../../src/world/format";
+import type { BuildingData, ChunkData, InteriorData, LightData, NpcData, PropData, SpawnData, TileData, WorldData } from "../../src/world/format";
 import { BARE, BLOCKED, CHUNK, RAMP, chunkKey } from "../../src/world/format";
 import type { WorldSource } from "../../src/world/load";
 import shopTemplate from "../slice-world/interiors/shop.json";
@@ -42,6 +42,7 @@ interface Made {
   readonly buildings: BuildingData[];
   readonly npcs: NpcData[];
   readonly lights: LightData[];
+  readonly spawns: SpawnData[];
   readonly rooms: Map<string, InteriorData>;
 }
 
@@ -242,7 +243,16 @@ function make(): Made {
     npcs.push({ id: `folk-${i}`, x, z, kind: "townsfolk", name: `townsfolk ${i}`, figure: figures[i % figures.length], seed: i + 1, speed: 1.6 + h32(i, 7, 31), behaviour: { wander: { home: [x, z], reach: 4, pause: [1, 3] } } });
   }
   npcs.push({ id: "guard", x: town.x0 + 1, z: TOWN[1], kind: "guard", name: "guard", figure: "knight", speed: 2.2, behaviour: { beat: { stops: [[town.x0 + 1, TOWN[1]], [town.x1 - 2, TOWN[1]]], pause: 2 } } });
-  made = { tiles, props, buildings, npcs, lights, rooms };
+  // Spawn points along the road west, in the meadow between the town and the forest: goblins and a skeleton.
+  const spawns: SpawnData[] = [];
+  for (const [x, z, mob] of [[88, 128, "goblin-raider"], [74, 116, "goblin-raider"], [60, 104, "skeleton-warrior"], [50, 96, "goblin-raider"]] as const) {
+    let at: [number, number] | null = null;
+    for (let r = 0; r < 4 && !at; r++) for (let dz = -r; dz <= r && !at; dz++) for (let dx = -r; dx <= r && !at; dx++) if (get(x + dx, z + dz)![2] === 0) at = [x + dx, z + dz];
+    if (!at) continue;
+    const key = `${Math.floor(at[0] / CHUNK)}_${Math.floor(at[1] / CHUNK)}`;
+    spawns.push({ id: `${key}:${spawns.filter((sp) => sp.id.startsWith(`${key}:`)).length}`, x: at[0], z: at[1], mobs: [mob], radius: 2, respawnSeconds: 600, tier: 1 });
+  }
+  made = { tiles, props, buildings, npcs, lights, spawns, rooms };
   return made;
 }
 
@@ -264,7 +274,7 @@ export function largeChunk(cx: number, cz: number): ChunkData | null {
     props: here(m.props),
     buildings: here(m.buildings),
     npcs: here(m.npcs),
-    spawns: [],
+    spawns: here(m.spawns),
     chests: [],
     entrances: [],
     waymarkers: [],

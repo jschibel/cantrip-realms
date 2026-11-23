@@ -87,7 +87,7 @@ interface Transition {
 const IN = 0.55;
 const OUT = 0.45;
 /** How far figures lean back from the camera (art/figures/rig.ts, setLean), at every heading. */
-const LEAN = (25 * Math.PI) / 180;
+export const LEAN = (25 * Math.PI) / 180;
 /** Milliseconds of building a frame may spend streaming chunks (on a manual clock: steps). */
 const BUILD_MS = 4;
 const BUILD_STEPS = 3;
@@ -253,9 +253,21 @@ export class Stage {
     this.rig.halt();
     this.player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
     this.transition = { door, from: this.renderer.view, t: 0, phase: "in", focusFrom: this.focus.clone(), arrival: null };
-    const a = this.spots.through(door, this.current);
-    if (a instanceof Promise) void a.then((arrival) => this.transition && (this.transition.arrival = arrival));
-    else this.transition.arrival = a;
+    const from = this.current;
+    // Back out where one stood, if the other side cannot be had (a refused run): the iris opens on this place again.
+    const stay = (): Arrival => ({ spot: from, tile: door.tile, facing: [-door.step[0], -door.step[1]] });
+    let a: Arrival | Promise<Arrival>;
+    try {
+      a = this.spots.through(door, from);
+    } catch {
+      a = stay();
+    }
+    if (a instanceof Promise) {
+      void a.then(
+        (arrival) => this.transition && (this.transition.arrival = arrival),
+        () => this.transition && (this.transition.arrival = stay()),
+      );
+    } else this.transition.arrival = a;
   }
 
   /** Stands the player in another place at a tile, facing a way (a door's other side, a waystone's, a lost duel's inn). */
@@ -337,8 +349,16 @@ export class Stage {
     return out;
   }
 
-  /** The tile under a point on the page: the first thing the ray meets (lower than a roof), read a hair towards the camera. */
+  /** A figure under a point on the page, as the tile it stands on (the page's: a person, a mob); null where none is. */
+  pickFigure: (x: number, y: number) => Tile | null = () => null;
+
+  /**
+   * The tile under a point on the page: a figure's own tile if one is there, else the first thing the ray meets (lower
+   * than a roof), read a hair towards the camera.
+   */
   pick(x: number, y: number): Tile | null {
+    const figure = this.pickFigure(x, y);
+    if (figure) return figure;
     const ray = this.renderer.rayAt(x, y);
     const floor = ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
     this.raycaster.ray.copy(ray);

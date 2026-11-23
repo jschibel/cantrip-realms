@@ -280,6 +280,41 @@ export class Hud {
     this.room = { canvas, scale, cx, cy };
   }
 
+  /** The name over the minimap: the world's, or the room's. */
+  showPlace(name: string): void {
+    this.place.textContent = name;
+  }
+
+  /**
+   * The minimap on square tiles (the version-2 world, render/stage.ts): the tiles round `centre`, two pixels each,
+   * in `colorAt`'s colors (null: nothing there), and the people near as dots.
+   */
+  drawSquares(colorAt: (x: number, z: number) => string | null, centre: { readonly x: number; readonly z: number }, dots: readonly { readonly x: number; readonly z: number; readonly kind: MinimapDot["kind"] }[]): void {
+    const g = this.minimap.getContext("2d");
+    if (!g) return;
+    const size = this.minimap.width;
+    const px = 2;
+    const half = Math.floor(size / px / 2);
+    g.fillStyle = "#0b0c10";
+    g.fillRect(0, 0, size, size);
+    for (let j = -half; j < half; j++) {
+      for (let i = -half; i < half; i++) {
+        const c = colorAt(Math.floor(centre.x) + i, Math.floor(centre.z) + j);
+        if (!c) continue;
+        g.fillStyle = c;
+        g.fillRect((i + half) * px, (j + half) * px, px, px);
+      }
+    }
+    const colors: Record<string, string> = { player: "#ffffff", mob: "#e02a3a", other: "#5ec8ff" };
+    for (const d of dots) {
+      const x = (Math.floor(d.x) - Math.floor(centre.x) + half) * px;
+      const y = (Math.floor(d.z) - Math.floor(centre.z) + half) * px;
+      if (x < 0 || y < 0 || x >= size || y >= size) continue;
+      g.fillStyle = colors[d.kind] ?? "#ffffff";
+      g.fillRect(x - 1, y - 1, 4, 4);
+    }
+  }
+
   private get world(): WorldPicture {
     this.picture ??= new WorldPicture();
     return this.picture;
