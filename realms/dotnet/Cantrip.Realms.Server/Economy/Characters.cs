@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
-/// Characters (design.md A1): creating one with its starting kit, reading it, its collection, where it stands, and the
-/// stats its loadout gives it.
+/// Characters (design.md A1): creating one with its starting kit, reading it, its collection, where it stands
+/// (interfaces.md, "Places") and the inn it wakes at, and the stats its loadout gives it.
 /// </summary>
 public sealed partial class Characters(RealmDb db, RealmContent content, RealmOptions options, RealmDice dice, TimeProvider time)
 {
@@ -56,9 +56,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         if (!RealmContent.StarterFiles.ContainsKey(color)) throw Refusal.BadRequest("A starting color is one of W, U, B, R and G.");
         if (await db.Players.AnyAsync(row => row.Id == player).ConfigureAwait(false)) throw Refusal.Conflict(Codes.HasCharacter, "You already have a character.");
 
-        RealmMap start = content.Maps.GetValueOrDefault(options.StartMap) ?? throw new InvalidOperationException($"The start map '{options.StartMap}' is not in the content.");
-        (string innMap, Hex inn) = InnOf(start);
-        DeckList starter = content.Starters[start.Plane][color];
+        InnEntry inn = TownInn(options.StartTown) ?? throw new InvalidOperationException($"The start town '{options.StartTown}' has no inn in the world.");
+        DeckList starter = content.Starters[content.World.Plane][color];
         long now = Now;
 
         db.Players.Add(new PlayerRow
@@ -69,9 +68,11 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             Palette = request.Palette,
             Color = color,
             Gold = StartingGold,
-            Map = innMap,
+            Space = RealmContent.WorldSpace,
             Q = inn.Q,
             R = inn.R,
+            PlacedAt = now,
+            Inn = inn.Id,
             CreatedAt = now,
         });
 
@@ -83,7 +84,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         }
 
         var commons = new CardFilter { Colors = color, Rarities = ["common"] };
-        List<string> exact = [.. content.Cards.Filter(start.Plane, commons).Where(card => content.Cards.Catalog[card].Identity.Count == 1)];
+        List<string> exact = [.. content.Cards.Filter(content.World.Plane, commons).Where(card => content.Cards.Catalog[card].Identity.Count == 1)];
         foreach (string card in dice.Draw(exact, ExtraCommons))
         {
             owned[card] = owned.GetValueOrDefault(card) + 1;
@@ -131,6 +132,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         Dictionary<string, GearInstance?> loadout = await Loadout(player, gear).ConfigureAwait(false);
         List<string> unlocked = await db.Unlocks.Where(unlock => unlock.PlayerId == player).Select(unlock => unlock.Color).ToListAsync().ConfigureAwait(false);
         List<AnteRow> ante = await db.Ante.AsNoTracking().Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
+        List<string> attuned = await db.Attuned.Where(row => row.PlayerId == player).Select(row => row.Tower).ToListAsync().ConfigureAwait(false);
         return new CharacterView(
             row.Id,
             row.Name,
@@ -139,13 +141,15 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             Identity(row, unlocked),
             row.Gold,
             ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count),
-            row.Map,
+            row.Space,
             row.Q,
             row.R,
+            InnOf(row).Id,
             StatsView.Of(Stats(loadout.Values.OfType<GearInstance>().Select(instance => instance.Gear))),
             loadout,
             gear,
-            [.. unlocked.Order(StringComparer.Ordinal)]);
+            [.. unlocked.Order(StringComparer.Ordinal)],
+            [.. attuned.Order(StringComparer.Ordinal)]);
     }
 
     /// <summary>A character's color identity: their starting color and every color unlocked, in WUBRG order.</summary>
@@ -194,54 +198,149 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         return new CollectionView(new SortedDictionary<string, int>(rows.ToDictionary(row => row.Name, row => row.Count), StringComparer.Ordinal));
     }
 
-    /// <summary>Records where a character is (<c>/api/travel</c>): a walkable hex of a map.</summary>
-    public async Task Travel(string player, TravelTo request)
+    /// <summary>How many hexes past what walking allows a report may be: the character walked on as it was sent.</summary>
+    public const int Slack = 2;
+
+    /// <summary>
+    /// Records where a character is (<c>POST /api/position</c>, interfaces.md "Places"). A place of the world or an interior
+    /// is a hex nobody is kept off, and is reached from the last by walking - no farther than the walking speed allows in
+    /// the time since - or through a door: into an interior from beside a door of it, out of one beside its exit. A dungeon
+    /// run is entered and left by its own calls, and its places are the browser's, so within a live run of theirs any hex
+    /// is taken; a waystone is travelled by its own call.
+    /// </summary>
+    public async Task Position(string player, PlaceView request)
     {
         ArgumentNullException.ThrowIfNull(request);
         PlayerRow row = await Require(player).ConfigureAwait(false);
-        if (request.Map is null || !content.Maps.TryGetValue(request.Map, out RealmMap? map) || !map.Walkable(new Hex(request.Q, request.R)))
+        var at = new Hex(request.Q, request.R);
+        var here = new Hex(row.Q, row.R);
+        long now = Now;
+
+        if (RealmContent.RunOf(request.Space) is { } run)
         {
-            throw Refusal.Unprocessable(Codes.NoSuchPlace, "Nobody can stand there.");
+            if (!await db.Runs.AnyAsync(stored => stored.Id == run && stored.PlayerId == player && stored.State == RunRow.Live).ConfigureAwait(false))
+            {
+                throw Refusal.Unprocessable(Codes.NoSuchPlace, "You are in no such dungeon run.");
+            }
+
+            if (row.Space != request.Space) throw Refusal.Conflict(Codes.NoWay, "A dungeon run is entered at its entrance.");
+        }
+        else
+        {
+            RealmSpace space = content.Space(request.Space) ?? throw Refusal.Unprocessable(Codes.NoSuchPlace, $"There is no place '{request.Space}'.");
+            if (!space.Walkable(at)) throw Refusal.Unprocessable(Codes.NoSuchPlace, "Nobody can stand there.");
+            bool inRun = RealmContent.RunOf(row.Space) is { } from
+                && await db.Runs.AnyAsync(stored => stored.Id == from && stored.PlayerId == player && stored.State == RunRow.Live).ConfigureAwait(false);
+            if (inRun) throw Refusal.Conflict(Codes.NoWay, "Leave the dungeon first.");
+            if (content.Space(row.Space) is null)
+            {
+                // Where they were is gone - a run since ended, a place the content no longer has: any open hex will do.
+            }
+            else if (row.Space == space.Id)
+            {
+                long walkable = (long)Math.Floor(Math.Max(0, now - row.PlacedAt) / 1000.0 * options.WalkingSpeed) + Slack;
+                if (here.DistanceTo(at) > walkable) throw Refusal.Conflict(Codes.NoWay, "Nobody walks that far that fast.");
+            }
+            else if (space is RealmInterior into)
+            {
+                if (row.Space != RealmContent.WorldSpace || !into.Doors.Any(door => door.DistanceTo(here) <= 1))
+                {
+                    throw Refusal.Conflict(Codes.NoWay, $"{into.File.Name} is entered through its door.");
+                }
+            }
+            else if (content.Interiors.GetValueOrDefault(row.Space) is not { File.Exit: { } exit } || exit.At.DistanceTo(at) > 1)
+            {
+                throw Refusal.Conflict(Codes.NoWay, "A building is left through its door.");
+            }
+
+            if (space is RealmWorld && content.World.Entrances.TryGetValue(at, out string? entrance) && content.Dungeons.TryGetValue(entrance, out RealmDungeon? dungeon))
+            {
+                await RequireOpen(player, dungeon).ConfigureAwait(false);
+            }
         }
 
-        await RequireOpen(player, map).ConfigureAwait(false);
-
-        row.Map = map.Id;
+        row.Space = request.Space!;
         row.Q = request.Q;
         row.R = request.R;
+        row.PlacedAt = now;
         await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Refuses a character a map that is locked to them (<c>requires</c>, interfaces.md "Maps"): one whose colors are not all
-    /// in their identity, as the Phyrexian Portal's are not until all five are unlocked (design.md A6).
-    /// </summary>
-    public async Task RequireOpen(string player, RealmMap map)
+    /// <summary>Puts a character somewhere at once: through a waystone, out of a dungeon, back at the inn.</summary>
+    public async Task Place(string player, string space, Hex at)
     {
-        ArgumentNullException.ThrowIfNull(map);
-        if (map.File.Requires is not { } requires) return;
+        await db.Players.Where(row => row.Id == player).ExecuteUpdateAsync(set => set
+            .SetProperty(row => row.Space, space)
+            .SetProperty(row => row.Q, at.Q)
+            .SetProperty(row => row.R, at.R)
+            .SetProperty(row => row.PlacedAt, Now)).ConfigureAwait(false);
+    }
+
+    /// <summary>Sends a character to their inn (a lost duel, design.md A3), outside it in the world.</summary>
+    public async Task ToInn(string player)
+    {
+        PlayerRow row = await db.Players.AsNoTracking().SingleAsync(stored => stored.Id == player).ConfigureAwait(false);
+        await Place(player, RealmContent.WorldSpace, InnOf(row).At).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sets the inn a character stands in as their home (<c>POST /api/inn</c>): the world's inn of that town, the one nearest
+    /// the building's door.
+    /// </summary>
+    public async Task<InnView> SetInn(string player)
+    {
+        PlayerRow row = await Require(player).ConfigureAwait(false);
+        if (content.Interiors.GetValueOrDefault(row.Space) is not { File.Kind: "inn", Town: { } town } interior
+            || content.Inns.Values.Where(inn => inn.Town == town.Id).MinBy(inn => interior.File.Exit is { } exit ? inn.At.DistanceTo(exit.At) : 0) is not { } home)
+        {
+            throw Refusal.Conflict(Codes.NotNear, "A home is set inside a town's inn.");
+        }
+
+        row.Inn = home.Id;
+        await db.SaveChangesAsync().ConfigureAwait(false);
+        return new InnView(home.Id);
+    }
+
+    /// <summary>The first inn of a town, by world.json's order.</summary>
+    public InnEntry? TownInn(string town) => content.World.File.Inns.FirstOrDefault(inn => inn.Town == town);
+
+    /// <summary>The inn a character wakes at: the one they set, or (if it is gone from the world) the start town's.</summary>
+    public InnEntry InnOf(PlayerRow row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        return content.Inns.GetValueOrDefault(row.Inn) ?? TownInn(options.StartTown)
+            ?? throw new InvalidOperationException($"The start town '{options.StartTown}' has no inn in the world.");
+    }
+
+    /// <summary>
+    /// Refuses a character a dungeon that is sealed to them (<c>requires</c>, interfaces.md "Dungeons"): one whose colors are
+    /// not all in their identity, as the Phyrexian Portal's are not until all five are unlocked (design.md A6).
+    /// </summary>
+    public async Task RequireOpen(string player, RealmDungeon dungeon)
+    {
+        ArgumentNullException.ThrowIfNull(dungeon);
+        if (dungeon.File.Requires is not { } requires) return;
         string identity = await Identity(player).ConfigureAwait(false);
         if (!requires.All(identity.Contains))
         {
-            throw Refusal.Conflict(Codes.Locked, $"{map.File.Name} is sealed: it opens to a mage who has unlocked {CardPool.Letters(CardPool.Identity(requires))}.");
+            throw Refusal.Conflict(Codes.Locked, $"{dungeon.File.Name} is sealed: it opens to a mage who has unlocked {CardPool.Letters(CardPool.Identity(requires))}.");
         }
     }
 
-    /// <summary>The inn a character who loses on a map wakes at: its map and hex.</summary>
-    public (string Map, Hex At) InnOf(RealmMap map)
+    /// <summary>Whether a character stands in the world on or beside a hex.</summary>
+    public static bool Beside(PlayerRow row, Hex at)
     {
-        ArgumentNullException.ThrowIfNull(map);
-        MapInn inn = map.File.Inn ?? throw new InvalidOperationException($"Map {map.Id} has no inn.");
-        return (inn.Map ?? map.Id, inn.At);
+        ArgumentNullException.ThrowIfNull(row);
+        return row.Space == RealmContent.WorldSpace && new Hex(row.Q, row.R).DistanceTo(at) <= 1;
     }
 
     public bool IsBasic(string card) => content.Cards.Catalog.TryGetValue(card, out var known) && CardPool.IsBasic(known);
 
-    /// <summary>Whether a character stands at a spell table: on its map, on or next to one.</summary>
+    /// <summary>Whether a character stands at a spell table: in its space, on or next to one.</summary>
     public bool AtSpellTable(PlayerRow row)
     {
         ArgumentNullException.ThrowIfNull(row);
-        return content.Maps.TryGetValue(row.Map, out RealmMap? map) && map.SpellTables.Any(table => table.DistanceTo(new Hex(row.Q, row.R)) <= 1);
+        return content.Space(row.Space) is { } space && space.SpellTables.Any(table => table.DistanceTo(new Hex(row.Q, row.R)) <= 1);
     }
 
     /// <summary>Adds copies of a card to a character's collection (or takes them, with a negative count).</summary>

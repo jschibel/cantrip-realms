@@ -1,0 +1,43 @@
+{
+  "id": "mage-benalia-4",
+  "name": "Anointed Peacekeeper",
+  "creature": "Anointed Peacekeeper",
+  "region": "W",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mage-benalia-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "serran-vestments",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#d8d6d0",
+      "#3a5f8f",
+      "#f1b44c"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

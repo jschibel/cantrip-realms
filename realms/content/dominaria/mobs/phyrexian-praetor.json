@@ -1,6 +1,7 @@
 {
   "id": "phyrexian-praetor",
   "name": "Phyrexian Praetor",
+  "creature": "Sheoldred, the Apocalypse",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-praetor.txt",
   "stats": {

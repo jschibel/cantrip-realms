@@ -1,0 +1,43 @@
+{
+  "id": "benthic-behemoth",
+  "name": "Benthic Behemoth",
+  "creature": "Benthic Behemoth",
+  "region": "U",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/benthic-behemoth.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "tolarian-robe",
+    "scholars-circlet"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "serpent",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.75
+  },
+  "boss": false
+}

@@ -39,13 +39,13 @@ public sealed class DeckTests
         DeckView deck = await browser.Deck();
         await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
 
-        // Next to the table, it does; and in the meadow, next to its table, too.
+        // Next to the inn's table, it does; and in the world, next to the table in New Argive's square, too.
         await browser.ToSpellTable();
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
-        Hex table = RealmApp.Npc("benalish-meadow", RealmMap.SpellTable);
-        await browser.Travel("benalish-meadow", RealmApp.Beside("benalish-meadow", table));
+        Hex table = RealmApp.Content.World.SpellTables.First(hex => RealmApp.Content.TownAt(hex)?.Id == "new-argive");
+        await browser.Put(RealmContent.WorldSpace, RealmApp.Beside(RealmContent.WorldSpace, table));
         await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
-        await browser.Travel("benalish-meadow", RealmApp.Away("benalish-meadow", table, 2));
+        await browser.Put(RealmContent.WorldSpace, RealmApp.Away(table, 2));
         await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
     }
 

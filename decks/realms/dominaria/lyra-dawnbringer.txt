@@ -1,10 +1,11 @@
-# Lyra Dawnbringer (lyra-dawnbringer), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+# Lyra Dawnbringer (lyra-dawnbringer, Lyra Dawnbringer), a boss: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Lyra Dawnbringer
+1 Suntail Hawk
+1 Angelic Curator
+1 Thunder Spirit
 4 Serra Angel
-4 Destroy Evil
-3 Mana Tithe
-2 Savannah Lions
-4 Angelic Curator
-2 Containment Priest
+4 Archangel
+4 Path to Exile
+4 Swords to Plowshares
 17 Plains

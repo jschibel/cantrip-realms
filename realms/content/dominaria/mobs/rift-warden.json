@@ -1,6 +1,8 @@
 {
   "id": "rift-warden",
   "name": "Rift Warden",
+  "creature": "Zephid",
+  "region": "U",
   "tier": 4,
   "deck": "decks/realms/dominaria/rift-warden.txt",
   "stats": {
@@ -22,6 +24,7 @@
     "colors": "U",
     "types": [],
     "subtypes": [
+      "Illusion",
       "Wizard",
       "Drake",
       "Sphinx"
@@ -33,10 +36,11 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "spirit",
     "palette": [
       "#2f5fa8",
-      "#a97fd0"
+      "#a97fd0",
+      "#f4ecc2"
     ],
     "size": 1.3
   },

@@ -1,0 +1,16 @@
+# Fire Elemental (fire-elemental, Fire Elemental), a tier 2 wanderer of Shiv: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Fire Elemental
+2 Monastery Swiftspear
+2 Blood Knight
+1 Roc Hunter
+1 Balduvian Barbarians
+2 Giant Cindermaw
+1 Flametongue Kavu
+2 Lightning Elemental
+2 Volcanic Dragon
+2 Chain Lightning
+2 Firebolt
+2 Lightning Axe
+1 Shock
+17 Mountain

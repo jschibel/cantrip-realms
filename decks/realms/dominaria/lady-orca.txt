@@ -1,0 +1,12 @@
+# Lady Orca (lady-orca, Lady Orca), a tier 4 wanderer of Urborg: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Lady Orca
+2 Plague Beetle
+3 Knight of Dusk's Shadow
+3 Giant Cindermaw
+2 Bog Wraith
+2 Yargle, Glutton of Urborg
+3 Cut Down
+4 Dismember
+13 Swamp
+4 Mountain

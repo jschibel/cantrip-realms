@@ -1,6 +1,7 @@
 {
   "id": "phyrexian-gorger",
   "name": "Phyrexian Gorger",
+  "creature": "Phyrexian Hulk",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-gorger.txt",
   "stats": {

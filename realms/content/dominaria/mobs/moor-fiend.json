@@ -1,0 +1,41 @@
+{
+  "id": "moor-fiend",
+  "name": "Moor Fiend",
+  "creature": "Moor Fiend",
+  "region": "B",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/moor-fiend.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "ghoul",
+    "palette": [
+      "#4b2f5e",
+      "#5d6646",
+      "#2a2b36"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

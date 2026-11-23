@@ -1,0 +1,44 @@
+{
+  "id": "mage-llanowar-4",
+  "name": "Karn, Scion of Urza",
+  "creature": "Karn, Scion of Urza",
+  "region": "G",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/mage-llanowar-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "elvish-striders",
+    "padded-jerkin",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "construct",
+    "palette": [
+      "#c9ced8",
+      "#3e9a4a",
+      "#8f6340"
+    ],
+    "size": 1.3
+  },
+  "boss": false
+}

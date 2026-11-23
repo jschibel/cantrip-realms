@@ -1,6 +1,7 @@
 {
   "id": "phyrexian-ravager",
   "name": "Phyrexian Ravager",
+  "creature": "Phyrexian Dragon Engine",
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-ravager.txt",
   "stats": {

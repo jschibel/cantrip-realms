@@ -1,0 +1,16 @@
+# Obsianus Golem (warden-2, Obsianus Golem), a tier 2 warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Obsianus Golem
+1 Ornithopter
+2 Reconstructed Thopter
+2 Wall of Spears
+1 Yotian Soldier
+2 Venser's Sliver
+1 Pardic Wanderer
+2 Chromatic Star
+2 Skullclamp
+2 Counterspell
+1 Disdainful Stroke
+2 Mind Stone
+2 Remand
+17 Island

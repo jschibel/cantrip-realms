@@ -1,0 +1,43 @@
+{
+  "id": "yargle-glutton-of-urborg",
+  "name": "Yargle, Glutton of Urborg",
+  "creature": "Yargle, Glutton of Urborg",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/yargle-glutton-of-urborg.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "urborg-bone-charm"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "beast",
+    "palette": [
+      "#2a2b36",
+      "#7a1f24",
+      "#8c909c"
+    ],
+    "size": 1.45
+  },
+  "boss": false
+}

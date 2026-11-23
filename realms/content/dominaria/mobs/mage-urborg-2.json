@@ -1,0 +1,42 @@
+{
+  "id": "mage-urborg-2",
+  "name": "Vampire Hexmage",
+  "creature": "Vampire Hexmage",
+  "region": "B",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/mage-urborg-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "urborg-bone-charm"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#2a2b36",
+      "#7a1f24",
+      "#8c909c"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

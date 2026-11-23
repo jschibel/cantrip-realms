@@ -1,0 +1,11 @@
+# Trained Orgg (trained-orgg, Trained Orgg), a tier 4 wanderer of Shiv: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Trained Orgg
+2 Monastery Swiftspear
+3 Dreadhorde Arcanist
+3 Giant Cindermaw
+2 Hill Giant
+2 Thundering Giant
+3 Chain Lightning
+4 Lightning Bolt
+17 Mountain

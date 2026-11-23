@@ -1,0 +1,42 @@
+{
+  "id": "mage-shiv-3",
+  "name": "Dreadhorde Arcanist",
+  "creature": "Dreadhorde Arcanist",
+  "region": "R",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/mage-shiv-3.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "keldon-greaves",
+    "silver-pendant"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.15
+  },
+  "boss": false
+}

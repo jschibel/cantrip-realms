@@ -1,0 +1,16 @@
+# Goblin Hero (goblin-hero, Goblin Hero), a tier 1 wanderer of Shiv: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Goblin Hero
+2 Raging Goblin
+1 Dwarven Forge-Chanter
+2 Roc Hunter
+2 Goblin Chariot
+1 Lightning Elemental
+2 Talruum Minotaur
+2 Reckless Wurm
+2 Macetail Hystrodon
+2 Firebolt
+2 Shock
+2 Abrade
+1 Lightning Strike
+17 Mountain

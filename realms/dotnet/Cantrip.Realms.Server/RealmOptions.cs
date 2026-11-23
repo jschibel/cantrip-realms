@@ -19,9 +19,12 @@ namespace Cantrip.Realms.Server;
 ///                                origin the API answers from a browser, with the signed-in cookie
 /// REALMS_DEV_SIGNIN              1 lets anyone sign in as any id, with no Discord: development and tests only
 /// REALMS_MIGRATE                 0 leaves the database's schema alone at start; by default the migrations are applied
-/// REALMS_START_MAP               the map new characters start on, at its inn; new-argive by default
+/// REALMS_START_TOWN              the town new characters start in, at its inn; new-argive by default
+/// REALMS_PLACES                  where each plane's world, interiors and dungeons are read from instead of
+///                                realms/content (a folder of &lt;plane&gt;/world, ...): a test world
 /// REALMS_WALKING_SPEED           the fastest walk presence relays, in hexes a second; 4 by default
-/// REALMS_INSTANCE_SIZE           the most players in one instance of a map; 40 by default (design.md A6)
+/// REALMS_INSTANCE_SIZE           the most players in one layer of an area of the world, or one instance of an interior;
+///                                40 by default (design.md A6)
 /// CANTRIP_NATIVE_HOST            the native engine host that checks duels (cantrip-rs's own setting)
 /// </code>
 /// ASP.NET Core's own (<c>ASPNETCORE_URLS</c>, <c>ASPNETCORE_ENVIRONMENT</c>) work as they always do.
@@ -52,13 +55,16 @@ public sealed class RealmOptions
 
     public bool Migrate { get; init; } = true;
 
-    /// <summary>The map a new character starts on, at its inn.</summary>
-    public string StartMap { get; init; } = "new-argive";
+    /// <summary>The town a new character starts in, at its inn.</summary>
+    public string StartTown { get; init; } = "new-argive";
+
+    /// <summary>Where the planes' world, interiors and dungeons are read from instead of realms/content; null for there.</summary>
+    public string? Places { get; init; }
 
     /// <summary>The fastest a character walks, in hexes a second: presence refuses a faster walk.</summary>
     public double WalkingSpeed { get; init; } = 4.0;
 
-    /// <summary>The most players one instance of a map holds (design.md A6).</summary>
+    /// <summary>The most players one layer of an area of the world, or one instance of an interior, holds (design.md A6).</summary>
     public int InstanceSize { get; init; } = 40;
 
     /// <summary>Reads the options from configuration, whose environment variables are <c>REALMS_*</c>.</summary>
@@ -81,7 +87,8 @@ public sealed class RealmOptions
             Migrate = Setting("MIGRATE") is not ("0" or "false"),
             WalkingSpeed = Setting("WALKING_SPEED") is { } speed ? double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture) : 4.0,
             InstanceSize = Setting("INSTANCE_SIZE") is { } size ? int.Parse(size, System.Globalization.CultureInfo.InvariantCulture) : 40,
-            StartMap = Setting("START_MAP") ?? "new-argive",
+            StartTown = Setting("START_TOWN") ?? "new-argive",
+            Places = Setting("PLACES"),
         };
     }
 

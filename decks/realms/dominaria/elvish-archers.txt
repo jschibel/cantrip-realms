@@ -1,0 +1,12 @@
+# Elvish Archers (elvish-archers, Elvish Archers), a tier 3 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Elvish Archers
+2 Defiant Elf
+1 Elvish Warrior
+3 Elvish Ranger
+3 Magnigoth Sentry
+2 Elfhame Wurm
+2 Wirewood Guardian
+3 Giant Growth
+3 Song of Freyalise
+17 Forest

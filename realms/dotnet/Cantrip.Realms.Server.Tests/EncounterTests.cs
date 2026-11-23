@@ -12,16 +12,17 @@ namespace Cantrip.Realms.Server.Tests;
 /// <summary>Duels against mobs (design.md A3; tech.md B4's encounter protocol), checked by a fake verifier.</summary>
 public sealed class EncounterTests
 {
-    private const string Meadow = "benalish-meadow";
-    /// <summary>The meadow's spawn of three mobs, so that the mob there changes from epoch to epoch.</summary>
-    private const string Spawn = "s3";
+    private const string World = RealmContent.WorldSpace;
 
-    /// <summary>The mob the meadow's spawn holds for a player now.</summary>
+    /// <summary>A tier 1 spawn near New Argive, of every tier 1 wanderer, so that the mob there changes from epoch to epoch.</summary>
+    private static readonly string Spawn = RealmApp.SpawnOf(1).Id;
+
+    /// <summary>The mob the spawn holds for a player now.</summary>
     private static string MobNow(RealmApp app, Browser browser, int epochsBack = 0)
     {
-        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
+        MapSpawn spawn = RealmApp.Content.World.Spawn(Spawn)!;
         long epoch = Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds) - epochsBack;
-        return Spawns.MobOf(browser.Player, Meadow, Spawn, epoch, spawn.Mobs);
+        return Spawns.MobOf(browser.Player, World, Spawn, epoch, spawn.Mobs);
     }
 
     /// <summary>A white character with <paramref name="ante"/> anted, standing at the spawn.</summary>
@@ -36,12 +37,12 @@ public sealed class EncounterTests
             await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = ante.Select(card => new CardCount(card.Name, card.Count)) });
         }
 
-        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
+        await browser.Put(World, RealmApp.Content.World.Spawn(Spawn)!.At);
         return browser;
     }
 
     private static Task<EncounterView> Begin(Browser browser, string mob) =>
-        browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = mob });
+        browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = mob });
 
     private static Task<OutcomeView> Finish(Browser browser, string token) =>
         browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { Token = token, Log = new[] { "AA==" } });
@@ -103,17 +104,17 @@ public sealed class EncounterTests
     {
         await using var app = new RealmApp();
         Browser browser = await Ready(app);
-        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
+        MapSpawn spawn = RealmApp.Content.World.Spawn(Spawn)!;
         string now = MobNow(app, browser);
         string last = MobNow(app, browser, epochsBack: 1);
 
         foreach (string other in spawn.Mobs.Where(mob => mob != now && mob != last))
         {
-            await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = other }, HttpStatusCode.Conflict, Codes.NotThere);
+            await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = other }, HttpStatusCode.Conflict, Codes.NotThere);
         }
 
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = "teferi" }, HttpStatusCode.Conflict, Codes.NotThere);
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn = "s9", Mob = now }, HttpStatusCode.NotFound, Codes.NotThere);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = "teferi" }, HttpStatusCode.Conflict, Codes.NotThere);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn = "0_0:99", Mob = now }, HttpStatusCode.NotFound, Codes.NotThere);
 
         EncounterView first = await Begin(browser, now);
         await Finish(browser, first.Token);
@@ -125,11 +126,11 @@ public sealed class EncounterTests
             await Finish(browser, second.Token);
         }
 
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = now }, HttpStatusCode.Conflict, Codes.TooSoon);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = now }, HttpStatusCode.Conflict, Codes.TooSoon);
 
         // Two epochs on, the spawn holds a mob again.
         app.Time.Advance(TimeSpan.FromSeconds(2 * spawn.RespawnSeconds));
-        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
+        await browser.Put(World, RealmApp.Content.World.Spawn(Spawn)!.At);
         await Begin(browser, MobNow(app, browser));
     }
 
@@ -138,13 +139,13 @@ public sealed class EncounterTests
     {
         await using var app = new RealmApp();
         Browser browser = await Ready(app);
-        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
+        MapSpawn spawn = RealmApp.Content.World.Spawn(Spawn)!;
 
         // Find the turn of an epoch where the mob changes, by stepping the fake clock one epoch at a time.
         string before = MobNow(app, browser);
         for (int i = 0; i < 50 && MobNow(app, browser) == before; i++) app.Time.Advance(TimeSpan.FromSeconds(spawn.RespawnSeconds));
         Assert.NotEqual(before, MobNow(app, browser));
-        await browser.Travel(Meadow, RealmApp.Content.Maps[Meadow].Spawn(Spawn)!.At);
+        await browser.Put(World, RealmApp.Content.World.Spawn(Spawn)!.At);
 
         await Begin(browser, MobNow(app, browser, epochsBack: 1));
     }
@@ -154,11 +155,11 @@ public sealed class EncounterTests
     {
         await using var app = new RealmApp();
         Browser browser = await Ready(app);
-        MapSpawn spawn = RealmApp.Content.Maps[Meadow].Spawn(Spawn)!;
-        await browser.Travel(Meadow, RealmApp.Away(Meadow, spawn.At, spawn.Radius + 9));
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Travel("new-argive", RealmApp.InnOf("new-argive").At);
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
+        MapSpawn spawn = RealmApp.Content.World.Spawn(Spawn)!;
+        await browser.Put(World, RealmApp.Away(spawn.At, spawn.Radius + 9));
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside("new-argive-inn");
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.Conflict, Codes.NotNear);
     }
 
     [Fact]
@@ -233,7 +234,7 @@ public sealed class EncounterTests
         await using var app = new RealmApp();
         using var scope = app.Services.CreateScope();
         Encounters encounters = scope.ServiceProvider.GetRequiredService<Encounters>();
-        Mob mob = RealmApp.Content.Mobs["phyrexian-scout"];
+        Mob mob = RealmApp.Content.Mobs["llanowar-elves"];
         List<long> prices = [.. RealmApp.Content.Cards.Filter("dominaria", mob.File.Loot).Select(card => RealmApp.Content.Cards.Price(card)!.Value).Order()];
 
         // A cap of the cheapest card's price offers only cards of that price; below it, nothing.
@@ -280,8 +281,7 @@ public sealed class EncounterTests
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
         CharacterView me = await browser.Me();
         Assert.Equal(gold, me.Gold);
-        MapInn inn = RealmApp.Content.Maps[Meadow].File.Inn!;
-        Assert.Equal((inn.Map ?? Meadow, inn.Q, inn.R), (me.Map, me.Q, me.R));
+        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
     }
 
     private static async Task AssertOneAnteCardLost(Browser browser, IReadOnlyDictionary<string, int> before, string[] anted)
@@ -318,9 +318,10 @@ public sealed class EncounterTests
         IReadOnlyDictionary<string, int> before = await browser.Collection();
         EncounterView first = await Begin(browser, MobNow(app, browser));
 
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn = "s2", Mob = RealmApp.Content.Maps[Meadow].Spawn("s2")!.Mobs[0] }, HttpStatusCode.Conflict, Codes.Unfinished);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn = RealmApp.SpawnOf(2).Id, Mob = RealmApp.SpawnOf(2).Mobs[0] }, HttpStatusCode.Conflict, Codes.Unfinished);
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal(RealmApp.InnOf(Meadow), ((await browser.Me()).Map, new Hex((await browser.Me()).Q, (await browser.Me()).R)));
+        CharacterView me = await browser.Me();
+        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
         await browser.Refused(HttpMethod.Post, "/api/encounter/finish", new { first.Token, Log = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
         Assert.Empty(app.Verifier.Checked);
     }
@@ -340,7 +341,7 @@ public sealed class EncounterTests
         // Looking at the character settles it.
         CharacterView me = await browser.Me();
         await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal(RealmApp.InnOf(Meadow), (me.Map, new Hex(me.Q, me.R)));
+        Assert.Equal((World, RealmApp.Inn("new-argive").At), (me.Space, new Hex(me.Q, me.R)));
         string state = await app.Store(db => db.Duels.Where(duel => duel.Token == encounter.Token).Select(duel => duel.State).SingleAsync());
         Assert.Equal(DuelRow.Lost, state);
     }
@@ -361,7 +362,7 @@ public sealed class EncounterTests
         await using var app = new RealmApp();
         Browser browser = await Ready(app);
         await app.Store(db => db.Deck.Where(row => row.PlayerId == browser.Player && row.Name == "Plains").ExecuteUpdateAsync(set => set.SetProperty(row => row.Count, 1)));
-        ApiError refused = await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Map = Meadow, Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        ApiError refused = await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn, Mob = MobNow(app, browser) }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
         Assert.Contains(refused.Problems!, problem => problem.StartsWith("A deck is at least 40 cards", StringComparison.Ordinal));
     }
 }

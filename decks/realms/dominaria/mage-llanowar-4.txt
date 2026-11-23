@@ -1,0 +1,13 @@
+# Karn, Scion of Urza (mage-llanowar-4, Karn, Scion of Urza), the mage of Llanowar's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Karn, Scion of Urza
+1 Phyrexian Walker
+3 Elvish Archers
+2 Yotian Soldier
+1 Magnigoth Sentry
+1 Elfhame Wurm
+1 Cityscape Leveler
+4 Chromatic Star
+2 Mind Stone
+4 The Mightstone and Weakstone
+17 Forest

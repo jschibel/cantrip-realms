@@ -1,0 +1,41 @@
+{
+  "id": "fighting-drake",
+  "name": "Fighting Drake",
+  "creature": "Fighting Drake",
+  "region": "U",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/fighting-drake.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "drake",
+    "palette": [
+      "#3d8fa8",
+      "#93c8dc",
+      "#f4ecc2"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

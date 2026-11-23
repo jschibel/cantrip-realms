@@ -1,0 +1,12 @@
+# Ramirez DePietro (ramirez-depietro, Ramirez DePietro), a tier 4 wanderer of Urborg: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Ramirez DePietro
+2 Plague Beetle
+3 Krovikan Scoundrel
+3 True-Name Nemesis
+2 Bog Wraith
+2 Yargle, Glutton of Urborg
+3 Cut Down
+4 Dismember
+4 Island
+13 Swamp

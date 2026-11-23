@@ -1,0 +1,42 @@
+{
+  "id": "ramirez-depietro",
+  "name": "Ramirez DePietro",
+  "creature": "Ramirez DePietro",
+  "region": "B",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/ramirez-depietro.txt",
+  "stats": {
+    "life": 24,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "urborg-bone-charm"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "UB",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "humanoid",
+    "palette": [
+      "#8c909c",
+      "#4b2f5e"
+    ],
+    "size": 1.55
+  },
+  "boss": false
+}

@@ -1,0 +1,38 @@
+{
+  "id": "storm-crow",
+  "name": "Storm Crow",
+  "creature": "Storm Crow",
+  "region": "U",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/storm-crow.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "bird",
+    "palette": [
+      "#5b8fd6",
+      "#f4ecc2",
+      "#2f5fa8"
+    ],
+    "size": 1.0
+  },
+  "boss": false
+}

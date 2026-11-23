@@ -1,0 +1,42 @@
+{
+  "id": "mage-benalia-2",
+  "name": "Mother of Runes",
+  "creature": "Mother of Runes",
+  "region": "W",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/mage-benalia-2.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "chain-hauberk",
+    "kjeldoran-helm"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c",
+      "#93c8dc"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

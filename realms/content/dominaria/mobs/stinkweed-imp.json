@@ -1,0 +1,43 @@
+{
+  "id": "stinkweed-imp",
+  "name": "Stinkweed Imp",
+  "creature": "Stinkweed Imp",
+  "region": "B",
+  "tier": 3,
+  "deck": "decks/realms/dominaria/stinkweed-imp.txt",
+  "stats": {
+    "life": 22,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders",
+    "urborg-bone-charm"
+  ],
+  "prize": 800,
+  "goldRange": [
+    120,
+    300
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon",
+      "rare"
+    ]
+  },
+  "model": {
+    "mesh": "ghoul",
+    "palette": [
+      "#4b2f5e",
+      "#5d6646",
+      "#2a2b36"
+    ],
+    "size": 1.2
+  },
+  "boss": false
+}

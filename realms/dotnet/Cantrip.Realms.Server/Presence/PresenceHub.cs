@@ -4,11 +4,14 @@ using Cantrip.Realms.Server.Content;
 namespace Cantrip.Realms.Server.Presence;
 
 /// <summary>
-/// Who is where (realms/docs/interfaces.md, "Presence"; design.md A6): players on the same instance of a map - forty to an
-/// instance, another opening when one is full - see each other walk, change their look and emote, and nothing else is
-/// shared. The server checks every walk against the map (on it, nothing blocked, each step to a neighbour), against where
-/// the player last was (a walk starts at most one hex from there) and against a walking speed, then relays it; clients
-/// animate the walks themselves. Time is the injected <see cref="TimeProvider"/>'s.
+/// Who is where (realms/docs/interfaces.md, "Presence"; design.md A6). In the world, a player sees the players of their
+/// layer within <see cref="AreaChunks"/> chunks of them, each judged by the chunk their walk ends in; a player entering
+/// takes the first layer whose players within that distance number fewer than forty, so a crowd spreads over layers. In an
+/// interior, a player sees everyone in the same instance of it, forty to an instance. A dungeon run is single-player and
+/// shares nothing. Players see each other walk, change their look and emote; nothing else is shared. The server checks
+/// every walk against the space (on it, nothing blocked, each step to a neighbour), against where the player last was (a
+/// walk starts at most one hex from there) and against a walking speed, then relays it to those who see the player;
+/// clients animate the walks themselves. Time is the injected <see cref="TimeProvider"/>'s.
 /// </summary>
 public sealed partial class PresenceHub(RealmContent content, RealmOptions options, TimeProvider time)
 {
@@ -21,8 +24,16 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
     /// <summary>The most emotes a player makes in a second.</summary>
     public const int EmotesPerSecond = 2;
 
+    /// <summary>How many chunks apart, along either axis, two players of a layer of the world may be and still see each other.</summary>
+    public const int AreaChunks = 2;
+
     private readonly object _gate = new();
-    private readonly Dictionary<string, List<Instance>> _maps = new(StringComparer.Ordinal);
+
+    /// <summary>The world's layers, by number from 1: the players on each.</summary>
+    private readonly Dictionary<int, HashSet<Member>> _layers = [];
+
+    /// <summary>Each interior's instances.</summary>
+    private readonly Dictionary<string, List<Instance>> _interiors = new(StringComparer.Ordinal);
     private int _next;
 
     [GeneratedRegex("^[a-z0-9][a-z0-9-]{0,31}$")]
@@ -45,45 +56,83 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         }
     }
 
-    /// <summary>The players in each instance of a map, for a test or a status page.</summary>
-    public IReadOnlyList<int> Instances(string map)
+    /// <summary>The players on each layer of the world, or in each instance of an interior, for a test or a status page.</summary>
+    public IReadOnlyList<int> Instances(string space)
     {
         lock (_gate)
         {
-            return _maps.TryGetValue(map, out List<Instance>? instances) ? [.. instances.Select(instance => instance.Members.Count)] : [];
+            return space == RealmContent.WorldSpace
+                ? [.. _layers.OrderBy(layer => layer.Key).Select(layer => layer.Value.Count)]
+                : _interiors.TryGetValue(space, out List<Instance>? instances) ? [.. instances.Select(instance => instance.Members.Count)] : [];
         }
     }
 
-    /// <summary>Puts a player on a map at a hex: the first instance with room, and everyone there told.</summary>
-    public void Enter(Member member, string map, Hex at)
+    /// <summary>Whether two chunks are near enough for players in them to see each other.</summary>
+    public static bool Near((int Cq, int Cr) a, (int Cq, int Cr) b) => Math.Abs(a.Cq - b.Cq) <= AreaChunks && Math.Abs(a.Cr - b.Cr) <= AreaChunks;
+
+    /// <summary>
+    /// Puts a player in a space at a hex: in the world, on the first layer with room around them; in an interior, in its
+    /// first instance with room. They are welcomed with everyone they see, and each of those is told of them.
+    /// </summary>
+    public void Enter(Member member, string space, Hex at)
     {
         ArgumentNullException.ThrowIfNull(member);
         lock (_gate)
         {
             LeaveLocked(member);
-            if (!_maps.TryGetValue(map, out List<Instance>? instances))
-            {
-                _maps[map] = instances = [];
-            }
-
-            Instance instance = instances.Where(open => open.Members.Count < options.InstanceSize).MinBy(open => open.Number)
-                ?? new Instance(map, Enumerable.Range(1, instances.Count + 1).First(number => instances.All(open => open.Number != number)));
-            if (!instances.Contains(instance)) instances.Add(instance);
-
-            member.Instance = instance;
+            member.Space = space;
             member.From = at;
             member.Path = [];
             member.Speed = 0;
             member.Since = Now;
+            List<Member> seen;
+            if (space == RealmContent.WorldSpace)
+            {
+                member.Area = content.World.ChunkOf(at);
+                int layer = Enumerable.Range(1, _layers.Count + 1).First(number =>
+                    !_layers.TryGetValue(number, out HashSet<Member>? members) || members.Count(other => Near(other.Area, member.Area)) < options.InstanceSize);
+                if (!_layers.TryGetValue(layer, out HashSet<Member>? on)) _layers[layer] = on = [];
+                member.Layer = layer;
+                seen = [.. on.Where(other => Near(other.Area, member.Area))];
+                on.Add(member);
+            }
+            else
+            {
+                if (!_interiors.TryGetValue(space, out List<Instance>? instances)) _interiors[space] = instances = [];
+                Instance instance = instances.Where(open => open.Members.Count < options.InstanceSize).MinBy(open => open.Number)
+                    ?? new Instance(space, Enumerable.Range(1, instances.Count + 1).First(number => instances.All(open => open.Number != number)));
+                if (!instances.Contains(instance)) instances.Add(instance);
+                member.Instance = instance;
+                member.Layer = instance.Number;
+                seen = [.. instance.Members.Values];
+                instance.Members[member.Id] = member;
+            }
 
-            member.Send(new WelcomeMessage { Instance = instance.Number, Player = member.Id, Others = [.. instance.Members.Values.Select(Other)] });
+            member.Send(new WelcomeMessage { Instance = member.Layer, Player = member.Id, Others = [.. seen.Select(Other)] });
             OtherMessage arrived = Other(member);
-            foreach (Member other in instance.Members.Values) other.Send(arrived);
-            instance.Members[member.Id] = member;
+            foreach (Member other in seen)
+            {
+                other.Send(arrived);
+                Meet(member, other);
+            }
         }
     }
 
-    /// <summary>Takes a player off whatever map they were on, everyone there told.</summary>
+    private static void Meet(Member a, Member b)
+    {
+        a.Seen.Add(b);
+        b.Seen.Add(a);
+    }
+
+    private static void Part(Member a, Member b)
+    {
+        a.Seen.Remove(b);
+        b.Seen.Remove(a);
+        a.Send(new LeftMessage { Player = b.Id });
+        b.Send(new LeftMessage { Player = a.Id });
+    }
+
+    /// <summary>Takes a player out of whatever space they were in, everyone who saw them told.</summary>
     public void Leave(Member member)
     {
         ArgumentNullException.ThrowIfNull(member);
@@ -92,33 +141,54 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
 
     private void LeaveLocked(Member member)
     {
-        if (member.Instance is not { } instance) return;
-        instance.Members.Remove(member.Id);
-        member.Instance = null;
-        foreach (Member other in instance.Members.Values) other.Send(new LeftMessage { Player = member.Id });
-        if (instance.Members.Count == 0 && _maps.TryGetValue(instance.Map, out List<Instance>? instances))
+        if (member.Space is null) return;
+        foreach (Member other in member.Seen)
         {
-            instances.Remove(instance);
-            if (instances.Count == 0) _maps.Remove(instance.Map);
+            other.Seen.Remove(member);
+            other.Send(new LeftMessage { Player = member.Id });
         }
+
+        member.Seen.Clear();
+        if (member.Instance is { } instance)
+        {
+            instance.Members.Remove(member.Id);
+            if (instance.Members.Count == 0 && _interiors.TryGetValue(instance.Space, out List<Instance>? instances))
+            {
+                instances.Remove(instance);
+                if (instances.Count == 0) _interiors.Remove(instance.Space);
+            }
+        }
+        else if (_layers.TryGetValue(member.Layer, out HashSet<Member>? layer))
+        {
+            layer.Remove(member);
+            if (layer.Count == 0) _layers.Remove(member.Layer);
+        }
+
+        member.Space = null;
+        member.Instance = null;
+        member.Layer = 0;
     }
 
-    /// <summary>A walk: relayed if it holds, else refused with where the player truly is.</summary>
+    /// <summary>
+    /// A walk: relayed if it holds, else refused with where the player truly is. In the world it may carry the player into
+    /// sight of others of their layer, or out of it: the two who come to see each other are each told of the other
+    /// (<see cref="OtherMessage"/>), the two who part each that the other has left.
+    /// </summary>
     public void Move(Member member, MoveMessage move)
     {
         ArgumentNullException.ThrowIfNull(member);
         ArgumentNullException.ThrowIfNull(move);
         lock (_gate)
         {
-            if (member.Instance is not { } instance)
+            if (member.Space is not { } spaceId || content.Space(spaceId) is not { } space)
             {
-                member.Send(new RefusedMessage { Reason = "Enter a map first." });
+                member.Send(new RefusedMessage { Reason = "Enter the world or a building first." });
                 return;
             }
 
             long now = Now;
             Hex here = member.Where(now);
-            if (Problem(member, instance, move, here, now) is { } problem)
+            if (Problem(member, space, move, here, now) is { } problem)
             {
                 member.Send(new RefusedMessage { Reason = problem, At = [here.Q, here.R] });
                 return;
@@ -131,11 +201,36 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
             member.Moves.Enqueue(now);
 
             var moved = new MovedMessage { Player = member.Id, From = [member.From.Q, member.From.R], Path = Path(member.Path), Speed = member.Speed, Since = now };
-            foreach (Member other in instance.Members.Values.Where(other => other != member)) other.Send(moved);
+            if (space is not RealmWorld world)
+            {
+                foreach (Member other in member.Seen) other.Send(moved);
+                return;
+            }
+
+            member.Area = world.ChunkOf(member.Path.Count > 0 ? member.Path[^1] : member.From);
+            foreach (Member other in _layers[member.Layer].Where(other => other != member).OrderBy(other => other.Id))
+            {
+                bool sees = member.Seen.Contains(other);
+                bool near = Near(member.Area, other.Area);
+                if (sees && near)
+                {
+                    other.Send(moved);
+                }
+                else if (sees)
+                {
+                    Part(member, other);
+                }
+                else if (near)
+                {
+                    other.Send(Other(member));
+                    member.Send(Other(other));
+                    Meet(member, other);
+                }
+            }
         }
     }
 
-    private string? Problem(Member member, Instance instance, MoveMessage move, Hex here, long now)
+    private string? Problem(Member member, RealmSpace space, MoveMessage move, Hex here, long now)
     {
         if (move.From is not [int q, int r] || move.Path.Any(step => step is not [_, _]))
         {
@@ -146,9 +241,8 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         while (member.Moves.Count > 0 && member.Moves.Peek() <= now - 1000) member.Moves.Dequeue();
         if (member.Moves.Count >= MovesPerSecond) return "Too many walks at once.";
 
-        RealmMap? map = content.Maps.GetValueOrDefault(instance.Map);
         var from = new Hex(q, r);
-        if (map is null || !map.Walkable(from)) return "Nobody can stand there.";
+        if (!space.Walkable(from)) return "Nobody can stand there.";
         if (from.DistanceTo(here) > 1) return "A walk starts where you are.";
         if (move.Path.Length > 0 && (double.IsNaN(move.Speed) || move.Speed <= 0 || move.Speed > options.WalkingSpeed))
         {
@@ -160,14 +254,14 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         {
             var next = new Hex(step[0], step[1]);
             if (next.DistanceTo(previous) != 1) return "Each step of a walk is to a neighbouring hex.";
-            if (!map.Walkable(next)) return "The walk leaves the map or crosses something nobody can.";
+            if (!space.Walkable(next)) return "The walk leaves the place or crosses something nobody can.";
             previous = next;
         }
 
         return null;
     }
 
-    /// <summary>A new look, relayed.</summary>
+    /// <summary>A new look, relayed to those who see the player.</summary>
     public void Look(Member member, LookMessage look)
     {
         ArgumentNullException.ThrowIfNull(member);
@@ -188,13 +282,12 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
                 Palette = look.Palette,
                 Slots = look.Slots.ToDictionary(slot => slot.Key, slot => new SlotLook { Mesh = slot.Value.Mesh, Palette = [.. slot.Value.Palette] }, StringComparer.Ordinal),
             };
-            if (member.Instance is not { } instance) return;
             var looked = new LookedMessage { Player = member.Id, Look = member.Look };
-            foreach (Member other in instance.Members.Values.Where(other => other != member)) other.Send(looked);
+            foreach (Member other in member.Seen) other.Send(looked);
         }
     }
 
-    /// <summary>An emote, relayed.</summary>
+    /// <summary>An emote, relayed to those who see the player.</summary>
     public void Emote(Member member, EmoteMessage emote)
     {
         ArgumentNullException.ThrowIfNull(member);
@@ -203,7 +296,7 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         {
             long now = Now;
             while (member.Emotes.Count > 0 && member.Emotes.Peek() <= now - 1000) member.Emotes.Dequeue();
-            if (member.Instance is not { } instance || !EmoteName().IsMatch(emote.Emote) || member.Emotes.Count >= EmotesPerSecond)
+            if (member.Space is null || !EmoteName().IsMatch(emote.Emote) || member.Emotes.Count >= EmotesPerSecond)
             {
                 member.Send(new RefusedMessage { Reason = "That emote can't be made now." });
                 return;
@@ -211,7 +304,7 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
 
             member.Emotes.Enqueue(now);
             var emoted = new EmotedMessage { Player = member.Id, Emote = emote.Emote };
-            foreach (Member other in instance.Members.Values.Where(other => other != member)) other.Send(emoted);
+            foreach (Member other in member.Seen) other.Send(emoted);
         }
     }
 
@@ -235,10 +328,10 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
 
     private static int[][] Path(IReadOnlyList<Hex> path) => [.. path.Select(step => new[] { step.Q, step.R })];
 
-    /// <summary>One instance of a map.</summary>
-    public sealed class Instance(string map, int number)
+    /// <summary>One instance of an interior.</summary>
+    public sealed class Instance(string space, int number)
     {
-        public string Map { get; } = map;
+        public string Space { get; } = space;
 
         public int Number { get; } = number;
 
@@ -259,7 +352,20 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
 
         public LookView Look { get; set; } = look;
 
+        /// <summary>The space the player is in, the world or an interior; null before they enter one.</summary>
+        public string? Space { get; set; }
+
+        /// <summary>Their layer of the world, or their interior's instance's number.</summary>
+        public int Layer { get; set; }
+
+        /// <summary>Their interior's instance; null in the world.</summary>
         public Instance? Instance { get; set; }
+
+        /// <summary>In the world, the chunk their walk ends in, which who they see is judged from.</summary>
+        public (int Cq, int Cr) Area { get; set; }
+
+        /// <summary>The players who see this one, and whom this one sees.</summary>
+        public HashSet<Member> Seen { get; } = [];
 
         public Hex From { get; set; }
 

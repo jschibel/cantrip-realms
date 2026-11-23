@@ -1,15 +1,16 @@
-# Yavimaya Wurm (yavimaya-wurm), a tier 2 mob: written by tools/realms/sample-decks.py; tune it by hand.
+# Yavimaya Wurm (yavimaya-wurm, Yavimaya Wurm), a tier 2 wanderer of Llanowar: written by tools/realms/sample-decks.py; tune it by hand.
 
-2 Yavimaya Wurm
-2 Fecundity
-2 Giant Growth
-2 Bushwhack
-1 Fog
+3 Yavimaya Wurm
 2 Defiant Elf
 2 Ashcoat Bear
-2 Canopy Spider
-2 Elvish Warrior
-2 Nessian Courser
-2 Trained Armodon
-2 Magnigoth Sentry
+1 Canopy Spider
+2 Goliath Beetle
+1 Nessian Courser
+2 Argothian Swine
+2 Elfhame Wurm
+1 Spined Wurm
+1 Havenwood Wurm
+2 Giant Growth
+2 Rancor
+2 Song of Freyalise
 17 Forest

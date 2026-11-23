@@ -23,7 +23,7 @@ namespace Cantrip.Realms.Server.Tests;
 /// </summary>
 public sealed class RealmApp : WebApplicationFactory<Program>
 {
-    private static readonly Lazy<RealmContent> SharedContent = new(() => RealmContent.Load(Root));
+    private static readonly Lazy<RealmContent> SharedContent = new(() => RealmContent.Load(Root, places: Places));
 
     private readonly string _database = Path.Combine(Path.GetTempPath(), $"cantrip-realm-{Guid.NewGuid():N}.db");
 
@@ -31,6 +31,9 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     public static string Root => RealmOptions.FindRoot() ?? throw new InvalidOperationException("No repository above the tests.");
 
     public static RealmContent Content => SharedContent.Value;
+
+    /// <summary>The test world (World/make-world.py): its planes' world, interiors and dungeons, read instead of realms/content's.</summary>
+    public static string Places => Path.Combine(Root, "realms", "dotnet", "Cantrip.Realms.Server.Tests", "World");
 
     /// <summary>A Monday, half past ten in the morning, UTC.</summary>
     public static DateTimeOffset Start { get; } = new(2026, 11, 23, 10, 30, 0, TimeSpan.Zero);
@@ -100,24 +103,58 @@ public sealed class RealmApp : WebApplicationFactory<Program>
         return browser;
     }
 
-    /// <summary>The inn a map names: its map and hex.</summary>
-    public static (string Map, Hex At) InnOf(string map)
+    /// <summary>The first inn of a town of the test world.</summary>
+    public static InnEntry Inn(string town) => Content.World.File.Inns.First(inn => inn.Town == town);
+
+    /// <summary>A space of the test world: the world, or an interior.</summary>
+    public static RealmSpace Space(string id) => Content.Space(id) ?? throw new ArgumentException($"No space '{id}'.", nameof(id));
+
+    /// <summary>The first open hex beside a hex of a space (in hex.ts's order of directions), to stand at.</summary>
+    public static Hex Beside(string space, Hex at) =>
+        Hex.Directions.Select(step => new Hex(at.Q + step.Q, at.R + step.R)).First(Space(space).Walkable);
+
+    /// <summary>An open hex of the world at least <paramref name="steps"/> hexes from another, along the r axis.</summary>
+    public static Hex Away(Hex from, int steps) =>
+        Enumerable.Range(steps, 64).Select(more => new Hex(from.Q, from.R + more)).Concat(Enumerable.Range(steps, 64).Select(more => new Hex(from.Q, from.R - more)))
+            .First(Content.World.Walkable);
+
+    /// <summary>Where an NPC of a kind stands in a space (the first of them).</summary>
+    public static Hex Npc(string space, string kind) => Space(space).Npcs.First(npc => npc.Kind == kind).At;
+
+    /// <summary>A world spawn of the test world, by tier: the first of that tier.</summary>
+    public static MapSpawn SpawnOf(int tier) => Content.World.Spawns.Where(spawn => spawn.Tier == tier).OrderBy(spawn => spawn.Id, StringComparer.Ordinal).First();
+
+    /// <summary>Puts a character somewhere at once, as a test arranges where they stand: no walking, no doors.</summary>
+    public Task Put(Browser browser, string space, Hex at) => Store(async db =>
     {
-        MapInn inn = Content.Maps[map].File.Inn!;
-        return (inn.Map ?? map, inn.At);
+        await db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set
+            .SetProperty(row => row.Space, space)
+            .SetProperty(row => row.Q, at.Q)
+            .SetProperty(row => row.R, at.R)
+            .SetProperty(row => row.PlacedAt, Time.GetUtcNow().ToUnixTimeMilliseconds()));
+    });
+
+    /// <summary>Walks a character to beside a dungeon's entrance and begins a run of it.</summary>
+    public async Task<RunView> EnterRun(Browser browser, string dungeon)
+    {
+        await Put(browser, RealmContent.WorldSpace, Beside(RealmContent.WorldSpace, Content.Dungeons[dungeon].File.At));
+        return await browser.Ok<RunView>(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = dungeon });
     }
 
-    /// <summary>The first open hex beside a hex of a map (in hex.ts's order of directions), to stand at.</summary>
-    public static Hex Beside(string map, Hex at) =>
-        Hex.Directions.Select(step => new Hex(at.Q + step.Q, at.R + step.R)).First(Content.Maps[map].Walkable);
+    /// <summary>Sets the floor a run stands on, as a test arranges a run it would take long to climb.</summary>
+    public Task ToFloor(RunView run, int floor) =>
+        Store(db => db.Runs.Where(row => row.Id == run.Run).ExecuteUpdateAsync(set => set.SetProperty(row => row.Floor, floor)));
 
-    /// <summary>An open hex of a map at least <paramref name="steps"/> hexes from another, the nearest such.</summary>
-    public static Hex Away(string map, Hex from, int steps) =>
-        Content.Maps[map].Tiles.Where(tile => !tile.Blocked && tile.At.DistanceTo(from) >= steps)
-            .OrderBy(tile => tile.At.DistanceTo(from)).ThenBy(tile => tile.At.Q).ThenBy(tile => tile.At.R).First().At;
+    /// <summary>Where a run's boss waits: its last floor, and its index there.</summary>
+    public static (int Floor, int Index) BossOf(RunView run) => (run.Floors.Count - 1, run.Floors[^1].Encounters.Count + 1);
 
-    /// <summary>Where a map's NPC of a kind stands (the first of them).</summary>
-    public static Hex Npc(string map, string kind) => Content.Maps[map].File.Npcs.First(npc => npc.Kind == kind).At;
+    /// <summary>Starts the duel of a run's encounter.</summary>
+    public static Task<EncounterView> Fight(Browser browser, RunView run, int floor, int index, string mob) =>
+        browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = floor, Index = index, Mob = mob });
+
+    /// <summary>Finishes a duel, won unless the fake verifier says otherwise.</summary>
+    public static Task<OutcomeView> Finish(Browser browser, string token) =>
+        browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { Token = token, Log = new[] { "AA==" } });
 
     /// <summary>Works with the store directly, as a test arranges what a call would take long to.</summary>
     public async Task Store(Func<RealmDb, Task> work)
@@ -204,12 +241,17 @@ public sealed class Browser(RealmApp app, HttpClient client, string player, stri
 
     public async Task<IReadOnlyDictionary<string, int>> Collection() => (await Ok<CollectionView>(HttpMethod.Get, "/api/collection")).Cards;
 
-    public Task Travel(string map, int q, int r) => Ok<object>(HttpMethod.Post, "/api/travel", new { Map = map, Q = q, R = r });
+    /// <summary>Reports where the character stands (<c>/api/position</c>).</summary>
+    public Task Position(string space, Hex at) => Ok<object>(HttpMethod.Post, "/api/position", new { Space = space, at.Q, at.R });
 
-    public Task Travel(string map, Hex at) => Travel(map, at.Q, at.R);
+    /// <summary>Puts the character somewhere at once (<see cref="RealmApp.Put"/>).</summary>
+    public Task Put(string space, Hex at) => App.Put(this, space, at);
 
-    /// <summary>Walks to beside New Argive's spell table.</summary>
-    public Task ToSpellTable() => Travel("new-argive", RealmApp.Beside("new-argive", RealmApp.Npc("new-argive", RealmMap.SpellTable)));
+    /// <summary>Puts the character inside an interior, on its middle hex.</summary>
+    public Task Inside(string interior) => Put(interior, new Hex(0, 0));
+
+    /// <summary>Puts the character beside the spell table of New Argive's inn.</summary>
+    public Task ToSpellTable() => Put("new-argive-inn", RealmApp.Beside("new-argive-inn", RealmApp.Npc("new-argive-inn", RealmSpace.SpellTable)));
 }
 
 /// <summary>

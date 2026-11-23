@@ -1,0 +1,15 @@
+# Phantom Monster (phantom-monster, Phantom Monster), a tier 2 wanderer of Tolaria: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Phantom Monster
+2 Aven Envoy
+2 Bay Falcon
+1 Storm Crow
+2 Blind Phantasm
+2 Soaring Drake
+2 Serra Sphinx
+2 Shoreline Ranger
+2 Counterspell
+2 Disdainful Stroke
+1 Essence Scatter
+2 Remand
+17 Island

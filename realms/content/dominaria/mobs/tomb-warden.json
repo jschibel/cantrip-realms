@@ -1,6 +1,8 @@
 {
   "id": "tomb-warden",
   "name": "Tomb Warden",
+  "creature": "Tombstalker",
+  "region": "B",
   "tier": 4,
   "deck": "decks/realms/dominaria/tomb-warden.txt",
   "stats": {
@@ -29,7 +31,7 @@
     ]
   },
   "model": {
-    "mesh": "ghoul",
+    "mesh": "giant",
     "palette": [
       "#2a2b36",
       "#7a1f24",

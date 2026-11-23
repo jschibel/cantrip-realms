@@ -1,0 +1,41 @@
+{
+  "id": "mage-tolaria-1",
+  "name": "Fugitive Wizard",
+  "creature": "Fugitive Wizard",
+  "region": "U",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mage-tolaria-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "novice-robe",
+    "scholars-circlet"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#62a4c2",
+      "#f1b44c",
+      "#2a2b36"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

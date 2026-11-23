@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
-/// A town's armorer (design.md A4): 6 to 10 items of the gear catalogue, a different choice each day, sold at their gold and
+/// A town's armorer (design.md A4), who works in its smithy (an interior of the town with an <c>armorer</c> NPC): 6 to 10 items of the gear catalogue, a different choice each day, sold at their gold and
 /// bought back at half. The day's choice is the same for everyone and needs no store: it is drawn from the town and the
 /// UTC day with the spawn table's hash (<see cref="Spawns.Fnv1a32"/>).
 /// </summary>
@@ -17,15 +17,19 @@ public sealed class Armorers(RealmDb db, RealmContent content, Characters charac
 
     public const string Kind = "armorer";
 
-    private RealmMap Town(string town) =>
-        content.Maps.TryGetValue(town, out RealmMap? map) && map.File.Npcs.Any(npc => npc.Kind == Kind)
-            ? map
+    /// <summary>The interiors of a town an armorer works in.</summary>
+    private IEnumerable<RealmInterior> Smithies(string town) =>
+        content.Interiors.Values.Where(interior => interior.Town?.Id == town && interior.Npcs.Any(npc => npc.Kind == Kind));
+
+    private TownEntry Town(string town) =>
+        content.Towns.TryGetValue(town, out TownEntry? found) && Smithies(town).Any()
+            ? found
             : throw Refusal.NotFound(Codes.NoArmorer, $"There is no armorer in '{town}'.");
 
     /// <summary>What a town's armorer sells today.</summary>
     public IReadOnlyList<GearItem> Stock(string town)
     {
-        RealmMap map = Town(town);
+        TownEntry map = Town(town);
         long day = time.GetUtcNow().ToUnixTimeSeconds() / 86_400;
         List<GearItem> catalogue = [.. content.Gear.Values.Where(item => !item.Unique).OrderBy(item => item.Id, StringComparer.Ordinal)];
         uint seed = Spawns.Fnv1a32(string.Create(CultureInfo.InvariantCulture, $"{map.Id}|armorer|{day}"));
@@ -101,6 +105,6 @@ public sealed class Armorers(RealmDb db, RealmContent content, Characters charac
     {
         Town(town);
         PlayerRow row = await characters.Require(player).ConfigureAwait(false);
-        if (row.Map != town) throw Refusal.Conflict(Codes.NotNear, $"The armorer trades in {town}.");
+        if (!Smithies(town).Any(smithy => smithy.Id == row.Space)) throw Refusal.Conflict(Codes.NotNear, $"The armorer trades in {town}'s smithy.");
     }
 }

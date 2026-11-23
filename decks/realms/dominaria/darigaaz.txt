@@ -1,10 +1,11 @@
-# Darigaaz (darigaaz), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+# Darigaaz (darigaaz, Rorix Bladewing), a boss: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Rorix Bladewing
-4 Volcanic Dragon
+1 Monastery Swiftspear
+1 Dreadhorde Arcanist
 4 Phyrexian Dragon Engine
+1 Roc of Kher Ridges
+4 Volcanic Dragon
+4 Chain Lightning
 4 Lightning Bolt
-3 Chain Lightning
-2 Monastery Swiftspear
-2 Dreadhorde Arcanist
 17 Mountain

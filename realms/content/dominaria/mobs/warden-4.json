@@ -1,0 +1,42 @@
+{
+  "id": "warden-4",
+  "name": "Cityscape Leveler",
+  "creature": "Cityscape Leveler",
+  "tier": 4,
+  "deck": "decks/realms/dominaria/warden-4.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "benalish-plate",
+    "silver-pendant"
+  ],
+  "prize": 2000,
+  "goldRange": [
+    250,
+    600
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "U",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "uncommon",
+      "rare",
+      "mythic"
+    ]
+  },
+  "model": {
+    "mesh": "construct",
+    "palette": [
+      "#9aa0aa",
+      "#4a4f58",
+      "#62a4c2"
+    ],
+    "size": 1.75
+  },
+  "boss": false
+}

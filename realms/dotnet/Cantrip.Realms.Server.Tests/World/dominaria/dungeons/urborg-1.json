@@ -1,0 +1,1 @@
+{"id":"urborg-1","name":"The Urborg Tower (1)","theme":"tower","waystone":true,"floors":[1,2],"tier":1,"encounters":[1,2],"mobs":["bog-imp","plague-beetle","scathe-zombies"],"warden":"warden-1","boss":"mage-urborg-1","region":"B","entrance":[56,74]}

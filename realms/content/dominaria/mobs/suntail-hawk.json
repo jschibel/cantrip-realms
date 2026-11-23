@@ -1,0 +1,42 @@
+{
+  "id": "suntail-hawk",
+  "name": "Suntail Hawk",
+  "creature": "Suntail Hawk",
+  "region": "W",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/suntail-hawk.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [
+      "Bird",
+      "Pegasus",
+      "Griffin"
+    ],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "bird",
+    "palette": [
+      "#d8d6d0",
+      "#3a5f8f",
+      "#f1b44c"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

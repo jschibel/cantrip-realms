@@ -1,10 +1,11 @@
-# Sheoldred (sheoldred), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+# Sheoldred (sheoldred, Sheoldred, the Apocalypse), a boss: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Sheoldred, the Apocalypse
-4 Cut Down
-3 Bone Splinters
 2 Plague Beetle
-4 Knight of Dusk's Shadow
-2 Knight of Malice
-4 Bog Raiders
+3 Knight of Dusk's Shadow
+2 Bog Raiders
+2 Yargle, Glutton of Urborg
+2 Tombstalker
+4 Cut Down
+4 Dismember
 17 Swamp

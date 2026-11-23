@@ -1,6 +1,8 @@
 {
   "id": "teferi",
   "name": "Teferi",
+  "creature": "Teferi, Hero of Dominaria",
+  "region": "U",
   "tier": 4,
   "deck": "decks/realms/dominaria/teferi.txt",
   "stats": {
@@ -28,10 +30,11 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "wizard",
     "palette": [
       "#5b8fd6",
-      "#f1b44c"
+      "#f1b44c",
+      "#f2efe6"
     ],
     "size": 1.4
   },

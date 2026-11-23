@@ -1,0 +1,16 @@
+# Ghitu Lavarunner (mage-shiv-1, Ghitu Lavarunner), the mage of Shiv's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Ghitu Lavarunner
+2 Dwarven Forge-Chanter
+2 Pyromantic Pilgrim
+1 Coalition Warbrute
+1 Reckless Wurm
+1 Macetail Hystrodon
+2 Faithless Looting
+2 Firebolt
+2 Flowstone Infusion
+2 Shock
+2 Abrade
+2 Lightning Strike
+2 Fireblast
+17 Mountain

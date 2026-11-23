@@ -1,0 +1,41 @@
+{
+  "id": "mage-benalia-1",
+  "name": "Keepers of the Faith",
+  "creature": "Keepers of the Faith",
+  "region": "W",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mage-benalia-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "padded-jerkin",
+    "kjeldoran-helm"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "W",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#e8e4d8",
+      "#b3b5bc",
+      "#c08a62"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

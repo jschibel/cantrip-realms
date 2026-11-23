@@ -1,0 +1,16 @@
+# Keepers of the Faith (mage-benalia-1, Keepers of the Faith), the mage of Benalia's tier 1 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+2 Keepers of the Faith
+2 Benalish Hero
+1 Kjeldoran Warrior
+2 Benalish Faithbonder
+2 Mesa Unicorn
+2 Benalish Knight
+2 Yotian Medic
+1 Moorish Cavalry
+1 Border Patrol
+2 Noble Templar
+2 Healing Salve
+2 Mana Tithe
+2 Destroy Evil
+17 Plains

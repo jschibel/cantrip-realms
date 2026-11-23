@@ -1,6 +1,8 @@
 {
   "id": "sheoldred",
   "name": "Sheoldred",
+  "creature": "Sheoldred, the Apocalypse",
+  "region": "B",
   "tier": 4,
   "deck": "decks/realms/dominaria/sheoldred.txt",
   "stats": {

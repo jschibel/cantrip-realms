@@ -1,0 +1,41 @@
+{
+  "id": "magnigoth-sentry",
+  "name": "Magnigoth Sentry",
+  "creature": "Magnigoth Sentry",
+  "region": "G",
+  "tier": 2,
+  "deck": "decks/realms/dominaria/magnigoth-sentry.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "silver-band"
+  ],
+  "prize": 300,
+  "goldRange": [
+    50,
+    150
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "G",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common",
+      "uncommon"
+    ]
+  },
+  "model": {
+    "mesh": "treefolk",
+    "palette": [
+      "#2a4524",
+      "#d6ae7e",
+      "#c08a62"
+    ],
+    "size": 1.25
+  },
+  "boss": false
+}

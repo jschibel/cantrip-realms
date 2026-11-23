@@ -1,0 +1,1 @@
+{"id":"tomb-of-yawgmoth","name":"The Tomb of Yawgmoth","theme":"crypt","floors":[3,5],"tier":4,"encounters":[2,4],"mobs":[["gurmag-angler","knight-of-malice","stinkweed-imp"],["lady-orca","ramirez-depietro","yargle-glutton-of-urborg"]],"warden":"tomb-warden","boss":"sheoldred","region":"B","entrance":[72,112]}

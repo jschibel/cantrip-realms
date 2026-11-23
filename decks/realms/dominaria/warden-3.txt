@@ -1,0 +1,13 @@
+# Myr Battlesphere (warden-3, Myr Battlesphere), a tier 3 warden: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Myr Battlesphere
+1 Ornithopter
+2 Reconstructed Thopter
+2 Yotian Soldier
+2 Venser's Sliver
+1 Pardic Wanderer
+2 Skullclamp
+3 Mazemind Tome
+3 Remand
+3 The Mightstone and Weakstone
+17 Island

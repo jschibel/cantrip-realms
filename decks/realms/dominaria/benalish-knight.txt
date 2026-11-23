@@ -1,0 +1,16 @@
+# Benalish Knight (benalish-knight, Benalish Knight), a tier 2 wanderer of Benalia: written by tools/realms/sample-decks.py; tune it by hand.
+
+3 Benalish Knight
+2 Dauntless Bodyguard
+2 Knight of Grace
+1 Silver Knight
+1 Pegasus Charger
+1 Ekundu Griffin
+2 Moorish Cavalry
+2 Abbey Gargoyles
+2 Angel of Retribution
+1 Mana Tithe
+2 Path to Exile
+2 Swords to Plowshares
+2 Destroy Evil
+17 Plains

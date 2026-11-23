@@ -1,10 +1,11 @@
-# Multani (multani), a boss: written by tools/realms/sample-decks.py; tune it by hand.
+# Multani (multani, Silverback Elder), a boss: written by tools/realms/sample-decks.py; tune it by hand.
 
-4 Enormous Baloth
+4 Silverback Elder
+1 Birds of Paradise
+1 Elvish Archers
+1 Pale Bears
 4 Arrogant Wurm
-4 Sylvan Library
-3 Berserk
-2 Timber Wolves
-4 Elvish Archers
-2 Ashcoat Bear
+4 Enormous Baloth
+4 Bushwhack
+4 Song of Freyalise
 17 Forest

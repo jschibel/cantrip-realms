@@ -1,0 +1,37 @@
+{
+  "id": "plague-beetle",
+  "name": "Plague Beetle",
+  "creature": "Plague Beetle",
+  "region": "B",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/plague-beetle.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "insect",
+    "palette": [
+      "#8c909c",
+      "#4b2f5e"
+    ],
+    "size": 0.9
+  },
+  "boss": false
+}

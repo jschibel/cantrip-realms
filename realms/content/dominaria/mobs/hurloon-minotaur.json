@@ -1,0 +1,37 @@
+{
+  "id": "hurloon-minotaur",
+  "name": "Hurloon Minotaur",
+  "creature": "Hurloon Minotaur",
+  "region": "R",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/hurloon-minotaur.txt",
+  "stats": {
+    "life": 20,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "R",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "giant",
+    "palette": [
+      "#c8432c",
+      "#6b963e"
+    ],
+    "size": 1.1
+  },
+  "boss": false
+}

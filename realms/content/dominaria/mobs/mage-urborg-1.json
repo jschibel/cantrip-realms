@@ -1,0 +1,40 @@
+{
+  "id": "mage-urborg-1",
+  "name": "Cabal Evangel",
+  "creature": "Cabal Evangel",
+  "region": "B",
+  "tier": 1,
+  "deck": "decks/realms/dominaria/mage-urborg-1.txt",
+  "stats": {
+    "life": 26,
+    "hand": 7,
+    "maxHand": 7
+  },
+  "gear": [
+    "marsh-waders",
+    "urborg-bone-charm"
+  ],
+  "prize": 100,
+  "goldRange": [
+    20,
+    60
+  ],
+  "loot": {
+    "pool": "dominaria",
+    "colors": "B",
+    "types": [],
+    "subtypes": [],
+    "rarities": [
+      "common"
+    ]
+  },
+  "model": {
+    "mesh": "wizard",
+    "palette": [
+      "#8c909c",
+      "#4b2f5e"
+    ],
+    "size": 1.05
+  },
+  "boss": false
+}

@@ -1,0 +1,13 @@
+# Liliana of the Veil (mage-urborg-4, Liliana of the Veil), the mage of Urborg's tier 4 tower: written by tools/realms/sample-decks.py; tune it by hand.
+
+4 Liliana of the Veil
+1 Plague Beetle
+3 Knight of Dusk's Shadow
+2 Bog Raiders
+1 Bog Wraith
+1 Yargle, Glutton of Urborg
+1 Gurmag Angler
+4 Cut Down
+2 Feed the Swarm
+4 Dismember
+17 Swamp
