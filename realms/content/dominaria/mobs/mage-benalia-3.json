@@ -34,11 +34,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "artificer",
     "palette": [
-      "#e8e4d8",
-      "#b3b5bc",
-      "#c08a62"
+      "#8f6340",
+      "#f1b44c",
+      "#62a4c2"
     ],
     "size": 1.15
   },

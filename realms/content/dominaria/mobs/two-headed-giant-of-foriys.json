@@ -31,10 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "giant",
+    "mesh": "ettin",
     "palette": [
-      "#c8432c",
-      "#6b963e"
+      "#d29f72",
+      "#8f2f2f",
+      "#4a2420"
     ],
     "size": 1.4
   },

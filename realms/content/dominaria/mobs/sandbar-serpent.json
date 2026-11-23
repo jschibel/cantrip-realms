@@ -31,9 +31,9 @@
   "model": {
     "mesh": "serpent",
     "palette": [
-      "#5b8fd6",
-      "#f4ecc2",
-      "#2f5fa8"
+      "#3d8fa8",
+      "#d6ae7e",
+      "#f4ecc2"
     ],
     "size": 1.35
   },

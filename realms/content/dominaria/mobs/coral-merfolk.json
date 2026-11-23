@@ -28,8 +28,9 @@
   "model": {
     "mesh": "merfolk",
     "palette": [
-      "#2f5fa8",
-      "#a97fd0"
+      "#3d8fa8",
+      "#f08a6a",
+      "#f4ecc2"
     ],
     "size": 1.0
   },

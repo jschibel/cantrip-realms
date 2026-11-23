@@ -31,11 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "cleric",
     "palette": [
       "#e8e4d8",
-      "#b3b5bc",
-      "#c08a62"
+      "#f1b44c",
+      "#93c8dc"
     ],
     "size": 1.05
   },

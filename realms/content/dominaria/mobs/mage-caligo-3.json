@@ -33,11 +33,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "warlock",
     "palette": [
       "#2a2b36",
       "#7a1f24",
-      "#8c909c"
+      "#f1b44c"
     ],
     "size": 1.15
   },

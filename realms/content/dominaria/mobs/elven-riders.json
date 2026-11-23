@@ -31,10 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "elf",
+    "mesh": "elk-rider",
     "palette": [
       "#4f7a34",
-      "#2a4524"
+      "#2a4524",
+      "#8f6340"
     ],
     "size": 1.35
   },

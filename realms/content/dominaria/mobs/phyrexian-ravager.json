@@ -35,11 +35,11 @@
     ]
   },
   "model": {
-    "mesh": "phyrexian",
+    "mesh": "dragon-engine",
     "palette": [
       "#8c909c",
-      "#c8432c",
-      "#2a2b36"
+      "#4a4f58",
+      "#c8432c"
     ],
     "size": 1.35
   },

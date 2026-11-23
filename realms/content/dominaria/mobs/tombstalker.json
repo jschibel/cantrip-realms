@@ -34,11 +34,11 @@
     ]
   },
   "model": {
-    "mesh": "giant",
+    "mesh": "demon",
     "palette": [
       "#4b2f5e",
-      "#5d6646",
-      "#2a2b36"
+      "#2a2b36",
+      "#e8e4d8"
     ],
     "size": 1.75
   },

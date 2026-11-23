@@ -36,10 +36,10 @@
     ]
   },
   "model": {
-    "mesh": "goblin",
+    "mesh": "orc",
     "palette": [
-      "#2a2b36",
-      "#c8432c",
+      "#6f8a58",
+      "#4a3122",
       "#f1b44c"
     ],
     "size": 1.4

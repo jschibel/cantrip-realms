@@ -26,11 +26,11 @@
     ]
   },
   "model": {
-    "mesh": "bird",
+    "mesh": "pegasus",
     "palette": [
-      "#d8d6d0",
-      "#3a5f8f",
-      "#f1b44c"
+      "#f2efe6",
+      "#93c8dc",
+      "#e8e4d8"
     ],
     "size": 1.0
   },

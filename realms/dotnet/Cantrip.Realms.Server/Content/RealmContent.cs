@@ -80,6 +80,10 @@ public sealed partial class RealmContent
     {
         "humanoid", "ghoul", "angel", "drake", "elf", "goblin", "wurm", "construct", "spirit", "phyrexian",
         "dragon", "bird", "beast", "cat", "merfolk", "insect", "treefolk", "serpent", "giant", "wizard", "knight",
+        "barbarian", "elf-druid", "orc", "minotaur", "ettin", "vampire", "demon", "imp", "aven", "horror", "cleric",
+        "warlock", "shaman", "druid", "artificer", "thrull", "djinn", "wraith", "elemental", "yeti", "ape", "golem",
+        "boar", "rat", "lhurgoyf", "pegasus", "horse", "elk-rider", "dragon-engine",
+        "lyra", "teferi", "liliana", "garna", "rofellos", "praetor",
     };
 
     /// <summary>The five colors a character may start in, and the file each starter deck is in.</summary>

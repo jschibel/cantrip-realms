@@ -26,10 +26,11 @@
     ]
   },
   "model": {
-    "mesh": "giant",
+    "mesh": "minotaur",
     "palette": [
+      "#7a4a30",
       "#c8432c",
-      "#6b963e"
+      "#e8e4d8"
     ],
     "size": 1.1
   },

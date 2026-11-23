@@ -31,11 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "vampire",
     "palette": [
-      "#4b2f5e",
-      "#5d6646",
-      "#2a2b36"
+      "#7a1f24",
+      "#2a2b36",
+      "#c9ced8"
     ],
     "size": 1.45
   },

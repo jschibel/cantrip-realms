@@ -40,7 +40,32 @@ export interface PartSpec {
   readonly round?: number;
   /** A head's shaping (see `headShape`). */
   readonly shape?: HeadShape;
+  /** How the part moves beyond the walk's named swings (a quadruped's legs, wings, a tail, a floating relic). */
+  readonly motion?: Motion;
+  /** The whole part lights itself (a ring's stone, a relic, a staff's crystal, a halo). */
+  readonly glow?: boolean;
 }
+
+/**
+ * How a part moves, for parts the walk does not swing by name (`leg.l`, `arm.r`, `cape`...):
+ * - `leg`: swings about x with the stride, at `phase` (radians) in the cycle - a quadruped's diagonal pairs are 0 and
+ *   pi; a `front` leg lifts when the figure rears to cast.
+ * - `wing`: beats about z (`side` 1 its left wing, -1 its right), slowly standing, fast walking, spread wide casting.
+ * - `tail`: sways about `axis`, each segment `delay` behind the one before, harder walking (a tail, a wurm's body).
+ * - `bob`: rises and falls `amount` texels (a spirit's wisps).
+ * - `orbit`: circles the figure's middle `radius` texels out, bobbing (a relic).
+ * - `spark`: shown only while casting, pulsing (the light between a caster's hands).
+ */
+export type Motion =
+  | { readonly kind: "leg"; readonly phase: number; readonly amount?: number; readonly front?: boolean }
+  | { readonly kind: "wing"; readonly side: 1 | -1; readonly amount?: number }
+  | { readonly kind: "tail"; readonly delay: number; readonly amount?: number; readonly axis?: "x" | "y" | "z"; readonly rate?: number }
+  | { readonly kind: "bob"; readonly amount: number; readonly rate?: number; readonly delay?: number }
+  | { readonly kind: "orbit"; readonly radius: number; readonly rate: number }
+  | { readonly kind: "spark" };
+
+/** What a figure can do besides walk and stand: cast a spell, or reach out to something (a door, a chest, a vendor). */
+export type Action = "cast" | "interact";
 
 /**
  * How a head is shaped from its rounded block, so it reads as a skull and not a box: its edges curved in `steps`
@@ -68,6 +93,12 @@ export interface FigureSpec {
   readonly stride?: number;
   readonly armSwing?: number;
   readonly hunch?: number;
+  /** How far the torso tips forward walking (radians; 0.12 by default). */
+  readonly lean?: number;
+  /** Floats this many texels off the ground, bobbing (spirits, djinn). */
+  readonly hover?: number;
+  /** How wide its shadow is, in tiles (a radius); about 0.42 for a person. */
+  readonly footprint?: number;
 }
 
 export const PX = 1 / 16;
@@ -75,8 +106,9 @@ export const PX = 1 / 16;
 // --- The rig ------------------------------------------------------------------------------------------------------
 
 /** Packs each part's six faces into one picture, painted, and returns where each landed. */
-function paintAtlas(spec: FigureSpec): { atlas: Pixmap; rects: Map<string, [number, number, number, number]> } {
+function paintAtlas(spec: FigureSpec): { atlas: Pixmap; rects: Map<string, [number, number, number, number]>; glowing: [number, number, number, number][] } {
   const faces: { key: string; w: number; h: number; paint: Paint; fill: Rgb }[] = [];
+  const glowParts = new Set(spec.parts.filter((p) => p.glow).map((p) => p.name));
   for (const part of spec.parts) {
     const [w, h, d] = part.size;
     const f = part.faces;
@@ -107,13 +139,15 @@ function paintAtlas(spec: FigureSpec): { atlas: Pixmap; rects: Map<string, [numb
   const atlas = new Pixmap(width, height);
   atlas.fill(0, 0);
   const rects = new Map<string, [number, number, number, number]>();
+  const glowing: [number, number, number, number][] = [];
   for (const { face, x: fx, y: fy } of placed) {
     const pic = new Pixmap(face.w, face.h, face.fill);
     face.paint(pic);
     atlas.copy(pic, 0, 0, face.w, face.h, fx, fy);
     rects.set(face.key, [fx, fy, face.w, face.h]);
+    if (glowParts.has(face.key.slice(0, face.key.lastIndexOf(":")))) glowing.push([fx, fy, face.w, face.h]);
   }
-  return { atlas, rects };
+  return { atlas, rects, glowing };
 }
 
 const figureMaterials = new Map<string, THREE.Material>();
@@ -121,13 +155,25 @@ const figureMaterials = new Map<string, THREE.Material>();
 /** Colors that glow wherever a figure is painted with them: a ghoul's eyes, a skeleton's. */
 export const GHOUL_EYE = 0xd8f060;
 export const BONE_EYE = 0xff4a3a;
-const GLOWS = new Set<Rgb>([GHOUL_EYE, BONE_EYE]);
+/** More colors that glow: a spirit's pale eyes, arcane violet, embers, holy light, a vampire's red, Phyrexian oil-light. */
+export const SPIRIT_EYE = 0xa8f4ff;
+export const ARCANE_EYE = 0xd89cff;
+export const EMBER_EYE = 0xffb03c;
+export const HOLY_LIGHT = 0xfff2a8;
+export const BLOOD_EYE = 0xff2e4c;
+export const OIL_EYE = 0x7cff9c;
+const GLOWS = new Set<Rgb>([GHOUL_EYE, BONE_EYE, SPIRIT_EYE, ARCANE_EYE, EMBER_EYE, HOLY_LIGHT, BLOOD_EYE, OIL_EYE]);
 
 interface Joint {
   readonly name: string;
   readonly group: THREE.Group;
   readonly rest: THREE.Euler;
+  readonly at: THREE.Vector3;
+  readonly motion?: Motion;
 }
+
+/** How long each action lasts by default, seconds. */
+const ACTION_LENGTH: Readonly<Record<Action, number>> = { cast: 1.2, interact: 0.7 };
 
 export class Figure {
   readonly root = new THREE.Group();
@@ -145,6 +191,7 @@ export class Figure {
   private phase = 0;
   private time = Math.random() * 10;
   private moving = 0;
+  private action: { kind: Action; t: number; length: number } | null = null;
   /** Top of the head above the feet, in world units. */
   readonly height: number;
 
@@ -154,12 +201,22 @@ export class Figure {
     this.lean.add(this.turn);
     this.turn.add(this.body);
     let material = figureMaterials.get(spec.name) as THREE.MeshLambertMaterial | undefined;
-    const { atlas, rects } = paintAtlas(spec);
+    const { atlas, rects, glowing } = paintAtlas(spec);
     if (!material) {
       material = lit(textureOf(atlas, false), { cutout: true });
       // Eyes that glow in the dark: the texels painted in a glow color light themselves.
       const glows = new Pixmap(atlas.width, atlas.height, 0);
       let any = false;
+      for (const [gx, gy, gw, gh] of glowing) {
+        for (let y = gy; y < gy + gh; y++) {
+          for (let x = gx; x < gx + gw; x++) {
+            if (atlas.alpha(x, y) > 0) {
+              glows.set(x, y, atlas.get(x, y));
+              any = true;
+            }
+          }
+        }
+      }
       for (let y = 0; y < atlas.height; y++) {
         for (let x = 0; x < atlas.width; x++) {
           if (atlas.alpha(x, y) > 0 && GLOWS.has(atlas.get(x, y))) {
@@ -184,7 +241,11 @@ export class Figure {
       group.position.set(part.at[0] * PX, part.at[1] * PX, part.at[2] * PX);
       if (part.tilt) group.rotation.set(part.tilt[0], 0, part.tilt[1]);
       (parent ?? this.body).add(group);
-      this.joints.set(part.name, { name: part.name, group, rest: group.rotation.clone() });
+      this.joints.set(part.name, { name: part.name, group, rest: group.rotation.clone(), at: group.position.clone(), motion: part.motion });
+      if (part.motion?.kind === "spark") {
+        group.visible = false;
+        group.scale.setScalar(0.01);
+      }
 
       const [w, h, d] = part.size;
       const [bx, by, bz] = part.box;
@@ -242,6 +303,23 @@ export class Figure {
     this.targetFacing = Math.atan2(dx, dz);
   }
 
+  /** Casts a spell (arms raised, light between the hands) or reaches out to something, for `seconds`. */
+  act(kind: Action, seconds = ACTION_LENGTH[kind]): void {
+    this.action = { kind, t: 0, length: Math.max(0.2, seconds) };
+  }
+
+  /** The action under way, if any. */
+  get acting(): Action | null {
+    return this.action?.kind ?? null;
+  }
+
+  /** How far into its action's pose the figure is: easing in, held, easing out (0 when not acting). */
+  private actionWeight(): number {
+    const a = this.action;
+    if (!a) return 0;
+    return Math.max(0, Math.min(1, a.t / 0.15, (a.length - a.t) / 0.2));
+  }
+
   /** Advances the animation: `speed` is how fast it is walking, in tiles a second (0 standing). */
   update(dt: number, speed: number): void {
     this.time += dt;
@@ -280,8 +358,84 @@ export class Figure {
     if (tail) tail.group.rotation.z = tail.rest.z + Math.sin(this.time * 3) * 0.08 + Math.abs(s) * 0.15 * walk;
     const tail2 = joint("ear.r");
     if (tail2) tail2.group.rotation.z = tail2.rest.z - Math.sin(this.time * 3) * 0.08 - Math.abs(s) * 0.15 * walk;
+    if (this.spec.lean !== undefined) {
+      const torso = joint("torso");
+      if (torso) torso.group.rotation.x = torso.rest.x + (this.spec.hunch ?? 0) + this.spec.lean * walk + 0.02 * breathe * stand;
+    }
     // The bob: up on each step, and a breath's rise when standing.
     this.body.position.y = (Math.abs(Math.cos(this.phase)) * 1.6 * walk + (breathe > 0.3 ? 0.6 : 0) * stand) * PX;
+    // A floating figure hangs above the ground, rising and falling.
+    if (this.spec.hover !== undefined) this.body.position.y = (this.spec.hover + Math.sin(this.time * 2.2) * 1.2 + Math.abs(Math.cos(this.phase)) * 0.6 * walk) * PX;
+
+    if (this.action) {
+      this.action.t += dt;
+      if (this.action.t >= this.action.length) this.action = null;
+    }
+    const act = this.actionWeight();
+    const casting = this.action?.kind === "cast" ? act : 0;
+    const reaching = this.action?.kind === "interact" ? act : 0;
+    for (const j of this.joints.values()) if (j.motion) this.move(j, j.motion, walk, casting);
+    if (act > 0) this.pose(casting, reaching);
+  }
+
+  /** A part's own motion, this frame. */
+  private move(j: Joint, m: Motion, walk: number, casting: number): void {
+    const g = j.group;
+    const t = this.time;
+    switch (m.kind) {
+      case "leg":
+        g.rotation.set(j.rest.x + Math.sin(this.phase + m.phase) * (m.amount ?? 0.6) * walk - (m.front ? 0.7 * casting : 0), j.rest.y, j.rest.z);
+        break;
+      case "wing": {
+        // A slow open and close standing, a quick beat walking, and spread up and wide when casting.
+        const beat = Math.sin(t * 11) * 0.45 * walk;
+        const idle = Math.sin(t * 1.8) * 0.08 * (1 - walk);
+        g.rotation.set(j.rest.x, j.rest.y - m.side * 0.35 * casting, j.rest.z + m.side * ((m.amount ?? 1) * (beat + idle) + 0.45 * casting));
+        break;
+      }
+      case "tail": {
+        const rate = m.rate ?? 2.2;
+        const swing = Math.sin(t * rate + this.phase * 0.5 - m.delay) * (m.amount ?? 0.25) * (0.5 + 0.5 * walk);
+        const axis = m.axis ?? "y";
+        g.rotation.set(j.rest.x + (axis === "x" ? swing : 0), j.rest.y + (axis === "y" ? swing : 0), j.rest.z + (axis === "z" ? swing : 0));
+        break;
+      }
+      case "bob":
+        g.position.set(j.at.x, j.at.y + Math.sin(t * (m.rate ?? 2.6) - (m.delay ?? 0)) * m.amount * PX, j.at.z);
+        break;
+      case "orbit": {
+        const a = t * m.rate;
+        g.position.set(j.at.x + Math.cos(a) * m.radius * PX, j.at.y + Math.sin(t * 2.4) * 1.5 * PX, j.at.z + Math.sin(a) * m.radius * PX * 0.6);
+        g.rotation.set(0, a * 1.5, 0);
+        break;
+      }
+      case "spark": {
+        g.visible = casting > 0.05;
+        const k = Math.max(0.01, casting * (0.85 + 0.15 * Math.sin(t * 18)));
+        g.scale.set(k, k, k);
+        g.rotation.set(0, t * 4, 0);
+        break;
+      }
+    }
+  }
+
+  /**
+   * The action's pose over the walk: casting raises both arms high and a little apart, the head tipped up (a creature
+   * with no arms rears, its head up and its wings spread); reaching puts the right arm out before it, the head bowed.
+   */
+  private pose(casting: number, reaching: number): void {
+    const add = (name: string, x: number, z = 0) => {
+      const j = this.joints.get(name);
+      if (j) {
+        j.group.rotation.x += x;
+        j.group.rotation.z += z;
+      }
+    };
+    const arms = this.joints.has("arm.l") || this.joints.has("arm.r");
+    add("arm.l", -2.5 * casting, 0.35 * casting);
+    add("arm.r", -2.5 * casting - 1.35 * reaching, -0.35 * casting);
+    add("head", -0.28 * casting + 0.18 * reaching);
+    add("torso", (arms ? -0.1 : -0.3) * casting + 0.1 * reaching);
   }
 }
 

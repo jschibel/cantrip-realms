@@ -31,10 +31,11 @@
     ]
   },
   "model": {
-    "mesh": "beast",
+    "mesh": "yeti",
     "palette": [
-      "#c8432c",
-      "#6b963e"
+      "#e8ecf4",
+      "#93c8dc",
+      "#5b8fd6"
     ],
     "size": 1.45
   },

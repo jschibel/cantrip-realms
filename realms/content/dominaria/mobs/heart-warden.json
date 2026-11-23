@@ -36,11 +36,11 @@
     ]
   },
   "model": {
-    "mesh": "treefolk",
+    "mesh": "giant",
     "palette": [
+      "#6b963e",
       "#2a4524",
-      "#f1b44c",
-      "#3e9a4a"
+      "#3e2a1a"
     ],
     "size": 1.45
   },

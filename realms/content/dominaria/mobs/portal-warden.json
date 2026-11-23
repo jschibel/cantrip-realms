@@ -36,11 +36,11 @@
     ]
   },
   "model": {
-    "mesh": "phyrexian",
+    "mesh": "demon",
     "palette": [
-      "#b3b5bc",
-      "#c8432c",
-      "#0d0f14"
+      "#3a3442",
+      "#7a1f24",
+      "#e8e4d8"
     ],
     "size": 1.5
   },

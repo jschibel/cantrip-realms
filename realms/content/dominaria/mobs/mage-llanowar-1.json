@@ -32,11 +32,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "druid",
     "palette": [
       "#6b963e",
       "#8f6340",
-      "#f1b44c"
+      "#2a4524"
     ],
     "size": 1.05
   },

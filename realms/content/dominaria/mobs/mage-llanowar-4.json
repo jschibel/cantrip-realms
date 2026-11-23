@@ -32,11 +32,11 @@
     ]
   },
   "model": {
-    "mesh": "beast",
+    "mesh": "ape",
     "palette": [
-      "#3e9a4a",
-      "#8f6340",
-      "#f1b44c"
+      "#2a2b36",
+      "#8c909c",
+      "#3e9a4a"
     ],
     "size": 1.3
   },

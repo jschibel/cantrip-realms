@@ -36,9 +36,9 @@
   "model": {
     "mesh": "giant",
     "palette": [
-      "#e0703a",
-      "#2e1f17",
-      "#f4ecc2"
+      "#a8c8e0",
+      "#e8ecf4",
+      "#f2efe6"
     ],
     "size": 1.5
   },

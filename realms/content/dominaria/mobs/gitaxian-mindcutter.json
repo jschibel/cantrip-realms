@@ -36,8 +36,8 @@
   "model": {
     "mesh": "phyrexian",
     "palette": [
+      "#e8e4d8",
       "#5b8fd6",
-      "#b3b5bc",
       "#0d0f14"
     ],
     "size": 1.3

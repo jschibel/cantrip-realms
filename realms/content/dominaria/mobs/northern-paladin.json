@@ -35,9 +35,9 @@
   "model": {
     "mesh": "knight",
     "palette": [
-      "#e8e4d8",
-      "#b3b5bc",
-      "#c08a62"
+      "#f2efe6",
+      "#f1b44c",
+      "#f2efe6"
     ],
     "size": 1.3
   },

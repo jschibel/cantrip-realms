@@ -33,8 +33,9 @@
   "model": {
     "mesh": "spirit",
     "palette": [
-      "#2f5fa8",
-      "#a97fd0"
+      "#5b8fd6",
+      "#a8f4ff",
+      "#2f5fa8"
     ],
     "size": 1.55
   },

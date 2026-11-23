@@ -26,11 +26,11 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "barbarian",
     "palette": [
+      "#8f6340",
       "#c8432c",
-      "#f1b44c",
-      "#2e1f17"
+      "#9aa0aa"
     ],
     "size": 1.1
   },

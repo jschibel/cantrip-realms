@@ -36,9 +36,9 @@
   "model": {
     "mesh": "wizard",
     "palette": [
-      "#5b8fd6",
+      "#2a2b5e",
       "#f4ecc2",
-      "#2f5fa8"
+      "#5b8fd6"
     ],
     "size": 1.15
   },

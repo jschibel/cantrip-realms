@@ -33,11 +33,11 @@
     ]
   },
   "model": {
-    "mesh": "wizard",
+    "mesh": "djinn",
     "palette": [
       "#62a4c2",
-      "#f1b44c",
-      "#2a2b36"
+      "#2f5fa8",
+      "#f1b44c"
     ],
     "size": 1.2
   },

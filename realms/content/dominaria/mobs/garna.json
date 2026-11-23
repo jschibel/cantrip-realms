@@ -30,7 +30,7 @@
     ]
   },
   "model": {
-    "mesh": "humanoid",
+    "mesh": "garna",
     "palette": [
       "#8f2f2f",
       "#2e1f17",
