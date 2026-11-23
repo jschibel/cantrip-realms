@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect } from "@playwright/test";
-import { type Hex, distance, hex, spiral } from "../src/hex";
+import { type Hex, distance, findPath, hex, spiral } from "../src/hex";
 import type { MapData } from "../src/maps/schema";
 
 // The realm's page as the tests drive it: everything is read from globalThis.realmTest (src/testHooks.ts) and every
@@ -108,3 +108,22 @@ export function openNear(map: MapData, target: Hex, steps: number): Hex {
 
 /** The `at` of a hex of a map, for openRealm. */
 export const at = (map: MapData, h: Hex): string => `${map.id}:${h.q},${h.r}`;
+
+/**
+ * Walks across a map toward a hex too far off to be on screen, by clicks on the way: a hex a few steps along the
+ * path at a time, until the goal is near enough to click itself.
+ */
+export async function walkNear(page: Page, map: MapData, goal: Hex, near = 5): Promise<void> {
+  const open = new Set(map.tiles.filter((t) => t[4] === 0).map((t) => `${t[0]},${t[1]}`));
+  for (let tries = 0; tries < 12; tries++) {
+    await expect.poll(async () => (await player(page)).moving).toBe(false);
+    const [q, r] = (await player(page)).hex.split(",").map(Number);
+    const from = hex(q!, r!);
+    if (distance(from, goal) <= near) return;
+    const path = findPath(from, goal, (h) => open.has(`${h.q},${h.r}`) || (h.q === goal.q && h.r === goal.r), undefined, 20000);
+    expect(path, `a way to ${goal.q},${goal.r}`).not.toBeNull();
+    const step = path![Math.min(near, path!.length - 1)]!;
+    await clickHex(page, step.q, step.r);
+    await expect.poll(async () => (await player(page)).hex).toBe(`${step.q},${step.r}`);
+  }
+}

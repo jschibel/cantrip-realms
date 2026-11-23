@@ -288,8 +288,13 @@ export class World {
     for (const resident of this.residents) resident.character.animate(seconds, false);
   }
 
+  /** Frees the map's own meshes. Characters' meshes are shared between characters (character.ts), so they are taken
+   * out of the scene first, not freed. */
   dispose(): void {
-    for (const r of this.residents) r.character.dispose();
+    for (const r of this.residents) {
+      this.scene.remove(r.character.root);
+      r.character.dispose();
+    }
     this.scene.traverse((o) => {
       if (o instanceof THREE.Mesh || o instanceof THREE.InstancedMesh) {
         o.geometry.dispose();

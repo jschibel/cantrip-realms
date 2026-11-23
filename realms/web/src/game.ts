@@ -133,7 +133,9 @@ export class Overworld {
     this.paused = true;
     const map = await loadMap(id);
     if (this.world) {
-      this.world.scene.remove(this.character.root);
+      for (const root of [this.character.root, ...this.mobs.map((m) => m.walker.character.root), ...[...this.visitors.values()].map((v) => v.walker.character.root)]) {
+        this.world.scene.remove(root);
+      }
       this.world.dispose();
     }
     for (const mob of this.mobs) mob.walker.character.dispose();
