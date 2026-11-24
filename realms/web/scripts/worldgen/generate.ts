@@ -113,7 +113,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   dress(land, layout);
   const step = Math.max(1, Math.round(12 * Math.min(1, layout.relief)));
   const shaped = terraces(land, step, seed);
-  log(`terraces: ${shaped.ramps} ramp tiles, ${shaped.rims} rims`);
+  log(`terraces: ${shaped.ramps} ramp tiles, ${shaped.ledges} tiles at the brink of a ledge`);
   const capital = towns.find((t) => t.data.kind === "capital") ?? towns[0]!;
   const joined = connect(land, land.idx(capital.inn.x, capital.inn.z), step);
   log(`connect: ${joined.filled} pockets filled, ${joined.joined} stretches joined`);

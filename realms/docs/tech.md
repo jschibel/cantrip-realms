@@ -842,10 +842,13 @@ is gone.
   Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
   are a ramp (flag `RAMP`, 4: the lower at a quarter of the way up, the upper at three quarters, so the pair is one even
   slope); across the open country a straight two-tile ramp is cut where a bank runs straight, about one every 16 tiles of
-  bank. Every other tile at the top of a bank (its rim) is blocked, so a level is left only by a ramp; `connect` grades
-  any way it cuts, with ramps. A bridge's deck and a ford's stones are at their banks' level. Water tiles (sea,
-  shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles side by side
-  are level (a bridge's 4 texels at most) unless one is a ramp, and every ramp climbs. `RAMP` is the renderer's format
+  bank. Every other bank is a ledge (`LEDGE`): the tiles both sides stay open, walked up to the brink and along it, but
+  never stepped over, so a level is left only by a ramp (`Land.levelled` from here on: the generator's steps are the
+  grid's); `connect` grades any way it cuts, with ramps. A bridge's deck and a ford's stones are at their banks' level.
+  Water tiles (sea, shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles
+  side by side are level (a bridge's 4 texels at most), a ramp's, or a whole level apart across a ledge, and every ramp
+  climbs. Scenery a town or a field puts down blocks its tile as the art catalogue says the prop does (a flower bed is
+  walked over). `RAMP` is the renderer's format
   addition, mirrored here (format.ts and the lint accept flags 0-7).
 - **Towns** are laid out by their `form` (layout.json; towns.ts), their streets planned whole before anything is built
   (plan.ts) and kept in world.json (`towns[].plan`, interfaces.md "Town plans") for the maps and the lint:

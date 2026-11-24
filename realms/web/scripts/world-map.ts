@@ -96,8 +96,8 @@ function draw(x0: number, z0: number, x1: number, z1: number, scale: number, zon
 
 /**
  * The terraces from above: each level a band of color (the higher the lighter), the bank's foot shaded where a level
- * stands above it to the north or west (as the sun falls), rims darker, ramps orange, water blue, everything else
- * blocked grey.
+ * stands above it to the north or west (as the sun falls), ramps orange, water blue, blocked tiles darker (brown where
+ * nothing stands on them, grey on the peaks).
  */
 function relief(x0: number, z0: number, x1: number, z1: number, scale: number): Picture {
   const p = new Picture((x1 - x0) * scale, (z1 - z0) * scale);

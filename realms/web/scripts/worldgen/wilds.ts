@@ -318,13 +318,14 @@ export function connect(land: Land, from: number, step = 12): { filled: number; 
     for (let k2 = 1; k2 < cut.length; k2++) {
       const a = cut[k2 - 1]!;
       const b = cut[k2]!;
-      const ha = land.height[a]!;
-      const hb = land.height[b]!;
-      if (Math.abs(ha - hb) <= step / 4 || land.flags[a]! & RAMP || land.flags[b]! & RAMP) continue;
-      const [low, high] = ha < hb ? [a, b] : [b, a];
-      land.height[low] = land.height[low]! + Math.round(step / 4);
-      land.height[high] = land.height[high]! - Math.round(step / 4);
-      for (const t of [low, high]) land.flags[t] = (land.flags[t]! & ~BLOCKED) | RAMP;
+      if (land.passes(a, b)) continue;
+      // Over a ledge: both a ramp, a quarter of the way up and down from their levels (one a ramp already keeps its own).
+      const [low, high] = land.height[a]! < land.height[b]! ? [a, b] : [b, a];
+      for (const t of [low, high]) {
+        if (land.flags[t]! & RAMP) continue;
+        land.height[t] = land.height[t]! + (t === low ? 1 : -1) * Math.round(step / 4);
+        land.flags[t] = (land.flags[t]! & ~BLOCKED) | RAMP;
+      }
     }
     for (const i of part) label[i] = 0;
     joined++;

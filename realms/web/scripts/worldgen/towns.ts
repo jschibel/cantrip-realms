@@ -1541,23 +1541,27 @@ function frontOf(f: Footprint, k: number): [number, number] {
 
 /**
  * Whether blocking an open tile leaves every way past it open: its open neighbours, walked round it as the overworld
- * walks (eight ways, no corner cut past a blocked tile), are still one run - whoever walked through it can walk round.
+ * walks (eight ways, no corner cut past a blocked tile, nothing stepped over a ledge), are still one run - whoever walked
+ * through it can walk round.
  */
 export function safeToBlock(land: Land, i: number): boolean {
   const x = land.xOf(i);
   const z = land.zOf(i);
   const ring: [number, number][] = [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]];
   const open = ring.map(([dx, dz]) => land.inside(x + dx, z + dz) && land.open(land.idx(x + dx, z + dz)));
+  // Each ring tile and the next are side by side: walked from one to the other where both are open and no ledge parts them.
+  const at = (k: number) => land.idx(x + ring[k]![0], z + ring[k]![1]);
+  const link = open.map((o, k) => o && open[(k + 1) % 8]! && land.passes(at(k), at((k + 1) % 8)));
   let runs = 0;
   let any = false;
   for (let k = 0; k < 8; k++) {
     if (!open[k]) continue;
     any = true;
-    if (!open[(k + 7) % 8]) runs++;
+    if (!link[(k + 7) % 8]) runs++;
   }
   if (!any) return false;
   if (runs === 0) return true;
-  for (let k = 0; k < 8; k += 2) if (open[k] && !open[(k + 7) % 8] && !open[(k + 1) % 8]) return false;
+  for (let k = 0; k < 8; k += 2) if (open[k] && !link[(k + 7) % 8] && !link[k]) return false;
   return runs <= 1;
 }
 

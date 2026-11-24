@@ -2,8 +2,9 @@
 // strokes the generator draws with. A tile is an index, `z * width + x` (row by row, as a chunk's tiles are); nothing
 // here allocates per tile, so the whole world is a few megabytes and every pass over it is quick.
 
+import { PROP_CATALOGUE } from "../../src/art/props";
 import type { PropData } from "../../src/world/format";
-import { BARE, BLOCKED, RAMP } from "../../src/world/format";
+import { BARE, BLOCKED, LEDGE, RAMP } from "../../src/world/format";
 import { fnv1a32, mulberry32 } from "../../src/random";
 import { S, WATER } from "./ids";
 
@@ -46,6 +47,11 @@ export class Land {
   readonly fixtures: PropData[] = [];
   /** Tiles within a town's square (its `radius` along x and z) or just round it: no spawn, chest or waymarker there. */
   readonly townArea: Uint8Array;
+  /**
+   * Whether the land is in terraces (`terraces`): from then on a step is also never taken over a ledge, a bank higher
+   * than LEDGE between tiles not both ramps (world/grid.ts `canStep`).
+   */
+  levelled = false;
 
   constructor(
     readonly width: number,
@@ -91,7 +97,10 @@ export class Land {
     return out;
   }
 
-  /** The walkable steps out of a tile as the overworld walks (world/grid.ts): eight ways, never cutting a blocked corner. */
+  /**
+   * The walkable steps out of a tile as the overworld walks (world/grid.ts `canStep`): eight ways, never cutting a
+   * blocked corner, and once the land is levelled never over a ledge.
+   */
   steps(i: number, out: number[] = []): number[] {
     out.length = 0;
     const x = i % this.width;
@@ -101,11 +110,21 @@ export class Land {
         if (!(dx || dz) || !this.inside(x + dx, z + dz)) continue;
         const j = i + dz * this.width + dx;
         if (!this.open(j)) continue;
-        if (dx && dz && !(this.open(i + dx) && this.open(i + dz * this.width))) continue;
-        out.push(j);
+        if (!dx || !dz) {
+          if (this.passes(i, j)) out.push(j);
+          continue;
+        }
+        const a = i + dx;
+        const b = i + dz * this.width;
+        if (this.open(a) && this.open(b) && this.passes(i, a) && this.passes(a, j) && this.passes(i, b) && this.passes(b, j)) out.push(j);
       }
     }
     return out;
+  }
+
+  /** Whether the edge between two side-by-side tiles is no ledge (always, before the land is levelled). */
+  passes(i: number, j: number): boolean {
+    return !this.levelled || (this.flags[i]! & this.flags[j]! & RAMP) !== 0 || Math.abs(this.height[i]! - this.height[j]!) <= LEDGE;
   }
 
   open(i: number): boolean {
@@ -129,8 +148,11 @@ export class Land {
     this.flags[i] = 0;
   }
 
-  /** Stands one-tile scenery on a tile, blocking it (and nothing grows up under it). */
-  put(i: number, prop: PropData, blocks = true): void {
+  /**
+   * Stands one-tile scenery on a tile, nothing growing up under it: blocking it as the art catalogue says the prop does
+   * (art/props, its footprint's `blocks`; what is drawn is what blocks), unless told otherwise.
+   */
+  put(i: number, prop: PropData, blocks = PROP_CATALOGUE.get(prop.id)?.footprint.blocks ?? true): void {
     this.decor.set(i, prop);
     if (blocks) this.block(i);
     else this.flags[i] = this.flags[i]! | BARE;
@@ -356,14 +378,15 @@ export class Heap {
  * height a whole number of `step`s (12 texels, three quarters of a tile), each level flat, one level at most above an
  * open neighbour, no terrace a single tile wide (banks at least a tile apart). Where a way - a road, a street, a gate's
  * way out - climbs a level, its two tiles across the bank become a ramp (flag RAMP, a quarter and three quarters of the
- * way up); across the open country a straight ramp is cut where a bank runs straight, one every so often; every other
- * tile at the top of a bank (its rim) is blocked, so a level is left only by a ramp. `connect` joins what this leaves
+ * way up); across the open country a straight ramp is cut where a bank runs straight, one every so often. Every other
+ * bank is a ledge: the tiles either side stay open, walked up to its brink and along it, but no step is taken over it
+ * (`Land.levelled`, world/grid.ts `canStep`), so a level is left only by a ramp. `connect` joins what this leaves
  * apart, with ramps where it climbs. Blocked tiles (peaks, buildings, trees) and water are levelled too but never
- * opened.
+ * opened - save a peak levelled down to the open ground beside it, which is ground: nothing drawn there would close it.
  */
 const PAVED: ReadonlySet<number> = new Set([S.road, S.dirt, S.cobbles, S.flagstones, S.planks, S.scree]);
 
-export function terraces(land: Land, step: number, seed: number): { ramps: number; rims: number } {
+export function terraces(land: Land, step: number, seed: number): { ramps: number; ledges: number } {
   const W = land.width;
   const h = land.height;
   const water = (i: number) => land.isWater(i);
@@ -482,16 +505,24 @@ export function terraces(land: Land, step: number, seed: number): { ramps: numbe
     h[i] = low ? h[i]! + quarter : h[i]! - quarter;
     land.flags[i] = (land.flags[i]! & ~BLOCKED) | RAMP;
   }
-  // Every other tile at the top of a bank is its rim: blocked, so the levels are left only by the ramps.
-  let rims = 0;
-  const rim: number[] = [];
+  // Every other bank is a ledge, left open: from now on no step is taken over it, so the levels are left only by the
+  // ramps.
+  land.levelled = true;
+  // A peak (a mountain's tile, blocked with nothing on it) levelled down to the ground beside it is ground: nothing drawn
+  // would close it. Opened, and so on along any it leaves level with ground.
+  const peak = (i: number) => land.flags[i] === BLOCKED && !water(i) && !land.decor.has(i) && land.use[i] === Use.Wild;
+  for (let found = true; found; ) {
+    found = false;
+    for (let i = 0; i < land.size; i++) {
+      if (!peak(i) || !land.n4(i, near).some((n) => open(n) && !water(n) && land.passes(i, n))) continue;
+      land.flags[i] = 0;
+      found = true;
+    }
+  }
+  let ledges = 0;
   for (let i = 0; i < land.size; i++) {
-    if (!open(i) || ramp[i] || water(i)) continue;
-    if (land.n4(i, near).some((n) => open(n) && !ramp[n] && h[n]! < h[i]! - quarter)) rim.push(i);
+    if (!open(i) || water(i)) continue;
+    if (land.n4(i, near).some((n) => open(n) && h[n]! < h[i]! && !land.passes(i, n))) ledges++;
   }
-  for (const i of rim) {
-    land.flags[i] = land.flags[i]! | BLOCKED;
-    rims++;
-  }
-  return { ramps, rims };
+  return { ramps, ledges };
 }
