@@ -6,8 +6,9 @@ import type { Tile } from "../world/grid";
 // walk told as its speed has taken them), and no more than ten a second. So the relay keeps the walk it last told,
 // works out where the server has the player now the way the server does (`where`), and notes every tile the player
 // comes onto since (`on`). Each new walk is told from the tile the server has the player on: through the tiles of the
-// old walk still ahead of the server, to the last tile the player passed that is on them, along the tiles passed since
-// to where the player stands, then on ahead. However far the server runs behind, no walk starts anywhere but where it
+// old walk still ahead of the server - or back along it, when the player is behind the server (slow frames run the game
+// slower than the clock) - to the last tile the player passed that is on it, along the tiles passed since to where the
+// player stands, then on ahead. However far the server runs behind, no walk starts anywhere but where it
 // has the player. Walks are told at most one each MOVE_GAP; one wanted in between waits for the next.
 
 /** The fastest walk the server takes, tiles a second (REALMS_WALKING_SPEED). */
@@ -115,12 +116,22 @@ export class WalkRelay {
     let walk = mine.slice(-1 - ahead.length);
     // What the server has the player still to walk, from where it has them now; the latest tile passed that is on it is
     // where the walk turns off it.
-    const rest = this.told.tiles.slice(this.reached(this.now() - LATENCY));
+    const told = this.told.tiles;
+    const i = this.reached(this.now() - LATENCY);
+    const rest = told.slice(i);
     let joined = false;
     for (let p = mine.length - ahead.length - 1; p >= 0 && !joined; p--) {
       const on = rest.findIndex((t) => same(t, mine[p]));
       if (on >= 0) {
         walk = [...rest.slice(0, on), ...mine.slice(p)];
+        joined = true;
+        continue;
+      }
+      // Behind where the server has them (frames slower than the clock, the walk late): back along the old walk to it.
+      let back = -1;
+      for (let j = i - 1; j >= 0 && back < 0; j--) if (same(told[j], mine[p])) back = j;
+      if (back >= 0) {
+        walk = [...told.slice(back + 1, i + 1).reverse(), ...mine.slice(p)];
         joined = true;
       }
     }

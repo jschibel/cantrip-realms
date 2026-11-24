@@ -98,6 +98,27 @@ describe("the walks told to the relay", () => {
     expect(server.where(1e12)).toEqual({ x: 40, z: 0 });
   });
 
+  it("join back along the old walk when the player is behind where the server has them", () => {
+    const { relay, server, tick } = rig(40);
+    relay.stand({ x: 0, z: 0 }, 4.2);
+    tick(200);
+    // A click's walk ten tiles east, told; the frames then run at half the clock, so the player falls behind the server.
+    relay.on({ x: 0, z: 0 });
+    expect(relay.walk(Array.from({ length: 10 }, (_, x) => ({ x: x + 1, z: 0 })), 4.2, open, 10)).toBe(true);
+    let x = 0;
+    for (let f = 0; f < 120; f++) {
+      tick(1000 / 60);
+      if (f % 40 === 39) x++;
+      relay.on({ x, z: 0 });
+    }
+    // The server has them eight tiles on; they are on the third.
+    expect(relay.where!.x - x).toBeGreaterThan(1);
+    // Turned back west by a click: told from where the server has them, back to the player, then on.
+    expect(relay.walk([{ x: x - 1, z: 0 }, { x: x - 2, z: 0 }], 4.2, open, 2)).toBe(true);
+    tick(100);
+    expect(server.refused).toEqual([]);
+  });
+
   it("tell a click's walk from where the server has the player, as fast as keeps time with the walk", () => {
     const sent: Move[] = [];
     let now = 0;
