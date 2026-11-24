@@ -126,8 +126,10 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   (`duel-loop.spec.ts`: the encounter's splash, the game, its end, the server's verdict, then the loot picked within the
   cap and the world resumed, or a card of the ante gone and the character awake at the inn), each a position forced
   through `POST /dev/duel` (a seat beginning at 0 life), never a seed; and an offline duel and its loot in the real card
-  layer (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`). A test starts its character where it needs to be and has the server
-  count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`, `/dev/duel`,
+  layer (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`); and builds a deck and an ante at a spell table in the
+  real card layer (the server's refusals shown, the saved deck the one the next duel deals) and buys and sells at a card
+  vendor there (`spell-table.spec.ts`). A test starts its character where it needs to be and has the server
+  count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`, `/dev/duel`, `/dev/cards`,
   interfaces.md); everything else is walked and clicked. `npm run bench` times the renderer on walks through the
   Domains and the large world (`e2e/bench`). The dev galleries are `gallery.html` (the art library), `rooms.html`
   (rooms and dungeon floors) and `cast.html` (figures).

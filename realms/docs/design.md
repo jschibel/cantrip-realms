@@ -56,7 +56,7 @@ The owner's decisions:
   - At least 40 cards, no maximum.
   - At most 4 copies of any non-basic card; cards restricted in Vintage are limited to 1.
   - The card pool is implemented cards that are legal or restricted in Vintage, minus Universes Beyond printings. That rule also removes the ante cards, conspiracies and Un-cards.
-- **The spell table** is where you edit your deck and your ante. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the ante.
+- **The spell table** is where you edit your deck and your ante. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the ante. Each card shows its list price, a card outside your identity is marked for the ante only, the free basic lands of your colors are added and taken out with a button each, and the deck's mana curve and colors are drawn beside it. The server judges the deck and the ante as they change, and Save keeps them only when it would deal them.
 - **The ante slot** holds 0–10 cards from the collection, outside the deck, like a sideboard. A copy can't be in both the deck and the ante.
   - Ante value is the sum of the cards' list prices.
   - It is shown on the HUD, and the duel splash shows it beside the prize cap.
