@@ -318,7 +318,8 @@ export const open = (cells: (x: number, z: number) => Cell, x: number, z: number
  * How a wall tile is drawn: `none` (no open ground round it: not drawn), `near` (open ground north of it - it stands
  * between the camera and the floor, so it is drawn low), `east` (open ground only to its west: the east side of a
  * space, cut down while the camera is swung east), `west` (likewise), `back` (open ground only south of it: a wall
- * seen face on, full height). A wall with open ground both east and west is drawn low.
+ * seen face on, full height: open ground straight south of it, none beside it, the floor running on diagonally south
+ * of it as along any back wall). A wall with open ground both east and west is drawn low.
  */
 export type WallKind = "none" | "near" | "east" | "west" | "back";
 
@@ -326,11 +327,15 @@ export function wallKind(cells: (x: number, z: number) => Cell, x: number, z: nu
   if (cells(x, z) !== WALL) return "none";
   const o = (dx: number, dz: number) => open(cells, x + dx, z + dz);
   if (o(-1, -1) || o(0, -1) || o(1, -1)) return "near";
-  const west = o(-1, 0) || o(-1, 1);
-  const east = o(1, 0) || o(1, 1);
+  // Open ground straight south makes a wall of a space's back, whatever lies diagonally south of it (the same space's
+  // floor running on along the wall): only open ground beside it makes it a side. A wall with open ground only
+  // diagonally south of it is a corner, the side of the space beside it.
+  const south = o(0, 1);
+  const west = o(-1, 0) || (!south && o(-1, 1));
+  const east = o(1, 0) || (!south && o(1, 1));
   if (west && east) return "near";
   if (west) return "east";
   if (east) return "west";
-  if (o(0, 1)) return "back";
+  if (south) return "back";
   return "none";
 }

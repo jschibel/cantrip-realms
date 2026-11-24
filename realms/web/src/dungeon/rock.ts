@@ -122,18 +122,81 @@ export class Rock {
     for (let z = -REACH; z < d + REACH; z++) {
       for (let x = -REACH; x < w + REACH; x++) {
         const depth = this.depth(x, z);
-        if (depth < 1 || depth > REACH) continue;
+        // A pillar's rock - a mass the floor goes all round - is solid to its heart, however wide: its top runs from the
+        // walls that face the camera back to the low ones beyond, the walls' own rock, never falling away into a pit.
+        const pillar = depth !== 0 && this.enclosed(x, z);
+        if (!pillar && (depth < 1 || depth > REACH)) continue;
         const pts: V3[] = OUTLINE.map(([a, c]) => {
           const i = 2 * x + a;
           const j = 2 * z + c;
           const [sx, sz] = this.shift(i, j);
-          return [i / 2 + sx, this.met(i, j) ?? this.fall(i, j), j / 2 + sz];
+          return [i / 2 + sx, this.met(i, j) ?? (pillar ? this.across(i, j) : this.fall(i, j)), j / 2 + sz];
         });
-        const mid: V3 = [x + 0.5, pts.reduce((s, p) => s + p[1], 0) / 8 - 0.08, z + 0.5];
-        const face = depth < REACH ? this.crag.shoulder : this.crag.deep;
+        const mid: V3 = [x + 0.5, pts.reduce((s, p) => s + p[1], 0) / 8 - (pillar ? 0 : 0.08), z + 0.5];
+        const face = pillar ? this.ctx.look.top : depth < REACH ? this.crag.shoulder : this.crag.deep;
         for (let k = 0; k < 8; k++) this.flatPolygon(b, face, [mid, pts[(k + 1) % 8]!, pts[k]!]);
       }
     }
+  }
+
+  private pillars: Uint8Array | null = null;
+
+  /**
+   * Whether a wall tile is of a pillar: rock the floor goes all round, joined to the rock past the floor's edges by no
+   * run of wall (four ways).
+   */
+  private enclosed(x: number, z: number): boolean {
+    const { w, d, at } = this.ctx;
+    if (x < 0 || z < 0 || x >= w || z >= d) return false;
+    if (!this.pillars) {
+      // Every wall tile reached from the edges through wall is not a pillar's; what is left of the wall is.
+      const outer = new Uint8Array(w * d);
+      const queue: number[] = [];
+      for (let tz = 0; tz < d; tz++) {
+        for (let tx = 0; tx < w; tx++) {
+          if ((tx === 0 || tz === 0 || tx === w - 1 || tz === d - 1) && at(tx, tz) === WALL) {
+            outer[tz * w + tx] = 1;
+            queue.push(tz * w + tx);
+          }
+        }
+      }
+      for (let n = 0; n < queue.length; n++) {
+        const g = queue[n]!;
+        const gx = g % w;
+        const gz = (g - gx) / w;
+        for (const [dx, dz] of ACROSS) {
+          const [nx, nz] = [gx + dx, gz + dz];
+          if (nx < 0 || nz < 0 || nx >= w || nz >= d || outer[nz * w + nx] || at(nx, nz) !== WALL) continue;
+          outer[nz * w + nx] = 1;
+          queue.push(nz * w + nx);
+        }
+      }
+      this.pillars = new Uint8Array(w * d);
+      for (let g = 0; g < w * d; g++) if (!outer[g] && at(g % w, Math.floor(g / w)) === WALL) this.pillars[g] = 1;
+    }
+    return this.pillars[z * w + x] === 1;
+  }
+
+  /**
+   * A pillar's top at a point no drawn wall touches: between the drawn walls' tops north and south of it along its line,
+   * in proportion to how far each is - so it slopes from the tall walls facing the camera down to the low ones beyond.
+   */
+  private across(i: number, j: number): number {
+    const reach = 2 * (this.ctx.w + this.ctx.d);
+    let north: [number, number] | null = null;
+    let south: [number, number] | null = null;
+    for (let k = 1; k <= reach && (!north || !south); k++) {
+      if (!north) {
+        const y = this.met(i, j - k);
+        if (y !== null) north = [k, y];
+      }
+      if (!south) {
+        const y = this.met(i, j + k);
+        if (y !== null) south = [k, y];
+      }
+    }
+    if (north && south) return (north[1] * south[0] + south[1] * north[0]) / (north[0] + south[0]);
+    return (north ?? south)?.[1] ?? this.ctx.look.height;
   }
 
   /** The beyond's rock at a point no drawn wall touches: lower the further it is from the walls. */
