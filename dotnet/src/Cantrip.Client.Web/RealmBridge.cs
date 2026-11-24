@@ -4,8 +4,11 @@ using System.Text.Json;
 
 namespace Cantrip.Client.Web;
 
-/// <summary>A request from Cantrip Realms' overworld: <c>open</c> a card screen, or <c>close</c> the one open.</summary>
-/// <param name="Op">What is asked: <c>open</c> or <c>close</c>.</param>
+/// <summary>
+/// A request from Cantrip Realms' overworld: <c>open</c> a card screen, or <c>close</c> the one open; or its answer to this
+/// page's own question, a <c>portrait</c> (<see cref="RealmBridge.AskPortrait"/>).
+/// </summary>
+/// <param name="Op">What is asked: <c>open</c> or <c>close</c>; or <c>portrait</c>, answered.</param>
 /// <param name="Id">The overworld's number for the request, echoed in the answer when the screen closes.</param>
 /// <param name="Screen">The screen to open: <c>duel</c>, <c>spell-table</c>, <c>vendor</c>, <c>loot</c>, <c>gear</c>.</param>
 /// <param name="Args">What the screen is opened on, as the overworld sent it.</param>
@@ -80,6 +83,32 @@ public static partial class RealmBridge
             result(writer);
             writer.WriteEndObject();
         }
+    });
+
+    /// <summary>
+    /// Asks the overworld for a picture of the character wearing <paramref name="slots"/> (each worn slot's look): it answers
+    /// <c>{op: "portrait", id, args: {image}}</c>, a PNG data URL, which <see cref="Take"/> hands on like any request.
+    /// </summary>
+    public static void AskPortrait(int id, IEnumerable<(string Slot, RealmLook Look)> slots) => Post(writer =>
+    {
+        writer.WriteString("op", "portrait");
+        writer.WriteNumber("id", id);
+        writer.WriteStartObject("slots");
+        foreach ((string slot, RealmLook look) in slots)
+        {
+            writer.WriteStartObject(slot);
+            writer.WriteString("mesh", look.Mesh);
+            writer.WriteStartArray("palette");
+            foreach (string color in look.Palette)
+            {
+                writer.WriteStringValue(color);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndObject();
     });
 
     private static void Post(Action<Utf8JsonWriter> write)

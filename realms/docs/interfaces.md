@@ -570,10 +570,11 @@ The overworld asks the card layer (`?realm` in `Cantrip.Client.Web`, framed over
 | `screen` | `args` | `outcome` and `result` |
 | --- | --- | --- |
 | `duel` | `{token, seed, duel: Duel, mob: {id, name, tier, map, spawn}}` (the encounter's start) | `won` or `lost`; `result.log`: the `Log` for `/api/encounter/finish` |
-| `loot` | `{token, offer: [{Name, Gold}], cap, mob}` | `closed`; `result.picks`: the names taken, for `/api/encounter/loot` |
+| `loot` | `{token, offer: [{Name, Gold}], cap, mob, gear}`; from a chest `{offer: [], cap: 0, mob, source: "chest", gear}` | `closed`; `result.picks`: the names taken, for `/api/encounter/loot` |
 | `spell-table` | `{map, name}` | `closed` |
 | `vendor` | `{id, name}`: the vendor's id | `closed` |
 | `gear` | `{name}`, or `{armorer: <town id>, name}` at an armorer | `closed` |
+| `inventory` | `{name}` | `closed` |
 
 The overworld calls the API around the screens (start before a duel, finish and loot after it); the card layer calls
 the API for what happens inside one (buying, selling, saving the deck and the loadout), on the signed-in cookie. It is
@@ -586,9 +587,18 @@ far (the server takes it as a loss, the game not being over), and a loot pick cu
 - `duel`: the card layer deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
   `?engine=`) through `Cantrip.Realms`' `DuelTable`, the table the server's replay deals on, with no clocks. It closes
   `won` only when seat 1 alone won, after the player has seen the result; a concession closes `lost` at once.
-- `loot` takes any subset of the offer whose prices fit under `cap`; `spell-table` reads the collection, the deck and
+- `loot` takes any subset of the offer whose prices fit under `cap`, and shows `gear` - the `GearInstance` a win dropped
+  or a chest held, already the character's, or null - as its Vanguard-style card, with a button that wears it
+  (`PUT /api/loadout`); the overworld opens it for a win that offers cards or dropped gear, and for a chest that held gear; `spell-table` reads the collection, the deck and
   `/api/catalog`, judges the deck by `/api/deck/check` and saves with `PUT /api/deck`; `vendor` and `gear` trade and
-  wear through their calls, saying a refusal's `Detail` (and `Problems`) in words.
+  wear through their calls, saying a refusal's `Detail` (and `Problems`) in words; `inventory` reads `/api/inventory`,
+  `/api/me` and `/api/catalog` and changes nothing.
+- `gear` asks the overworld for a picture of the character wearing what its paper doll shows worn: the card layer posts
+  `{realm: 1, op: "portrait", id, slots: {slot: {mesh, palette}}}` and the overworld answers `{realm: 1, op: "portrait",
+  id, args: {image}}`, `image` a PNG data URL of the player's figure (`portrait.ts`), or null; the card layer shows the
+  answer to the last it asked.
+- In a `duel`, each seat's worn gear is shown on a strip under the duel's bar: the emblems in its command zone, read
+  from the game, and its setup values; a panel shows each as its card.
 
 ## Presence (`/realm/ws`)
 

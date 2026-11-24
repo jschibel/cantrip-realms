@@ -18,6 +18,8 @@ namespace Cantrip.Realms.Server;
 /// <item><c>POST /dev/drop {Gear}</c> decides the signed-in player's gear rolls - a win's and a chest's (design.md A3, A5):
 /// <c>true</c> every one comes up, <c>false</c> none does, <c>null</c> the dice decide again. Which item drops is still the
 /// dice's.</item>
+/// <item><c>POST /dev/gear {GearId}</c> gives the signed-in character a copy of a gear item, as a drop would: the
+/// <c>GearInstance</c>; 404 <c>NotThere</c> for no such item.</item>
 /// </list>
 /// </summary>
 public static class DevApi
@@ -79,6 +81,21 @@ public static class DevApi
             return Results.Ok(new { });
         });
 
+        dev.MapPost("/gear", async (HttpContext context, Characters characters, RealmContent content, Data.RealmDb db, TimeProvider time, DevGear body) =>
+        {
+            string player = RealmSignIn.PlayerId(context)!;
+            await characters.Require(player).ConfigureAwait(false);
+            if (body.GearId is null || !content.Gear.TryGetValue(body.GearId, out GearItem? item))
+            {
+                throw Refusal.NotFound(Codes.NotThere, "There is no such gear item.");
+            }
+
+            var owned = new Data.GearOwnedRow { PlayerId = player, GearId = item.Id, AcquiredAt = time.GetUtcNow().ToUnixTimeMilliseconds() };
+            db.GearOwned.Add(owned);
+            await db.SaveChangesAsync().ConfigureAwait(false);
+            return Results.Ok(new GearInstance(owned.Id, item));
+        });
+
         dev.MapPost("/drop", (HttpContext context, DevVerdicts verdicts, DevDrop body) =>
         {
             verdicts.SetGearRoll(RealmSignIn.PlayerId(context)!, body.Gear);
@@ -88,6 +105,9 @@ public static class DevApi
 
     /// <summary><c>POST /dev/verdict</c>'s body.</summary>
     public sealed record DevVerdict(string? Outcome);
+
+    /// <summary><c>POST /dev/gear</c>'s body.</summary>
+    public sealed record DevGear(string? GearId);
 
     /// <summary><c>POST /dev/drop</c>'s body.</summary>
     public sealed record DevDrop(bool? Gear);

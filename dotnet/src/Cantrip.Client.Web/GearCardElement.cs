@@ -73,7 +73,7 @@ public sealed class GearCardElement : SKCanvasElement
 
     protected override void RenderOverride(SKCanvas canvas, Size area)
     {
-        canvas.Clear(SKColors.Transparent);
+        // Never cleared: a clear would punch through to whatever is under the page (the world, under the card layer).
         float width = (float)area.Width;
         float height = (float)area.Height;
         if (Gear is { } gear)

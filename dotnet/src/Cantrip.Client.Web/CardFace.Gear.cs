@@ -17,7 +17,9 @@ namespace Cantrip.Client.Web;
 /// <param name="Hand">What it adds to the starting hand size (CR 103.5).</param>
 /// <param name="MaxHand">What it adds to the maximum hand size (CR 402.2).</param>
 /// <param name="Text">Its abilities, one a line, as its content file words them.</param>
-public sealed record GearCardSpec(string Name, string Slot, string Rarity, int Life, int Hand, int MaxHand, string Text)
+/// <param name="Mesh">How it looks on a character (a gear mesh, <see cref="GearIcons"/>): its art box's picture.</param>
+/// <param name="Palette">Its colors, <c>#rrggbb</c>: the stuff, then the trim or the stone.</param>
+public sealed record GearCardSpec(string Name, string Slot, string Rarity, int Life, int Hand, int MaxHand, string Text, string Mesh = "", IReadOnlyList<string>? Palette = null)
 {
     /// <summary>A Vanguard card stands as a card does, a size larger: 3.5 by 5 inches to a card's 2.5 by 3.5.</summary>
     public const float Oversize = 1.4f;
@@ -56,7 +58,9 @@ public static partial class CardFace
         ArgumentNullException.ThrowIfNull(canvas);
         ArgumentNullException.ThrowIfNull(gear);
         var face = SKRect.Create(width, height);
-        string rules = string.Join('\n', gear.StatLines().Concat(gear.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries)));
+        // The item's text says its stat lines in words already (gear-cards.py writes them first); a bare emblem's has none.
+        string[] lines = gear.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        string rules = string.Join('\n', lines.Length > 0 ? lines : gear.StatLines());
         var card = new ObjectView
         {
             Known = true,
@@ -78,14 +82,22 @@ public static partial class CardFace
         SKColor outerText = SKColor.Parse(CardAssets.Template.TextStyle.OuterTextColor);
         SKColor outerShadow = ParseAlpha(CardAssets.Template.TextStyle.OuterTextShadowColor);
 
-        // The art box holds what the item is worn on, in its rarity's colour: gear has no illustration.
+        // The art box holds the item itself, its pixel sprite in its own colors (GearIcons), on a ground lit in its rarity's
+        // colour: gear has no illustration of its own.
         SKRect art = layout.Art;
-        Fill(canvas, SKRect.Inflate(art, 1f, 1f), Lerp(frame, InkColor, 0.35f));
-        int slotSize = Math.Max(8, (int)MathF.Round(art.Height * 0.24f));
-        string slot = gear.SlotName.ToUpperInvariant();
-        int fitted = FittedSize(CardAssets.Title, slot, slotSize, Math.Max(6, slotSize / 2), art.Width * 0.8f);
         SKColor gem = RarityColor(gear.Rarity);
-        DrawString(canvas, CardAssets.Title, slot, Aligned(CardAssets.Title, slot, fitted, art, "center"), CapBaseline(CardAssets.Title, art, fitted), fitted, Lerp(gem, Parchment, gear.Rarity == "common" ? 0.75f : 0.1f));
+        SKColor glow = gear.Rarity == "common" ? new SKColor(0x5a, 0x60, 0x6c) : gem;
+        using (var ground = new SKPaint { IsAntialias = true })
+        {
+            ground.Shader = SKShader.CreateRadialGradient(
+                new SKPoint(art.MidX, art.MidY), MathF.Max(art.Width, art.Height) * 0.62f,
+                [Lerp(new SKColor(0x1b, 0x1e, 0x25), glow, dimmed ? 0.2f : 0.42f), new SKColor(0x12, 0x14, 0x19)],
+                SKShaderTileMode.Clamp);
+            canvas.DrawRect(SKRect.Inflate(art, 1f, 1f), ground);
+        }
+
+        SKRect picture = SKRect.Inflate(art, -art.Width * 0.08f, -art.Height * 0.08f);
+        GearIcons.Draw(canvas, gear.Mesh.Length > 0 ? gear.Mesh : GearIcons.SlotMesh(gear.Slot), gear.Palette, picture, dimmed ? 0.55f : 1f);
         Stroke(canvas, art, Lerp(frame, InkColor, 0.72f), MathF.Max(1f, width / StandardWidth));
 
         using (var framePaint = new SKPaint { IsAntialias = true })
@@ -155,7 +167,7 @@ public static partial class CardFace
         ArgumentNullException.ThrowIfNull(slot);
         var face = SKRect.Create(width, height);
         float radius = width * 0.045f;
-        using (var fill = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 14) })
+        using (var fill = new SKPaint { IsAntialias = true, Color = SKColor.Parse("16191e") })
         {
             canvas.DrawRoundRect(face, radius, radius, fill);
         }

@@ -12,7 +12,8 @@ namespace Cantrip.Client.Web;
 /// <item><c>loot</c>: the cards a win offers, picked within the cap (MainPage.RealmLoot.cs);</item>
 /// <item><c>spell-table</c>: the deck editor on the character's collection, with the ante (MainPage.RealmTable.cs);</item>
 /// <item><c>vendor</c>: a vendor's stock and what of the character's it buys (MainPage.RealmVendor.cs);</item>
-/// <item><c>gear</c>: the loadout on a paper doll and the gear owned, and an armorer's stock (MainPage.RealmGear.cs).</item>
+/// <item><c>gear</c>: the loadout on a paper doll and the gear owned, and an armorer's stock (MainPage.RealmGear.cs);</item>
+/// <item><c>inventory</c>: everything the character owns, cards and gear (MainPage.RealmInventory.cs).</item>
 /// </list>
 /// Every screen but the duel and the spell table is drawn in this one panel: a header saying what it is, the character's
 /// gold and how the last thing asked went, and the screen's own body under it. What the screens call is the realm
@@ -96,8 +97,9 @@ public sealed partial class MainPage
         Root.Children.Add(_deckPanel);
         BuildRealmTable();
 
-        // The duel's own bar over the table, and what it says when the game is over.
+        // The duel's own bar over the table, and what it says when the game is over; and the gear worn in it.
         BuildRealmDuel();
+        BuildDuelGear();
     }
 
     private Task StartRealmAsync()
@@ -125,6 +127,9 @@ public sealed partial class MainPage
                 case "close":
                     CloseRealmScreen("dismissed");
                     break;
+                case "portrait":
+                    TakePortrait(command);
+                    break;
             }
         }
     }
@@ -149,6 +154,9 @@ public sealed partial class MainPage
             case "gear":
                 _ = OpenGearAsync(command);
                 break;
+            case "inventory":
+                _ = OpenInventoryAsync(command);
+                break;
             default:
                 ShowRealmProblem(command.Screen, $"There is no '{command.Screen}' screen.", "closed");
                 break;
@@ -165,6 +173,9 @@ public sealed partial class MainPage
                 break;
             case "vendor":
                 LayOutVendor();
+                break;
+            case "inventory":
+                LayOutInventory();
                 break;
         }
     }
@@ -190,6 +201,7 @@ public sealed partial class MainPage
         _realmContent.Child = null;
         _realmBoards.Clear();
         _realmGearCards.Clear();
+        ClearGearScreen();
         ShowRealmIdle();
         RealmBridge.Closed(open.Id, open.Screen, outcome, result);
     }

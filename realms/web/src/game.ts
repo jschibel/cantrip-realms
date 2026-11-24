@@ -8,6 +8,7 @@ import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
 import { type MinimapDot, Hud, gold } from "./hud";
 import { surfaceColor } from "./surfaceColors";
+import { renderPortrait } from "./portrait";
 import { mobInfo } from "./mobs";
 import { ApiError, type Character as CharacterData, type Place as ApiPlace, type RealmApi, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
@@ -164,6 +165,9 @@ export class Overworld {
     if (presence) presence.onMessage = (m) => this.hear(m);
     window.addEventListener("resize", () => this.stage?.resize());
     document.querySelector<HTMLButtonElement>("[data-test='hud:gear']")?.addEventListener("click", () => void this.openGear());
+    document.querySelector<HTMLButtonElement>("[data-test='hud:inventory']")?.addEventListener("click", () => void this.openInventory());
+    // The gear screen's paper doll shows the character as the world draws them, wearing what it shows worn.
+    layer.portrait = (slots) => (this.data ? renderPortrait(appearanceOf(this.data), slots) : null);
     // The camera's buttons: a heading either way, a zoom step in or out (refused where the place does not allow it).
     const button = (name: string, act: () => void) => document.querySelector<HTMLButtonElement>(`[data-test='hud:${name}']`)?.addEventListener("click", act);
     button("turn-left", () => this.turn(-1));
@@ -749,7 +753,9 @@ export class Overworld {
   }
 
   /** The town of the place the player is in: a room's own, or the town round them in the world. */
-  private townHere(): string {
+  /** The town the player is in: the world's town round their tile, or the town an interior belongs to (its `town`). */
+  private async townHere(): Promise<string> {
+    if (!this.inWorld) return (await this.places.read(this.spaceId).catch(() => null))?.town ?? this.spot.id;
     const p = this.player.tile;
     return townAt(this.worldData.towns, p.x, p.z)?.id ?? this.spot.id;
   }
@@ -773,7 +779,7 @@ export class Overworld {
       case "armorer": {
         this.player.figure.act("interact");
         this.say("The armorer lays out the day's gear.");
-        const town = this.townHere();
+        const town = await this.townHere();
         await this.openCards("gear", { armorer: town, name: `the armorer of ${this.worldData.towns.find((t) => t.id === town)?.name ?? here}` });
         await this.refresh();
         break;
@@ -856,9 +862,11 @@ export class Overworld {
 
   private async openChest(chest: ChestData): Promise<void> {
     try {
-      const { Found } = await this.api.openChest({ Space: this.spaceId, Chest: chest.id });
+      const { Found, Gear } = await this.api.openChest({ Space: this.spaceId, Chest: chest.id });
       this.opened.add(`${chest.id}|${spawnEpoch(chest, this.options.now())}`);
-      this.say(`You open the chest: ${gold(Found)} gold.`);
+      this.say(Gear ? `You open the chest: ${gold(Found)} gold, and ${Gear.Gear.Name}.` : `You open the chest: ${gold(Found)} gold.`);
+      // Gear found is shown as the card it is, on the loot screen with nothing else to take.
+      if (Gear) await this.openCards("loot", { offer: [], cap: 0, mob: "The chest", source: "chest", gear: Gear }, false);
       await this.refresh();
     } catch (e) {
       if (e instanceof ApiError && e.code === "Empty") this.say("The chest is empty.");
@@ -1028,8 +1036,9 @@ export class Overworld {
       this.removeMob(mob);
       this.say(`You defeated the ${mob.info.name}: ${gold(result.Gold)} gold.`);
       for (const relic of result.Relics ?? []) this.say(`A relic falls from the ${mob.info.name}: ${relic} is yours, and yours alone.`);
-      if (result.Offer.length > 0) {
-        const loot = await this.openCards("loot", { token: start.Token, offer: result.Offer, cap: result.Cap, mob: mob.info.name }, false);
+      if (result.Gear) this.say(`The ${mob.info.name} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
+      if (result.Offer.length > 0 || result.Gear) {
+        const loot = await this.openCards("loot", { token: start.Token, offer: result.Offer, cap: result.Cap, mob: mob.info.name, gear: result.Gear ?? null }, false);
         const picks = Array.isArray(loot.result?.picks) ? (loot.result.picks as string[]) : [];
         if (picks.length > 0) {
           try {
@@ -1059,6 +1068,13 @@ export class Overworld {
   async openGear(): Promise<void> {
     if (this.paused) return;
     await this.openCards("gear", { name: this.data.Name });
+    await this.refresh();
+  }
+
+  /** Everything the character owns, cards and gear, on the card layer's inventory screen. */
+  async openInventory(): Promise<void> {
+    if (this.paused) return;
+    await this.openCards("inventory", { name: this.data.Name });
     await this.refresh();
   }
 

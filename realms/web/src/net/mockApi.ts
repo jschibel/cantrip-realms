@@ -377,7 +377,7 @@ export class MockApi implements RealmApi {
     return { Cards: { ...this.cards } };
   }
 
-  async openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number }> {
+  async openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }> {
     this.log("openChest", body);
     const c = this.need();
     const key = `${body.Space}|${body.Chest}`;

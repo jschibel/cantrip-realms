@@ -24,7 +24,8 @@ engine already has.
   with only stat lines has no emblem. `realm_gear_families.rs` holds the emblems the families' own scenarios deal (`Gear
   test: <family>, <parameters>`), each family over its parameter range; no item wears them.
 - **The generator** is `tools/realms/gear-cards.py`: from `realms/content/gear/*.json` it writes those files, each item's
-  smoke scenario, and each item's `text` (its stat lines, then its effects' texts). It refuses an item - and writes
+  smoke scenario, and each item's `text` (its stat lines, then its effects' texts) and `points` (Budgets, below: what the
+  gear screen shows against the rarity's budget, and the server refuses over it). It refuses an item - and writes
   nothing - whose effect names no family, has a parameter out of range or is not one its slot may carry, or whose points
   are over its rarity's budget. `--check` writes nothing and fails when anything is out of date. The generated files are
   committed like any card file.

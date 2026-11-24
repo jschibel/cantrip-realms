@@ -138,8 +138,10 @@ public sealed partial class MainPage
         json.WriteString("status", _realmStatus.Text);
         WriteRealmDuel(json);
         WriteRealmLoot(json);
+        WriteRealmInventory(json);
+        WriteRealmDuelGear(json);
         json.WriteStartArray("gear");
-        foreach (GearCardElement card in _realmGearCards)
+        foreach ((FrameworkElement card, string name, string place, long instance, bool selected) in GearSpots())
         {
             if (card.XamlRoot is null || card.ActualWidth <= 0 || !IsShown(card))
             {
@@ -147,10 +149,10 @@ public sealed partial class MainPage
             }
 
             json.WriteStartObject();
-            json.WriteString("name", card.Gear?.Name ?? string.Empty);
-            json.WriteString("place", card.Place);
-            json.WriteNumber("instance", card.Instance);
-            json.WriteBoolean("selected", card.Selected);
+            json.WriteString("name", name);
+            json.WriteString("place", place);
+            json.WriteNumber("instance", instance);
+            json.WriteBoolean("selected", selected);
             Rect box = card.TransformToVisual(Root).TransformBounds(new Rect(0, 0, card.ActualWidth, card.ActualHeight));
             WriteBox(json, box);
             json.WriteEndObject();

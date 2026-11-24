@@ -3,7 +3,10 @@
 // frame shown over the world until the client says the screen has closed. Only the frame's own origin is spoken to
 // or listened to. Realm.js and RealmBridge.cs are the other side.
 
-export type Screen = "duel" | "spell-table" | "vendor" | "loot" | "gear";
+export type Screen = "duel" | "spell-table" | "vendor" | "loot" | "gear" | "inventory";
+
+/** A worn slot's look, as the card layer names it when it asks for a portrait. */
+export type PortraitSlots = Readonly<Record<string, { readonly mesh: string; readonly palette: readonly string[] }>>;
 
 export interface Closed {
   readonly screen: Screen;
@@ -22,6 +25,11 @@ export interface CardScreens {
   readonly requests: readonly { readonly screen: Screen; readonly args: Readonly<Record<string, unknown>> }[];
   /** Called whenever the layer's state changes, for the HUD. */
   onChange: () => void;
+  /**
+   * Draws the player wearing `slots`, as a PNG data URL, when the gear screen asks (`portrait`): the overworld's to set,
+   * since only it draws figures. Unset, or null back, and the card layer shows the doll without its figure.
+   */
+  portrait?: (slots: PortraitSlots) => string | null;
   open(screen: Screen, args?: Record<string, unknown>): Promise<Closed>;
 }
 
@@ -41,6 +49,8 @@ export class CardLayer implements CardScreens {
 
   /** Called whenever the layer's state changes, for the HUD. */
   onChange: () => void = () => {};
+
+  portrait?: (slots: PortraitSlots) => string | null;
 
   /** `url` is the card layer's page; `server` the realm server, which the card layer calls for what happens inside a screen. */
   constructor(url: string, server?: string) {
@@ -95,7 +105,7 @@ export class CardLayer implements CardScreens {
     if (e.origin !== this.origin || e.source !== this.frame.contentWindow) {
       return;
     }
-    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string; result?: Record<string, unknown> };
+    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string; result?: Record<string, unknown>; slots?: PortraitSlots };
     if (message?.realm !== 1) {
       return;
     }
@@ -105,6 +115,12 @@ export class CardLayer implements CardScreens {
         this.ready = true;
         this.readyWaiters.splice(0).forEach((resolve) => resolve());
         break;
+      case "portrait": {
+        // The gear screen asks for the figure wearing what it shows worn; the answer goes back under the same id.
+        const image = this.portrait?.(message.slots ?? {}) ?? null;
+        this.post({ op: "portrait", id: message.id, args: { image } });
+        return;
+      }
       case "closed": {
         const waiting = message.id === undefined ? undefined : this.waiting.get(message.id);
         if (waiting) {

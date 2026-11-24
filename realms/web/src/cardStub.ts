@@ -5,7 +5,7 @@ import type { CardScreens, Closed, Screen } from "./cardLayer";
 // handle - a duel won or lost, a loot pick taken or left - so the whole overworld can be played and tested without
 // the Uno client. Every request is kept (realmTest.layer.requests), as the test double the e2e suite asserts on.
 
-const TITLES: Record<Screen, string> = { duel: "Duel", "spell-table": "Spell table", vendor: "Vendor", loot: "Loot", gear: "Gear" };
+const TITLES: Record<Screen, string> = { duel: "Duel", "spell-table": "Spell table", vendor: "Vendor", loot: "Loot", gear: "Gear", inventory: "Inventory" };
 
 export class StubCardLayer implements CardScreens {
   readonly isReady = true;

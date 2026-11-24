@@ -113,7 +113,11 @@ public sealed record RealmRefusal(string Error, string Detail, IReadOnlyList<str
 
 public sealed record RealmStats(int Life, int Hand, int MaxHand);
 
-public sealed record RealmGear(string Id, string Name, string Slot, string Rarity, long Gold, RealmStats Stats, string Text, bool Unique, string? Emblem);
+/// <summary>How a gear item looks (its content's <c>look</c>): a gear mesh and its colors.</summary>
+public sealed record RealmLook(string Mesh, IReadOnlyList<string> Palette);
+
+/// <summary>A gear item: <see cref="Points"/> what it costs of its rarity's <see cref="Budget"/> (gear.md, "Budgets").</summary>
+public sealed record RealmGear(string Id, string Name, string Slot, string Rarity, long Gold, RealmStats Stats, string Text, bool Unique, string? Emblem, int Points = 0, int Budget = 0, RealmLook? Look = null);
 
 public sealed record RealmGearInstance(long InstanceId, RealmGear Gear);
 
@@ -160,6 +164,11 @@ public sealed record RealmGearTrade(long Gold, IReadOnlyList<RealmGearInstance> 
 
 public sealed record RealmLoadoutChange(IReadOnlyDictionary<string, long?> Slots);
 
+/// <summary>A card of the collection as <c>/api/inventory</c> has it: how many, its list price, the copies the deck and the ante use.</summary>
+public sealed record RealmInventoryCard(string Name, int Count, long Gold, int Deck, int Ante, bool Relic);
+
+public sealed record RealmInventory(IReadOnlyList<RealmInventoryCard> Cards, long Value);
+
 /// <summary>A card offered after a win, and its list price (the <c>loot</c> screen's <c>offer</c>).</summary>
 public sealed record RealmOffered(string Name, long Gold);
 
@@ -179,5 +188,7 @@ public sealed record RealmOffered(string Name, long Gold);
 [JsonSerializable(typeof(RealmGearTrade))]
 [JsonSerializable(typeof(RealmLoadoutChange))]
 [JsonSerializable(typeof(List<RealmOffered>))]
+[JsonSerializable(typeof(RealmGearInstance))]
+[JsonSerializable(typeof(RealmInventory))]
 [JsonSerializable(typeof(Duel))]
 internal sealed partial class RealmJson : JsonSerializerContext;

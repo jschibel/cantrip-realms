@@ -23,6 +23,9 @@ export interface Gear {
   readonly Unique: boolean;
   /** The engine's emblem for the item, `"<name> (gear)"`, or null for an item with no effects. */
   readonly Emblem: string | null;
+  /** What it costs of its rarity's budget, and that budget (gear.md, "Budgets"). */
+  readonly Points?: number;
+  readonly Budget?: number;
 }
 
 /** A gear item a player owns: one of possibly several copies. */
@@ -210,7 +213,7 @@ export interface RealmApi {
   /** Takes picks from a win's offer: the collection after. */
   takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection>;
   /** Opens a chest: the character's gold after, and what the chest held. */
-  openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number }>;
+  openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }>;
   /** Makes the inn the character stands in their home: where a lost duel wakes them. */
   setInn(): Promise<{ Inn: string }>;
   /** Reports where the character is (a world or interior place). */
@@ -267,7 +270,7 @@ export class HttpApi implements RealmApi {
   startEncounter = (body: EncounterAt) => this.call<EncounterStart>("POST", "encounter/start", body);
   finishEncounter = (body: { Token: string; Log: readonly string[] }) => this.call<EncounterResult>("POST", "encounter/finish", body);
   takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<Collection>("POST", "encounter/loot", body);
-  openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number }>("POST", "chest/open", body);
+  openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number; Gear?: GearInstance | null }>("POST", "chest/open", body);
   setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
   position = async (body: Place) => {
     await this.call<unknown>("POST", "position", body);

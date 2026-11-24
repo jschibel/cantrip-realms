@@ -61,6 +61,13 @@ public sealed partial class MainPage
             Foreground = Theme.Brush(Theme.FgSoft),
             TextWrapping = TextWrapping.Wrap,
         });
+        // A gear item found with the cards (MainPage.RealmDrop.cs) leads the screen; with no cards, it is all there is.
+        if (GearDrop(command.Args) is { } drop)
+        {
+            if (offer.Count == 0) body.Children.Clear();
+            body.Children.Insert(0, drop);
+        }
+
         _lootBoard = RealmBoard("loot", LootWidth, ClickLoot);
         body.Children.Add(_lootBoard);
         ShowRealmScreen("Loot", RealmScroll(body));
