@@ -789,7 +789,11 @@ public sealed partial class MainPage
             return;
         }
 
-        if (arrangement.InSide(place) || arrangement.Command.Contains(place) || arrangement.Companion.Contains(place))
+        if (RealmTakesOut(arrangement, place))
+        {
+            // The spell table's: a basic land can't be anted, so it leaves the deck.
+        }
+        else if (arrangement.InSide(place) || arrangement.Command.Contains(place) || arrangement.Companion.Contains(place))
         {
             arrangement.Remove(place);
             arrangement.Columns[DefaultColumn(_poolCards[place])].Add(place);

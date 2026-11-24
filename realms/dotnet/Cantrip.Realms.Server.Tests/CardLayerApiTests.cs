@@ -35,6 +35,40 @@ public sealed class CardLayerApiTests
     }
 
     [Fact]
+    public async Task The_collection_says_what_each_owned_card_is_worth_for_the_ante()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "W");
+        await app.Give(browser, "Serra Angel", 2);
+        CollectionView collection = await browser.Ok<CollectionView>(HttpMethod.Get, "/api/collection");
+
+        Assert.Equal(2, collection.Cards["Serra Angel"]);
+        Assert.NotNull(collection.Prices);
+        Assert.Equal(RealmApp.Content.Cards.Price("Serra Angel"), collection.Prices!["Serra Angel"]);
+        // Every owned card that has a price says it, and nothing else is listed: what the spell table sums for an ante.
+        Assert.Equal(
+            collection.Cards.Keys.Where(name => RealmApp.Content.Cards.Price(name) is not null).Order(StringComparer.Ordinal),
+            collection.Prices.Keys.Order(StringComparer.Ordinal));
+        Assert.All(collection.Prices, price => Assert.Equal(RealmApp.Content.Cards.Price(price.Key), price.Value));
+    }
+
+    [Fact]
+    public async Task A_development_server_gives_a_test_the_cards_it_arranges()
+    {
+        // Only with REALMS_DEV_SIGNIN=1 (as RealmApp runs), for the end-to-end suites: POST /dev/cards.
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "W");
+        CollectionView given = await browser.Ok<CollectionView>(HttpMethod.Post, "/dev/cards", new { Name = "Goblin King", Count = 2 });
+        Assert.Equal(2, given.Cards["Goblin King"]);
+        Assert.Equal(2, (await browser.Collection())["Goblin King"]);
+
+        CollectionView taken = await browser.Ok<CollectionView>(HttpMethod.Post, "/dev/cards", new { Name = "Goblin King", Count = -2 });
+        Assert.False(taken.Cards.ContainsKey("Goblin King"));
+        await browser.Refused(HttpMethod.Post, "/dev/cards", new { Name = "No Such Card", Count = 1 }, HttpStatusCode.UnprocessableEntity, "NoSuchCard");
+        await browser.Refused(HttpMethod.Post, "/dev/cards", new { Name = "Goblin King", Count = 0 }, HttpStatusCode.UnprocessableEntity, "NoSuchCard");
+    }
+
+    [Fact]
     public async Task A_deck_is_checked_as_saving_it_would_be_anywhere_the_character_stands()
     {
         await using var app = new RealmApp();

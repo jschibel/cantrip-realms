@@ -190,12 +190,18 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         return loadout;
     }
 
-    /// <summary>A character's collection, by card name.</summary>
+    /// <summary>A character's collection, by card name, with each priced card's list price.</summary>
     public async Task<CollectionView> Collection(string player)
     {
         await Require(player).ConfigureAwait(false);
         List<CollectionRow> rows = await db.Collection.AsNoTracking().Where(row => row.PlayerId == player && row.Count > 0).ToListAsync().ConfigureAwait(false);
-        return new CollectionView(new SortedDictionary<string, int>(rows.ToDictionary(row => row.Name, row => row.Count), StringComparer.Ordinal));
+        var prices = new SortedDictionary<string, long>(StringComparer.Ordinal);
+        foreach (CollectionRow row in rows)
+        {
+            if (content.Cards.Price(row.Name) is { } gold) prices[row.Name] = gold;
+        }
+
+        return new CollectionView(new SortedDictionary<string, int>(rows.ToDictionary(row => row.Name, row => row.Count), StringComparer.Ordinal), prices);
     }
 
     /// <summary>How many tiles past what walking allows a report may be: the character walked on as it was sent.</summary>

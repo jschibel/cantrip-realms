@@ -140,6 +140,7 @@ public sealed partial class MainPage
         WriteRealmLoot(json);
         WriteRealmInventory(json);
         WriteRealmDuelGear(json);
+        WriteRealmTable(json);
         json.WriteStartArray("gear");
         foreach ((FrameworkElement card, string name, string place, long instance, bool selected) in GearSpots())
         {

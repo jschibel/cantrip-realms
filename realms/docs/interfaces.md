@@ -464,7 +464,7 @@ player with no character is 404 `NoCharacter`.
 | --- | --- | --- |
 | `GET /api/me` | | the `Character` (below), or 404 `NoCharacter` |
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
-| `GET /api/collection` | | `{Cards: {name: count}}` |
+| `GET /api/collection` | | `{Cards: {name: count}, Prices: {name: gold}}`: `Prices` each owned card's list price (none for an unpriced card), for the spell table's ante |
 | `GET /api/inventory` | | `{Cards: [{Name, Count, Gold, Deck, Ante, Relic}], Value}`: the collection card by card, in name order, each with its list price (0 for none), the copies the deck and the ante use and whether it is a relic; `Value` the collection at list price. The gear is the `Character`'s |
 | `GET /api/catalog` | | every card the engine plays, as printed: `Cantrip.Protocol`'s `CardCatalogView`, MessagePack (`application/x-msgpack`), as the deck site's `/decks/api/catalog` is: the card layer's faces |
 | `GET /api/deck` | | the `Deck` |
@@ -557,16 +557,18 @@ player with no character is 404 `NoCharacter`.
   /dev/signin?id=<Id>&name=<Name>` from a browser, which signs in the same way and goes on to the world client (without
   an id and a name it is a form asking for them; `/home` sends a player not signed in there when Discord is not
   configured, so the world's "sign in", `GET /signin`, lands on it): development and tests only.
-  Such a server alone also takes two calls for tests, on the signed-in cookie, that arrange what play would take long to
+  Such a server alone also takes calls for tests, on the signed-in cookie, that arrange what play would take long to
   reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
-  the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
+  the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), `POST /dev/verdict
   {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
   their logs, so the card layer's stand-in counts as a win; `POST /dev/drop {Gear}` (`true`, `false`, or null for the
-  dice again) decides whether the player's gear rolls, a win's and a chest's, come up; and `POST /dev/duel {Player, Mob}`
+  dice again) decides whether the player's gear rolls, a win's and a chest's, come up; `POST /dev/duel {Player, Mob}`
   deals the player's next duels with a seat's setup changed - each `{StartingLife, StartingHandSize, MaximumHandSize,
   Deck, Emblems}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a
   position (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played
-  and replayed so, and its result is the engine's. Never in production.
+  and replayed so, and its result is the engine's; and `POST /dev/cards {Name, Count}` adds copies of a card the engine
+  plays to the collection (a negative count takes them; 422 `NoSuchCard` otherwise), as a test arranges what is owned.
+  Never in production.
 
 ## The card layer (`window.postMessage`)
 

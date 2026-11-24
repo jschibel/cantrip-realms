@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Cantrip.Realms.Server.Auth;
 using Cantrip.Realms.Server.Content;
+using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Duels;
 using Cantrip.Realms.Server.Economy;
 
@@ -24,6 +25,8 @@ namespace Cantrip.Realms.Server;
 /// dice's.</item>
 /// <item><c>POST /dev/gear {GearId}</c> gives the signed-in character a copy of a gear item, as a drop would: the
 /// <c>GearInstance</c>; 404 <c>NotThere</c> for no such item.</item>
+/// <item><c>POST /dev/cards {Name, Count}</c> adds copies of a card the engine plays to the signed-in character's collection
+/// (or takes them, with a negative count), as a test arranges what is owned; 422 <c>NoSuchCard</c> for any other.</item>
 /// </list>
 /// </summary>
 public static class DevApi
@@ -71,6 +74,20 @@ public static class DevApi
         {
             duels.Set(RealmSignIn.PlayerId(context)!, body);
             return Results.Ok(new { });
+        });
+
+        dev.MapPost("/cards", async (HttpContext context, Characters characters, RealmContent content, RealmDb db, DevCards body) =>
+        {
+            string player = RealmSignIn.PlayerId(context)!;
+            await characters.Require(player).ConfigureAwait(false);
+            if (body.Name is not { Length: > 0 } name || !content.Cards.Catalog.ContainsKey(name) || body.Count == 0)
+            {
+                throw Refusal.Unprocessable("NoSuchCard", "Copies of a card the engine plays are added: a name and a count.");
+            }
+
+            await characters.AddToCollection(player, name, body.Count).ConfigureAwait(false);
+            await db.SaveChangesAsync().ConfigureAwait(false);
+            return Results.Ok(await characters.Collection(player).ConfigureAwait(false));
         });
 
         dev.MapPost("/verdict", (HttpContext context, DevVerdicts verdicts, DevVerdict body) =>
@@ -133,6 +150,9 @@ public static class DevApi
             };
         }
     }
+
+    /// <summary><c>POST /dev/cards</c>'s body.</summary>
+    public sealed record DevCards(string? Name, int Count);
 
     /// <summary><c>POST /dev/verdict</c>'s body.</summary>
     public sealed record DevVerdict(string? Outcome);

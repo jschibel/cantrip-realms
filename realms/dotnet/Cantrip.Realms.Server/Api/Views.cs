@@ -44,7 +44,11 @@ public sealed record CharacterView(
 /// <summary>A new character: a name, a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a palette and a starting color.</summary>
 public sealed record NewCharacter(string? Name, string? Body, int Palette, string? Color);
 
-public sealed record CollectionView(IReadOnlyDictionary<string, int> Cards);
+/// <summary>
+/// A character's collection by card name, and (from <c>GET /api/collection</c>) each owned card's list price in gold, for
+/// the spell table's ante: a card with no price is missing from <c>Prices</c>.
+/// </summary>
+public sealed record CollectionView(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null);
 
 /// <summary>A card of the collection as the inventory shows it: how many, its list price, the copies the deck and the ante use, whether it is a relic.</summary>
 public sealed record InventoryCard(string Name, int Count, long Gold, int Deck, int Ante, bool Relic);

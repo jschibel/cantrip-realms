@@ -140,9 +140,14 @@ public sealed record RealmDeckChange(IReadOnlyList<RealmCardCount> Main, IReadOn
 
 public sealed record RealmDeckCheck(IReadOnlyList<string> Problems, long AnteValue);
 
-public sealed record RealmCollection(IReadOnlyDictionary<string, int> Cards);
+/// <summary>The collection by card name, and each priced card's list price (<c>GET /api/collection</c> sends them; a trade's answer does not).</summary>
+public sealed record RealmCollection(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null);
 
-public sealed record RealmVendorInfo(string Id, string Name, string Town);
+/// <summary>What a vendor deals in (its <c>specialty</c>): every filter given holds of a card it trades.</summary>
+public sealed record RealmSpecialty(string? Pool, string? Colors, IReadOnlyList<string>? Types, IReadOnlyList<string>? Subtypes, IReadOnlyList<string>? Rarities, IReadOnlyList<string>? Names);
+
+/// <summary>A vendor: its kind is <c>shop</c>, <c>exotic</c> or <c>trader</c>, and a trader's home plane is named.</summary>
+public sealed record RealmVendorInfo(string Id, string Name, string Town, RealmSpecialty? Specialty = null, string? Kind = null, string? Plane = null);
 
 public sealed record RealmStock(string Name, long Gold, int Count, DateTimeOffset? Until);
 

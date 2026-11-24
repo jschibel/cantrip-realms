@@ -1015,7 +1015,8 @@ public sealed partial class MainPage
             return !anyColor || colors.Any(color => color.On && (color.Color is { } hue ? face.Colors.Contains(hue) : face.Colors.Count == 0));
         });
 
-        return _sortChoice.Selected == 1
+        return _realmDeck ? RealmSorted(found)
+            : _sortChoice.Selected == 1
             ? [.. found.OrderBy(card => card.Card.ManaValue).ThenBy(card => card.Name, StringComparer.OrdinalIgnoreCase)]
             : [.. found];
     }
@@ -1126,7 +1127,8 @@ public sealed partial class MainPage
         _dropPose = _searchBoard.Bounds(handle) is { } box && _searchBoard.XamlRoot is not null
             ? Middle(_searchBoard, box)
             : null;
-        AddFromSearch(handle, arrangement => arrangement.Columns[DefaultColumn(card.Card)], int.MaxValue);
+        // At the spell table a card outside the character's colors goes to the ante, the one place it can be.
+        AddFromSearch(handle, arrangement => _realmDeck && RealmDimmed(card) ? arrangement.Side : arrangement.Columns[DefaultColumn(card.Card)], int.MaxValue);
         _dropPose = null;
     }
 
