@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { chebyshev, clickControl, clickEntity, dungeon, entity, playerTile, realm, until, waitReady, waitSpace } from "../realm";
+import { chebyshev, clickControl, clickEntity, dungeon, entity, playerTile, realm, until, waitReady, waitSpace, winDuel } from "../realm";
 import { beat, enter, run, walkInside } from "../runs";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
@@ -71,8 +71,15 @@ test("mage towers attuned by beating their mages on the real server, then a ways
     expect(await realm<string[]>(page, "character.attuned")).toContain(tower);
 
     // Out by the way that opens beside the mage, to the entrance in the world.
-    await walkInside(page, (await run(page))!.wayOut!, 1);
-    await clickEntity(page, (e) => e.kind === "leave" && e.name === "way-out", "the way out");
+    // A mob of the floor that comes for Edda on the way is beaten by the stand-in; then the way out is clicked again.
+    const inWorld = async () => (await realm<string | undefined>(page, "space.id")) === "world" && !(await realm<boolean>(page, "transitioning"));
+    const inDuel = async () => (await realm<string | null>(page, "layer.open")) === "duel";
+    for (let tries = 0; tries < 4 && !(await inWorld()); tries++) {
+      await walkInside(page, (await run(page))!.wayOut!, 1);
+      await clickEntity(page, (e) => e.kind === "leave" && e.name === "way-out", "the way out");
+      await until(page, async () => (await inWorld()) || (await inDuel()), "out, or stopped by a mob", 60);
+      if (await inDuel()) await winDuel(page);
+    }
     await waitSpace(page, "world", 60);
     const [x, z] = dungeon(tower).entrance;
     const me = await api<Me>(page.request, "me");

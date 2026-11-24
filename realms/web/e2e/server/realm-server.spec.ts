@@ -65,17 +65,20 @@ test("a player signs in, makes a character, walks, visits a vendor and starts an
   await verdict(page.request, "won");
   const spawn = spawnNear(capital.id);
   await walkTo(page, openNear(spawn, 4), 1);
-  let clicked = false;
+  // The mob is clicked once - and again after any duel with another that came for Ann on the way cut the walk short.
+  let clickedAfter = -1;
   await until(
     page,
     async () => {
       const open = (await realm<string | null>(page, "layer.open")) === "duel";
-      const last = (await requests(page)).filter((r) => r.screen === "duel").at(-1);
-      if (open && last?.args.mob.spawn === spawn.id) return true;
+      const duels = (await requests(page)).filter((r) => r.screen === "duel");
+      const last = duels.at(-1);
+      // The spawn's duel was asked of the card layer (the stand-in may have won it and closed already).
+      if (last?.args.mob.spawn === spawn.id) return true;
       const mob = (await realm<{ kind: string; spawn?: string; x: number; y: number }[]>(page, "entities")).find((e) => e.kind === "mob" && e.spawn === spawn.id);
-      if (mob && !clicked && !open) {
+      if (mob && clickedAfter < duels.length && !open) {
         await page.mouse.click(mob.x, mob.y);
-        clicked = true;
+        clickedAfter = duels.length;
       }
       return false;
     },

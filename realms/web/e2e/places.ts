@@ -20,7 +20,8 @@ function chunksNear(t: Tile, reach: number) {
 export function doorOf(id: string): Tile {
   const room = interior(id);
   const door = { x: room.exit[0], z: room.exit[1] };
-  const building = chunksNear(door, 4).flatMap((c) => c.buildings).find((b) => b.interior === id);
+  // A building is stored in the chunk of its corner, which may lie as far as a big building is wide from its door.
+  const building = chunksNear(door, CHUNK).flatMap((c) => c.buildings).find((b) => b.interior === id);
   if (!building) throw new Error(`no building leads into ${id}`);
   return door;
 }

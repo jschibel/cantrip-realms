@@ -434,7 +434,10 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
     return inside;
   };
-  /** Each edge's tiles, corner to corner, eight-connected (so it closes the way to whoever walks without cutting corners). */
+  /**
+   * Each edge's tiles, corner to corner, four-connected: a slanted edge is a staircase of whole tiles, so the wall drawn
+   * on them (straight runs along rows and columns) stands exactly on the tiles that block, with no gap at a step.
+   */
   const edges = poly.map((a, k) => line(a, poly[(k + 1) % poly.length]!));
   const ring = new Set<number>();
   for (const e of edges) for (const [x, z] of e) ring.add(local(x, z));
@@ -1134,21 +1137,27 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
   }
 
-  // The enclosure's drawing: wall runs along the outline between towers (cut at chunk edges), or hedgerows, or a palisade.
+  // The enclosure's drawing: wall runs along the outline between towers, or hedgerows, or a palisade - each run straight
+  // along a row or a column of the outline's tiles, so a slanted edge is drawn as the staircase its tiles are, and what is
+  // drawn is what blocks (cut at chunk edges, 16 tiles at most).
   if (walled) {
     for (const e of edges) {
+      // The outer face: the side of the whole edge away from the centre.
+      const [ex0, ez0] = e[0]!;
+      const [ex1, ez1] = e[e.length - 1]!;
+      const len = Math.hypot(ex1 - ex0, ez1 - ez0) || 1;
+      const nx = (ez1 - ez0) / len;
+      const nz = -(ex1 - ex0) / len;
+      const sgn = nx * ((ex0 + ex1) / 2 - cx) + nz * ((ez0 + ez1) / 2 - cz) >= 0 ? 1 : -1;
+      const along = Math.abs(ex1 - ex0) >= Math.abs(ez1 - ez0);
       let run: [number, number][] = [];
       const flush = () => {
         if (run.length > 0) {
           const [ax, az] = run[0]!;
           const [bx2, bz2] = run[run.length - 1]!;
-          const nx = (bz2 - az) / (Math.hypot(bx2 - ax, bz2 - az) || 1);
-          const nz = -(bx2 - ax) / (Math.hypot(bx2 - ax, bz2 - az) || 1);
-          // The outer face: the side away from the centre.
-          const mx = (ax + bx2) / 2 - cx;
-          const mz = (az + bz2) / 2 - cz;
-          const sgn = nx * mx + nz * mz >= 0 ? 1 : -1;
-          const face = ["s", "w", "n", "e"][rotOf(nx * sgn, nz * sgn)]!;
+          // A run's face is the outer side across it: a row faces north or south, a column east or west.
+          const row = run.length > 1 ? az === bz2 : along;
+          const face = row ? (nz * sgn >= 0 ? "s" : "n") : nx * sgn >= 0 ? "e" : "w";
           if (F.enclosure === "hedge") props.push({ id: "hedgerow", x: ax + 0.5, z: az + 0.5, seed: between(random, 0, 15), args: { to: [bx2 + 0.5, bz2 + 0.5] } });
           else props.push({ id: "wall-run", x: ax + 0.5, z: az + 0.5, args: { to: [bx2 + 0.5, bz2 + 0.5], face, style, kind: F.enclosure, size: plan.kind } });
         }
@@ -1160,7 +1169,11 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
           continue;
         }
         const s = run[0];
-        if (s && (Math.floor(x / 32) !== Math.floor(s[0] / 32) || Math.floor(z / 32) !== Math.floor(s[1] / 32) || run.length >= 16)) flush();
+        const last = run[run.length - 1];
+        // The run goes on while the tile is the next along its row (or column) in the same chunk.
+        const next = !!last && Math.abs(x - last[0]) + Math.abs(z - last[1]) === 1;
+        const straight = next && (run.length < 2 || (run[0]![1] === run[1]![1] ? z === last![1] : x === last![0]));
+        if (s && (!straight || Math.floor(x / 32) !== Math.floor(s[0] / 32) || Math.floor(z / 32) !== Math.floor(s[1] / 32) || run.length >= 16)) flush();
         run.push([x, z]);
       }
       flush();
@@ -1258,7 +1271,7 @@ function frontOf(f: Footprint, k: number): [number, number] {
   }
 }
 
-/** The tiles of a straight line, corner to corner, eight-connected (Bresenham). */
+/** The tiles of a straight line, corner to corner, four-connected: Bresenham's, a tile added at each diagonal step. */
 function line(a: readonly [number, number], b: readonly [number, number]): [number, number][] {
   const out: [number, number][] = [];
   let [x, z] = a;
@@ -1272,11 +1285,22 @@ function line(a: readonly [number, number], b: readonly [number, number]): [numb
     out.push([x, z]);
     if (x === x1 && z === z1) break;
     const e2 = 2 * err;
-    if (e2 >= dz) {
+    const stepX = e2 >= dz;
+    const stepZ = e2 <= dx;
+    if (stepX && stepZ) {
+      // A diagonal step: go one way first, so the two tiles share a side.
+      err += dz;
+      x += sx;
+      out.push([x, z]);
+      err += dx;
+      z += sz;
+      continue;
+    }
+    if (stepX) {
       err += dz;
       x += sx;
     }
-    if (e2 <= dx) {
+    if (stepZ) {
       err += dx;
       z += sz;
     }

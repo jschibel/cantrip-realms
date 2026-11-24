@@ -43,9 +43,7 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"16_3:1","x":539,"z":106,"mobs":["karplusan-yeti","rorix-bladewing"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

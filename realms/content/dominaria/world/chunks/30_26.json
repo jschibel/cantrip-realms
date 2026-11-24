@@ -67,7 +67,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"30_26:1","x":973,"z":836,"mobs":["abomination","eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

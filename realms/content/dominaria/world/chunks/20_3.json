@@ -104,8 +104,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"20_3:1","x":666,"z":101,"mobs":["shivan-dragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"20_3:2","x":652,"z":123,"mobs":["serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"20_3:1","x":645,"z":101,"mobs":["tarmogoyf","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"20_3:2","x":647,"z":127,"mobs":["fallen-angel","serra-angel","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

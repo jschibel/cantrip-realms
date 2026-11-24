@@ -44,7 +44,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"16_32:1","x":533,"z":1027,"mobs":["abomination","knight-of-malice","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

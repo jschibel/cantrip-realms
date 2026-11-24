@@ -14,7 +14,7 @@
     [12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",3],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
-    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",2],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
+    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",2],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",2],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",1],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],
@@ -88,10 +88,13 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"21_4:1","x":693,"z":130,"mobs":["enormous-baloth","marhault-elsdragon","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"21_4:2","x":703,"z":149,"mobs":["rorix-bladewing","sengir-vampire","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"21_4:1","x":680,"z":128,"mobs":["karplusan-yeti","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"21_4:2","x":703,"z":149,"mobs":["marhault-elsdragon","sengir-vampire","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"21_4:3","x":682,"z":156,"mobs":["enormous-baloth","rorix-bladewing","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"21_4:c1","x":683,"z":140,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

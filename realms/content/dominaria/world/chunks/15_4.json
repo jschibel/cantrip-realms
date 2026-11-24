@@ -49,7 +49,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_4:1","x":496,"z":146,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"15_4:1","x":504,"z":145,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

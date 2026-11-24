@@ -54,9 +54,7 @@
   "npcs": [
     {"id":"verdura-ferry-ferryman-from","x":546,"z":1026,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
-  "spawns": [
-    {"id":"17_32:1","x":570,"z":1028,"mobs":["abomination","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

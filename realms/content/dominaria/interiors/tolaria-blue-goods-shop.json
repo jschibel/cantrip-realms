@@ -55,6 +55,6 @@
     {"kind":"spot","at":[3.5,4,-1.6],"to":[3.5,0,3.6],"color":[1,0.94,0.78],"intensity":40,"reach":14,"angle":0.36,"penumbra":0.05,"decay":1.2}
   ],
   "entry": [5,6],
-  "exit": [119,680],
+  "exit": [119,681],
   "params": {"specialty":"weapons"}
 }
