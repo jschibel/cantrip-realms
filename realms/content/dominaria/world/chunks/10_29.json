@@ -89,7 +89,7 @@
   ],
   "buildings": [],
   "npcs": [
-    {"id":"capashen-hold-guard-4","x":336,"z":931,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":4,"speed":2.2,"behaviour":{"beat":{"stops":[[336,931],[336,923]],"pause":3.5},"watch":4}},
+    {"id":"capashen-hold-guard-4","x":336,"z":931,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":4,"speed":2.2,"behaviour":{"beat":{"stops":[[336,931],[336,924]],"pause":3.5},"watch":4}},
     {"id":"benalia-2-spell-table","x":349,"z":949,"kind":"spell-table","name":"Spell table","stand":[349.5,0.3125,949.5]},
     {"id":"benalia-2-waystone","x":349,"z":953,"kind":"waystone","name":"The waystone of the Benalish Tower of the Second Circle","stand":[349.5,0.3125,953.5],"tower":"benalia-2"}
   ],

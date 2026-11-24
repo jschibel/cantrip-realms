@@ -83,7 +83,7 @@
   ],
   "buildings": [],
   "npcs": [
-    {"id":"new-benalia-guard-5","x":538,"z":804,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":5,"speed":2.2,"behaviour":{"beat":{"stops":[[538,804],[538,796]],"pause":3.5},"watch":4}}
+    {"id":"new-benalia-guard-5","x":538,"z":804,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":5,"speed":2.2,"behaviour":{"beat":{"stops":[[538,804],[538,797]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
     {"id":"16_25:1","x":528,"z":820,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},

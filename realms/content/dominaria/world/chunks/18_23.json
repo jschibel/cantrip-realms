@@ -118,7 +118,7 @@
     {"id":"new-benalia-b43","style":"benalish","kind":"warehouse","x":582,"z":749,"w":8,"d":8,"rot":2,"params":{"ground":3.125,"upper":0,"roof":"tile","rise":1.9375,"wall":"plaster","openings":[{"at":1.5,"kind":"door"},{"at":3.25,"kind":"window"},{"at":5.25,"kind":"window"}]}}
   ],
   "npcs": [
-    {"id":"new-benalia-guard-2","x":594,"z":746,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[594,746],[586,746]],"pause":3.5},"watch":4}}
+    {"id":"new-benalia-guard-2","x":594,"z":746,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[594,746],[582,746]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

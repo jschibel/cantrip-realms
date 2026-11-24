@@ -111,7 +111,7 @@
     {"id":"keld-b7","style":"keldon","kind":"house","x":558,"z":261,"w":8,"d":4,"rot":1,"params":{"ground":2.4375,"upper":0,"roof":"slate","rise":1.6875,"chimney":2.1875,"wall":"plaster","openings":[{"at":1.25,"kind":"window"},{"at":3.5,"kind":"door"}]}}
   ],
   "npcs": [
-    {"id":"keld-guard-3","x":556,"z":270,"kind":"guard","name":"Keld guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[556,270],[556,262]],"pause":3.5},"watch":4}}
+    {"id":"keld-guard-3","x":556,"z":270,"kind":"guard","name":"Keld guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[556,270],[556,263]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

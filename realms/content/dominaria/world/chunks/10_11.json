@@ -104,8 +104,8 @@
     {"id":"vess-estate-b6","style":"urborg","kind":"library","x":329,"z":383,"w":6,"d":8,"rot":1,"params":{"ground":3.1875,"upper":1.875,"roof":"tile","rise":2.125,"chimney":2.0625,"wall":"limestone","openings":[{"at":0.5,"kind":"door"},{"at":0.5,"kind":"windowUp"},{"at":3.25,"kind":"window"},{"at":3.25,"kind":"windowUp"},{"at":5.25,"kind":"window"},{"at":5.25,"kind":"windowUp"}]}}
   ],
   "npcs": [
-    {"id":"vess-estate-guard-4","x":349,"z":371,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":4,"speed":2.2,"behaviour":{"beat":{"stops":[[349,371],[349,379]],"pause":3.5},"watch":4}},
-    {"id":"vess-estate-guard-3","x":327,"z":372,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[327,372],[327,380]],"pause":3.5},"watch":4}}
+    {"id":"vess-estate-guard-4","x":349,"z":371,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":4,"speed":2.2,"behaviour":{"beat":{"stops":[[349,371],[349,378]],"pause":3.5},"watch":4}},
+    {"id":"vess-estate-guard-3","x":327,"z":372,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[327,372],[327,379]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
     {"id":"10_11:1","x":348,"z":352,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}

@@ -92,8 +92,8 @@
   ],
   "npcs": [
     {"id":"capashen-hold-quest-board","x":387,"z":866,"kind":"quest-board","name":"Quest board","text":["Bounty: Phyrexian scouts in the Benalish Farmlands.","Wanted: an escort to the Fallen Keep."],"stand":[387.5,0.125,866.5]},
-    {"id":"capashen-hold-guard-1","x":401,"z":867,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[401,867],[393,867]],"pause":3.5},"watch":4}},
-    {"id":"capashen-hold-guard-3","x":398,"z":885,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[398,885],[390,885]],"pause":3.5},"watch":4}}
+    {"id":"capashen-hold-guard-1","x":401,"z":867,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[401,867],[394,867]],"pause":3.5},"watch":4}},
+    {"id":"capashen-hold-guard-3","x":398,"z":885,"kind":"guard","name":"Capashen Hold guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":3,"speed":2.2,"behaviour":{"beat":{"stops":[[398,885],[384,885]],"pause":3.5},"watch":4}}
   ],
   "spawns": [
     {"id":"12_27:1","x":414,"z":869,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}

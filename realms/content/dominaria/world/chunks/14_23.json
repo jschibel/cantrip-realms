@@ -88,7 +88,7 @@
   ],
   "npcs": [
     {"id":"new-benalia-quest-board","x":472,"z":745,"kind":"quest-board","name":"Quest board","text":["The five color-wells of the Domains are held by guardians. Earn each well's attunement.","When all five are yours, the Phyrexian Portal in the desolate waste will open. So say the seers.","The mage towers' waystones carry those who beat their mages from tower to tower.","The arena opens soon. Practise your duelling."],"stand":[472.5,0.9375,745.5]},
-    {"id":"new-benalia-guard-1","x":454,"z":746,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[454,746],[462,746]],"pause":3.5},"watch":4}}
+    {"id":"new-benalia-guard-1","x":454,"z":746,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[454,746],[461,746]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],

@@ -137,7 +137,7 @@
   "npcs": [
     {"id":"foriys-folk-1","x":651,"z":388,"kind":"townsfolk","name":"Giant's herald","text":["The giants argue with themselves. Both heads usually lose."],"figure":"townsfolk-keld","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[651,388],"reach":4,"pause":[2,6]},"watch":3}},
     {"id":"foriys-quest-board","x":650,"z":394,"kind":"quest-board","name":"Notice board","text":["The ferry to Keld sails from the north shore."],"stand":[650.5,0.3125,394.5]},
-    {"id":"foriys-guard-1","x":649,"z":405,"kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[649,405],[649,397]],"pause":3.5},"watch":4}}
+    {"id":"foriys-guard-1","x":649,"z":405,"kind":"guard","name":"Foriys guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[649,405],[649,390]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
   "chests": [],
