@@ -6,7 +6,7 @@ namespace Cantrip.Realms.Server.Economy;
 /// The realm's randomness: gold and loot rolls, relic drops, the cards vendors rotate in, the ante card a loss takes, a
 /// duel's seed - and its tokens, which come from the operating system's generator. One source for the server, safe from
 /// any thread; a test gives a seeded one so a failure repeats, and checks what every roll must satisfy, never a roll's
-/// value. A test that needs a roll to come up one way (a relic's 1 in 50) gives a <see cref="Random"/> whose
+/// value. A test that needs a roll to come up one way (a relic's 1 in 50, a gear drop) gives a <see cref="Random"/> whose
 /// <see cref="Random.NextDouble"/> it decides, which <see cref="Roll"/> alone reads.
 /// </summary>
 public sealed class RealmDice(Random? random = null)
@@ -34,7 +34,7 @@ public sealed class RealmDice(Random? random = null)
         lock (_gate) return _random.Next(100) < percent;
     }
 
-    /// <summary>Whether a chance from 0 to 1 comes up: a relic's drop.</summary>
+    /// <summary>Whether a chance from 0 to 1 comes up: a relic's drop, a gear drop's.</summary>
     public bool Roll(double chance)
     {
         lock (_gate) return _random.NextDouble() < chance;

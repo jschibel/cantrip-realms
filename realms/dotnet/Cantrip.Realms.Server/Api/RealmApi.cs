@@ -55,6 +55,9 @@ public static class RealmApi
         api.MapGet("/collection", async (HttpContext context, Characters characters) =>
             Results.Ok(await characters.Collection(Player(context)).ConfigureAwait(false)));
 
+        api.MapGet("/inventory", async (HttpContext context, DecksAndGear decks) =>
+            Results.Ok(await decks.Inventory(Player(context)).ConfigureAwait(false)));
+
         api.MapGet("/deck", async (HttpContext context, DecksAndGear decks) =>
             Results.Ok(await decks.View(Player(context)).ConfigureAwait(false)));
 

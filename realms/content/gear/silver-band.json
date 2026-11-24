@@ -4,6 +4,7 @@
   "slot": "ring",
   "rarity": "common",
   "gold": 350,
+  "points": 2,
   "stats": {
     "life": 2,
     "hand": 0,

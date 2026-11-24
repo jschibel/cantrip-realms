@@ -37,6 +37,24 @@ public sealed class GearItem
 
     public long Gold { get; init; }
 
+    /// <summary>What it costs of its rarity's budget (gear.md, "Budgets"): its stats' and effects' points, refunds subtracted, as the generator writes them.</summary>
+    public int Points { get; init; }
+
+    /// <summary>Its rarity's budget (gear.md, "Budgets"): common 3, uncommon 5, rare 8, mythic 12; a boss's unique 14.</summary>
+    public int Budget => Unique ? UniqueBudget : Budgets.GetValueOrDefault(Rarity);
+
+    /// <summary>Each rarity's budget of points (gear.md, "Budgets"; tools/realms/gear-cards.py's BUDGETS).</summary>
+    public static IReadOnlyDictionary<string, int> Budgets { get; } = new Dictionary<string, int>(StringComparer.Ordinal)
+    {
+        ["common"] = 3,
+        ["uncommon"] = 5,
+        ["rare"] = 8,
+        ["mythic"] = 12,
+    };
+
+    /// <summary>A boss's unique item's budget.</summary>
+    public const int UniqueBudget = 14;
+
     public GearStats Stats { get; init; } = GearStats.None;
 
     /// <summary>The item's abilities, each an effect family and its parameters: the gear crate's to read (M4).</summary>

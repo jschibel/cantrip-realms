@@ -92,6 +92,8 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `text` is what the item does in words: its stat lines, then its effects' rules text, as the generator writes it (it
   rewrites a `text` that differs).
 - `gold` is what an armorer sells it for; it buys at half.
+- `points` is what the item costs of its rarity's budget (gear.md, "Budgets": its stat lines' and effects' points,
+  refunds subtracted), as the generator writes it beside `text`; the server refuses an item over its budget.
 - `look` is how it shows on a character: a gear mesh (Models, below) and its palette.
 
 ### Mobs (`<plane>/mobs/*.json`)
@@ -463,6 +465,7 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/me` | | the `Character` (below), or 404 `NoCharacter` |
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
 | `GET /api/collection` | | `{Cards: {name: count}}` |
+| `GET /api/inventory` | | `{Cards: [{Name, Count, Gold, Deck, Ante, Relic}], Value}`: the collection card by card, in name order, each with its list price (0 for none), the copies the deck and the ante use and whether it is a relic; `Value` the collection at list price. The gear is the `Character`'s |
 | `GET /api/catalog` | | every card the engine plays, as printed: `Cantrip.Protocol`'s `CardCatalogView`, MessagePack (`application/x-msgpack`), as the deck site's `/decks/api/catalog` is: the card layer's faces |
 | `GET /api/deck` | | the `Deck` |
 | `POST /api/deck/check` | `{Main, Ante}` | `{Problems: [...], AnteValue}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands, and the ante's worth |
@@ -482,7 +485,7 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
 | `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
-| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space; 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
+| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common); 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
 | `POST /api/position` | `{Space, X, Z}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Space, X, Z, Inn, Stats: {Life, Hand, MaxHand},
@@ -496,7 +499,7 @@ player with no character is 404 `NoCharacter`.
   loadout's slots are `head`, `neck`, `body`, `hands`, `feet`, `ring1`, `ring2` and `relic`; a `ring` item fits either
   ring slot. `Stats` are the base (20, 7, 7) plus every worn item's.
 - `Gear` is a gear item as its content file has it, PascalCase, with its `Emblem` (`"<name> (gear)"`, or null for an
-  item with no effects). `GearInstance` is one a character owns: `{InstanceId, Gear}`.
+  item with no effects) and its rarity's `Budget` of points (14 for a unique). `GearInstance` is one a character owns: `{InstanceId, Gear}`.
 - `Deck`: `{Main: [{Name, Count}], Ante: [{Name, Count}], AnteValue}`. The main deck holds the basic lands too, which
   are free (any number of a basic land of the character's identity, and Wastes) and never in the collection; the ante
   holds no basic land and no relic, and the main deck at most one copy of a relic. Every other copy in the deck and the
@@ -527,7 +530,8 @@ player with no character is 404 `NoCharacter`.
   log not accepted are `lost`, with the reason in `Detail`. A win's `Gold` is rolled from the mob's gold range and paid at
   once; `Offer` is up to three different cards of the mob's loot, each with its list price (`Gold`) and within `Cap`
   (none with an empty ante): what the `loot` screen shows; `Gear` is the gear item a win dropped (`GearInstance`, or
-  null). `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
+  null), already the character's: 10, 15, 20 or 30 wins in a hundred by tier, common in tiers 1 and 2, uncommon in 3, rare
+  in 4; a boss always drops its unique. `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
   other win and every loss. A win against a boss rolls, at its chance, each relic whose entry names that boss and that is
   not in the account's relic ledger. The roll is apart from the offer and outside the cap. Each relic that comes up is
   added to the collection and to the ledger in the same transaction as the win. A loss moves the character to their inn
@@ -554,7 +558,8 @@ player with no character is 404 `NoCharacter`.
   reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
   the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
   {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
-  their logs, so the card layer's stand-in counts as a win. Never in production.
+  their logs, so the card layer's stand-in counts as a win; and `POST /dev/drop {Gear}` (`true`, `false`, or null for the
+  dice again) decides whether the player's gear rolls, a win's and a chest's, come up. Never in production.
 
 ## The card layer (`window.postMessage`)
 

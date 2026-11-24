@@ -13,7 +13,8 @@ Writes:
                                                            its parameter range (FAMILY_CASES below)
     scenarios/realm-gear-item-<item>.cantrip                one per item with effects: deals its emblem and sees its first
                                                            effect act
-and rewrites each item's `text` (its stat lines, then its effects' texts) where it differs.
+and rewrites each item's `text` (its stat lines, then its effects' texts) and `points` (its stats' and effects' points,
+refunds subtracted: what the gear screen shows against its rarity's budget) where they differ.
 
 The families themselves are `crates/cantrip-cards/src/cards/realm_gear.rs`; this file knows each one's text, parameters,
 slots and points (gear.md's table) and how to call it. An item is refused - the run fails and writes nothing - if an
@@ -390,8 +391,8 @@ def build():
             problems.append(f"{source}: {problem}")
             continue
         text = "\n".join(lines + [e[0] for e in effects])
-        if item.get("text") != text:
-            texts[path] = text
+        if item.get("text") != text or item.get("points") != points:
+            texts[path] = (text, points)
         if effects:
             name = f"{item['name']} (gear)"
             emblems.add(name)
@@ -433,12 +434,16 @@ def main():
             if not check:
                 with open(path, "w", encoding="utf-8", newline="\n") as f:
                     f.write(content)
-    for path, text in texts.items():
+    for path, (text, points) in texts.items():
         changed.append(path)
         if not check:
             with open(path, encoding="utf-8") as f:
                 item = json.load(f)
             item["text"] = text
+            # The points stand after the gold: what an item costs in gold, then in its rarity's budget.
+            fields = [(k, v) for k, v in item.items() if k != "points"]
+            at = next((i + 1 for i, (k, _) in enumerate(fields) if k == "gold"), len(fields))
+            item = dict(fields[:at] + [("points", points)] + fields[at:])
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(item, indent=2, ensure_ascii=False) + "\n")
     for path in stale:

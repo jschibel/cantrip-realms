@@ -4,6 +4,7 @@
   "slot": "body",
   "rarity": "common",
   "gold": 250,
+  "points": 2,
   "stats": {
     "life": 2,
     "hand": 0,

@@ -388,6 +388,7 @@ public sealed partial class RealmContent
             if (!GearSlots.Contains(item.Slot)) problems.Add($"{file}: slot '{item.Slot}' is none of {string.Join(", ", GearSlots)}.");
             if (!Rarities.Contains(item.Rarity)) problems.Add($"{file}: rarity '{item.Rarity}' is none of {string.Join(", ", Rarities)}.");
             if (item.Gold <= 0) problems.Add($"{file}: an item's gold is more than nothing.");
+            if (item.Points > item.Budget) problems.Add($"{file}: {item.Points} points is over its budget of {item.Budget} (tools/realms/gear-cards.py writes them).");
             if (string.IsNullOrWhiteSpace(item.Look.Mesh)) problems.Add($"{file}: no look.");
             if (item.Emblem is { } emblem && !emblems.Add(emblem)) problems.Add($"{file}: a second item makes the emblem '{emblem}'.");
             foreach (JsonElement effect in item.Effects)

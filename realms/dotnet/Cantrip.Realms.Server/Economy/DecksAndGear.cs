@@ -34,6 +34,29 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
         return new DeckView([.. main.Where(card => card.Count > 0).OrderBy(card => card.Name, StringComparer.Ordinal)], anteList, AnteValue(anteList));
     }
 
+    /// <summary>
+    /// Everything a character owns of cards (<c>GET /api/inventory</c>): each card of the collection, by name, with how many,
+    /// its list price (0 for a card with none), how many copies the deck and the ante use, and whether it is a relic; and what
+    /// the collection is worth at list price. Their gear is the <c>Character</c>'s.
+    /// </summary>
+    public async Task<InventoryView> Inventory(string player)
+    {
+        await characters.Require(player).ConfigureAwait(false);
+        Dictionary<string, int> deck = await db.Deck.AsNoTracking().Where(row => row.PlayerId == player)
+            .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
+        Dictionary<string, int> ante = await db.Ante.AsNoTracking().Where(row => row.PlayerId == player)
+            .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
+        List<CollectionRow> owned = await db.Collection.AsNoTracking().Where(row => row.PlayerId == player && row.Count > 0).ToListAsync().ConfigureAwait(false);
+        List<InventoryCard> cards = [.. owned.OrderBy(row => row.Name, StringComparer.Ordinal).Select(row => new InventoryCard(
+            row.Name,
+            row.Count,
+            content.Cards.Price(row.Name) ?? 0,
+            deck.GetValueOrDefault(row.Name),
+            ante.GetValueOrDefault(row.Name),
+            content.Cards.IsRelic(row.Name)))];
+        return new InventoryView(cards, cards.Sum(card => card.Gold * card.Count));
+    }
+
     /// <summary>What an ante is worth: the sum of its cards' list prices (design.md A2).</summary>
     public long AnteValue(IEnumerable<CardCount> ante) => ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count);
 

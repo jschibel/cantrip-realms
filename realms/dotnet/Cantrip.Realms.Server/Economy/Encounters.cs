@@ -39,7 +39,10 @@ public sealed class Encounters(
     /// <summary>How many cards a win offers.</summary>
     public const int Offered = 3;
 
-    /// <summary>The chance, in percent, of a gear drop on a win, by tier (design.md A3); a boss always drops one.</summary>
+    /// <summary>
+    /// The chance, in percent, of a gear drop on a win, by tier (design.md A3), rolled with <see cref="RealmDice.Roll"/>; a
+    /// boss always drops one.
+    /// </summary>
     public static IReadOnlyDictionary<int, int> GearChance { get; } = new Dictionary<int, int> { [1] = 10, [2] = 15, [3] = 20, [4] = 30 };
 
     private static readonly JsonSerializerOptions Json = new();
@@ -235,7 +238,7 @@ public sealed class Encounters(
         Mob mob = content.Mobs[duel.Mob];
         long gold = dice.Between(mob.File.GoldRange[0], mob.File.GoldRange[1]);
         List<string> offer = Offer(mob, duel.Cap);
-        GearItem? drop = mob.File.Boss || dice.Chance(GearChance.GetValueOrDefault(mob.File.Tier)) ? Drop(mob) : null;
+        GearItem? drop = mob.File.Boss || (devVerdicts.GearRoll(player) ?? dice.Roll(GearChance.GetValueOrDefault(mob.File.Tier) / 100.0)) ? Drop(mob) : null;
 
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
         if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Open)

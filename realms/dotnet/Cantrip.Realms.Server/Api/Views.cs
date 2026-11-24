@@ -46,6 +46,12 @@ public sealed record NewCharacter(string? Name, string? Body, int Palette, strin
 
 public sealed record CollectionView(IReadOnlyDictionary<string, int> Cards);
 
+/// <summary>A card of the collection as the inventory shows it: how many, its list price, the copies the deck and the ante use, whether it is a relic.</summary>
+public sealed record InventoryCard(string Name, int Count, long Gold, int Deck, int Ante, bool Relic);
+
+/// <summary>The collection card by card (<c>GET /api/inventory</c>), and what it is worth at list price.</summary>
+public sealed record InventoryView(IReadOnlyList<InventoryCard> Cards, long Value);
+
 public sealed record CardCount(string Name, int Count);
 
 /// <summary>A deck and its ante, and what the ante is worth.</summary>
@@ -117,8 +123,8 @@ public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
 
 public sealed record ChestOpen(string? Space, string? Chest);
 
-/// <summary>What a chest held, and the character's gold with it.</summary>
-public sealed record ChestView(long Gold, long Found);
+/// <summary>What a chest held - its gold, and a gear item now theirs or null - and the character's gold with it.</summary>
+public sealed record ChestView(long Gold, long Found, GearInstance? Gear = null);
 
 /// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a tile of it, x east and z south.</summary>
 public sealed record PlaceView(string Space, int X, int Z);

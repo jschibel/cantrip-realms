@@ -15,6 +15,9 @@ namespace Cantrip.Realms.Server;
 /// as a test arranges where it starts; 422 <c>NoSuchPlace</c> for any other.</item>
 /// <item><c>POST /dev/verdict {Outcome}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>, instead
 /// of replaying their logs on the engine, so a stand-in card layer's win counts; <c>null</c> replays them again.</item>
+/// <item><c>POST /dev/drop {Gear}</c> decides the signed-in player's gear rolls - a win's and a chest's (design.md A3, A5):
+/// <c>true</c> every one comes up, <c>false</c> none does, <c>null</c> the dice decide again. Which item drops is still the
+/// dice's.</item>
 /// </list>
 /// </summary>
 public static class DevApi
@@ -75,19 +78,39 @@ public static class DevApi
 
             return Results.Ok(new { });
         });
+
+        dev.MapPost("/drop", (HttpContext context, DevVerdicts verdicts, DevDrop body) =>
+        {
+            verdicts.SetGearRoll(RealmSignIn.PlayerId(context)!, body.Gear);
+            return Results.Ok(new { });
+        });
     }
 
     /// <summary><c>POST /dev/verdict</c>'s body.</summary>
     public sealed record DevVerdict(string? Outcome);
+
+    /// <summary><c>POST /dev/drop</c>'s body.</summary>
+    public sealed record DevDrop(bool? Gear);
 }
 
 /// <summary>
 /// The verdicts <c>POST /dev/verdict</c> has set, by player: empty unless a development server's test set one, and then
-/// <see cref="Encounters.Finish"/> takes it in place of the verifier's.
+/// <see cref="Encounters.Finish"/> takes it in place of the verifier's. And the gear rolls <c>POST /dev/drop</c> decided.
 /// </summary>
 public sealed class DevVerdicts
 {
     private readonly ConcurrentDictionary<string, bool> _won = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, bool> _gear = new(StringComparer.Ordinal);
+
+    /// <summary>Decides a player's gear rolls: every one comes up, none does, or (null) the dice's again.</summary>
+    public void SetGearRoll(string player, bool? comesUp)
+    {
+        if (comesUp is { } decided) _gear[player] = decided;
+        else _gear.TryRemove(player, out _);
+    }
+
+    /// <summary>How a player's gear roll comes out when a test decided it; null when the dice decide.</summary>
+    public bool? GearRoll(string player) => _gear.TryGetValue(player, out bool comesUp) ? comesUp : null;
 
     public void Set(string player, bool won) => _won[player] = won;
 

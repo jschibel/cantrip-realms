@@ -4,6 +4,7 @@
   "slot": "relic",
   "rarity": "uncommon",
   "gold": 1500,
+  "points": 3,
   "stats": {
     "life": 0,
     "hand": 0,

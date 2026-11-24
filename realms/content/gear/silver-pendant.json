@@ -4,6 +4,7 @@
   "slot": "neck",
   "rarity": "uncommon",
   "gold": 1000,
+  "points": 4,
   "stats": {
     "life": 0,
     "hand": 0,

@@ -4,6 +4,7 @@
   "slot": "feet",
   "rarity": "rare",
   "gold": 3600,
+  "points": 7,
   "stats": {
     "life": 7,
     "hand": 0,
