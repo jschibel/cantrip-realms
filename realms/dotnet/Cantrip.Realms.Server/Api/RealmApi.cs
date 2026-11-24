@@ -46,10 +46,7 @@ public static class RealmApi
 
         // Every card the engine plays as printed, with its legalities and color identity: the card layer's faces, as the deck
         // site's catalog is the deck editor's (MessagePack, the protocol's own CardCatalogView). The same for everyone, so made once.
-        var catalog = new Lazy<byte[]>(() => MessagePackSerializer.Serialize(new CardCatalogView
-        {
-            Cards = [.. app.ServiceProvider.GetRequiredService<RealmContent>().Cards.Catalog.Values.OrderBy(card => card.Name, StringComparer.Ordinal)],
-        }));
+        var catalog = new Lazy<byte[]>(() => Catalog(app.ServiceProvider.GetRequiredService<RealmContent>()));
         api.MapGet("/catalog", () => Results.Bytes(catalog.Value, "application/x-msgpack"));
 
         api.MapGet("/collection", async (HttpContext context, Characters characters) =>
@@ -129,5 +126,15 @@ public static class RealmApi
 
         api.MapPost("/waystone", async (HttpContext context, Dungeons dungeons, WaystoneTravel body) =>
             Results.Ok(await dungeons.Travel(Player(context), body).ConfigureAwait(false)));
+    }
+
+    /// <summary>Every card the engine plays as printed, with the realm's legality and identity: <c>/api/catalog</c>'s body.</summary>
+    public static byte[] Catalog(RealmContent content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return MessagePackSerializer.Serialize(new CardCatalogView
+        {
+            Cards = [.. content.Cards.Catalog.Values.OrderBy(card => card.Name, StringComparer.Ordinal)],
+        });
     }
 }

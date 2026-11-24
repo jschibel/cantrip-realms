@@ -1,3 +1,4 @@
+using Cantrip.Art;
 using Cantrip.Realms.Server.Auth;
 using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Data;
@@ -22,6 +23,7 @@ public static class RealmServer
         services.AddSingleton<IDuelVerifier>(_ => new NativeDuelVerifier());
         services.AddSingleton<PresenceHub>();
         services.AddSingleton<DevVerdicts>();
+        services.AddSingleton<DevDuels>();
         options.Database.Register(services);
         services.AddScoped<Characters>();
         services.AddScoped<DecksAndGear>();
@@ -84,5 +86,9 @@ public static class RealmServer
         app.MapRealmApi();
         app.MapRealmDevApi(options);
         app.MapPresence();
+        if (options.Art is { } art)
+        {
+            app.MapCardArt(new ArtStore(new ArtStoreOptions { ContentRoot = art, CacheDirectory = options.ArtCache }));
+        }
     }
 }

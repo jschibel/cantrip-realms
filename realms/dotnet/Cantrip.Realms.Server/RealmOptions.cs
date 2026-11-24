@@ -25,6 +25,10 @@ namespace Cantrip.Realms.Server;
 /// REALMS_WALKING_SPEED           the fastest walk presence relays, in tiles a second; 5 by default
 /// REALMS_INSTANCE_SIZE           the most players in one layer of an area of the world, or one instance of an interior;
 ///                                40 by default (design.md A6)
+/// REALMS_ART                     a content folder whose datasets hold card illustrations (&lt;dataset&gt;/images, as
+///                                fetch-card-art leaves them): served at /art/{size}/{slug}.webp, for local play; a
+///                                deployed realm's art is on the CDN instead (tech.md B8)
+/// REALMS_ART_CACHE               where the art's sizes are kept once made; a folder in the temporary directory by default
 /// CANTRIP_NATIVE_HOST            the native engine host that checks duels (cantrip-rs's own setting)
 /// </code>
 /// ASP.NET Core's own (<c>ASPNETCORE_URLS</c>, <c>ASPNETCORE_ENVIRONMENT</c>) work as they always do.
@@ -73,6 +77,12 @@ public sealed class RealmOptions
     /// <summary>The most players one layer of an area of the world, or one instance of an interior, holds (design.md A6).</summary>
     public int InstanceSize { get; init; } = 40;
 
+    /// <summary>A content folder with card illustrations to serve at <c>/art</c> (REALMS_ART), or null to serve none.</summary>
+    public string? Art { get; init; }
+
+    /// <summary>Where the art's sizes are kept once made (REALMS_ART_CACHE).</summary>
+    public string ArtCache { get; init; } = Path.Combine(Path.GetTempPath(), "cantrip-realms-art");
+
     /// <summary>Reads the options from configuration, whose environment variables are <c>REALMS_*</c>.</summary>
     public static RealmOptions From(IConfiguration configuration)
     {
@@ -95,6 +105,8 @@ public sealed class RealmOptions
             InstanceSize = Setting("INSTANCE_SIZE") is { } size ? int.Parse(size, System.Globalization.CultureInfo.InvariantCulture) : 40,
             StartTown = Setting("START_TOWN") ?? "new-benalia",
             Places = Setting("PLACES"),
+            Art = Setting("ART"),
+            ArtCache = Setting("ART_CACHE") ?? Path.Combine(Path.GetTempPath(), "cantrip-realms-art"),
         };
     }
 

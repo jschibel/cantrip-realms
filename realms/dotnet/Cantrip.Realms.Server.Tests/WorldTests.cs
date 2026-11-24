@@ -114,6 +114,64 @@ public sealed class PlacesTests
     }
 
     [Fact]
+    public async Task A_development_server_deals_a_players_duels_with_the_seats_a_test_forces()
+    {
+        // POST /dev/duel, for the end-to-end suites' forced positions: the duel is committed with the seats changed, for
+        // this player alone, until cleared.
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1);
+        Browser other = await app.Character(2);
+        MapSpawn spawn = RealmApp.SpawnOf(1);
+        async Task<Duel> Deal(Browser who)
+        {
+            await who.Put(World, spawn.At);
+            app.Time.Advance(TimeSpan.FromSeconds(spawn.RespawnSeconds));
+            string mob = Spawns.MobOf(who.Player, World, spawn.Id, Spawns.Epoch(app.Time.GetUtcNow().ToUnixTimeSeconds(), spawn.RespawnSeconds), spawn.Mobs);
+            EncounterView encounter = await who.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/start", new { Spawn = spawn.Id, Mob = mob });
+            await RealmApp.Finish(who, encounter.Token);
+            return encounter.Duel;
+        }
+
+        Duel plain = await Deal(browser);
+        await browser.Ok<object>(HttpMethod.Post, "/dev/duel", new { Player = new { StartingHandSize = 5 }, Mob = new { StartingLife = 0, Deck = Enumerable.Repeat("Plains", 40) } });
+        Duel forced = await Deal(browser);
+        Assert.Equal(plain.Seats[0] with { StartingHandSize = 5 }, forced.Seats[0], SeatComparer.Instance);
+        Assert.Equal(0, forced.Seats[1].StartingLife);
+        Assert.Equal(Enumerable.Repeat("Plains", 40), forced.Seats[1].Deck);
+        Assert.Equal(20, (await Deal(other)).Seats[1].StartingLife);
+
+        await browser.Ok<object>(HttpMethod.Post, "/dev/duel", new { Player = (object?)null, Mob = (object?)null });
+        Assert.Equal(plain.Seats[0], (await Deal(browser)).Seats[0], SeatComparer.Instance);
+    }
+
+    /// <summary>Seats compared by what they say, their lists by their items.</summary>
+    private sealed class SeatComparer : IEqualityComparer<DuelSeat>
+    {
+        public static readonly SeatComparer Instance = new();
+
+        public bool Equals(DuelSeat? x, DuelSeat? y) =>
+            x is not null && y is not null && x.Name == y.Name && x.Deck.SequenceEqual(y.Deck) && x.StartingLife == y.StartingLife
+            && x.StartingHandSize == y.StartingHandSize && x.MaximumHandSize == y.MaximumHandSize && x.Emblems.SequenceEqual(y.Emblems);
+
+        public int GetHashCode(DuelSeat obj) => obj.Name.GetHashCode(StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task A_development_server_signs_in_from_a_browser_and_goes_on_to_the_world()
+    {
+        await using var app = new RealmApp();
+        HttpClient client = app.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        using HttpResponseMessage form = await client.GetAsync(new Uri("/dev/signin", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, form.StatusCode);
+        Assert.Contains("<form", await form.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        using HttpResponseMessage signedIn = await client.GetAsync(new Uri("/dev/signin?id=7&name=Ann", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.Redirect, signedIn.StatusCode);
+        Assert.Equal("/home", signedIn.Headers.Location?.OriginalString);
+        Assert.Contains(signedIn.Headers.GetValues("Set-Cookie"), cookie => cookie.StartsWith("cantrip.signin=", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task A_building_is_entered_through_its_door_and_left_through_it()
     {
         await using var app = new RealmApp();

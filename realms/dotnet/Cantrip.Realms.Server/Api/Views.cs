@@ -115,9 +115,9 @@ public sealed record OfferedCard(string Name, long Gold);
 /// <summary>
 /// How a duel ended: <c>won</c> or <c>lost</c>; the gold a win paid; the cards offered, each with its list price, and the cap
 /// their picks fit under; a gear item that dropped; the relics that dropped, already in the collection (design.md A3a); and,
-/// for a duel counted as lost without being played out, why.
+/// for a duel counted as lost without being played out, why; and for a loss, the ante card it cost, if the ante held one.
 /// </summary>
-public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, IReadOnlyList<string> Relics, string? Detail);
+public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, IReadOnlyList<string> Relics, string? Detail, string? Lost = null);
 
 public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
 

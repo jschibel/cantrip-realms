@@ -33,6 +33,8 @@
     <!-- Dealing a duel on the native engine behind a GameSession, and the deck catalog. -->
     <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Server\Cantrip.Server.csproj" />
     <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Client.Embedded\Cantrip.Client.Embedded.csproj" />
+    <!-- Card art for local play (REALMS_ART): the table host's own art service. -->
+    <ProjectReference Include="..\..\..\dotnet\src\Cantrip.Art\Cantrip.Art.csproj" />
   </ItemGroup>
 
 </Project>

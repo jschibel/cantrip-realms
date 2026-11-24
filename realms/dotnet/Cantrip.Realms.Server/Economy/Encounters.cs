@@ -25,7 +25,8 @@ public sealed class Encounters(
     IDuelVerifier verifier,
     RealmDice dice,
     TimeProvider time,
-    DevVerdicts devVerdicts)
+    DevVerdicts devVerdicts,
+    DevDuels devDuels)
 {
     /// <summary>How far past its wander radius a mob gives chase (design.md A6).</summary>
     public const int ChaseRadius = 6;
@@ -74,8 +75,9 @@ public sealed class Encounters(
         CharacterView character = await characters.View(player).ConfigureAwait(false);
         long seed = dice.Seed();
         long cap = Math.Min(deck.AnteValue, mob.File.Prize);
+        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck), MobSeat(mob));
         var duel = new Duel(
-            [PlayerSeat(character, deck), MobSeat(mob)],
+            [seat1, seat2],
             Duel.RealmMinimumDeckSize,
             seed,
             new DuelMob(mob.File.Name, mob.File.Boss ? 0 : mob.File.Tier, mob.File.Prize),
@@ -220,8 +222,9 @@ public sealed class Encounters(
 
         if (Now - duel.StartedAt > (long)Abandoned.TotalMilliseconds)
         {
-            if (!await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, [], duel.Detail);
+            (bool ended, string? gone) = await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false);
+            if (!ended) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
+            return new OutcomeView("lost", 0, [], duel.Cap, null, [], duel.Detail, gone);
         }
 
         Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
@@ -231,8 +234,9 @@ public sealed class Encounters(
         if (!verdict.PlayerWon)
         {
             string detail = verdict.Accepted ? (verdict.Winners.Count == 0 ? "A draw." : "The mob won.") : $"The log was not a game of this duel: {verdict.Problem}";
-            if (!await Lose(duel, detail).ConfigureAwait(false)) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, [], detail);
+            (bool ended, string? gone) = await Lose(duel, detail).ConfigureAwait(false);
+            if (!ended) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
+            return new OutcomeView("lost", 0, [], duel.Cap, null, [], detail, gone);
         }
 
         Mob mob = content.Mobs[duel.Mob];
@@ -400,8 +404,8 @@ public sealed class Encounters(
     /// A lost duel (design.md A3): a card of the ante it was fought for, chosen uniformly among its copies, is gone from the
     /// collection and the ante; and the character wakes at the nearest inn. Gold is kept.
     /// </summary>
-    /// <returns>Whether this call ended the duel; false if it had ended already.</returns>
-    private async Task<bool> Lose(DuelRow duel, string detail)
+    /// <returns>Whether this call ended the duel - false if it had ended already - and the ante card lost, if any.</returns>
+    private async Task<(bool Ended, string? Lost)> Lose(DuelRow duel, string detail)
     {
         string player = duel.PlayerId;
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
@@ -411,7 +415,7 @@ public sealed class Encounters(
                 .SetProperty(row => row.FinishedAt, Now)
                 .SetProperty(row => row.Detail, detail)).ConfigureAwait(false) != 1)
         {
-            return false;
+            return (false, null);
         }
 
         duel.State = DuelRow.Lost;
@@ -423,9 +427,10 @@ public sealed class Encounters(
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
         List<string> tickets = [.. ante.Where(card => !content.Cards.IsRelic(card.Name))
             .SelectMany(card => Enumerable.Repeat(card.Name, Math.Min(card.Count, owned.GetValueOrDefault(card.Name))))];
+        string? lost = null;
         if (tickets.Count > 0)
         {
-            string lost = tickets[dice.Below(tickets.Count)];
+            lost = tickets[dice.Below(tickets.Count)];
             await characters.AddToCollection(player, lost, -1).ConfigureAwait(false);
             AnteRow? anted = await db.Ante.SingleOrDefaultAsync(row => row.PlayerId == player && row.Name == lost).ConfigureAwait(false);
             if (anted is not null)
@@ -455,7 +460,7 @@ public sealed class Encounters(
 
         await db.SaveChangesAsync().ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
-        return true;
+        return (true, lost);
     }
 
     private async Task<DuelRow> Owned(string player, string? token) =>

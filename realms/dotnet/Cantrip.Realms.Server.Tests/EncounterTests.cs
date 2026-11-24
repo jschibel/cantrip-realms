@@ -278,13 +278,15 @@ public sealed class EncounterTests
         Assert.Equal(0, lost.Gold);
         Assert.Empty(lost.Offer);
 
-        await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
+        string gone = await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
+        Assert.Equal(gone, lost.Lost);
         CharacterView me = await browser.Me();
         Assert.Equal(gold, me.Gold);
         Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
     }
 
-    private static async Task AssertOneAnteCardLost(Browser browser, IReadOnlyDictionary<string, int> before, string[] anted)
+    /// <summary>Asserts one card of the ante went from the collection and the ante, and says which.</summary>
+    private static async Task<string> AssertOneAnteCardLost(Browser browser, IReadOnlyDictionary<string, int> before, string[] anted)
     {
         IReadOnlyDictionary<string, int> after = await browser.Collection();
         Assert.Equal(before.Values.Sum() - 1, after.Values.Sum());
@@ -292,6 +294,7 @@ public sealed class EncounterTests
         Assert.Contains(gone, anted);
         DeckView deck = await browser.Deck();
         Assert.Equal(anted.Length == 0 ? 0 : 2, deck.Ante.Sum(card => card.Count));
+        return gone;
     }
 
     [Fact]

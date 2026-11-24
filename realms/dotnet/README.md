@@ -16,6 +16,9 @@ packages, each pinned exactly.
 
 ## Run it locally
 
+To play, `tools\realms\play.cmd` builds and starts everything - this server, the card layer and the overworld - and
+opens the browser signed in (`realms/docs/tech.md`, "Playing it locally"). The server alone:
+
 From the repository root, with the .NET 10 SDK:
 
 ```
