@@ -708,6 +708,8 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
   steps over a ledge or cuts the corner of a blocked tile or a ledge (Places, "Walking"); that is walked faster than
   walking allows (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256
   steps, or comes more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
+  The overworld then tells the grid's way from `At` to where its figure stands (24 steps at most) at the fastest, rather
+  than snapping the figure back; only where there is none, or that is refused too, does it stand the figure on `At`.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
   and for loadout slots only a gear mesh (Models, `RealmContent.GearMeshes`) and up to eight `#rrggbb` colors.
 - The overworld reports where it is (`/api/position`) before it sends `Enter` for a space, so the server knows it is there.

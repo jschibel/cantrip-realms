@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tile } from "../world/grid";
-import { MAX_SPEED, MOVE_GAP, type Move, WalkRelay } from "./relay";
+import { CATCH_UP, MAX_SPEED, MOVE_GAP, type Move, WalkRelay } from "./relay";
 
 const open = () => true;
 
@@ -148,5 +148,34 @@ describe("the walks told to the relay", () => {
     relay.walk([{ x: 6, z: 5 }], 4.2, open, 1);
     expect(sent.at(-1)!.From).toEqual([5, 5]);
     expect(relay.where).toEqual({ x: 5, z: 5 });
+  });
+
+  it("after a refusal, tell the server the way to where the player stands, and the walks go on from it", () => {
+    const { relay, server, tick } = rig(40);
+    relay.stand({ x: 0, z: 0 }, 4.2);
+    tick(200);
+    // The server put the player back on (0, 0) (a reconnection, say) while they walked on to (4, 0).
+    for (let x = 0; x <= 4; x++) relay.on({ x, z: 0 });
+    const way = Array.from({ length: 5 }, (_, x) => ({ x, z: 0 }));
+    expect(relay.catchUp(way, { x: 4, z: 0 })).toBe(true);
+    // Refused again straight away: no second way told; the page stands the figure where the server says.
+    expect(relay.catchUp(way, { x: 4, z: 0 })).toBe(false);
+    tick(MOVE_GAP);
+    // On east as before, joined on to the way told.
+    for (let x = 5; x <= 8; x++) {
+      relay.on({ x, z: 0 });
+      relay.walk([], 4.62, open);
+      tick(MOVE_GAP);
+    }
+    tick(3000);
+    expect(server.refused).toEqual([]);
+    expect(server.where(1e12)).toEqual({ x: 8, z: 0 });
+  });
+
+  it("never tells a way to catch up along longer than CATCH_UP", () => {
+    const relay = new WalkRelay(() => {}, () => 5000);
+    relay.stand({ x: 0, z: 0 }, 4.2);
+    const way = Array.from({ length: CATCH_UP + 2 }, (_, x) => ({ x, z: 0 }));
+    expect(relay.catchUp(way, way.at(-1)!)).toBe(false);
   });
 });

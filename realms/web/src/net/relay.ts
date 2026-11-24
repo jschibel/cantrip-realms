@@ -10,6 +10,12 @@ import type { Tile } from "../world/grid";
 // slower than the clock) - to the last tile the player passed that is on it, along the tiles passed since to where the
 // player stands, then on ahead. However far the server runs behind, no walk starts anywhere but where it
 // has the player. Walks are told at most one each MOVE_GAP; one wanted in between waits for the next.
+//
+// Should the server still refuse one (it had the player somewhere else: a reconnection entered them where they last
+// reported standing, a report that never arrived), its refusal says where it has them, and the relay tells it the way
+// from there to where the player stands (`catchUp`), at the fastest, so it catches up and the figure is never snapped
+// back in plain sight. Only a way too long, or a second refusal straight after, leaves the page to stand the figure
+// where the server says.
 
 /** The fastest walk the server takes, tiles a second (REALMS_WALKING_SPEED). */
 export const MAX_SPEED = 5;
@@ -17,6 +23,10 @@ export const MAX_SPEED = 5;
 export const MOVE_GAP = 150;
 /** How long a walk told takes to reach the server, milliseconds: where it has the player is worked out this far back. */
 const LATENCY = 60;
+/** The longest way the server is told to catch up along, steps. */
+export const CATCH_UP = 24;
+/** How long after catching up a refusal means the way was refused too, milliseconds. */
+const CAUGHT_UP = 1000;
 
 export interface Move {
   readonly From: readonly [number, number];
@@ -36,6 +46,7 @@ const stepLength = (a: Tile, b: Tile) => (a.x !== b.x && a.z !== b.z ? Math.SQRT
 export class WalkRelay {
   private told: Told | null = null;
   private last = -Infinity;
+  private caughtUp = -Infinity;
   /** The tiles the player has come onto since the last walk told, each a step from the one before, the last stood on. */
   private passed: Tile[] = [];
 
@@ -100,6 +111,20 @@ export class WalkRelay {
   placed(at: Tile): void {
     this.passed = [at];
     this.told = { tiles: [at], speed: 0, at: this.now() };
+  }
+
+  /**
+   * The server refused a walk and has the player at the first tile of `way`, the grid's path from there to `here`, the
+   * tile the player stands on: tells it that way at the fastest, so it catches up. False (nothing told) when the way is
+   * longer than CATCH_UP, or a catch-up was told within CAUGHT_UP (the server refused that too).
+   */
+  catchUp(way: readonly Tile[], here: Tile): boolean {
+    const now = this.now();
+    if (way.length < 1 || way.length - 1 > CATCH_UP || now - this.caughtUp < CAUGHT_UP) return false;
+    this.caughtUp = now;
+    this.passed = [here];
+    this.tell(way, MAX_SPEED);
+    return true;
   }
 
   /**

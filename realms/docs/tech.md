@@ -80,7 +80,10 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   Letting go stops the player where it stands. Doors and gates are entered only by a click, or by holding still on
   them. The tile the game uses (encounters, doors, presence, the server's place) is the one under the body's middle.
   The relay is told the tiles walked as eight-way steps, joined on to where the server has the player
-  (`net/relay.ts`), at most one walk each 150 ms.
+  (`net/relay.ts`), at most one walk each 150 ms. A walk the server still refuses (it had the player elsewhere: a
+  reconnection entered them where they last reported standing) is followed by the grid's way from where it has them to
+  where the figure stands, at the fastest, so the server catches up and the figure is never snapped back; only a way
+  longer than 24 steps, or a refusal of that way too, stands the figure where the server says.
 - **The debug overlay** (F3, or `?debug`; `src/debug.ts`): the place, chunk, the player's exact position, tile and
   floor height, the tile under the pointer (open or closed, its floor), and every jump of the player's figure - a move
   in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also

@@ -1206,11 +1206,17 @@ export class Overworld {
         break;
       }
       case "Refused": {
-        // A walk refused leaves the player where the server says they truly are.
+        // A walk refused says where the server truly has the player. The figure is not snapped back there (a jump in
+        // plain sight): the server is told the way from there to where the figure stands, and catches up (net/relay.ts
+        // `catchUp`). Only where there is no such way, or catching up was refused too, is the figure stood there.
         this.refusals.push(message.Reason);
         if (message.At.length !== 2) break;
         const at = { x: message.At[0]!, z: message.At[1]! };
-        if (this.spot.grid.walkable(at.x, at.z)) this.player.place(at);
+        const grid = this.spot.grid;
+        const here = this.player.tile;
+        const way = grid.walkable(at.x, at.z) && grid.walkable(here.x, here.z) ? grid.path(at, here) : null;
+        if (way && this.relay.catchUp(way, here)) break;
+        if (grid.walkable(at.x, at.z)) this.player.place(at);
         this.relay.placed(at);
         break;
       }
