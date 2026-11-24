@@ -89,8 +89,11 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   loading screen (the rooms near the player are built ahead). Leaving reverses it.
 - **Dungeons:** generated in the browser from the run's seed (`src/dungeon/`), one carver per theme on squares, exactly
   the encounters the server's run names (interfaces.md). A run starts at the floor's `arrive`; stepping onto `up`
-  leaves, onto `down` descends once the warden is beaten, onto `wayOut` leaves after the boss. Single-player, never
-  replicated.
+  leaves, onto `down` descends once the warden is beaten, onto `wayOut` leaves after the boss (or at once, when the boss
+  rests this week and its hall is empty). Single-player, never replicated. A page opened on a character in a live run
+  resumes it (`GET /api/dungeon/run`) on the floor reached, its beaten mobs gone. A boss beaten opens its moment over the
+  world (`screens/bossBeaten.ts`: the color unlocked, the five pips, the gift, the unique item), and the HUD's pip for
+  the color lights.
 - **Figures:** the player is `playerFigure(appearance)` (body, palette, identity, the looks of what they wear), other
   players `lookFigure(Look, Identity)` from presence, mobs `mobFigure(model, id, creature)`, NPCs `figureSpec(id,
   palette, seed)`. Figures cast as a duel begins and reach out at vendors and doors.
@@ -120,7 +123,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
   (`?server=`), signs in, makes a character, walks New Benalia's streets, goes into a shop and asks for its vendor's
   screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and
-  takes its stair once the warden is beaten, attunes two mage towers by beating their mages and travels between their
+  takes its stair once the warden is beaten, resumes a run after a reload, beats Rofellos (green unlocked, his hall empty
+  for the week after; `bosses.spec.ts`) and plays his duel in the real card layer (won from a forced position, lost by
+  conceding: the run over, the character at the inn), attunes two mage towers by beating their mages and travels between their
   waystones, has two players see each other walk in the world and in an inn, and plays duels in the real card layer
   whose logs the server replays on the native host: one conceded, and the whole loop won and lost
   (`duel-loop.spec.ts`: the encounter's splash, the game, its end, the server's verdict, then the loot picked within the
