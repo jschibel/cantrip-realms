@@ -2,19 +2,22 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BUILDINGS } from "../../src/art/buildings";
-import { BLOCKED, type BuildingData, type ChunkData, type DungeonData, type InteriorData, type WorldData, frontStep } from "../../src/world/format";
-import { lintRealm } from "../../src/world/lint";
+import { BLOCKED, type BuildingData, type ChunkData, type DungeonData, type InteriorData, type TileData, type TownData, type WorldData, frontStep, isBlocked } from "../../src/world/format";
+import { TOWN_LIMITS, lintRealm, lintTown } from "../../src/world/lint";
+import { inSquare, wayTiles } from "../../src/world/streets";
 import { type Footprint, alongFront, building, frontTile } from "./buildings";
 import { S } from "./ids";
 import { Land, Use, randomFor } from "./land";
 import { checkLayout, readLayout } from "./layout";
 import { Roads } from "./roads";
 import { buildInterior, roomProblems } from "./rooms";
-import { buildTown, safeToBlock } from "./towns";
+import type { Form } from "./layout";
+import { type BuiltTown, type TownSpec, buildTown, safeToBlock } from "./towns";
 import { tierOfDistance } from "./zones";
 
-// The world generator's parts on small grounds of their own: buildings' fronts and doors, a town laid out on open land,
-// roads, the tiers, the rooms; and the realm lint catching each kind of fault in the generated Dominaria.
+// The world generator's parts on small grounds of their own: buildings' fronts and doors, a town laid out on open land
+// and one of each street plan (a grid, rings, a ladder), roads, the tiers, the rooms; and the realm lint catching each
+// kind of fault in the generated Dominaria, its towns' streets too.
 
 /** Open grass, `w` by `d`. */
 function meadow(w: number, d: number): Land {
@@ -136,6 +139,99 @@ describe("a town", () => {
   });
 });
 
+/** A town of a form on open grass of its own, with roads arriving from the north and the east. */
+function townOf(form: Form, kind: "capital" | "town" | "village", radius: number): { land: Land; town: BuiltTown } {
+  const size = radius * 2 + 60;
+  const land = meadow(size, size);
+  const c = size / 2;
+  const spec: TownSpec = {
+    plan: {
+      id: `test-${form}`,
+      name: `Test ${form}`,
+      kind,
+      form,
+      region: "benalia",
+      style: form === "elfhame" ? "llanowar" : form === "clan" ? "keldon" : "benalish",
+      at: [c, c],
+      radius,
+      inn: "The Test",
+      innkeeper: ["Hello."],
+      board: ["Wanted."],
+      folk: [{ name: "Ada", text: ["Hi."] }],
+      centrepiece: "well",
+      start: false,
+      temple: "The Temple",
+      guild: "The Guild",
+    },
+    index: 0,
+    color: "W",
+    targets: [
+      { id: "north", at: [c + 6, 0] },
+      { id: "east", at: [size - 1, c - 4] },
+    ],
+    vendors: [{ id: "a-vendor", name: "A's Wares" }],
+    exotic: null,
+  };
+  return { land, town: buildTown(land, spec, 11) };
+}
+
+describe("a town's streets", () => {
+  const cases: [Form, "capital" | "town" | "village", number, string][] = [
+    ["city", "town", 50, "a grid"],
+    ["clan", "town", 50, "rings"],
+    ["elfhame", "village", 24, "a small ring"],
+    ["village", "village", 24, "a ladder"],
+  ];
+  for (const [form, kind, radius, what] of cases) {
+    it(`are planned whole and lint clean: ${what} (${form})`, () => {
+      const { land, town } = townOf(form, kind, radius);
+      const plan = town.data.plan!;
+      expect(lintTown(town.data, (x, z) => land.inside(x, z) && land.open(land.idx(x, z)), town.buildings)).toEqual([]);
+      // Every way paved; no way ends but at a gate (the road goes on) or in a square.
+      const ends = new Map<number, number>();
+      for (const w of plan.ways) {
+        for (const n of [w.a, w.b]) ends.set(n, (ends.get(n) ?? 0) + 1);
+        for (const [x, z] of wayTiles(plan, w)) if (land.town[land.idx(x, z)] !== 0 && land.use[land.idx(x, z)] !== Use.Wall) expect([Use.Street, Use.Kept, Use.Door]).toContain(land.use[land.idx(x, z)]);
+      }
+      for (const [n, count] of ends) {
+        const [x, z] = plan.nodes[n]!;
+        if (count === 1) expect(plan.gates.includes(n) || plan.squares.some((s) => inSquare(s, x, z)), `the way ending at ${x},${z}`).toBe(true);
+      }
+      // A gate toward each road, the road's end the plan's gate.
+      expect(plan.gates.length).toBe(town.gates.size);
+      for (const g of town.gates.values()) expect(plan.gates.some((n) => land.idx(plan.nodes[n]![0], plan.nodes[n]![1]) === g)).toBe(true);
+      // The town's own places named: its inn, its shop and its quest board among them, the inn at its door.
+      expect(plan.places.map((p) => p.kind)).toEqual(expect.arrayContaining(["inn", "shop", "quest-board"]));
+      const inn = plan.places.find((p) => p.kind === "inn")!;
+      expect([inn.x, inn.z]).toEqual([town.inn.x, town.inn.z]);
+    });
+  }
+
+  it("lays a grid's streets straight across the town, each gate's way in straight through the wall", () => {
+    const { land, town } = townOf("city", "town", 50);
+    const plan = town.data.plan!;
+    const straight = plan.ways.filter((w) => !w.via && (plan.nodes[w.a]![0] === plan.nodes[w.b]![0] || plan.nodes[w.a]![1] === plan.nodes[w.b]![1]));
+    expect(straight.length / plan.ways.length).toBeGreaterThan(0.6);
+    for (const n of plan.gates) {
+      const way = plan.ways.find((w) => w.a === n || w.b === n)!;
+      const [ax, az] = plan.nodes[way.a]!;
+      const [bx, bz] = plan.nodes[way.b]!;
+      expect(ax === bx || az === bz, `the way in from ${plan.nodes[n]!.join(",")}`).toBe(true);
+    }
+    expect(land.fixtures.filter((p) => p.id === "gatehouse")).toHaveLength(plan.gates.length);
+  });
+
+  it("puts the inn and the shops on the main streets and the square", () => {
+    const { town } = townOf("city", "town", 50);
+    const plan = town.data.plan!;
+    const main = new Set<string>();
+    for (const w of plan.ways) if (w.main) for (const [x, z] of wayTiles(plan, w)) main.add(`${x},${z}`);
+    const onMain = (x: number, z: number) => main.has(`${x},${z}`) || plan.squares.some((s) => inSquare(s, x, z));
+    const shops = plan.places.filter((p) => p.kind === "shop" || p.kind === "inn");
+    expect(shops.filter((p) => !onMain(p.x, p.z))).toEqual([]);
+  });
+});
+
 describe("roads", () => {
   it("join edge to edge, bridge a river and keep it flowing beside the bridge", () => {
     const land = meadow(60, 30);
@@ -213,6 +309,34 @@ describe("the realm lint, on Dominaria made wrong on purpose", () => {
     const ferry = world.ferries[0]!;
     const jumping = { ...world, ferries: [{ ...ferry, lane: [ferry.lane[0]!, ...ferry.lane.slice(3)] }, ...world.ferries.slice(1)] };
     expect(lint(jumping, chunks)).toMatch(/no step of a walk/);
+  });
+
+  it("catches a street ending nowhere, a door off the streets or cut off from them, a long way round between places", () => {
+    const k = world.towns.findIndex((t) => t.id === "capashen-hold");
+    const town = world.towns[k]!;
+    const plan = town.plan!;
+    const withTown = (changed: TownData) => ({ ...world, towns: world.towns.map((t, i) => (i === k ? changed : t)) });
+    // A lane run out from a junction into the yards, 15 tiles, to no door.
+    const from = plan.ways.find((w) => !w.main && !w.via)!.a;
+    const [fx, fz] = plan.nodes[from]!;
+    const spur = { ...plan, nodes: [...plan.nodes, [fx, fz + 15] as const], ways: [...plan.ways, { a: from, b: plan.nodes.length, width: 2 }] };
+    expect(lint(withTown({ ...town, plan: spur }), chunks)).toMatch(/a street ends at .*, at no door, 15 tiles past its last junction/);
+    // A door moved off its street, and a door walled in.
+    const open = new Set<string>();
+    for (const c of chunks) c.tiles.forEach((t, i) => !isBlocked(t) && open.add(`${c.cx * 32 + (i % 32)},${c.cz * 32 + Math.floor(i / 32)}`));
+    const isOpen = (x: number, z: number) => open.has(`${x},${z}`);
+    const buildings = chunks.flatMap((c) => c.buildings);
+    const house = (b: { interior?: string }) => b.interior === "capashen-hold-house-1";
+    const moved = buildings.map((b) => (house(b) ? { ...b, door: [b.x + 1, b.z + 1] as const } : b));
+    expect(lintTown(town, isOpen, moved).join("\n")).toMatch(/town capashen-hold: the door of capashen-hold-.* opens onto no street/);
+    const [hx, hz] = buildings.find(house)!.door!;
+    const walled = chunks.map((c) => ({
+      ...c,
+      tiles: c.tiles.map((t, i): TileData => (Math.max(Math.abs(c.cx * 32 + (i % 32) - hx), Math.abs(c.cz * 32 + Math.floor(i / 32) - hz)) === 1 ? [t[0], t[1], 1] : t)),
+    }));
+    expect(lint(world, walled)).toMatch(/the door of capashen-hold-.* is not walked to along the streets from the gate/);
+    // A tighter limit on the way round than the town keeps.
+    expect(lintTown(town, isOpen, buildings, { ...TOWN_LIMITS, detour: 1.1 }).join("\n")).toMatch(/times the \d+ between them/);
   });
 
   it("catches a pitch outside its town, an interior of the wrong town, a spell-table prop with no NPC", () => {

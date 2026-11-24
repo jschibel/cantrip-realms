@@ -288,6 +288,57 @@ export interface TownData {
   readonly region?: Region;
   readonly start: boolean;
   readonly home?: Region;
+  /** Its street plan, for the maps and the lint (streets.ts). */
+  readonly plan?: TownPlan;
+}
+
+/**
+ * A town's street plan (interfaces.md, "Town plans"): its outline, its streets as a graph - junctions and ends (`nodes`)
+ * joined by `ways` - its squares and plazas, its gates and its key places. A way's tiles are `wayTiles` (streets.ts):
+ * the straight runs from node `a` through its `via` corners to node `b`, each tile widened by a square brush `width`
+ * tiles across. Every street tile of the town is a tile of a way or a square, and every door opens onto one.
+ */
+export interface TownPlan {
+  /** The corners of the town's outline, in order round it: its wall, hedge or edge runs along it. */
+  readonly outline: readonly XZ[];
+  readonly enclosure: "wall" | "palisade" | "hedge" | "none";
+  readonly nodes: readonly XZ[];
+  readonly ways: readonly StreetWay[];
+  readonly squares: readonly TownSquare[];
+  /** Each gate's node: the end of its way out, where a road arrives (or the harbour's quay). */
+  readonly gates: readonly number[];
+  readonly places: readonly TownPlace[];
+}
+
+export interface StreetWay {
+  readonly a: number;
+  readonly b: number;
+  readonly width: number;
+  /** A main street: a gate's way in, the streets round or across the square. */
+  readonly main?: boolean;
+  /** Its corners between `a` and `b`, in order. */
+  readonly via?: readonly XZ[];
+}
+
+/** A square or plaza: `w` by `d` tiles from (x, z), or the ellipse inside them when `round`. */
+export interface TownSquare {
+  readonly x: number;
+  readonly z: number;
+  readonly w: number;
+  readonly d: number;
+  readonly round?: boolean;
+  readonly name?: string;
+}
+
+export const PLACE_KINDS = ["inn", "shop", "exotic-wares", "guildhall", "temple", "library", "tower", "smithy", "shrine", "quest-board", "arena", "pitch"] as const;
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
+/** A place the maps name: the tile of a door leading in, or of what is used from beside it. */
+export interface TownPlace {
+  readonly kind: PlaceKind;
+  readonly name: string;
+  readonly x: number;
+  readonly z: number;
 }
 
 export interface InnData {

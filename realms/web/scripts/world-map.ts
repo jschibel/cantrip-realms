@@ -2,8 +2,8 @@
 // the overworld loads them: the whole of Dominaria a tile a pixel (world.png), the same with each tier's zone tinted and
 // the spawns, waymarkers, dungeons and towers marked (zones.png), and every town close up, four pixels a tile
 // (town-<id>.png) - streets, buildings by footprint with their doors, walls and gates, wares, people - and a stretch of
-// each kind of country (land-<name>.png). The default
-// directory is realms/web/e2e/screenshots/world2/.
+// each kind of country (land-<name>.png). The default directory is realms/web/e2e/screenshots/world2/; `towns` after
+// it draws the towns alone, `crop` a stretch of the world.
 
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -138,15 +138,24 @@ if (process.argv[3] === "crop") {
   writeFileSync(join(out, `crop-${x0}-${z0}.png`), draw(x0!, z0!, x1!, z1!, scale || 3).png());
   process.exit(0);
 }
+/** Every town close up. */
+function towns(): void {
+  for (const t of world.towns) {
+    const r = t.radius + 10;
+    const scale = t.kind === "capital" ? 3 : 4;
+    writeFileSync(join(out, `town-${t.id}.png`), draw(t.center[0] - r, t.center[1] - r, t.center[0] + r + 1, t.center[1] + r + 1, scale).png());
+  }
+}
+// The towns alone: `npm run world:map -- <out-dir> towns`.
+if (process.argv[3] === "towns") {
+  towns();
+  process.exit(0);
+}
 writeFileSync(join(out, "world.png"), draw(0, 0, W, H, 1).png());
 writeFileSync(join(out, "terraces.png"), relief(0, 0, W, H, 1).png());
 writeFileSync(join(out, "terraces-hurloon.png"), relief(420, 520, 640, 680, 3).png());
 writeFileSync(join(out, "zones.png"), draw(0, 0, W, H, 1, true).png());
-for (const t of world.towns) {
-  const r = t.radius + 10;
-  const scale = t.kind === "capital" ? 3 : 4;
-  writeFileSync(join(out, `town-${t.id}.png`), draw(t.center[0] - r, t.center[1] - r, t.center[0] + r + 1, t.center[1] + r + 1, scale).png());
-}
+towns();
 // The lands between, closer: a stretch of each kind of country, two pixels a tile.
 const LANDS: Record<string, readonly [number, number]> = {
   "benalia-farmland": [440, 880],

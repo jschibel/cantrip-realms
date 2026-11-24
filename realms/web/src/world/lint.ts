@@ -28,7 +28,11 @@ import {
   inTown,
   tierAt,
   townAt,
+  type TownData,
+  type XZ,
+  PLACE_KINDS,
 } from "./format";
+import { inSquare, streetTiles, wayPoints } from "./streets";
 
 // The world's lint, in two parts. Per file (`checkWorld`, `checkChunk`, `checkInterior`): each file is what the format
 // says - its fields there and of their kinds, a chunk's 1,024 tiles, everything in it inside it. The loader runs these on
@@ -549,5 +553,186 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     if (!town || !inTown(town, p.x, p.z)) out.push(`pitch of ${p.town} at ${at(p)} is not in its town`);
     if (!walked(p.x, p.z)) out.push(`pitch of ${p.town} at ${at(p)} is not walked to`);
   }
+
+  // The towns' streets.
+  const buildings = all("buildings");
+  for (const town of world.towns) if (town.plan) out.push(...lintTown(town, open, buildings));
   return out;
 }
+
+/**
+ * What a town's street plan must hold (format.ts, `TownPlan`): `spur`, the most tiles a street may run on past its last
+ * junction to end at no door (a lot's depth); `detour`, the most a walk along the streets between two of its key places
+ * (its gates, doors and what is used from beside it) may be over the straight line between them, for those at least
+ * `apart` tiles apart.
+ */
+export const TOWN_LIMITS = { spur: 8, detour: 2, apart: 12 } as const;
+
+/**
+ * A town's street plan against its tiles: its nodes, ways, gates and places well formed; every street's ends, every
+ * door into its buildings and every key place walked to from every gate along the streets alone (a door opening onto a
+ * street); no street ending at no door more than a lot's depth past its last junction; and no walk between two key
+ * places along the streets much longer than the straight line between them (`TOWN_LIMITS`).
+ */
+export function lintTown(town: TownData, open: (x: number, z: number) => boolean, buildings: readonly BuildingData[], limits: { readonly spur: number; readonly detour: number; readonly apart: number } = TOWN_LIMITS): Problems {
+  const plan = town.plan!;
+  const where = `town ${town.id}`;
+  const out: Problems = [];
+  const n = plan.nodes.length;
+  const node = (k: number) => Number.isInteger(k) && k >= 0 && k < n;
+  plan.ways.forEach((w, k) => {
+    if (!node(w.a) || !node(w.b) || w.a === w.b) out.push(`${where}: way ${k} should join two of its nodes`);
+    if (!isInt(w.width) || w.width < 1 || w.width > 6) out.push(`${where}: way ${k} should be 1 to 6 tiles wide`);
+  });
+  for (const g of plan.gates) if (!node(g)) out.push(`${where}: a gate should be one of its nodes`);
+  for (const p of plan.places) {
+    if (!(PLACE_KINDS as readonly string[]).includes(p.kind)) out.push(`${where}: a place of kind ${p.kind}, which is none of ${PLACE_KINDS.join(", ")}`);
+    if (!inTown(town, p.x, p.z)) out.push(`${where}: ${p.name} at ${p.x},${p.z} is not in the town`);
+  }
+  if (plan.gates.length === 0) out.push(`${where}: no gate`);
+  if (out.length > 0) return out;
+
+  const tiles = streetTiles(plan);
+  const key = (x: number, z: number) => `${x},${z}`;
+  const street = (x: number, z: number) => tiles.has(key(x, z)) && open(x, z);
+  /** The open street tile a walk starts from at a point: the point's own, or one beside it. */
+  const startAt = (x: number, z: number): XZ | null => {
+    if (street(x, z)) return [x, z];
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (street(x + dx, z + dz)) return [x + dx, z + dz];
+    return null;
+  };
+  const walks = new Map<string, Map<string, number>>();
+  /** Distances walked along the open street tiles from a tile: eight ways, never cutting a corner, a diagonal step the root of 2. */
+  const walkFrom = (from: XZ): Map<string, number> => {
+    const k0 = key(from[0], from[1]);
+    const known = walks.get(k0);
+    if (known) return known;
+    const found = new Map([[k0, 0]]);
+    const heap: [number, number, number][] = [[0, from[0], from[1]]];
+    const push = (item: [number, number, number]) => {
+      heap.push(item);
+      for (let i = heap.length - 1; i > 0; ) {
+        const up = (i - 1) >> 1;
+        if (heap[up]![0] <= heap[i]![0]) break;
+        [heap[up], heap[i]] = [heap[i]!, heap[up]!];
+        i = up;
+      }
+    };
+    const pop = (): [number, number, number] => {
+      const top = heap[0]!;
+      const last = heap.pop()!;
+      if (heap.length > 0) {
+        heap[0] = last;
+        for (let i = 0; ; ) {
+          const l = 2 * i + 1;
+          const r = l + 1;
+          let m = i;
+          if (l < heap.length && heap[l]![0] < heap[m]![0]) m = l;
+          if (r < heap.length && heap[r]![0] < heap[m]![0]) m = r;
+          if (m === i) break;
+          [heap[m], heap[i]] = [heap[i]!, heap[m]!];
+          i = m;
+        }
+      }
+      return top;
+    };
+    while (heap.length > 0) {
+      const [d, x, z] = pop();
+      if (d > found.get(key(x, z))!) continue;
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if ((!dx && !dz) || !street(x + dx, z + dz)) continue;
+          if (dx && dz && !(street(x + dx, z) && street(x, z + dz))) continue;
+          const next = d + (dx && dz ? Math.SQRT2 : 1);
+          const k = key(x + dx, z + dz);
+          if (next < (found.get(k) ?? Infinity)) {
+            found.set(k, next);
+            push([next, x + dx, z + dz]);
+          }
+        }
+      }
+    }
+    walks.set(k0, found);
+    return found;
+  };
+
+  // Every street's ends, every door and every place walked to from every gate.
+  const gates: { at: XZ; name: string }[] = [];
+  for (const g of plan.gates) {
+    const [x, z] = plan.nodes[g]!;
+    const at = startAt(x, z);
+    if (!at) out.push(`${where}: its gate at ${x},${z} is on no open street`);
+    else gates.push({ at, name: `the gate at ${x},${z}` });
+  }
+  if (gates.length === 0) return out;
+  const doors = buildings.filter((b) => b.door && inTown(town, b.door[0], b.door[1]));
+  for (const b of doors) if (!tiles.has(key(b.door![0], b.door![1]))) out.push(`${where}: the door of ${b.id} at ${b.door!.join(",")} opens onto no street`);
+  for (const g of gates) {
+    const reached = walkFrom(g.at);
+    const walked = (at: XZ | null) => !!at && reached.has(key(at[0], at[1]));
+    for (const b of doors) if (tiles.has(key(b.door![0], b.door![1])) && !walked(b.door!)) out.push(`${where}: the door of ${b.id} at ${b.door!.join(",")} is not walked to along the streets from ${g.name}`);
+    for (const p of plan.places) if (!walked(startAt(p.x, p.z))) out.push(`${where}: ${p.name} at ${p.x},${p.z} is not walked to along the streets from ${g.name}`);
+    plan.ways.forEach((w, k) => {
+      for (const e of [w.a, w.b]) {
+        const [x, z] = plan.nodes[e]!;
+        if (!walked(startAt(x, z))) out.push(`${where}: way ${k}'s end at ${x},${z} is not walked to along the streets from ${g.name}`);
+      }
+    });
+  }
+
+  // No street running on past its last junction to end at no door.
+  const degree = new Array<number>(n).fill(0);
+  for (const w of plan.ways) {
+    degree[w.a]!++;
+    degree[w.b]!++;
+  }
+  const joined = (k: number) => plan.gates.includes(k) || plan.squares.some((s) => inSquare(s, plan.nodes[k]![0], plan.nodes[k]![1]));
+  const length = (w: (typeof plan.ways)[number]) => {
+    const p = wayPoints(plan, w);
+    let sum = 0;
+    for (let k = 1; k < p.length; k++) sum += Math.hypot(p[k]![0] - p[k - 1]![0], p[k]![1] - p[k - 1]![1]);
+    return sum;
+  };
+  for (let k = 0; k < n; k++) {
+    if (degree[k] !== 1 || joined(k)) continue;
+    let at = k;
+    let way = plan.ways.find((w) => w.a === k || w.b === k)!;
+    let run = 0;
+    for (let steps = 0; steps < plan.ways.length; steps++) {
+      run += length(way);
+      const next = way.a === at ? way.b : way.a;
+      if (degree[next] !== 2 || joined(next)) break;
+      const on = plan.ways.find((w) => w !== way && (w.a === next || w.b === next));
+      if (!on) break;
+      at = next;
+      way = on;
+    }
+    const [x, z] = plan.nodes[k]!;
+    const door = doors.some((b) => Math.max(Math.abs(b.door![0] - x), Math.abs(b.door![1] - z)) <= 2);
+    if (run > limits.spur && !door) out.push(`${where}: a street ends at ${x},${z}, at no door, ${Math.round(run)} tiles past its last junction`);
+  }
+
+  // No long way round between key places.
+  const points: { at: XZ; name: string }[] = [...gates];
+  for (const p of plan.places) {
+    const at = startAt(p.x, p.z);
+    if (at) points.push({ at, name: p.name });
+  }
+  for (let i = 0; i < points.length; i++) {
+    const from = walkFrom(points[i]!.at);
+    // From gate to gate the road outside the walls is the way.
+    for (let j = Math.max(i + 1, gates.length); j < points.length; j++) {
+      const [ax, az] = points[i]!.at;
+      const [bx, bz] = points[j]!.at;
+      const straight = Math.hypot(ax - bx, az - bz);
+      if (straight < limits.apart) continue;
+      const walked = from.get(key(bx, bz));
+      if (walked === undefined) continue;
+      if (walked > straight * limits.detour) {
+        out.push(`${where}: from ${points[i]!.name} to ${points[j]!.name} is ${Math.round(walked)} tiles along the streets, ${(walked / straight).toFixed(2)} times the ${Math.round(straight)} between them`);
+      }
+    }
+  }
+  return out;
+}
+

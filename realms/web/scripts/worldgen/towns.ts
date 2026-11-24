@@ -2,27 +2,41 @@
 //
 // A town's outline is a rough polygon hugging the land - pulled in from the coast, a river or a cliff, its corners
 // wandering - within the square of its `radius` (what the server calls the town). A walled town's wall runs along it
-// (a palisade round a Keldon clan, hedges round a village, nothing round an elfhame or the Morass's stilt village),
-// with a gate where each road arrives and one onto the harbour. From each gate a main street bends through the land to
-// the central square; lanes branch from the main streets irregularly, some meeting others, some ending in a yard; plazas
-// open where the town needs them - the capital's market, a cathedral's close, the arena, a campus's courtyards.
+// (a palisade round a Keldon clan, hedges round a village, nothing round an elfhame or the Morass's stilt village).
+//
+// The streets are planned whole before anything is built (plan.ts), in one of three shapes: a grid (Benalia's cities,
+// the capital, the campus, the estate) - the central square a block of its own framed by four main streets that run
+// from wall to wall, a street every block beyond them; rings (Keld's clans, Llanowar's elfhames) - an octagonal ring
+// round a round square, spokes from the square out through it, more spokes from the ring out; or a ladder (villages,
+// the Morass's boardwalks, any small town but an elfhame) - a high street and a cross street through the square inside
+// a loop of back lanes. A big town has a lane inside its walls (round its edge where it has none) that every street
+// runs out to. Gates open where a street of the plan meets the outline toward each road (and onto the harbour), the
+// outline straightened across each so the wall meets the way out square, and each gate's way runs straight in to the
+// first street it meets. Every street ends at another street, a square or a gate: what would end nowhere is left out.
+// The plan then loses lanes through a landmark's ground and a few between lanes (a bigger block here and there), and is
+// paved: the main streets, the lanes, the squares; plazas open beside them where the town needs them - the capital's
+// market, a temple's close, the arena, a campus's courtyards. The town keeps the plan (format.ts, `TownPlan`): its
+// streets, squares, gates and key places, which the maps draw and the lint walks.
 //
 // The town is cut into districts round seeds - the market quarter round the square, a temple close, the keep or the
 // nobles' manors (New Benalia's citadel and the Seven Houses), the artisans' quarter by a gate, the harbour, quiet
 // residential streets, poorer outskirts by the walls, parks, orchards and allotments - and each district builds its
 // own way: terraced rows along the main streets, detached houses with yards toward the edge, warehouses by the water,
 // longhouses in a clan, tree-houses spread among giant trees. The landmarks come first and much bigger (the citadel, the
-// cathedral, the great hall, the manor), then the town's own buildings where they belong (the inn on a main street by a
-// gate, the shops round the square and the market, the smithy among the artisans), then the rows. Every building faces
-// the street before it, its door that street tile; one with an interior faces south, west or east, never away from the
-// camera. Outdoors: the centrepiece, benches and lamps, market stalls, the quest board by the inn's door, guards in the
-// gates, townsfolk on the square, the arena, the caravans' pitch, gardens, orchard rows and the harbour's pier.
+// cathedral, the great hall, the manor), then the town's own buildings, on a main street or a square where they can be
+// (the inn by a gate, the shops round the square and the market, the guildhall and the smithy among the artisans), then
+// the rows along every street. Every building faces the street before it, its door that street tile; one with an
+// interior faces south, west or east, never away from the camera. Outdoors: the centrepiece, benches and lamps, market
+// stalls, the quest board by the inn's door, guards in the gates, townsfolk on the square, the arena's gate on its
+// plaza's side along a street, the caravans' pitch, gardens, orchard rows and the harbour's pier.
 
-import type { BuildingData, InteriorKind, NpcData, PropData, Region, TownData } from "../../src/world/format";
+import type { BuildingData, InteriorKind, NpcData, PropData, Region, StreetWay, TownData, TownPlace, TownPlan, TownSquare, XZ } from "../../src/world/format";
+import { brushOf, inPolygon, inSquare, lineTiles, pathTiles, squareTiles, wayMiddle, wayTiles } from "../../src/world/streets";
 import { type Footprint, building } from "./buildings";
 import { type BuildingKind, S } from "./ids";
-import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
+import { type Land, Use, between, pick, randomFor, texel } from "./land";
 import type { Form, TownLayout } from "./layout";
+import { Planner, inset } from "./plan";
 import { REGION_OF_STYLE } from "./rooms";
 import { tilesOf } from "../../src/art/props";
 
@@ -79,20 +93,29 @@ interface Seed {
   readonly weight: number;
 }
 
+/** How a town's streets are laid (plan.ts): a grid of streets round the square, rings round it crossed by spokes, or a
+ * high street through it between back lanes (a ladder). */
+type Shape = "grid" | "rings" | "ladder";
+
 interface FormSpec {
   readonly enclosure: "wall" | "palisade" | "hedge" | "none";
-  /** The central square's half sizes along x and z, or its radius when round. */
+  /** The central square's half sizes along x and z, or its radii when round. */
   readonly square: readonly [number, number];
   readonly round: boolean;
+  /** Tiles across a main street (round or across the square, a gate's way in) and a lane. */
   readonly main: number;
   readonly lane: number;
-  /** How far a main street wanders off the straight, a share of its length. */
-  readonly bend: number;
-  readonly laneEvery: readonly [number, number];
-  readonly laneLength: readonly [number, number];
-  readonly laneChance: number;
+  readonly shape: Shape;
+  /**
+   * The plan's spacing. A grid's: tiles from street to street along x and along z (a block two lots deep and its back
+   * yards). Rings': the ring's half size and the second spokes' offset, shares of the radius and of the ring. A
+   * ladder's: the back lanes' and the outer cross streets' offsets from the middle, shares of the radius.
+   */
+  readonly pitch: readonly [number, number];
+  /** The share of a grid's lanes between junctions left out, for a bigger block here and there. */
+  readonly thin: number;
   /** How far the outline's corners pull in, a share of the radius. */
-  readonly shape: number;
+  readonly pull: number;
   readonly districts: readonly Seed[];
   readonly guards: boolean;
 }
@@ -104,11 +127,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 4,
     lane: 2,
-    bend: 0.07,
-    laneEvery: [7, 12],
-    laneLength: [10, 26],
-    laneChance: 0.85,
-    shape: 0.14,
+    shape: "grid",
+    pitch: [21, 19],
+    thin: 0.12,
+    pull: 0.14,
     guards: true,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.25 },
@@ -129,11 +151,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 3,
     lane: 2,
-    bend: 0.1,
-    laneEvery: [7, 12],
-    laneLength: [8, 20],
-    laneChance: 0.8,
-    shape: 0.18,
+    shape: "grid",
+    pitch: [20, 18],
+    thin: 0.12,
+    pull: 0.18,
     guards: true,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.2 },
@@ -152,11 +173,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 3,
     lane: 2,
-    bend: 0.2,
-    laneEvery: [6, 10],
-    laneLength: [5, 12],
-    laneChance: 0.6,
-    shape: 0.22,
+    shape: "ladder",
+    pitch: [0.55, 0.62],
+    thin: 0,
+    pull: 0.22,
     guards: false,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1 },
@@ -170,13 +190,12 @@ const FORMS: Record<Form, FormSpec> = {
     enclosure: "none",
     square: [8, 8],
     round: true,
-    main: 2,
+    main: 3,
     lane: 2,
-    bend: 0.28,
-    laneEvery: [8, 14],
-    laneLength: [8, 22],
-    laneChance: 0.75,
-    shape: 0.24,
+    shape: "rings",
+    pitch: [0.48, 0.55],
+    thin: 0,
+    pull: 0.24,
     guards: false,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.1 },
@@ -193,11 +212,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 2,
     lane: 2,
-    bend: 0.25,
-    laneEvery: [6, 10],
-    laneLength: [5, 12],
-    laneChance: 0.75,
-    shape: 0.25,
+    shape: "ladder",
+    pitch: [0.5, 0.6],
+    thin: 0,
+    pull: 0.25,
     guards: false,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1 },
@@ -211,11 +229,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: true,
     main: 3,
     lane: 2,
-    bend: 0.18,
-    laneEvery: [7, 11],
-    laneLength: [8, 18],
-    laneChance: 0.8,
-    shape: 0.2,
+    shape: "rings",
+    pitch: [0.5, 0.55],
+    thin: 0,
+    pull: 0.2,
     guards: true,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.3 },
@@ -232,11 +249,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 3,
     lane: 2,
-    bend: 0.12,
-    laneEvery: [12, 18],
-    laneLength: [8, 16],
-    laneChance: 0.5,
-    shape: 0.16,
+    shape: "grid",
+    pitch: [23, 20],
+    thin: 0.1,
+    pull: 0.16,
     guards: false,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.3 },
@@ -252,11 +268,10 @@ const FORMS: Record<Form, FormSpec> = {
     round: false,
     main: 3,
     lane: 2,
-    bend: 0.12,
-    laneEvery: [8, 12],
-    laneLength: [6, 14],
-    laneChance: 0.6,
-    shape: 0.15,
+    shape: "grid",
+    pitch: [20, 18],
+    thin: 0.1,
+    pull: 0.15,
     guards: true,
     districts: [
       { kind: "market", angle: 0, at: 0, weight: 1.1 },
@@ -269,6 +284,10 @@ const FORMS: Record<Form, FormSpec> = {
   },
 };
 
+/** A ladder's offsets where a form has no ladder of its own (a small town): its back lanes' and its outer cross
+ * streets', shares of the radius. */
+const LADDER: readonly [number, number] = [0.55, 0.62];
+
 /** How a district builds along its streets: kinds by weight, tiles across the front and deep, the gap between, how often
  * a lot is left open. Null: it builds nothing (gardens, orchards). */
 interface Fill {
@@ -279,9 +298,9 @@ interface Fill {
   readonly skip: number;
 }
 
-function fillFor(form: Form, district: District): Fill | null {
+function fillFor(form: Form, district: District, small: boolean): Fill | null {
   if (district === "park" || district === "orchard" || district === "allotments" || district === "grounds") return null;
-  if (form === "clan") return { kinds: [["house", 4], ["barn", 1]], wide: [5, 7], deep: [10, 13], gap: [1, 3], skip: 0.15 };
+  if (form === "clan") return { kinds: [["house", 4], ["barn", 1]], wide: [5, 7], deep: small ? [7, 9] : [10, 13], gap: [1, 3], skip: 0.15 };
   if (form === "elfhame") return { kinds: [["house", 1]], wide: [5, 7], deep: [5, 6], gap: [3, 6], skip: 0.35 };
   if (form === "stilts") return { kinds: [["house", 5], ["warehouse", 1]], wide: [5, 7], deep: [5, 6], gap: [1, 2], skip: 0.15 };
   if (form === "campus") return { kinds: [["house", 2], ["library", 1], ["tower", 1]], wide: [8, 12], deep: [7, 9], gap: [0, 1], skip: 0.1 };
@@ -359,7 +378,7 @@ export function footprintAt(door: readonly [number, number], rot: number, wide: 
 }
 
 /** Sizes of the town's own buildings, tiles across the front and deep, by form. */
-function sizeOf(form: Form, what: string): readonly [number, number] {
+function sizeOf(form: Form, what: string, small = false): readonly [number, number] {
   const big = form === "capital";
   const table: Record<string, readonly [number, number]> = {
     inn: big ? [14, 10] : form === "village" || form === "stilts" ? [10, 7] : [12, 9],
@@ -371,7 +390,7 @@ function sizeOf(form: Form, what: string): readonly [number, number] {
     tower: [9, 9],
     smithy: [9, 7],
     shrine: [7, 6],
-    house: form === "clan" ? [6, 11] : [7, 6],
+    house: form === "clan" ? (small ? [6, 8] : [6, 11]) : [7, 6],
   };
   return table[what] ?? [7, 6];
 }
@@ -389,12 +408,14 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   const style = plan.style;
   const ground = form === "stilts" ? { ...GROUNDS.urborg!, lot: S.bog } : (GROUNDS[style] ?? GROUNDS.benalish!);
   const village = plan.kind === "village";
+  /** The town's name after "the": The Elfhames of Llanowar's library is "The Elfhames of Llanowar Library". */
+  const the = plan.name.startsWith("The ") ? plan.name : `The ${plan.name}`;
   const I = (x: number, z: number) => land.idx(x, z);
   const x0 = cx - R;
   const z0 = cz - R;
   const span = 2 * R + 1;
   const local = (x: number, z: number) => (z - z0) * span + (x - x0);
-  const inSquare = (x: number, z: number) => Math.abs(x - cx) <= R && Math.abs(z - cz) <= R;
+  const inBox = (x: number, z: number) => Math.abs(x - cx) <= R && Math.abs(z - cz) <= R;
 
   // --- The outline: a polygon round the centre, its corners pulled in by the land ------------------------------------
 
@@ -417,35 +438,196 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     const angle = turn + (k + (random() - 0.5) * 0.5) * ((Math.PI * 2) / corners);
     angles.push(angle);
     const most = (R - 1) / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
-    const wanted = R * (1 - F.shape * random()) * (most / R) ** 0.35;
+    const wanted = R * (1 - F.pull * random()) * (most / R) ** 0.35;
     radii.push(Math.max(R * 0.55, Math.min(wanted, reach(angle), most)));
   }
   radii = radii.map((r, k) => {
     const most = (R - 1) / Math.max(Math.abs(Math.cos(angles[k]!)), Math.abs(Math.sin(angles[k]!)));
     return Math.min(most, (radii[(k + corners - 1) % corners]! + 2 * r + radii[(k + 1) % corners]!) / 4);
   });
-  const poly = angles.map((a, k) => [Math.round(cx + Math.cos(a) * radii[k]!), Math.round(cz + Math.sin(a) * radii[k]!)] as const);
-  const inPoly = (x: number, z: number) => {
-    let inside = false;
-    for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
-      const [xi, zi] = poly[k]!;
-      const [xj, zj] = poly[j]!;
-      if (zi > z !== zj > z && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
-    }
-    return inside;
-  };
+  let poly: XZ[] = angles.map((a, k) => [Math.round(cx + Math.cos(a) * radii[k]!), Math.round(cz + Math.sin(a) * radii[k]!)] as const);
   /**
    * Each edge's tiles, corner to corner, four-connected: a slanted edge is a staircase of whole tiles, so the wall drawn
    * on them (straight runs along rows and columns) stands exactly on the tiles that block, with no gap at a step.
    */
-  const edges = poly.map((a, k) => line(a, poly[(k + 1) % poly.length]!));
+  let edges: [number, number][][] = [];
   const ring = new Set<number>();
-  for (const e of edges) for (const [x, z] of e) ring.add(local(x, z));
   const inside = new Uint8Array(span * span);
-  for (let z = z0; z < z0 + span; z++) for (let x = x0; x < x0 + span; x++) if (inPoly(x, z) || ring.has(local(x, z))) inside[local(x, z)] = 1;
-  const within = (x: number, z: number) => inSquare(x, z) && inside[local(x, z)] === 1;
-  const onRing = (x: number, z: number) => inSquare(x, z) && ring.has(local(x, z));
+  /** Takes the outline's corners as they now are: its edges, the ring of tiles they run over, the tiles within. */
+  const outline = () => {
+    edges = poly.map((a, k) => lineTiles(a, poly[(k + 1) % poly.length]!));
+    ring.clear();
+    for (const e of edges) for (const [x, z] of e) ring.add(local(x, z));
+    inside.fill(0);
+    for (let z = z0; z < z0 + span; z++) for (let x = x0; x < x0 + span; x++) if (inPolygon(poly, x, z) || ring.has(local(x, z))) inside[local(x, z)] = 1;
+  };
+  outline();
+  const within = (x: number, z: number) => inBox(x, z) && inside[local(x, z)] === 1;
+  const onRing = (x: number, z: number) => inBox(x, z) && ring.has(local(x, z));
   const walled = F.enclosure !== "none";
+  /** How far out along an angle the town reaches, tiles. */
+  const boundary = (angle: number): number => {
+    let last = 0;
+    for (let t = 0; t < R * 1.5; t += 0.5) {
+      if (within(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t))) last = t;
+      else if (t > last + 2) break;
+    }
+    return last;
+  };
+
+  // --- The harbour --------------------------------------------------------------------------------------------------
+
+  let harbourAngle: number | null = null;
+  {
+    let most = 0.35;
+    for (let a = 0; a < 24; a++) {
+      const angle = (a / 24) * Math.PI * 2;
+      const r0 = boundary(angle) + 2;
+      let sea = 0;
+      for (let t = r0; t < r0 + 20; t++) if (land.inside(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t)) && land.isSea(I(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t)))) sea++;
+      if (sea / 20 > most) {
+        most = sea / 20;
+        harbourAngle = angle;
+      }
+    }
+  }
+
+  // --- The plan's lines: where its streets run out toward the outline, so a gate opens onto one ----------------------
+
+  const small = R < 30;
+  // A small town's streets are a loop round its middle crossed through the square: a ladder, or an elfhame's ring.
+  const shape: Shape = small ? (F.shape === "rings" && form !== "clan" ? "rings" : "ladder") : F.shape;
+  const [sqx, sqz]: readonly [number, number] = small ? (F.round ? [5, 5] : [Math.min(F.square[0], 5), Math.min(F.square[1], 4)]) : F.square;
+  const [mlo, mhi] = brushOf(F.main);
+  /** The plan's streets running north and south, by their x from the centre, and those running east and west, by z. */
+  const xs: { at: number; main: boolean }[] = [];
+  const zs: { at: number; main: boolean }[] = [];
+  const firstAngle = spec.targets[0] ? Math.atan2(spec.targets[0].at[1] - cz, spec.targets[0].at[0] - cx) : turn;
+  /** A ladder's high street runs north and south when the first road arrives from the north or the south. */
+  const upright = Math.abs(Math.sin(firstAngle)) >= Math.abs(Math.cos(firstAngle));
+  let ladder: { across: number; along: number } | null = null;
+  let ringAt = 0;
+  let spokeAt = 0;
+  if (shape === "grid") {
+    // The square's own block, the main streets round it, and a street every pitch beyond them.
+    for (const [list, halfway, pitch] of [
+      [xs, sqx, F.pitch[0]],
+      [zs, sqz, F.pitch[1]],
+    ] as const) {
+      for (const sign of [1, -1]) {
+        for (let k = 0; ; k++) {
+          const at = (sign > 0 ? halfway + 1 - mlo : -(halfway + 1 + mhi)) + sign * k * pitch;
+          if (Math.abs(at) > R - 6) break;
+          list.push({ at, main: k === 0 });
+        }
+      }
+    }
+  } else if (shape === "rings") {
+    ringAt = Math.max(Math.max(sqx, sqz) + 7, Math.round(R * F.pitch[0]));
+    spokeAt = Math.round(ringAt * F.pitch[1]);
+    for (const list of [xs, zs]) {
+      list.push({ at: 0, main: true });
+      if (!small) list.push({ at: spokeAt, main: false }, { at: -spokeAt, main: false });
+    }
+  } else {
+    const shares = F.shape === "ladder" ? F.pitch : LADDER;
+    const across = Math.max((upright ? sqx : sqz) + 6, Math.round(R * shares[0]));
+    const along = Math.max((upright ? sqz : sqx) + 6, Math.round(R * shares[1]));
+    ladder = { across, along };
+    const high = upright ? xs : zs;
+    const rungs = upright ? zs : xs;
+    high.push({ at: 0, main: true }, { at: across, main: false }, { at: -across, main: false });
+    rungs.push({ at: 0, main: true }, { at: along, main: false }, { at: -along, main: false });
+  }
+
+  // --- The gates: one toward each road, on a street of the plan where one runs that way -------------------------------
+
+  const gateWidth = form === "capital" ? 5 : 3;
+  const half = (gateWidth - 1) / 2;
+  /** Each gate: its tile in the outline, and the way out (a quarter turn: x or z). */
+  const chosen: { x: number; z: number; ux: number; uz: number; harbour: boolean }[] = [];
+  const wanted: { angle: number; harbour: boolean }[] = [];
+  for (const t of spec.targets) {
+    const angle = Math.atan2(t.at[1] - cz, t.at[0] - cx);
+    if (!wanted.some((w) => angleGap(w.angle, angle) < 0.6)) wanted.push({ angle, harbour: false });
+  }
+  if (wanted.length < 2 && !village) wanted.push({ angle: (wanted[0]?.angle ?? turn) + Math.PI, harbour: false });
+  if (harbourAngle !== null) {
+    const near = wanted.findIndex((w) => angleGap(w.angle, harbourAngle!) < 0.5);
+    if (near >= 0) wanted.splice(near, 1);
+    wanted.push({ angle: harbourAngle, harbour: true });
+  }
+  /** A gate on the side facing (ux, uz), its way in `at` tiles across from the centre; null where it cannot open. */
+  const gateOn = (ux: number, uz: number, at: number, harbour: boolean) => {
+    const [sx, sz] = ux === 0 ? [cx + at, cz] : [cx, cz + at];
+    if (!within(sx, sz)) return null;
+    let p: XZ | null = null;
+    for (let s = 0; s < R * 1.6 && inBox(sx + ux * s, sz + uz * s); s++) {
+      if (onRing(sx + ux * s, sz + uz * s)) {
+        p = [sx + ux * s, sz + uz * s];
+        break;
+      }
+    }
+    if (!p) return null;
+    // The way out must reach dry ground (a harbour's, the water), clear of other towns.
+    for (let s = 1; s <= 6; s++) {
+      const x = p[0] + ux * s;
+      const z = p[1] + uz * s;
+      if (!land.inside(x, z) || (land.town[I(x, z)] !== 0 && !within(x, z))) return null;
+      if (!harbour && land.isSea(I(x, z))) return null;
+    }
+    // Room either side of it for the wall to meet it square, and clear of the other gates.
+    for (const s of [-half - 3, half + 3]) if (Math.max(Math.abs(p[0] - uz * s - cx), Math.abs(p[1] + ux * s - cz)) > R - 1) return null;
+    if (chosen.some((g) => Math.max(Math.abs(g.x - p![0]), Math.abs(g.z - p![1])) < Math.max(10, R * 0.3))) return null;
+    return { x: p[0], z: p[1], ux, uz, harbour };
+  };
+  /**
+   * The outline made straight across a gate, so its wall meets the way out square: two corners either side of the gate,
+   * across the way out, in place of any corner between them.
+   */
+  const straighten = (g: { x: number; z: number; ux: number; uz: number }) => {
+    const f = half + 3;
+    const q1: XZ = [g.x + g.uz * f, g.z - g.ux * f];
+    const q2: XZ = [g.x - g.uz * f, g.z + g.ux * f];
+    const angleOf = (p: XZ) => Math.atan2(p[1] - cz, p[0] - cx);
+    const [a1, a2] = [angleOf(q1), angleOf(q2)];
+    const between2 = angleGap(a1, a2);
+    const kept = poly.filter((c) => {
+      const a = angleOf(c);
+      if (angleGap(a, a1) + angleGap(a, a2) <= between2 + 1e-9) return false;
+      return Math.hypot(c[0] - q1[0], c[1] - q1[1]) >= 3 && Math.hypot(c[0] - q2[0], c[1] - q2[1]) >= 3;
+    });
+    const from = (p: XZ) => (((angleOf(p) - turn) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    poly = [...kept, q1, q2].sort((p, q) => from(p) - from(q));
+    outline();
+  };
+  for (const w of wanted) {
+    const sides = (
+      [
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+        [0, -1],
+      ] as const
+    ).slice().sort((p, q) => angleGap(Math.atan2(p[1], p[0]), w.angle) - angleGap(Math.atan2(q[1], q[0]), w.angle));
+    let made: ReturnType<typeof gateOn> = null;
+    for (const [ux, uz] of sides) {
+      if (made) break;
+      const across = ux === 0;
+      const b = boundary(w.angle);
+      const lateral = across ? Math.cos(w.angle) * b : Math.sin(w.angle) * b;
+      // The plan's streets that way, the main ones and those nearest the road first; then a way of the gate's own.
+      const options = (across ? xs : zs).map((l) => ({ at: l.at, score: Math.abs(l.at - lateral * 0.5) - (l.main ? 8 : 0) }));
+      for (const o of [0, -3, 3, -6, 6, -9, 9, -12, 12]) options.push({ at: Math.round(lateral * 0.5) + o, score: 1000 + Math.abs(o) });
+      options.sort((p, q) => p.score - q.score);
+      for (const o of options) if (!made) made = gateOn(ux, uz, o.at, w.harbour);
+    }
+    if (made) {
+      chosen.push(made);
+      straighten(made);
+    }
+  }
+  if (chosen.length === 0) throw new Error(`${plan.id}: no way into the town reaches dry ground`);
 
   // --- The site: levelled and cleared inside, an apron round it ------------------------------------------------------
 
@@ -493,162 +675,73 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
   }
 
-  // Street bookkeeping: what kind of way each street tile is (0 a main street, 1 a lane, 2 a square or plaza) and the
-  // order it was laid in, for building along it in turn.
+  // Street bookkeeping: what kind of way each street tile is (0 a main street, 1 a lane, 2 a square or plaza), the
+  // order it was laid in, for building along it in turn, and every tile of the plan's streets and squares.
   const rank = new Int8Array(span * span).fill(-1);
   const order = new Int32Array(span * span);
+  const street = new Uint8Array(span * span);
+  /** The main streets' tiles and the square's (and the market's): where the town's own buildings stand first. */
+  const keyTile = new Uint8Array(span * span);
   let laid = 0;
-  const pave = (x: number, z: number, r: number, surface: number, open = true): boolean => {
-    if (!within(x, z) || onRing(x, z) && walled) return false;
+  const pave = (x: number, z: number, r: number, surface: number): boolean => {
+    if (!within(x, z) || (onRing(x, z) && walled)) return false;
     const i = I(x, z);
-    if (land.use[i] !== Use.Lot) return land.use[i] === Use.Street || land.use[i] === Use.Kept;
+    if (land.use[i] !== Use.Lot) {
+      const done = land.use[i] === Use.Street || land.use[i] === Use.Kept;
+      if (done) street[local(x, z)] = 1;
+      return done;
+    }
     land.clear(i, surface);
-    if (!open) land.block(i, false);
     land.use[i] = r === 2 ? Use.Kept : Use.Street;
     rank[local(x, z)] = r;
     order[local(x, z)] = laid++;
+    street[local(x, z)] = 1;
     return true;
   };
 
-  // --- The harbour, the gates and the main streets -------------------------------------------------------------------
+  // --- The gates' ways out, cleared through the wall, each with its gatehouse -----------------------------------------
 
-  let harbourAngle: number | null = null;
-  {
-    let most = 0.35;
-    for (let a = 0; a < 24; a++) {
-      const angle = (a / 24) * Math.PI * 2;
-      const r0 = boundary(angle) + 2;
-      let sea = 0;
-      for (let t = r0; t < r0 + 20; t++) if (land.inside(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t)) && land.isSea(I(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t)))) sea++;
-      if (sea / 20 > most) {
-        most = sea / 20;
-        harbourAngle = angle;
-      }
-    }
-  }
-  /** How far out along an angle the town reaches, tiles. */
-  function boundary(angle: number): number {
-    let last = 0;
-    for (let t = 0; t < R * 1.5; t += 0.5) {
-      if (within(Math.round(cx + Math.cos(angle) * t), Math.round(cz + Math.sin(angle) * t))) last = t;
-      else if (t > last + 2) break;
-    }
-    return last;
-  }
-
-  const gateWidth = form === "capital" ? 5 : 3;
-  const half = (gateWidth - 1) / 2;
   const gates = new Map<string, number>();
-  const gateMouths: { x: number; z: number; ux: number; uz: number; inner: readonly [number, number] }[] = [];
+  const gateMouths: { x: number; z: number; ux: number; uz: number; harbour: boolean; inner: readonly [number, number]; end: XZ }[] = [];
   const mouthTiles = new Set<number>();
-  const wanted: { angle: number; harbour: boolean }[] = [];
-  for (const t of spec.targets) {
-    const angle = Math.atan2(t.at[1] - cz, t.at[0] - cx);
-    if (!wanted.some((w) => angleGap(w.angle, angle) < 0.6)) wanted.push({ angle, harbour: false });
-  }
-  if (wanted.length < 2 && !village) wanted.push({ angle: (wanted[0]?.angle ?? turn) + Math.PI, harbour: false });
-  if (harbourAngle !== null) {
-    const near = wanted.findIndex((w) => angleGap(w.angle, harbourAngle!) < 0.5);
-    if (near >= 0) wanted.splice(near, 1);
-    wanted.push({ angle: harbourAngle, harbour: true });
-  }
-  const opening = (angle: number, harbour: boolean): boolean => {
-    const ux = Math.cos(angle);
-    const uz = Math.sin(angle);
-    const b = boundary(angle);
-    const px = Math.round(cx + ux * b);
-    const pz = Math.round(cz + uz * b);
-    // The way out must reach dry ground (a harbour's, the water), clear of other towns.
-    for (let s = 1; s <= 6; s++) {
-      const x = Math.round(px + ux * s);
-      const z = Math.round(pz + uz * s);
-      if (!land.inside(x, z) || land.town[I(x, z)] !== 0 && !within(x, z)) return false;
-      if (!harbour && land.isSea(I(x, z))) return false;
-    }
-    if (gateMouths.some((g) => Math.hypot(g.x - px, g.z - pz) < R * 0.35)) return false;
+  for (const g of chosen) {
+    const { ux, uz } = g;
     for (let s = -5; s <= 6; s++) {
-      const mx = px + ux * s;
-      const mz = pz + uz * s;
       for (let a = -half; a <= half; a++) {
-        for (let b2 = -half; b2 <= half; b2++) {
-          const x = Math.round(mx + a);
-          const z = Math.round(mz + b2);
-          if (!land.inside(x, z)) continue;
-          const i = I(x, z);
-          if (within(x, z)) {
-            if (land.use[i] === Use.Wall || land.use[i] === Use.Lot) {
-              land.clear(i, ground.street);
-              land.use[i] = Use.Street;
-              rank[local(x, z)] = 0;
-              order[local(x, z)] = laid++;
-            }
-            if (Math.abs(s) <= 1) mouthTiles.add(i);
-          } else if (!land.isSea(i) && land.town[i] === 0) {
+        const x = g.x + ux * s - uz * a;
+        const z = g.z + uz * s + ux * a;
+        if (!land.inside(x, z)) continue;
+        const i = I(x, z);
+        if (within(x, z)) {
+          if (land.use[i] === Use.Wall || land.use[i] === Use.Lot) {
             land.clear(i, ground.street);
-            land.use[i] = Use.Kept;
+            land.use[i] = Use.Street;
+            rank[local(x, z)] = 0;
+            order[local(x, z)] = laid++;
           }
+          street[local(x, z)] = 1;
+          if (Math.abs(s) <= 1) mouthTiles.add(i);
+        } else if (!land.isSea(i) && land.town[i] === 0) {
+          land.clear(i, ground.street);
+          land.use[i] = Use.Kept;
         }
       }
     }
-    const ex = Math.round(px + ux * 6);
-    const ez = Math.round(pz + uz * 6);
-    if (!harbour || !land.isSea(I(ex, ez))) gates.set(`gate-${gates.size + 1}`, I(ex, ez));
-    gateMouths.push({ x: px, z: pz, ux, uz, inner: [Math.round(px - ux * 5), Math.round(pz - uz * 5)] });
+    const end: XZ = [g.x + ux * 6, g.z + uz * 6];
+    if (!g.harbour || !land.isSea(I(end[0], end[1]))) gates.set(`gate-${gates.size + 1}`, I(end[0], end[1]));
+    gateMouths.push({ x: g.x, z: g.z, ux, uz, harbour: g.harbour, inner: [g.x - ux * 5, g.z - uz * 5], end });
     if (walled && F.enclosure !== "hedge") {
-      const gatehouse: PropData = { id: "gatehouse", x: px + 0.5, z: pz + 0.5, rot: rotOf(ux, uz), args: { width: gateWidth, style, kind: F.enclosure, size: plan.kind } };
+      const gatehouse: PropData = { id: "gatehouse", x: g.x + 0.5, z: g.z + 0.5, rot: rotOf(ux, uz), args: { width: gateWidth, style, kind: F.enclosure, size: plan.kind } };
       land.fixtures.push(gatehouse);
       // Its towers stand on their tiles (the passage between them stays the street it was cleared to).
       for (const [x, z] of tilesOf(gatehouse).tiles) if (land.inside(x, z)) land.block(I(x, z));
     }
-    return true;
-  };
-  for (const w of wanted) {
-    let made = false;
-    for (const off of [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, 0.6, -0.6]) if (!made) made = opening(w.angle + off, w.harbour);
   }
   if (gates.size === 0) throw new Error(`${plan.id}: no way into the town reaches dry ground`);
 
-  // The central square, then a main street from each gate to it, bending with the land.
-  const [sqx, sqz] = F.square;
-  for (let z = cz - sqz; z <= cz + sqz; z++) {
-    for (let x = cx - sqx; x <= cx + sqx; x++) {
-      if (F.round && Math.hypot((x - cx) / sqx, (z - cz) / sqz) > 1) continue;
-      pave(x, z, 2, ground.square);
-    }
-  }
-  const mains: [number, number][][] = [];
-  for (const g of gateMouths) {
-    // It leaves the gate straight in, then jogs along x and z toward the square, a stretch at a time, so the buildings
-    // along it stand square to it; a planned town's stretches are long, an old one's short.
-    const [ax, az] = g.inner;
-    const points: [number, number][] = [[ax, az]];
-    let [x, z] = [ax, az];
-    let alongX = Math.abs(g.ux) > Math.abs(g.uz);
-    const stretch = Math.max(6, Math.round(R * (0.5 - F.bend)));
-    for (let leg = 0; leg < 12 && (Math.abs(cx - x) > 1 || Math.abs(cz - z) > 1); leg++) {
-      const left = alongX ? cx - x : cz - z;
-      const step = Math.abs(left) <= stretch * 1.3 ? left : Math.sign(left) * between(random, Math.round(stretch * 0.6), stretch);
-      if (alongX) x += step;
-      else z += step;
-      points.push([x, z]);
-      alongX = !alongX;
-    }
-    const path = brushPath(points, F.main, (x, z) => pave(x, z, 0, ground.street));
-    mains.push(path);
-  }
-
-  // A lane inside the walls, all the way round, so the town's edge has streets to build along too.
-  if (walled && F.enclosure !== "hedge" && R >= 30) {
-    for (const k of ring) {
-      const rx = x0 + (k % span);
-      const rz = z0 + Math.floor(k / span);
-      for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) if (within(rx + dx, rz + dz) && !onRing(rx + dx, rz + dz)) pave(rx + dx, rz + dz, 1, ground.lane);
-    }
-  }
-
   // --- Districts -------------------------------------------------------------------------------------------------------
 
-  const firstGate = gateMouths.find((g) => !(harbourAngle !== null && Math.abs(Math.atan2(g.uz, g.ux) - harbourAngle) < 0.01)) ?? gateMouths[0]!;
+  const firstGate = gateMouths.find((g) => !g.harbour) ?? gateMouths[0]!;
   const gateAngle = Math.atan2(firstGate.uz, firstGate.ux);
   const seeds = F.districts
     .filter((s) => s.angle !== "harbour" || harbourAngle !== null)
@@ -677,18 +770,172 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
     return found;
   };
+  const centreOf = (district: District): [number, number] => {
+    const s = seeds.find((x) => x.kind === district);
+    return s ? [Math.round(s.x), Math.round(s.z)] : [cx, cz];
+  };
+
+  // --- The streets, planned whole before anything is built (plan.ts) ---------------------------------------------------
+
+  const squares: TownSquare[] = [];
+  const centralSquare: TownSquare = { x: cx - sqx, z: cz - sqz, w: 2 * sqx + 1, d: 2 * sqz + 1, ...(F.round ? { round: true } : {}), name: "The square" };
+  squares.push(centralSquare);
+  const planner = new Planner((x, z) => within(x, z) && !onRing(x, z));
+  // The lane inside the walls (or round the edge), which every street of a grid or the rings runs out to.
+  let edgeLane: XZ[] | null = null;
+  if (!small) {
+    for (let d = 3; d <= 8 && !edgeLane; d++) {
+      const c = inset(poly, [cx, cz], d);
+      if (planner.loop(c, F.lane)) edgeLane = c;
+    }
+    if (!edgeLane) throw new Error(`${plan.id}: no room for the lane round its edge`);
+  }
+  const insideLane = (x: number, z: number) => !!edgeLane && inPolygon(edgeLane, x, z) && !planner.isLoop(x, z);
+  if (shape === "grid") {
+    // Every street runs straight across the town, from the lane on one side to the lane on the other.
+    for (const l of xs) {
+      const x = cx + l.at;
+      if (!insideLane(x, cz)) continue;
+      const north = planner.walk([x, cz], 0, -1, span);
+      const south = planner.walk([x, cz], 0, 1, span);
+      if (north && south && south[1] - north[1] >= 8) planner.line([north, south], l.main ? F.main : F.lane, l.main);
+    }
+    for (const l of zs) {
+      const z = cz + l.at;
+      if (!insideLane(cx, z)) continue;
+      const west = planner.walk([cx, z], -1, 0, span);
+      const east = planner.walk([cx, z], 1, 0, span);
+      if (west && east && east[0] - west[0] >= 8) planner.line([west, east], l.main ? F.main : F.lane, l.main);
+    }
+  } else if (shape === "rings") {
+    // A ring round the square (an octagon, its corners cut), as far out as it fits well inside the edge's lane - or, in
+    // a small town with no such lane, inside its edge.
+    const margin = edgeLane ? inset(edgeLane, [cx, cz], 6) : inset(poly, [cx, cz], 3);
+    const octagon = (rx: number, rz: number): XZ[] => {
+      const c = Math.round(Math.min(rx, rz) * 0.3);
+      return [
+        [cx - rx + c, cz - rz],
+        [cx + rx - c, cz - rz],
+        [cx + rx, cz - rz + c],
+        [cx + rx, cz + rz - c],
+        [cx + rx - c, cz + rz],
+        [cx - rx + c, cz + rz],
+        [cx - rx, cz + rz - c],
+        [cx - rx, cz - rz + c],
+      ];
+    };
+    const fits = (rx: number, rz: number) => octagon(rx, rz).every(([x, z]) => inPolygon(margin, x, z)) && pathTiles([...octagon(rx, rz), octagon(rx, rz)[0]!]).every(([x, z]) => within(x, z) && !onRing(x, z));
+    let ring1: number | null = null;
+    let [rx, rz] = [0, 0];
+    for (let r = small ? Math.round(R * 0.62) : ringAt; r >= Math.max(sqx, sqz) + 5 && ring1 === null; r--) if (fits(r, r)) ring1 = r;
+    if (ring1 !== null) {
+      // A small town's ring stretches along x or z as far as its edge lets it.
+      [rx, rz] = [ring1, ring1];
+      while (small && rx < R * 0.7 && fits(rx + 1, rz)) rx++;
+      while (small && rz < R * 0.7 && fits(rx, rz + 1)) rz++;
+      planner.loop(octagon(rx, rz), F.lane);
+    }
+    // The spokes: from the square out through the ring to the edge's lane, and from the ring out between them.
+    for (const [dx, dz] of [
+      [1, 0],
+      [0, 1],
+      [-1, 0],
+      [0, -1],
+    ] as const) {
+      let s = 0;
+      while (inSquare(centralSquare, cx + dx * (s + 1), cz + dz * (s + 1))) s++;
+      const start: XZ = [cx + dx * s, cz + dz * s];
+      const first = planner.walk(start, dx, dz, span);
+      const end = first && ring1 !== null && edgeLane ? planner.walk(first, dx, dz, span) : first;
+      if (end) planner.line([start, end], F.main, true);
+      if (ring1 === null || small) continue;
+      for (const side of [-1, 1]) {
+        const from: XZ = [cx + dx * rx - dz * side * spokeAt, cz + dz * rz + dx * side * spokeAt];
+        if (!planner.isLoop(from[0], from[1])) continue;
+        const out = planner.walk(from, dx, dz, span);
+        if (out && Math.max(Math.abs(out[0] - from[0]), Math.abs(out[1] - from[1])) >= 6) planner.line([from, out], F.lane);
+      }
+    }
+  } else {
+    // The ladder: the back lanes and the outer cross streets a loop round the middle, the high street and the cross
+    // street through the square joining across it - as far out as it fits.
+    let { across, along } = ladder!;
+    const [ha, hb] = upright ? [sqx, sqz] : [sqz, sqx];
+    const at = (a: number, b: number): XZ => (upright ? [cx + a, cz + b] : [cx + b, cz + a]);
+    for (;;) {
+      const box: XZ[] = [at(-across, -along), at(across, -along), at(across, along), at(-across, along)];
+      const fits = pathTiles([...box, box[0]!]).every(([x, z]) => within(x, z) && !onRing(x, z));
+      if (fits || (across <= ha + 2 && along <= hb + 2)) {
+        if (!planner.loop(box, F.lane)) throw new Error(`${plan.id}: no room for its streets`);
+        planner.line([at(0, -along), at(0, along)], F.main, true);
+        planner.line([at(-across, 0), at(across, 0)], F.main, true);
+        break;
+      }
+      if (across > ha + 2) across--;
+      if (along > hb + 2) along--;
+    }
+  }
+  // Each gate's way in: from the road's end outside, straight in to the first street it meets (or in to the square's
+  // row or column, then along it).
+  for (const g of gateMouths) {
+    const hit = planner.walk(g.end, -g.ux, -g.uz, span, { any: true, free: 7 });
+    if (hit) {
+      planner.line([g.end, hit], gateWidth, true, true);
+      continue;
+    }
+    const steps = g.ux !== 0 ? Math.abs(g.end[0] - cx) : Math.abs(g.end[1] - cz);
+    const corner: XZ = [g.end[0] - g.ux * steps, g.end[1] - g.uz * steps];
+    const dx = g.ux === 0 ? Math.sign(cx - corner[0]) : 0;
+    const dz = g.uz === 0 ? Math.sign(cz - corner[1]) : 0;
+    const on = planner.isStreet(corner[0], corner[1]) ? corner : planner.walk(corner, dx, dz, span, { any: true });
+    if (!on) throw new Error(`${plan.id}: no way in from its gate at ${g.x},${g.z}`);
+    planner.line(on === corner ? [g.end, corner] : [g.end, corner, on], gateWidth, true, true);
+  }
+  const graph = planner.graph(squares, gateMouths.map((g) => g.end));
+  graph.prune();
+
+  // Ground for the landmarks, cleared of the lanes before anything stands: the capital's citadel, a city's keep, the
+  // estate's manor, a temple bigger than a block.
+  const reserve = (size: readonly [number, number], near: readonly [number, number]) => {
+    const [w, d] = size;
+    const options: [number, number, number][] = [];
+    for (let z = Math.round(near[1] - R * 0.4); z <= near[1] + R * 0.4; z += 2) {
+      for (let x = Math.round(near[0] - R * 0.4); x <= near[0] + R * 0.4; x += 2) options.push([x - Math.floor(w / 2), z - Math.floor(d / 2), Math.hypot(x - near[0], z - near[1])]);
+    }
+    options.sort((p, q) => p[2] - q[2] || p[1] - q[1] || p[0] - q[0]);
+    for (const [rx, rz] of options) {
+      let ok = true;
+      for (let z = rz - 1; z <= rz + d && ok; z++) for (let x = rx - 1; x <= rx + w && ok; x++) ok = within(x, z) && !onRing(x, z) && !mouthTiles.has(I(x, z));
+      if (ok && graph.clear(rx, rz, w, d)) return;
+    }
+  };
+  const templeSize = sizeOf(form, "temple");
+  if (form === "capital") reserve([28, 22], centreOf("keep"));
+  else if (form === "city") reserve([20, 16], centreOf("keep"));
+  else if (form === "estate") reserve([24, 16], centreOf("grounds"));
+  if (form === "capital" || form === "city" || form === "clan") reserve(templeSize, form === "clan" ? [cx, cz - sqz - 2 - Math.floor(templeSize[1] / 2)] : centreOf("temple"));
+  graph.thin(F.thin, random);
+  // Paved: the main streets first, then the lanes, then the squares.
+  const ways = graph.live;
+  const mains: [number, number][][] = [];
+  for (const w of [...ways.filter((w) => w.main), ...ways.filter((w) => !w.main)]) {
+    for (const [x, z] of wayTiles(graph, w)) if (pave(x, z, w.main ? 0 : 1, w.main ? ground.street : ground.lane) && w.main) keyTile[local(x, z)] = 1;
+    if (w.main) mains.push(wayMiddle(graph, w));
+  }
+  for (const s of squares) for (const [x, z] of squareTiles(s)) if (pave(x, z, 2, ground.square)) keyTile[local(x, z)] = 1;
 
   // --- Building ---------------------------------------------------------------------------------------------------------
 
   const buildings: BuildingData[] = [];
   const interiors: InteriorSpec[] = [];
   const doors = new Set<number>();
+  const places: TownPlace[] = [];
+  /** Whether a tile is one of the plan's streets or squares, still open: what a door may open onto. */
   const fronts = (x: number, z: number) => {
-    if (!land.inside(x, z)) return false;
+    if (!within(x, z) || street[local(x, z)] !== 1) return false;
     const u = land.use[I(x, z)];
     return u === Use.Street || u === Use.Kept;
   };
-  const isMain = (x: number, z: number) => inSquare(x, z) && rank[local(x, z)] === 0;
 
   /** Whether a building fits: on unbuilt lots of the town, its door on a street, its front mostly on the street, its
    * sides and back `gap` tiles clear of other buildings. */
@@ -736,23 +983,24 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   };
   /** Every place a building can face a street: the street tile its door would open on, and the turn it would face. */
   const frontages = () => {
-    const out: { x: number; z: number; rot: number; rank: number; order: number }[] = [];
+    const out: { x: number; z: number; rot: number; rank: number; order: number; key: boolean }[] = [];
     for (let z = z0; z < z0 + span; z++) {
       for (let x = x0; x < x0 + span; x++) {
         if (!fronts(x, z) || !within(x, z)) continue;
-        for (const d of DIRS) if (within(x + d.dx, z + d.dz) && land.use[I(x + d.dx, z + d.dz)] === Use.Lot) out.push({ x, z, rot: d.rot, rank: rank[local(x, z)]!, order: order[local(x, z)]! });
+        for (const d of DIRS) if (within(x + d.dx, z + d.dz) && land.use[I(x + d.dx, z + d.dz)] === Use.Lot) out.push({ x, z, rot: d.rot, rank: rank[local(x, z)]!, order: order[local(x, z)]!, key: keyTile[local(x, z)] === 1 });
       }
     }
     return out;
   };
 
   /** A town building as near a point as the streets let it stand, facing south, west or east, its door seen. */
-  const site = (size: readonly [number, number], near: readonly [number, number], o: { spread?: number; main?: boolean; district?: District; gap?: number; anyWay?: boolean } = {}): Footprint | null => {
+  const site = (size: readonly [number, number], near: readonly [number, number], o: { spread?: number; main?: boolean; key?: boolean; district?: District; gap?: number; anyWay?: boolean } = {}): Footprint | null => {
     let best: { f: Footprint; score: number } | null = null;
     const [wide, deep] = size;
     for (const c of frontages()) {
       if (!o.anyWay && c.rot === 2) continue;
       if (o.main && c.rank !== 0) continue;
+      if (o.key && !c.key) continue;
       const dist = Math.hypot(c.x - near[0], c.z - near[1]);
       if (best && dist - 12 > best.score) continue;
       for (const k of [Math.floor(wide / 2), Math.floor(wide / 2) - 2, Math.floor(wide / 2) + 2, 1, wide - 2]) {
@@ -760,23 +1008,23 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
         const f = footprintAt([c.x, c.z], c.rot, wide, deep, k);
         if (o.district && districtAt(Math.round(f.x + f.w / 2), Math.round(f.z + f.d / 2)) !== o.district) continue;
         if (!fits(f, o.gap ?? 1)) continue;
-        const score = dist + (c.rot === 0 ? 0 : 4) + random() * (o.spread ?? 4);
+        // A door off the middle of its front (near a corner, under a banner) is the last choice.
+        const score = dist + (c.rot === 0 ? 0 : 4) + Math.abs(k - Math.floor(wide / 2)) * 1.5 + random() * (o.spread ?? 4);
         if (!best || score < best.score) best = { f, score };
         break;
       }
     }
     return best?.f ?? null;
   };
-  const centreOf = (district: District): [number, number] => {
-    const s = seeds.find((x) => x.kind === district);
-    return s ? [Math.round(s.x), Math.round(s.z)] : [cx, cz];
-  };
+  /** A place the town is crossed for, on a main street or a square where one is near enough, else on any street. */
+  const keySite = (size: readonly [number, number], near: readonly [number, number], o: { spread?: number; gap?: number } = {}): Footprint | null => site(size, near, { ...o, key: true }) ?? site(size, near, o);
   const addInterior = (f: Footprint, kind: BuildingKind, id: string, title: string, room: InteriorKind, extra: Partial<InteriorSpec> = {}) => {
     place(f, kind, id, { interior: id, sign: title });
     interiors.push({ id, name: title, kind: room, town: plan.id, style, exit: f.door, building: f.rot % 2 === 0 ? { w: f.w, d: f.d } : { w: f.d, d: f.w }, ...extra });
+    if (room !== "house" && room !== "crypt") places.push({ kind: id.endsWith("-shrine") ? "shrine" : room, name: title, x: f.door[0], z: f.door[1] });
   };
-  /** A plaza of `w` by `d` lots beside a street, as near a point as it fits. */
-  const plaza = (w: number, d: number, near: readonly [number, number], surface: number): [number, number] | null => {
+  /** A plaza of `w` by `d` lots beside a street, as near a point as it fits: one of the plan's squares. */
+  const plaza = (w: number, d: number, near: readonly [number, number], surface: number, name: string, o: { loose?: boolean; key?: boolean } = {}): [number, number] | null => {
     let best: [number, number, number] | null = null;
     for (let z = z0; z + d <= z0 + span; z += 2) {
       for (let x = x0; x + w <= x0 + span; x += 2) {
@@ -785,21 +1033,34 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
         let ok = true;
         for (let zz = z; zz < z + d && ok; zz++) for (let xx = x; xx < x + w && ok; xx++) ok = within(xx, zz) && land.use[I(xx, zz)] === Use.Lot && !onRing(xx, zz);
         if (!ok) continue;
-        let touching = 0;
-        for (let xx = x; xx < x + w; xx++) touching += (fronts(xx, z - 1) ? 1 : 0) + (fronts(xx, z + d) ? 1 : 0);
-        for (let zz = z; zz < z + d; zz++) touching += (fronts(x - 1, zz) ? 1 : 0) + (fronts(x + w, zz) ? 1 : 0);
-        if (touching >= 3) best = [x, z, dist];
+        // On a corner: along two of its sides, most of each a street (with `key`, one a main street or the square).
+        const side = (n: number, at: (k: number) => readonly [number, number]) => {
+          let open = 0;
+          let main = 0;
+          for (let k = 0; k < n; k++) {
+            const [tx, tz] = at(k);
+            if (fronts(tx, tz)) open++;
+            if (fronts(tx, tz) && keyTile[local(tx, tz)] === 1) main++;
+          }
+          return { open: open * 2 > n ? 1 : 0, main: main * 2 > n ? 1 : 0 };
+        };
+        const all4 = [side(w, (k) => [x + k, z - 1]), side(w, (k) => [x + k, z + d]), side(d, (k) => [x - 1, z + k]), side(d, (k) => [x + w, z + k])];
+        const sides = all4.reduce((n, q) => n + q.open, 0);
+        if (sides >= (o.loose ? 1 : 2) && (!o.key || all4.some((q) => q.main))) best = [x, z, dist];
       }
     }
     if (!best) return null;
     for (let zz = best[1]; zz < best[1] + d; zz++) for (let xx = best[0]; xx < best[0] + w; xx++) pave(xx, zz, 2, surface);
+    squares.push({ x: best[0], z: best[1], w, d, name });
+    // The market is the square's own: the shops stand round it as round the square.
+    if (name === "The market") for (let zz = best[1]; zz < best[1] + d; zz++) for (let xx = best[0]; xx < best[0] + w; xx++) keyTile[local(xx, zz)] = 1;
     return [best[0] + Math.floor(w / 2), best[1] + Math.floor(d / 2)];
   };
 
   // Open spaces first: the capital's market, the arena, a campus's courtyards.
-  const market = form === "capital" ? plaza(18, 13, centreOf("market").map((v, k) => v + (k === 0 ? 22 : 4)) as [number, number], ground.square) : null;
-  const arena = village || form === "stilts" || form === "elfhame" ? null : plaza(10, 8, centreOf("residential"), ground.square);
-  if (form === "campus") for (let n = 0; n < 3; n++) plaza(between(random, 12, 16), between(random, 9, 12), seeds[(n % (seeds.length - 1)) + 1] ? [Math.round(seeds[(n % (seeds.length - 1)) + 1]!.x), Math.round(seeds[(n % (seeds.length - 1)) + 1]!.z)] : [cx, cz], S.grass);
+  const market = form === "capital" ? plaza(18, 13, centreOf("market").map((v, k) => v + (k === 0 ? 22 : 4)) as [number, number], ground.square, "The market", { key: true }) : null;
+  const arena = village || form === "stilts" ? null : (plaza(10, 8, centreOf("residential"), ground.square, "The arena", { key: true }) ?? plaza(10, 8, centreOf("residential"), ground.square, "The arena"));
+  if (form === "campus") for (let n = 0; n < 3; n++) plaza(between(random, 12, 16), between(random, 9, 12), seeds[(n % (seeds.length - 1)) + 1] ? [Math.round(seeds[(n % (seeds.length - 1)) + 1]!.x), Math.round(seeds[(n % (seeds.length - 1)) + 1]!.z)] : [cx, cz], S.grass, "A courtyard");
 
   // The landmarks, much bigger than the rest, and the town's own buildings, each where it belongs.
   const landmark = (size: readonly [number, number], near: readonly [number, number], kind: BuildingKind, id: string, o: { district?: District } = {}) => {
@@ -813,64 +1074,18 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   } else if (form === "city") landmark([20, 16], centreOf("keep"), "keep", `${plan.id}-keep`);
   else if (form === "estate") landmark([24, 16], centreOf("grounds"), "manor", `${plan.id}-manor`);
 
-  // Lanes off the main streets, now that the landmarks stand: some branch again, some meet another street, some end.
-  // A big town lays them before its own buildings (they need the frontage); a small one after (they would cut its lots
-  // too small).
-  const wild = form === "elfhame" || form === "stilts";
-  const drawLanes = () => {
-    const lanes: [number, number][][] = [];
-    const branch = (from: readonly [number, number], angle: number, depth: number) => {
-      let [x, z] = from;
-      const points: [number, number][] = [[x, z]];
-      let a = angle;
-      for (let seg = 0; seg < 2; seg++) {
-        const length = between(random, F.laneLength[0], F.laneLength[1]);
-        x += Math.cos(a) * length;
-        z += Math.sin(a) * length;
-        points.push([x, z]);
-        a += random() < 0.5 ? 0 : (random() < 0.5 ? 1 : -1) * (Math.PI / 2);
-      }
-      const path = brushPath(points, F.lane, (px, pz) => {
-        if (!within(px, pz) || onRing(px, pz)) return false;
-        const u = land.use[I(px, pz)];
-        if (u === Use.Lot) return pave(px, pz, 1, ground.lane);
-        return u === Use.Street || u === Use.Kept;
-      }, true);
-      lanes.push(path);
-      if (depth === 0 && path.length > 10 && random() < 0.45) {
-        const at = path[Math.floor(path.length * (0.4 + random() * 0.4))]!;
-        branch(at, a + (random() < 0.5 ? 1 : -1) * (Math.PI / 2) + (wild ? (random() - 0.5) * 0.5 : 0), 1);
-      }
-    };
-    for (const path of mains) {
-      let side = random() < 0.5 ? 1 : -1;
-      for (let k = between(random, 4, 8); k < path.length - 4; k += between(random, F.laneEvery[0], F.laneEvery[1])) {
-        if (random() > F.laneChance) continue;
-        const [ax, az] = path[k]!;
-        const [bx, bz] = path[Math.min(path.length - 1, k + 2)]!;
-        const along = Math.abs(bx - ax) >= Math.abs(bz - az) ? (bx >= ax ? 0 : Math.PI) : bz > az ? Math.PI / 2 : -Math.PI / 2;
-      branch([ax, az], along + side * (Math.PI / 2) + (wild ? (random() - 0.5) * 0.7 : 0), 0);
-        side = -side;
-      }
-    }
-    // Lanes from the square's corners, so the middle of the town is not all main street.
-    for (let n = 0; n < (village ? 2 : 4); n++) {
-      const a = n * (Math.PI / 2);
-      branch([Math.round(cx + Math.cos(a) * (F.square[0] + 1)), Math.round(cz + Math.sin(a) * (F.square[1] + 1))], a, 0);
-    }
-  };
-  if (R >= 30) drawLanes();
-
-  const templeSize = sizeOf(form, "temple");
   if (!village && form !== "stilts") {
-    const near: readonly [number, number] = form === "clan" ? [cx, cz - F.square[1] - 2] : centreOf("temple");
-    const temple = site(templeSize, near, { spread: 3, gap: 2 }) ?? site([templeSize[0] - 3, templeSize[1] - 3], near, { spread: 3 });
+    const near: readonly [number, number] = form === "clan" ? [cx, cz - sqz - 2] : centreOf("temple");
+    const temple = keySite(templeSize, near, { spread: 3, gap: 2 }) ?? site([templeSize[0] - 3, templeSize[1] - 3], near, { spread: 3 });
     if (temple) {
       addInterior(temple, "temple", `${plan.id}-temple`, plan.temple, "temple", { resident: { name: "Priest", text: ["Rest a while. The wells of Dominaria remember the faithful."] } });
       // Its close: open paving before its front.
       if (form === "capital" || form === "city") {
         const [sx, sz] = [temple.door[0] - (temple.rot === 1 ? 6 : temple.rot === 3 ? -1 : Math.floor(temple.w / 2)), temple.door[1] + (temple.rot === 0 ? 1 : -Math.floor(temple.d / 2))];
-        for (let z = sz; z < sz + (temple.rot === 0 ? 6 : temple.d); z++) for (let x = sx; x < sx + (temple.rot === 0 ? temple.w : 6); x++) if (within(x, z) && land.use[I(x, z)] === Use.Lot) pave(x, z, 2, ground.square);
+        const [cw, cd] = [temple.rot === 0 ? temple.w : 6, temple.rot === 0 ? 6 : temple.d];
+        let paved = 0;
+        for (let z = sz; z < sz + cd; z++) for (let x = sx; x < sx + cw; x++) if (within(x, z) && land.use[I(x, z)] === Use.Lot && pave(x, z, 2, ground.square)) paved++;
+        if (paved > 0) squares.push({ x: sx, z: sz, w: cw, d: cd, name: "The temple close" });
       }
     }
   }
@@ -880,44 +1095,44 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   if (!innAt) throw new Error(`${plan.id}: no room for the inn`);
   addInterior(innAt, "inn", `${plan.id}-inn`, plan.inn, "inn", { innkeeper: { name: `The keeper of ${plan.inn}`, text: plan.innkeeper }, spellTable: true });
   spec.vendors.forEach((v, k) => {
-    const near: readonly [number, number] = market && k % 2 === 1 ? market : [cx + Math.round(Math.cos(k * 2.1) * (F.square[0] + 3)), cz + Math.round(Math.sin(k * 2.1) * (F.square[1] + 3))];
-    const f = site(sizeOf(form, "shop"), near, { spread: 4, gap: 0 }) ?? site([7, 5], near, { spread: 4, gap: 0 });
+    const near: readonly [number, number] = market && k % 2 === 1 ? market : [cx + Math.round(Math.cos(k * 2.1) * (sqx + 3)), cz + Math.round(Math.sin(k * 2.1) * (sqz + 3))];
+    const f = keySite(sizeOf(form, "shop"), near, { spread: 4, gap: 0 }) ?? site([7, 5], near, { spread: 4, gap: 0 });
     if (!f) throw new Error(`${plan.id}: no room for ${v.id}'s shop`);
     addInterior(f, "shop", `${v.id}-shop`, v.name, "shop", { vendor: v });
   });
   if (spec.exotic) {
-    const f = site(sizeOf(form, "exotic"), market ?? [cx, cz], { spread: 4, gap: 0 }) ?? site([7, 5], market ?? [cx, cz], { spread: 4, gap: 0 });
+    const f = keySite(sizeOf(form, "exotic"), market ?? [cx, cz], { spread: 4, gap: 0 }) ?? site([7, 5], market ?? [cx, cz], { spread: 4, gap: 0 });
     if (!f) throw new Error(`${plan.id}: no room for the exotic wares shop`);
     addInterior(f, "shop", `${spec.exotic.id}-shop`, spec.exotic.name, "exotic-wares", { vendor: spec.exotic });
   }
   if (!village) {
-    const guild = site(sizeOf(form, "guildhall"), form === "campus" ? [cx, cz + F.square[1] + 2] : centreOf("artisan"), { spread: 6, gap: 1 });
+    const guild = keySite(sizeOf(form, "guildhall"), form === "campus" ? [cx, cz + sqz + 2] : centreOf("artisan"), { spread: 6, gap: 1 });
     if (guild) addInterior(guild, "guildhall", `${plan.id}-guildhall`, plan.guild, "guildhall", { spellTable: true, resident: { name: "Guild master", text: ["Our tables are open to any mage. Build your deck in peace."] } });
     const tower = style === "tolarian";
-    const library = site(sizeOf(form, tower ? "tower" : "library"), centreOf(form === "campus" ? "residential" : "temple"), { spread: 8, gap: 1 });
+    const library = keySite(sizeOf(form, tower ? "tower" : "library"), centreOf(form === "campus" ? "residential" : "temple"), { spread: 8, gap: 1 });
     if (library) {
-      const title = tower ? `The ${plan.name} Mage's Tower` : `The ${plan.name} Library`;
+      const title = tower ? `${the} Mage's Tower` : `${the} Library`;
       addInterior(library, tower ? "tower" : "library", `${plan.id}-${tower ? "tower" : "library"}`, title, tower ? "tower" : "library", {
         resident: { name: tower ? "Archmage" : "Librarian", text: ["Every card ever printed is written down somewhere. Most of them here."] },
       });
     }
-    const smithy = site(sizeOf(form, "smithy"), centreOf("artisan"), { spread: 6, gap: 0 }) ?? site(sizeOf(form, "smithy"), innGate, { spread: 8, gap: 0 });
-    if (smithy) addInterior(smithy, "smithy", `${plan.id}-smithy`, `The ${plan.name} Smithy`, "smithy", { armorer: true });
+    const smithy = keySite(sizeOf(form, "smithy"), centreOf("artisan"), { spread: 6, gap: 0 }) ?? site(sizeOf(form, "smithy"), innGate, { spread: 8, gap: 0 });
+    if (smithy) addInterior(smithy, "smithy", `${plan.id}-smithy`, `${the} Smithy`, "smithy", { armorer: true });
   } else {
-    const shrine = site(sizeOf(form, "shrine"), [cx, cz + F.square[1] + 3], { spread: 6 });
-    if (shrine) addInterior(shrine, "temple", `${plan.id}-shrine`, `The ${plan.name} Shrine`, "temple", { resident: { name: "Hermit", text: ["The road is long. Sit, and let it wait for you."] } });
+    const shrine = keySite(sizeOf(form, "shrine"), [cx, cz + sqz + 3], { spread: 6 });
+    if (shrine) addInterior(shrine, "temple", `${plan.id}-shrine`, `${the} Shrine`, "temple", { resident: { name: "Hermit", text: ["The road is long. Sit, and let it wait for you."] } });
   }
   const homes = form === "capital" ? 10 : village || form === "stilts" ? 3 : 6;
   for (let n = 1; n <= homes; n++) {
     const angle = turn + n * 2.4;
     const r = boundary(angle) * (0.4 + random() * 0.35);
-    const f = site(sizeOf(form, "house"), [cx + Math.cos(angle) * r, cz + Math.sin(angle) * r], { spread: 12, gap: 1 });
+    const near: readonly [number, number] = [cx + Math.cos(angle) * r, cz + Math.sin(angle) * r];
+    const size = sizeOf(form, "house", small);
+    const f = site(size, near, { spread: 12, gap: 1 }) ?? site(size, near, { spread: 12, gap: 0 }) ?? site([size[0] - 1, size[1] - 1], near, { spread: 12, gap: 0 });
     if (!f) break;
     const folk = plan.folk[(n - 1) % Math.max(1, plan.folk.length)];
     addInterior(f, "house", `${plan.id}-house-${n}`, `A house in ${plan.name}`, "house", n <= plan.folk.length && folk ? { resident: folk } : {});
   }
-
-  if (R < 30) drawLanes();
 
   // The rows: along the main streets first, then the lanes and squares, each district building its own way.
   const all = frontages().sort((p, q) => p.rank - q.rank || p.order - q.order);
@@ -926,7 +1141,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     if (land.use[I(c.x + DIRS.find((d) => d.rot === c.rot)!.dx, c.z + DIRS.find((d) => d.rot === c.rot)!.dz)] !== Use.Lot) continue;
     const dir = DIRS.find((d) => d.rot === c.rot)!;
     const district = districtAt(c.x + dir.dx, c.z + dir.dz);
-    const fill = fillFor(form, district);
+    const fill = fillFor(form, district, small);
     if (!fill || random() < fill.skip) continue;
     const total = fill.kinds.reduce((n, [, w]) => n + w, 0);
     let roll = random() * total;
@@ -1013,7 +1228,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
   };
   if (market) stalls(market, 8, 5);
-  else if (!village && form !== "elfhame") stalls([cx + Math.ceil(F.square[0] / 2) + 1, cz + Math.ceil(F.square[1] / 2)], Math.floor(F.square[0] / 2), Math.floor(F.square[1] / 2));
+  else if (!village && form !== "elfhame") stalls([cx + Math.ceil(sqx / 2) + 1, cz + Math.ceil(sqz / 2)], Math.floor(sqx / 2), Math.floor(sqz / 2));
 
   // The caravans' pitch: open paving, open all round, in the market (or the square).
   let pitch: { x: number; z: number } | null = null;
@@ -1027,6 +1242,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     if (spot === undefined) throw new Error(`${plan.id}: no room for the caravan pitch`);
     pitch = { x: land.xOf(spot), z: land.zOf(spot) };
     for (const j of [spot, ...land.n8(spot)]) reserved.add(j);
+    places.push({ kind: "pitch", name: "The caravans' pitch", x: pitch.x, z: pitch.z });
   }
 
   // The quest board by the inn's door.
@@ -1041,15 +1257,36 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   const bz = land.zOf(boardAt);
   props.push({ id: "quest-board", x: bx + 0.5, z: bz + 0.5, rot: innAt.rot });
   npcs.push({ id: `${plan.id}-quest-board`, x: bx, z: bz, kind: "quest-board", name: village ? "Notice board" : "Quest board", text: plan.board, stand: [bx + 0.5, level / 16, bz + 0.5] });
+  places.push({ kind: "quest-board", name: village ? "Notice board" : "Quest board", x: bx, z: bz });
 
-  // The arena, closed: its gate on its plaza.
+  // The arena, closed: its gate at the middle of its plaza's side along a street (a main street's where it has one),
+  // facing it - south, east or west before north.
   if (!village) {
-    const at = arena ?? plaza(8, 6, centreOf("residential"), ground.square) ?? [cx, cz + F.square[1] - 1];
-    const ai = land.rect(at[0] - 1, at[1] - 1, at[0] + 1, at[1]).filter(free);
-    for (const j of ai) stand(j);
-    props.push({ id: "arena-gate", x: at[0] + 0.5, z: at[1] + 0.5, rot: 0 });
+    let at = arena ?? plaza(8, 6, centreOf("residential"), ground.square, "The arena", { key: true }) ?? plaza(8, 6, centreOf("residential"), ground.square, "The arena", { loose: true });
+    let rot = 0;
+    const yard = at ? squares.find((s) => s.name === "The arena" && inSquare(s, at![0], at![1])) : undefined;
+    if (yard) {
+      const sides = [
+        { rot: 0, x: yard.x + Math.floor(yard.w / 2), z: yard.z + yard.d - 1, ox: 0, oz: 1 },
+        { rot: 3, x: yard.x + yard.w - 1, z: yard.z + Math.floor(yard.d / 2), ox: 1, oz: 0 },
+        { rot: 1, x: yard.x, z: yard.z + Math.floor(yard.d / 2), ox: -1, oz: 0 },
+        { rot: 2, x: yard.x + Math.floor(yard.w / 2), z: yard.z, ox: 0, oz: -1 },
+      ];
+      const score = (s: (typeof sides)[number]) => {
+        const [ex, ez] = [s.x + s.ox, s.z + s.oz];
+        return fronts(ex, ez) ? (keyTile[local(ex, ez)] === 1 ? 2 : 1) : 0;
+      };
+      const best = sides.reduce((b, s) => (score(s) > score(b) ? s : b));
+      at = [best.x, best.z];
+      rot = best.rot;
+    }
+    at ??= [cx, cz + sqz - 1];
+    const gate: PropData = { id: "arena-gate", x: at[0] + 0.5, z: at[1] + 0.5, rot };
+    for (const [x, z] of tilesOf(gate).tiles) if (land.inside(x, z) && free(I(x, z))) stand(I(x, z));
+    props.push(gate);
     if (land.open(I(at[0], at[1]))) stand(I(at[0], at[1]));
     npcs.push({ id: `${plan.id}-arena`, x: at[0], z: at[1], kind: "arena", name: "The arena", text: ["The arena is closed. A sign reads: coming soon."], stand: [at[0] + 0.5, level / 16, at[1] + 0.5] });
+    places.push({ kind: "arena", name: "The arena", x: at[0], z: at[1] });
   }
 
   // Guards in the gates, pacing the main street inside; townsfolk about the square.
@@ -1057,8 +1294,8 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   if (F.guards) {
     let k = 0;
     for (const g of gateMouths) {
-      const path = mains[gateMouths.indexOf(g)]!;
-      const stops = [path[1], path[Math.min(path.length - 1, 9)]].filter((p): p is [number, number] => !!p && land.open(I(p[0], p[1])));
+      // Just inside the gate, and up the way in.
+      const stops = [1, 9].map((s): [number, number] => [g.x - g.ux * s, g.z - g.uz * s]).filter((p) => land.open(I(p[0], p[1])));
       if (stops.length < 2) continue;
       npcs.push({
         id: `${plan.id}-guard-${++k}`,
@@ -1229,6 +1466,30 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
     }
   }
 
+  /** The plan as the world keeps it (format.ts, `TownPlan`): only the nodes its ways use, in the order they are met. */
+  const planOf = (): TownPlan => {
+    const index = new Map<number, number>();
+    const nodes: XZ[] = [];
+    const use = (n: number) => {
+      let k = index.get(n);
+      if (k === undefined) {
+        k = nodes.length;
+        index.set(n, k);
+        nodes.push(graph.nodes[n]!);
+      }
+      return k;
+    };
+    const kept = graph.live.map((w): StreetWay => ({ a: use(w.a), b: use(w.b), width: w.width, ...(w.main ? { main: true } : {}), ...(w.via.length > 0 ? { via: w.via } : {}) }));
+    return {
+      outline: poly,
+      enclosure: F.enclosure,
+      nodes,
+      ways: kept,
+      squares,
+      gates: graph.gates.map(use),
+      places,
+    };
+  };
   return {
     data: {
       id: plan.id,
@@ -1240,6 +1501,7 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
       ...(spec.color ? { region: spec.color } : {}),
       start: plan.start,
       ...(plan.home ? { home: plan.home } : {}),
+      plan: planOf(),
     },
     buildings,
     interiors,
@@ -1269,72 +1531,6 @@ function frontOf(f: Footprint, k: number): [number, number] {
     default:
       return [f.x + f.w, f.z + f.d - 1 - k];
   }
-}
-
-/** The tiles of a straight line, corner to corner, four-connected: Bresenham's, a tile added at each diagonal step. */
-function line(a: readonly [number, number], b: readonly [number, number]): [number, number][] {
-  const out: [number, number][] = [];
-  let [x, z] = a;
-  const [x1, z1] = b;
-  const dx = Math.abs(x1 - x);
-  const dz = -Math.abs(z1 - z);
-  const sx = x < x1 ? 1 : -1;
-  const sz = z < z1 ? 1 : -1;
-  let err = dx + dz;
-  for (;;) {
-    out.push([x, z]);
-    if (x === x1 && z === z1) break;
-    const e2 = 2 * err;
-    const stepX = e2 >= dz;
-    const stepZ = e2 <= dx;
-    if (stepX && stepZ) {
-      // A diagonal step: go one way first, so the two tiles share a side.
-      err += dz;
-      x += sx;
-      out.push([x, z]);
-      err += dx;
-      z += sz;
-      continue;
-    }
-    if (stepX) {
-      err += dz;
-      x += sx;
-    }
-    if (stepZ) {
-      err += dx;
-      z += sz;
-    }
-  }
-  return out;
-}
-
-/**
- * Paints a way along a polyline with a square brush `width` tiles wide (so its tiles always join edge to edge), calling
- * `paint` for each tile; with `stop`, it ends where `paint` says no at the brush's middle - a lane meeting a building or
- * the wall. The middle line's tiles, in order.
- */
-function brushPath(points: readonly (readonly [number, number])[], width: number, paint: (x: number, z: number) => boolean, stop = false): [number, number][] {
-  const middle: [number, number][] = [];
-  const lo = -Math.floor((width - 1) / 2);
-  const hi = lo + width - 1;
-  for (let k = 1; k < points.length; k++) {
-    const [ax, az] = points[k - 1]!;
-    const [bx, bz] = points[k]!;
-    const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) * 2));
-    for (let s = 0; s <= steps; s++) {
-      const x = Math.round(ax + ((bx - ax) * s) / steps);
-      const z = Math.round(az + ((bz - az) * s) / steps);
-      const last = middle[middle.length - 1];
-      if (last && last[0] === x && last[1] === z) continue;
-      // A diagonal step is filled in, so the way joins edge to edge however narrow.
-      if (last && last[0] !== x && last[1] !== z) paint(x, last[1]);
-      let ok = true;
-      for (let dz = lo; dz <= hi; dz++) for (let dx = lo; dx <= hi; dx++) if (!paint(x + dx, z + dz) && dx === 0 && dz === 0) ok = false;
-      if (stop && !ok && middle.length > 2) return middle;
-      middle.push([x, z]);
-    }
-  }
-  return middle;
 }
 
 /**
