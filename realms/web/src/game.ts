@@ -1071,8 +1071,8 @@ export class Overworld {
       else this.beaten.add(`${mob.spawn.id}|${mob.epoch}`);
       this.removeMob(mob);
       this.say(`You defeated ${theMob(mob.info, false)}: ${gold(result.Gold)} gold.`);
-      for (const relic of result.Relics ?? []) this.say(`A relic falls from the ${mob.info.name}: ${relic} is yours, and yours alone.`);
-      if (result.Gear) this.say(`The ${mob.info.name} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
+      for (const relic of result.Relics ?? []) this.say(`A relic falls from ${theMob(mob.info, false)}: ${relic} is yours, and yours alone.`);
+      if (result.Gear) this.say(`${theMob(mob.info)} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
       if (result.Offer.length > 0 || result.Gear) {
         const loot = await this.openCards("loot", { token: start.Token, offer: result.Offer, cap: result.Cap, mob: mob.info.name, gear: result.Gear ?? null }, false);
         const picks = Array.isArray(loot.result?.picks) ? (loot.result.picks as string[]) : [];

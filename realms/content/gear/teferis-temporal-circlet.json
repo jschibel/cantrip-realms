@@ -4,6 +4,7 @@
   "slot": "head",
   "rarity": "mythic",
   "gold": 15000,
+  "points": 10,
   "stats": {
     "life": -3,
     "hand": 1,
