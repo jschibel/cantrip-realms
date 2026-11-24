@@ -146,6 +146,7 @@ export class Stage {
 
   private makePlayer(tile: Tile, spot: Spot): Actor {
     const a = new Actor(this.playerSpec, tile, spot.grid, {}, "player", this.playerRandom);
+    a.smooth = true;
     a.floor = spot.floorAt ?? null;
     if (spot.floorAt) a.place(tile);
     return a;
@@ -218,28 +219,33 @@ export class Stage {
     return this.current.doors.find((d) => (d.tile.x === tile.x && d.tile.z === tile.z) || (d.tile.x + d.step[0] === tile.x && d.tile.z + d.step[1] === tile.z));
   }
 
-  /** Walks to a tile; a door's tile (or the doorway itself) walks there and goes through. The page may take it first. */
-  clickTile(tile: Tile): void {
-    if (this.transition || this.paused) return;
+  /**
+   * Walks to a tile; a door's tile (or the doorway itself) walks there and goes through. The page may take it first.
+   * True if the click was used on something (the page took it, or a door), not only walked.
+   */
+  clickTile(tile: Tile): boolean {
+    if (this.transition || this.paused) return false;
     if (this.intercept(tile)) {
       this.pendingDoor = null;
-      return;
+      return true;
     }
     const door = this.doorAt(tile);
     if (door) {
       this.pendingDoor = door;
       if (this.player.tile.x === door.tile.x && this.player.tile.z === door.tile.z && !this.player.moving) this.startDoor(door);
       else if (!this.player.goTo(door.tile)) this.pendingDoor = null;
-      return;
+      return true;
     }
     this.pendingDoor = null;
     const to = this.reachableNear(tile, 2);
     if (to) this.player.goTo(to);
+    return false;
   }
 
   /**
    * The tile to walk to for a tile pointed at: itself if one can stand there, else the open tile nearest it within
-   * `reach` - of those equally near, the one nearest the player, so a walk heads for the near side of what is in the way.
+   * `reach`, leaning toward the player so a walk heads for the near side of what is in the way, never round it; and
+   * where nothing is open within reach (the middle of a big roof), the first open tile on the line from it to the player.
    */
   reachableNear(tile: Tile, reach: number): Tile | null {
     const grid = this.current.grid;
@@ -250,14 +256,20 @@ export class Stage {
     for (let dz = -reach; dz <= reach; dz++) {
       for (let dx = -reach; dx <= reach; dx++) {
         const t = { x: tile.x + dx, z: tile.z + dz };
-        const d = Math.hypot(dx, dz) + 0.01 * Math.hypot(t.x - me.x, t.z - me.z);
+        const d = Math.hypot(dx, dz) + 0.3 * Math.hypot(t.x - me.x, t.z - me.z);
         if (grid.walkable(t.x, t.z) && d < bestD) {
           best = t;
           bestD = d;
         }
       }
     }
-    return best;
+    if (best) return best;
+    const n = Math.max(Math.abs(me.x - tile.x), Math.abs(me.z - tile.z));
+    for (let i = 1; i <= n; i++) {
+      const t = { x: Math.round(tile.x + ((me.x - tile.x) * i) / n), z: Math.round(tile.z + ((me.z - tile.z) * i) / n) };
+      if (grid.walkable(t.x, t.z)) return t;
+    }
+    return null;
   }
 
   /** Goes through a door: the player walks into the doorway, the camera eases and the iris closes on it. */
@@ -382,9 +394,14 @@ export class Stage {
     return point ? { x: Math.floor(point.x), z: Math.floor(point.z) } : null;
   }
 
+  /** The point on the floor under a point on the page, whatever stands in front of it (at the player's own level). */
+  floorPointAt(x: number, y: number): THREE.Vector3 | null {
+    return this.renderer.rayAt(x, y).intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -this.player.position.y), new THREE.Vector3());
+  }
+
   /** The tile on the floor under a point on the page, whatever stands in front of it (at the player's own level). */
   floorTileAt(x: number, y: number): Tile | null {
-    const point = this.renderer.rayAt(x, y).intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -this.player.position.y), new THREE.Vector3());
+    const point = this.floorPointAt(x, y);
     return point ? { x: Math.floor(point.x), z: Math.floor(point.z) } : null;
   }
 

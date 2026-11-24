@@ -57,7 +57,21 @@ test("the quest board stands in the town, used from beside it", async ({ page })
     for (let cx = Math.floor((town.center[0] - 80) / 32); cx <= Math.floor((town.center[0] + 80) / 32); cx++)
       for (let cz = Math.floor((town.center[1] - 80) / 32); cz <= Math.floor((town.center[1] + 80) / 32); cz++) near.push(...(chunk(cx, cz)?.npcs ?? []));
     const q = near.find((n) => n.kind === "quest-board")!;
-    await walkTo(page, { x: q.x, z: q.z }, 2);
+    // Not right up to it: a guard whose beat stops in front of the board stands there watching anyone within four
+    // tiles, and would take the click. From further off he walks on, and the click finds the board clear.
+    const { openWorld } = await import("./realm");
+    const off = [6, -6, 7, -7, 8, -8].flatMap((d) => [{ x: q.x + d, z: q.z + 1 }, { x: q.x + d, z: q.z }]).find(openWorld)!;
+    await walkTo(page, off, 1);
+    // His beat takes him away and back every fifteen seconds or so: the board clear of him.
+    await until(
+      page,
+      async () => {
+        const b = await entity(page, (e) => e.kind === "quest-board", "the quest board");
+        return (await page.evaluate(([x, y]) => (globalThis as any).realmTest.figureAt(x, y), [b.x, b.y] as const)) === null;
+      },
+      "the board clear of the guard",
+      20,
+    );
   }
   await clickEntity(page, (e) => e.kind === "quest-board", "the quest board");
   await until(page, async () => (await realm<string>(page, "screen")) === "dialog", "the board's notices", 20);

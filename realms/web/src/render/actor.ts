@@ -2,14 +2,23 @@ import * as THREE from "three";
 import { Figure, type FigureSpec } from "../art/figures/rig";
 import type { Behaviour as BehaviourData } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
+import { type Open, type Point, slide, smooth, tilesAlong } from "./motion";
 import { blobShadow } from "./shadow";
 
 // A figure walking a place's grid: along a path of tiles at a steady pace, turning to face where it goes, stepping up
 // and down as the floor rises and falls, its walk cycle running while it moves, its round shadow under it; and (for
 // those that live there) idling and wandering about a home tile, pacing a beat, or turning to watch the player. The
-// game moves the player's (`goTo`, `retarget`, `walkTo`) and lets the others think for themselves (`update`).
+// game moves the player's (`goTo`, `steer`, `walkTo`) and lets the others think for themselves (`update`).
+//
+// The player walks between tile middles (render/motion.ts): a click's walk is the grid's path pulled into straight legs
+// (`smooth`), and a held button steers it straight at a point (`steer`), sliding along what is in the way. Either way it
+// goes on from where it stands, so it never jumps; `remaining` is still the tiles ahead as eight-way steps, which is
+// what the relay sends.
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);
+
+/** How near its point a steered walk begins to slow, tiles: about the lag of the camera following it at full pace. */
+export const ARRIVE = 1;
 
 export interface Behaviour {
   /** Wander about a home tile: stand a while, then walk to an open tile within reach. */
@@ -44,6 +53,15 @@ export class Actor {
   private stop = 0;
   private readonly shadow: THREE.Mesh;
   private moved = 0;
+  /** Whether `goTo` pulls the grid's path straight (the player's walks); the others walk tile to tile. */
+  smooth = false;
+  /** The point a held button steers toward, or null. */
+  private steerTo: Point | null = null;
+  /** How fast the steered body went last frame, tiles a second. */
+  private steered = 0;
+  /** The tiles a pulled-straight walk passes, eight-way steps from where it began, and how far along them it is. */
+  private trail: Tile[] = [];
+  private trailAt = 0;
 
   /**
    * The floor's height under a point, when it is more than the grid's tile heights (a ramp's slope at world scale:
@@ -80,20 +98,59 @@ export class Actor {
   }
 
   get moving(): boolean {
-    return this.path.length > 0;
+    return this.path.length > 0 || (this.steerTo !== null && this.steered > 0.1);
   }
 
-  /** Walks to a tile by the shortest way; false if there is none. */
+  /** Whether a held button is steering it (`steer`). */
+  get steering(): boolean {
+    return this.steerTo !== null;
+  }
+
+  private readonly open: Open = (x, z) => this.grid.walkable(x, z);
+
+  /** Sets the walk to points, dropping any steering and trail. */
+  private follow(points: THREE.Vector3[]): void {
+    this.path = points;
+    this.steerTo = null;
+    this.steered = 0;
+    this.trail = [];
+    this.trailAt = 0;
+  }
+
+  /**
+   * Walks to a tile by the shortest way; false if there is none. A smooth walker goes from where it stands along the path
+   * pulled straight; the others step from tile middle to tile middle.
+   */
   goTo(to: Tile): boolean {
     const route = this.grid.path(this.tile, to);
     if (!route) return false;
-    this.path = route.slice(1).map((t) => centre(t));
+    if (!this.smooth) {
+      this.follow(route.slice(1).map((t) => centre(t)));
+      return true;
+    }
+    const here = { x: this.position.x, z: this.position.z };
+    const points = smooth(this.open, here, route);
+    this.follow(points.map((p) => new THREE.Vector3(p.x, 0, p.z)));
+    this.trail = tilesAlong(this.open, here, points);
     return true;
+  }
+
+  /**
+   * Steers it straight toward a point, or with null stands it where it is. Each frame it walks at the point, slowing
+   * within ARRIVE of it, and slides along whatever is in the way (render/motion.ts `slide`). No path is found.
+   */
+  steer(point: Point | null): void {
+    if (!point) {
+      if (this.steerTo) this.follow([]);
+      return;
+    }
+    if (!this.steerTo) this.follow([]);
+    this.steerTo = { x: point.x, z: point.z };
   }
 
   /** Walks straight to a point (through a doorway), ignoring the grid. */
   walkTo(point: THREE.Vector3): void {
-    this.path = [point.clone()];
+    this.follow([point.clone()]);
   }
 
   /**
@@ -103,48 +160,69 @@ export class Actor {
    */
   retarget(to: Tile): boolean {
     const next = this.path[0];
-    if (!next) return this.goTo(to);
+    if (!next || this.smooth) return this.goTo(to);
     const route = this.grid.path({ x: Math.floor(next.x), z: Math.floor(next.z) }, to);
     if (!route) return false;
     this.path = [next, ...route.slice(1).map((t) => centre(t))];
     return true;
   }
 
-  /** The tile the walk under way ends on, or null standing. */
+  /** The tile the walk under way ends on, or null standing (or steered). */
   get goal(): Tile | null {
     const last = this.path.at(-1);
     return last ? { x: Math.floor(last.x), z: Math.floor(last.z) } : null;
   }
 
-  /** Finishes the step under way, then stands. */
-  stopAfterStep(): void {
-    this.path = this.path.slice(0, 1);
-  }
-
   stopWalking(): void {
-    this.path = [];
+    this.follow([]);
   }
 
   /** Stands it on a tile at once (a relayed position, a correction): no walk, on the floor there. */
   place(tile: Tile): void {
-    this.path = [];
+    this.follow([]);
     this.position.copy(centre(tile, this.floor ? this.floor(tile.x + 0.5, tile.z + 0.5) : this.grid.heightAt(tile.x, tile.z)));
     this.figure.root.position.copy(this.position);
   }
 
   /** Walks a given path of tiles (another player's, as the relay sends it), whatever the grid says. */
   walkPath(tiles: readonly Tile[]): void {
-    this.path = tiles.map((t) => centre(t, this.position.y));
+    this.follow(tiles.map((t) => centre(t, this.position.y)));
   }
 
-  /** The tiles left to walk. */
+  /**
+   * The tiles left to walk, each a step of the grid's from the one before; for a walk pulled straight, the tiles its line
+   * passes after the one stood on.
+   */
   get remaining(): Tile[] {
+    if (this.trail.length > 0 && this.path.length > 0) {
+      const here = this.tile;
+      for (let i = this.trailAt; i < this.trail.length; i++) {
+        if (this.trail[i]!.x === here.x && this.trail[i]!.z === here.z) {
+          this.trailAt = i;
+          break;
+        }
+      }
+      return this.trail.slice(this.trailAt + 1);
+    }
     return this.path.map((p) => ({ x: Math.floor(p.x), z: Math.floor(p.z) }));
+  }
+
+  /** How far the walk under way has left to go, tiles (0 standing or steered). */
+  get distanceLeft(): number {
+    let d = 0;
+    let at = this.position;
+    for (const p of this.path) {
+      d += Math.hypot(p.x - at.x, p.z - at.z);
+      at = p;
+    }
+    return d;
   }
 
   update(dt: number, player?: Actor): void {
     let speed = 0;
-    if (this.path.length > 0) {
+    if (this.steerTo) {
+      speed = this.steerStep(dt);
+    } else if (this.path.length > 0) {
       const next = this.path[0]!;
       const to = next.clone().sub(this.position);
       to.y = 0;
@@ -159,14 +237,46 @@ export class Actor {
       if (d > 1e-4) this.figure.face(to.x, to.z);
       speed = this.speed;
       this.moved += step;
-      // Up and down steps as the floor under it rises and falls.
-      const floor = this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
-      this.position.y += (floor - this.position.y) * Math.min(1, dt * 14);
+      this.stepFloor(dt);
     } else {
       this.think(dt, player);
     }
     this.figure.root.position.copy(this.position);
     this.figure.update(dt, speed);
+  }
+
+  /** Up and down steps as the floor under it rises and falls. */
+  private stepFloor(dt: number): void {
+    const floor = this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
+    this.position.y += (floor - this.position.y) * Math.min(1, dt * 14);
+  }
+
+  /**
+   * A frame of a steered walk: at the point at full pace, slowing within ARRIVE of it so a point that moves on with the
+   * camera is followed without stopping and starting, and along what is in the way where something is. It faces where
+   * it goes, or, held against something, where it is steered. Returns its speed, tiles a second.
+   */
+  private steerStep(dt: number): number {
+    const to = this.steerTo!;
+    const p = this.position;
+    const dx = to.x - p.x;
+    const dz = to.z - p.z;
+    const d = Math.hypot(dx, dz);
+    const want = d < 0.02 || dt <= 0 ? 0 : Math.min(this.speed, (d * this.speed) / ARRIVE) * dt;
+    if (want > 0) {
+      const at = slide(this.open, p.x, p.z, (dx / d) * want, (dz / d) * want);
+      const mx = at.x - p.x;
+      const mz = at.z - p.z;
+      const moved = Math.hypot(mx, mz);
+      p.x = at.x;
+      p.z = at.z;
+      this.steered = moved / dt;
+      this.moved += moved;
+      if (this.steered > 0.5) this.figure.face(mx, mz);
+      else if (d > 0.3) this.figure.face(dx, dz);
+    } else this.steered = 0;
+    this.stepFloor(dt);
+    return this.steered;
   }
 
   private think(dt: number, player?: Actor): void {

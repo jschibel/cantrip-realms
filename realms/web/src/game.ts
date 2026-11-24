@@ -14,6 +14,7 @@ import { mobInfo, theMob } from "./mobs";
 import { ApiError, type Character as CharacterData, type EncounterResult, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
+import { MAX_SPEED, WalkRelay } from "./net/relay";
 import { Actor } from "./render/actor";
 import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera";
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
@@ -142,7 +143,10 @@ export class Overworld {
   private readonly opened = new Set<string>();
   /** Something to do on reaching a tile (talk to someone, open a chest, engage a mob). */
   private pending: { readonly at: Tile; readonly then: () => void } | null = null;
-  private lastSent = "";
+  /** What the relay has refused of this page, its reasons (for tests: a walk told right is never refused). */
+  readonly refusals: string[] = [];
+  /** The walks the relay is told (net/relay.ts). */
+  private readonly relay = new WalkRelay((move) => this.presence?.send({ Type: "Move", ...move }));
   private lastReport = 0;
   private travelersTimer = 0;
   private minimapTimer = 0;
@@ -305,6 +309,7 @@ export class Overworld {
   /** On arriving in a place: its name, the server and the relay told, the people there. */
   private arrived(spot: Spot, first = false): void {
     this.pending = null;
+    this.relay.leave();
     this.showCamera();
     this.area = null;
     for (const v of this.visitors.values()) v.actor.figure.root.removeFromParent();
@@ -323,8 +328,7 @@ export class Overworld {
       .then(() => {
         if (this.spaceId !== space) return;
         this.presence?.send({ Type: "Enter", Space: space });
-        this.presence?.send({ Type: "Move", From: [at.x, at.z], Path: [], Speed: PLAYER_SPEED });
-        this.lastSent = "";
+        this.relay.stand(at, PLAYER_SPEED);
       });
     if (!first && spot.inside) this.say(`${spot.title}.`);
   }
@@ -568,26 +572,35 @@ export class Overworld {
 
   private lastReported = "";
 
-  /** Tells the relay of a walk when it changes: from the open tile the player stands on, along the grid's path. */
+  /**
+   * Tells the relay of a walk when it changes (net/relay.ts): a click's walk when it begins or heads somewhere new, the
+   * tiles still ahead from the open tile the player stands on; a held walk each time it comes onto another tile, the step
+   * there. A ferry's crossing is told as its lane, closed to walking.
+   */
   private relayWalk(): void {
     if (this.spot.id.startsWith("run:") || !this.presence) return;
-    const from = this.player.tile;
-    if (!this.riding && !this.spot.grid.walkable(from.x, from.z)) return;
+    const here = this.player.tile;
+    this.relay.on(here);
+    // Nothing before the place is entered (`arrived`: the relay is told it stands there first).
+    if (!this.relay.ready || this.relay.end === null) return;
+    const grid = this.spot.grid;
+    const open = (x: number, z: number) => this.riding !== null || grid.walkable(x, z);
+    if (!open(here.x, here.z)) return;
     // The tiles still to walk, each a step from the one before: none the same as the last (the tile stood on first),
     // which the server takes as a step of no length and refuses (walking into a doorway ends on the tile stood on).
     // Only the open tiles: a doorway's last step into the building or the dungeon is not walked as far as anyone sees.
-    const grid = this.spot.grid;
-    const path = this.player.remaining.filter((t, i, all) => {
-      const before = i === 0 ? from : all[i - 1]!;
-      return (t.x !== before.x || t.z !== before.z) && (this.riding !== null || grid.walkable(t.x, t.z));
-    });
-    const key = `${from.x},${from.z}:${path.map((t) => `${t.x},${t.z}`).join(";")}`;
-    const goal = path.at(-1);
-    const sentGoal = this.lastSent.split(";").at(-1);
+    const ahead = this.player.steering
+      ? []
+      : this.player.remaining.filter((t, i, all) => {
+          const before = i === 0 ? here : all[i - 1]!;
+          return (t.x !== before.x || t.z !== before.z) && open(t.x, t.z);
+        });
+    const goal = ahead.at(-1) ?? here;
+    const end = this.relay.end;
     // A new walk, or a new goal; not every step of the same walk.
-    if (path.length === 0 || (goal && sentGoal === `${goal.x},${goal.z}`)) return;
-    this.lastSent = key;
-    this.presence.send({ Type: "Move", From: [from.x, from.z], Path: path.map((t) => [t.x, t.z] as const), Speed: this.player.speed });
+    if (end && end.x === goal.x && end.z === goal.z) return;
+    if (ahead.length === 0) this.relay.walk([], Math.min(MAX_SPEED, PLAYER_SPEED * 1.1), open);
+    else this.relay.walk(ahead, this.player.speed, open, this.player.distanceLeft);
   }
 
   // --- Mobs --------------------------------------------------------------------------------------------------------------
@@ -1191,9 +1204,11 @@ export class Overworld {
       }
       case "Refused": {
         // A walk refused leaves the player where the server says they truly are.
+        this.refusals.push(message.Reason);
         if (message.At.length !== 2) break;
         const at = { x: message.At[0]!, z: message.At[1]! };
         if (this.spot.grid.walkable(at.x, at.z)) this.player.place(at);
+        this.relay.placed(at);
         break;
       }
       default:
@@ -1204,9 +1219,12 @@ export class Overworld {
   /** Another player's walk: from where it began, along its path, caught up by however long ago it began. */
   private walkVisitor(visitor: Visitor, from: readonly [number, number], path: readonly (readonly [number, number])[], speed: number, since: number): void {
     const a = visitor.actor;
-    if (a.tile.x !== from[0] || a.tile.z !== from[1]) a.place({ x: from[0], z: from[1] });
+    const start = { x: from[0], z: from[1] };
+    // A walk from a tile beside where they are seen is walked on from there; one from further off is a jump to it.
+    const beside = chebyshev(a.tile, start) <= 1;
+    if (!beside) a.place(start);
     a.speed = Math.min(5, speed || PLAYER_SPEED);
-    a.walkPath(path.map(([x, z]) => ({ x, z })));
+    a.walkPath([...(beside && (a.tile.x !== start.x || a.tile.z !== start.z) ? [start] : []), ...path.map(([x, z]) => ({ x, z }))]);
     const late = (Date.now() - since) / 1000;
     if (Number.isFinite(late) && late > 0.05) for (let t = Math.min(late, 60); t > 0 && a.moving; t -= 1 / 30) a.update(Math.min(1 / 30, t));
   }
@@ -1234,6 +1252,8 @@ export class Overworld {
         v.actor.grid = this.spot.grid;
         v.actor.update(dt);
       }
+      // A held walk takes over from whatever a click was walking up to.
+      if (this.player.steering) this.pending = null;
       const p = this.pending;
       if (p && !this.player.moving && this.player.tile.x === p.at.x && this.player.tile.z === p.at.z) {
         this.pending = null;

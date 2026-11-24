@@ -3,33 +3,30 @@ import type { Stage } from "./stage";
 
 // Holding the button: walking after the cursor.
 //
-// A press is a click as it always was. Held, it becomes a drag once the pointer reaches another tile or has been down
-// HOLD_AFTER seconds. From then the player is re-aimed at the tile under the cursor the moment that tile is more than
-// REPATH_DISTANCE tiles from where the current path goes - measured from that path-to tile, not from the player - so a
-// fast sweep is answered at once, on the very event that crosses the distance; and every RETARGET_EVERY seconds besides,
-// for a cursor drifting slowly (or the view moving under a still one). So the walk always heads where the cursor is now,
-// at every heading and while the camera turns, follows or zooms. Re-aiming keeps the step being walked (Actor.retarget):
-// no snap, no restarted stride. A cursor over something blocked walks to the open tile nearest it. A held walk goes up
-// to a door but never through it - only a click goes in (a press on the door, or holding still on it) - so sweeping past
-// a shop never pulls you inside. Letting go of a drag (or the cursor leaving the window, or the window losing focus)
-// finishes the step under way and stops there.
+// A press is a click as it always was. Held, it becomes a drag once the pointer leaves the tile pressed or has been down
+// HOLD_AFTER seconds. From then no path is found: every frame the player is steered straight at the point on the ground
+// under the cursor (Actor.steer), so it walks wherever the cursor is now, at every heading and while the camera turns,
+// follows or zooms; what is in the way it slides along, and it stops only where nothing is left to go (render/motion.ts).
+// A drag goes up to a door but never through it. Only a click goes in: a press on the door, or holding still on it,
+// keeps the click's walk to it while the cursor stays there. Holding still on whatever else the press used (a person, a
+// chest) keeps that walk too. Sweeping past a shop never pulls you inside. Letting go of a drag (or the cursor leaving
+// the window, or the window losing focus) stops the player where it stands.
 
 export const HOLD_AFTER = 0.3;
-export const RETARGET_EVERY = 0.1;
-export const REPATH_DISTANCE = 1.25;
 
 interface Hold {
   x: number;
   y: number;
+  /** The floor tile pressed, as "x,z". */
   tile: string;
+  /** The tile the press used (a door, a person, a chest): held still on it, the click's walk goes on. */
+  used: Tile | null;
   since: number;
-  last: number;
   dragging: boolean;
-  /** Where the current path goes: the tile the last re-aim chose. */
-  target: Tile | null;
 }
 
 const tileKey = (t: Tile | null) => (t ? `${t.x},${t.z}` : "");
+const same = (a: Tile | null | undefined, b: Tile | null | undefined) => !!a && !!b && a.x === b.x && a.z === b.z;
 
 export class WalkInput {
   private hold: Hold | null = null;
@@ -47,11 +44,7 @@ export class WalkInput {
       if ((e.buttons & 1) === 0) return this.release();
       hold.x = e.clientX;
       hold.y = e.clientY;
-      const under = stage.floorTileAt(e.clientX, e.clientY);
-      if (!hold.dragging && tileKey(under) !== hold.tile) hold.dragging = true;
-      if (!hold.dragging || !under) return;
-      const from = hold.target;
-      if (!from || Math.hypot(under.x - from.x, under.z - from.z) > REPATH_DISTANCE) this.holdStep();
+      if (!hold.dragging && tileKey(stage.floorTileAt(e.clientX, e.clientY)) !== hold.tile) hold.dragging = true;
     });
     window.addEventListener("pointerup", (e) => {
       if (e.button === 0) this.release();
@@ -63,8 +56,8 @@ export class WalkInput {
       // A doorway seen past the corner of a wall (the camera swung round) still takes you through it.
       const floor = stage.floorTileAt(e.clientX, e.clientY);
       const tile = stage.doorAt(floor) ? floor : stage.pick(e.clientX, e.clientY);
-      if (tile) stage.clickTile(tile);
-      this.hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), since: stage.time, last: stage.time, dragging: false, target: tile };
+      const used = tile ? stage.clickTile(tile) : false;
+      this.hold = { x: e.clientX, y: e.clientY, tile: tileKey(floor), used: used ? tile : null, since: stage.time, dragging: false };
     });
     stage.beforeTick = () => this.step();
   }
@@ -77,29 +70,29 @@ export class WalkInput {
   /** Going through a door ends a hold: in the next place the button must be pressed again. */
   cancel(): void {
     this.hold = null;
+    this.stage.player.steer(null);
   }
 
-  private holdStep(): void {
-    const hold = this.hold;
+  /** A frame of a drag: the player steered at the cursor's point on the ground, unless held still on what was clicked. */
+  private steer(): void {
+    const hold = this.hold!;
     const stage = this.stage;
-    if (!hold || stage.transition || stage.paused) return;
-    hold.last = stage.time;
-    const pointed = stage.pick(hold.x, hold.y);
-    if (!pointed) return;
-    // Holding still on the door clicked keeps going in; anywhere else, the held walk only walks.
-    if (stage.pendingDoor && stage.doorAt(pointed)) return;
-    stage.pendingDoor = null;
-    const to = stage.reachableNear(pointed, 4);
-    if (to) {
-      stage.player.retarget(to);
-      hold.target = to;
+    if (hold.used) {
+      const floor = stage.floorTileAt(hold.x, hold.y);
+      const pointed = stage.doorAt(floor) ? floor : stage.pick(hold.x, hold.y);
+      const door = stage.doorAt(pointed);
+      if (same(pointed, hold.used) || (door && door === stage.doorAt(hold.used))) return;
+      hold.used = null;
     }
+    stage.pendingDoor = null;
+    const point = stage.floorPointAt(hold.x, hold.y);
+    if (point) stage.player.steer(point);
   }
 
   private release(): void {
     const hold = this.hold;
     if (!hold) return;
-    if (hold.dragging && !this.stage.transition && !this.stage.pendingDoor) this.stage.player.stopAfterStep();
+    if (this.stage.player.steering) this.stage.player.steer(null);
     this.hold = null;
   }
 
@@ -111,6 +104,6 @@ export class WalkInput {
       return;
     }
     if (!hold.dragging && this.stage.time - hold.since >= HOLD_AFTER) hold.dragging = true;
-    if (hold.dragging && this.stage.time - hold.last >= RETARGET_EVERY) this.holdStep();
+    if (hold.dragging && !this.stage.paused && this.enabled()) this.steer();
   }
 }

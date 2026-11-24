@@ -193,8 +193,8 @@ test("slice: holding the button walks after the cursor, turning with it and neve
   }
   const west = await walk(1.2);
   const furthest = Math.max(now.at.x, ...west.map((p) => p.x));
-  // It finishes the step it was on (at most a tile further east), then walks west every tenth after that.
-  expect(furthest - now.at.x, "no more than the step under way past the turn").toBeLessThan(1.5);
+  // It turns with the cursor as it sweeps round (no step to finish first), then walks west every tenth after that.
+  expect(furthest - now.at.x, "no further east once the cursor has swept round").toBeLessThan(1);
   const after = west.slice(west.findIndex((p) => p.x === furthest) + 1);
   for (let i = 1; i < after.length; i++) expect(after[i]!.x, "heading west every tenth").toBeLessThanOrEqual(after[i - 1]!.x + 1e-9);
   expect(west.at(-1)!.x).toBeLessThan(furthest - 2.5);
@@ -204,39 +204,38 @@ test("slice: holding the button walks after the cursor, turning with it and neve
   await walk(0.8);
   expect(stops, "never stood still while the button was held").toEqual([]);
 
-  // Let go: it finishes the step it is on - at most a tile, a diagonal one - and stands.
+  // Let go: it stands where it is, at once.
   const released = (await playerOf(page)).at;
   await page.mouse.up();
   await advance(page, 0.5);
   const rest = await playerOf(page);
   expect(rest.moving).toBe(false);
-  expect(Math.hypot(rest.at.x - released.x, rest.at.z - released.z), "stopped after the step under way").toBeLessThanOrEqual(Math.SQRT2 + 1e-6);
+  expect(Math.hypot(rest.at.x - released.x, rest.at.z - released.z), "stopped where it was let go").toBeLessThan(1e-6);
   expect(await slice<boolean>(page, "dragging")).toBe(false);
 });
 
-test("slice: a held sweep re-aims the walk the moment the cursor is more than a tile and a quarter from its goal", async ({ page }) => {
+test("slice: a held walk is steered at the cursor's point every frame, with no path, so a fast sweep turns it at once", async ({ page }) => {
   await open(page, "still&at=12,12");
   await advance(page, 0.2);
   const start = await playerOf(page);
-  const goalOf = async () => (await slice<{ goal: { x: number; z: number } | null }>(page, "player")).goal;
-  // Hold east of the player until the hold has become a drag and aimed the walk.
+  // Hold east of the player until the hold has become a drag: it walks east, steered, with no path to a goal.
   await page.mouse.move(start.x + 144, start.y);
   await page.mouse.down();
   await advance(page, 0.4);
-  const aimed = (await goalOf())!;
-  expect(aimed).not.toBeNull();
-  // No game time passes from here: every re-aim below happens on the mouse event itself, in the same frame.
-  const near = await tileOnPage(page, aimed.x + 1, aimed.z);
-  await page.mouse.move(near.x, near.y);
-  expect(await goalOf(), "a tile off the goal: no re-path yet").toEqual(aimed);
-  const past = await tileOnPage(page, aimed.x + 2, aimed.z);
-  await page.mouse.move(past.x, past.y);
-  expect(await goalOf(), "two tiles off: re-aimed at once").toEqual({ x: aimed.x + 2, z: aimed.z });
-  // A fast sweep - one jump of six tiles the other way - is followed at once too.
-  const far = await tileOnPage(page, aimed.x - 4, aimed.z + 1);
+  const a = await slice<{ at: { x: number; z: number }; goal: { x: number; z: number } | null }>(page, "player");
+  expect(a.goal, "no path: steered").toBeNull();
+  await advance(page, 0.1);
+  const b = (await playerOf(page)).at;
+  expect(b.x - a.at.x, "heading east").toBeGreaterThan(0.3);
+  // A fast sweep - one jump of six tiles the other way - turns it the very next frames: west within a tenth.
+  const far = await tileOnPage(page, Math.floor(b.x) - 5, Math.floor(b.z));
   await page.mouse.move(far.x, far.y);
-  expect(await goalOf(), "a fast sweep: re-aimed at once").toEqual({ x: aimed.x - 4, z: aimed.z + 1 });
-  expect((await playerOf(page)).moving, "and never stopped").toBe(true);
+  await advance(page, 2 / 60);
+  const c = (await playerOf(page)).at;
+  await advance(page, 0.1);
+  const d = await playerOf(page);
+  expect(d.at.x - c.x, "heading west at once").toBeLessThan(-0.3);
+  expect(d.moving, "and never stopped").toBe(true);
   await page.mouse.up();
 });
 

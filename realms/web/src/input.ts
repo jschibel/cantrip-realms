@@ -11,7 +11,7 @@ export function bindInput(game: Overworld): WalkInput {
   const canvas = game.canvas;
   const stage = game.stage;
   const input = new WalkInput(stage, canvas);
-  input.enabled = () => game.screen === "world" && !game.paused;
+  input.enabled = () => game.screen === "world" && !game.paused && !game.ferrying;
   const arrived = stage.onArrive;
   stage.onArrive = (spot) => {
     input.cancel();

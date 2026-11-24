@@ -223,6 +223,28 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     walkable(x: number, z: number) {
       return live()?.spot.grid.walkable(x, z) ?? false;
     },
+    /** The reasons the relay gave for the walks it refused (none, told right). */
+    get refused() {
+      return game()?.refusals.slice() ?? [];
+    },
+    /**
+     * Moves the manual clock on as `advance` does, noting each frame where the player's figure is drawn (`x`, `y`, `z`), where
+     * the camera looks (`fx`, `fz`), the way the figure faces and whether it walks: the walk frame by frame, for the walking
+     * suite to look for jumps and jitter in.
+     */
+    async track(seconds: number) {
+      const o = live();
+      const out: { x: number; y: number; z: number; fx: number; fz: number; facing: number; moving: boolean }[] = [];
+      if (!o || !o.options.manual) return out;
+      for (let t = 0; t < seconds - 1e-6; t += 1 / 60) {
+        o.tick(1 / 60);
+        const s = o.stage;
+        const p = s.player.figure.root.position;
+        out.push({ x: p.x, y: p.y, z: p.z, fx: s.focus.x, fz: s.focus.z, facing: s.player.figure.facing, moving: s.player.moving });
+        await yieldFrame();
+      }
+      return out;
+    },
     /** Moves the clock on by some seconds, in steps of a sixtieth (with ?manual), the page's own work between frames. */
     async advance(seconds: number) {
       const o = live();
