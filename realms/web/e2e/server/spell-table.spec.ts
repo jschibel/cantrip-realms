@@ -372,7 +372,11 @@ test("the ante column says each card's price, and a relic is marked at the table
     { name: "Black Lotus", note: "Relic: can't be anted", relic: true },
   ]);
   expect(state.deckEditor!.problems).toEqual(["Black Lotus is a relic, which is never lost: it can't be anted."]);
-  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-relic-ante.png` });
+  if (process.env.REALMS_SHOTS) {
+    // A picture for a person to look at (never what the test judges by): the card's flight into the column ended first.
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-relic-ante.png` });
+  }
 
   // Back to the deck (the ante column's last card), the ante is legal again.
   await doubleClick(page, "sideboard", "Black Lotus");
