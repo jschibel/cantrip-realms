@@ -350,5 +350,22 @@ public sealed class RealmDungeon(DungeonFile file, string plane, IReadOnlyList<I
     /// <summary>The mobs a floor's encounters are drawn from, the first floor 0.</summary>
     public IReadOnlyList<string> TableOf(int floor) => Tables.Count == 0 ? [] : Tables[Math.Min(floor, Tables.Count - 1)];
 
+    /// <summary>
+    /// The mobs a floor's encounters are drawn from as <paramref name="standing"/> deals the run (design.md A6): the floor's
+    /// own of the standing's tiers, else every floor's of them, in the order the tables give them; the floor's table as
+    /// written with no standing.
+    /// </summary>
+    public IReadOnlyList<string> TableOf(int floor, DungeonStanding? standing, IReadOnlyDictionary<string, Mob> mobs)
+    {
+        ArgumentNullException.ThrowIfNull(mobs);
+        if (standing?.MobTiers is not [int lowest, int highest]) return TableOf(floor);
+        bool Fits(string id) => mobs.TryGetValue(id, out Mob? mob) && mob.File.Tier >= lowest && mob.File.Tier <= highest;
+        List<string> own = [.. TableOf(floor).Where(Fits)];
+        return own.Count > 0 ? own : [.. Tables.SelectMany(table => table).Where(Fits).Distinct(StringComparer.Ordinal)];
+    }
+
+    /// <summary>How the dungeon is dealt to a character of this standing (<see cref="Standings.Of"/>): null as written.</summary>
+    public DungeonStanding? StandingOf(string? standing) => standing is null ? null : File.Standing.GetValueOrDefault(standing);
+
     public bool IsTower => File.Theme == "tower";
 }

@@ -7,7 +7,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { type Region, STYLES, type Style, THEMES, type Theme } from "../../src/world/format";
+import { type DungeonData, type Region, STYLES, type Style, THEMES, type Theme } from "../../src/world/format";
 
 /** What a region's land is: its ground, hills, water and scenery (terrain.ts, wilds.ts). */
 export const BIOMES = ["heartland", "plains", "coast", "swamp", "mountains", "volcanic", "forest", "tundra", "waste"] as const;
@@ -130,6 +130,8 @@ export interface DungeonLayout {
   readonly warden: string;
   readonly boss: string;
   readonly waystone?: boolean;
+  /** How a color's dungeon is dealt by the character's standing to its color (format.ts, design.md A6), as written. */
+  readonly standing?: DungeonData["standing"];
   /** A road to it, from the town named. */
   readonly road?: string;
 }

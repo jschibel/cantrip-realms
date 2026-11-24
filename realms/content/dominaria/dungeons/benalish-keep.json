@@ -35,5 +35,26 @@
   ],
   "warden": "sanctum-warden",
   "boss": "lyra-dawnbringer",
-  "region": "W"
+  "region": "W",
+  "standing": {
+    "ally": {
+      "tier": 3,
+      "mobTiers": [
+        2,
+        3
+      ]
+    },
+    "enemy": {
+      "tier": 4,
+      "mobTiers": [
+        3,
+        4
+      ],
+      "bossStats": {
+        "life": 6,
+        "hand": 1,
+        "maxHand": 1
+      }
+    }
+  }
 }

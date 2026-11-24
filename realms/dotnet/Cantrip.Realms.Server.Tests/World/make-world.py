@@ -255,8 +255,14 @@ def main():
         if (plan["boss"], plan["warden"]) != (boss, warden):
             raise SystemExit(f"make-world: layout.json's {id} has {plan['warden']} and {plan['boss']}, the roster {warden} and {boss}")
         tables = [wanderers(3, color) or wanderers(3), wanderers(4, color) or wanderers(4)]
-        dungeon({"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [2, 4], "mobs": tables,
-                 "warden": warden, "boss": boss, "region": color}, at)
+        data = {"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [2, 4], "mobs": tables,
+                "warden": warden, "boss": boss, "region": color}
+        # How the real dungeon is dealt by the character's standing to its color (design.md A6), as written there.
+        with open(os.path.join(CONTENT, "dungeons", f"{id}.json"), encoding="utf-8") as f:
+            standing = json.load(f).get("standing")
+        if standing:
+            data["standing"] = standing
+        dungeon(data, at)
 
     dungeon({"id": "phyrexian-portal", "name": "The Phyrexian Portal", "theme": "portal", "requires": "WUBRG", "floors": [4, 4], "tier": 4,
              "encounters": [2, 3], "mobs": [PORTAL[:3], PORTAL], "warden": "portal-warden", "boss": "phyrexian-praetor"}, (16, 30))

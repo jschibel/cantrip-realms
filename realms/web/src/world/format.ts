@@ -383,6 +383,24 @@ export interface DungeonData {
   readonly boss: string;
   readonly region?: Region;
   readonly waystone?: boolean;
+  /**
+   * How a color's dungeon is dealt by where its color stands to the character's (design.md A6; the server's
+   * `DungeonStanding`, and standing.ts): the run's tier, its floors' mob tiers and what its boss gains. A standing not
+   * given deals the dungeon as written.
+   */
+  readonly standing?: Readonly<Partial<Record<Standing, DungeonStanding>>>;
+}
+
+/** Where a dungeon's color stands to a character's: their own, next to their starting color, or across from it. */
+export type Standing = "own" | "ally" | "enemy";
+
+/** A color dungeon's run as one standing deals it. */
+export interface DungeonStanding {
+  readonly tier: number;
+  /** The lowest and the highest tier of its floors' mobs. */
+  readonly mobTiers: readonly [number, number];
+  /** What its boss gains over its own stats. */
+  readonly bossStats?: { readonly life: number; readonly hand: number; readonly maxHand: number };
 }
 
 // --- Geometry ----------------------------------------------------------------------------------------------------------

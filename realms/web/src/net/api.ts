@@ -147,11 +147,16 @@ export interface Place {
   readonly Z: number;
 }
 
-/** A dungeon run's floor: its encounters, its warden and boss (null where it has none). */
+/**
+ * A dungeon run's floor: its encounters, its warden and boss (null where it has none); in a run dealt by the character's
+ * standing to the dungeon's color (design.md A6), the tier it is dealt at and what its boss gains.
+ */
 export interface RunFloor {
   readonly Encounters: readonly { readonly Index: number; readonly Mob: string }[];
   readonly Warden: string | null;
   readonly Boss: string | null;
+  readonly Tier?: number | null;
+  readonly BossStats?: { readonly Life: number; readonly Hand: number; readonly MaxHand: number } | null;
 }
 
 /** A boss resting after a win (design.md A6: refought weekly): who, and when it is back (UTC ISO-8601). */
@@ -170,6 +175,8 @@ export interface Run {
   readonly Beaten?: readonly string[] | null;
   /** The boss that rests, so the last floor is without it; null when it fights. */
   readonly Resting?: Resting | null;
+  /** The run's tier: its dungeon's, or the one the character's standing to its color deals it at (design.md A6). */
+  readonly Tier?: number | null;
 }
 
 /** An encounter's start: a world spawn's mob, or one of a dungeon run's. */

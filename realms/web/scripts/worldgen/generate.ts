@@ -334,6 +334,7 @@ function dungeonData(plan: DungeonLayout, color: Region | null, entrance: readon
     boss: ask(plan.boss)[0]!,
     ...(color ? { region: color } : {}),
     ...(plan.waystone ? { waystone: true } : {}),
+    ...(plan.standing ? { standing: plan.standing } : {}),
   };
 }
 

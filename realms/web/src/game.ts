@@ -3,6 +3,7 @@ import { type Appearance, type GearLook, figureSpec, lookFigure, playerFigure } 
 import { meshesOf } from "./art/paint/builder";
 import { assembleFloor, generateDungeonFloor, gridOfFloor } from "./dungeon";
 import { besideEntrance } from "./world/realm";
+import { standingOf } from "./world/standing";
 import { PROPS } from "./art/props";
 import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
@@ -78,6 +79,8 @@ interface ActiveRun {
   readonly dungeon: DungeonData;
   readonly seed: number;
   readonly floors: readonly RunFloor[];
+  /** The run's tier: the dungeon's, or the one the character's standing to its color deals it at (design.md A6). */
+  readonly tier: number;
   floor: number;
   readonly beaten: Set<string>;
   plan: FloorPlan | null;
@@ -543,7 +546,7 @@ export class Overworld {
         if (town) this.announceTraveler(town.id);
       }
     } else if (this.area?.name !== this.spot.title) {
-      this.area = { name: this.spot.title, tier: this.run?.dungeon.tier ?? 0, region: null };
+      this.area = { name: this.spot.title, tier: this.run?.tier ?? 0, region: null };
       this.hud.showArea(this.spot.title, this.area.tier);
     }
     // On a door's tile, at once: the server lets one into a room only from beside its door.
@@ -639,7 +642,9 @@ export class Overworld {
     });
     const run = this.activeRun(started, dungeon);
     this.run = run;
-    this.say(`${dungeon.name}. The run begins.`);
+    const standing = standingOf(dungeon.region, this.data);
+    const stands = standing === "ally" ? ` An ally color's hold: tier ${run.tier}.` : standing === "enemy" ? ` An enemy color's hold: tier ${run.tier}, its boss stronger for it.` : "";
+    this.say(`${dungeon.name}. The run begins.${stands}`);
     this.sayResting(run, true);
     return this.showFloor(run);
   }
@@ -650,7 +655,7 @@ export class Overworld {
     run.plan = plan;
     for (const e of plan.encounters) {
       if (run.beaten.has(`${run.floor}:${e.index}`)) continue;
-      const spawn: SpawnData = { id: `${run.floor}:${e.index}`, x: e.x, z: e.z, mobs: [e.mob], radius: e.role === "encounter" ? 1 : 0, respawnSeconds: 86400, tier: run.dungeon.tier };
+      const spawn: SpawnData = { id: `${run.floor}:${e.index}`, x: e.x, z: e.z, mobs: [e.mob], radius: e.role === "encounter" ? 1 : 0, respawnSeconds: 86400, tier: run.tier };
       this.addMob(e.mob, spawn, 0, plan.spot, { floor: run.floor, index: e.index, role: e.role });
     }
     return { spot: plan.spot, tile: plan.arrive, facing: [0, 1] };
@@ -676,7 +681,7 @@ export class Overworld {
   }
 
   private activeRun(r: Run, dungeon: DungeonData): ActiveRun {
-    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null };
+    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, tier: r.Tier ?? dungeon.tier, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null };
   }
 
   /** Says that the boss rests this run, on entering and again on the last floor. */

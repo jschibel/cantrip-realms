@@ -236,7 +236,9 @@ owner may extend.
     lost as any loss takes one.
   - The entrance has a spell table, outside in the world and inside on the first floor (the antechamber).
   - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
-    traits. Smaller dungeons dot the wilderness (a cave, a ruined watchtower) for lower tiers.
+    traits. Ally and enemy are by the character's starting color (W U B R G: the two beside it are allies, the two across
+    from it enemies); a color the character holds, started with or unlocked, is their own, and its dungeon is as written.
+    Smaller dungeons dot the wilderness (a cave, a ruined watchtower) for lower tiers.
 - **Bosses:**
   - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
     - The color is yours at once: the HUD's five pips light it (the locked ones stay faint rings), a panel marks the

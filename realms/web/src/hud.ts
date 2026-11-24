@@ -1,6 +1,7 @@
 import type { CardScreens } from "./cardLayer";
 import type { ManaColor } from "./art/figures";
 import { type Character as CharacterData, identityOf } from "./net/api";
+import { type Colors, tierFor } from "./world/standing";
 import { surfaceColor } from "./surfaceColors";
 import { type DungeonData, type WorldData, areaAt } from "./world/format";
 import { mobInfo } from "./mobs";
@@ -152,6 +153,8 @@ export class Hud {
   private attuned: readonly string[] = [];
   /** The character's identity, for the boss dungeons' rings on the maps. */
   private held: readonly ManaColor[] = [];
+  /** The character's colors as a dungeon's standing reads them (world/standing.ts), for the tiers the map marks. */
+  private colors: Colors = { Identity: "", Unlocked: [] };
   readonly log: string[] = [];
   /** What the map shows now, for tests: the space, the tile it is centred on, the markers on it. */
   mapState: { space: string; centre: { x: number; z: number } | null; markers: Marker[] } = { space: "", centre: null, markers: [] };
@@ -203,6 +206,7 @@ export class Hud {
     // All five colors: the identity's filled, the rest a faint ring each until a boss unlocks it (design.md A1, A6).
     const held = identityOf(c);
     this.held = held;
+    this.colors = { Identity: c.Identity, Unlocked: c.Unlocked ?? [] };
     const pips = (["W", "U", "B", "R", "G"] as const)
       .map((color) => held.includes(color)
         ? `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}" data-test="hud:pip-${color.toLowerCase()}" data-state="held"></span>`
@@ -353,7 +357,7 @@ export class Hud {
     for (const d of this.dungeons.values()) {
       const p = pic.at(d.entrance[0], d.entrance[1]);
       const well = mobInfo(d.boss).unlocks;
-      found.push({ id: d.id, kind: d.waystone ? "tower" : "dungeon", tier: d.tier, ...(d.waystone ? { lit: attuned.includes(d.id) } : {}), ...(well ? { well, won: this.held.includes(well) } : {}), x: p.x, y: p.y, name: d.name });
+      found.push({ id: d.id, kind: d.waystone ? "tower" : "dungeon", tier: tierFor(d, this.colors), ...(d.waystone ? { lit: attuned.includes(d.id) } : {}), ...(well ? { well, won: this.held.includes(well) } : {}), x: p.x, y: p.y, name: d.name });
     }
     return found;
   }

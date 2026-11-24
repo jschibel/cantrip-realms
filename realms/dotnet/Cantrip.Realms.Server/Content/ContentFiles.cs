@@ -534,7 +534,69 @@ public sealed class DungeonFile
     /// <summary>A mage tower's: beating its boss attunes its waystone, at its entrance, to the character.</summary>
     public bool Waystone { get; init; }
 
+    /// <summary>
+    /// How a color's dungeon is dealt to a character by where its region's color stands to theirs (design.md A6): under
+    /// <c>ally</c>, <c>enemy</c> or <c>own</c> (<see cref="Standings"/>), the run's tier, the tiers its floors' mobs are drawn
+    /// from and what its boss gains. A standing not given, and a dungeon of no region, deal the dungeon as written.
+    /// </summary>
+    public IReadOnlyDictionary<string, DungeonStanding> Standing { get; init; } = new Dictionary<string, DungeonStanding>();
+
     public Tile At => Entrance is [int x, int z] ? new Tile(x, z) : default;
+}
+
+/// <summary>
+/// A color dungeon's run as one standing deals it (<see cref="DungeonFile.Standing"/>, design.md A6: an ally color's dungeon
+/// is tier 3 with T2-T3 mobs, an enemy color's tier 4 with T3-T4 mobs and a stronger boss).
+/// </summary>
+public sealed class DungeonStanding
+{
+    /// <summary>The run's tier, in place of the dungeon's own.</summary>
+    public int Tier { get; init; }
+
+    /// <summary>
+    /// The tiers its floors' mobs are of, the lowest and the highest: each floor's table keeps the mobs of these tiers, and a
+    /// floor whose table keeps none draws from every floor's that are.
+    /// </summary>
+    public IReadOnlyList<int> MobTiers { get; init; } = [];
+
+    /// <summary>What the boss gains this run, over its own stats and its gear's; none by default.</summary>
+    public GearStats BossStats { get; init; } = GearStats.None;
+}
+
+/// <summary>The standings a color dungeon is dealt by (<see cref="DungeonFile.Standing"/>).</summary>
+public static class Standings
+{
+    /// <summary>The character holds the dungeon's color: their own, started with or unlocked.</summary>
+    public const string Own = "own";
+
+    /// <summary>The dungeon's color is next to the character's starting color on the color wheel (W U B R G).</summary>
+    public const string Ally = "ally";
+
+    /// <summary>The dungeon's color is across the wheel from the character's starting color.</summary>
+    public const string Enemy = "enemy";
+
+    public static IReadOnlyList<string> All { get; } = [Own, Ally, Enemy];
+
+    private const string Wheel = "WUBRG";
+
+    /// <summary>
+    /// Where a region's color stands to a character: <see cref="Own"/> when their identity holds it, else <see cref="Ally"/>
+    /// or <see cref="Enemy"/> by their starting color - the color they chose, which stays theirs as others are unlocked, so a
+    /// dungeon's standing never shifts with the order bosses are beaten in. Null for a region, or a starting color, that is
+    /// no color's letter.
+    /// </summary>
+    public static string? Of(string? region, string startingColor, string identity)
+    {
+        ArgumentNullException.ThrowIfNull(startingColor);
+        ArgumentNullException.ThrowIfNull(identity);
+        int at = region is [char color] ? Wheel.IndexOf(color, StringComparison.Ordinal) : -1;
+        if (at < 0) return null;
+        if (identity.Contains(Wheel[at], StringComparison.Ordinal)) return Own;
+        int from = startingColor is [char start] ? Wheel.IndexOf(start, StringComparison.Ordinal) : -1;
+        if (from < 0) return null;
+        int apart = (at - from + Wheel.Length) % Wheel.Length;
+        return apart is 1 or 4 ? Ally : Enemy;
+    }
 }
 
 /// <summary>A card vendor (<c>realms/content/&lt;plane&gt;/vendors/*.json</c>).</summary>

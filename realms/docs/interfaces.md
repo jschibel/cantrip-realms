@@ -250,7 +250,14 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
 - **Dungeons.** `dungeons/<id>.json` is `{id, name, theme: caves|castle|tower|crypt|hollow|foundry|portal, entrance:
   [x, z], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
   floor (the last for the floors past it) or one list for all], warden, boss, region (a color, optional), waystone
-  (optional)}`. The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
+  (optional), standing (optional)}`. `standing` deals a color's dungeon by where its color stands to the character's
+  (design.md A6): `{own|ally|enemy: {tier, mobTiers: [low, high], bossStats: {life, hand, maxHand} (optional)}}`. A
+  region's color is `own` when the character's identity holds it, else `ally` when it is next to their starting color on
+  the wheel (W U B R G) and `enemy` when across from it - by the starting color, so a dungeon's standing never shifts with
+  the order bosses are beaten in. A run dealt by a standing is of its `tier`; each floor's encounters are drawn from the
+  mobs of its table of tiers `low` to `high`, or, where its table holds none, from every floor's that are; and the boss
+  gains `bossStats` over its own. A standing not given deals the dungeon as written. The five color dungeons give
+  `ally` (tier 3, T2-T3) and `enemy` (tier 4, T3-T4, the boss +6 life, +1 hand and maximum hand). The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
   names one if it may have two); the `boss` waits on the last floor; neither is a floor's encounter. A run's layout is
   the browser's (`realms/web/src/dungeon/generate.ts`, one generator per theme, on squares), made from the run's seed, and holds
   exactly the encounters the run names, each with its mob. world.json's `dungeons` places each at its entrance, where a
@@ -479,7 +486,7 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null}`: the run, its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null, Tier: tier or null, BossStats: {Life, Hand, MaxHand} or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null, Tier}`: the run (dealt by the character's standing to a color dungeon's color, Dungeons), its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `GET /api/dungeon/run` | | the character's live run, as `/api/dungeon/enter` gives it with `Dungeon`, `Floor` (the floor reached) and `Beaten` (the encounters won, `<floor>:<index>`): what a reload resumes; 404 `NotThere` with none |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
@@ -521,7 +528,9 @@ player with no character is 404 `NoCharacter`.
   encounters, its boss's one more. Losing any duel of a run ends the run; beating the boss of a dungeon with a waystone
   attunes it. A boss (`"boss": true`) beaten rests for a week (`Dungeons.BossRest`, from the win): a run begun meanwhile
   has no boss on its last floor (so its boss's index is no encounter), and says so in `Resting`. A mage or a wanderer
-  that ends a dungeon never rests.
+  that ends a dungeon never rests. A run dealt by a standing (Dungeons, `standing`) keeps it as it began: each floor says
+  its `Tier`, the last floor what its boss gains (`BossStats`, `{Life, Hand, MaxHand}`, added to the boss's seat), and
+  the run its `Tier` (the dungeon's own for a run dealt as written).
 - A deck is saved (`PUT /api/deck`) beside a spell table of the world or an interior, or in a dungeon's antechamber: the
   first floor of a live run of the character's, whose spell table is the layout's (the server takes any tile of a run).
 - `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and

@@ -35,5 +35,26 @@
   ],
   "warden": "rift-warden",
   "boss": "teferi",
-  "region": "U"
+  "region": "U",
+  "standing": {
+    "ally": {
+      "tier": 3,
+      "mobTiers": [
+        2,
+        3
+      ]
+    },
+    "enemy": {
+      "tier": 4,
+      "mobTiers": [
+        3,
+        4
+      ],
+      "bossStats": {
+        "life": 6,
+        "hand": 1,
+        "maxHand": 1
+      }
+    }
+  }
 }

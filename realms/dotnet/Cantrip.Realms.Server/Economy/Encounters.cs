@@ -65,7 +65,7 @@ public sealed class Encounters(
             throw Refusal.Conflict(Codes.Unfinished, "The duel before this one was never finished, so it counts as lost: you are back at the inn.");
         }
 
-        (string space, string spawnId, long free, Mob mob) = request.Run is null
+        (string space, string spawnId, long free, Mob mob, GearStats? gains) = request.Run is null
             ? await World(player, row, request).ConfigureAwait(false)
             : await InRun(player, row, request).ConfigureAwait(false);
 
@@ -76,7 +76,7 @@ public sealed class Encounters(
         CharacterView character = await characters.View(player).ConfigureAwait(false);
         long seed = dice.Seed();
         long cap = Math.Min(deck.AnteValue, mob.File.Prize);
-        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck), MobSeat(mob));
+        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck), MobSeat(mob, gains));
         Duel duel = Deal(seat1, seat2, mob, seed, deck.AnteValue, cap);
 
         string token = RealmDice.Token();
@@ -111,9 +111,10 @@ public sealed class Encounters(
 
     /// <summary>
     /// A world spawn's mob (interfaces.md, "Spawns"): one of the spawn's, the character in the world within its reach, and
-    /// the one it holds for this player this epoch or the last, not fought in that epoch. Its space, spawn, epoch and mob.
+    /// the one it holds for this player this epoch or the last, not fought in that epoch. Its space, spawn, epoch and mob
+    /// (which gains nothing).
     /// </summary>
-    private async Task<(string, string, long, Mob)> World(string player, PlayerRow row, EncounterStart request)
+    private async Task<(string, string, long, Mob, GearStats?)> World(string player, PlayerRow row, EncounterStart request)
     {
         MapSpawn spawn = content.World.Spawn(request.Spawn ?? string.Empty) ?? throw Refusal.NotFound(Codes.NotThere, $"The world has no spawn '{request.Spawn}'.");
         if (request.Mob is null || !content.Mobs.TryGetValue(request.Mob, out Mob? mob) || !spawn.Mobs.Contains(mob.Id, StringComparer.Ordinal))
@@ -138,15 +139,15 @@ public sealed class Encounters(
             throw Refusal.Conflict(Codes.TooSoon, $"You have fought {mob.File.Name} here already; it is back later.");
         }
 
-        return (RealmContent.WorldSpace, spawn.Id, free, mob);
+        return (RealmContent.WorldSpace, spawn.Id, free, mob, null);
     }
 
     /// <summary>
     /// A dungeon run's encounter (interfaces.md): the run is the character's and live, they stand in it on the floor named,
     /// and the index is an encounter of that floor not yet fought, whose mob is the one named. Its space, encounter, epoch
-    /// (0: each is fought once) and mob.
+    /// (0: each is fought once), mob, and what the mob gains this run: a boss what its run's standing gives it (design.md A6).
     /// </summary>
-    private async Task<(string, string, long, Mob)> InRun(string player, PlayerRow row, EncounterStart request)
+    private async Task<(string, string, long, Mob, GearStats?)> InRun(string player, PlayerRow row, EncounterStart request)
     {
         RunRow run = await db.Runs.AsNoTracking().SingleOrDefaultAsync(stored => stored.Id == request.Run && stored.PlayerId == player).ConfigureAwait(false)
             ?? throw Refusal.NotFound(Codes.NotThere, "You have no such dungeon run.");
@@ -167,7 +168,7 @@ public sealed class Encounters(
             throw Refusal.Conflict(Codes.TooSoon, $"You have fought {mob.File.Name} in this run already.");
         }
 
-        return (space, encounter, 0, mob);
+        return (space, encounter, 0, mob, index == Dungeons.BossIndex(floors[run.Floor]) ? floors[run.Floor].BossStats : null);
     }
 
     /// <summary>
@@ -219,16 +220,19 @@ public sealed class Encounters(
             [.. worn.Select(item => item.Emblem).OfType<string>()]);
     }
 
-    /// <summary>The mob's seat: its deck, its stats with its gear's, and its gear's emblems.</summary>
-    public DuelSeat MobSeat(Mob mob) => MobSeat(content, mob);
+    /// <summary>
+    /// The mob's seat: its deck, its stats with its gear's and with what it gains (a boss of a run dealt by standing,
+    /// design.md A6), and its gear's emblems.
+    /// </summary>
+    public DuelSeat MobSeat(Mob mob, GearStats? gains = null) => MobSeat(content, mob, gains);
 
-    /// <summary>A mob's seat in a duel dealt from <paramref name="content"/>.</summary>
-    public static DuelSeat MobSeat(RealmContent content, Mob mob)
+    /// <summary>A mob's seat in a duel dealt from <paramref name="content"/>, with what it gains this run (none by default).</summary>
+    public static DuelSeat MobSeat(RealmContent content, Mob mob, GearStats? gains = null)
     {
         ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(mob);
         List<GearItem> worn = [.. mob.File.Gear.Select(id => content.Gear[id])];
-        GearStats stats = worn.Aggregate(mob.File.Stats, (sum, item) => sum + item.Stats);
+        GearStats stats = worn.Aggregate(mob.File.Stats, (sum, item) => sum + item.Stats) + (gains ?? GearStats.None);
         return new DuelSeat(
             mob.File.Name,
             [.. mob.Deck.Entries.SelectMany(entry => Enumerable.Repeat(entry.Card, entry.Copies))],

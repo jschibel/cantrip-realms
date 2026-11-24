@@ -773,6 +773,27 @@ public sealed partial class RealmContent
         if (file.Warden is { } warden && !Mobs.ContainsKey(warden)) problems.Add($"{where}: its warden '{warden}' is no mob.");
         if (file.Warden is null && file.Floors is [_, > 1]) problems.Add($"{where}: a dungeon of more than one floor has a warden at each stair.");
         if (!Mobs.ContainsKey(file.Boss)) problems.Add($"{where}: its boss '{file.Boss}' is no mob.");
+
+        if (file.Standing.Count > 0 && file.Region is null) problems.Add($"{where}: only a dungeon of a region's color is dealt by standing.");
+        foreach ((string name, DungeonStanding standing) in file.Standing)
+        {
+            string of = $"{where}'s {name} standing";
+            if (!Standings.All.Contains(name)) problems.Add($"{where}: '{name}' is no standing ({string.Join(", ", Standings.All)}).");
+            if (standing.Tier is < 1 or > 4) problems.Add($"{of}: tier {standing.Tier} is not 1 to 4.");
+            if (standing.MobTiers is not [int lowest, int highest] || lowest < 1 || highest > 4 || highest < lowest)
+            {
+                problems.Add($"{of}: its mob tiers are two tiers 1 to 4, the lower first.");
+            }
+            else if (file.Encounters is [_, > 0] && Enumerable.Range(0, dungeon.Tables.Count).Any(floor => dungeon.TableOf(floor, standing, Mobs).Count == 0))
+            {
+                problems.Add($"{of}: no floor's mobs are of tiers {lowest} to {highest}.");
+            }
+
+            if (standing.BossStats is null || standing.BossStats.Life < 0 || standing.BossStats.Hand < 0 || standing.BossStats.MaxHand < 0)
+            {
+                problems.Add($"{of}: what its boss gains is life, hand and maxHand, none below 0.");
+            }
+        }
     }
 
     /// <summary>A dungeon's mob tables: one list of ids for every floor, or a list a floor.</summary>

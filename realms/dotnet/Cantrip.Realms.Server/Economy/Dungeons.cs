@@ -36,12 +36,14 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         if (!Characters.Beside(row, dungeon.File.At)) throw Refusal.Conflict(Codes.NotNear, $"{dungeon.File.Name} is entered at its entrance.");
         await characters.RequireOpen(player, dungeon).ConfigureAwait(false);
 
-        List<RunFloor> floors = Roll(dungeon);
+        // A color's dungeon is dealt by where its color stands to the character's (design.md A6).
+        DungeonStanding? standing = dungeon.StandingOf(Standings.Of(dungeon.File.Region, row.Color, await characters.Identity(player).ConfigureAwait(false)));
+        List<RunFloor> floors = Roll(dungeon, standing);
         RestingView? resting = await Resting(player, dungeon).ConfigureAwait(false);
         if (resting is not null)
         {
             // The boss rests: the last floor holds no boss this run.
-            floors[^1] = floors[^1] with { Boss = null };
+            floors[^1] = floors[^1] with { Boss = null, BossStats = null };
         }
 
         var run = new RunRow
@@ -65,8 +67,12 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             await transaction.CommitAsync().ConfigureAwait(false);
         }
 
-        return new RunView(run.Id, run.Seed, floors, dungeon.Id, 0, [], resting);
+        return new RunView(run.Id, run.Seed, floors, dungeon.Id, 0, [], resting, TierOf(dungeon, floors));
     }
+
+    /// <summary>A run's tier: the one its floors were dealt at, else its dungeon's.</summary>
+    private static int TierOf(RealmDungeon? dungeon, IReadOnlyList<RunFloor> floors) =>
+        floors.Count > 0 && floors[0].Tier is int dealt ? dealt : dungeon?.File.Tier ?? 0;
 
     /// <summary>
     /// The character's live run, to resume it (a reload, a return): its floors as they began, the floor reached, the
@@ -82,10 +88,11 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         List<RunFloor> floors = FloorsOf(run);
         List<string> beaten = [.. (await db.Duels.AsNoTracking().Where(duel => duel.PlayerId == player && duel.Space == space && (duel.State == DuelRow.Won || duel.State == DuelRow.Looted))
             .Select(duel => duel.Spawn).ToListAsync().ConfigureAwait(false)).Order(StringComparer.Ordinal)];
-        RestingView? resting = content.Dungeons.TryGetValue(run.Dungeon, out RealmDungeon? dungeon) && floors.Count > 0 && floors[^1].Boss is null
+        RealmDungeon? dungeon = content.Dungeons.GetValueOrDefault(run.Dungeon);
+        RestingView? resting = dungeon is not null && floors.Count > 0 && floors[^1].Boss is null
             ? await Resting(player, dungeon).ConfigureAwait(false)
             : null;
-        return new RunView(run.Id, run.Seed, floors, run.Dungeon, run.Floor, beaten, resting);
+        return new RunView(run.Id, run.Seed, floors, run.Dungeon, run.Floor, beaten, resting, TierOf(dungeon, floors));
     }
 
     /// <summary>
@@ -107,9 +114,10 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
 
     /// <summary>
     /// A run's encounters, drawn as it begins: so many floors, each with so many encounters of its table's mobs, the warden
-    /// at each floor's stair but the last's, and the boss on the last.
+    /// at each floor's stair but the last's, and the boss on the last. A standing (design.md A6) deals every floor at its
+    /// tier, draws the floors' mobs from its tiers alone and gives the boss what it gains; none deals the dungeon as written.
     /// </summary>
-    public List<RunFloor> Roll(RealmDungeon dungeon)
+    public List<RunFloor> Roll(RealmDungeon dungeon, DungeonStanding? standing = null)
     {
         ArgumentNullException.ThrowIfNull(dungeon);
         DungeonFile file = dungeon.File;
@@ -117,13 +125,15 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         List<RunFloor> floors = [];
         for (int floor = 0; floor < count; floor++)
         {
-            IReadOnlyList<string> table = dungeon.TableOf(floor);
+            IReadOnlyList<string> table = dungeon.TableOf(floor, standing, content.Mobs);
             int encounters = table.Count == 0 ? 0 : (int)dice.Between(file.Encounters[0], file.Encounters[1]);
             bool last = floor == count - 1;
             floors.Add(new RunFloor(
                 [.. Enumerable.Range(0, encounters).Select(index => new RunEncounter(index, table[dice.Below(table.Count)]))],
                 last ? null : file.Warden,
-                last ? file.Boss : null));
+                last ? file.Boss : null,
+                standing?.Tier,
+                last && standing is not null && standing.BossStats != GearStats.None ? standing.BossStats : null));
         }
 
         return floors;

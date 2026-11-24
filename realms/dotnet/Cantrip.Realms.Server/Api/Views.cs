@@ -142,18 +142,21 @@ public sealed record RunEncounter(int Index, string Mob);
 
 /// <summary>
 /// A floor of a run: its encounters, then the warden at its stair (every floor but the last; its index the count of the
-/// encounters) and on the last floor the boss (its index one past the encounters').
+/// encounters) and on the last floor the boss (its index one past the encounters'). A run of a color's dungeon dealt by the
+/// character's standing to its color (design.md A6, <see cref="Content.DungeonStanding"/>) says the tier it deals each floor
+/// at and what its boss gains over its own stats; null for a run dealt as the dungeon is written.
 /// </summary>
-public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss);
+public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss, int? Tier = null, GearStats? BossStats = null);
 
 /// <summary>A boss resting after a win (design.md A6: refought weekly): who, and when it is back.</summary>
 public sealed record RestingView(string Boss, DateTimeOffset Until);
 
 /// <summary>
 /// A run: its id, its seed for the browser's layout, every encounter it holds, its dungeon, the floor the character stands
-/// on, the encounters of it beaten (<c>&lt;floor&gt;:&lt;index&gt;</c>), and the boss that rests and so is not on its last floor.
+/// on, the encounters of it beaten (<c>&lt;floor&gt;:&lt;index&gt;</c>), the boss that rests and so is not on its last floor, and the
+/// run's tier: its dungeon's, or the one the character's standing to its color deals it at (design.md A6).
 /// </summary>
-public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors, string? Dungeon = null, int Floor = 0, IReadOnlyList<string>? Beaten = null, RestingView? Resting = null);
+public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors, string? Dungeon = null, int Floor = 0, IReadOnlyList<string>? Beaten = null, RestingView? Resting = null, int? Tier = null);
 
 public sealed record FloorTake(string? Run, int Floor);
 

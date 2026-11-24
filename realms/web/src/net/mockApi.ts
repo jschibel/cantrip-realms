@@ -8,6 +8,7 @@ import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
 import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
 import type { DungeonData } from "../world/format";
+import { dealtBy, tableOf } from "../world/standing";
 
 const INNS = WORLD.inns;
 
@@ -51,6 +52,7 @@ import {
   type Place,
   type RealmApi,
   type Run,
+  type RunFloor,
   type Traveler,
   type VendorView,
 } from "./api";
@@ -344,6 +346,7 @@ export class MockApi implements RealmApi {
       await this.finishEncounter({ Token: open.token, Log: [] });
     }
     let run: Encounter["run"];
+    let gains: RunFloor["BossStats"] = null;
     if ("Run" in body) {
       const live = this.runs.get(body.Run);
       if (!live?.live) throw new ApiError(404, "NotThere", "No such run.");
@@ -354,6 +357,8 @@ export class MockApi implements RealmApi {
       if (!mob || mob !== body.Mob) throw new ApiError(409, "NotThere", "No such encounter on this floor.");
       if (live.fought.has(`${body.Floor}:${body.Index}`)) throw new ApiError(409, "TooSoon", "Already beaten in this run.");
       run = { id: body.Run, floor: body.Floor, index: body.Index };
+      // A boss gains what its run's standing gives it (design.md A6).
+      if (body.Index === n + 1) gains = floor.BossStats ?? null;
     }
     const mob = mobInfo(body.Mob);
     const token = `duel-${this.nextToken++}`;
@@ -367,7 +372,7 @@ export class MockApi implements RealmApi {
         // Dealt as the server deals it (mockDuel.ts), with what a test forced; a mob with no deck file plays the white starter.
         Seats: [
           { ...playerSeat(c, this.deck), ...this.devDuel?.Player },
-          { ...((await mobSeat(body.Mob)) ?? playerSeat({ ...c, Name: mob.name, Loadout: {} }, { Main: starterDeck("W"), Ante: [] })), ...this.devDuel?.Mob },
+          { ...gaining((await mobSeat(body.Mob)) ?? playerSeat({ ...c, Name: mob.name, Loadout: {} }, { Main: starterDeck("W"), Ante: [] }), gains), ...this.devDuel?.Mob },
         ],
         MinimumDeckSize: 40,
         Seed: seed,
@@ -504,22 +509,26 @@ export class MockApi implements RealmApi {
     if (c.Space !== "world" || tilesApart([c.X, c.Z], dungeon.entrance) > 1) throw new ApiError(409, "NotNear", `You are not at ${dungeon.name}.`);
     const between = (low: number, high: number) => low + Math.floor(this.random() * (high - low + 1));
     const count = between(dungeon.floors[0], dungeon.floors[1]);
-    const lists = Array.isArray(dungeon.mobs[0]) ? (dungeon.mobs as string[][]) : [dungeon.mobs as string[]];
-    const floors = Array.from({ length: count }, (_, f) => {
-      const list = lists[Math.min(f, lists.length - 1)]!;
+    // A color's dungeon is dealt by where its color stands to the character's (design.md A6), as the server deals it.
+    const standing = dealtBy(dungeon, c);
+    const gains = standing?.bossStats;
+    const floors: RunFloor[] = Array.from({ length: count }, (_, f) => {
+      const list = tableOf(dungeon, f, standing, (m) => mobInfo(m).tier);
       return {
         Encounters: Array.from({ length: between(dungeon.encounters[0], dungeon.encounters[1]) }, (_, i) => ({ Index: i, Mob: list[Math.floor(this.random() * list.length)]! })),
         Warden: f < count - 1 ? dungeon.warden : null,
         Boss: f === count - 1 ? dungeon.boss : null,
+        Tier: standing?.tier ?? null,
+        BossStats: f === count - 1 && gains ? { Life: gains.life, Hand: gains.hand, MaxHand: gains.maxHand } : null,
       };
     });
     // A boss beaten within the week rests: the last floor is without it (design.md A6).
     const won = this.bossWins.get(dungeon.boss);
     const nowMs = this.now() * 1000;
     const resting = mobInfo(dungeon.boss).boss && won !== undefined && won + BOSS_REST_MS > nowMs ? { Boss: dungeon.boss, Until: new Date(won + BOSS_REST_MS).toISOString() } : null;
-    if (resting) floors[count - 1] = { ...floors[count - 1]!, Boss: null };
+    if (resting) floors[count - 1] = { ...floors[count - 1]!, Boss: null, BossStats: null };
     const id = `run-${this.nextToken++}`;
-    const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting };
+    const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting, Tier: standing?.tier ?? dungeon.tier };
     for (const other of this.runs.values()) other.live = false;
     this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
     this.update({ Space: `run:${id}`, X: 0, Z: 0 });
@@ -575,4 +584,11 @@ export class MockApi implements RealmApi {
     return { Place: place };
   }
 
+}
+
+/** A mob's seat with what it gains (a boss of a run dealt by standing, design.md A6). */
+function gaining(seat: Record<string, unknown>, gains: RunFloor["BossStats"]): Record<string, unknown> {
+  if (!gains) return seat;
+  const n = (key: string) => Number(seat[key] ?? 0);
+  return { ...seat, StartingLife: n("StartingLife") + gains.Life, StartingHandSize: n("StartingHandSize") + gains.Hand, MaximumHandSize: n("MaximumHandSize") + gains.MaxHand };
 }
