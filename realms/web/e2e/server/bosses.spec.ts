@@ -1,15 +1,16 @@
-import { type Frame, type Page, expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 import { chebyshev, clickControl, clickEntity, dungeon, entities, entity, playerTile, realm, until, waitReady, waitSpace, winDuel, world } from "../realm";
 import { beat, enter, run, walkInside } from "../runs";
+import { CARDS, cardState, clickCardControl } from "./cardLayer";
+import { type ForcedSeat, forceDuel, playDuel } from "./duel";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
 // Dungeon runs and their bosses against the real realm server (playwright.config.ts here): a run resumed after a reload
 // on the floor it reached; Rofellos beaten - green unlocked, the deck taking green at the antechamber's spell table, his
-// hall empty for the week; and a boss duel lost in the real card layer, whose log the server replays: the run over, the
+// hall empty for the week; and his duel in the real card layer, whose log the server replays - won from a forced position
+// (he begins at 0 life, POST /dev/duel), green unlocked with its moment; and lost by conceding, the run over and the
 // character at the inn. A test starts beside the dungeon (POST /dev/place) and has the server count the stand-in's wins
 // (POST /dev/verdict) on the floors it only walks through.
-
-const CARDS = process.env.REALMS_E2E_CARDS!;
 
 async function besideDungeon(page: Page, id: string, extra = "&mobs=0"): Promise<void> {
   await place(page.request, besideEntrance(id));
@@ -124,52 +125,30 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
   expect(saved.ok(), await saved.text()).toBe(true);
 });
 
-interface CardLayerState {
-  readonly ready: boolean;
-  readonly prompt: string;
-  readonly controls: readonly { readonly label: string; readonly x: number; readonly y: number }[];
-  readonly realm?: { readonly duel?: { readonly mob: string } };
-}
-
-const cardFrame = (page: Page): Frame => page.frames().find((frame) => frame.url().startsWith(CARDS))!;
-
-async function cardState(page: Page): Promise<CardLayerState | null> {
-  const json = await cardFrame(page).evaluate(() => (globalThis as { cantripTest?: string }).cantripTest ?? null);
-  return json === null ? null : (JSON.parse(json) as CardLayerState);
-}
-
-async function clickCardControl(page: Page, label: string): Promise<void> {
-  let found: CardLayerState["controls"][number] | undefined;
-  await expect
-    .poll(async () => {
-      found = (await cardState(page))?.controls.filter((c) => c.label === label).sort((a, b) => b.y - a.y)[0];
-      return found !== undefined;
-    }, { message: `the card layer's ${label}` })
-    .toBe(true);
-  await page.mouse.click(found!.x, found!.y);
-}
-
-test("a boss duel lost in the real card layer: the server replays it, the run is over and the character wakes at the inn", async ({ page }) => {
-  test.setTimeout(600_000);
-  await character(page.request, 33, "Hale", "W");
+/**
+ * A run of the elfhames' hollow walked with the stand-in to Rofellos's floor (every warden and stair, the floor's other
+ * mobs beaten too), then the page opened again on the real card layer - the run resumed - and Rofellos engaged: his
+ * duel's splash is up.
+ */
+async function toRofellosForReal(page: Page, id: number, name: string, mob?: ForcedSeat): Promise<void> {
+  await character(page.request, id, name, "W");
+  if (mob) await forceDuel(page.request, { Mob: mob });
   await verdict(page.request, "won");
-  const id = "elfhame-hollow";
-  await besideDungeon(page, id);
-  await enter(page, id);
+  const hollow = "elfhame-hollow";
+  await besideDungeon(page, hollow);
+  await enter(page, hollow);
   await waitSpace(page, /^run:/, 60);
   const r = (await run(page))!;
   for (let floor = 0; floor < r.floors - 1; floor++) await down(page);
   // The boss's floor's other mobs beaten too (they would come for the player on the way to him), so his is the duel played.
   for (let tries = 0; tries < 8 && (await entities(page)).some((e) => e.kind === "mob" && e.role === "encounter"); tries++) await beat(page, "encounter");
 
-  // The boss's floor reached, the page is opened again on the real card layer - the run resumed with its beaten mobs
-  // gone - and the duel is played for real.
   await verdict(page.request, null);
   await page.goto(`/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never&mobs=0`);
   await waitReady(page);
   await waitSpace(page, `run:${r.id}`, 60);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
-  // Toward him step by step (he may come for Hale himself), then at him: the walk never answers a duel itself.
+  // Toward him step by step (he may come for the player himself), then at him: the walk never answers a duel itself.
   for (let tries = 0; tries < 30 && (await realm<string | null>(page, "layer.open")) === null; tries++) {
     const boss = await entity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
     if (chebyshev(await playerTile(page), boss.tile) <= 2) {
@@ -183,6 +162,44 @@ test("a boss duel lost in the real card layer: the server replays it, the run is
     await until(page, async () => (await realm<string | null>(page, "layer.open")) !== null || !(await entity(page, (e) => e.kind === "player", "the player")).moving, "the step taken", 20);
   }
   expect((await realm<{ args: { mob: { id: string } } }[]>(page, "layer.requests")).at(-1)!.args.mob.id).toBe("rofellos");
+}
+
+test("Rofellos beaten in the real card layer from a forced position: the server replays the win, green unlocked with its moment", async ({ page }) => {
+  test.setTimeout(600_000);
+  // He begins at 0 life (CR 704.5a: he loses as the first player would receive priority); the game is the engine's.
+  await toRofellosForReal(page, 34, "Iona", { StartingLife: 0 });
+  const ended = await playDuel(page);
+  expect(ended.realm!.duel).toMatchObject({ mob: "Rofellos, Llanowar Emissary", over: true, won: true, end: "Victory" });
+
+  const finished = page.waitForResponse((response) => response.url().endsWith("/api/encounter/finish"), { timeout: 60_000 });
+  await clickCardControl(page, "Return to the world");
+  const outcome = (await (await finished).json()) as { Outcome: string; Unlocked: string | null; Gift: string | null; Gear: { Gear: { Id: string } } | null };
+  expect(outcome).toMatchObject({ Outcome: "won", Unlocked: "G" });
+  expect(outcome.Gift).not.toBeNull();
+  expect(outcome.Gear?.Gear.Id).toBe("rofellos-emissary-torc");
+
+  // His torc is found first in the card layer, then his moment opens over the world.
+  for (let tries = 0; tries < 60 && (await realm<string>(page, "screen")) !== "boss"; tries++) {
+    if ((await realm<string | null>(page, "layer.open")) === "loot") {
+      const state = await cardState(page);
+      const go = state?.controls.filter((c) => /^(Take|Leave them|Done)/.test(c.label)).sort((a, b) => b.y - a.y)[0];
+      if (go) await page.mouse.click(go.x, go.y);
+    }
+    await page.waitForTimeout(500);
+  }
+  await expect(page.locator("[data-test='boss-beaten']")).toContainText("Green is yours");
+  await expect(page.locator("[data-test='boss-beaten:gift']")).toContainText(outcome.Gift!);
+  await clickControl(page, "boss-beaten:onward");
+  await expect(page.locator("[data-test='hud:pip-g']")).toHaveAttribute("data-state", "held");
+  expect((await api<Me>(page.request, "me")).Identity).toBe("WG");
+  await forceDuel(page.request, { Player: null, Mob: null });
+});
+
+test("a boss duel lost in the real card layer: the server replays it, the run is over and the character wakes at the inn", async ({ page }) => {
+  test.setTimeout(600_000);
+  await toRofellosForReal(page, 33, "Hale");
+  // The encounter's splash first, then the duel dealt.
+  await clickCardControl(page, "Fight");
   await expect
     .poll(async () => {
       const state = await cardState(page);
