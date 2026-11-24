@@ -133,9 +133,9 @@ public sealed class PlacesTests
         }
 
         Duel plain = await Deal(browser);
-        await browser.Ok<object>(HttpMethod.Post, "/dev/duel", new { Player = new { StartingHandSize = 5 }, Mob = new { StartingLife = 0, Deck = Enumerable.Repeat("Plains", 40) } });
+        await browser.Ok<object>(HttpMethod.Post, "/dev/duel", new { Player = new { StartingHandSize = 5, Emblems = new[] { "Circlet of Foresight (gear)" } }, Mob = new { StartingLife = 0, Deck = Enumerable.Repeat("Plains", 40) } });
         Duel forced = await Deal(browser);
-        Assert.Equal(plain.Seats[0] with { StartingHandSize = 5 }, forced.Seats[0], SeatComparer.Instance);
+        Assert.Equal(plain.Seats[0] with { StartingHandSize = 5, Emblems = ["Circlet of Foresight (gear)"] }, forced.Seats[0], SeatComparer.Instance);
         Assert.Equal(0, forced.Seats[1].StartingLife);
         Assert.Equal(Enumerable.Repeat("Plains", 40), forced.Seats[1].Deck);
         Assert.Equal(20, (await Deal(other)).Seats[1].StartingLife);

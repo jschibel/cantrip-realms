@@ -38,7 +38,8 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
   test.setTimeout(360_000);
   await character(page.request, 41, "Wren", "R");
   const ante = await setAnte(page.request);
-  await forceDuel(page.request, { Mob: { StartingLife: 0 } });
+  // The mob begins at 0 life; the player wears an item with effects, whose emblem begins in their command zone.
+  await forceDuel(page.request, { Mob: { StartingLife: 0 }, Player: { Emblems: ["Circlet of Foresight (gear)"] } });
   const before = await api<Me>(page.request, "me");
 
   const mob = await engage(page);
@@ -50,6 +51,10 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
 
   const ended = await playDuel(page);
   expect(ended.realm!.duel).toMatchObject({ over: true, won: true, end: "Victory" });
+  // The worn item's emblem was in the player's command zone all game, named under the duel's bar; a click shows its card.
+  expect(ended.realm!.duelGear?.emblems).toEqual(["Circlet of Foresight (gear)"]);
+  await clickCardControl(page, "Gear in play");
+  await expect.poll(async () => (await cardState(page))?.realm?.duelGear?.open).toBe(true);
   await page.screenshot({ path: info.outputPath("2-victory.png") });
 
   // Back to the world: the server replays the log and takes the win; the loot is offered within the cap.

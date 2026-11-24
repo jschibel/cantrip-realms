@@ -112,6 +112,7 @@ export interface DevSeat {
   readonly StartingHandSize?: number;
   readonly MaximumHandSize?: number;
   readonly Deck?: readonly string[];
+  readonly Emblems?: readonly string[];
 }
 
 export interface DevDuel {

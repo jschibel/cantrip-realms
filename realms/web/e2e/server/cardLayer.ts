@@ -37,7 +37,16 @@ export interface CardLayerState {
     readonly body: string;
     readonly facts: string;
     readonly status: string;
-    readonly duel?: { readonly mob: string; readonly log: number; readonly over: boolean; readonly won: boolean; readonly ended: boolean; readonly end: string };
+    readonly duel?: {
+      readonly mob: string;
+      readonly log: number;
+      readonly over: boolean;
+      readonly won: boolean;
+      readonly ended: boolean;
+      readonly end: string;
+    };
+    /** The duel's gear strip: each seat's gear emblems in the game, and whether the panel of their cards is open. */
+    readonly duelGear?: { readonly line: string; readonly open: boolean; readonly emblems: readonly string[]; readonly mobEmblems: readonly string[] };
     readonly loot?: { readonly cap: number; readonly taken: number; readonly picked: readonly string[] };
   };
 }

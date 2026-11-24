@@ -14,7 +14,7 @@ namespace Cantrip.Realms.Server;
 /// <item><c>POST /dev/place {Space, X, Z}</c> puts the signed-in character at once on an open tile of the world or an interior,
 /// as a test arranges where it starts; 422 <c>NoSuchPlace</c> for any other.</item>
 /// <item><c>POST /dev/duel {Player, Mob}</c> deals the signed-in player's next duels with those seats' setup changed - each
-/// <c>{StartingLife, StartingHandSize, MaximumHandSize, Deck}</c>, any of them, or null to leave the seat as it is - as a
+/// <c>{StartingLife, StartingHandSize, MaximumHandSize, Deck, Emblems}</c>, any of them, or null to leave the seat as it is - as a
 /// scenario forces a position: the duel is committed so and replayed so, and its result is the engine's. A body of two
 /// nulls deals them as they are again.</item>
 /// <item><c>POST /dev/verdict {Outcome}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>, instead
@@ -117,7 +117,7 @@ public static class DevApi
     public sealed record DevDuel(DevSeat? Player, DevSeat? Mob);
 
     /// <summary>A seat's setup values to deal a duel with instead of its own, each null to leave it.</summary>
-    public sealed record DevSeat(int? StartingLife, int? StartingHandSize, int? MaximumHandSize, IReadOnlyList<string>? Deck)
+    public sealed record DevSeat(int? StartingLife, int? StartingHandSize, int? MaximumHandSize, IReadOnlyList<string>? Deck, IReadOnlyList<string>? Emblems = null)
     {
         /// <summary>The seat with these changes.</summary>
         public DuelSeat Apply(DuelSeat seat)
@@ -129,6 +129,7 @@ public static class DevApi
                 StartingHandSize = StartingHandSize ?? seat.StartingHandSize,
                 MaximumHandSize = MaximumHandSize ?? seat.MaximumHandSize,
                 Deck = Deck ?? seat.Deck,
+                Emblems = Emblems ?? seat.Emblems,
             };
         }
     }

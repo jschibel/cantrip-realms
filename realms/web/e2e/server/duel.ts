@@ -13,6 +13,7 @@ export interface ForcedSeat {
   readonly StartingHandSize?: number;
   readonly MaximumHandSize?: number;
   readonly Deck?: readonly string[];
+  readonly Emblems?: readonly string[];
 }
 
 /** Has the server deal the signed-in player's next duels with these seats' setup; nulls for both deal them as they are. */

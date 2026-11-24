@@ -564,9 +564,9 @@ player with no character is 404 `NoCharacter`.
   their logs, so the card layer's stand-in counts as a win; `POST /dev/drop {Gear}` (`true`, `false`, or null for the
   dice again) decides whether the player's gear rolls, a win's and a chest's, come up; and `POST /dev/duel {Player, Mob}`
   deals the player's next duels with a seat's setup changed - each `{StartingLife, StartingHandSize, MaximumHandSize,
-  Deck}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a position
-  (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played and
-  replayed so, and its result is the engine's. Never in production.
+  Deck, Emblems}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a
+  position (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played
+  and replayed so, and its result is the engine's. Never in production.
 
 ## The card layer (`window.postMessage`)
 
