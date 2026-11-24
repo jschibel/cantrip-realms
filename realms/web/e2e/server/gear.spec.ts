@@ -228,7 +228,8 @@ test("the inventory shows every card with its count, price and use, searched and
 
   // Searched: typed into the box, a card's name narrows it to the cards that say it.
   const wanted = inventory.Cards[0]!.Name;
-  const box = (await cardState(page))!.controls.find((c) => c.kind === "textbox")!;
+  // The box as the screen, laid out again after the sort, has it (read once laid out, never mid-rebuild).
+  const box = (await cardUntil(page, (s) => s.controls.some((c) => c.kind === "textbox"), "the search box")).controls.find((c) => c.kind === "textbox")!;
   await page.mouse.click(box.x, box.y);
   await page.keyboard.type(wanted);
   const found = await cardUntil(page, (s) => s.realm!.inventory!.cards.length < inventory.Cards.length && s.realm!.inventory!.cards.some((c) => c.name === wanted), "the search");

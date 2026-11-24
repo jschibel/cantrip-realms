@@ -169,15 +169,19 @@ export async function clickEntity(page: Page, match: (e: Entity) => boolean, wha
   return e;
 }
 
-/** Wins the duel the stand-in card layer has open, and takes the loot offered. */
+/**
+ * Wins the duel the stand-in card layer has open, and takes the loot offered; and any duel that follows at once (another
+ * mob that reached the player while the loot was open), until the world goes on.
+ */
 export async function winDuel(page: Page): Promise<void> {
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 20);
   await clickControl(page, "layer:win");
   await until(
     page,
     async () => {
-      if ((await realm<string | null>(page, "layer.open")) === "loot") {
-        await clickControl(page, "layer:take");
+      const open = await realm<string | null>(page, "layer.open");
+      if (open === "loot" || open === "duel") {
+        await clickControl(page, open === "loot" ? "layer:take" : "layer:win");
         return false;
       }
       return (await realm<string>(page, "screen")) === "world" && !(await realm<boolean>(page, "paused"));
