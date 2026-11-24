@@ -36,7 +36,7 @@ async function engage(page: Page): Promise<{ name: string; spawn: string }> {
 
 test("a duel won in the real card layer: splash, the game, victory, the server's verdict, the loot, the world", async ({ page }, info) => {
   test.setTimeout(360_000);
-  await character(page.request, 41, "Wren", "R");
+  await character(page.request, 61, "Wren", "R");
   const ante = await setAnte(page.request);
   // The mob begins at 0 life; the player wears an item with effects, whose emblem begins in their command zone.
   await forceDuel(page.request, { Mob: { StartingLife: 0 }, Player: { Emblems: ["Circlet of Foresight (gear)"] } });
@@ -58,6 +58,9 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
   expect(ended.realm!.duelGear?.emblems).toEqual(["Circlet of Foresight (gear)"]);
   await clickCardControl(page, "Gear in play");
   await expect.poll(async () => (await cardState(page))?.realm?.duelGear?.open).toBe(true);
+  await page.screenshot({ path: info.outputPath("2-victory-gear.png") });
+  await clickCardControl(page, "Close gear");
+  await expect.poll(async () => (await cardState(page))?.realm?.duelGear?.open).toBe(false);
   await page.screenshot({ path: info.outputPath("2-victory.png") });
 
   // Back to the world: the server replays the log and takes the win; the loot is offered within the cap.
@@ -92,7 +95,7 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
 
 test("a duel lost in the real card layer: defeat, a card of the ante gone, awake at the inn", async ({ page }, info) => {
   test.setTimeout(360_000);
-  await character(page.request, 42, "Moss", "G");
+  await character(page.request, 62, "Moss", "G");
   const ante = await setAnte(page.request);
   await forceDuel(page.request, { Player: { StartingLife: 0 } });
 

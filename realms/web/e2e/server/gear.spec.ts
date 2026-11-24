@@ -258,7 +258,8 @@ test("worn gear is in the duel's command zone, and a won duel's gear drop and a 
 
   const scout = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await page.mouse.click(scout.x, scout.y);
-  // The duel dealt: the ring's emblem in the player's command zone, the setup values the loadout's.
+  // Past the encounter's splash (MainPage.RealmDuel.cs), then the duel dealt: the ring's emblem in the player's command zone, the setup values the loadout's.
+  await clickCardControl(page, "Fight");
   const dealt = await cardUntil(page, (s) => (s.realm?.duelGear?.emblems.length ?? 0) > 0 && s.prompt.length > 0, "the duel with its gear", 180_000);
   expect(dealt.realm!.duelGear!.emblems).toEqual(["Ring of Thorns (gear)"]);
   expect(dealt.realm!.duelGear!.life).toBe(me.Stats.Life);
