@@ -99,7 +99,16 @@ function southFacing(town: string): BuildingData[] {
   return out.sort((a, b) => a.z - b.z || a.x - b.x);
 }
 
-/** A street tile under a shop's awning (a display window's, in front of a south-facing shop), and the tile south of it. */
+/** Whether no building stands on the tiles from x0, z0 to x1, z1 (both included). */
+function unbuilt(x0: number, z0: number, x1: number, z1: number): boolean {
+  return chunksNear({ x: (x0 + x1) / 2, z: (z0 + z1) / 2 }, CHUNK).every((c) => c.buildings.every((b) => b.x > x1 || b.x + b.w <= x0 || b.z > z1 || b.z + b.d <= z0));
+}
+
+/**
+ * A street tile under a shop's awning (a display window's, in front of a south-facing shop), and the tile south of it:
+ * one with the street before it clear of buildings for a few tiles, so nothing but the awning stands in front of the
+ * player at any heading.
+ */
 export function underAwning(town = "new-benalia"): { at: Tile; from: Tile } {
   for (const b of southFacing(town)) {
     if (b.kind !== "shop") continue;
@@ -108,7 +117,7 @@ export function underAwning(town = "new-benalia"): { at: Tile; from: Tile } {
       if (o.kind !== "display") continue;
       const at = { x: Math.floor(b.x + o.at), z: b.z + b.d };
       const from = { x: at.x, z: at.z + 1 };
-      if (openWorld(at) && openWorld(from)) return { at, from };
+      if (openWorld(at) && openWorld(from) && unbuilt(at.x - 4, at.z + 1, at.x + 4, at.z + 5)) return { at, from };
     }
   }
   throw new Error(`no awning to stand under in ${town}`);
