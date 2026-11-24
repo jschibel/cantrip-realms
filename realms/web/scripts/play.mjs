@@ -167,7 +167,7 @@ console.log(`  Cantrip Realms is up${offline ? " (offline: nothing is kept)" : "
 console.log(`  The world:      ${urls.world}`);
 if (!offline) console.log(`  The server:     ${urls.server} (signed in as player ${player}; another number is another player: ${urls.server}dev/signin)`);
 console.log(`  The card layer: ${urls.cards}`);
-console.log(`  Card art:       ${art ?? "none found (set CANTRIP_ART to a content folder with <dataset>/images)"}`);
+console.log(`  Card art:       ${offline ? "none offline (the realm server serves it)" : (art ?? "none found (set CANTRIP_ART to a content folder with <dataset>/images)")}`);
 console.log(`  Opening ${start}  -  Ctrl+C stops it all.`);
 console.log("");
 openBrowser(start);
