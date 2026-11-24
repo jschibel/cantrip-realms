@@ -173,7 +173,17 @@ test("walking: a click round a shop walks it in straight legs with no jump, and 
   // A click in the middle of a walk takes it somewhere else from where it is: no jump.
   await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [past.x, past.z] as const);
   const before = await track(page, 0.4);
-  const aside = openNear(me, 3);
+  // Somewhere off to the side of the way it is going, not back behind it (a click behind is rightly a turn back).
+  const [a, b] = [before.at(-2)!, before.at(-1)!];
+  const [hx, hz] = [b.x - a.x, b.z - a.z];
+  const from = { x: Math.floor(b.x), z: Math.floor(b.z) };
+  let aside = openNear(me, 3);
+  for (const [dx, dz] of [[3, 0], [-3, 0], [0, 3], [0, -3], [3, 3], [-3, 3], [3, -3], [-3, -3], [3, 1], [-3, 1], [1, 3], [1, -3]] as const) {
+    const t = { x: from.x + dx, z: from.z + dz };
+    if ((dx * hx + dz * hz) / (Math.hypot(dx, dz) * (Math.hypot(hx, hz) || 1)) < 0.2 || !(await walkable(page, t))) continue;
+    aside = t;
+    break;
+  }
   await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [aside.x, aside.z] as const);
   const turned = await track(page, 2);
   smooth("a click mid-walk", [...before, ...turned]);
