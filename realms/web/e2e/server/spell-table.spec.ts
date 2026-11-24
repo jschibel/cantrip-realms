@@ -179,7 +179,7 @@ async function openAndClick(page: Page, kind: string): Promise<void> {
 test("the spell table builds a deck from the collection, refuses what the realm refuses, and the duel deals what it saved", async ({ page }) => {
   test.setTimeout(480_000);
   // A white character owning five Benalish Heroes and a Goblin King, beside the spell table of New Benalia's inn.
-  await character(page.request, id(41), "Wren", { "Benalish Hero": 5, "Goblin King": 1 }, "new-benalia-inn", { x: 2, z: 5 });
+  await character(page.request, id(51), "Wren", { "Benalish Hero": 5, "Goblin King": 1 }, "new-benalia-inn", { x: 2, z: 5 });
   const prices = (await api<Collection>(page.request, "collection")).Prices;
   const starter = await api<Deck>(page.request, "deck");
   await openAndClick(page, "spell-table");
@@ -281,7 +281,7 @@ test("a vendor sells at list price and buys at half from its purse, and the spel
   test.setTimeout(420_000);
   // A white character inside Grizzlegom's goblin shop in New Benalia, at its door.
   const shop = "argive-goblin-trader-shop";
-  await character(page.request, id(42), "Odo", {}, shop, { x: 5, z: 6 });
+  await character(page.request, id(52), "Odo", {}, shop, { x: 5, z: 6 });
   await openAndClick(page, "vendor");
   await cardsUntil(page, (s) => s.realm?.screen === "vendor" && s.cards.some((c) => c.row === "stock"), "the vendor's shelves", 60_000);
   const before = await api<Vendor>(page.request, "vendor/argive-goblin-trader");
