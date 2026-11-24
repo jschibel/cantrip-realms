@@ -67,7 +67,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   snapped to whole pixels at rest. Three headings, front and 45 degrees to either side and never further round, so
   nothing is drawn from behind: Q/E or the HUD's turn buttons. Stepped zoom outdoors (whole-number screen-pixel scales
   only; the wheel, +/- or the HUD's buttons); rooms and dungeons stay at the closest step. Where something tall stands
-  between the camera and the player, the whole of it fades (the occluder fade), never over its own footprint.
+  between the camera and the player, what of it stands in front of them fades (the occluder fade), never over its own
+  footprint.
 - **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile (`world/grid.ts`). Click to
   walk, and hold to keep walking toward the cursor (it re-paths when the cursor is more than 1.25 tiles from the path's
   target, with a 0.1 s cap for slow drift). Doors and gates are entered only by a click, or by holding still on them.
@@ -118,7 +119,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
   until a test advances it: the offline suites never wait on the wall clock. `npm test` runs vitest; `npm run e2e` runs
   the Playwright suite (`e2e/`) against the offline overworld with real clicks; `tour.spec.ts` takes the pictures of the
-  Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`). `npm run e2e:server` runs `e2e/server/` against the real realm
+  Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
+  view in New Benalia at every heading. `npm run e2e:server` runs `e2e/server/` against the real realm
   server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
   (`?server=`), signs in, makes a character, walks New Benalia's streets, goes into a shop and asks for its vendor's
@@ -310,16 +312,31 @@ What the renderer does with the interfaces above at the scale of the whole world
 - **The occluder fade** (`render/occlude.ts`), the one way of seeing past scenery out of doors: tall scenery (anything
   over 1.6 high: buildings, trees, walls) is merged with each thing's id, foot and footprints (`Built.footprints`; by
   default the rectangle its lowest parts stand on) on its vertices. Each frame five rays from the player's figure
-  toward the camera are tried against the occluders' boxes, then their triangles; the ones met fade - the whole of each
-  - except what is drawn over its own footprint as the camera sees it, so the ground under a building never shows.
-  From a pixel past the footprint's edge it fades over 7 scene pixels to 10%. The color and normal passes drop what
-  fades; a third pass draws only the fading parts of those occluders into a target of its own (the nearest at each
-  pixel, with its alpha), and the post pass lays it over the scene, judging outlines as if it were there so the fade's
-  start is not outlined. A gatehouse stands on its two towers, so its arch fades over its passage. Off indoors.
-- **Shadows** follow the camera: the sun's shadow camera is fitted to the view's ground at its heading and zoom (plus 6
-  high past its edges), its middle snapped in texels along the sun's axes, 2048 square (the all-at-once
-  `assembleWorld` keeps 4096). **Lights** of the chunks (fires, lamps) go to a pool of eight point lights given to the
-  nearest each frame, so streaming never changes the shaders' light count.
+  toward the camera are tried against the occluders' boxes, then their triangles; the ones met fade - where they stand
+  in front of the player (nearer the camera than their figure along its heading), never behind them: so a shop's
+  awning over the player fades while its wall behind them and its far side stay solid. Of what stands in front, what
+  covers the player's figure on the screen fades, whatever it is; and what hides the ground within 2 tiles of their feet
+  (then fading out over three quarters of a tile) outside the occluder's own footprints as the camera sees it - a window
+  in the roof of the house they stand behind, the ground under a building never shown. From a pixel past an edge it
+  fades over 7 scene pixels to 25%. The color and normal passes drop what fades; a third pass draws only the fading
+  parts of those occluders into a target of its own (the nearest at each pixel, with its alpha), and the post pass lays
+  it over the scene, judging outlines as if it were there so the fade's start is not outlined. A faded occluder still
+  casts its whole shadow. A gatehouse stands on its two towers, so its arch fades over its passage. Off indoors.
+- **Shadows** follow the camera: the sun's shadow camera is fitted to the view's ground at its heading and zoom (plus 5
+  past its edges, 6 high), 2048 square (the all-at-once `assembleWorld` keeps 4096); it stays put until the focus is 2
+  tiles from it, then moves to it in whole texels along the sun's axes. Every lit material casts from both its faces
+  (`shadowSide`): a roof, an awning or a gable is a single face, and three draws only back faces into a shadow map by
+  default, so a house's shadow was its walls' alone, with light through every seam between its parts; the bias and a
+  normal bias of 0.04 keep a lit face off its own depth. **Lights** of the chunks (fires, lamps) go to a pool of eight
+  point lights given to the nearest each frame, so streaming never changes the shaders' light count.
+- **A steady view:** the color, normal and fading passes draw a frame 32 scene pixels wider than the view on every side
+  (`render/renderer.ts`, `place`), and the post pass shows the view's part of it. While the camera follows the player
+  it stays where it is and only that window moves, by whole pixels, so the scene is drawn exactly as it was; it is
+  placed again when the view would leave the margin, turns, zooms or glides. Moving the camera by whole pixels instead
+  rounded the world's large coordinates differently at each step, and the edges and texel borders that run within a
+  hundredth of a pixel of the pixels' centres - a roof's eave or a row of its tiles at a turned heading, which run along
+  a diagonal of them - came and went: roof lines flickered as the player walked. The shadow map holding still (above)
+  does the same for the shadows' edges. `scenePixel` says where a point is in the view.
 - **The far zoom** (step 2) leaves out small props (no more than 1.05 by 1.05 by 1.35) and standing grass.
 - **Merging:** each chunk's scenery is sorted into tall (occluders), small (detail) and the rest, each merged by material
   straight into typed arrays; a kind over 24,000 triangles (a forest) is merged in 16-tile cells so the view culls it
