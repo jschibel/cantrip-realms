@@ -814,7 +814,7 @@ is gone.
   seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
   the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
   where the old map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 512 buildings, 145 interiors, 36 dungeons (20 mage towers), 842 spawns, 239 chests,
+- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 842 spawns, 239 chests,
   119 waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB.
 - **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
   0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.

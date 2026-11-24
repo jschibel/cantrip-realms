@@ -142,7 +142,8 @@ test("tour: a traveling trader's caravan at the pitch", async ({ page }) => {
 });
 
 test("tour: the regional map and the whole map", async ({ page }) => {
-  await openRealm(page, { at: "cabal-crossing", extra: "&mobs=0" });
+  // Out in the country (in a town the minimap is the town's).
+  await openRealm(page, { at: "benalia-1", extra: "&mobs=0" });
   await settle(page, 1);
   await page.locator("#hud-place").screenshot({ path: join(out, "map-regional.png") });
   await page.mouse.click(...(await minimap(page)));
