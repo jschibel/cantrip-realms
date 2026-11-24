@@ -161,12 +161,45 @@ export async function walkTo(page: Page, goal: Tile, near = 0, avoid: (t: Tile) 
   expect(chebyshev(await playerTile(page), goal), `walked to within ${near} of ${goal.x},${goal.z}`).toBeLessThanOrEqual(near);
 }
 
-/** Clicks an entity, once the view has settled on it. */
+/**
+ * A point on the page where a click lands on `e` itself, as the stage picks it (realmTest.figureAt): on its own figure for
+ * one that has a figure (a person, a mob: the entities that say whether they are `moving`), and for a thing that has none
+ * (a board, a table, a chest) a point of it with no figure in front - a guard walking his round, an NPC passing, a
+ * wanderer - which would take the click and answer it (a remark, a duel) in its place. Null when no point is clear now.
+ */
+async function clearSpot(page: Page, e: Entity): Promise<{ x: number; y: number } | null> {
+  const figure = e.moving !== undefined;
+  const offsets = figure ? [[0, 0], [0, -10], [0, 8], [-6, -4], [6, -4], [0, -18]] : [[0, 0], [0, -4], [-4, 0], [4, 0], [0, 4]];
+  for (const [dx, dy] of offsets) {
+    const at = { x: e.x + dx!, y: e.y + dy! };
+    const hit = await page.evaluate(([x, y]) => (globalThis as any).realmTest.figureAt(x, y) as Tile | null, [at.x, at.y] as const);
+    if (figure ? hit !== null && hit.x === e.tile.x && hit.z === e.tile.z : hit === null) return at;
+  }
+  return null;
+}
+
+/**
+ * Clicks an entity where nothing stands in front of it (clearSpot), waiting on the game's clock for whoever is in the
+ * way to walk on; after a few seconds of it, where it is.
+ */
+export async function clickClear(page: Page, match: (e: Entity) => boolean, what: string): Promise<Entity> {
+  for (let tries = 0; ; tries++) {
+    const e = await entity(page, match, what);
+    // A card screen opened meanwhile (a mob came for the player while they waited): the world takes no click now.
+    if (tries > 0 && (await realm<string | null>(page, "layer.open")) !== null) return e;
+    const spot = await clearSpot(page, e);
+    if (spot || tries >= 24) {
+      await page.mouse.click(spot?.x ?? e.x, spot?.y ?? e.y);
+      return e;
+    }
+    await advance(page, 0.25);
+  }
+}
+
+/** Clicks an entity, once the view has settled on it, where no one else stands in front of it. */
 export async function clickEntity(page: Page, match: (e: Entity) => boolean, what: string): Promise<Entity> {
   await advance(page, 0.6);
-  const e = await entity(page, match, what);
-  await page.mouse.click(e.x, e.y);
-  return e;
+  return clickClear(page, match, what);
 }
 
 /**

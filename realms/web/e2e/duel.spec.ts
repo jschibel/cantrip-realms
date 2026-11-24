@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "./places";
-import { at, clickControl, entities, openNear, openRealm, realm, until, waitReady } from "./realm";
+import { at, clickClear, clickControl, entities, openNear, openRealm, realm, until, waitReady } from "./realm";
 
 // Duels in the Domains: the card layer is absent here; its stand-in (?offline uses it) records every request, and these
 // tests assert the duel and loot requests through it, then answer them with its buttons.
@@ -17,7 +17,7 @@ async function engage(page: Page): Promise<void> {
       if ((await realm<string | null>(page, "layer.open")) === "duel") return true;
       const mob = (await entities(page)).find((e) => e.kind === "mob" && e.spawn === spawn.id);
       if (mob && !clicked) {
-        await page.mouse.click(mob.x, mob.y);
+        await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
         clicked = true;
       }
       return false;

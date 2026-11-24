@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { at, entity, openNear, realm, until, waitReady } from "../realm";
+import { at, clickClear, entity, openNear, realm, until, waitReady } from "../realm";
 import { CARDS, cardState, clickCard, clickCardControl } from "./cardLayer";
 import { playDuel } from "./duel";
 
@@ -19,8 +19,7 @@ test("offline, a duel is a real game in the real card layer, and its loot is pic
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
   await page.evaluate(() => (globalThis as any).realmTest.forceDuel({ Mob: { StartingLife: 0 } }));
 
-  const mob = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
-  await page.mouse.click(mob.x, mob.y);
+  const mob = await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "the duel", 60);
   await expect.poll(async () => (await cardState(page))?.realm?.title ?? "", { timeout: 60_000 }).toBe(`${mob.name} attacks!`);
 

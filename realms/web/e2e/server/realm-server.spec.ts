@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { doorOf, spawnNear } from "../places";
-import { advance, chebyshev, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitReady, waitSpace, walkTo, world } from "../realm";
+import { advance, chebyshev, clickClear, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitReady, waitSpace, walkTo, world } from "../realm";
 import { type Me, api, character, query, requests, signIn, verdict } from "./server";
 
 // The overworld against the real realm server on the generated Domains (playwright.config.ts here): a player signs in by
@@ -77,7 +77,7 @@ test("a player signs in, makes a character, walks, visits a vendor and starts an
       if (last?.args.mob.spawn === spawn.id) return true;
       const mob = (await realm<{ kind: string; spawn?: string; x: number; y: number }[]>(page, "entities")).find((e) => e.kind === "mob" && e.spawn === spawn.id);
       if (mob && clickedAfter < duels.length && !open) {
-        await page.mouse.click(mob.x, mob.y);
+        await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
         clickedAfter = duels.length;
       }
       return false;

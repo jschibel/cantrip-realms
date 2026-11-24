@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { entity, openNear, realm, until, waitReady, world } from "../realm";
+import { clickClear, entity, openNear, realm, until, waitReady, world } from "../realm";
 import { SERVER, api, character, place } from "./server";
 import { CARDS, cardState, clickCard, clickCardControl } from "./cardLayer";
 import { forceDuel, playDuel, setAnte } from "./duel";
@@ -27,8 +27,7 @@ async function engage(page: Page): Promise<{ name: string; spawn: string }> {
   await page.goto(query);
   await waitReady(page);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
-  const mob = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
-  await page.mouse.click(mob.x, mob.y);
+  const mob = await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "the duel", 60);
   await expect.poll(async () => (await cardState(page))?.realm?.title ?? "", { timeout: 60_000 }).toBe(`${mob.name} attacks!`);
   return { name: mob.name, spawn: spawn.id };

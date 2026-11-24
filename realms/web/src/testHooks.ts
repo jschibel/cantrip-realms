@@ -206,6 +206,14 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     chunkOf(x: number, z: number) {
       return chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK));
     },
+    /**
+     * The figure a click at a point on the page would land on (a person, a mob), as the tile it stands on; null where none
+     * is: what an e2e click checks first, so a guard walking past or a wanderer in the way never takes a click meant for
+     * what is behind it.
+     */
+    figureAt(x: number, y: number) {
+      return live()?.stage.pickFigure(x, y) ?? null;
+    },
     /** Where a tile of the current place is on the page. */
     screenOfTile(x: number, z: number) {
       const o = live();
