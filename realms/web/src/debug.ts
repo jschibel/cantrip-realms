@@ -6,7 +6,8 @@ import { CHUNK } from "./world/format";
 // how high its floor stands. Each frame it also watches the player's figure for a jump: a move in one frame further
 // than a walk could take it (`JUMP`), or a sudden rise or drop (`DROP`). Each jump is listed (the last few, newest
 // first, with the place and both positions) and logged to the console, so a teleport seen in play can be reported by
-// its coordinates. A click on the overlay copies what it shows.
+// its coordinates. A deliberate jump - through a door, a waystone, back to the inn after a lost duel - stands a new
+// figure in the place (Stage.arrive) behind the iris, and is none. A click on the overlay copies what it shows.
 
 /** A move in one frame further than this (world units, a tile being one) is a jump: a walk covers about 0.06. */
 const JUMP = 0.6;
@@ -51,13 +52,13 @@ export function bindDebug(game: Overworld): void {
   game.canvas.addEventListener("pointerleave", () => (pointer = null));
 
   const jumps: Jump[] = [];
-  let last: { place: string; x: number; y: number; z: number } | null = null;
+  let last: { figure: object; place: string; x: number; y: number; z: number } | null = null;
   const after = stage.afterTick;
   stage.afterTick = (dt) => {
     after(dt);
     const p = stage.player.figure.root.position;
     const place = stage.current.id;
-    if (last && last.place === place && !stage.transition) {
+    if (last && last.figure === stage.player && last.place === place && !stage.transition) {
       const flat = Math.hypot(p.x - last.x, p.z - last.z);
       const rise = Math.abs(p.y - last.y);
       if (flat > JUMP || rise > DROP) {
@@ -67,7 +68,7 @@ export function bindDebug(game: Overworld): void {
         console.warn(`[realm debug] jump in ${place}: ${describe(jump)}`);
       }
     }
-    last = { place, x: p.x, y: p.y, z: p.z };
+    last = { figure: stage.player, place, x: p.x, y: p.y, z: p.z };
   };
 
   const describe = (j: Jump) =>
