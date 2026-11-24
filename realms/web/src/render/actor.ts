@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Figure, type FigureSpec } from "../art/figures/rig";
 import type { Behaviour as BehaviourData } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
-import { type Open, type Point, slide, smooth, tilesAlong } from "./motion";
+import { type Ground, type Point, slide, smooth, tilesAlong } from "./motion";
 import { blobShadow } from "./shadow";
 
 // A figure walking a place's grid: along a path of tiles at a steady pace, turning to face where it goes, stepping up
@@ -11,9 +11,9 @@ import { blobShadow } from "./shadow";
 // game moves the player's (`goTo`, `steer`, `walkTo`) and lets the others think for themselves (`update`).
 //
 // The player walks between tile middles (render/motion.ts): a click's walk is the grid's path pulled into straight legs
-// (`smooth`), and a held button steers it straight at a point (`steer`), sliding along what is in the way. Either way it
-// goes on from where it stands, so it never jumps; `remaining` is still the tiles ahead as eight-way steps, which is
-// what the relay sends.
+// (`smooth`), and a held button steers it straight at a point (`steer`), sliding along what is in the way - a closed tile,
+// or the brink of a ledge (world/grid.ts). Either way it goes on from where it stands, so it never jumps; `remaining` is
+// still the tiles ahead as eight-way steps, which is what the relay sends.
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);
 
@@ -106,7 +106,8 @@ export class Actor {
     return this.steerTo !== null;
   }
 
-  private readonly open: Open = (x, z) => this.grid.walkable(x, z);
+  /** The grid walked now (the streamer remakes it): its open tiles and its ledges. */
+  private readonly ground: Ground = { open: (x, z) => this.grid.walkable(x, z), pass: (ax, az, bx, bz) => this.grid.passes(ax, az, bx, bz) };
 
   /** Sets the walk to points, dropping any steering and trail. */
   private follow(points: THREE.Vector3[]): void {
@@ -129,9 +130,9 @@ export class Actor {
       return true;
     }
     const here = { x: this.position.x, z: this.position.z };
-    const points = smooth(this.open, here, route);
+    const points = smooth(this.ground, here, route);
     this.follow(points.map((p) => new THREE.Vector3(p.x, 0, p.z)));
-    this.trail = tilesAlong(this.open, here, points);
+    this.trail = tilesAlong(this.ground, here, points);
     return true;
   }
 
@@ -276,7 +277,7 @@ export class Actor {
     const d = Math.hypot(dx, dz);
     const want = d < 0.02 || dt <= 0 ? 0 : Math.min(this.speed, (d * this.speed) / ARRIVE) * dt;
     if (want > 0) {
-      const at = slide(this.open, p.x, p.z, (dx / d) * want, (dz / d) * want);
+      const at = slide(this.ground, p.x, p.z, (dx / d) * want, (dz / d) * want);
       const mx = at.x - p.x;
       const mz = at.z - p.z;
       const moved = Math.hypot(mx, mz);

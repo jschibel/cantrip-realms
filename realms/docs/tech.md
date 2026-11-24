@@ -69,8 +69,11 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   only; the wheel, +/- or the HUD's buttons); rooms and dungeons stay at the closest step. Where something tall stands
   between the camera and the player, what of it stands in front of them fades (the occluder fade), never over its own
   footprint.
-- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile (`world/grid.ts`). The
-  player walks between tile middles as a body 0.6 tiles square that never overlaps a closed tile (`render/motion.ts`).
+- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile and never stepping over a
+  ledge (`world/grid.ts` `canStep`): a bank higher than a quarter of a tile (`LEDGE`, 4 texels) between two tiles not
+  both ramps - a terrace's edge, a road's embankment - is walked up to and along, both its tiles open, but left only by
+  a ramp. The player walks between tile middles as a body 0.6 tiles square that never overlaps a closed tile nor stands
+  across a ledge (`render/motion.ts`), so it stops flush at the brink of a terrace as at a wall.
   A click walks the grid's A* path pulled straight: from where the player stands to the furthest corner of the path in
   plain sight, and on from there. A held button finds no path: every frame it steers the player straight at the
   cursor's point on the ground, sliding along whatever is in the way and stopping only where nothing is left to go.
@@ -284,7 +287,8 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
 ##### `world/` (three-free)
 
 - format.ts: the version-2 types below, and `chunkOf`, `chunkKey`, `parseChunkKey`, `worldRect`, `viewBounds`,
-  `chunksOver`, `chunkTile`, `interiorArea`, `interiorTile`, `heightOf`, `isBlocked`, `isBare`, `frontStep`; and (phase
+  `chunksOver`, `chunkTile`, `interiorArea`, `interiorTile`, `heightOf`, `isBlocked`, `isBare`, `LEDGE`, `noLedge`,
+  `frontStep`; and (phase
   2, World) `areaAt`, `tierAt` (a tile's tier zone and tier), `inTown`, `townAt` (a town is the square of tiles within
   its `radius` of its `center` along x and z).
 - load.ts: a `WorldSource` (`globSource` over Vite's `import.meta.glob`, or `fetchSource(baseUrl)`), `loadWorld`,
@@ -297,22 +301,28 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   art/registries.test.ts builds `known` from the registries and lints the sample with it. `known.onUnknown(kind, id,
   where)`, given, takes an id the art does not have instead of its being a problem (while the art is built beside the
   world). The realm, `lintRealm(world, chunks, interiors, dungeons, {known, tiers})`: `lintWorld` and the
-  whole world as the game plays it - walked whole from the first inn (eight ways, no corner cut), everything stood on
+  whole world as the game plays it - walked whole from the first inn (`canStep`: eight ways, no corner cut, no ledge
+  stepped over), everything stood on
   open and reached, the rest reached beside, interiors in the towns their doors stand in, entrances and dungeons where
   world.json says with spell tables and waystones beside them and an open step out, spawns of their zone's tier and their
   mobs', tiers growing with distance, waymarkers at rises, ferry lanes walks from dock to dock with ferrymen, pitches open
-  in their towns, spell tables spell-table NPCs, and each town's streets (`lintTown`, below). src/world/dominaria.test.ts
-  runs it on Dominaria. `lintTown(town, open, buildings, limits?)` holds a town to its street plan: its nodes, ways,
-  gates and places well formed; every way's ends, every door of the town and every key place walked to from every gate
-  along the open street tiles alone (every door opening onto a street); no street running on more than a lot's depth
-  (`TOWN_LIMITS.spur`, 8 tiles) past its last junction to end at no door; and no walk along the streets between two key
-  places (its gates, doors and what is used from beside it, at least `apart` 12 tiles apart, gate to gate aside: the road
-  outside joins those) longer than `detour` (2) times the straight line between them.
+  in their towns, spell tables spell-table NPCs, each town's streets (`lintTown`, below), and - given `known.propTiles`
+  and `known.liquid` - nothing closed unseen: every closed tile a walker comes up against on its own level (not seen as a
+  bank from below) has what closes it drawn there (no ground, a liquid, a building, a prop that blocks over it, a thing
+  used from beside it, a chest, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground.
+  src/world/dominaria.test.ts runs it on Dominaria. `lintTown(town, open, buildings, limits?)` holds a town to its street
+  plan: its nodes, ways, gates and places well formed; every way's ends, every door of the town and every key place
+  walked to from every gate along the open street tiles alone (every door opening onto a street); no street running on
+  more than a lot's depth (`TOWN_LIMITS.spur`, 8 tiles) past its last junction to end at no door; and no walk along the
+  streets between two key places (its gates, doors and what is used from beside it, at least `apart` 12 tiles apart,
+  gate to gate aside: the road outside joins those) longer than `detour` (2) times the straight line between them.
 - streets.ts: a town plan's tiles as the generator paves them, the lint walks them and the maps draw them - `lineTiles`
   (a straight run, four-connected), `pathTiles`, `brushOf`, `wayPoints`, `wayMiddle`, `wayTiles` (a way's middle line
   widened by its square brush), `inSquare`, `squareTiles`, `streetTiles`, `inPolygon`.
-- grid.ts: `Grid`, the square A* (eight ways, never cutting a blocked corner), with `setWalkable`, `setHeight`,
-  `raise`, `block`, `heightAt`, `walkable`, `path`.
+- grid.ts: `canStep(ground, ax, az, bx, bz)`, the one rule of a step (eight ways, never cutting a blocked corner, never
+  over a ledge) over a `Ground` (`open` tiles and the edges that `pass`), which the A*, the body, the relay, the lint and
+  the generator all walk by and the server's `RealmSpace.CanStep` copies; and `Grid`, the square A*, with `setWalkable`,
+  `setHeight`, `setRamp`, `raise`, `block`, `heightAt`, `walkable`, `passes`, `canStep`, `ground`, `path`.
 
 #### The renderer at world scale
 
@@ -340,7 +350,7 @@ What the renderer does with the interfaces above at the scale of the whole world
   a ramp neighbour, so a run of ramps is one even slope. `floorAt(x, z)` is the surface anywhere; figures and grass stand
   on it. Terrain ground is outlined where a terrace's edge stands in front of lower ground (normal-pass kind 0.875). For
   the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
-  terrace's rim is best blocked except where a ramp meets it (the grid does not know edges). Rooms are still drawn level.
+  terrace's bank is a ledge the grid walks up to but never over (`LEDGE`), left by its ramps. Rooms are still drawn level.
 - **The occluder fade** (`render/occlude.ts`), the one way of seeing past scenery out of doors: tall scenery (anything
   over 1.6 high: buildings, trees, walls) is merged with each thing's id, foot and footprints (`Built.footprints`; by
   default the rectangle its lowest parts stand on) on its vertices. Each frame five rays from the player's figure

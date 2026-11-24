@@ -37,13 +37,31 @@ public abstract class RealmSpace
     public const string Waystone = "waystone";
 
     /// <summary>
-    /// Whether one step of a walk is taken (the rule of <c>realms/web/src/world/grid.ts</c>, exactly): to one of the eight
-    /// tiles round, which is walkable, and diagonally only where both tiles it passes between are walkable too - a walk
-    /// never cuts the corner of a blocked tile.
+    /// The most a step between side-by-side tiles climbs or drops, texels (a quarter of a tile), unless both are ramps
+    /// (<c>LEDGE</c> of <c>realms/web/src/world/format.ts</c>): a higher bank is a ledge, walked up to but never over.
     /// </summary>
-    public bool CanStep(Tile from, Tile to) =>
-        from.DistanceTo(to) == 1 && Walkable(to)
-        && (!from.IsDiagonalTo(to) || (Walkable(new Tile(to.X, from.Z)) && Walkable(new Tile(from.X, to.Z))));
+    public const int Ledge = 4;
+
+    /// <summary>Whether a tile's floor is a ramp (flag 4): a slope between two levels, stepped up whatever the heights.</summary>
+    public abstract bool IsRamp(Tile at);
+
+    /// <summary>Whether the edge between two side-by-side tiles is no ledge: their floors within <see cref="Ledge"/>, or both ramps.</summary>
+    public bool Passes(Tile a, Tile b) => (IsRamp(a) && IsRamp(b)) || Math.Abs(HeightAt(a) - HeightAt(b)) <= Ledge;
+
+    /// <summary>
+    /// Whether one step of a walk is taken (the rule of <c>realms/web/src/world/grid.ts</c>, <c>canStep</c>, exactly): to
+    /// one of the eight tiles round, which is walkable, over no ledge (<see cref="Passes"/>); and diagonally only where
+    /// both tiles it passes between are walkable too and all four edges round the corner are no ledge - a walk never cuts
+    /// the corner of a blocked tile, nor of a ledge.
+    /// </summary>
+    public bool CanStep(Tile from, Tile to)
+    {
+        if (from.DistanceTo(to) != 1 || !Walkable(to)) return false;
+        if (!from.IsDiagonalTo(to)) return Passes(from, to);
+        var across = new Tile(to.X, from.Z);
+        var along = new Tile(from.X, to.Z);
+        return Walkable(across) && Walkable(along) && Passes(from, across) && Passes(across, to) && Passes(from, along) && Passes(along, to);
+    }
 
     /// <summary>Whether a walk is one: from a tile, each tile of the path a step (<see cref="CanStep"/>) from the one before.</summary>
     public bool IsWalk(Tile from, IEnumerable<Tile> path)
@@ -59,16 +77,17 @@ public abstract class RealmSpace
         return true;
     }
 
-    // A tile as kept: none (no tile of the space), open or blocked, and whether it is bare.
+    // A tile as kept: none (no tile of the space), open or blocked, and whether it is bare, and a ramp.
     private protected const byte None = 0;
     private protected const byte Open = 1;
     private protected const byte Blocked = 2;
     private protected const byte Bare = 4;
+    private protected const byte Ramp = 8;
 
     /// <summary>
     /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (interfaces.md, "Version 2 of the world data"): the floor's height in whole texels,
     /// a surface id or <c>""</c> (nothing: never walked), and flags 1 blocked, 2 bare and 4 ramp (a slope between two
-    /// levels, walked as any open tile). Each into a state byte and a height, at the index it has in the list.
+    /// levels, stepped onto from the level each side and from the ramp's other tiles, <see cref="Passes"/>). Each into a state byte and a height, at the index it has in the list.
     /// </summary>
     private protected static void ReadTiles(IReadOnlyList<JsonElement> tiles, byte[] states, short[] heights, string where, List<string> problems)
     {
@@ -81,7 +100,7 @@ public abstract class RealmSpace
             }
 
             bool blocked = (flags & 1) != 0 || surface.Length == 0;
-            states[i] = (byte)((blocked ? Blocked : Open) | ((flags & 2) != 0 ? Bare : 0));
+            states[i] = (byte)((blocked ? Blocked : Open) | ((flags & 2) != 0 ? Bare : 0) | ((flags & 4) != 0 ? Ramp : 0));
             heights[i] = height;
         }
     }
@@ -194,6 +213,8 @@ public sealed class RealmWorld : RealmSpace
     public override int HeightAt(Tile at) => Cell(at).Height;
 
     public override bool IsBare(Tile at) => (Cell(at).State & Bare) != 0;
+
+    public override bool IsRamp(Tile at) => (Cell(at).State & Ramp) != 0;
 
     public MapSpawn? Spawn(string id) => _spawns.GetValueOrDefault(id);
 
@@ -327,6 +348,8 @@ public sealed class RealmInterior : RealmSpace
     public override int HeightAt(Tile at) => Index(at) is var i and >= 0 && i < _heights.Length ? _heights[i] : 0;
 
     public override bool IsBare(Tile at) => (State(at) & Bare) != 0;
+
+    public override bool IsRamp(Tile at) => (State(at) & Ramp) != 0;
 
     public override IReadOnlyList<MapNpc> Npcs => File.Npcs;
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect } from "@playwright/test";
-import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey, chunkTile, isBlocked } from "../src/world/format";
+import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey, chunkTile, isBlocked, noLedge } from "../src/world/format";
 
 // The realm's page as the tests drive it, on the manual clock: everything is read from globalThis.realmTest
 // (src/testHooks.ts), every action is a real mouse click at the place it publishes, and time moves only when a test
@@ -264,7 +264,17 @@ export function openWorld(t: Tile): boolean {
   return !c.npcs.some((n) => n.x === t.x && n.z === t.z) && !c.spawns.some((s) => s.x === t.x && s.z === t.z);
 }
 
-/** An open tile about `steps` from `target` (Chebyshev), reached from it over open tiles (eight ways, no cut corner). */
+/** No ledge between two side-by-side world tiles (format.ts LEDGE): what a step of the grid's never crosses. */
+export function noLedgeWorld(a: Tile, b: Tile): boolean {
+  const ca = chunkAt(a);
+  const cb = chunkAt(b);
+  return !ca || !cb || noLedge(chunkTile(ca, a.x, a.z), chunkTile(cb, b.x, b.z));
+}
+
+/**
+ * An open tile about `steps` from `target` (Chebyshev), reached from it over open tiles (eight ways, no cut corner, no
+ * ledge stepped over).
+ */
 export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean = openWorld): Tile {
   const key = (t: Tile) => `${t.x},${t.z}`;
   const seen = new Set([key(target)]);
@@ -277,7 +287,11 @@ export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean
         for (let dx = -1; dx <= 1; dx++) {
           const n = { x: t.x + dx, z: t.z + dz };
           if ((!dx && !dz) || seen.has(key(n)) || !open(n)) continue;
-          if (dx && dz && !(open({ x: t.x + dx, z: t.z }) && open({ x: t.x, z: t.z + dz }))) continue;
+          const a = { x: t.x + dx, z: t.z };
+          const b = { x: t.x, z: t.z + dz };
+          if (!dx || !dz) {
+            if (!noLedgeWorld(t, n)) continue;
+          } else if (!(open(a) && open(b) && noLedgeWorld(t, a) && noLedgeWorld(a, n) && noLedgeWorld(t, b) && noLedgeWorld(b, n))) continue;
           seen.add(key(n));
           next.push(n);
         }

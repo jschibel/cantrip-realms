@@ -5,7 +5,7 @@ using Xunit;
 namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
-/// Walking on squares (interfaces.md, "Places"): the golden vectors of <c>realms/content/walk-vectors.json</c>
+/// Walking on squares (interfaces.md, "Places"), over no ledge: the golden vectors of <c>realms/content/walk-vectors.json</c>
 /// (<c>tools/realms/walk-vectors.ts</c>), which the overworld's tests check too
 /// (<c>realms/web/src/world/walk-vectors.test.ts</c>). The server takes every path the overworld's A* finds, refuses every
 /// walk that is none, and reaches what the A* reaches.
@@ -25,13 +25,22 @@ public sealed class WalkTests
 
     private static Tile TileOf(JsonElement xz) => new(xz[0].GetInt32(), xz[1].GetInt32());
 
-    /// <summary>A grid of the vectors as a space of the server's: an interior whose tiles are its rows, from (x0, z0).</summary>
+    /// <summary>
+    /// A grid of the vectors as a space of the server's: an interior whose tiles are its rows, from (x0, z0), at the
+    /// heights its <c>heights</c> give (texels) and ramps where its <c>ramps</c> say <c>r</c>.
+    /// </summary>
     private static RealmInterior SpaceOf(JsonElement grid)
     {
         int x0 = grid.GetProperty("x0").GetInt32();
         int z0 = grid.GetProperty("z0").GetInt32();
         string[] rows = [.. grid.GetProperty("rows").EnumerateArray().Select(row => row.GetString()!)];
-        string tiles = string.Join(",", rows.SelectMany(row => row.Select(c => c == '.' ? "[0,\"grass\",0]" : "[0,\"grass\",1]")));
+        int[][] heights = grid.TryGetProperty("heights", out JsonElement h)
+            ? [.. h.EnumerateArray().Select(row => row.EnumerateArray().Select(v => v.GetInt32()).ToArray())]
+            : [];
+        string[] ramps = grid.TryGetProperty("ramps", out JsonElement r) ? [.. r.EnumerateArray().Select(row => row.GetString()!)] : [];
+        string TileText(int x, int z) =>
+            $"[{(z < heights.Length ? heights[z][x] : 0)},\"grass\",{(rows[z][x] == '.' ? 0 : 1) | (z < ramps.Length && ramps[z][x] == 'r' ? 4 : 0)}]";
+        string tiles = string.Join(",", rows.SelectMany((row, z) => row.Select((_, x) => TileText(x, z))));
         using JsonDocument document = JsonDocument.Parse($"[{tiles}]");
         var file = new InteriorFile
         {
@@ -54,6 +63,7 @@ public sealed class WalkTests
         Assert.Contains(walks, walk => walk.GetProperty("ok").GetBoolean());
         Assert.Contains(walks, walk => !walk.GetProperty("ok").GetBoolean());
         Assert.Contains(Vectors.RootElement.GetProperty("grids").EnumerateArray(), grid => grid.GetProperty("x0").GetInt32() < 0 && grid.GetProperty("z0").GetInt32() < 0);
+        Assert.Contains(Vectors.RootElement.GetProperty("grids").EnumerateArray(), grid => grid.TryGetProperty("heights", out _) && grid.TryGetProperty("ramps", out _));
     }
 
     [Theory]

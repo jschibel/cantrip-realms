@@ -17,6 +17,7 @@ import {
   frontStep,
   isBare,
   isBlocked,
+  RAMP,
   parseChunkKey,
   worldRect,
 } from "../world/format";
@@ -412,7 +413,7 @@ export class ChunkStreamer {
     this.remakeGrid();
   }
 
-  /** The grid over the chunks read: a window round the player, the world's tiles in it by their flags. */
+  /** The grid over the chunks read: a window round the player, the world's tiles in it by their flags and floors. */
   private remakeGrid(): void {
     this.gridDirty = false;
     const keys = [...this.data.keys()].filter((k) => this.data.get(k));
@@ -436,6 +437,7 @@ export class ChunkStreamer {
           if (!grid.inside(x, z)) continue;
           grid.setWalkable(x, z, !isBlocked(t));
           if (t[0] !== 0) grid.setHeight(x, z, t[0] / 16);
+          if (t[2] & RAMP) grid.setRamp(x, z, true);
         }
       }
     }

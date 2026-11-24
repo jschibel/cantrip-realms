@@ -4,13 +4,15 @@ import { Grid } from "./grid";
 
 // The golden vectors of walking on squares (realms/content/walk-vectors.json, tools/realms/walk-vectors.ts), which the
 // realm server's tests check too (realms/dotnet/Cantrip.Realms.Server.Tests/WalkTests.cs): the paths the A* finds, and
-// which walks are walks - the rule the server holds a presence walk to.
+// which walks are walks - the rule the server holds a presence walk to, ledges and ramps included.
 
 type XZ = readonly [number, number];
 
-function gridOf(g: { x0: number; z0: number; rows: readonly string[] }): Grid {
+function gridOf(g: { x0: number; z0: number; rows: readonly string[]; heights?: readonly (readonly number[])[]; ramps?: readonly string[] }): Grid {
   const grid = new Grid(g.rows[0]!.length, g.rows.length, g.x0, g.z0);
   g.rows.forEach((row, z) => [...row].forEach((c, x) => grid.setWalkable(g.x0 + x, g.z0 + z, c === ".")));
+  g.heights?.forEach((row, z) => row.forEach((h, x) => grid.setHeight(g.x0 + x, g.z0 + z, h / 16)));
+  g.ramps?.forEach((row, z) => [...row].forEach((c, x) => grid.setRamp(g.x0 + x, g.z0 + z, c === "r")));
   return grid;
 }
 

@@ -18,6 +18,7 @@ import {
   chunkKey,
   chunkTile,
   inRect,
+  OBJECT_KINDS,
   interiorArea,
   interiorTile,
   isBlocked,
@@ -31,7 +32,9 @@ import {
   type TownData,
   type XZ,
   PLACE_KINDS,
+  LEDGE,
 } from "./format";
+import { type Ground, canStep } from "./grid";
 import { inSquare, streetTiles, wayPoints } from "./streets";
 
 // The world's lint, in two parts. Per file (`checkWorld`, `checkChunk`, `checkInterior`): each file is what the format
@@ -239,6 +242,13 @@ export interface KnownArt {
   readonly propProblems?: (p: PropData) => readonly string[];
   readonly buildingProblems?: (b: BuildingData) => readonly string[];
   /**
+   * The tiles a placed prop covers and whether they refuse walking (art/props `tilesOf`). With `liquid`, the realm lint
+   * finds every closed tile nothing drawn there closes (`lintRealm`, "Nothing closed unseen").
+   */
+  readonly propTiles?: (p: PropData) => { readonly tiles: readonly XZ[]; readonly blocks: boolean };
+  /** Whether a surface is a liquid lying below its banks (art/surfaces, a `hole`): its tiles are seen to be water. */
+  readonly liquid?: (surface: string) => boolean;
+  /**
    * Given, an id the art does not have is named to it instead of being a problem: while the art is being built beside
    * the world, the world may name ids the art will have (the generator's placeholders, scripts/worldgen/ids.ts).
    */
@@ -398,14 +408,27 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   const H = rect[3] - rect[1];
   const index = (x: number, z: number) => (z - rect[1]) * W + (x - rect[0]);
   const openTiles = new Uint8Array(W * H);
+  const floors = new Int16Array(W * H);
+  const ramps = new Uint8Array(W * H);
   for (const c of chunks) {
     c.tiles.forEach((t, k) => {
       const x = c.cx * CHUNK + (k % CHUNK);
       const z = c.cz * CHUNK + Math.floor(k / CHUNK);
-      if (inRect(rect, x, z) && !isBlocked(t)) openTiles[index(x, z)] = 1;
+      if (!inRect(rect, x, z)) return;
+      if (!isBlocked(t)) openTiles[index(x, z)] = 1;
+      floors[index(x, z)] = t[0];
+      ramps[index(x, z)] = t[2] & RAMP ? 1 : 0;
     });
   }
   const open = (x: number, z: number) => inRect(rect, x, z) && openTiles[index(x, z)] === 1;
+  /** No ledge between two side-by-side tiles of the world (format.ts LEDGE). */
+  const pass = (ax: number, az: number, bx: number, bz: number) => {
+    if (!inRect(rect, ax, az) || !inRect(rect, bx, bz)) return true;
+    const a = index(ax, az);
+    const b = index(bx, bz);
+    return (ramps[a]! & ramps[b]!) === 1 || Math.abs(floors[a]! - floors[b]!) <= LEDGE;
+  };
+  const ground: Ground = { open, pass };
   const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "chests" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
     chunks.flatMap((c) => [...c[k]] as ChunkData[K][number][]);
   const npcs = all("npcs");
@@ -426,8 +449,7 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     const z = Math.floor(k / W) + rect[1];
     for (let dz = -1; dz <= 1; dz++) {
       for (let dx = -1; dx <= 1; dx++) {
-        if ((!dx && !dz) || !open(x + dx, z + dz)) continue;
-        if (dx && dz && !(open(x + dx, z) && open(x, z + dz))) continue;
+        if ((!dx && !dz) || !canStep(ground, x, z, x + dx, z + dz)) continue;
         const n = index(x + dx, z + dz);
         if (reached[n]) continue;
         reached[n] = 1;
@@ -539,9 +561,7 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
       if (!open(x, z)) out.push(`ferry ${f.id}: its lane's tile ${x},${z} is not open`);
       if (k === 0) continue;
       const [px, pz] = lane[k - 1]!;
-      const dx = x - px;
-      const dz = z - pz;
-      if (Math.max(Math.abs(dx), Math.abs(dz)) !== 1 || (dx && dz && !(open(px + dx, pz) && open(px, pz + dz)))) out.push(`ferry ${f.id}: its lane steps from ${px},${pz} to ${x},${z}, no step of a walk`);
+      if (!canStep(ground, px, pz, x, z)) out.push(`ferry ${f.id}: its lane steps from ${px},${pz} to ${x},${z}, no step of a walk`);
     }
     for (const end of [f.from, f.to]) {
       if (!walked(end[0], end[1])) out.push(`ferry ${f.id}: its dock ${end.join(",")} is not walked to`);
@@ -557,6 +577,58 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   // The towns' streets.
   const buildings = all("buildings");
   for (const town of world.towns) if (town.plan) out.push(...lintTown(town, open, buildings));
+
+  // Nothing closed unseen.
+  const { propTiles, liquid } = options.known ?? {};
+  if (propTiles && liquid) out.push(...unseenClosed(world, chunks, propTiles, liquid, walked, pass));
+  return out;
+}
+
+/**
+ * Nothing closed unseen: every closed tile a walker comes up against - one beside an open tile walked to, not under it
+ * by more than a step (where its bank is seen) - has what closes it drawn there: no ground, a liquid (water, lava), a
+ * building's footprint, a prop that blocks over it, a thing used from beside it (a spell table, a quest board, the
+ * arena's gate, a waystone), a chest or a waymarker; or it is a ferry's lane, open water to its passengers alone. An
+ * open tile a prop that blocks stands on is none of the lint's: what is drawn there may be walked past.
+ */
+function unseenClosed(
+  world: WorldData,
+  chunks: readonly ChunkData[],
+  propTiles: (p: PropData) => { readonly tiles: readonly XZ[]; readonly blocks: boolean },
+  liquid: (surface: string) => boolean,
+  walked: (x: number, z: number) => boolean,
+  pass: (ax: number, az: number, bx: number, bz: number) => boolean,
+): Problems {
+  const seen = new Set<string>();
+  const key = (x: number, z: number) => `${x},${z}`;
+  for (const c of chunks) {
+    for (const b of c.buildings) for (let z = b.z; z < b.z + b.d; z++) for (let x = b.x; x < b.x + b.w; x++) seen.add(key(x, z));
+    for (const p of c.props) {
+      const { tiles, blocks } = propTiles(p);
+      if (blocks) for (const [x, z] of tiles) seen.add(key(x, z));
+    }
+    for (const n of c.npcs) if (OBJECT_KINDS.has(n.kind)) seen.add(key(n.x, n.z));
+    for (const t of [...c.chests, ...c.waymarkers]) seen.add(key(t.x, t.z));
+  }
+  for (const f of world.ferries) for (const [x, z] of f.lane) seen.add(key(x, z));
+  const out: Problems = [];
+  const counts = new Map<string, { n: number; at: string }>();
+  for (const c of chunks) {
+    c.tiles.forEach((t, k) => {
+      if (!isBlocked(t) || t[1] === NO_SURFACE || liquid(t[1])) return;
+      const x = c.cx * CHUNK + (k % CHUNK);
+      const z = c.cz * CHUNK + Math.floor(k / CHUNK);
+      if (seen.has(key(x, z))) return;
+      // Come up against: from a tile walked to beside it, no ledge between them (a bank seen from below closes it).
+      const against = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => walked(x + dx!, z + dz!) && pass(x, z, x + dx!, z + dz!));
+      if (!against) return;
+      const what = t[1];
+      const found = counts.get(what);
+      if (found) found.n++;
+      else counts.set(what, { n: 1, at: key(x, z) });
+    });
+  }
+  for (const [surface, { n, at }] of counts) out.push(`${n} closed ${surface} tile(s) with nothing drawn there to close them, one at ${at}`);
   return out;
 }
 

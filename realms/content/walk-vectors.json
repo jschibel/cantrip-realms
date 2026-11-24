@@ -1,5 +1,5 @@
 {
-  "comment": "Golden vectors of walking on squares (realms/docs/interfaces.md, 'Places'), written by tools/realms/walk-vectors.ts. Each grid's rows are tiles, '.' open and '#' blocked, its first tile at (x0, z0). 'paths' are what the overworld's A* (realms/web/src/world/grid.ts) finds from one tile to another, both ends included (null: no way); 'walks' are tiles, the first the one walked from, and whether each is a walk: every tile open, every step to one of the eight tiles round, a diagonal step only where both tiles it passes between are open. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
+  "comment": "Golden vectors of walking on squares (realms/docs/interfaces.md, 'Places'), written by tools/realms/walk-vectors.ts. Each grid's rows are tiles, '.' open and '#' blocked, its first tile at (x0, z0); 'heights', where given, are the tiles' floors in texels row by row (0 elsewhere), and 'ramps' marks ramp tiles 'r'. 'paths' are what the overworld's A* (realms/web/src/world/grid.ts) finds from one tile to another, both ends included (null: no way); 'walks' are tiles, the first the one walked from, and whether each is a walk: every tile open, every step to one of the eight tiles round and over no ledge (floors more than 4 texels apart, unless both are ramps), a diagonal step only where both tiles it passes between are open and no ledge runs round the corner. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
   "grids": [
     {
       "name": "open ground", "x0": 0, "z0": 0,
@@ -115,6 +115,32 @@
         {"walk":[[10,20],[11,20],[12,20],[13,20],[14,20],[15,20],[15,21]],"ok":true},
         {"walk":[[16,22],[17,22],[17,23]],"ok":true},
         {"walk":[[17,26],[18,25]],"ok":false}
+      ]
+    },
+    {
+      "name": "a ledge and its ramp", "x0": 0, "z0": 0,
+      "rows": ["......","......","......","......","......"],
+      "heights": [[0,0,0,12,12,12], [0,0,0,12,12,12], [0,0,3,9,12,12], [0,0,0,12,12,12], [0,0,4,12,12,12]],
+      "ramps": ["......","......","..rr..","......","......"],
+      "paths": [
+        {"from":[0,0],"to":[5,0],"path":[[0,0],[1,1],[2,2],[3,2],[4,1],[5,0]]},
+        {"from":[5,4],"to":[0,4],"path":[[5,4],[4,3],[3,2],[2,2],[1,3],[0,4]]},
+        {"from":[2,0],"to":[3,0],"path":[[2,0],[2,1],[2,2],[3,2],[3,1],[3,0]]},
+        {"from":[2,4],"to":[2,0],"path":[[2,4],[2,3],[2,2],[2,1],[2,0]]}
+      ],
+      "walks": [
+        {"walk":[[2,0],[3,0]],"ok":false},
+        {"walk":[[3,1],[2,1]],"ok":false},
+        {"walk":[[1,2],[2,2],[3,2],[4,2]],"ok":true},
+        {"walk":[[4,3],[3,2],[2,2],[1,1]],"ok":true},
+        {"walk":[[2,1],[3,2]],"ok":false},
+        {"walk":[[2,3],[3,2]],"ok":false},
+        {"walk":[[2,2],[2,1],[2,0]],"ok":true},
+        {"walk":[[3,2],[3,1]],"ok":true},
+        {"walk":[[2,2],[3,1]],"ok":false},
+        {"walk":[[1,4],[2,4]],"ok":true},
+        {"walk":[[2,4],[3,4]],"ok":false},
+        {"walk":[[1,3],[2,4]],"ok":true}
       ]
     }
   ]

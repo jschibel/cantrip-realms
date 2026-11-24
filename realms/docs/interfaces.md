@@ -349,10 +349,13 @@ its interiors and its dungeons in version 2 of the world data (above):
 
 - **Open tiles.** A tile is open - someone may stand on it - when it is a tile of the space (in the world: within `size`
   from `origin`, in a chunk with a file; in an interior: within its `area`), has a surface (not `""`) and is not blocked
-  (flag 1), exactly as the overworld's grid (`realms/web/src/world/load.ts`) makes it walkable. Heights and the bare flag
-  (2) are read and kept, and change nothing about walking. The camera's `bounds` change nothing either.
-- **Walking.** A walk is steps to any of the eight tiles round, and a diagonal step only where both tiles it passes
-  between are open: it never cuts the corner of a blocked tile (`realms/web/src/world/grid.ts`'s rule, exactly). It
+  (flag 1), exactly as the overworld's grid (`realms/web/src/world/load.ts`) makes it walkable. The bare flag (2) is read
+  and kept, and changes nothing about walking; heights and the ramp flag (4) make ledges (below). The camera's `bounds`
+  change nothing.
+- **Walking.** A walk is steps to any of the eight tiles round, over no ledge - two side-by-side tiles whose floors are
+  more than 4 texels apart (a quarter of a tile), unless both are ramps - and a diagonal step only where both tiles it
+  passes between are open and no ledge runs round the corner: it never cuts the corner of a blocked tile, nor steps up
+  or down a terrace's bank anywhere but its ramps (`realms/web/src/world/grid.ts`'s `canStep`, exactly). It
   starts on an open tile (the overworld's A* does not check the tile it starts from; nobody stands on a closed one).
   Golden vectors of paths and walks are `realms/content/walk-vectors.json` (`tools/realms/walk-vectors.ts`), which the
   TypeScript and C# tests both check. A walk's length is counted along it, 1 tile a straight step and the square root
@@ -702,9 +705,9 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
 - The server refuses a `Move` that starts on a tile nobody stands on, or more than one tile (Chebyshev) from where the
   player is (as far along their last walk as its speed has taken them); whose path leaves the space (off the world's
   chunks or the interior's tiles), crosses a tile nobody stands on, steps anywhere but to one of the eight tiles round,
-  or cuts the corner of a blocked tile (Places, "Walking"); that is walked faster than walking allows
-  (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256 steps, or comes
-  more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
+  steps over a ledge or cuts the corner of a blocked tile or a ledge (Places, "Walking"); that is walked faster than
+  walking allows (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256
+  steps, or comes more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
   and for loadout slots only a gear mesh (Models, `RealmContent.GearMeshes`) and up to eight `#rrggbb` colors.
 - The overworld reports where it is (`/api/position`) before it sends `Enter` for a space, so the server knows it is there.

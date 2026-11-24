@@ -55,7 +55,9 @@ export class Mob {
     this.rest -= seconds;
     const me = this.actor.tile;
     const near = chebyshev(me, player.tile);
-    if (near <= 1 && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
+    // Beside is a step away: never across a ledge (world/grid.ts canStep), the one above the other's bank.
+    const grid = this.actor.grid;
+    if (near <= 1 && (near === 0 || grid.canStep(me, player.tile)) && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
     if (near <= CHASE_RANGE && this.rest <= 0) {
       // Chasing: toward the free tile beside the player nearest it, re-aimed a few times a second.
       this.actor.speed = CHASE_SPEED;
@@ -65,7 +67,7 @@ export class Mob {
         const p = player.tile;
         const beside: Tile[] = [];
         for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) beside.push({ x: p.x + dx, z: p.z + dz });
-        const stand = beside.filter((t) => free(t) || (t.x === me.x && t.z === me.z)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
+        const stand = beside.filter((t) => (free(t) || (t.x === me.x && t.z === me.z)) && grid.canStep(t, p)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
         if (stand) this.actor.retarget(stand);
       }
       return false;

@@ -146,3 +146,51 @@ describe("a click's walk pulled straight", () => {
     expect(tiles.length).toBeLessThanOrEqual(route.length + 1);
   });
 });
+
+describe("the body at a ledge", () => {
+  /** Open ground, a terrace 12 texels up from x = 3 east, its two-tile ramp across the bank at row 2. */
+  function terrace(): Grid {
+    const g = grid(["........", "........", "........", "........", "........"]);
+    for (let z = 0; z < 5; z++) for (let x = 3; x < 8; x++) g.setHeight(x, z, 12 / 16);
+    g.setHeight(2, 2, 3 / 16);
+    g.setHeight(3, 2, 9 / 16);
+    g.setRamp(2, 2, true);
+    g.setRamp(3, 2, true);
+    return g;
+  }
+
+  it("walks up to the brink and stops flush with it, from above and below alike, never over", () => {
+    const g = terrace().ground;
+    // Below, east into the bank's face: the middle half a body from the edge at x = 3.
+    expect(slide(g, 1.5, 0.5, 2, 0).x).toBeCloseTo(3 - BODY, 9);
+    // Above, west to the brink: the top tile is walked to its edge.
+    expect(slide(g, 5.5, 4.5, -4, 0).x).toBeCloseTo(3 + BODY, 9);
+    expect(fits(g, 3 + BODY, 4.5)).toBe(true);
+    expect(fits(g, 3, 4.5)).toBe(false);
+  });
+
+  it("slides along the brink what it walks along it, and goes up by the ramp", () => {
+    const g = terrace().ground;
+    const p = slide(g, 3.5, 4.5, -0.5, -0.5);
+    expect(p.x).toBeCloseTo(3 + BODY, 9);
+    expect(p.z).toBeCloseTo(4, 9);
+    // Up the ramp's middle, straight from the low ground to the top.
+    expect(slide(g, 0.5, 2.5, 5, 0)).toEqual({ x: 5.5, z: 2.5 });
+  });
+
+  it("finds a straight line over a ledge no line of sight, and a click's walk goes by the ramp, each leg clear", () => {
+    const t = terrace();
+    const g = t.ground;
+    expect(clear(g, { x: 1.5, z: 0.5 }, { x: 5.5, z: 0.5 })).toBe(false);
+    const route = t.path({ x: 1, z: 0 }, { x: 5, z: 0 })!;
+    expect(route.some((s) => s.x === 2 && s.z === 2)).toBe(true);
+    let at = { x: 1.5, z: 0.5 };
+    for (const p of smooth(g, at, route)) {
+      expect(clear(g, at, p), `${at.x},${at.z} to ${p.x},${p.z}`).toBe(true);
+      at = p;
+    }
+    expect(at).toEqual({ x: 5.5, z: 0.5 });
+    expect(canStep(g, { x: 2, z: 0 }, { x: 3, z: 0 })).toBe(false);
+    expect(canStep(g, { x: 2, z: 2 }, { x: 3, z: 2 })).toBe(true);
+  });
+});

@@ -1,4 +1,4 @@
-import { type Open, canStep, joinCorners } from "../render/motion";
+import { type Ground, type Open, canStep, joinCorners } from "../render/motion";
 import type { Tile } from "../world/grid";
 
 // What the relay is told of the player's walks (interfaces.md, "Presence"). A `Move` is a walk of eight-way steps from
@@ -110,7 +110,7 @@ export class WalkRelay {
    * than `speed`, never faster than MAX_SPEED. False (nothing told) when it is too soon after the last, or before the
    * place is entered.
    */
-  walk(ahead: readonly Tile[], speed: number, open: Open, distance?: number): boolean {
+  walk(ahead: readonly Tile[], speed: number, open: Ground | Open, distance?: number): boolean {
     if (!this.ready || !this.told || this.passed.length === 0) return false;
     const mine = [...joinCorners(open, this.passed), ...ahead];
     let walk = mine.slice(-1 - ahead.length);

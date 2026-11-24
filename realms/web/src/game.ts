@@ -21,7 +21,7 @@ import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/s
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
 import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, townAt } from "./world/format";
-import type { Grid, Tile } from "./world/grid";
+import { type Grid, type Tile, flatGround } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
 // The overworld (tech.md, B5) on the renderer's stage (render/stage.ts): one connected world of version-2 chunks
@@ -585,7 +585,9 @@ export class Overworld {
     // Nothing before the place is entered (`arrived`: the relay is told it stands there first).
     if (!this.relay.ready || this.relay.end === null) return;
     const grid = this.spot.grid;
-    const open = (x: number, z: number) => this.riding !== null || grid.walkable(x, z);
+    // A ferry's passenger crosses its lane, closed to walking: every tile is open to them, and no ledge.
+    const ground = this.riding !== null ? flatGround(() => true) : grid.ground;
+    const open = ground.open;
     if (!open(here.x, here.z)) return;
     // The tiles still to walk, each a step from the one before: none the same as the last (the tile stood on first),
     // which the server takes as a step of no length and refuses (walking into a doorway ends on the tile stood on).
@@ -600,8 +602,8 @@ export class Overworld {
     const end = this.relay.end;
     // A new walk, or a new goal; not every step of the same walk.
     if (end && end.x === goal.x && end.z === goal.z) return;
-    if (ahead.length === 0) this.relay.walk([], Math.min(MAX_SPEED, PLAYER_SPEED * 1.1), open);
-    else this.relay.walk(ahead, this.player.speed, open, this.player.distanceLeft);
+    if (ahead.length === 0) this.relay.walk([], Math.min(MAX_SPEED, PLAYER_SPEED * 1.1), ground);
+    else this.relay.walk(ahead, this.player.speed, ground, this.player.distanceLeft);
   }
 
   // --- Mobs --------------------------------------------------------------------------------------------------------------

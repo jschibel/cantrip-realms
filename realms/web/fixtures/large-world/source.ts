@@ -86,26 +86,19 @@ function make(): Made {
     return d < 16 ? 3 : d < 28 ? 2 : d < 40 ? 1 : 0;
   };
   for (let z = 15; z < 130; z++) for (let x = 150; x < 256; x++) if (level(x, z) > 0) set(x, z, [level(x, z) * 12, "grass", 0]);
-  // The ramp lane along z 69-71, from the west: where the level steps up eastward, the lower tile slopes.
+  // The ramp lane along z 69-71, from the west: where the level steps up eastward, the two tiles across the bank slope,
+  // a quarter and three quarters of the way up (as the generator's ramps). Every other bank is a ledge (world/grid.ts),
+  // walked up to and never over: only the ramps go up.
+  for (let x = 150; x < 240; x++) for (let z = 69; z <= 71; z++) set(x, z, [level(x, 70) * 12, "dirt", 0]);
   for (let x = 150; x < 240; x++) {
+    const here = level(x, 70);
+    const next = level(x + 1, 70);
+    if (next <= here) continue;
     for (let z = 69; z <= 71; z++) {
-      const here = level(x, 70);
-      const next = level(x + 1, 70);
-      set(x, z, [here * 12, "dirt", 0]);
-      if (next > here) set(x, z, [here * 12 + 6, "dirt", RAMP]);
+      set(x, z, [here * 12 + 3, "dirt", RAMP]);
+      set(x + 1, z, [next * 12 - 3, "dirt", RAMP]);
     }
   }
-  // The rim of each terrace is not walked (only the ramps go up): a tile with a neighbour well below it is blocked.
-  const drops: [number, number][] = [];
-  for (let z = 1; z < SIZE - 1; z++) {
-    for (let x = 1; x < SIZE - 1; x++) {
-      const t = get(x, z)!;
-      if (t[0] === 0 || (t[2] & RAMP) !== 0) continue;
-      const low = [get(x + 1, z), get(x - 1, z), get(x, z + 1), get(x, z - 1)].some((n) => n && t[0] - n[0] > 8);
-      if (low) drops.push([x, z]);
-    }
-  }
-  for (const [x, z] of drops) set(x, z, [get(x, z)![0], get(x, z)![1], BLOCKED]);
   props.push({ id: "ruined-tower", x: 210, z: 72, y: 3 * 12 / 16, args: { r: 2.4, low: 1.6, high: 5.5 } });
   for (let x = 207; x <= 213; x++) for (let z = 69; z <= 75; z++) if (Math.hypot(x + 0.5 - 210, z + 0.5 - 72) < 3) set(x, z, [get(x, z)![0], "grass", BLOCKED | BARE]);
   for (let i = 0; i < 30; i++) {

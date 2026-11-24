@@ -12,6 +12,7 @@ import {
   interiorArea,
   interiorTile,
   isBlocked,
+  RAMP,
   parseChunkKey,
   worldRect,
 } from "./format";
@@ -142,7 +143,7 @@ export async function loadInterior(source: WorldSource, id: string): Promise<Int
 
 // --- Walking ---------------------------------------------------------------------------------------------------------
 
-/** A grid over a rectangle of tiles, each open unless blocked (or nothing), at its floor's height. */
+/** A grid over a rectangle of tiles, each open unless blocked (or nothing), at its floor's height, its ramps marked. */
 function gridOver(r: Rect, tileAt: (x: number, z: number) => TileData | null): Grid {
   const grid = new Grid(r[2] - r[0], r[3] - r[1], r[0], r[1]);
   for (let z = r[1]; z < r[3]; z++) {
@@ -151,6 +152,7 @@ function gridOver(r: Rect, tileAt: (x: number, z: number) => TileData | null): G
       if (!t) continue;
       grid.setWalkable(x, z, !isBlocked(t));
       if (t[0] !== 0) grid.setHeight(x, z, t[0] / TEXELS_PER_TILE);
+      if (t[2] & RAMP) grid.setRamp(x, z, true);
     }
   }
   return grid;
