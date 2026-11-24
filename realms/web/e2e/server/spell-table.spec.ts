@@ -274,6 +274,11 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   expect(dealt).toEqual(deck);
   expect(encounter.Duel.AnteValue).toBe(anteValue);
   expect(encounter.Duel.Cap).toBe(Math.min(anteValue, encounter.Duel.Mob.Prize));
+  // The encounter's splash says the same ante and cap; Fight deals the duel.
+  const gold = (n: number) => `${n.toLocaleString("en-US")} gold`;
+  const splash = await cardsUntil(page, (s) => s.realm?.screen === "duel" && /prize cap/.test(s.realm.facts), "the encounter's splash", 60_000);
+  expect(splash.realm!.facts).toContain(`ante ${gold(anteValue)}  ·  prize cap ${gold(encounter.Duel.Cap)}`);
+  await clickControl(page, "Fight");
   await cardsUntil(page, (s) => s.ready && s.realm?.duel?.mob === mob.name && s.prompt.length > 0, "the duel dealt in the card layer", 120_000);
 });
 
