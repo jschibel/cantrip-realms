@@ -100,8 +100,14 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **The HUD and menus that show no cards** are DOM and CSS built on **the client's Theme tokens and fonts**. A script
   generates `theme.css` from `Theme.cs`, so the two can't drift.
 - **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against
-  `MockApi`, the API in memory, with presence passed between the browser's own tabs; the card layer's stand-in panels
-  (`?cards=stub`, the offline default) answer its screens. `?at=` (`world:x,z`, a town, an interior or a dungeon),
+  `MockApi`, the API in memory, with presence passed between the browser's own tabs. Its duels are still real games:
+  `MockApi` deals them as the server does (`net/mockDuel.ts`: the starter deck of the character's color, the mob's
+  themed deck, both seats' stats and gear emblems), the real card layer plays them and offers the loot, and only the
+  verdict is taken on trust, there being no server to replay the log; the screens that trade and save through the API
+  (spell table, vendors, gear) are the stand-in panels' (`OfflineCardLayer`). The card layer is the real one whenever
+  one is built: the dev server serves the web client's built page on a port of its own (its port + 100, or
+  `REALM_CARD_LAYER_PORT`; `vite.config.ts`) and says where in a `<meta name="card-layer">`; `?cards=stub` (or
+  `REALM_CARD_LAYER=stub`, as the offline suites set) asks for the stand-in panels (`cardStub.ts`). `?at=` (`world:x,z`, a town, an interior or a dungeon),
   `?now=`, `?wander=0`, `?mobs=0`, `?attuned=`, `?heading=`, `?zoom=`, `?still` and `?nohud` force a state for tests and
   development (src/main.ts). `?world=slice|large` plays the art slice's street or the renderer's large synthetic world
   instead of the Domains.
@@ -115,9 +121,13 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   (`?server=`), signs in, makes a character, walks New Benalia's streets, goes into a shop and asks for its vendor's
   screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and
   takes its stair once the warden is beaten, attunes two mage towers by beating their mages and travels between their
-  waystones, has two players see each other walk in the world and in an inn, and plays a duel in the real card layer
-  whose log the server replays on the native host. A test starts its character where it needs to be and has the server
-  count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`,
+  waystones, has two players see each other walk in the world and in an inn, and plays duels in the real card layer
+  whose logs the server replays on the native host: one conceded, and the whole loop won and lost
+  (`duel-loop.spec.ts`: the encounter's splash, the game, its end, the server's verdict, then the loot picked within the
+  cap and the world resumed, or a card of the ante gone and the character awake at the inn), each a position forced
+  through `POST /dev/duel` (a seat beginning at 0 life), never a seed; and an offline duel and its loot in the real card
+  layer (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`). A test starts its character where it needs to be and has the server
+  count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`, `/dev/duel`,
   interfaces.md); everything else is walked and clicked. `npm run bench` times the renderer on walks through the
   Domains and the large world (`e2e/bench`). The dev galleries are `gallery.html` (the art library), `rooms.html`
   (rooms and dungeon floors) and `cast.html` (figures).
@@ -804,6 +814,24 @@ every town, stretches of each kind of country). The hex generator is gone.
 `realms/web/scripts/worldgen/ids.ts` lists every surface the world uses, and `PLACEHOLDERS`: an id the
 generator names before the art has it, with what it should look like, so the lint (`onUnknown`) names it instead of
 failing. Every id the world names is the art's, so the list is empty.
+
+#### Playing it locally
+
+`tools\realms\play.cmd` is the whole game on one machine, from a fresh clone. It builds what is stale - the native
+engine host that checks duels (`cargo build --profile cards -p cantrip-host`), the engine for the browser
+(`tools\build-engine-wasm.cmd`), the web client (`dotnet build dotnet\src\Cantrip.Client.Web`), the realm server, the
+cards' faces for a card layer with no server (`cantrip-realms-server catalog realms\web\.cards\catalog.msgpack`) and the
+overworld's packages - then runs `realms/web/scripts/play.mjs`: the realm server with the development sign-in on a SQLite
+file of its own (`realms/web/.play/realms.db`, kept between runs; `/fresh` starts again), the card layer as static files
+on a port of its own (`scripts/cardLayer.mjs`), the overworld's dev server told both, and the browser opened on
+`<server>/dev/signin?id=1&name=Wanderer`, which signs in and goes on to the world (the character is made there, then
+played). The overworld is on 5300, the server 5301, the card layer 5302 (`/port P` moves all three). `/player N` signs in
+as another player; `/offline` plays the in-memory API instead, with the real card layer's duels; `/nobuild` starts what
+was built last. Card art is served by the realm server (`REALMS_ART`, Cantrip.Art's `/art/{size}/{slug}.webp`) when a
+content folder with illustrations is found - `CANTRIP_ART`, else the repository's own `content\mtg\images`, which the
+`fetch-card-art` skill fills; art is never committed - and the card layer is told it (`?art=`); without, the cards are
+drawn with no picture. A world client not signed in is sent to `<server>/signin`, which a server with the development
+sign-in alone answers with its form.
 
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.

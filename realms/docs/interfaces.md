@@ -553,13 +553,20 @@ player with no character is 404 `NoCharacter`.
   to the table, and once more after the last (`RecordingTransport.BeforeSend`). The order the two seats' answers reach the table is then
   the same in the browser and in the replay, even where both are asked at once.
 - Sign-in: `GET /signin` (Discord), then `/home`, which passes the player on to the world client. A server started with
-  `REALMS_DEV_SIGNIN=1` also takes `POST /dev/signin {Id, Name}`, signing in as `dev-<Id>`: development and tests only.
+  `REALMS_DEV_SIGNIN=1` also takes `POST /dev/signin {Id, Name}`, signing in as `dev-<Id>`, and `GET
+  /dev/signin?id=<Id>&name=<Name>` from a browser, which signs in the same way and goes on to the world client (without
+  an id and a name it is a form asking for them; `/home` sends a player not signed in there when Discord is not
+  configured, so the world's "sign in", `GET /signin`, lands on it): development and tests only.
   Such a server alone also takes two calls for tests, on the signed-in cookie, that arrange what play would take long to
   reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
   the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), and `POST /dev/verdict
   {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
-  their logs, so the card layer's stand-in counts as a win; and `POST /dev/drop {Gear}` (`true`, `false`, or null for the
-  dice again) decides whether the player's gear rolls, a win's and a chest's, come up. Never in production.
+  their logs, so the card layer's stand-in counts as a win; `POST /dev/drop {Gear}` (`true`, `false`, or null for the
+  dice again) decides whether the player's gear rolls, a win's and a chest's, come up; and `POST /dev/duel {Player, Mob}`
+  deals the player's next duels with a seat's setup changed - each `{StartingLife, StartingHandSize, MaximumHandSize,
+  Deck}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a position
+  (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played and
+  replayed so, and its result is the engine's. Never in production.
 
 ## The card layer (`window.postMessage`)
 
@@ -569,7 +576,7 @@ The overworld asks the card layer (`?realm` in `Cantrip.Client.Web`, framed over
 
 | `screen` | `args` | `outcome` and `result` |
 | --- | --- | --- |
-| `duel` | `{token, seed, duel: Duel, mob: {id, name, tier, map, spawn}}` (the encounter's start) | `won` or `lost`; `result.log`: the `Log` for `/api/encounter/finish` |
+| `duel` | `{token, seed, duel: Duel, mob: {id, name, tier, goldRange, map, spawn}}` (the encounter's start) | `won` or `lost`; `result.log`: the `Log` for `/api/encounter/finish` |
 | `loot` | `{token, offer: [{Name, Gold}], cap, mob, gear}`; from a chest `{offer: [], cap: 0, mob, source: "chest", gear}` | `closed`; `result.picks`: the names taken, for `/api/encounter/loot` |
 | `spell-table` | `{map, name}` | `closed` |
 | `vendor` | `{id, name}`: the vendor's id | `closed` |
@@ -579,12 +586,17 @@ The overworld asks the card layer (`?realm` in `Cantrip.Client.Web`, framed over
 The overworld calls the API around the screens (start before a duel, finish and loot after it); the card layer calls
 the API for what happens inside one (buying, selling, saving the deck and the loadout), on the signed-in cookie. It is
 framed as `<card layer>?realm&api=<server>`: `api` is the realm server the overworld talks to, absent when the card
-layer is served from the server's own origin. A card layer on an origin of its own is named to the server as
+layer is served from the server's own origin, and absent offline, when the card layer reads `/api/catalog` from its own
+origin (`realms/web/scripts/cardLayer.mjs` serves the file `cantrip-realms-server catalog <file>` writes) and is opened
+only for `duel` and `loot`. `&art=<address>` tells it where card art is when not beside its own page (a realm server
+started with `REALMS_ART`, for local play). A card layer on an origin of its own is named to the server as
 `REALMS_CARDS`, the one origin beside the world client's (`REALMS_CLIENT`) that the API answers from a browser. A screen cut short closes
 `dismissed` or `replaced`, which the overworld treats as a loss for a duel; a duel cut short still hands back its log so
 far (the server takes it as a loss, the game not being over), and a loot pick cut short no picks.
 
-- `duel`: the card layer deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
+- `duel`: the card layer first shows the encounter's splash (design.md A3: the mob's tier, life, hand and gear, three
+  cards of its deck, the ante, the prize cap and its gold range) while the engine loads, and deals the duel when the
+  player goes on (`Fight`). It deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
   `?engine=`) through `Cantrip.Realms`' `DuelTable`, the table the server's replay deals on, with no clocks. It closes
   `won` only when seat 1 alone won, after the player has seen the result; a concession closes `lost` at once.
 - `loot` takes any subset of the offer whose prices fit under `cap`, and shows `gear` - the `GearInstance` a win dropped

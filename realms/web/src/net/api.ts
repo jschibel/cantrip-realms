@@ -132,6 +132,8 @@ export interface EncounterResult {
   readonly Relics: readonly string[];
   /** Why a duel counted as lost without being played out. */
   readonly Detail: string | null;
+  /** The ante card a loss cost, if the ante held one. */
+  readonly Lost?: string | null;
 }
 
 /** A place (interfaces.md, "Places"). */

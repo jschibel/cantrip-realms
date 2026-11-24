@@ -1022,7 +1022,7 @@ export class Overworld {
       this.paused = false;
       return;
     }
-    const closed = await this.openCards("duel", { token: start.Token, seed: start.Seed, duel: start.Duel, mob: { id: mob.info.id, name: mob.info.name, tier: mob.info.tier, map: this.spaceId, spawn: mob.spawn.id } }, false);
+    const closed = await this.openCards("duel", { token: start.Token, seed: start.Seed, duel: start.Duel, mob: { id: mob.info.id, name: mob.info.name, tier: mob.info.tier, goldRange: mob.info.goldRange, map: this.spaceId, spawn: mob.spawn.id } }, false);
     const outcome = closed.outcome === "won" ? "won" : "lost";
     if (this.api instanceof MockApi) this.api.settle(start.Token, outcome);
     const log = Array.isArray(closed.result?.log) ? (closed.result.log as string[]) : [];
@@ -1061,7 +1061,7 @@ export class Overworld {
       const at = tileOfCharacter(this.data);
       const inn = this.data.Space !== "world" ? await this.places.read(this.data.Space).catch(() => null) : null;
       await this.jump(inn ? { spot: this.places.room(inn.id, inn), tile: { x: inn.entry[0], z: inn.entry[1] - 1 }, facing: [0, -1] } : this.toWorld(at));
-      this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.`);
+      this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.${result.Lost ? ` ${result.Lost} of your ante is gone.` : ""}`);
     }
   }
 

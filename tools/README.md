@@ -24,6 +24,13 @@ header; most pass every argument on to the script behind them.
 | `build-engine-wasm.cmd` | builds the rules engine for the browser (`crates/cantrip-wasm`) and puts it beside the web client, for `?local`: a game against the tactical bot with no server (`docs/engine-in-the-browser.md`) |
 | `in-person.cmd` | two players at one table: a phone each and one or two tablets for the board, over the local network; opens the setup page, which starts a grid draft and shows a QR code per device (`docs/in-person.md`) |
 
+## Cantrip Realms (this fork)
+
+| | |
+|---|---|
+| `realms\play.cmd` | the game on this machine in one command, from a fresh clone: builds what is stale (the native host that checks duels, the engine for the browser, the web client, the realm server, the overworld's packages), starts the realm server with the development sign-in on its own SQLite file (`realms\web\.play`), serves the card layer, starts the overworld and opens the browser signed in; every duel a real game on the rules engine in the page. `/offline` plays with no server (the in-memory API), `/fresh` starts a new store, `/player N` signs in as another player, `/nobuild` builds nothing. Card art when `CANTRIP_ART` names a content folder with illustrations (or this repository's `content\mtg\images` has them). `realms/docs/tech.md`, "Playing it locally" |
+| `realms\sync-upstream.cmd` | merges cantrip-rs's `main` into the fork |
+
 ## Draft against bots
 
 Each drafts, builds a deck from what was taken, and plays the games. Events are kept in `.cantrip-data`.

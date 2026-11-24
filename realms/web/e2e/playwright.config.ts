@@ -26,6 +26,8 @@ export default defineConfig({
   webServer: {
     command: `npx vite --port ${port} --strictPort`,
     cwd: "..",
+    // The stand-in card layer, which these suites drive; the real one is the suite against the server's.
+    env: { REALM_CARD_LAYER: "stub" },
     url: `http://localhost:${port}/`,
     reuseExistingServer: false,
     timeout: 60_000,

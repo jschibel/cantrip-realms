@@ -9,7 +9,7 @@ import { defineConfig } from "@playwright/test";
 // which records what it is asked; card-layer.spec.ts frames the real one - the web client's built ?realm page, served
 // as static files on an origin of its own (cards.mjs) - and plays its duel, which the server checks on the native engine
 // host. `npm run e2e:server`, after building the realm server, the web client (with the rules engine for the page,
-// toolsuild-engine-wasm.cmd) and the engine host (cargo build --profile cards -p cantrip-host).
+// tools\build-engine-wasm.cmd) and the engine host (cargo build --profile cards -p cantrip-host).
 // The ports, each overridable where another run holds it (REALMS_E2E_PORTS=web,realm,cards).
 const [web, realm, cards] = (process.env.REALMS_E2E_PORTS ?? "5175,5181,5197").split(",").map(Number) as [number, number, number];
 const here = dirname(fileURLToPath(import.meta.url));
@@ -43,6 +43,8 @@ export default defineConfig({
     {
       command: `npx vite --port ${web} --strictPort`,
       cwd: join(here, "..", ".."),
+      // Every page here names its card layer (?cards=): the dev server serves none of its own.
+      env: { REALM_CARD_LAYER: "stub" },
       url: `http://localhost:${web}/`,
       reuseExistingServer: false,
       timeout: 60_000,

@@ -52,11 +52,16 @@ export class CardLayer implements CardScreens {
 
   portrait?: (slots: PortraitSlots) => string | null;
 
-  /** `url` is the card layer's page; `server` the realm server, which the card layer calls for what happens inside a screen. */
-  constructor(url: string, server?: string) {
+  /**
+   * `url` is the card layer's page; `server` the realm server, which the card layer calls for what happens inside a screen;
+   * `art` where the card layer finds card art (the web client's ?art=: an address serving /art/{size}/{slug}.webp, or a
+   * template), when not beside its own page.
+   */
+  constructor(url: string, server?: string, art?: string) {
     const address = new URL(url, window.location.href);
     address.searchParams.set("realm", "");
     if (server) address.searchParams.set("api", new URL(server, window.location.href).toString());
+    if (art) address.searchParams.set("art", art.includes("{slug}") ? art : new URL(art, window.location.href).toString());
     this.origin = address.origin;
 
     this.frame = document.createElement("iframe");
@@ -135,5 +140,56 @@ export class CardLayer implements CardScreens {
       }
     }
     this.onChange();
+  }
+}
+
+/**
+ * The card screens of offline play (the in-memory API, no realm server): a duel is played and its loot picked in the real
+ * card layer, which needs no server for either - the duel is dealt on the rules engine in its page, and only checking it
+ * would need the server - while the screens that trade and save through the server's API (the spell table, vendors,
+ * gear) are the stand-in's.
+ */
+export class OfflineCardLayer implements CardScreens {
+  private static readonly REAL: ReadonlySet<Screen> = new Set<Screen>(["duel", "loot"]);
+  readonly requests: { screen: Screen; args: Record<string, unknown> }[] = [];
+  private changed: () => void = () => {};
+
+  constructor(
+    readonly real: CardLayer,
+    private readonly stub: CardScreens,
+  ) {
+    real.onChange = () => this.changed();
+    stub.onChange = () => this.changed();
+  }
+
+  get onChange(): () => void {
+    return this.changed;
+  }
+
+  set onChange(listener: () => void) {
+    this.changed = listener;
+  }
+
+  get isReady(): boolean {
+    return this.real.isReady;
+  }
+
+  /** The overworld's portraits, for whichever card layer asks. */
+  get portrait(): ((slots: PortraitSlots) => string | null) | undefined {
+    return this.real.portrait;
+  }
+
+  set portrait(draw: ((slots: PortraitSlots) => string | null) | undefined) {
+    this.real.portrait = draw;
+    this.stub.portrait = draw;
+  }
+
+  get openScreen(): Screen | null {
+    return this.real.openScreen ?? this.stub.openScreen;
+  }
+
+  open(screen: Screen, args: Record<string, unknown> = {}): Promise<Closed> {
+    this.requests.push({ screen, args });
+    return (OfflineCardLayer.REAL.has(screen) ? this.real : this.stub).open(screen, args);
   }
 }

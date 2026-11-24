@@ -4,6 +4,7 @@
 
 import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
 import { mobInfo } from "../mobs";
+import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
 import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
 import type { DungeonData } from "../world/format";
@@ -80,6 +81,9 @@ const CARDS: readonly { Name: string; Gold: number; Color: ManaColor | "C" }[] =
   { Name: "Juggernaut", Gold: 95, Color: "C" },
 ];
 
+/** The basic lands, free and never in the collection (design.md A1). */
+const BASICS: ReadonlySet<string> = new Set(["Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes"]);
+
 const gear = (g: Omit<Gear, "Effects" | "Unique" | "Stats" | "Emblem"> & { Stats?: Partial<Gear["Stats"]> }): Gear => ({
   Effects: [],
   Unique: false,
@@ -101,6 +105,19 @@ export const MOCK_GEAR: readonly Gear[] = [
   gear({ Id: "tinkers-talisman", Name: "Tinker's Talisman", Slot: "relic", Rarity: "uncommon", Gold: 1500, Text: "{1}: Scry 2. Activate only once each game.", Look: { Mesh: "relic", Palette: ["#c9a46a", "#4a7fbf"] } }),
 ];
 
+
+/** A seat's setup values to deal a duel with instead of its own (the server's POST /dev/duel; realmTest.forceDuel). */
+export interface DevSeat {
+  readonly StartingLife?: number;
+  readonly StartingHandSize?: number;
+  readonly MaximumHandSize?: number;
+  readonly Deck?: readonly string[];
+}
+
+export interface DevDuel {
+  readonly Player?: DevSeat | null;
+  readonly Mob?: DevSeat | null;
+}
 
 interface Encounter {
   readonly token: string;
@@ -129,6 +146,8 @@ export class MockApi implements RealmApi {
   private nextInstance = 1;
   /** Every call made, by name, for tests to see (realmTest.api). */
   readonly calls: { name: string; body?: unknown }[] = [];
+  /** The seats a test forced the next duels to be dealt with (realmTest.forceDuel), or null. */
+  devDuel: DevDuel | null = null;
   /** What the clock says, in unix seconds (tests may pin it). */
   now: () => number = () => Date.now() / 1000;
 
@@ -183,7 +202,11 @@ export class MockApi implements RealmApi {
     };
     const own = CARDS.filter((c) => colors.includes(c.Color as ManaColor) || c.Color === "C");
     this.cards = Object.fromEntries(own.map((c) => [c.Name, 4]));
-    this.deck = { Main: own.map((c) => ({ Name: c.Name, Count: 3 })), Ante: own.slice(0, 2).map((c) => ({ Name: c.Name, Count: 1 })) };
+    // The starting color's starter deck, as the server deals a new character (design.md A1), its cards owned beside the
+    // stand-ins; and two of the stand-ins in the ante, so a win offers cards.
+    const starter = starterDeck(colors[0] ?? "W");
+    for (const c of starter) if (!BASICS.has(c.Name)) this.cards[c.Name] = (this.cards[c.Name] ?? 0) + c.Count;
+    this.deck = { Main: starter, Ante: own.slice(0, 2).map((c) => ({ Name: c.Name, Count: 1 })) };
     return this.update({});
   }
 
@@ -301,9 +324,10 @@ export class MockApi implements RealmApi {
       Token: token,
       Seed: seed,
       Duel: {
+        // Dealt as the server deals it (mockDuel.ts), with what a test forced; a mob with no deck file plays the white starter.
         Seats: [
-          { Name: c.Name, StartingLife: c.Stats.Life, StartingHandSize: c.Stats.Hand, MaximumHandSize: c.Stats.MaxHand, Deck: this.deck.Main, Emblems: [] },
-          { Name: mob.name, StartingLife: 20, StartingHandSize: 7, MaximumHandSize: 7, Deck: [], Emblems: [] },
+          { ...playerSeat(c, this.deck), ...this.devDuel?.Player },
+          { ...((await mobSeat(body.Mob)) ?? playerSeat({ ...c, Name: mob.name, Loadout: {} }, { Main: starterDeck("W"), Ante: [] })), ...this.devDuel?.Mob },
         ],
         MinimumDeckSize: 40,
         Seed: seed,
@@ -356,7 +380,7 @@ export class MockApi implements RealmApi {
         this.deck = { ...this.deck, Ante: this.deck.Ante.map((a) => (a.Name === lost ? { ...a, Count: a.Count - 1 } : a)).filter((a) => a.Count > 0) };
         this.cards[lost] = Math.max(0, (this.cards[lost] ?? 1) - 1);
       }
-      encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Relics: [], Detail: null };
+      encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Relics: [], Detail: null, Lost: lost ?? null };
       // A lost duel ends any run, and the character wakes at the inn of their home town.
       if (encounter.run) this.runs.get(encounter.run.id)!.live = false;
       const inn = innOf(this.inn ?? startTown().id);

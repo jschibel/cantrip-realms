@@ -2,7 +2,7 @@ import * as THREE from "three";
 import type { CardScreens } from "./cardLayer";
 import type { Overworld } from "./game";
 import { identityOf } from "./net/api";
-import { MockApi } from "./net/mockApi";
+import { type DevDuel, MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
 import { type BenchLeg, runBench, yieldFrame } from "./render/bench";
 import { NAME_OF } from "./render/camera";
@@ -136,6 +136,14 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     get api() {
       const o = game();
       return o?.api instanceof MockApi ? o.api.calls.map((c) => ({ ...c })) : [];
+    },
+    /**
+     * Offline, deals the next duels with these seats' setup changed (MockApi.devDuel), as the server's POST /dev/duel does:
+     * a test forcing a position, never a seed.
+     */
+    forceDuel(duel: DevDuel | null) {
+      const o = game();
+      if (o?.api instanceof MockApi) o.api.devDuel = duel;
     },
     /** The regional map as drawn: each tier's zone's pixels, the markers on it, whether the whole map is open. */
     get map() {

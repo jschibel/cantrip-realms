@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import "./style.css";
 import "./theme.css";
-import { CardLayer, type CardScreens } from "./cardLayer";
+import { CardLayer, type CardScreens, OfflineCardLayer } from "./cardLayer";
 import { StubCardLayer } from "./cardStub";
 import { BODY_NAMES, type BodyName as Body, type ManaColor } from "./art/figures";
 import { Overworld, type Start } from "./game";
 import { bindInput } from "./input";
-import { HttpApi, type RealmApi } from "./net/api";
+import { ApiError, type Character, HttpApi, type RealmApi } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import { LocalPresence, type Presence, SocketPresence } from "./net/presence";
 import { HEADING_NAMES, type Zoom } from "./render/camera";
@@ -20,8 +20,12 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 // query says where everything comes from:
 //   ?server=<url>   the realm server (also VITE_REALM_SERVER); with none, or with ?offline, the API is the in-memory
 //                   MockApi and presence goes between this browser's tabs.
-//   ?cards=<url>    the card layer to frame (also VITE_CARD_LAYER_URL); "stub" for the stand-in panels, which offline
-//                   play uses unless told otherwise. It is told the realm server (its ?api=), which it calls itself.
+//   ?cards=<url>    the card layer to frame (also VITE_CARD_LAYER_URL, else the one the dev server serves when the web
+//                   client is built: vite.config.ts); "stub" for the stand-in panels, which the offline suites ask for. It
+//                   is told the realm server (its ?api=), which it calls itself. Offline, with no server to call, only its
+//                   duel and loot are the card layer's: the screens that trade and save are the stand-in's.
+//   ?art=<url>      where the card layer finds card art (also VITE_CARD_ART): a realm server started with REALMS_ART, for
+//                   local play (tools/realms/play.cmd); else beside the card layer's page.
 //   ?world=slice|large   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
 //                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
 //   ?test           publishes globalThis.realmTest (and sliceTest); ?manual holds the clock until a test advances it;
@@ -67,8 +71,10 @@ async function boot(): Promise<void> {
     : new HttpApi(new URL(server!, window.location.href).toString());
   if (api instanceof MockApi) api.now = now;
 
-  const cards = query.get("cards") ?? (offline ? "stub" : ((import.meta.env.VITE_CARD_LAYER_URL as string | undefined) ?? "http://localhost:5100/"));
-  const layer: CardScreens = cards === "stub" ? new StubCardLayer() : new CardLayer(cards, offline ? undefined : server);
+  const served = document.querySelector<HTMLMetaElement>('meta[name="card-layer"]')?.content;
+  const cards = query.get("cards") ?? (import.meta.env.VITE_CARD_LAYER_URL as string | undefined) ?? served ?? (offline ? "stub" : "http://localhost:5100/");
+  const art = query.get("art") ?? (import.meta.env.VITE_CARD_ART as string | undefined);
+  const layer: CardScreens = cards === "stub" ? new StubCardLayer() : offline ? new OfflineCardLayer(new CardLayer(cards, undefined, art), new StubCardLayer()) : new CardLayer(cards, server, art);
 
   let game: Overworld | null = null;
   let input: WalkInput | null = null;
@@ -76,7 +82,7 @@ async function boot(): Promise<void> {
 
   const source = await worldSource();
   const world = await loadWorld(source);
-  const character = (await api.me()) ?? (await createCharacter(api));
+  const character = (await signedIn(api, server)) ?? (await createCharacter(api));
   const presence: Presence = offline
     ? new LocalPresence({ Player: Math.floor(Math.random() * 2 ** 31), Name: character.Name, Identity: character.Identity })
     : new SocketPresence(socketUrl(server!));
@@ -108,6 +114,17 @@ async function boot(): Promise<void> {
   const started = game.start(character, start);
   await started;
   input = bindInput(game);
+}
+
+/** The character, or null with none yet; a player not signed in is sent to sign in, and comes back here after. */
+async function signedIn(api: RealmApi, server: string | undefined): Promise<Character | null> {
+  try {
+    return await api.me();
+  } catch (e) {
+    if (!(e instanceof ApiError && e.status === 401) || !server) throw e;
+    window.location.assign(new URL("signin", new URL(server, window.location.href)).toString());
+    return new Promise<never>(() => {});
+  }
 }
 
 function socketUrl(server: string): string {

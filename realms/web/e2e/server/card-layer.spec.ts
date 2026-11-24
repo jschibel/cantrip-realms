@@ -1,6 +1,8 @@
-import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { advance, entity, openNear, realm, until, waitReady, world } from "../realm";
+import { entity, openNear, realm, until, waitReady, world } from "../realm";
+import { CARDS, cardState, clickCardControl } from "./cardLayer";
+import { SERVER, signIn } from "./server";
 
 // Both layers on one page against the real realm server (playwright.config.ts here): the overworld frames the real card
 // layer - the web client's ?realm page, on an origin of its own - and a duel started in the world is dealt and played on
@@ -8,53 +10,8 @@ import { advance, entity, openNear, realm, until, waitReady, world } from "../re
 // hands the duel's log to /api/encounter/finish, which replays it on the native engine and takes it: a whole game the mob
 // won ("The mob won."), so a loss, not a rejected log; and the character wakes at the inn.
 
-const SERVER = process.env.REALMS_E2E_SERVER!;
-const CARDS = process.env.REALMS_E2E_CARDS!;
-
 const query = (extra = "") =>
   `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never${extra}`;
-
-async function signIn(request: APIRequestContext, id: number, name: string): Promise<void> {
-  const response = await request.post(new URL("dev/signin", SERVER).toString(), { data: { Id: id, Name: name } });
-  expect(response.ok(), await response.text()).toBe(true);
-}
-
-interface Control {
-  readonly kind: string;
-  readonly label: string;
-  readonly x: number;
-  readonly y: number;
-}
-
-interface CardLayerState {
-  readonly ready: boolean;
-  readonly phase: string;
-  readonly prompt: string;
-  readonly controls: readonly Control[];
-  readonly realm?: { readonly screen: string; readonly duel?: { readonly mob: string; readonly log: number; readonly over: boolean } };
-}
-
-/** The card layer's frame: the page the overworld framed from ?cards. */
-const cardFrame = (page: Page): Frame => page.frames().find((frame) => frame.url().startsWith(CARDS))!;
-
-/** What the card layer publishes on cantripTest (the web client's ?test), read in its frame. */
-async function cardState(page: Page): Promise<CardLayerState | null> {
-  const json = await cardFrame(page).evaluate(() => (globalThis as { cantripTest?: string }).cantripTest ?? null);
-  return json === null ? null : (JSON.parse(json) as CardLayerState);
-}
-
-/** Clicks a card layer control by what it says - the lowest of those that say it - where it is on the page: the frame fills it. */
-async function clickCardControl(page: Page, label: string): Promise<void> {
-  let found: Control | undefined;
-  await expect
-    .poll(async () => {
-      const state = await cardState(page);
-      found = state?.controls.filter((c) => c.label === label).sort((a, b) => b.y - a.y)[0];
-      return found !== undefined;
-    }, { message: `the card layer's ${label}` })
-    .toBe(true);
-  await page.mouse.click(found!.x, found!.y);
-}
 
 test("a duel started in the world is played in the real card layer, and its log is taken by the server", async ({ page }) => {
   test.setTimeout(360_000);
@@ -76,6 +33,8 @@ test("a duel started in the world is played in the real card layer, and its log 
   const scout = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await page.mouse.click(scout.x, scout.y);
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "the duel", 60);
+  // The encounter's splash first, then the duel dealt.
+  await clickCardControl(page, "Fight");
   await expect
     .poll(async () => {
       const state = await cardState(page);
@@ -102,5 +61,4 @@ test("a duel started in the world is played in the real card layer, and its log 
   const capital = world().towns.find((t) => t.kind === "capital")!;
   const inn = world().inns.find((i) => i.town === capital.id)!;
   expect(me).toMatchObject({ Space: "world", X: inn.x, Z: inn.z });
-  void advance;
 });

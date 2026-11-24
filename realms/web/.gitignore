@@ -7,3 +7,6 @@ test-results/
 playwright-report/
 # The realm server's store for the e2e suite against it (e2e/server).
 .data/
+# The card faces the offline card layer serves (scripts/cardLayer.mjs), and the launcher's store and logs (tools/realms/play.cmd).
+.cards/
+.play/
