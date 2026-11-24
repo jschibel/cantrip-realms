@@ -69,9 +69,15 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   only; the wheel, +/- or the HUD's buttons); rooms and dungeons stay at the closest step. Where something tall stands
   between the camera and the player, what of it stands in front of them fades (the occluder fade), never over its own
   footprint.
-- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile (`world/grid.ts`). Click to
-  walk, and hold to keep walking toward the cursor (it re-paths when the cursor is more than 1.25 tiles from the path's
-  target, with a 0.1 s cap for slow drift). Doors and gates are entered only by a click, or by holding still on them.
+- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile (`world/grid.ts`). The
+  player walks between tile middles as a body 0.6 tiles square that never overlaps a closed tile (`render/motion.ts`).
+  A click walks the grid's A* path pulled straight: from where the player stands to the furthest corner of the path in
+  plain sight, and on from there. A held button finds no path: every frame it steers the player straight at the
+  cursor's point on the ground, sliding along whatever is in the way and stopping only where nothing is left to go.
+  Letting go stops the player where it stands. Doors and gates are entered only by a click, or by holding still on
+  them. The tile the game uses (encounters, doors, presence, the server's place) is the one under the body's middle.
+  The relay is told the tiles walked as eight-way steps, joined on to where the server has the player
+  (`net/relay.ts`), at most one walk each 150 ms.
 - **The world:** one connected map of the Domains streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and
   dungeons"), made offline by a seeded generator with set pieces in its code (`scripts/worldgen`, `npm run world`) from
   `realms/content/dominaria/layout.json`, checked in, and linted. Nobody edits the map in the game: there is no map
@@ -118,12 +124,14 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name,
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
   until a test advances it: the offline suites never wait on the wall clock. `npm test` runs vitest; `npm run e2e` runs
-  the Playwright suite (`e2e/`) against the offline overworld with real clicks; `tour.spec.ts` takes the pictures of the
+  the Playwright suite (`e2e/`) against the offline overworld with real clicks (`walking.spec.ts` follows the player
+  beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back); `tour.spec.ts` takes the pictures of the
   Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
   view in New Benalia at every heading. `npm run e2e:server` runs `e2e/server/` against the real realm
   server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
-  (`?server=`), signs in, makes a character, walks New Benalia's streets, goes into a shop and asks for its vendor's
+  (`?server=`), signs in, makes a character, walks New Benalia's streets (held and clicked beside a shop, the relay
+  refusing none of the walks told: `walking.spec.ts`), goes into a shop and asks for its vendor's
   screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and
   takes its stair once the warden is beaten, resumes a run after a reload, beats Rofellos (green unlocked, his hall empty
   for the week after; `bosses.spec.ts`) and plays his duel in the real card layer (won from a forced position, lost by
@@ -182,8 +190,9 @@ The world calls the renderer with a scene of chunks, figures, doors and lights:
   registries. A world's loaded chunks become a `Place` and its `doors` (`DoorSpot`: `{tile, step, to, at}`); an interior
   becomes a `Place`, its `doorway` and `bounds`. `assembleWorld` draws given chunks as one place (the cast page, tests); the chunk
   streamer calls the same recipes per chunk.
-- `Actor` (actor.ts): a figure walking a grid - `goTo`, `retarget`, `walkTo`, `stopAfterStep`, `update(dt, player)`;
-  `behaviourOf(npc.behaviour)` turns the data's behaviour into its own.
+- `Actor` (actor.ts): a figure walking a grid - `goTo`, `retarget`, `steer`, `walkTo`, `update(dt, player)`; the
+  player's is `smooth` (its walks pulled straight, motion.ts). `behaviourOf(npc.behaviour)` turns the data's behaviour
+  into its own.
 - Underneath: `buildGround` (ground.ts: the ground shader over a block of tiles, texels counted from an `anchor` - the
   world's origin - so blocks join without a seam), `grassField` (grass.ts: tufts per tile, visited row by row),
   `lit`/`glow`/`bandShader`/`textureOf` (lighting.ts: the bands), `normalMaterialFor` (edges.ts: the normal pass),
@@ -290,7 +299,7 @@ What the renderer does with the interfaces above at the scale of the whole world
   `Spot` the player is in (a `Framing` with its `place`, `grid`, `doors`, `actors`, `start`, optional `floorAt` and
   `streamer`), walking and doors (`clickTile`, `startDoor`, `arrive`; the slice's iris and camera easing; `Spots.through`
   says where a door leads, and may answer a promise - the iris stays shut until it settles, and opens back on the place
-  if it fails), `pick` / `floorTileAt` / `pickFigure`, `tick(dt)` and `render()`. The page hooks `intercept` (a click on
+  if it fails), `pick` / `floorTileAt` / `floorPointAt` / `pickFigure`, `tick(dt)` and `render()`. The page hooks `intercept` (a click on
   a person, a chest), `onArrive`, `onTile`, `beforeTick`. `WalkInput` (`render/pointer.ts`) is click and hold-to-walk.
 - **The world** is a `StreamedWorld` (`render/spots.ts`): its chunks read and built round the view by the
   `ChunkStreamer` (`render/chunks.ts`) - read within the view's reach plus 30 tiles, built within it plus 6 once their
