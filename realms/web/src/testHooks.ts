@@ -145,12 +145,23 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const o = game();
       if (o?.api instanceof MockApi) o.api.devDuel = duel;
     },
-    /** The regional map as drawn: each tier's zone's pixels, the markers on it, whether the whole map is open. */
+    /**
+     * The minimap as drawn: each tier's zone's pixels, the markers on it, the town it shows (in one) and the places of
+     * it in view; whether the whole map is open, and showing the world or the town.
+     */
     get map() {
       const o = live();
       if (!o) return null;
       const hud = o.hud;
-      return { drawn: hud.hasWorldMap ? hud.zones().drawn : [], markers: hud.mapState.markers.map((m) => ({ id: m.id, kind: m.kind, tier: m.tier, lit: m.lit ?? null, well: m.well ?? null, won: m.won ?? null })), centre: hud.mapState.centre, open: hud.mapOpen };
+      return {
+        drawn: hud.hasWorldMap ? hud.zones().drawn : [],
+        markers: hud.mapState.markers.map((m) => ({ id: m.id, kind: m.kind, tier: m.tier, lit: m.lit ?? null, well: m.well ?? null, won: m.won ?? null })),
+        centre: hud.mapState.centre,
+        open: hud.mapOpen,
+        view: hud.mapView,
+        town: hud.mapState.town,
+        places: hud.mapState.places.map((p) => ({ ...p })),
+      };
     },
     /** The tier the map draws at a world tile, and the world's data's. */
     zoneAt(x: number, z: number) {

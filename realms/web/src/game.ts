@@ -232,6 +232,7 @@ export class Overworld {
     this.places = new WorldPlaces(this.world, this.source);
     this.places.extra = (door, from) => this.otherWay(door, from);
     this.world.more = () => this.entrances();
+    this.hud.chunks = () => this.world.streamer.data.values();
     const built = this.world.streamer.onBuilt;
     this.world.streamer.onBuilt = (key, chunk) => {
       built(key, chunk);

@@ -306,6 +306,11 @@ button.primary:hover { filter: brightness(1.08); }
 #hud-place .legend .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #575c6e; display: inline-block; }
 #hud-place .legend .tri.lit { border-bottom-color: #7fe7ff; }
 #hud-place .legend .ring { width: 7px; height: 7px; border-radius: 50%; border: 2px solid #4cc25a; display: inline-block; }
+/* A town's legend: its places' icons, and its gates. */
+.legend .place { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #0b0c10; display: inline-flex; align-items: center; justify-content: center; font: bold 9px sans-serif; color: #0b0c10; }
+.legend .gate { width: 10px; height: 10px; background: #e8c860; border: 1px solid #0b0c10; display: inline-block; }
+.world-map .legend.town { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: var(--fg-soft); max-width: 900px; }
+.world-map .legend.town span { display: inline-flex; align-items: center; gap: 4px; }
 
 /* What the pointer is over. */
 #hud-tooltip {
@@ -354,4 +359,7 @@ button.primary:hover { filter: brightness(1.08); }
   text-shadow: 0 0 2px #000, 0 0 3px #000, 1px 1px 0 #000;
   white-space: nowrap;
 }
+.map-label.placed { transform: none; }
+.map-label.place { font-size: 11px; }
+.map-label.gate { font-size: 11px; color: #f2dc8c; }
 body.nohud #hud, body.nohud #notice { display: none; }

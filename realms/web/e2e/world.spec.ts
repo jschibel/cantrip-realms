@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { chunkBorder, spawnNear, tierRise, zoneSamples } from "./places";
-import { at, clickControl, clickTile, entities, entity, openNear, openRealm, playerTile, realm, until, walkTo } from "./realm";
+import { at, clickControl, clickTile, entities, entity, openNear, openRealm, playerTile, realm, until, walkTo, world } from "./realm";
 
 // The connected world: walking across a chunk's border with no seam, the chunks round the player built; what the
-// pointer is over; and the tier zones - on the regional map with its legend, at their boundaries in the world, and in
-// the HUD, which says so on crossing into a harder one.
+// pointer is over; the tier zones - on the regional map with its legend, at their boundaries in the world, and in the
+// HUD, which says so on crossing into a harder one; and a town's own map, on the minimap and the whole map.
 
 const own = (t: { x: number; z: number }) => `${Math.floor(t.x / 32)}_${Math.floor(t.z / 32)}`;
 
@@ -75,3 +75,34 @@ test("the regional map shows the tier zones, with a legend, the dungeons and tow
   await clickControl(page, "map:close");
   await until(page, async () => !(await realm<MapState>(page, "map")).open, "the map closed");
 });
+test("in a town the minimap is the town's: its streets and places round you; the whole map names them and where each gate leads", async ({ page }) => {
+  await openRealm(page, { at: "capashen-hold", extra: "&mobs=0" });
+  type MapState = { town: string | null; places: { kind: string; name: string }[]; open: boolean; view: string; markers: { id: string }[] };
+  await until(page, async () => (await realm<MapState>(page, "map")).town === "capashen-hold", "the town's map");
+  const town = world().towns.find((t) => t.id === "capashen-hold")!;
+  const map = await realm<MapState>(page, "map");
+  // On the square: its shops and the caravans' pitch marked round you; the legend names all the town has.
+  expect(map.places.map((p) => p.kind)).toEqual(expect.arrayContaining(["shop", "pitch"]));
+  const legend = (await realm<{ name: string; text: string }[]>(page, "controls")).find((c) => c.name === "hud:legend")!;
+  expect(legend.text).toMatch(/inn, spell table/);
+  expect(legend.text).toMatch(/shop/);
+  expect(legend.text).toMatch(/gate/);
+  if (process.env.REALMS_SHOTS) await page.locator("#hud-place").screenshot({ path: `${process.env.REALMS_SHOTS}/map-town-mini.png` });
+  // The whole map: the town's, every place of its plan named, the gates with the places their roads go to.
+  await clickControl(page, "hud:minimap");
+  await until(page, async () => (await realm<MapState>(page, "map")).open, "the whole map");
+  expect((await realm<MapState>(page, "map")).view).toBe("town");
+  const controls = await realm<{ name: string; text: string }[]>(page, "controls");
+  for (const p of town.plan!.places) expect(controls.some((c) => c.name === `map:place:${p.kind}` && c.text === p.name), `${p.name} named`).toBe(true);
+  const gates = controls.filter((c) => c.name === "map:gate").map((c) => c.text);
+  expect(gates.some((g) => g.includes("New Benalia")), JSON.stringify(gates)).toBe(true);
+  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/map-town.png` });
+  // Turned to the world's map, and back.
+  await clickControl(page, "map:switch");
+  await until(page, async () => (await realm<MapState>(page, "map")).view === "world", "the world's map");
+  await clickControl(page, "map:switch");
+  await until(page, async () => (await realm<MapState>(page, "map")).view === "town", "the town's map again");
+  await clickControl(page, "map:close");
+  await until(page, async () => !(await realm<MapState>(page, "map")).open, "the map closed");
+});
+

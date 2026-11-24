@@ -10,9 +10,10 @@ import { enter } from "./runs";
 
 // The tour (realms/docs/tech.md B5): pictures of the real game page on the generated Domains, for eyes - every town at
 // street level (front and turned 45 degrees), the furthest zoom over open country in each region, an interior of each
-// kind, a floor of each dungeon theme, a duel's splash, a vendor, a trader's caravan, the maps, and a walk out of New
-// Benalia's gate into the country as a GIF. Not compared against anything: the other suites check behaviour. Written to
-// test-results/tour, or with REALM_TOUR=1 to the committed e2e/screenshots/tour.
+// kind, a floor of each dungeon theme, a duel's splash, a vendor, a trader's caravan, the maps (the regional and the
+// world's, a town's on the minimap and whole), and a walk out of New Benalia's gate into the country as a GIF. Not
+// compared against anything: the other suites check behaviour. Written to test-results/tour, or with REALM_TOUR=1 to
+// the committed e2e/screenshots/tour.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const out = process.env.REALM_TOUR ? join(here, "screenshots", "tour") : join(here, "..", "test-results", "tour");
@@ -147,6 +148,16 @@ test("tour: the regional map and the whole map", async ({ page }) => {
   await page.mouse.click(...(await minimap(page)));
   await advance(page, 0.5);
   await shot(page, "map-world");
+});
+
+test("tour: a town's map, on the minimap and the whole map", async ({ page }) => {
+  await openRealm(page, { at: "capashen-hold", extra: "&mobs=0" });
+  await until(page, async () => (await realm<{ town: string | null }>(page, "map")).town === "capashen-hold", "the town's map");
+  await settle(page, 1);
+  await page.locator("#hud-place").screenshot({ path: join(out, "map-town-mini.png") });
+  await page.mouse.click(...(await minimap(page)));
+  await advance(page, 0.5);
+  await shot(page, "map-town");
 });
 
 async function minimap(page: Page): Promise<[number, number]> {

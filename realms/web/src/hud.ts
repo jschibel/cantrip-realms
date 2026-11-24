@@ -3,18 +3,21 @@ import type { ManaColor } from "./art/figures";
 import { type Character as CharacterData, identityOf } from "./net/api";
 import { type Colors, tierFor } from "./world/standing";
 import { surfaceColor } from "./surfaceColors";
-import { type DungeonData, type WorldData, areaAt } from "./world/format";
+import { type BuildingData, type ChunkData, type DungeonData, type PlaceKind, type TownData, type WorldData, areaAt } from "./world/format";
 import { mobInfo } from "./mobs";
+import { PLACE_LOOK, TownPicture, drawPlace, gatesOf } from "./townMap";
 
 /** Each color's well on the maps: its boss's dungeon ringed in it (black's a violet, to show on the dark). */
 const WELL_COLORS: Record<ManaColor, string> = { W: "#f4ecc2", U: "#5b8fd6", B: "#a06ad8", R: "#e0503a", G: "#4cc25a" };
 
 // The HUD (tech.md, B5): who you are and the stats a duel starts from (design.md, A1), your identity's pips, your gold
 // and the value of your ante (A2); the area you stand in and its tier; the regional map - the land round you with the
-// tier zones tinted and bordered, the towns, the dungeons and mage towers with their tiers, attuned waystones lit and
-// dormant ones grey - with its legend, opening to the whole world's map; a room's or a dungeon floor's own plan; the
-// message line; what the pointer is over; and the card layer's state. DOM in the card client's colors and faces
-// (theme.css), over the world canvas. Maps are drawn on the world's square tiles, north up.
+// tier zones tinted and bordered, the roads, the towns, the dungeons and mage towers with their tiers, attuned waystones
+// lit and dormant ones grey - with its legend, opening to the whole world's map; in a town, the town's map instead
+// (townMap.ts: its streets, buildings, wall and gates, and its places marked), opening to the whole town named place by
+// place and gate by gate; a room's or a dungeon floor's own plan; the message line; what the pointer is over; and the
+// card layer's state. DOM in the card client's colors and faces (theme.css), over the world canvas. Maps are drawn on
+// the world's square tiles, north up.
 
 const COLOR_NAMES: Record<ManaColor, string> = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green" };
 
@@ -125,11 +128,17 @@ class WorldPicture {
     base.putImageData(image, 0, 0);
     tiers.putImageData(layer, 0, 0);
     base.drawImage(this.tiers, 0, 0);
-    base.fillStyle = "#c08b55";
-    for (const road of world.roads) {
-      for (const [x, z] of road.tiles) {
-        const p = this.at(x, z);
-        base.fillRect(Math.floor(p.x), Math.floor(p.y), 1, 1);
+    // The roads between the places: a light line with dark edges, so it reads over any ground.
+    for (const [color, grow] of [
+      ["#3b2f22", 1],
+      ["#ecd29a", 0],
+    ] as const) {
+      base.fillStyle = color;
+      for (const road of world.roads) {
+        for (const [x, z] of road.tiles) {
+          const p = this.at(x, z);
+          base.fillRect(Math.floor(p.x) - grow, Math.floor(p.y) - grow, 1 + grow * 2, 1 + grow * 2);
+        }
       }
     }
   }
@@ -150,14 +159,30 @@ export class Hud {
   private readonly tooltip: HTMLElement;
   private readonly fullMap: HTMLElement;
   private picture: WorldPicture | null = null;
+  /** The world's chunks as loaded, for the buildings a town's map draws (the game sets it). */
+  chunks: (() => Iterable<ChunkData | null>) | null = null;
+  /** Each town's map as drawn, by town and scale, and how many of its buildings it drew. */
+  private readonly townPictures = new Map<string, { picture: TownPicture; count: number }>();
+  /** What the whole map shows: the world, or the town the player is in. */
+  private view: "world" | "town" = "world";
+  private readonly legend: HTMLElement;
   private attuned: readonly string[] = [];
   /** The character's identity, for the boss dungeons' rings on the maps. */
   private held: readonly ManaColor[] = [];
   /** The character's colors as a dungeon's standing reads them (world/standing.ts), for the tiers the map marks. */
   private colors: Colors = { Identity: "", Unlocked: [] };
   readonly log: string[] = [];
-  /** What the map shows now, for tests: the space, the tile it is centred on, the markers on it. */
-  mapState: { space: string; centre: { x: number; z: number } | null; markers: Marker[] } = { space: "", centre: null, markers: [] };
+  /**
+   * What the map shows now, for tests: the space, the tile it is centred on, the markers on it, and in a town the town
+   * and its places in view.
+   */
+  mapState: { space: string; centre: { x: number; z: number } | null; markers: Marker[]; town: string | null; places: { kind: PlaceKind; name: string }[] } = {
+    space: "",
+    centre: null,
+    markers: [],
+    town: null,
+    places: [],
+  };
 
   constructor(
     private readonly layer: CardScreens,
@@ -171,13 +196,11 @@ export class Hud {
     this.area.className = "panel";
     this.area.dataset.test = "hud:area";
     document.querySelector("#hud")!.appendChild(this.area);
-    const legend = document.createElement("div");
-    legend.className = "legend";
-    legend.dataset.test = "hud:legend";
-    legend.innerHTML =
-      [1, 2, 3, 4].map((t) => `<span class="tier" data-tier="${t}"><i style="background:${TIER_COLORS[t]}"></i>${t}</span>`).join("") +
-      `<span class="mark"><b class="diamond"></b>dungeon</span><span class="mark"><b class="ring"></b>boss</span><span class="mark"><b class="tri lit"></b>attuned</span><span class="mark"><b class="tri"></b>dormant</span>`;
-    document.querySelector("#hud-place")!.appendChild(legend);
+    this.legend = document.createElement("div");
+    this.legend.className = "legend";
+    this.legend.dataset.test = "hud:legend";
+    document.querySelector("#hud-place")!.appendChild(this.legend);
+    this.showLegend("world");
     this.minimap.dataset.test = "hud:minimap";
     this.minimap.addEventListener("click", () => this.openMap());
     this.tooltip = document.createElement("div");
@@ -290,7 +313,83 @@ export class Hud {
       }
     }
     for (const d of this.ordered(dots)) this.dot(g, (Math.floor(d.x) - Math.floor(centre.x) + half) * px + px / 2, (Math.floor(d.z) - Math.floor(centre.z) + half) * px + px / 2, d.kind);
-    this.mapState = { space, centre: { x: Math.floor(centre.x), z: Math.floor(centre.z) }, markers: [] };
+    this.mapState = { space, centre: { x: Math.floor(centre.x), z: Math.floor(centre.z) }, markers: [], town: null, places: [] };
+  }
+
+  /** The legend under the minimap: the tiers and the marks of the regional map, or the places of a town's. */
+  private showLegend(which: "world" | "town", town?: TownData): void {
+    const key = which === "town" ? `town:${town!.id}` : "world";
+    if (this.legend.dataset.for === key) return;
+    this.legend.dataset.for = key;
+    if (which === "world") {
+      this.legend.innerHTML =
+        [1, 2, 3, 4].map((t) => `<span class="tier" data-tier="${t}"><i style="background:${TIER_COLORS[t]}"></i>${t}</span>`).join("") +
+        `<span class="mark"><b class="diamond"></b>dungeon</span><span class="mark"><b class="ring"></b>boss</span><span class="mark"><b class="tri lit"></b>attuned</span><span class="mark"><b class="tri"></b>dormant</span>`;
+      return;
+    }
+    this.legend.innerHTML = placeLegend(town!);
+  }
+
+  /** The town a tile is in or at the gates of, if it has a plan to draw. */
+  private townAt(x: number, z: number): TownData | null {
+    return this.worldData?.towns.find((t) => t.plan && Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) <= t.radius + 6) ?? null;
+  }
+
+  /** A town's map at a scale, drawn again when more of its buildings have loaded since. */
+  private townPicture(town: TownData, scale: number): TownPicture {
+    const r = town.radius + 10;
+    const buildings: BuildingData[] = [];
+    for (const c of this.chunks?.() ?? []) for (const b of c?.buildings ?? []) if (Math.abs(b.x - town.center[0]) <= r && Math.abs(b.z - town.center[1]) <= r) buildings.push(b);
+    const key = `${town.id}:${scale}`;
+    const known = this.townPictures.get(key);
+    if (known && known.count >= buildings.length) return known.picture;
+    const picture = new TownPicture(town, scale, buildings, this.worldData!.roads);
+    this.townPictures.set(key, { picture, count: buildings.length });
+    return picture;
+  }
+
+  /** The dungeons and towers within a town's map, where they are on it. */
+  private markersOn(picture: TownPicture): Marker[] {
+    return this.markers(this.attuned)
+      .filter((m) => m.kind !== "town")
+      .flatMap((m) => {
+        const d = this.dungeons.get(m.id);
+        if (!d) return [];
+        const [x, z] = d.entrance;
+        if (x < picture.x0 || z < picture.z0 || x >= picture.x0 + picture.span || z >= picture.z0 + picture.span) return [];
+        const p = picture.at(x, z);
+        return [{ ...m, x: p.x, y: p.y }];
+      });
+  }
+
+  /** The minimap in a town: its map round the player, two pixels a tile, its places marked, the people near. */
+  private drawTownMap(g: CanvasRenderingContext2D, town: TownData, player: MinimapDot, dots: readonly MinimapDot[]): void {
+    const size = this.minimap.width;
+    const picture = this.townPicture(town, 2);
+    const centre = picture.at(player.x - 0.5, player.z - 0.5);
+    const left = Math.round(centre.x - size / 2);
+    const top = Math.round(centre.y - size / 2);
+    g.fillStyle = "#1d241b";
+    g.fillRect(0, 0, size, size);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(picture.canvas, left, top, size, size, 0, 0, size, size);
+    const shown: Marker[] = [];
+    for (const m of this.markersOn(picture)) {
+      this.drawMarker(g, m, m.x - left, m.y - top, 1);
+      shown.push({ ...m, x: m.x - left, y: m.y - top });
+    }
+    const places: { kind: PlaceKind; name: string }[] = [];
+    for (const p of town.plan!.places) {
+      const at = picture.at(p.x, p.z);
+      if (at.x - left < -4 || at.y - top < -4 || at.x - left > size + 4 || at.y - top > size + 4) continue;
+      drawPlace(g, p.kind, at.x - left, at.y - top, 4);
+      places.push({ kind: p.kind, name: p.name });
+    }
+    for (const d of this.ordered(dots)) {
+      const at = picture.at(d.x - 0.5, d.z - 0.5);
+      this.dot(g, at.x - left, at.y - top, d.kind);
+    }
+    this.mapState = { space: "world", centre: { x: Math.floor(player.x), z: Math.floor(player.z) }, markers: shown, town: town.id, places };
   }
 
   private ordered(dots: readonly MinimapDot[]): MinimapDot[] {
@@ -323,6 +422,14 @@ export class Hud {
     const size = this.minimap.width;
     const player = dots.find((d) => d.kind === "player") ?? null;
     if (!player) return;
+    const town = this.townAt(player.x, player.z);
+    if (town) {
+      this.showLegend("town", town);
+      this.drawTownMap(g, town, player, dots);
+      if (!this.fullMap.hidden) this.drawFullMap();
+      return;
+    }
+    this.showLegend("world");
     const pic = this.world;
     const centre = pic.at(player.x, player.z);
     const left = Math.round(centre.x - size / 2);
@@ -343,7 +450,7 @@ export class Hud {
       const p = pic.at(d.x, d.z);
       this.dot(g, p.x - left, p.y - top, d.kind);
     }
-    this.mapState = { space: "world", centre: { x: Math.floor(player.x), z: Math.floor(player.z) }, markers: shown };
+    this.mapState = { space: "world", centre: { x: Math.floor(player.x), z: Math.floor(player.z) }, markers: shown, town: null, places: [] };
     if (!this.fullMap.hidden) this.drawFullMap();
   }
 
@@ -416,14 +523,27 @@ export class Hud {
     g.fillText(String(m.tier), x + s + 1, y + s + 2);
   }
 
-  /** The whole world's map, over everything: its zones, places and the player. */
-  openMap(): void {
+  /**
+   * The whole map, over everything: in a town the town's (its streets, buildings and wall, its places and gates named),
+   * else the world's (its zones, roads, towns, dungeons and towers); a button turns from one to the other.
+   */
+  openMap(view?: "world" | "town"): void {
     if (!this.hasWorldMap) return;
+    const at = this.mapState.space === "world" ? this.mapState.centre : null;
+    const town = at ? this.townAt(at.x, at.z) : null;
+    this.view = view ?? (town ? "town" : "world");
+    if (!town) this.view = "world";
     this.fullMap.hidden = false;
-    this.fullMap.innerHTML = `<div class="panel-card"><div class="bar"><h2>Dominaria</h2><span class="hint">The tier zones, the towns, the dungeons and the mage towers (lit: attuned)</span><button data-test="map:close">Close</button></div><div class="frame"><canvas data-test="map:canvas"></canvas><div class="labels"></div></div></div>`;
+    const inTown = this.view === "town" && town;
+    const title = inTown ? town.name : "Dominaria";
+    const hint = inTown ? "Its streets, gates and places: where each road leads, where to trade, rest and build your deck" : "The tier zones, the roads, the towns, the dungeons and the mage towers (lit: attuned)";
+    const other = town ? `<button data-test="map:switch">${inTown ? "World map" : "Town map"}</button>` : "";
+    this.fullMap.innerHTML = `<div class="panel-card"><div class="bar"><h2></h2><span class="hint">${hint}</span>${other}<button data-test="map:close">Close</button></div><div class="frame"><canvas data-test="map:canvas"></canvas><div class="labels"></div></div>${inTown ? `<div class="legend town" data-test="map:legend">${placeLegend(town)}</div>` : ""}</div>`;
+    this.fullMap.querySelector("h2")!.textContent = title;
     this.fullMap.querySelector("[data-test='map:close']")!.addEventListener("click", () => {
       this.fullMap.hidden = true;
     });
+    this.fullMap.querySelector("[data-test='map:switch']")?.addEventListener("click", () => this.openMap(inTown ? "world" : "town"));
     this.drawFullMap();
   }
 
@@ -431,9 +551,93 @@ export class Hud {
     return !this.fullMap.hidden;
   }
 
+  /** Which map the whole map shows. */
+  get mapView(): "world" | "town" {
+    return this.view;
+  }
+
+  /** The whole map of the town the player is in: as big as the window lets it, every place and gate named. */
+  private drawTownFull(canvas: HTMLCanvasElement, town: TownData): void {
+    const span = (town.radius + 10) * 2 + 1;
+    const k = Math.max(3, Math.min(8, Math.floor(Math.min((window.innerWidth - 120) / span, (window.innerHeight - 200) / span))));
+    const picture = this.townPicture(town, k);
+    canvas.width = picture.canvas.width;
+    canvas.height = picture.canvas.height;
+    const g = canvas.getContext("2d")!;
+    g.imageSmoothingEnabled = false;
+    g.drawImage(picture.canvas, 0, 0);
+    const plan = town.plan!;
+    const wanted: { text: string; x: number; y: number; r: number; className: string; test: string }[] = [];
+    for (const m of this.markersOn(picture)) {
+      this.drawMarker(g, m, m.x, m.y, 1.5);
+      wanted.push({ text: m.name, x: m.x, y: m.y, r: 7, className: "map-label", test: `map:place:${m.id}` });
+    }
+    // Where each gate's road leads.
+    const names = new Map<string, string>([...this.worldData!.towns.map((t) => [t.id, t.name] as const), ...[...this.dungeons.values()].map((d) => [d.id, d.name] as const)]);
+    for (const f of this.worldData!.ferries) for (const end of ["from", "to"]) names.set(`ferry:${f.id}:${end}`, f.name);
+    for (const gate of gatesOf(plan)) {
+      const leads = this.worldData!.roads.flatMap((r) => {
+        const first = r.tiles[0];
+        const last = r.tiles[r.tiles.length - 1];
+        if (first && first[0] === gate.node[0] && first[1] === gate.node[1]) return [r.to];
+        if (last && last[0] === gate.node[0] && last[1] === gate.node[1]) return [r.from];
+        return [];
+      });
+      if (leads.length === 0) continue;
+      const p = picture.at(gate.node[0], gate.node[1]);
+      wanted.unshift({ text: `To ${[...new Set(leads.map((id) => names.get(id) ?? id))].join(", ")}`, x: p.x, y: p.y, r: 4, className: "map-label gate", test: "map:gate" });
+    }
+    for (const p of plan.places) {
+      const at = picture.at(p.x, p.z);
+      drawPlace(g, p.kind, at.x, at.y, 7);
+      wanted.push({ text: p.name, x: at.x, y: at.y, r: 8, className: "map-label place", test: `map:place:${p.kind}` });
+    }
+    // The names, each beside its mark where it covers no other name nor mark: below, above, right or left of it.
+    const labels = this.fullMap.querySelector<HTMLElement>(".labels")!;
+    const key = `${town.id}:${k}`;
+    if (labels.dataset.for !== key) {
+      labels.dataset.for = key;
+      labels.innerHTML = "";
+      const placed: { x0: number; y0: number; x1: number; y1: number }[] = wanted.map((w) => ({ x0: w.x - w.r, y0: w.y - w.r, x1: w.x + w.r, y1: w.y + w.r }));
+      const overlap = (a: (typeof placed)[number]) => placed.reduce((n, b) => n + Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0)), 0);
+      for (const w of wanted) {
+        const el = document.createElement("span");
+        el.className = `${w.className} placed`;
+        el.textContent = w.text;
+        el.dataset.test = w.test;
+        labels.appendChild(el);
+        const width = el.offsetWidth;
+        const height = el.offsetHeight;
+        const spots = [
+          [w.x - width / 2, w.y + w.r + 1],
+          [w.x - width / 2, w.y - w.r - 1 - height],
+          [w.x + w.r + 2, w.y - height / 2],
+          [w.x - w.r - 2 - width, w.y - height / 2],
+        ].map(([x, y]) => ({ x0: x!, y0: y!, x1: x! + width, y1: y! + height }));
+        const best = spots.reduce((p, q) => (overlap(q) < overlap(p) ? q : p));
+        placed.push(best);
+        el.style.left = `${Math.round(best.x0)}px`;
+        el.style.top = `${Math.round(best.y0)}px`;
+      }
+    }
+    const player = this.mapState.space === "world" ? this.mapState.centre : null;
+    if (player) {
+      const p = picture.at(player.x, player.z);
+      g.fillStyle = "#0b0c10";
+      g.fillRect(Math.round(p.x) - 6, Math.round(p.y) - 6, 12, 12);
+      g.fillStyle = "#f2f7f8";
+      g.fillRect(Math.round(p.x) - 5, Math.round(p.y) - 5, 10, 10);
+    }
+  }
+
   private drawFullMap(): void {
     const canvas = this.fullMap.querySelector<HTMLCanvasElement>("canvas");
     if (!canvas) return;
+    if (this.view === "town") {
+      const at = this.mapState.space === "world" ? this.mapState.centre : null;
+      const town = at ? this.townAt(at.x, at.z) : null;
+      if (town) return this.drawTownFull(canvas, town);
+    }
     const pic = this.world;
     const crop = pic.land;
     const k = Math.min((window.innerWidth - 120) / crop.w, (window.innerHeight - 170) / crop.h);
@@ -497,4 +701,10 @@ export class Hud {
       },
     };
   }
+}
+
+/** The places a town has, as the legend lists them: each kind once, with its icon. */
+function placeLegend(town: TownData): string {
+  const kinds = [...new Set((town.plan?.places ?? []).map((p) => p.kind))];
+  return kinds.map((k) => `<span class="mark"><b class="place" style="background:${PLACE_LOOK[k].color}">${PLACE_LOOK[k].glyph}</b>${PLACE_LOOK[k].label}</span>`).join("") + `<span class="mark"><b class="gate"></b>gate</span>`;
 }
