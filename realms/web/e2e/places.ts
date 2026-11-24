@@ -1,5 +1,5 @@
-import { type BuildingData, CHUNK, type SpawnData, areaAt } from "../src/world/format";
-import { type Tile, chebyshev, chunk, chunkAt, interior, openWorld, world } from "./realm";
+import { type BuildingData, CHUNK, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile } from "../src/world/format";
+import { type Tile, chebyshev, chunk, chunkAt, interior, openNear, openWorld, world } from "./realm";
 
 // Where the tests find what they need in the generated world: read from its files, never guessed, so a regenerated
 // world still has a place for every test.
@@ -132,4 +132,69 @@ export function behindBuilding(town = "new-benalia"): { at: Tile; from: Tile } {
     if (openWorld(at) && openWorld(from)) return { at, from };
   }
   throw new Error(`no building to stand behind in ${town}`);
+}
+
+/** A world tile's data, or null past the world. */
+function tileData(x: number, z: number): TileData | null {
+  const c = chunkAt({ x, z });
+  return c ? chunkTile(c, x, z) : null;
+}
+
+/**
+ * The foot of a terrace's east face, the side its shadow falls on (the sun stands to the south-west), out in the open:
+ * a straight run of at least six rows where the ground stands a whole step (12 texels) or more above flat ground east
+ * of it, three tiles of that ground flat, nothing built or standing within six tiles toward the sun and four the other
+ * ways, and no higher ground near enough to shade it - so no other shadow falls there. `x` is the face's line, rows
+ * `z0` to `z1` (both included) the run, `y` the lower ground's height (world units); `stand` the open tile nearest a
+ * few tiles north of the run, for the player, whose figure and shadow are then clear of it.
+ */
+export function terraceFoot(near = "new-benalia"): { x: number; z0: number; z1: number; y: number; stand: Tile } {
+  const t = world().towns.find((x) => x.id === near)!;
+  const centre = { x: t.center[0], z: t.center[1] };
+  const flat = (d: TileData | null): d is TileData => d !== null && d[1] !== NO_SURFACE && (d[2] & RAMP) === 0;
+  const step = (x: number, z: number): number | null => {
+    const hi = tileData(x, z);
+    const lo = tileData(x + 1, z);
+    if (!flat(hi) || !flat(lo) || hi[0] - lo[0] < 12) return null;
+    for (let k = 2; k <= 3; k++) {
+      const d = tileData(x + k, z);
+      if (!flat(d) || d[0] !== lo[0]) return null;
+    }
+    return lo[0];
+  };
+  const clear = (x0: number, z0: number, x1: number, z1: number) =>
+    unbuilt(x0, z0, x1, z1) &&
+    chunksNear({ x: (x0 + x1) / 2, z: (z0 + z1) / 2 }, CHUNK).every((c) =>
+      [...c.props, ...c.npcs].every((p) => p.x < x0 || p.x > x1 + 1 || p.z < z0 || p.z > z1 + 1),
+    );
+  // No ground above the terrace near enough to shade the foot: the sun stands about as high as it is far, so a rise of
+  // h casts about h along the ground, and a tenth more is room enough.
+  const unshaded = (x: number, z0: number, z1: number, hi: number, lo: number): boolean => {
+    for (let tz = z0 - 8; tz <= z1 + 16; tz++) {
+      for (let tx = x - 16; tx <= x + 6; tx++) {
+        const d = tileData(tx, tz);
+        if (!d || d[0] <= hi) continue;
+        const far = Math.max(Math.abs(tx - (x + 1)), tz < z0 ? z0 - tz : tz > z1 ? tz - z1 : 0);
+        if (((d[0] - lo) / TEXELS_PER_TILE) * 1.1 >= far) return false;
+      }
+    }
+    return true;
+  };
+  // Ring by ring out from the town, so the run found is the nearest and always the same.
+  for (let r = 0; r < 400; r++) {
+    for (let dz = -r; dz <= r; dz++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+        const x = centre.x + dx;
+        const z0 = centre.z + dz;
+        const y = step(x, z0);
+        if (y === null || step(x, z0 - 1) !== null) continue;
+        let z1 = z0;
+        while (step(x, z1 + 1) === y && z1 - z0 < 9) z1++;
+        if (z1 - z0 < 5 || !clear(x - 6, z0 - 4, x + 5, z1 + 6) || !unshaded(x, z0, z1, tileData(x, z0)![0], y)) continue;
+        return { x: x + 1, z0, z1, y: y / TEXELS_PER_TILE, stand: openNear({ x: x + 2, z: z0 - 3 }, 0) };
+      }
+    }
+  }
+  throw new Error(`no terrace's foot in the open near ${near}`);
 }

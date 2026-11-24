@@ -8,7 +8,8 @@ import type { Pixmap } from "../art/paint/pixmap";
 // hue is kept - warm where the sun falls, cool in the shade, orange round a fire. So a surface shows its texture in one,
 // two or three flat tones, never a gradient, and the colors stay rich: a shadow is the texture in violet-blue light,
 // not the texture darkened to grey. Every lit material casts its shadow from both of its faces (`shadowSide`), so a
-// shadow is the shape of all that stands in the sun's way.
+// shadow is the shape of all that stands in the sun's way; the sun's biases keep a lit face off its own depth without
+// lifting a shadow off the foot of what casts it (lights.ts).
 
 /** Brightness thresholds between the bands and the brightness each band is shown at. */
 const BAND_EDGES = [0.34, 0.6, 0.92, 1.25] as const;

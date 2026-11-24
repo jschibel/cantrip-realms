@@ -3,7 +3,7 @@ import { type Material, type Model, type ModelPart, meshesOf, mergeModels } from
 import type { Built, Cutaway, LightSpec } from "../art/recipe";
 import type { LightData, Rect } from "../world/format";
 import type { GrassField } from "./grass";
-import { type Flicker, addLight, stepFlicker, sunlight } from "./lights";
+import { type Flicker, addLight, stepFlicker, sunDepth, sunlight } from "./lights";
 import { type OccluderRun, fillOccluder, occluderArrays, occluderOf, occluderOfModel, setOccluder } from "./occlude";
 
 // A place as the renderer holds it: one scene - a street with its country, a room - with its ground, its scenery merged
@@ -453,9 +453,9 @@ export class Place {
   addSun(centreX: number, centreZ: number, reach: number, mapSize = 4096): void {
     const light = sunlight(this.scene, centreX, centreZ, reach);
     light.shadow.mapSize.set(mapSize, mapSize);
-    // Deep enough that what stands between the sun and a view far across the world still casts.
-    Object.assign(light.shadow.camera, { near: -80, far: 160 });
-    light.shadow.camera.updateProjectionMatrix();
+    // Deep enough that what stands between the sun and a view far across the world still casts; the bias held to the
+    // same distance in the world at this depth (lights.ts).
+    sunDepth(light, -80, 160);
     this.sun = { light, holder: light.parent!, reach };
   }
 

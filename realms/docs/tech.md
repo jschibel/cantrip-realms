@@ -141,7 +141,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   the Playwright suite (`e2e/`) against the offline overworld with real clicks (`walking.spec.ts` follows the player
   beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back); `tour.spec.ts` takes the pictures of the
   Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
-  view in New Benalia at every heading. `npm run e2e:server` runs `e2e/server/` against the real realm
+  view in New Benalia at every heading; `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face. `npm run e2e:server` runs `e2e/server/` against the real realm
   server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
   (`?server=`), signs in, makes a character, walks New Benalia's streets (held and clicked beside a shop, the relay
@@ -358,8 +358,14 @@ What the renderer does with the interfaces above at the scale of the whole world
   past its edges, 6 high), 2048 square (the all-at-once `assembleWorld` keeps 4096); it stays put until the focus is 2
   tiles from it, then moves to it in whole texels along the sun's axes. Every lit material casts from both its faces
   (`shadowSide`): a roof, an awning or a gable is a single face, and three draws only back faces into a shadow map by
-  default, so a house's shadow was its walls' alone, with light through every seam between its parts; the bias and a
-  normal bias of 0.04 keep a lit face off its own depth. **Lights** of the chunks (fires, lamps) go to a pool of eight
+  default, so a house's shadow was its walls' alone, with light through every seam between its parts. So a lit face
+  is lit against its own depth, and two biases keep it off it (`render/lights.ts`): a normal bias of 0.04 (more than
+  seven tenths of the coarsest fit's texel, 0.055) lifts the point it is lit at off the face, so a slope the sun grazes
+  never speckles; and a depth bias of 0.01 world units along the sun's beam (`sunDepth` sets it as that share of the
+  map's depth) for corners. The depth bias is also how far a shadow stands off what casts it, so it is kept that
+  small: as a fixed share of the map's 240 units of depth it was 0.14 units, and lit a strip a texel and more wide at
+  the foot of every terrace's face and wall on its shadow side (`e2e/shadows.spec.ts`). The normal bias lifts the
+  ground at a foot up the face, never away from it, and leaves no gap. **Lights** of the chunks (fires, lamps) go to a pool of eight
   point lights given to the nearest each frame, so streaming never changes the shaders' light count.
 - **A steady view:** the color, normal and fading passes draw a frame 32 scene pixels wider than the view on every side
   (`render/renderer.ts`, `place`), and the post pass shows the view's part of it. While the camera follows the player
