@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { chebyshev, clickControl, clickEntity, dungeon, entity, playerTile, realm, until, waitReady, waitSpace, winDuel } from "../realm";
+import { chebyshev, clickControl, clickEntity, dungeon, entities, entity, playerTile, realm, until, waitReady, waitSpace, winDuel } from "../realm";
 import { beat, enter, run, walkInside } from "../runs";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
@@ -66,6 +66,9 @@ test("mage towers attuned by beating their mages on the real server, then a ways
     await waitSpace(page, /^run:/, 60);
     const r = (await run(page))!;
     for (let floor = 0; floor < r.floors - 1; floor++) await down(page);
+    // The mage's floor's other mobs first, one by one where they stand, so none comes for Edda after the mage's duel or
+    // on the way out.
+    for (let tries = 0; tries < 8 && (await entities(page)).some((e) => e.kind === "mob" && e.role === "encounter"); tries++) await beat(page, "encounter");
     await beat(page, "boss");
     await until(page, async () => (await api<Me>(page.request, "me")).Attuned.includes(tower), "attuned on the server", 60);
     expect(await realm<string[]>(page, "character.attuned")).toContain(tower);
@@ -94,11 +97,16 @@ test("mage towers attuned by beating their mages on the real server, then a ways
   await until(page, async () => /attuned/.test((await realm<string | null>(page, "tooltip")) ?? ""), "lit");
   await page.mouse.click(lit.x, lit.y);
   await until(page, async () => (await realm<string>(page, "screen")) === "dialog", "the waystone's word", 30);
+  const travelled = page.waitForResponse((response) => response.url().endsWith("/api/waystone"), { timeout: 60_000 });
   await clickControl(page, `dialog:${dungeon(to).name.toLowerCase()}`);
+  // Where the server put Edda: beside the other tower's way in (the first open step from it, Dungeons.Outside).
+  const landed = ((await (await travelled).json()) as { Place: { Space: string; X: number; Z: number } }).Place;
+  expect(landed.Space).toBe("world");
+  expect(chebyshev({ x: landed.X, z: landed.Z }, { x: dungeon(to).entrance[0], z: dungeon(to).entrance[1] })).toBeLessThanOrEqual(1);
   await until(page, async () => /The waystone carries you to/.test((await realm<string>(page, "message")) ?? ""), "carried", 60);
-  const there = { x: dungeon(to).entrance[0], z: dungeon(to).entrance[1] };
+  // The page stands her on that tile, and the server has her there still once the page has reported where it is.
+  await until(page, async () => !(await realm<boolean>(page, "transitioning")), "the iris open again", 30);
+  expect(await playerTile(page)).toEqual({ x: landed.X, z: landed.Z });
   const me = await api<Me>(page.request, "me");
-  expect(me.Space).toBe("world");
-  expect(chebyshev({ x: me.X, z: me.Z }, there)).toBe(1);
-  expect(await playerTile(page)).toEqual({ x: me.X, z: me.Z });
+  expect({ Space: me.Space, X: me.X, Z: me.Z }).toEqual(landed);
 });
