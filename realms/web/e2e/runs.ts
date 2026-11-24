@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { type Tile, clickEntity, entities, entity, realm, walkTo, winDuel } from "./realm";
+import { type Entity, type Tile, clickEntity, entities, entity, realm, walkTo, winDuel } from "./realm";
 
 // Dungeon runs, as the suites play them: walking a floor, beating a floor's mob with the stand-in duel, going in.
 
@@ -28,8 +28,10 @@ export async function beat(page: Page, role: string): Promise<void> {
     const mob = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
     await walkInside(page, mob.tile, 2);
     if ((await realm<string | null>(page, "layer.open")) === null) {
-      if (!(await entities(page)).some((e) => e.kind === "mob" && e.role === role)) break;
-      await clickEntity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
+      // The same mob walked to (another of the role may stand far off), if it still stands; else the next.
+      const same = (e: Entity) => e.kind === "mob" && e.role === role && e.spawn === mob.spawn;
+      if (!(await entities(page)).some(same)) continue;
+      await clickEntity(page, same, `the ${role}`);
     }
     await winDuel(page);
   }

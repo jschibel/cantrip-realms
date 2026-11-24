@@ -90,7 +90,16 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
       continue;
     }
     await clickControl(page, "layer:win");
-    await until(page, async () => (await realm<string>(page, "screen")) === "boss", "his moment", 60);
+    // His torc is found first (the loot screen shows a gear drop), then his moment opens.
+    await until(
+      page,
+      async () => {
+        if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:take");
+        return (await realm<string>(page, "screen")) === "boss";
+      },
+      "his moment",
+      60,
+    );
   }
   await expect(page.locator("[data-test='boss-beaten']")).toContainText("Green is yours");
   await expect(page.locator("[data-test='boss-beaten:gear']")).toContainText("Rofellos's Emissary Torc");
