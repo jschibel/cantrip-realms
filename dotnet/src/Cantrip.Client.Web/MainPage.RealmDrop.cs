@@ -38,7 +38,7 @@ public sealed partial class MainPage
         _realmGearCards.Add(card);
 
         bool chest = Arg(args, "source") == "chest";
-        string from = chest ? "In the chest" : $"{Arg(args, "mob") ?? "The mob"} dropped";
+        string from = chest ? "The chest held" : $"{Arg(args, "mob") ?? "The mob"} dropped";
         var words = new StackPanel { Spacing = 8, VerticalAlignment = VerticalAlignment.Center, MaxWidth = 380 };
         words.Children.Add(new TextBlock { Text = "Gear found", FontSize = 13, Foreground = Theme.Brush(Theme.Accent), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         words.Children.Add(new TextBlock { Text = item.Name, FontSize = 24, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = new SolidColorBrush(GearLook.RarityText(item.Rarity)), TextWrapping = TextWrapping.WrapWholeWords });
