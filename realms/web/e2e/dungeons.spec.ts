@@ -1,10 +1,33 @@
 import { expect, test } from "@playwright/test";
 import { chebyshev, clickControl, clickEntity, dungeon, entity, openRealm, player, realm, until, waitSpace } from "./realm";
 import { beat, enter, run, walkInside } from "./runs";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const mobTier = (id: string): number =>
+  (JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "..", "content", "dominaria", "mobs", `${id}.json`), "utf8")) as { tier: number }).tier;
 
 // Dungeons: a run generated in the browser from the run the server hands out, on squares - arriving where the floor
 // says, the warden before the stairs, the stair down to the next floor; the Phyrexian Portal sealed to all but five
 // colors; and a mage tower attuned with the stand-in duel, then its waystone's fast travel to another attuned tower.
+
+test("a color's dungeon by the character's standing: an enemy color's hold is tier 4, its mobs tier 3 and 4, and says so", async ({ page }) => {
+  test.setTimeout(120_000);
+  const id = "benalish-keep";
+  // A black character: Benalia's white is across the wheel from black.
+  await openRealm(page, { at: id, color: "B", extra: "&mobs=0" });
+  const marked = (await realm<{ markers: { id: string; tier: number }[] }>(page, "map")).markers.find((m) => m.id === id);
+  expect(marked?.tier).toBe(4);
+  await enter(page, id);
+  await waitSpace(page, /^run:/);
+  expect(await realm<{ tier: number }>(page, "area")).toMatchObject({ tier: 4 });
+  expect((await realm<string[]>(page, "messages")).some((m) => /An enemy color's hold: tier 4/.test(m))).toBe(true);
+  const mobs = (await realm<{ kind: string; role: string | null; id: string }[]>(page, "entities")).filter((e) => e.kind === "mob" && e.role === "encounter");
+  expect(mobs.length).toBeGreaterThan(0);
+  for (const m of mobs) expect(mobTier(m.id)).toBeGreaterThanOrEqual(3);
+  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/dungeon-enemy-standing.png` });
+});
 
 test("into a dungeon: the run's floor with its spell table, the warden before the stair, and the stair down", async ({ page }) => {
   test.setTimeout(180_000);

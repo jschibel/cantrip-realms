@@ -239,7 +239,8 @@ export class MockApi implements RealmApi {
       Stats: { Life: 20 + 3 + 2, Hand: 7, MaxHand: 7 + 1 },
       Loadout: { head: owned[0], neck: null, body: owned[1], hands: null, feet: owned[2], ring1: null, ring2: null, relic: null },
       Gear: owned,
-      Unlocked: colors,
+      // As the server says it: the colors unlocked since, never the starting one.
+      Unlocked: colors.slice(1),
       Attuned: [...this.attuned],
     };
     const own = CARDS.filter((c) => colors.includes(c.Color as ManaColor) || c.Color === "C");
