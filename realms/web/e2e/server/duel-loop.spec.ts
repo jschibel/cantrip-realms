@@ -40,6 +40,9 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
   const ante = await setAnte(page.request);
   // The mob begins at 0 life; the player wears an item with effects, whose emblem begins in their command zone.
   await forceDuel(page.request, { Mob: { StartingLife: 0 }, Player: { Emblems: ["Circlet of Foresight (gear)"] } });
+  // No gear drops from this win (the gear suite's to show), so the loot is the cards alone.
+  const noDrop = await page.request.post(new URL("dev/drop", SERVER).toString(), { data: { Gear: false } });
+  expect(noDrop.ok(), await noDrop.text()).toBe(true);
   const before = await api<Me>(page.request, "me");
 
   const mob = await engage(page);
