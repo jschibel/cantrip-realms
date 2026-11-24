@@ -205,6 +205,10 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     clickTile(x: number, z: number) {
       live()?.stage.clickTile({ x, z });
     },
+    /** Puts the player on a tile at once, as a teleport would (the debug overlay's jump watch is tested with it). */
+    placePlayer(x: number, z: number) {
+      live()?.stage.player.place({ x, z });
+    },
     /** A dungeon run under way: its floor, and the floor's ways (`up`, `down`, `wayOut`) as tiles. */
     get run() {
       return live()?.runState ?? null;

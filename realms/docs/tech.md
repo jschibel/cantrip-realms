@@ -78,6 +78,11 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   them. The tile the game uses (encounters, doors, presence, the server's place) is the one under the body's middle.
   The relay is told the tiles walked as eight-way steps, joined on to where the server has the player
   (`net/relay.ts`), at most one walk each 150 ms.
+- **The debug overlay** (F3, or `?debug`; `src/debug.ts`): the place, chunk, the player's exact position, tile and
+  floor height, the tile under the pointer (open or closed, its floor), and every jump of the player's figure - a move
+  in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also
+  logged to the console. A click copies it, so a teleport or an invisible obstruction seen in play is reported by its
+  coordinates.
 - **The world:** one connected map of the Domains streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and
   dungeons"), made offline by a seeded generator with set pieces in its code (`scripts/worldgen`, `npm run world`) from
   `realms/content/dominaria/layout.json`, checked in, and linted. Nobody edits the map in the game: there is no map

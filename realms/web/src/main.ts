@@ -5,6 +5,7 @@ import { CardLayer, type CardScreens, OfflineCardLayer } from "./cardLayer";
 import { StubCardLayer } from "./cardStub";
 import { BODY_NAMES, type BodyName as Body, type ManaColor } from "./art/figures";
 import { Overworld, type Start } from "./game";
+import { bindDebug } from "./debug";
 import { bindInput } from "./input";
 import { ApiError, type Character, HttpApi, type RealmApi } from "./net/api";
 import { MockApi } from "./net/mockApi";
@@ -114,6 +115,7 @@ async function boot(): Promise<void> {
   const started = game.start(character, start);
   await started;
   input = bindInput(game);
+  bindDebug(game);
 }
 
 /** The character, or null with none yet; a player not signed in is sent to sign in, and comes back here after. */

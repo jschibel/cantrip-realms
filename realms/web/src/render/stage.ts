@@ -113,6 +113,8 @@ export class Stage {
   intercept: (tile: Tile) => boolean = () => false;
   /** Called each frame before the player moves (the page's input: a held button). */
   beforeTick: (dt: number) => void = () => {};
+  /** Called at the end of each frame, once everything has moved (the debug overlay's jump watch). */
+  afterTick: (dt: number) => void = () => {};
   /** Whether what stands in front of the player fades (render/occlude.ts; tests compare with it off). */
   occlude = true;
   /** Whether the walk may go through doors on its own (a game paused by a dialog stops everything). */
@@ -445,6 +447,7 @@ export class Stage {
       this.lastTile = key;
       this.onTile(t);
     }
+    this.afterTick(dt);
   }
 
   /** The world round the view: chunks read and built (a few steps a frame), the sun's shadows, the level of detail. */
