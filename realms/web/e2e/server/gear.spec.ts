@@ -174,6 +174,10 @@ test("the armorer sells gear as item cards, buys it back at half, and never what
 
   const before = await api<Me>(page.request, "me");
   const item = stock.Stock.filter((g) => g.Gold <= before.Gold).sort((a, b) => a.Gold - b.Gold)[0]!;
+  // Its slot's filter keeps the list short enough to see it whole.
+  await clickCardControl(page, `${item.Slot === "ring" ? "Rings" : item.Slot[0]!.toUpperCase() + item.Slot.slice(1)} gear`);
+  const kind = stock.Stock.filter((g) => g.Slot === item.Slot).map((g) => g.Name).sort();
+  await cardUntil(page, (s) => JSON.stringify(s.realm!.gear.filter((g) => g.place === "stock").map((g) => g.name).sort()) === JSON.stringify(kind), "the stock of its slot");
   await clickSpot(page, (g) => g.place === "stock" && g.name === item.Name, "the cheapest item for sale");
   await cardUntil(page, (s) => s.realm!.gear.some((g) => g.place === "stock" && g.name === item.Name && g.selected), "the item picked");
   await clickCardControl(page, /^Buy for /);
@@ -274,7 +278,7 @@ test("worn gear is in the duel's command zone, and a won duel's gear drop and a 
   await cardUntil(page, (s) => s.realm?.screen === "loot" && s.realm.gear.some((g) => g.place === "drop" && g.instance === outcome.Gear!.InstanceId), "the drop on the loot screen", 60_000);
   await page.screenshot({ path: `${SHOTS}/loot-drop.png` });
   expect((await api<Me>(page.request, "me")).Gear.some((g) => g.InstanceId === outcome.Gear!.InstanceId)).toBe(true);
-  await clickCardControl(page, /^Take|^Leave them/);
+  await clickCardControl(page, /^Take|^Leave them|^Done$/);
   await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe(null);
 
   // A chest near the capital, with its gear roll come up: the item shown on the loot screen as well.

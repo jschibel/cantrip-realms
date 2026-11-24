@@ -62,7 +62,8 @@ public sealed partial class MainPage
             TextWrapping = TextWrapping.Wrap,
         });
         // A gear item found with the cards (MainPage.RealmDrop.cs) leads the screen; with no cards, it is all there is.
-        if (GearDrop(command.Args) is { } drop)
+        FrameworkElement? drop = GearDrop(command.Args);
+        if (drop is not null)
         {
             if (offer.Count == 0) body.Children.Clear();
             body.Children.Insert(0, drop);
@@ -70,6 +71,14 @@ public sealed partial class MainPage
 
         _lootBoard = RealmBoard("loot", LootWidth, ClickLoot);
         body.Children.Add(_lootBoard);
+        if (drop is not null && offer.Count == 0)
+        {
+            ShowRealmScreen("Gear found", RealmScroll(body));
+            _lootTake = null;
+            RealmAction("Done", primary: true, () => CloseRealmScreen("closed", PicksResult([])));
+            return;
+        }
+
         ShowRealmScreen("Loot", RealmScroll(body));
         _lootTake = RealmAction("Take", primary: true, () => CloseRealmScreen("closed", PicksResult([.. _lootPicked.Order().Select(i => _lootOffer[i].Name)])));
         RealmAction("Leave them", primary: false, () => CloseRealmScreen("closed", PicksResult([])));
@@ -103,7 +112,7 @@ public sealed partial class MainPage
 
     private void LayOutLoot()
     {
-        if (_lootBoard is null || _realmOpen?.Screen != "loot")
+        if (_lootBoard is null || _realmOpen?.Screen != "loot" || _lootTake is null)
         {
             return;
         }

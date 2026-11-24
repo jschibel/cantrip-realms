@@ -134,9 +134,10 @@ public sealed partial class MainPage
         DuelSeat me = duel.Seats[0];
         DuelSeat mob = duel.Seats[1];
         List<RealmGearInstance> worn = [.. (_duelLoadout?.Values ?? []).OfType<RealmGearInstance>()];
-        string MyGear() => worn.Count > 0 ? string.Join(", ", worn.Select(item => item.Gear.Name)) : myEmblems.Count > 0 ? string.Join(", ", myEmblems.Select(e => GearName(e.Name))) : "no gear";
-        _duelGearLine.Text = $"You: {MyGear()}  (life {me.StartingLife}, hand {me.StartingHandSize}, max {me.MaximumHandSize})"
-            + $"   ·   {mob.Name}: {(theirEmblems.Count > 0 ? string.Join(", ", theirEmblems.Select(e => GearName(e.Name))) : "no gear effects")}  (life {mob.StartingLife}, hand {mob.StartingHandSize}, max {mob.MaximumHandSize})";
+        int items = Math.Max(worn.Count, myEmblems.Count);
+        string Count(int n, int emblems) => n == 0 ? "no gear" : $"{n} gear{(emblems > 0 ? $", {emblems} in the command zone" : string.Empty)}";
+        _duelGearLine.Text = $"You: {Count(items, myEmblems.Count)} · life {me.StartingLife} · hand {me.StartingHandSize} · max {me.MaximumHandSize}"
+            + $"     {mob.Name}: {Count(theirEmblems.Count, theirEmblems.Count)} · life {mob.StartingLife} · hand {mob.StartingHandSize} · max {mob.MaximumHandSize}";
         _duelGearStrip.Visibility = Visibility.Visible;
 
         _duelGearShown.Clear();
