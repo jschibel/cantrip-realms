@@ -12,8 +12,13 @@ import { beat, enter, run, walkInside } from "./runs";
 async function down(page: Page): Promise<void> {
   const r = (await run(page))!;
   await beat(page, "warden");
-  await walkInside(page, r.down!, 2);
-  await clickEntity(page, (e) => e.kind === "down", "the stairs down");
+  // A mob of the floor that comes for the player on the way is beaten, and the stair clicked again.
+  for (let tries = 0; tries < 4 && (await run(page))?.floor === r.floor; tries++) {
+    await walkInside(page, r.down!, 2);
+    await clickEntity(page, (e) => e.kind === "down", "the stairs down");
+    await until(page, async () => (await run(page))?.floor === r.floor + 1 || (await realm<string | null>(page, "layer.open")) !== null, "down the stair, or stopped by a mob", 60);
+    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
+  }
   await until(page, async () => (await run(page))?.floor === r.floor + 1, "down the stair", 30);
   await waitSpace(page, /^run:/);
 }
@@ -23,6 +28,7 @@ async function beatTheBoss(page: Page): Promise<void> {
   for (let tries = 0; tries < 6 && (await realm<string>(page, "screen")) !== "boss"; tries++) {
     const boss = await entity(page, (e) => e.kind === "mob" && e.role === "boss", "the boss");
     await walkInside(page, boss.tile, 2);
+    if ((await realm<string>(page, "screen")) === "boss") break;
     if ((await realm<string | null>(page, "layer.open")) === null) await clickEntity(page, (e) => e.kind === "mob" && e.role === "boss", "the boss");
     await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 20);
     // A floor's mob that came for the player first is beaten on the way.

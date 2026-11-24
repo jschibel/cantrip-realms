@@ -1,5 +1,5 @@
 import { type Frame, type Page, expect, test } from "@playwright/test";
-import { clickControl, clickEntity, dungeon, entities, entity, realm, until, waitReady, waitSpace, winDuel, world } from "../realm";
+import { chebyshev, clickControl, clickEntity, dungeon, entities, entity, playerTile, realm, until, waitReady, waitSpace, winDuel, world } from "../realm";
 import { beat, enter, run, walkInside } from "../runs";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
@@ -22,8 +22,13 @@ async function besideDungeon(page: Page, id: string, extra = "&mobs=0"): Promise
 async function down(page: Page): Promise<void> {
   const r = (await run(page))!;
   await beat(page, "warden");
-  await walkInside(page, r.down!, 2);
-  await clickEntity(page, (e) => e.kind === "down", "the stairs down");
+  // A mob of the floor that comes for the player on the way is beaten, and the stair clicked again.
+  for (let tries = 0; tries < 4 && (await run(page))?.floor === r.floor; tries++) {
+    await walkInside(page, r.down!, 2);
+    await clickEntity(page, (e) => e.kind === "down", "the stairs down");
+    await until(page, async () => (await run(page))?.floor === r.floor + 1 || (await realm<string | null>(page, "layer.open")) !== null, "down the stair, or stopped by a mob", 60);
+    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
+  }
   await until(page, async () => (await run(page))?.floor === r.floor + 1, "down the stair", 60);
   await waitSpace(page, /^run:/);
 }
@@ -76,6 +81,8 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
   for (let tries = 0; tries < 6 && (await realm<string>(page, "screen")) !== "boss"; tries++) {
     const boss = await entity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
     await walkInside(page, boss.tile, 2);
+    // He may have come for Galen on the way, and been beaten by the stand-in already.
+    if ((await realm<string>(page, "screen")) === "boss") break;
     if ((await realm<string | null>(page, "layer.open")) === null) await clickEntity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
     await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 30);
     if ((await realm<{ args: { mob: { id: string } } }[]>(page, "layer.requests")).at(-1)!.args.mob.id !== "rofellos") {
@@ -153,11 +160,18 @@ test("a boss duel lost in the real card layer: the server replays it, the run is
   await waitReady(page);
   await waitSpace(page, `run:${r.id}`, 60);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
-  for (let tries = 0; tries < 4 && (await realm<string | null>(page, "layer.open")) !== "duel"; tries++) {
+  // Toward him step by step (he may come for Hale himself), then at him: the walk never answers a duel itself.
+  for (let tries = 0; tries < 30 && (await realm<string | null>(page, "layer.open")) === null; tries++) {
     const boss = await entity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
-    await walkInside(page, boss.tile, 2);
-    if ((await realm<string | null>(page, "layer.open")) === null) await clickEntity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
-    await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 30);
+    if (chebyshev(await playerTile(page), boss.tile) <= 2) {
+      await clickEntity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
+      await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 30);
+      break;
+    }
+    const path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [boss.tile.x, boss.tile.z] as const)) as { x: number; z: number }[];
+    const step = path[Math.min(6, Math.max(1, path.length - 3))]!;
+    await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [step.x, step.z] as const);
+    await until(page, async () => (await realm<string | null>(page, "layer.open")) !== null || !(await entity(page, (e) => e.kind === "player", "the player")).moving, "the step taken", 20);
   }
   expect((await realm<{ args: { mob: { id: string } } }[]>(page, "layer.requests")).at(-1)!.args.mob.id).toBe("rofellos");
   await expect

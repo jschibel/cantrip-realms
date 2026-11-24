@@ -184,7 +184,9 @@ export async function winDuel(page: Page): Promise<void> {
         await clickControl(page, open === "loot" ? "layer:take" : "layer:win");
         return false;
       }
-      return (await realm<string>(page, "screen")) === "world" && !(await realm<boolean>(page, "paused"));
+      // A boss's moment (the color it unlocks) is left open for the test to see.
+      const screen = await realm<string>(page, "screen");
+      return (screen === "world" && !(await realm<boolean>(page, "paused"))) || screen === "boss";
     },
     "back in the world after the duel",
     30,
