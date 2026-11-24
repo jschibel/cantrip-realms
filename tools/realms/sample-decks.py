@@ -806,7 +806,12 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
     if "totals" in mob:
         worn = [gear[g]["stats"] for g in mob["gear"]]
         life, hand, max_hand = (mob["totals"][i] - sum(w[k] for w in worn) for i, k in enumerate(("life", "hand", "maxHand")))
-    data = {"id": mob["id"], "name": mob["name"], "creature": mob["creature"]}
+    data = {"id": mob["id"], "name": mob["name"]}
+    # A proper name, said with no article (realms/web/src/mobs.ts): a legend the mob is named for, by its card's whole
+    # name or the start of it ("Teferi"); realms/web/src/mobs.test.ts holds the files to this.
+    if "Legendary" in cards[mob["creature"]]["type"] and mob["creature"].startswith(mob["name"]):
+        data["named"] = True
+    data["creature"] = mob["creature"]
     if mob.get("region"):
         data["region"] = mob["region"]
     data.update({

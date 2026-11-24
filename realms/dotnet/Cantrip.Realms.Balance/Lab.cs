@@ -101,14 +101,19 @@ public static class Lab
         return !(mob.File.Boss && mob.File.Unlocks is { } color && reference.Kind == "duo" && reference.Colors.Contains(color, StringComparison.Ordinal));
     }
 
-    /// <summary>The duel the realm server would deal this reference player against this mob, on this seed.</summary>
+    /// <summary>
+    /// The duel the realm server would deal this reference player against this mob, on this seed: a color boss with what
+    /// it gains in its dungeon by where its color stands to the player's (design.md A6, <see cref="Dungeons.BossGains"/>),
+    /// the reference's first color taken as the one it started with.
+    /// </summary>
     public static Duel Deal(RealmContent content, Reference reference, Mob mob, long seed)
     {
         ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(mob);
         DuelSeat player = Encounters.PlayerSeat(reference.Id, reference.Gear, reference.Deck);
-        return Encounters.Deal(player, Encounters.MobSeat(content, mob), mob, seed, 0, 0);
+        GearStats? gains = Dungeons.BossGains(content, mob, reference.Colors[..1], reference.Colors);
+        return Encounters.Deal(player, Encounters.MobSeat(content, mob, gains), mob, seed, 0, 0);
     }
 
     /// <summary>

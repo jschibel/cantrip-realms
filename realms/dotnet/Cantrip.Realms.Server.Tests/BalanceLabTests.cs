@@ -42,6 +42,29 @@ public sealed class BalanceLabTests
     }
 
     [Fact]
+    public async Task A_lab_game_deals_a_color_boss_as_a_run_of_its_dungeon_deals_it_by_the_players_standing()
+    {
+        // A black starter against Lyra: Benalia's white is an enemy color, so her keep's run deals her stronger.
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "B");
+        RunView run = await app.EnterRun(browser, "benalish-keep");
+        (int floor, int index) = RealmApp.BossOf(run);
+        await app.ToFloor(run, floor);
+        Duel server = (await RealmApp.Fight(browser, run, floor, index, "lyra-dawnbringer")).Duel;
+
+        RealmContent content = RealmApp.Content;
+        Mob lyra = content.Mobs["lyra-dawnbringer"];
+        Reference black = Lab.References(content, RealmApp.Root).Single(reference => reference.Id == "starter-black");
+        Duel lab = Lab.Deal(content, black, lyra, server.Seed);
+        Assert.Equal(Same(server.Seats[1]), Same(lab.Seats[1]));
+        Assert.True(lab.Seats[1].StartingLife > Encounters.MobSeat(content, lyra).StartingLife);
+
+        // Against the white starter she is as written: white is her own color.
+        Reference white = Lab.References(content, RealmApp.Root).Single(reference => reference.Id == "starter-white");
+        Assert.Equal(Same(Encounters.MobSeat(content, lyra)), Same(Lab.Deal(content, white, lyra, server.Seed).Seats[1]));
+    }
+
+    [Fact]
     public void Every_reference_deck_is_one_a_character_of_its_colors_could_play_wearing_catalogue_gear()
     {
         RealmContent content = RealmApp.Generated;

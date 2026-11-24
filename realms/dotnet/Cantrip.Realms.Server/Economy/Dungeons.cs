@@ -139,6 +139,23 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         return floors;
     }
 
+    /// <summary>
+    /// What a boss gains over its own stats when a character of this starting color and identity fights it in its
+    /// dungeon (design.md A6: an enemy color's boss is stronger): its color dungeon's standing's, as <see cref="Roll"/> deals
+    /// it; null for a boss of no color dungeon, a standing that gives it nothing, or any other mob. What the balance lab
+    /// deals a boss with (Cantrip.Realms.Balance), so its duels are the server's.
+    /// </summary>
+    public static GearStats? BossGains(RealmContent content, Mob mob, string startingColor, string identity)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(mob);
+        if (!mob.File.Boss) return null;
+        RealmDungeon? home = content.Dungeons.Values.Where(dungeon => dungeon.File.Boss == mob.Id && dungeon.File.Standing.Count > 0)
+            .OrderBy(dungeon => dungeon.Id, StringComparer.Ordinal).FirstOrDefault();
+        GearStats? gains = home?.StandingOf(Standings.Of(home.File.Region, startingColor, identity))?.BossStats;
+        return gains is null || gains == GearStats.None ? null : gains;
+    }
+
     /// <summary>Takes the stair to the next floor, once the warden of the floor the character stands on is beaten.</summary>
     public async Task Floor(string player, FloorTake request)
     {
