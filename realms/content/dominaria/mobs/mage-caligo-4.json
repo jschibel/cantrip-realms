@@ -1,6 +1,7 @@
 {
   "id": "mage-caligo-4",
   "name": "Zur, Eternal Schemer",
+  "named": true,
   "creature": "Zur, Eternal Schemer",
   "region": "B",
   "tier": 4,

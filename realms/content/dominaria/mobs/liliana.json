@@ -1,6 +1,7 @@
 {
   "id": "liliana",
   "name": "Liliana of the Veil",
+  "named": true,
   "creature": "Liliana of the Veil",
   "region": "B",
   "tier": 4,

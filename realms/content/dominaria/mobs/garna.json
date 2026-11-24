@@ -1,6 +1,7 @@
 {
   "id": "garna",
   "name": "Garna, Bloodfist of Keld",
+  "named": true,
   "creature": "Garna, Bloodfist of Keld",
   "region": "R",
   "tier": 4,

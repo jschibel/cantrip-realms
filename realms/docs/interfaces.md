@@ -125,6 +125,9 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `model.mesh` is a mob mesh and `model.palette` its colors (Models, below).
 - `creature` is the card the mob is (design.md A6): a creature (or, for a mage, a planeswalker) card the engine plays,
   held in its deck - a wanderer's name is its creature's, and its deck holds 2 to 4 of it.
+- `named` (optional, `true`) marks a proper name: a legend the mob is named for, by the card's whole name or the start of
+  it ("Teferi"). The world says it bare ("Rofellos, Llanowar Emissary attacks!"), any other mob with its article ("The
+  Llanowar Elves attacks!", "the Phyrexian Praetor"); `realms/web/src/mobs.test.ts` holds it to the card's type line.
 - `region` is the region, by its color (world.json's `regions[].color`), the mob roams or belongs to; absent for a mob of
   none (the generic wardens, the Portal's mobs, the praetor). A world spawn of a region lists mobs of that region and its
   tier.

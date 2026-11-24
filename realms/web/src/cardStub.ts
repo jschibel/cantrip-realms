@@ -1,4 +1,5 @@
 import type { CardScreens, Closed, Screen } from "./cardLayer";
+import { mobInfo, theMob } from "./mobs";
 
 // The card layer's stand-in, for when it is absent (?cards=stub, and ?offline with no ?cards): each screen is a
 // small themed panel over the world that says what it was opened on and closes with the outcomes the overworld must
@@ -82,9 +83,10 @@ export class StubCardLayer implements CardScreens {
 function describe(screen: Screen, args: Record<string, unknown>): string {
   switch (screen) {
     case "duel": {
-      const mob = args.mob as { name?: string; tier?: number } | undefined;
+      const mob = args.mob as { id?: string; name?: string; tier?: number } | undefined;
       const duel = args.duel as { Cap?: number; AnteValue?: number } | undefined;
-      return `A duel against the ${mob?.name ?? "mob"} (tier ${mob?.tier ?? "?"}). Ante ${duel?.AnteValue ?? 0} gold, prize cap ${duel?.Cap ?? 0}.`;
+      const who = mob?.id ? theMob(mobInfo(mob.id), false) : `the ${mob?.name ?? "mob"}`;
+      return `A duel against ${who} (tier ${mob?.tier ?? "?"}). Ante ${duel?.AnteValue ?? 0} gold, prize cap ${duel?.Cap ?? 0}.`;
     }
     case "loot": {
       const offer = (args.offer as { Name: string; Gold: number }[] | undefined) ?? [];

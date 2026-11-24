@@ -1,6 +1,7 @@
 {
   "id": "mage-orvada-4",
   "name": "Arcanis the Omnipotent",
+  "named": true,
   "creature": "Arcanis the Omnipotent",
   "region": "U",
   "tier": 4,

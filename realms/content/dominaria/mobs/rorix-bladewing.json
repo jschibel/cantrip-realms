@@ -1,6 +1,7 @@
 {
   "id": "rorix-bladewing",
   "name": "Rorix Bladewing",
+  "named": true,
   "creature": "Rorix Bladewing",
   "region": "R",
   "tier": 4,

@@ -1,6 +1,7 @@
 {
   "id": "mage-benalia-3",
   "name": "Loran of the Third Path",
+  "named": true,
   "creature": "Loran of the Third Path",
   "region": "W",
   "tier": 3,

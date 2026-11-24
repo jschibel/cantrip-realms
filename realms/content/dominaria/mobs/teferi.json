@@ -1,6 +1,7 @@
 {
   "id": "teferi",
   "name": "Teferi",
+  "named": true,
   "creature": "Teferi, Hero of Dominaria",
   "region": "U",
   "tier": 4,

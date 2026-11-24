@@ -1,6 +1,7 @@
 {
   "id": "marton-stromgald",
   "name": "Márton Stromgald",
+  "named": true,
   "creature": "Márton Stromgald",
   "region": "R",
   "tier": 3,

@@ -1,6 +1,7 @@
 {
   "id": "commander-eesha",
   "name": "Commander Eesha",
+  "named": true,
   "creature": "Commander Eesha",
   "region": "W",
   "tier": 3,

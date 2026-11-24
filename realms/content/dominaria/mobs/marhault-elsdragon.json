@@ -1,6 +1,7 @@
 {
   "id": "marhault-elsdragon",
   "name": "Marhault Elsdragon",
+  "named": true,
   "creature": "Marhault Elsdragon",
   "region": "G",
   "tier": 4,

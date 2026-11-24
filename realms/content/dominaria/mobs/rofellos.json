@@ -1,6 +1,7 @@
 {
   "id": "rofellos",
   "name": "Rofellos, Llanowar Emissary",
+  "named": true,
   "creature": "Rofellos, Llanowar Emissary",
   "region": "G",
   "tier": 4,

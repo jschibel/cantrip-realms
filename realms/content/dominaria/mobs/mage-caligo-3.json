@@ -1,6 +1,7 @@
 {
   "id": "mage-caligo-3",
   "name": "Nebuchadnezzar",
+  "named": true,
   "creature": "Nebuchadnezzar",
   "region": "B",
   "tier": 3,

@@ -1,6 +1,7 @@
 {
   "id": "lyra-dawnbringer",
   "name": "Lyra Dawnbringer",
+  "named": true,
   "creature": "Lyra Dawnbringer",
   "region": "W",
   "tier": 4,

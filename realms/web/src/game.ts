@@ -10,7 +10,7 @@ import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
 import { type MinimapDot, Hud, gold } from "./hud";
 import { surfaceColor } from "./surfaceColors";
 import { renderPortrait } from "./portrait";
-import { mobInfo } from "./mobs";
+import { mobInfo, theMob } from "./mobs";
 import { ApiError, type Character as CharacterData, type EncounterResult, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
@@ -1315,11 +1315,6 @@ export class Overworld {
     set("zoom-in", here.inside || rig.zoom === 0);
     set("zoom-out", here.inside || rig.zoom === rig.maxZoom());
   }
-}
-
-/** A mob as a sentence names it: "The Llanowar Elves", but a boss or a named legend ("Rofellos, Llanowar Emissary") bare. */
-function theMob(info: { readonly name: string; readonly boss: boolean }, start = true): string {
-  return info.boss || info.name.includes(",") ? info.name : `${start ? "The" : "the"} ${info.name}`;
 }
 
 function refusal(e: unknown): string {

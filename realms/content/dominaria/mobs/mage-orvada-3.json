@@ -1,6 +1,7 @@
 {
   "id": "mage-orvada-3",
   "name": "Naban, Dean of Iteration",
+  "named": true,
   "creature": "Naban, Dean of Iteration",
   "region": "U",
   "tier": 3,

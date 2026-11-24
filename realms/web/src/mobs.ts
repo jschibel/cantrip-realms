@@ -7,6 +7,11 @@ import type { ManaColor, MobModel } from "./art/figures";
 export interface MobInfo {
   readonly id: string;
   readonly name: string;
+  /**
+   * Whether its name is a proper name (its file's `named`): a legend's own, said bare - "Rofellos, Llanowar Emissary",
+   * "Rorix Bladewing" - where any other mob is "the Llanowar Elves", "the Phyrexian Praetor" (theMob).
+   */
+  readonly named: boolean;
   /** The card the mob is (its file's `creature`): it picks the figure's variations with the id (art/figures/mobs.ts). */
   readonly creature: string;
   readonly tier: number;
@@ -25,6 +30,7 @@ export interface MobInfo {
 interface MobFile {
   readonly id: string;
   readonly name: string;
+  readonly named?: boolean;
   readonly creature?: string;
   readonly tier: number;
   readonly prize: number;
@@ -55,11 +61,19 @@ function guess(id: string): MobInfo {
   const name = id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const found = GUESSES.find(([pattern]) => pattern.test(id));
   const [mesh, palette, size] = found ? [found[1], found[2], found[3]] : ["humanoid", ["#8c909c", "#7a1f24", "#4a3122"] as const, undefined];
-  return { id, name, creature: name, tier: 1, prize: 100, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
+  return { id, name, named: false, creature: name, tier: 1, prize: 100, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
 }
 
 export function mobInfo(id: string): MobInfo {
   const file = byId.get(id);
   if (!file) return guess(id);
-  return { ...file, creature: file.creature ?? file.name, boss: file.boss ?? false, known: true };
+  return { ...file, named: file.named ?? false, creature: file.creature ?? file.name, boss: file.boss ?? false, known: true };
+}
+
+/**
+ * A mob as a sentence names it: "the Llanowar Elves", "the Phyrexian Praetor", but a legend by its own name bare ("Rofellos,
+ * Llanowar Emissary", "Rorix Bladewing"). `start` capitalizes the article for the start of a sentence.
+ */
+export function theMob(info: { readonly name: string; readonly named: boolean }, start = true): string {
+  return info.named ? info.name : `${start ? "The" : "the"} ${info.name}`;
 }
