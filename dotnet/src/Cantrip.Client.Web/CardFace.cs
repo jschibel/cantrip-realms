@@ -1670,6 +1670,11 @@ public static partial class CardFace
     /// <summary>What was chosen for the permanent, written across the art box.</summary>
     private static void DrawAnnotation(SKCanvas canvas, string annotation, Layout layout, float cardWidth)
     {
+        if (DrawRealmNote(canvas, annotation, layout, cardWidth))
+        {
+            return;
+        }
+
         SKRect art = layout.Art;
         Fill(canvas, art, new SKColor(20, 20, 26, 199));
 

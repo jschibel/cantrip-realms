@@ -837,8 +837,13 @@ as another player; `/offline` plays the in-memory API instead, with the real car
 was built last. Card art is served by the realm server (`REALMS_ART`, Cantrip.Art's `/art/{size}/{slug}.webp`) when a
 content folder with illustrations is found - `CANTRIP_ART`, else the repository's own `content\mtg\images`, which the
 `fetch-card-art` skill fills; art is never committed - and the card layer is told it (`?art=`); without, the cards are
-drawn with no picture. A world client not signed in is sent to `<server>/signin`, which a server with the development
-sign-in alone answers with its form.
+drawn with no picture. The card layer only ever asks for those sized renditions (128 to 1024 pixels, webp, made once from
+the illustration and kept in `realms/web/.play/art`), never a full-size illustration, which a face would decode whole.
+Offline (`/offline`) the same server serves the art alone on the server's port (`cantrip-realms-server art`), so offline
+duels and loot show the art too. In the card layer's own screens (the spell table, the inventory, the ante) a card's note
+(copies left, price, relic) is a band under its name across the top of the art, not a veil over the picture. A world
+client not signed in is sent to `<server>/signin`, which a server with the development sign-in alone answers with its
+form.
 
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.

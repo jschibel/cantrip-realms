@@ -140,8 +140,11 @@ public sealed record RealmDeckChange(IReadOnlyList<RealmCardCount> Main, IReadOn
 
 public sealed record RealmDeckCheck(IReadOnlyList<string> Problems, long AnteValue);
 
-/// <summary>The collection by card name, and each priced card's list price (<c>GET /api/collection</c> sends them; a trade's answer does not).</summary>
-public sealed record RealmCollection(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null);
+/// <summary>
+/// The collection by card name, each priced card's list price and the relics of it, which are never anted
+/// (<c>GET /api/collection</c> sends them; a trade's answer does not).
+/// </summary>
+public sealed record RealmCollection(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null, IReadOnlyList<string>? Relics = null);
 
 /// <summary>What a vendor deals in (its <c>specialty</c>): every filter given holds of a card it trades.</summary>
 public sealed record RealmSpecialty(string? Pool, string? Colors, IReadOnlyList<string>? Types, IReadOnlyList<string>? Subtypes, IReadOnlyList<string>? Rarities, IReadOnlyList<string>? Names);

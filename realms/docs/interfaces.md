@@ -475,7 +475,7 @@ player with no character is 404 `NoCharacter`.
 | --- | --- | --- |
 | `GET /api/me` | | the `Character` (below), or 404 `NoCharacter` |
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
-| `GET /api/collection` | | `{Cards: {name: count}, Prices: {name: gold}}`: `Prices` each owned card's list price (none for an unpriced card), for the spell table's ante |
+| `GET /api/collection` | | `{Cards: {name: count}, Prices: {name: gold}, Relics: [name]}`: `Prices` each owned card's list price (none for an unpriced card), for the spell table's ante; `Relics` the owned cards that are relics (never anted), which the spell table marks |
 | `GET /api/inventory` | | `{Cards: [{Name, Count, Gold, Deck, Ante, Relic}], Value}`: the collection card by card, in name order, each with its list price (0 for none), the copies the deck and the ante use and whether it is a relic; `Value` the collection at list price. The gear is the `Character`'s |
 | `GET /api/catalog` | | every card the engine plays, as printed: `Cantrip.Protocol`'s `CardCatalogView`, MessagePack (`application/x-msgpack`), as the deck site's `/decks/api/catalog` is: the card layer's faces |
 | `GET /api/deck` | | the `Deck` |

@@ -13,7 +13,10 @@
 // --no-open    leave the browser alone
 //
 // Card art is served when a content folder with illustrations is found (CANTRIP_ART, else this repository's content/
-// when content/mtg/images is there: the fetch-card-art skill fills it); without, the cards are drawn with no picture.
+// when content/mtg/images is there: the fetch-card-art skill fills it), always as Cantrip.Art's sized renditions
+// (/art/{size}/{slug}.webp, made once and kept in .play/art) - never the full-size illustrations, which the page would
+// decode whole for every face: by the realm server, and offline by the same server serving art alone (`art`). Without,
+// the cards are drawn with no picture.
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -113,15 +116,27 @@ if (!cardLayerBuilt()) {
 const art = artFolder();
 const env = { ...process.env };
 
-if (!offline) {
-  const data = join(web, ".play");
-  if (flag("fresh")) rmSync(data, { recursive: true, force: true });
+const data = join(web, ".play");
+const serverDll = join(repo, "realms", "dotnet", "Cantrip.Realms.Server", "bin", "Debug", "net10.0", "cantrip-realms-server.dll");
+const artEnv = art ? { REALMS_ART: art, REALMS_ART_CACHE: join(data, "art") } : {};
+if (!offline || art) {
+  if (flag("fresh") && !offline) rmSync(data, { recursive: true, force: true });
   mkdirSync(data, { recursive: true });
-  const serverDll = join(repo, "realms", "dotnet", "Cantrip.Realms.Server", "bin", "Debug", "net10.0", "cantrip-realms-server.dll");
   if (!existsSync(serverDll)) {
     console.error(`The realm server is not built at ${serverDll}: run tools\\realms\\play.cmd, which builds it.`);
     process.exit(1);
   }
+}
+
+if (offline && art) {
+  // No realm server offline, but the card layer's art is still the sized renditions: the server serving art alone.
+  run("art", "dotnet", [serverDll, "art", "--urls", urls.server], {
+    cwd: dirname(serverDll),
+    env: { ...env, Logging__LogLevel__Default: "Warning", "Logging__LogLevel__Microsoft.Hosting.Lifetime": "Information", REALMS_ROOT: repo, ...artEnv },
+  });
+}
+
+if (!offline) {
   run("server", "dotnet", [serverDll, "--urls", urls.server], {
     cwd: dirname(serverDll),
     env: {
@@ -135,7 +150,7 @@ if (!offline) {
       REALMS_DATABASE: `sqlite:${join(data, "realms.db")}`,
       REALMS_CLIENT: urls.world,
       REALMS_CARDS: urls.cards,
-      ...(art ? { REALMS_ART: art, REALMS_ART_CACHE: join(data, "art") } : {}),
+      ...artEnv,
       CANTRIP_NATIVE_HOST: env.CANTRIP_NATIVE_HOST ?? join(repo, "target", "cards", process.platform === "win32" ? "cantrip-native-host.exe" : "cantrip-native-host"),
     },
   });
@@ -149,13 +164,13 @@ run("world", process.execPath, [join(web, "node_modules", "vite", "bin", "vite.j
     ...env,
     REALM_CARD_LAYER: urls.cards,
     ...(offline ? {} : { VITE_REALM_SERVER: urls.server }),
-    ...(art && !offline ? { VITE_CARD_ART: urls.server } : {}),
+    ...(art ? { VITE_CARD_ART: urls.server } : {}),
   },
 });
 
 try {
   await waitFor(urls.world, "The overworld");
-  if (!offline) await waitFor(`${urls.server}healthz`, "The realm server", 300);
+  if (!offline || art) await waitFor(`${urls.server}healthz`, offline ? "The art server" : "The realm server", 300);
 } catch (e) {
   console.error(e.message);
   stop(1);
@@ -167,7 +182,7 @@ console.log(`  Cantrip Realms is up${offline ? " (offline: nothing is kept)" : "
 console.log(`  The world:      ${urls.world}`);
 if (!offline) console.log(`  The server:     ${urls.server} (signed in as player ${player}; another number is another player: ${urls.server}dev/signin)`);
 console.log(`  The card layer: ${urls.cards}`);
-console.log(`  Card art:       ${offline ? "none offline (the realm server serves it)" : (art ?? "none found (set CANTRIP_ART to a content folder with <dataset>/images)")}`);
+console.log(`  Card art:       ${art ? `${art}, sized, at ${urls.server}art/{size}/{slug}.webp` : "none found (set CANTRIP_ART to a content folder with <dataset>/images)"}`);
 console.log(`  Opening ${start}  -  Ctrl+C stops it all.`);
 console.log("");
 openBrowser(start);

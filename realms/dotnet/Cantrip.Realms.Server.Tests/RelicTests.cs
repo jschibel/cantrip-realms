@@ -85,6 +85,19 @@ public sealed class RelicTests
     }
 
     [Fact]
+    public async Task The_collection_names_the_relics_it_holds_for_the_spell_table_to_mark()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1);
+        Assert.Empty((await browser.Ok<CollectionView>(HttpMethod.Get, "/api/collection")).Relics!);
+        await app.Give(browser, "Black Lotus", 1);
+        await app.Give(browser, "Llanowar Elves", 2);
+        CollectionView collection = await browser.Ok<CollectionView>(HttpMethod.Get, "/api/collection");
+        Assert.Equal(["Black Lotus"], collection.Relics!);
+        Assert.Equal(1, collection.Cards["Black Lotus"]);
+    }
+
+    [Fact]
     public async Task A_relic_that_does_not_come_up_drops_nothing()
     {
         await using var app = new RealmApp { Random = new ForcedRolls(1) };

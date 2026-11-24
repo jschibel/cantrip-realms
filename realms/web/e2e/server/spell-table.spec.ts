@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { entity, openNear, realm, waitReady } from "../realm";
+import { clickClear, entity, openNear, realm, waitReady } from "../realm";
 
 // The spell table and a card vendor in the real card layer against the real realm server (playwright.config.ts here): the
 // overworld frames the web client's ?realm page, and every edit, save, purchase and sale is a real mouse click (or drag)
@@ -52,7 +52,15 @@ interface CardLayerState {
     readonly screen: string;
     readonly facts: string;
     readonly status: string;
-    readonly table?: { readonly ante: string; readonly anteValue: number; readonly curve: string; readonly colors: string; readonly notes: Record<string, string> };
+    readonly table?: {
+      readonly ante: string;
+      readonly anteValue: number;
+      readonly curve: string;
+      readonly colors: string;
+      readonly notes: Record<string, string>;
+      /** What each card of the ante column says under its name: its price, or that a relic can't be anted. */
+      readonly anteNotes: readonly { readonly name: string; readonly note: string; readonly relic: boolean }[];
+    };
     readonly duel?: { readonly mob: string; readonly over: boolean };
   };
 }
@@ -71,6 +79,7 @@ interface Deck {
 interface Collection {
   readonly Cards: Record<string, number>;
   readonly Prices: Record<string, number>;
+  readonly Relics: readonly string[];
 }
 
 interface Vendor {
@@ -172,8 +181,8 @@ async function openAndClick(page: Page, kind: string): Promise<void> {
   await page.goto(query());
   await waitReady(page);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
-  const thing = await entity(page, (e) => e.kind === kind, kind, 30);
-  await page.mouse.click(thing.x, thing.y);
+  await entity(page, (e) => e.kind === kind, kind, 30);
+  await clickClear(page, (e) => e.kind === kind, kind);
 }
 
 test("the spell table builds a deck from the collection, refuses what the realm refuses, and the duel deals what it saved", async ({ page }) => {
@@ -266,8 +275,8 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   await waitReady(page);
   await expect.poll(() => realm<boolean>(page, "layer.ready"), { timeout: 180_000 }).toBe(true);
   const started = page.waitForResponse((r) => r.url().endsWith("/api/encounter/start"), { timeout: 60_000 });
-  const mob = await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob", 30);
-  await page.mouse.click(mob.x, mob.y);
+  await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob", 30);
+  const mob = await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   const encounter = (await (await started).json()) as { Duel: { AnteValue: number; Cap: number; Mob: { Prize: number }; Seats: { Deck: string[] }[] } };
   const dealt = [...encounter.Duel.Seats[0]!.Deck].sort();
   const deck = saved.Main.flatMap((c) => Array<string>(c.Count).fill(c.Name)).sort();
@@ -330,6 +339,44 @@ test("a vendor sells at list price and buys at half from its purse, and the spel
   await search(page, cheapest.Name);
   const note = (await cardsUntil(page, (s) => s.realm!.table!.notes[cheapest.Name] !== undefined, "the bought card at the table")).realm!.table!.notes[cheapest.Name]!;
   expect(note).toMatch(/^1 of 1 left/);
+});
+
+test("the ante column says each card's price, and a relic is marked at the table as never anted before it is saved", async ({ page }) => {
+  test.setTimeout(300_000);
+  // A white character owning three Benalish Heroes and a Black Lotus (a relic, design.md A3a), at New Benalia inn's table,
+  // one Hero anted already.
+  await character(page.request, id(53), "Keeper", { "Benalish Hero": 3, "Black Lotus": 1 }, "new-benalia-inn", { x: 2, z: 5 });
+  const collection = await api<Collection>(page.request, "collection");
+  expect(collection.Relics).toEqual(["Black Lotus"]);
+  const starter = await api<Deck>(page.request, "deck");
+  const put = await page.request.put(new URL("api/deck", SERVER).toString(), { data: { Main: starter.Main, Ante: [{ Name: "Benalish Hero", Count: 1 }] } });
+  expect(put.ok(), await put.text()).toBe(true);
+  const gold = (name: string) => `${collection.Prices[name]!.toLocaleString("en-US")} g`;
+
+  await openAndClick(page, "spell-table");
+  let state = await judged(page, (s) => (s.realm?.table?.anteNotes.length ?? 0) === 1, "the ante column");
+  expect(state.realm!.table!.anteNotes).toEqual([{ name: "Benalish Hero", note: gold("Benalish Hero"), relic: false }]);
+
+  // The relic in the search says it is never anted.
+  await search(page, "Black Lotus");
+  state = await cardsUntil(page, (s) => s.realm!.table!.notes["Black Lotus"] !== undefined, "the Black Lotus in the search");
+  expect(state.realm!.table!.notes["Black Lotus"]).toBe("Relic, never anted · 1 of 1 left");
+
+  // Into the deck, then double-clicked over to the ante: marked there before any save, and the realm's check says why.
+  await doubleClick(page, "search", "Black Lotus");
+  await cardsUntil(page, (s) => copies(s.deckEditor!.main, "Black Lotus") === 1, "the Black Lotus in the deck");
+  await doubleClick(page, "pool", "Black Lotus");
+  state = await judged(page, (s) => s.realm!.table!.anteNotes.some((n) => n.relic) && s.deckEditor!.problems.length > 0, "the relic anted, marked and refused");
+  expect(state.realm!.table!.anteNotes).toEqual([
+    { name: "Benalish Hero", note: gold("Benalish Hero"), relic: false },
+    { name: "Black Lotus", note: "Relic: can't be anted", relic: true },
+  ]);
+  expect(state.deckEditor!.problems).toEqual(["Black Lotus is a relic, which is never lost: it can't be anted."]);
+  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-relic-ante.png` });
+
+  // Back to the deck (the ante column's last card), the ante is legal again.
+  await doubleClick(page, "sideboard", "Black Lotus");
+  await judged(page, (s) => s.deckEditor!.problems.length === 0 && !s.realm!.table!.anteNotes.some((n) => n.relic), "the relic back in the deck");
 });
 
 const xy = (box: Box): [number, number] => [box.x, box.y];

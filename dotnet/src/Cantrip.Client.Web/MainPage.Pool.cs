@@ -557,7 +557,8 @@ public sealed partial class MainPage
         _sideBoard.Width = sideWidth;
         _sideBoard.Height = Math.Max(_poolSideOpen ? ((Math.Max(1, arrangement.Side.Count) - 1) * step) + height : 0, (float)_sideScroll.ActualHeight - 2);
         _sideBoard.SetCells(_poolSideOpen
-            ? [.. arrangement.Side.Select((place, row) => new CardBoardElement.BoardCell(handled[place], 0, row * step, Tapped: false, Clickable: !_deckSubmitted, Selected: Picked(place)))]
+            ? [.. arrangement.Side.Select((place, row) => new CardBoardElement.BoardCell(handled[place], 0, row * step, Tapped: false, Clickable: !_deckSubmitted, Selected: Picked(place),
+                Dimmed: _realmDeck && RealmAnteDimmed(handled[place].Name), Annotation: _realmDeck ? RealmAnteNote(handled[place].Name) : null))]
             : []);
 
         LayOutCommand(arrangement, handled, width, height, step);

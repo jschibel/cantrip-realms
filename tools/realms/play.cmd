@@ -17,7 +17,8 @@ rem   /port P     the overworld's port, 5300 by default; the realm server is on 
 rem   /noopen     leave the browser alone
 rem
 rem Card art is served when a content folder with illustrations is found: CANTRIP_ART, else this repository's content\
-rem when content\mtg\images has them (the fetch-card-art skill fills it). realms\docs\tech.md, "Playing it locally".
+rem when content\mtg\images has them (the fetch-card-art skill fills it), as Cantrip.Art's sized webp renditions: by the
+rem realm server, or offline by the same server serving art alone. realms\docs\tech.md, "Playing it locally".
 rem ---------------------------------------------------------------------------
 setlocal EnableDelayedExpansion
 cd /d "%~dp0..\.."

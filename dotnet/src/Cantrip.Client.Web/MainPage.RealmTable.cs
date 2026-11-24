@@ -27,6 +27,9 @@ public sealed partial class MainPage
 
     /// <summary>Each owned card's list price in gold (the collection's <c>Prices</c>); an unpriced card is missing.</summary>
     private Dictionary<string, long> _realmPrices = new(StringComparer.Ordinal);
+
+    /// <summary>The owned cards that are relics (the collection's <c>Relics</c>), which no ante may hold (design.md A3a).</summary>
+    private HashSet<string> _realmRelics = new(StringComparer.Ordinal);
     private HashSet<ColorView> _realmIdentity = [];
 
     /// <summary>What the search shows of the collection, and the realm's orders (the editor's two, then price, copies left and color).</summary>
@@ -140,6 +143,7 @@ public sealed partial class MainPage
 
         _realmOwned = new Dictionary<string, int>(owned.Value!.Cards, StringComparer.Ordinal);
         _realmPrices = new Dictionary<string, long>(owned.Value.Prices ?? new Dictionary<string, long>(), StringComparer.Ordinal);
+        _realmRelics = new HashSet<string>(owned.Value.Relics ?? [], StringComparer.Ordinal);
         _realmIdentity = [.. character.Value!.Identity.Select(letter => letter switch
         {
             'W' => ColorView.White,
@@ -280,7 +284,10 @@ public sealed partial class MainPage
     private bool RealmCanAdd(CatalogCard card) =>
         (IsBasicLand(card) && RealmWithin(card)) || RealmUsed(card.Name) < _realmOwned.GetValueOrDefault(card.Name);
 
-    /// <summary>What a card of the search says over its art: free, or how many of the copies owned are left.</summary>
+    /// <summary>
+    /// What a card of the search says over its art: free, or how many of the copies owned are left, its price, and whether
+    /// only the ante can hold it - or, for a relic, that no ante can.
+    /// </summary>
     private string RealmNote(CatalogCard card)
     {
         if (IsBasicLand(card))
@@ -290,9 +297,25 @@ public sealed partial class MainPage
 
         int owned = _realmOwned.GetValueOrDefault(card.Name);
         string left = $"{Math.Max(0, owned - RealmUsed(card.Name))} of {owned} left";
-        string price = _realmPrices.TryGetValue(card.Name, out long gold) ? $" · {gold.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} g" : string.Empty;
-        return RealmWithin(card) ? left + price : $"{left} · ante only{price}";
+        string price = RealmPrice(card.Name) is { } gold ? $" · {gold}" : string.Empty;
+        return _realmRelics.Contains(card.Name) ? $"Relic, never anted · {left}"
+            : RealmWithin(card) ? left + price
+            : $"{left} · ante only{price}";
     }
+
+    /// <summary>A card's list price as the table says it ("1,250 g"), or null for one with none.</summary>
+    private string? RealmPrice(string name) =>
+        _realmPrices.TryGetValue(name, out long gold) ? $"{gold.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} g" : null;
+
+    /// <summary>
+    /// What a card of the ante column says, under its name where the column's stack shows it: its price - the ante's worth
+    /// is theirs added up - or, for a relic, that it can't be anted, which saving would refuse.
+    /// </summary>
+    private string? RealmAnteNote(string name) =>
+        _realmRelics.Contains(name) ? "Relic: can't be anted" : RealmPrice(name) ?? "No price";
+
+    /// <summary>Whether the ante column draws a card dimmed: a relic, which saving refuses there.</summary>
+    private bool RealmAnteDimmed(string name) => _realmRelics.Contains(name);
 
     /// <summary>Whether a double-click on a card of the deck is the spell table's: a basic land leaves the deck (it can't be anted).</summary>
     private bool RealmTakesOut(PoolArrangement arrangement, int place)
@@ -527,6 +550,17 @@ public sealed partial class MainPage
         }
 
         json.WriteEndObject();
+        json.WriteStartArray("anteNotes");
+        foreach (int place in _arrangement?.Side ?? [])
+        {
+            json.WriteStartObject();
+            json.WriteString("name", _editorCards[place].Name);
+            json.WriteString("note", RealmAnteNote(_editorCards[place].Name));
+            json.WriteBoolean("relic", _realmRelics.Contains(_editorCards[place].Name));
+            json.WriteEndObject();
+        }
+
+        json.WriteEndArray();
         json.WriteEndObject();
     }
 
