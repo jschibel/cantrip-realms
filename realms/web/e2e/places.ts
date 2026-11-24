@@ -1,4 +1,4 @@
-import { CHUNK, type SpawnData, areaAt } from "../src/world/format";
+import { type BuildingData, CHUNK, type SpawnData, areaAt } from "../src/world/format";
 import { type Tile, chebyshev, chunk, chunkAt, interior, openWorld, world } from "./realm";
 
 // Where the tests find what they need in the generated world: read from its files, never guessed, so a regenerated
@@ -81,4 +81,46 @@ export function zoneSamples(): { tier: number; at: Tile }[] {
     }
   }
   return found;
+}
+
+/** Buildings of a town's own style facing south (rot 0), in a steady order. */
+function southFacing(town: string): BuildingData[] {
+  const t = world().towns.find((x) => x.id === town)!;
+  const centre = { x: t.center[0], z: t.center[1] };
+  const seen = new Set<string>();
+  const out: BuildingData[] = [];
+  for (const c of chunksNear(centre, t.radius)) {
+    for (const b of c.buildings) {
+      if (seen.has(b.id) || b.rot !== 0 || b.style !== t.style) continue;
+      seen.add(b.id);
+      out.push(b);
+    }
+  }
+  return out.sort((a, b) => a.z - b.z || a.x - b.x);
+}
+
+/** A street tile under a shop's awning (a display window's, in front of a south-facing shop), and the tile south of it. */
+export function underAwning(town = "new-benalia"): { at: Tile; from: Tile } {
+  for (const b of southFacing(town)) {
+    if (b.kind !== "shop") continue;
+    const openings = (b.params?.openings ?? []) as { at: number; kind: string }[];
+    for (const o of openings) {
+      if (o.kind !== "display") continue;
+      const at = { x: Math.floor(b.x + o.at), z: b.z + b.d };
+      const from = { x: at.x, z: at.z + 1 };
+      if (openWorld(at) && openWorld(from)) return { at, from };
+    }
+  }
+  throw new Error(`no awning to stand under in ${town}`);
+}
+
+/** A tile right behind the middle of a south-facing house or shop (north of it), and the tile north of that. */
+export function behindBuilding(town = "new-benalia"): { at: Tile; from: Tile } {
+  for (const b of southFacing(town)) {
+    if (b.kind !== "house" && b.kind !== "shop") continue;
+    const at = { x: b.x + Math.floor(b.w / 2), z: b.z - 1 };
+    const from = { x: at.x, z: at.z - 1 };
+    if (openWorld(at) && openWorld(from)) return { at, from };
+  }
+  throw new Error(`no building to stand behind in ${town}`);
 }

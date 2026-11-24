@@ -3,30 +3,50 @@ import type { Material, Model } from "../art/paint/builder";
 import type { Rect } from "../world/format";
 
 // The occluder fade: whatever tall thing stands between the camera and the player - a house, a tree's crown, a town
-// wall - fades, the whole of it, so the player is never lost behind it. One way of seeing past scenery, out of doors.
-//
-// Each occluder keeps its footprints: the ground it stands solid on (`Built.footprints`; by default the rectangle its
-// lowest parts stand on). What of it is drawn over its own footprint, as the camera sees it, never fades, so the ground
-// under a building is never shown; from just past the footprint's edge on the screen it fades, over a short gradient,
-// to `FADE_MIN` - so the walls and roof rising behind its footprint, where the player walks, are seen through.
+// wall, a shop's awning - fades where it stands in front of them, so the player is never lost behind it. One way of
+// seeing past scenery, out of doors.
 //
 // Which things fade is asked each frame (`aimOccluders`): rays from the player's figure toward the camera, against each
 // occluder's own triangles (its box first, to ask few) - the ones they meet stand in front of the player. Their ids go
 // to the shaders, and every vertex of an occluder carries its id, its foot's height and its footprints as attributes,
 // so a chunk's tall scenery still merges into a mesh a material.
 //
+// Of an occluder that fades, a fragment fades - over a short gradient, to `FADE_MIN` - only where it stands in front of
+// the player: nearer the camera than the player's figure, along the camera's heading (`FRONT_FROM`, `FRONT_TO`). So
+// the back of a house never fades for a player standing at its front, and the wall behind a player under an awning
+// stays solid while the awning over them fades. Of what stands in front, two parts fade:
+// - over the player's own figure on the screen (a box about it, `FIGURE_*`): whatever covers them, whatever it is;
+// - what hides the ground round them (`AROUND_*` tiles of their feet) outside the occluder's own footprints, as the
+//   camera sees it: the ground under each pixel at the occluder's foot, where it is not ground the occluder stands
+//   solid on (`Built.footprints`; by default the rectangle its lowest parts stand on). So the walls and roof rising
+//   behind a building's footprint, where the player walks, are seen through round them, and the ground inside a
+//   footprint - where nothing is built, as a room is its own place - is never shown.
+//
 // The color and normal passes draw only what is opaque (`occGhost` 0: a fading fragment is discarded); the renderer
 // then draws the occluders again into a target of their own, only their fading fragments (`occGhost` 1), the nearest
 // of them at each pixel with its alpha, and the post pass lays that over the scene (render/renderer.ts). So what is
 // behind shows through - the player, the street - and nothing is sorted. Only scenery merged as tall
-// (render/place.ts) is an occluder; the ground, figures and small props never are. One player at a time: the uniforms
-// are shared.
+// (render/place.ts) is an occluder; the ground, figures and small props never are. A faded occluder still casts its
+// shadow, whole: the shadow pass knows nothing of the fade. One player at a time: the uniforms are shared.
 
 /** How much of an occluder is left where it has faded: a ghost of it. */
-export const FADE_MIN = 0.1;
-/** Where the fade starts past the footprint's edge, and how far on it reaches `FADE_MIN`: scene pixels. */
+export const FADE_MIN = 0.25;
+/** Where the fade starts past a footprint's (or the figure's) edge, and how far on it reaches `FADE_MIN`: scene pixels. */
 const FADE_FROM = 1;
 const FADE_OVER = 7;
+/**
+ * In front of the player: a point fades whole up to `FRONT_FROM` world units behind the player's feet along the
+ * camera's heading, not at all from `FRONT_TO` - past the back of their figure, short of a wall they stand against
+ * (half a tile at the front heading, a little over a third at the turned ones).
+ */
+const FRONT_FROM = 0.1;
+const FRONT_TO = 0.3;
+/** The player's figure on the screen, scene pixels: half its width, and its height above its feet. */
+const FIGURE_HALF_WIDTH = 7;
+const FIGURE_HEIGHT = 24;
+/** The ground round the player's feet that what stands past a footprint fades over: its radius, and its soft edge (tiles). */
+const AROUND_RADIUS = 2;
+const AROUND_OVER = 0.75;
 /** How many occluders can fade at once (a forest's crowns round the player). */
 export const MAX_FADING = 16;
 /** The layer the occluders are also on, for their fading pass. */
@@ -38,6 +58,8 @@ export const OCCLUDER_REACH = 12;
 export const OCCLUDE = {
   /** The ids of the occluders fading this frame; -1 for none. */
   occFading: { value: new Float32Array(MAX_FADING).fill(-1) },
+  /** Where the player's feet are. */
+  occPlayer: { value: new THREE.Vector3() },
   /** The camera's view direction, and its right and up in the world: a ground offset's pixels on the screen. */
   occView: { value: new THREE.Vector3(0, -1, -1) },
   occRight: { value: new THREE.Vector3(1, 0, 0) },
@@ -81,6 +103,7 @@ for (int i = 0; i < ${MAX_FADING}; i++) {
 if (occGhost > 0.5 && vOccActive < 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);`;
 
 const FRAGMENT_DECLARE = /* glsl */ `
+uniform vec3 occPlayer;
 uniform vec3 occView;
 uniform vec3 occRight;
 uniform vec3 occUp;
@@ -98,16 +121,34 @@ float occOutside(vec2 h, vec4 r) {
   vec2 d = min(h - r.xy, 0.0) + max(h - r.zw, 0.0);
   vec3 g = vec3(d.x, 0.0, d.y);
   return length(vec2(dot(g, occRight) / occWpp.x, dot(g, occUp) / occWpp.y));
+}
+// How far a point on the screen (scene pixels from the player's feet, up positive) lies outside their figure: none
+// below their feet, where nothing of an occluder covers them.
+float occOffFigure(vec2 s) {
+  if (s.y < -1.0) return 1e6;
+  return length(vec2(max(abs(s.x) - ${f(FIGURE_HALF_WIDTH)}, 0.0), max(s.y - ${f(FIGURE_HEIGHT)}, 0.0)));
 }`;
 
 /** First thing in the fragment shader's main: this fragment's alpha, and whether this pass draws it. */
 const FRAGMENT_TEST = /* glsl */ `
 occAlpha = 1.0;
 if (vOccActive > 0.5) {
-  // Where the ground under this pixel is, at the occluder's foot: over its footprint, or how far past it.
-  vec2 h = (vOccWorld + ((vOccBase - vOccWorld.y) / occView.y) * occView).xz;
-  float past = min(occOutside(h, vOccFoot), occOutside(h, vOccFoot2));
-  occAlpha = mix(1.0, ${f(FADE_MIN)}, smoothstep(${f(FADE_FROM)}, ${f(FADE_FROM + FADE_OVER)}, past));
+  // In front of the player: nearer the camera than their figure, along the camera's heading.
+  vec3 occFromFeet = vOccWorld - occPlayer;
+  float occBehind = dot(occFromFeet, normalize(vec3(occView.x, 0.0, occView.z)));
+  float occFront = 1.0 - smoothstep(${f(FRONT_FROM)}, ${f(FRONT_TO)}, occBehind);
+  if (occFront > 0.0) {
+    // Where this pixel is on the screen from the player's feet, scene pixels.
+    vec2 occScreen = vec2(dot(occFromFeet, occRight) / occWpp.x, dot(occFromFeet, occUp) / occWpp.y);
+    float occOnFigure = 1.0 - smoothstep(${f(FADE_FROM)}, ${f(FADE_FROM + FADE_OVER)}, occOffFigure(occScreen));
+    // Where the ground under this pixel is, at the occluder's foot: over its footprint, or how far past it; and whether
+    // it is ground round the player.
+    vec2 h = (vOccWorld + ((vOccBase - vOccWorld.y) / occView.y) * occView).xz;
+    float past = min(occOutside(h, vOccFoot), occOutside(h, vOccFoot2));
+    float occPast = smoothstep(${f(FADE_FROM)}, ${f(FADE_FROM + FADE_OVER)}, past);
+    float occAround = 1.0 - smoothstep(${f(AROUND_RADIUS)}, ${f(AROUND_RADIUS + AROUND_OVER)}, length(h - occPlayer.xz));
+    occAlpha = mix(1.0, ${f(FADE_MIN)}, occFront * max(occOnFigure, occPast * occAround));
+  }
 }
 if (occGhost > 0.5 ? occAlpha > 0.999 : occAlpha < 0.999) discard;`;
 
@@ -184,6 +225,7 @@ export function aimOccluders(on: boolean, feet: THREE.Vector3, camera: THREE.Cam
   const fading = OCCLUDE.occFading.value;
   fading.fill(-1);
   if (!on) return 0;
+  OCCLUDE.occPlayer.value.copy(feet);
   const view = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
   OCCLUDE.occView.value.copy(view);
