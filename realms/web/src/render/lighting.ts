@@ -7,7 +7,8 @@ import type { Pixmap } from "../art/paint/pixmap";
 // the sun's shadow in it), and before it meets the texture its brightness is snapped to one of a few bands while its
 // hue is kept - warm where the sun falls, cool in the shade, orange round a fire. So a surface shows its texture in one,
 // two or three flat tones, never a gradient, and the colors stay rich: a shadow is the texture in violet-blue light,
-// not the texture darkened to grey.
+// not the texture darkened to grey. Every lit material casts its shadow from both of its faces (`shadowSide`), so a
+// shadow is the shape of all that stands in the sun's way.
 
 /** Brightness thresholds between the bands and the brightness each band is shown at. */
 const BAND_EDGES = [0.34, 0.6, 0.92, 1.25] as const;
@@ -84,6 +85,10 @@ export function lit(map: THREE.Texture | null, options: LitOptions = {}, color: 
     material.emissiveIntensity = options.glow;
   }
   material.userData.flat = options.flat ?? false;
+  // Casts its shadow from both faces: a roof, an awning or a gable is a single face, and three draws only a
+  // material's back faces into a shadow map - so a face toward the sun would cast nothing, and the shadow of a house
+  // would be its walls' alone, with light through every seam between its parts.
+  material.shadowSide = THREE.DoubleSide;
   patch(material);
   return material;
 }

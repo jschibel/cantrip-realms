@@ -12,8 +12,10 @@ export function sunlight(scene: THREE.Scene, centreX: number, centreZ: number, r
   sun.position.set(-15, 17, 9);
   sun.castShadow = true;
   sun.shadow.mapSize.set(4096, 4096);
+  // What a lit face is lit against is its own depth in the map (both faces cast: lighting.ts); the bias keeps it off
+  // itself, the normal bias off itself where the sun grazes it (a roof's slope turned from the sun).
   sun.shadow.bias = -0.0006;
-  sun.shadow.normalBias = 0.01;
+  sun.shadow.normalBias = 0.04;
   Object.assign(sun.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach, near: 1, far: 90 });
   const holder = new THREE.Group();
   holder.position.set(centreX, 0, centreZ);
