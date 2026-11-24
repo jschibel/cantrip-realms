@@ -21,7 +21,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",3],[0,"moss",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],
-    [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"moss",0],[0,"moss",2],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"moss",0],[0,"moss",0],[0,"moss",2],[0,"moss",0],
+    [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"moss",0],[0,"moss",2],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"moss",0],[0,"moss",0],[0,"moss",2],[0,"moss",0],
     [0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],
@@ -106,10 +106,12 @@
     {"id":"llanowar-4-waystone","x":924,"z":841,"kind":"waystone","name":"The waystone of the Llanowar Tower of the Fourth Circle","stand":[924.5,0.125,841.5],"tower":"llanowar-4"}
   ],
   "spawns": [
-    {"id":"28_26:1","x":909,"z":838,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"28_26:2","x":924,"z":852,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"28_26:1","x":910,"z":835,"mobs":["lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"28_26:2","x":926,"z":853,"mobs":["bog-wraith","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"28_26:c1","x":914,"z":851,"gold":[100,250],"respawnSeconds":86400}
+  ],
   "entrances": [
     {"x":922,"z":841,"dungeon":"llanowar-4"}
   ],

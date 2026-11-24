@@ -275,8 +275,9 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_16:1","x":486,"z":517,"mobs":["lost-soul","merfolk-raiders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"15_16:2","x":487,"z":540,"mobs":["craw-wurm","longbow-archer","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"15_16:1","x":486,"z":517,"mobs":["benalish-knight","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"15_16:2","x":508,"z":523,"mobs":["abomination","knight-of-malice","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"15_16:3","x":486,"z":535,"mobs":["keldon-warlord","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

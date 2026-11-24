@@ -2,8 +2,8 @@
   "cx": 8,
   "cz": 21,
   "tiles": [
-    [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",1],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",1],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
-    [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",1],[12,"meadow",1],[12,"meadow",1],[12,"meadow",1],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
+    [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
+    [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [12,"cobbles",3],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [12,"cobbles",0],[12,"cobbles",0],[12,"cobbles",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
@@ -81,8 +81,8 @@
   ],
   "npcs": [],
   "spawns": [
-    {"id":"8_21:1","x":283,"z":693,"mobs":["balduvian-barbarians","bog-rats","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"8_21:2","x":266,"z":702,"mobs":["benalish-hero","bog-raiders","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"8_21:1","x":268,"z":691,"mobs":["bog-rats","durkwood-boars"],"radius":6,"respawnSeconds":600,"tier":1},
+    {"id":"8_21:2","x":285,"z":695,"mobs":["hurloon-minotaur","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

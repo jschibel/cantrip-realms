@@ -46,7 +46,9 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [],
+  "spawns": [
+    {"id":"19_32:1","x":622,"z":1024,"mobs":["air-elemental","eater-of-the-dead","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
+  ],
   "chests": [],
   "entrances": [],
   "waymarkers": []

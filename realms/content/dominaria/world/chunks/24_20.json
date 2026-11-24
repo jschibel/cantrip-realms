@@ -403,10 +403,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"24_20:1","x":769,"z":641,"mobs":["commander-eesha","marton-stromgald","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"24_20:2","x":787,"z":641,"mobs":["arrogant-wurm","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"24_20:3","x":774,"z":666,"mobs":["abomination","arrogant-wurm","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
-    {"id":"24_20:4","x":793,"z":668,"mobs":["abomination","eater-of-the-dead"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"24_20:1","x":786,"z":640,"mobs":["guardian-of-new-benalia","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"24_20:2","x":769,"z":642,"mobs":["commander-eesha","river-merfolk","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"24_20:3","x":793,"z":665,"mobs":["air-elemental","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3},
+    {"id":"24_20:4","x":774,"z":666,"mobs":["frost-giant","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

@@ -42,9 +42,7 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"16_9:1","x":540,"z":306,"mobs":["sengir-vampire","shivan-dragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

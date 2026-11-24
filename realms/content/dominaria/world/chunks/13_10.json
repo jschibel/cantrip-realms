@@ -105,7 +105,7 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"13_10:1","x":433,"z":347,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"13_10:1","x":431,"z":346,"mobs":["bog-imp","bog-raiders"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [],
   "entrances": [],

@@ -149,7 +149,7 @@
     {"id":"cabal-crossing-quest-board","x":453,"z":469,"kind":"quest-board","name":"Notice board","text":["Cultists seen in the Drowned Wood. They wave."],"stand":[453.5,0.6875,469.5]}
   ],
   "spawns": [
-    {"id":"14_14:1","x":476,"z":472,"mobs":["longbow-archer","moor-fiend","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"14_14:1","x":476,"z":472,"mobs":["cradle-guard","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
   "chests": [],
   "entrances": [],

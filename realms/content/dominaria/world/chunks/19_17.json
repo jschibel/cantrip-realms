@@ -32,7 +32,7 @@
     [12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],
     [12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],
     [12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",3],
-    [12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],
+    [12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],
     [12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"road",0],[12,"road",0],[12,"road",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3]
   ],
   "props": [
@@ -282,13 +282,10 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"19_17:1","x":617,"z":546,"mobs":["benalish-knight","elven-riders","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_17:2","x":636,"z":561,"mobs":["bog-wraith","craw-wurm","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
-    {"id":"19_17:3","x":610,"z":564,"mobs":["bog-wraith","lost-soul"],"radius":6,"respawnSeconds":600,"tier":2}
+    {"id":"19_17:1","x":616,"z":562,"mobs":["merfolk-raiders","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
+    {"id":"19_17:2","x":632,"z":570,"mobs":["keldon-warlord","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"19_17:c1","x":613,"z":574,"gold":[100,250],"respawnSeconds":86400}
-  ],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

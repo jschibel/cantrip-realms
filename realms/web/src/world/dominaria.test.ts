@@ -9,10 +9,10 @@ import type { MobFile } from "../../scripts/worldgen/wilds";
 import { BUILDINGS } from "../art/buildings";
 import { FIGURES } from "../art/figures";
 import { PALETTES } from "../art/paint/palette";
-import { PROPS } from "../art/props";
+import { PROPS, tilesOf } from "../art/props";
 import { ROOMS } from "../art/rooms";
 import { SURFACES } from "../art/surfaces";
-import { type ChunkData, type DungeonData, type InteriorData, RAMP, type WorldData, chunkKey, frontStep, isBlocked, parseChunkKey, tierAt, townAt } from "./format";
+import { type ChunkData, type DungeonData, type InteriorData, LEDGE, RAMP, type WorldData, chunkKey, frontStep, isBlocked, parseChunkKey, tierAt, townAt } from "./format";
 import { type KnownArt, type UnknownKind, checkChunk, checkInterior, checkWorld, lintRealm } from "./lint";
 import { gridOfChunks } from "./load";
 
@@ -50,6 +50,8 @@ const known: KnownArt = {
   palettes: new Set(PALETTES.keys()),
   propProblems: (p) => PROPS.problems(p.id, p),
   buildingProblems: (b) => BUILDINGS.problems(b.style, b),
+  propTiles: tilesOf,
+  liquid: (s) => SURFACES.has(s) && SURFACES.look(s).hole === true,
   onUnknown: (kind, id) => {
     let found = unknown.get(kind);
     if (!found) unknown.set(kind, (found = new Set()));
@@ -178,7 +180,7 @@ describe("Dominaria's files", () => {
     for (const d of dungeons.values()) if (d.waystone) expect([d.boss, d.tier]).toEqual([`mage-${d.id}`, Number(d.id.slice(d.id.lastIndexOf("-") + 1))]);
   });
 
-  it("are terraces: open ground level but at its ramps, a level only left by a ramp, and every ramp between two levels", () => {
+  it("are terraces: open ground level but at its ramps and ledges, a ledge a whole level high, and every ramp between two levels", () => {
     const [W, H] = world.size;
     const height = new Int16Array(W * H);
     const flags = new Uint8Array(W * H);
@@ -192,12 +194,20 @@ describe("Dominaria's files", () => {
     const open = (i: number) => (flags[i]! & 1) === 0;
     const ramp = (i: number) => (flags[i]! & RAMP) !== 0;
     let steps = 0;
+    let ledges = 0;
     let lone = 0;
     let ramps = 0;
     for (let i = 0; i < W * H; i++) {
       if (!open(i)) continue;
       const next = [i % W < W - 1 ? i + 1 : -1, i + W < W * H ? i + W : -1];
-      for (const j of next) if (j >= 0 && open(j) && !ramp(i) && !ramp(j) && Math.abs(height[i]! - height[j]!) > 4) steps++;
+      // Side by side, open ground is level (a step of LEDGE at most) or a ledge a whole level high, walked up to and never
+      // over (world/grid.ts canStep): nothing between, which would be neither a step nor a bank one sees.
+      for (const j of next) {
+        if (j < 0 || !open(j) || ramp(i) || ramp(j)) continue;
+        const rise = Math.abs(height[i]! - height[j]!);
+        if (rise > LEDGE && rise < 12) steps++;
+        if (rise >= 12) ledges++;
+      }
       if (!ramp(i)) continue;
       ramps++;
       // A ramp climbs: along one axis, ground (or ramp) below it on one side and above it on the other.
@@ -205,7 +215,8 @@ describe("Dominaria's files", () => {
       const across = (a: number, b: number) => (height[a]! < height[i]! && height[b]! > height[i]!) || (height[a]! > height[i]! && height[b]! < height[i]!);
       if (!(x > 0 && x < W - 1 && across(i - 1, i + 1)) && !(i >= W && i + W < W * H && across(i - W, i + W))) lone++;
     }
-    expect(steps, "open neighbours a level apart with no ramp between").toBe(0);
+    expect(steps, "open neighbours more than a step and less than a level apart").toBe(0);
+    expect(ledges).toBeGreaterThan(1000);
     expect(ramps).toBeGreaterThan(400);
     expect(lone, "ramps that climb nowhere").toBeLessThan(ramps * 0.02);
   });
