@@ -271,6 +271,14 @@ owner may extend.
   guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
   region's towns are built in its own style: Benalish stone and banners, Tolarian domes on Walassa, the Morass's dark stilt-houses,
   Keldon longhouses, Llanowar's tree-houses.
+  - **Every town is easy to cross.** Its streets are planned before anything is built: main streets from its gates
+    to the central square, where the shops are, and side streets that meet other streets in loops, never alleys to
+    nowhere - laid out as a grid in Benalia's cities, rings round the great hall or the great tree in Keld and Llanowar,
+    a high street between back lanes in a village. Buildings front the streets, their doors on them, and the walls meet
+    the roads at their gates.
+  - **The map shows the way.** In a town the minimap is the town's: its streets, buildings, gates and places - the inn,
+    the shops, the guild, the temple, the smithy, the quest board - and the whole map names each place and where each
+    gate's road leads.
   - **Vendors work inside their shops**, the armorer inside the smithy, the innkeeper inside the inn. A shop's sign says
     what it trades in.
   - An **inn**, where you respawn and set your home. The spell table is inside it, and another is in the mages' guild.

@@ -84,9 +84,18 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   editor. Chunks near the view are read and built a step at a time (the ground, terrain from heights, the scenery merged
   per chunk) and those far away are dropped; paths are found over the chunks read, a bounded search.
 - **The tier zones are shown:** the regional map (the minimap, opening to the whole world's) tints and borders each zone
-  in its tier's color with a legend, and marks the towns, dungeons and mage towers with their tiers, attuned waystones
-  lit; waymarkers in the tier's color and number stand where it rises; the HUD names the area and its tier, and says so
-  on crossing into a harder one; a wanderer under the pointer shows its name and tier.
+  in its tier's color with a legend, draws the roads between the places, and marks the towns, dungeons and mage towers
+  with their tiers, attuned waystones lit; waymarkers in the tier's color and number stand where it rises; the HUD names
+  the area and its tier, and says so on crossing into a harder one; a wanderer under the pointer shows its name and
+  tier.
+- **Towns are mapped:** in a town (or at its gates) the minimap is the town's map round the player instead
+  (`townMap.ts`, from the town's street plan in world.json): its streets and squares paved light with dark kerbs, its
+  buildings as blocks (those with a door brighter), its wall and gates, its key places as lettered icons (the inn and
+  the mages' guild with their spell tables, the shops, the exotic wares, the temple or shrine, the library or mage's
+  tower, the smithy and its armorer, the quest board, the arena, the caravans' pitch) with a legend under it; any
+  dungeon or tower near is marked as on the regional map. The whole map opens on the town's, as big as the window lets
+  it, every place named and every gate named for where its road leads ("To New Benalia"), and turns to the world's
+  map and back.
 - **Ferries** cross to the far isles along their lanes: the ferryman offers the crossing, the player rides the lane at a
   walk on the ferry's raft and steps off at the far dock. The lanes are closed to walking otherwise.
 - **Traders from other planes:** the overworld asks `GET /api/travelers` now and then, and stands each trader with their
@@ -162,8 +171,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 | `art/rooms/` | room recipes by interior kind, and `layoutRoom` |
 | `dungeon/` | the dungeon floors per theme, on squares |
 | `art/figures/` | the figure rig, bodies, palettes, gear parts per slot, every creature model, the NPCs |
-| `world/` | the world data format (types, loader, lint), the walk grid, and Dominaria's files (`realm.ts`) |
-| `game.ts`, `entities.ts`, `input.ts`, `hud.ts`, `screens/`, `net/`, `testHooks.ts` | the game around it |
+| `world/` | the world data format (types, loader, lint), towns' street plans (`streets.ts`), the walk grid, and Dominaria's files (`realm.ts`) |
+| `game.ts`, `entities.ts`, `input.ts`, `hud.ts`, `townMap.ts`, `screens/`, `net/`, `testHooks.ts` | the game around it |
 
 Each recipe module is a registry: an id maps to a pure function from a recipe and a palette to meshes and materials.
 The world data names ids; nothing in the world data is three.js.
@@ -287,7 +296,16 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   open and reached, the rest reached beside, interiors in the towns their doors stand in, entrances and dungeons where
   world.json says with spell tables and waystones beside them and an open step out, spawns of their zone's tier and their
   mobs', tiers growing with distance, waymarkers at rises, ferry lanes walks from dock to dock with ferrymen, pitches open
-  in their towns, spell tables spell-table NPCs. src/world/dominaria.test.ts runs it on Dominaria.
+  in their towns, spell tables spell-table NPCs, and each town's streets (`lintTown`, below). src/world/dominaria.test.ts
+  runs it on Dominaria. `lintTown(town, open, buildings, limits?)` holds a town to its street plan: its nodes, ways,
+  gates and places well formed; every way's ends, every door of the town and every key place walked to from every gate
+  along the open street tiles alone (every door opening onto a street); no street running on more than a lot's depth
+  (`TOWN_LIMITS.spur`, 8 tiles) past its last junction to end at no door; and no walk along the streets between two key
+  places (its gates, doors and what is used from beside it, at least `apart` 12 tiles apart, gate to gate aside: the road
+  outside joins those) longer than `detour` (2) times the straight line between them.
+- streets.ts: a town plan's tiles as the generator paves them, the lint walks them and the maps draw them - `lineTiles`
+  (a straight run, four-connected), `pathTiles`, `brushOf`, `wayPoints`, `wayMiddle`, `wayTiles` (a way's middle line
+  widened by its square brush), `inSquare`, `squareTiles`, `streetTiles`, `inPolygon`.
 - grid.ts: `Grid`, the square A* (eight ways, never cutting a blocked corner), with `setWalkable`, `setHeight`,
   `raise`, `block`, `heightAt`, `walkable`, `path`.
 
@@ -363,8 +381,9 @@ What the renderer does with the interfaces above at the scale of the whole world
 - **The game page** (`index.html`, `src/main.ts`, `game.ts`, `entities.ts`, `input.ts`, `testHooks.ts`) runs on the
   stage over the generated Domains (`world/realm.ts`), or `?world=slice` / `?world=large` for tests. Positions are
   `{Space, X, Z}`, presence paths `[x, z]` from the open tile the player stands on along the grid's path, speeds at most
-  5 tiles a second, nearness Chebyshev. The minimap is the regional map in the world and the place's tiles in a room
-  or a run (`Hud.drawMap`, `Hud.drawSquares`). Dungeon runs are the floors of `dungeon/` (`Overworld.floors`), the
+  5 tiles a second, nearness Chebyshev. The minimap is the regional map in the world, the town's map in a town, and the
+  place's tiles in a room or a run (`Hud.drawMap`, `Hud.drawSquares`); the town's map draws the buildings of the chunks
+  loaded (`Hud.chunks`). Dungeon runs are the floors of `dungeon/` (`Overworld.floors`), the
   dungeons the world's `dungeons/<id>.json` (`Overworld.dungeons`). `realmTest` publishes tiles as `{x, z}`.
 
 #### Adding to the art
@@ -786,7 +805,8 @@ stepping onto `wayOut` (`/api/dungeon/leave`). The fights stand on `spots`: each
 The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about five seconds) writes Dominaria from
 `realms/content/dominaria/layout.json` (ported to squares) and the mob roster; `npm run world:map` draws it from above
 (`realms/web/e2e/screenshots/world2/`: world.png, zones.png, terraces.png and a close-up of the Hurloon terraces, a picture of
-every town, stretches of each kind of country). The hex generator is gone.
+every town, stretches of each kind of country; `npm run world:map -- <dir> towns` the towns alone). The hex generator
+is gone.
 
 - **Size.** 1024 by 1216 tiles from `[0, 0]`, 32 by 38 chunks (1,216 files), no `bounds`. Sized for walking at 4.2 tiles a
   second: four to five minutes north to south in a straight line; New Benalia's walls to Capashen Hold's or the elfhames'
@@ -794,8 +814,8 @@ every town, stretches of each kind of country). The hex generator is gone.
   seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
   the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
   where the old map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 461 buildings, 139 interiors, 36 dungeons (20 mage towers), 840 spawns, 223 chests,
-  116 waymarkers, about 45,000 props, 4 ferries, 34 roads. The files come to about 20 MB.
+- **Counts** (seed 1997): 16 towns, 512 buildings, 145 interiors, 36 dungeons (20 mage towers), 842 spawns, 239 chests,
+  119 waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB.
 - **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
   0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.
   Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
@@ -806,28 +826,43 @@ every town, stretches of each kind of country). The hex generator is gone.
   shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles side by side
   are level (a bridge's 4 texels at most) unless one is a ramp, and every ramp climbs. `RAMP` is the renderer's format
   addition, mirrored here (format.ts and the lint accept flags 0-7).
-- **Towns** are laid out by their `form` (layout.json; towns.ts):
+- **Towns** are laid out by their `form` (layout.json; towns.ts), their streets planned whole before anything is built
+  (plan.ts) and kept in world.json (`towns[].plan`, interfaces.md "Town plans") for the maps and the lint:
   - the outline is a polygon of 9 to 13 corners round the centre, pulled in from the coast, rivers and cliffs, inside the
-    town's square (`radius` along x and z, what the server calls the town); spawns, chests and waymarkers keep out of
-    the square and its apron;
+    town's square (`radius` along x and z, what the server calls the town), straightened across each gate; spawns,
+    chests and waymarkers keep out of the square and its apron;
   - a wall (`wall-run`s along each edge, cut at chunk edges and 16 tiles at most, `wall-tower`s at the corners and beside
     the gates, a `gatehouse` in each gate, `args.kind` wall or palisade), or hedgerows, or nothing, with a gate where each
-    road arrives (each road picks the cheapest) and onto the harbour (with its `pier`);
-  - main streets jogging along x and z from the gates to the central square, a lane inside a big town's walls, lanes
-    branching at right angles off the main streets and the square (wandering in an elfhame and the Morass), meeting or
-    ending; plazas: the capital's market, a cathedral's close, the arena, a campus's courtyards;
+    road arrives and onto the harbour (with its `pier`): on the side facing the road, where a street of the plan meets the
+    outline (a main street first), its way out straight along x or z and the wall square across it;
+  - the streets in one of three shapes. A **grid** (`capital`, `city`, `campus`, `estate`): the central square a block
+    of its own, framed by four main streets (4 tiles wide in the capital, 3 elsewhere) running wall to wall, a lane (2)
+    every block beyond them (21 by 19 tiles in the capital, 20 by 18 in a city or the estate, 23 by 20 on the campus:
+    two lots deep and their back yards). **Rings** (`clan`, `elfhame`): a round square, an octagonal ring round it at
+    about half the radius, four main spokes from the square out through the ring, and lanes from the ring out between
+    them. A **ladder** (`village`, `stilts`, and any town under 30 tiles across but an elfhame, which keeps a small
+    ring): a high street along the first road's way and a cross street through the square, inside a loop of back lanes.
+    A town of 30 tiles or more has a lane inside its walls (round its edge where it has none) that every street of the
+    grid or the rings runs out to; each gate's way runs straight in to the first street it meets. Every street ends at
+    another street, a square or a gate - what would end nowhere is left out - and the plan loses the lanes through a
+    landmark's ground (the citadel, a keep, the estate's manor, a temple bigger than a block) and, in a grid, a share of
+    the lanes between lanes (a bigger block here and there), never in two pieces; plazas open beside the streets where
+    the town needs them: the capital's market, a cathedral's close, the arena (its gate at the middle of its side along
+    a street), a campus's courtyards. dominaria.test.ts lints every town's streets (`lintTown`): walked from every gate
+    to every door, no dead end, no long way round between its key places;
   - districts round seeds - market, temple close, keep (New Benalia's citadel, Capashen Hold's keep), the nobles' manors
     (the Seven Houses), artisans by a gate, harbour, residential, outskirts toward the edge, park, orchard (rows of
     `fruit-tree`), allotments, the Vess estate's grounds (hedges and gravestones) - each building its own way: terraces
     along a main street, detached houses with yards toward the edge, warehouses by the water;
   - the forms: `capital` and `city` (Benalia: dense stone, long straight stretches), `village` (hedged hamlets),
-    `elfhame` (Llanowar's: no wall, tree-houses spread among `great-tree`s, some with a `tree-platform`, winding
-    paths), `stilts` (the Morass's: boardwalks of `planks` over `bog`, houses with `params.stilts`), `clan` (Keld's:
-    longhouses deep off their paths round the great hall - the temple - in a palisade), `campus` (Tolarian: buildings
-    round grass courtyards), `estate` (the Vess manor, its grounds and outbuildings, walled);
+    `elfhame` (Llanowar's: no wall, tree-houses spread among `great-tree`s, some with a `tree-platform`), `stilts` (the
+    Morass's: boardwalks of `planks` over `bog`, houses with `params.stilts`), `clan` (Keld's: longhouses deep off their
+    ways round the great hall - the temple - in a palisade), `campus` (Tolarian: buildings round grass courtyards),
+    `estate` (the Vess manor, its grounds and outbuildings, walled);
   - landmarks first and much bigger (kinds `keep` and `manor`; the cathedral, the great hall), then the town's own
-    buildings: the inn on a main street by a gate, the shops round the square and the market, the guildhall, temple,
-    library or tower, the smithy among the artisans, houses with interiors; then the rows. Every building faces the street
+    buildings, each on a main street or a square where one is near enough: the inn on a main street by a gate, the
+    shops round the square and the market, the guildhall, temple, library or tower, the smithy among the artisans;
+    houses with interiors (three in every village); then the rows along every street. Every building faces the street
     its door opens on; one with an interior faces south, west or east (never north, away from the camera), its `door`
     the street tile before its front at the `at` of its `door` opening. The town's own buildings take their interiors'
     ids (`<town>-inn`, `<vendor>-shop`, `<town>-guildhall`, `-temple`, `-library` or `-tower`, `-smithy`,

@@ -181,7 +181,8 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   `realms/web/src/world/format.ts`). Dominaria is 1024 by 1216 tiles from `[0, 0]` (32 by 38 chunks), no `bounds`.
   `world/world.json` holds `{size: [width, height], chunk: 32, tile: 1, seed, regions: [{color, name, tiles}] (each
   colored region and how many tiles of land it has), towns: [{id, name, kind: capital|town|village, center: [x, z],
-  radius, style, region (a color, optional), start, home (a color, optional)}], inns: [{id, town, x, z, interior}] (the
+  radius, style, region (a color, optional), start, home (a color, optional), plan (its streets: "Town plans",
+  below)}], inns: [{id, town, x, z, interior}] (the
   inn's door tile, outside, which is its interior's `exit`), dungeons: [{id, x, z}], roads: [{from, to, tiles: [[x, z],
   ...]}] (each road's middle line, tile by tile, edge to edge), ferries, pitches, zones, overview}`:
   - a town is the square of tiles within `radius` of its `center` along x and along z (Chebyshev distance; `inTown`,
@@ -233,8 +234,8 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   beside everything not stood on), every door has its interior in the town the door stands in, every entrance its
   dungeon where world.json and the dungeon say, with its spell table (and a tower's waystone) beside it, each spawn's
   tier is its zone's and its mobs', tiers grow with distance, waymarkers stand at rises, ferries' lanes are walks with a
-  ferryman at each dock, pitches stand open in their towns, every id the art does not have is a documented placeholder,
-  and the files are what the generator writes.
+  ferryman at each dock, pitches stand open in their towns, each town's streets are as its plan says ("Town plans",
+  below), every id the art does not have is a documented placeholder, and the files are what the generator writes.
 - **Interiors.** `interiors/<id>.json` is a room in the version-2 format (below): `{id, name, kind, town, style,
   w, d, area, tiles, props, npcs, lights, entry: [x, z], exit: [x, z]}`, `exit` the world tile it comes out on - its
   building's door tile - and `entry` its own tile at the door (stepping onto it leaves; one arrives a step in from it).
@@ -266,6 +267,32 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   exactly the encounters the run names, each with its mob. world.json's `dungeons` places each at its entrance, where a
   chunk's `entrances` leads into it.
 
+#### Town plans
+
+A town in world.json carries its street plan, `plan` (`TownPlan` in format.ts; tiles of it in
+`realms/web/src/world/streets.ts`), which the overworld's maps draw and the lint walks; the server reads nothing of it:
+
+- `outline`: the corners of the town's outline, `[x, z]` tiles in order round it, which its wall, hedge or edge runs
+  along (corner to corner in four-connected straight runs); `enclosure`: `wall`, `palisade`, `hedge` or `none`.
+- `nodes`: `[[x, z], ...]`, the streets' junctions and ends; `ways`: `[{a, b, width, main?, via?}]`, each street between
+  two junctions - nodes `a` and `b` (indices into `nodes`), its corners `via` between them - its tiles the straight
+  four-connected runs from `a` through `via` to `b`, each run's tile widened by a square brush `width` tiles across
+  (from `-floor((width - 1) / 2)` to `width - 1` more); `main` marks a main street (a gate's way in, those round or
+  across the square).
+- `squares`: `[{x, z, w, d, round?, name?}]`, the squares and plazas (the square, the market, a temple's close, the arena,
+  a courtyard): `w` by `d` tiles from `(x, z)`, or the ellipse within them when `round`.
+- `gates`: node indices, each gate's way out: the open tile outside the gate where a road arrives (a harbour's on its
+  quay).
+- `places`: `[{kind, name, x, z}]`, the places the maps name: the door tile of an `inn`, `shop`, `exotic-wares`,
+  `guildhall`, `temple`, `shrine`, `library`, `tower` or `smithy`, the tile of the `quest-board` and the `arena`'s gate
+  (used from beside them), and the caravans' `pitch`.
+
+Every street tile of the town is a tile of a way or a square, and every door into the town's buildings opens onto one.
+The lint (`lintTown`) holds a town to its plan: every way's ends, every door and every place walked to from every gate
+over the open street tiles alone; no street running on more than a lot's depth (8 tiles) past its last junction to end
+at no door; and no walk along the streets between two of its key places at least 12 tiles apart (gate to gate aside)
+longer than twice the straight line between them.
+
 #### Version 2 of the world data (types in `realms/web/src/world/format.ts`)
 
 The art slice's small world is `realms/web/fixtures/slice-world`.
@@ -276,7 +303,7 @@ The art slice's small world is `realms/web/fixtures/slice-world`.
     camera keeps its view - tiles past it are scenery seen from a corner (the sample's wood round its edges). Dominaria
     keeps `origin` [0, 0] and no `bounds`.
   - plus the existing content: `regions` (`{color, name, tiles}`), `towns` (with `style`, `center: [x, z]`, `radius`,
-    `start`, `home`), `inns` (`{id, town, x, z, interior}`), `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x,
+    `start`, `home`, `plan`), `inns` (`{id, town, x, z, interior}`), `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x,
     z}`), `roads` (`{from, to, tiles}`), `zones` (the tier grid: squares of `cell` tiles from the origin), `overview`.
   - Every position is `[x, z]` in tiles, with x east and z south; an entity in a list has fields `x` and `z`.
 - `chunks/<cx>_<cz>.json`, 32 by 32 tiles, chunk (cx, cz) holding x from `cx * 32`, likewise z (negative chunks are
