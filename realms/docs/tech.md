@@ -916,7 +916,9 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
 - **The lab** (built): `tools\realms\balance.cmd`, the console app `realms/dotnet/Cantrip.Realms.Balance`
   (`cantrip-realm-balance`). It plays whole duels on the native engine with no server: each is the `Duel` the realm
   server would deal for that player and mob (`Encounters.Deal`, `PlayerSeat`, `MobSeat`: the player's deck, stats and
-  gear emblems against the mob's deck, stats with its gear's, and its gear's emblems), played to its end on the
+  gear emblems against the mob's deck, stats with its gear's, and its gear's emblems; a color boss with what its dungeon's
+  run adds for the player's standing to its color, `Dungeons.BossGains`, the reference's first color its starting one),
+  played to its end on the
   browser's `DuelTable`, the player's seat by the tactical bot and the mob's by `RealmBot` on the duel's seed. Each game's
   seed comes from the run's seed, the player, the mob and the game's number, so a run is repeatable; the win rates are a
   deliberate statistical sample, reported with Wilson 95% intervals by tier (wanderers apart from the mages and
