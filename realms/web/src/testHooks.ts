@@ -150,7 +150,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const o = live();
       if (!o) return null;
       const hud = o.hud;
-      return { drawn: hud.hasWorldMap ? hud.zones().drawn : [], markers: hud.mapState.markers.map((m) => ({ id: m.id, kind: m.kind, tier: m.tier, lit: m.lit ?? null })), centre: hud.mapState.centre, open: hud.mapOpen };
+      return { drawn: hud.hasWorldMap ? hud.zones().drawn : [], markers: hud.mapState.markers.map((m) => ({ id: m.id, kind: m.kind, tier: m.tier, lit: m.lit ?? null, well: m.well ?? null, won: m.won ?? null })), centre: hud.mapState.centre, open: hud.mapOpen };
     },
     /** The tier the map draws at a world tile, and the world's data's. */
     zoneAt(x: number, z: number) {

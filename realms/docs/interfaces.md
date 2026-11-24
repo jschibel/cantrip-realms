@@ -120,7 +120,8 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `gear` names gear items the mob wears, whose stats and emblems it starts with as a player does.
 - `loot` filters the plane's pool for the three cards offered after a win.
 - A boss has `"boss": true` and `"unlocks": "W"`. A plane's capstone boss (`phyrexian-praetor`) has no `unlocks`: it
-  ends the arc instead, and the relics drop from it.
+  ends the arc instead, and the relics drop from it. A boss names its own unique gear item, `"unique": "<gear id>"` (a
+  gear item with `"unique": true`), and its loot holds rares or mythics for its gift (`/api/encounter/finish`).
 - `model.mesh` is a mob mesh and `model.palette` its colors (Models, below).
 - `creature` is the card the mob is (design.md A6): a creature (or, for a mage, a planeswalker) card the engine plays,
   held in its deck - a wanderer's name is its creature's, and its deck holds 2 to 4 of it.
@@ -478,12 +479,13 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}]}`: the run, its seed for the layout, and every encounter it holds; the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null}`: the run, its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `GET /api/dungeon/run` | | the character's live run, as `/api/dungeon/enter` gives it with `Dungeon`, `Floor` (the floor reached) and `Beaten` (the encounters won, `<floor>:<index>`): what a reload resumes; 404 `NotThere` with none |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside one of its `waystone` NPCs' tiles, or its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
-| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail}`; 404 `NoDuel`, 409 `Finished` |
+| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail, Gift, Unlocked}`; 404 `NoDuel`, 409 `Finished` |
 | `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
 | `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common); 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
 | `POST /api/position` | `{Space, X, Z}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
@@ -517,7 +519,11 @@ player with no character is 404 `NoCharacter`.
   `NotThere`), that `Index` is an encounter of that floor (404 `NotThere`) not yet fought (409 `TooSoon`), and that `Mob`
   is its mob (409 `NotThere`). A floor's encounters are indexed from 0; its warden's index is the count of its
   encounters, its boss's one more. Losing any duel of a run ends the run; beating the boss of a dungeon with a waystone
-  attunes it.
+  attunes it. A boss (`"boss": true`) beaten rests for a week (`Dungeons.BossRest`, from the win): a run begun meanwhile
+  has no boss on its last floor (so its boss's index is no encounter), and says so in `Resting`. A mage or a wanderer
+  that ends a dungeon never rests.
+- A deck is saved (`PUT /api/deck`) beside a spell table of the world or an interior, or in a dungeon's antechamber: the
+  first floor of a live run of the character's, whose spell table is the layout's (the server takes any tile of a run).
 - `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
   the character at the inn - and the call is refused 409 `Unfinished`); the spawn (404 `NotThere`); that the mob
   is one of the spawn's (409 `NotThere`); that the character is in the world within `radius + 8` tiles of the spawn point
@@ -533,7 +539,11 @@ player with no character is 404 `NoCharacter`.
   null), already the character's: 10, 15, 20 or 30 wins in a hundred by tier, common in tiers 1 and 2, uncommon in 3, rare
   in 4; a boss always drops its unique. `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
   other win and every loss. A win against a boss rolls, at its chance, each relic whose entry names that boss and that is
-  not in the account's relic ledger. The roll is apart from the offer and outside the cap. Each relic that comes up is
+  not in the account's relic ledger. The roll is apart from the offer and outside the cap. A win against a boss also
+  gives `Gift`, one rare or mythic of its loot (of its loot's subtypes where it has any), into the collection at once,
+  whatever the ante and outside the cap, one the offer does not hold where it can; `Unlocked` names the color the win
+  unlocked, null when it was held already (or for the capstone); its `Gear` is its own unique item while the character
+  owns none of it, else a rare or mythic item that is no unique. Any other win's `Gift` and `Unlocked` are null. Each relic that comes up is
   added to the collection and to the ledger in the same transaction as the win. A loss moves the character to their inn
   (Places), and ends the dungeon run it was fought in.
 - `Duel`: everything the browser deals the game from - `{Seats: [the NewGame seat of docs/host-protocol.md, with

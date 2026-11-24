@@ -411,7 +411,9 @@ export class MockApi implements RealmApi {
           const colors = [...c.Unlocked, mob.unlocks];
           this.update({ Unlocked: colors, Identity: "WUBRG".split("").filter((l) => c.Identity.includes(l) || l === mob.unlocks).join("") });
         }
-        const rares = CARDS.filter((k) => k.Gold >= 120);
+        // The stand-in's dearest cards of the boss's color stand for its loot's rares.
+        const colored = CARDS.filter((k) => k.Color === mob.unlocks);
+        const rares = (colored.length > 0 ? colored : CARDS).filter((k, _, all) => k.Gold >= Math.max(...all.map((c) => c.Gold)) * 0.5);
         gift = rares[Math.floor(this.random() * rares.length)]!.Name;
         this.cards[gift] = (this.cards[gift] ?? 0) + 1;
         const own = mob.unique ? catalogueGear(mob.unique) : null;

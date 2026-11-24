@@ -230,14 +230,24 @@ owner may extend.
 - **Dungeon runs:**
   - 3–5 floors each, generated anew each run. Each floor ends at a stair guarded by a floor warden. The boss waits on the
     last floor.
-  - Within a run, beaten mobs stay beaten, and the run remembers the floor reached until it ends. Leaving, or losing a duel,
-    ends the run; the next run is a new layout from the first floor.
-  - The entrance has a spell table.
+  - Within a run, beaten mobs stay beaten, and the run remembers the floor reached until it ends: closing the page and
+    coming back resumes it on that floor. Leaving, or losing a duel, ends the run; the next run is a new layout from the
+    first floor. A lost duel wakes you at your inn with what the run won (gold, cards, gear) kept, and a card of the ante
+    lost as any loss takes one.
+  - The entrance has a spell table, outside in the world and inside on the first floor (the antechamber).
   - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
     traits. Smaller dungeons dot the wilderness (a cave, a ruined watchtower) for lower tiers.
 - **Bosses:**
   - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
-  - You can fight them again each week for loot.
+    - The color is yours at once: the HUD's five pips light it (the locked ones stay faint rings), a panel marks the
+      moment, and every spell table takes its cards and basic lands from then on.
+    - The rare or mythic is the boss's **gift**: one card of its loot, straight into the collection, whatever the ante and
+      outside the prize cap. The usual 3-card offer under the cap comes beside it.
+    - The unique item is the boss's own (the mob file names it); once you own it, a later win drops a rare or mythic
+      item instead, never a second unique.
+  - You can fight them again each week for loot: a boss beaten **rests a week** from the win. A run begun meanwhile
+    finds its hall empty, says when it is back, and its way out stands open.
+  - The regional map rings each boss's dungeon in its color, filled once that color is yours.
   - **Capstone:** once all five colors are unlocked, the Phyrexian Portal opens. A five-color praetor boss ends the Dominaria arc, and later planes come in as data packs.
 - **The Phyrexian Portal** (the capstone dungeon):
   - Its gate stands in the desolate waste between Keld and the rest of the Domains, and belongs to no region.
