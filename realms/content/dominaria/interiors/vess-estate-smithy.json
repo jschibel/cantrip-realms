@@ -1,6 +1,6 @@
 {
   "id": "vess-estate-smithy",
-  "name": "The The Vess Estate Smithy",
+  "name": "The Vess Estate Smithy",
   "kind": "smithy",
   "town": "vess-estate",
   "style": "morass",
@@ -47,5 +47,5 @@
     {"kind":"point","at":[9.9875,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [5,6],
-  "exit": [365,428]
+  "exit": [364,425]
 }

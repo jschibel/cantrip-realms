@@ -2,14 +2,14 @@
   "cx": 11,
   "cz": 30,
   "tiles": [
-    [0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],
-    [0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",2],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],
+    [0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],
     [0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -36,23 +36,17 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
   "props": [
-    {"id":"boulder","x":352.375,"z":960.375,"seed":9,"scale":1.25},
-    {"id":"tree","x":365.5,"z":960.4375,"seed":0,"scale":0.875},
-    {"id":"tree","x":353.4375,"z":961.625,"seed":4,"scale":0.875},
-    {"id":"stump","x":370.4375,"z":962.5,"seed":3},
-    {"id":"bush","x":371.375,"z":963.5625,"seed":8,"scale":1},
-    {"id":"bush","x":355.4375,"z":964.4375,"seed":5,"scale":1.25},
-    {"id":"tree","x":369.4375,"z":967.4375,"seed":11,"scale":1.125}
+    {"id":"tree","x":377.4375,"z":960.4375,"seed":8,"scale":1},
+    {"id":"tree","x":359.5,"z":962.4375,"seed":3,"scale":0.875},
+    {"id":"bush","x":370.5625,"z":964.375,"seed":11},
+    {"id":"boulder","x":355.5,"z":964.4375,"seed":6,"scale":1},
+    {"id":"boulder","x":368.5625,"z":964.5625,"seed":2,"scale":1},
+    {"id":"bush","x":367.625,"z":966.625,"seed":7,"scale":1.1875}
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"11_30:1","x":373,"z":960,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
-    {"id":"11_30:2","x":352,"z":965,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
-  "chests": [
-    {"id":"11_30:c1","x":367,"z":964,"gold":[50,150],"respawnSeconds":86400}
-  ],
+  "spawns": [],
+  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

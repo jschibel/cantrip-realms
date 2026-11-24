@@ -64,9 +64,8 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"22_4:1","x":709,"z":133,"mobs":["mahamoti-djinn","sengir-vampire","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"22_4:2","x":722,"z":145,"mobs":["marhault-elsdragon","rorix-bladewing","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"22_4:3","x":733,"z":158,"mobs":["karplusan-yeti","shivan-dragon","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"22_4:1","x":711,"z":134,"mobs":["mahamoti-djinn","tarmogoyf","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"22_4:2","x":722,"z":149,"mobs":["serra-angel","shivan-dragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [],
   "entrances": [],

@@ -44,9 +44,7 @@
   ],
   "buildings": [],
   "npcs": [],
-  "spawns": [
-    {"id":"21_3:1","x":672,"z":111,"mobs":["karplusan-yeti","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
+  "spawns": [],
   "chests": [],
   "entrances": [],
   "waymarkers": []

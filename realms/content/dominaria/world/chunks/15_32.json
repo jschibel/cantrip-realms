@@ -32,16 +32,14 @@
     [0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [0,"grass",0],[0,"grass",2],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
-  "props": [
-    {"id":"stump","x":481.375,"z":1054.5,"seed":1}
-  ],
+  "props": [],
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_32:1","x":486,"z":1055,"mobs":["commander-eesha","eater-of-the-dead","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
+    {"id":"15_32:1","x":486,"z":1055,"mobs":["air-elemental","guardian-of-new-benalia","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
   "chests": [],
   "entrances": [],

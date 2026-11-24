@@ -2,7 +2,7 @@
   "cx": 18,
   "cz": 4,
   "tiles": [
-    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],
+    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",1],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],
@@ -77,11 +77,14 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"18_4:1","x":590,"z":136,"mobs":["enormous-baloth","serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"18_4:2","x":605,"z":148,"mobs":["sengir-vampire","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
-    {"id":"18_4:3","x":589,"z":156,"mobs":["mahamoti-djinn","serra-angel","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4}
+    {"id":"18_4:1","x":602,"z":130,"mobs":["marhault-elsdragon","sengir-vampire","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"18_4:2","x":580,"z":135,"mobs":["fallen-angel","serra-angel","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"18_4:3","x":601,"z":157,"mobs":["serra-angel","sibilant-spirit","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
+    {"id":"18_4:4","x":580,"z":159,"mobs":["tempest-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"18_4:c1","x":580,"z":128,"gold":[300,500],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

@@ -20,7 +20,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[12,"tundra",1],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[12,"tundra",3],[12,"tundra",0],
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",3],[0,"ice",0],[0,"tundra",0],[12,"tundra",3],[12,"tundra",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"scree",0],[0,"scree",0],[12,"scree",1],[12,"scree",0],[12,"scree",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",3],[12,"tundra",1],[12,"tundra",1],[12,"tundra",1],[12,"tundra",1],[12,"tundra",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"scree",2],[0,"scree",0],[0,"scree",0],[12,"scree",1],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[24,"scree",1],
@@ -49,9 +49,11 @@
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"15_4:1","x":504,"z":145,"mobs":["balduvian-barbarians","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1}
+    {"id":"15_4:1","x":493,"z":148,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"15_4:c1","x":507,"z":146,"gold":[50,150],"respawnSeconds":86400}
+  ],
   "entrances": [],
   "waymarkers": []
 }

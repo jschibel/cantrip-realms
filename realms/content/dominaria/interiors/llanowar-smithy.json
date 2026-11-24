@@ -1,6 +1,6 @@
 {
   "id": "llanowar-smithy",
-  "name": "The The Elfhames of Llanowar Smithy",
+  "name": "The Elfhames of Llanowar Smithy",
   "kind": "smithy",
   "town": "llanowar",
   "style": "llanowar",
@@ -44,5 +44,5 @@
     {"kind":"point","at":[1.29375,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [5,6],
-  "exit": [718,842]
+  "exit": [706,861]
 }
