@@ -54,14 +54,14 @@ public sealed partial class MainPage
             Background = Theme.Brush(Theme.Bar),
             BorderBrush = Theme.Brush(Theme.Line),
             BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(0, 0, 8, 8),
+            CornerRadius = new CornerRadius(0, 0, 0, 8),
             Padding = new Thickness(14, 6, 8, 6),
-            HorizontalAlignment = HorizontalAlignment.Center,
+            // In the table's top right corner, clear of the opponent's rail and of the middle, where their cards are laid.
+            HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Visibility = Visibility.Collapsed,
             Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { _duelBarText, _duelConcede } },
         };
-        Grid.SetColumnSpan(_duelBar, 2);
         Root.Children.Add(_duelBar);
 
         _duelEndTitle = new TextBlock { FontSize = 30, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center };
@@ -121,10 +121,134 @@ public sealed partial class MainPage
             return;
         }
 
-        ShowRealmLoading($"Duel against {duel.Mob.Name}", "Loading the rules engine...");
+        // The engine loads behind the splash, which waits only on the cards' faces.
+        Task engine = LoadEngineAsync();
+        ShowRealmLoading($"Duel against {duel.Mob.Name}", "The duel is beginning...");
+        await EnsureRealmCatalogAsync();
+        if (!StillOpen(command))
+        {
+            return;
+        }
+
+        ShowDuelSplash(command, duel, engine);
+    }
+
+    /// <summary>The rules engine, loaded once for every duel; a load that failed is tried again by the next.</summary>
+    private Task? _engineLoad;
+
+    private Task LoadEngineAsync()
+    {
+        if (_engineLoad is null || _engineLoad.IsFaulted || _engineLoad.IsCanceled)
+        {
+            _engineLoad = BrowserEngine.LoadAsync(ClientConfig.Engine);
+        }
+
+        return _engineLoad;
+    }
+
+    private const float SplashWidth = 200f;
+    private CardBoardElement? _splashBoard;
+    private List<string> _splashCards = [];
+
+    /// <summary>
+    /// The encounter's splash (design.md A3): who the mob is - its tier, its life and hand, its gear's traits - three cards
+    /// of its deck, and what the duel is for - the ante, the prize cap and the gold it carries. The duel is dealt when the
+    /// player goes on (Fight).
+    /// </summary>
+    private void ShowDuelSplash(RealmCommand command, Duel duel, Task engine)
+    {
+        DuelSeat mob = duel.Seats[1];
+        DuelSeat me = duel.Seats[0];
+        _splashCards = [.. SplashCards(mob)];
+
+        var body = new StackPanel { Spacing = 10, MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left };
+        body.Children.Add(new TextBlock
+        {
+            Text = $"{mob.StartingLife} life  ·  a hand of {mob.StartingHandSize}  ·  {mob.Deck.Count} cards",
+            FontSize = 15,
+            Foreground = Theme.Brush(Theme.Fg),
+        });
+        string traits = mob.Emblems.Count == 0 ? "No gear of note." : $"Wears {string.Join(", ", mob.Emblems.Select(GearName))}.";
+        body.Children.Add(new TextBlock { Text = traits, FontSize = 13, Foreground = Theme.Brush(Theme.FgSoft), TextWrapping = TextWrapping.Wrap });
+        body.Children.Add(RealmHeading("From its deck"));
+        _splashBoard = RealmBoard("splash", SplashWidth, _ => { });
+        body.Children.Add(_splashBoard);
+        body.Children.Add(RealmHeading("At stake"));
+        string gold = GoldRange(command.Args) is { } range ? $"It carries {Gold(range.Low)} to {Gold(range.High)}" : "It carries some gold";
+        body.Children.Add(new TextBlock
+        {
+            Text = duel.AnteValue == 0
+                ? $"{gold}. Your ante is empty, so a win offers no cards: set an ante at a spell table to play for them."
+                : $"{gold}. Your ante is worth {Gold(duel.AnteValue)}: a win offers cards up to the prize cap of {Gold(duel.Cap)}; a loss costs a card of your ante.",
+            FontSize = 13,
+            Foreground = Theme.Brush(Theme.FgSoft),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        body.Children.Add(new TextBlock
+        {
+            Text = $"You: {me.StartingLife} life, a hand of {me.StartingHandSize}{(me.Emblems.Count > 0 ? $", {string.Join(", ", me.Emblems.Select(GearName))}" : string.Empty)}.",
+            FontSize = 13,
+            Foreground = Theme.Brush(Theme.FgSoft),
+            TextWrapping = TextWrapping.Wrap,
+        });
+
+        ShowRealmScreen($"{duel.Mob.Name} attacks!", RealmScroll(body));
+        _realmFacts.Text = $"{(duel.Mob.Tier == 0 ? "boss" : $"tier {duel.Mob.Tier}")}  ·  ante {Gold(duel.AnteValue)}  ·  prize cap {Gold(duel.Cap)}";
+        DockButton? fight = null;
+        fight = RealmAction("Fight", primary: true, () =>
+        {
+            if (fight is null || !fight.Enabled)
+            {
+                return;
+            }
+
+            fight.Enabled = false;
+            fight.Caption = "Dealing...";
+            _ = DealDuelAsync(command, duel, engine);
+        });
+        LayOutSplash();
+    }
+
+    /// <summary>Three cards of a mob's deck to show: its own card first, then its most numerous others; no basic land.</summary>
+    private static IEnumerable<string> SplashCards(DuelSeat mob) =>
+        mob.Deck
+            .Select((name, i) => (Name: name, Place: i))
+            .GroupBy(card => card.Name, StringComparer.Ordinal)
+            .Where(group => !BasicLands.Contains(group.Key))
+            .OrderBy(group => group.Key == mob.Name ? 0 : 1)
+            .ThenByDescending(group => group.Count())
+            .ThenBy(group => group.First().Place)
+            .Take(3)
+            .Select(group => group.Key);
+
+    private static readonly HashSet<string> BasicLands = new(StringComparer.Ordinal) { "Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes" };
+
+    /// <summary>The mob's gold range, as the overworld sent it (<c>mob.goldRange</c>), or null.</summary>
+    private static (long Low, long High)? GoldRange(JsonElement args) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty("mob", out JsonElement mob) && mob.ValueKind == JsonValueKind.Object
+        && mob.TryGetProperty("goldRange", out JsonElement range) && range.ValueKind == JsonValueKind.Array && range.GetArrayLength() == 2
+        && range[0].TryGetInt64(out long low) && range[1].TryGetInt64(out long high)
+            ? (low, high)
+            : null;
+
+    private void LayOutSplash()
+    {
+        if (_splashBoard is null || _realmOpen?.Screen != "duel" || _duel is not null)
+        {
+            return;
+        }
+
+        List<CardBoardElement.BoardCell> cells = [.. _splashCards.Select((name, i) =>
+            new CardBoardElement.BoardCell(RealmFace(name, RealmHandleBase + i), 0, 0, Tapped: false, Dimmed: false, Selected: false, Clickable: false, Annotation: null))];
+        LayRealmRow(_splashBoard, SplashWidth, _realmContent.ActualWidth, cells);
+    }
+
+    /// <summary>Deals the duel once the engine is in, and opens the table over the splash.</summary>
+    private async Task DealDuelAsync(RealmCommand command, Duel duel, Task engine)
+    {
         try
         {
-            await BrowserEngine.LoadAsync(ClientConfig.Engine);
+            await engine;
         }
         catch (JSException error)
         {
@@ -156,6 +280,9 @@ public sealed partial class MainPage
         _duelDealt = duel;
         _duelEnded = false;
         _duelConceded = false;
+        _splashBoard = null;
+        _realmContent.Child = null;
+        _realmBoards.Clear();
         ClearTable();
         _gameClient = new GameClient(table.Player);
 

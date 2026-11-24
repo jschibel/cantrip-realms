@@ -177,6 +177,9 @@ public sealed partial class MainPage
             case "inventory":
                 LayOutInventory();
                 break;
+            case "duel":
+                LayOutSplash();
+                break;
         }
     }
 

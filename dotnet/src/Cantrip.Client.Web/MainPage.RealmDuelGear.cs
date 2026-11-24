@@ -43,15 +43,15 @@ public sealed partial class MainPage
             Background = Theme.Brush(Theme.Bar),
             BorderBrush = Theme.Brush(Theme.Line),
             BorderThickness = new Thickness(1, 0, 1, 1),
-            CornerRadius = new CornerRadius(0, 0, 8, 8),
+            CornerRadius = new CornerRadius(0, 0, 0, 8),
             Padding = new Thickness(12, 4, 6, 4),
             Margin = new Thickness(0, 44, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Center,
+            // Under the duel's bar, in the table's top right corner as the bar is (MainPage.RealmDuel.cs).
+            HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Visibility = Visibility.Collapsed,
             Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Children = { _duelGearLine, _duelGearShow } },
         };
-        Grid.SetColumnSpan(_duelGearStrip, 2);
         Root.Children.Add(_duelGearStrip);
 
         _duelGearCards = new StackPanel { Spacing = 14 };

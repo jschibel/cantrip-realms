@@ -130,6 +130,7 @@ public sealed partial class MainPage
         if (_lootTake is not null)
         {
             _lootTake.Caption = _lootPicked.Count == 0 ? "Take nothing" : $"Take {_lootPicked.Count} card{(_lootPicked.Count == 1 ? string.Empty : "s")}";
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_lootTake, _lootTake.Caption);
         }
     }
 
