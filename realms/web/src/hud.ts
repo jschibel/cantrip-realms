@@ -3,6 +3,10 @@ import type { ManaColor } from "./art/figures";
 import { type Character as CharacterData, identityOf } from "./net/api";
 import { surfaceColor } from "./surfaceColors";
 import { type DungeonData, type WorldData, areaAt } from "./world/format";
+import { mobInfo } from "./mobs";
+
+/** Each color's well on the maps: its boss's dungeon ringed in it (black's a violet, to show on the dark). */
+const WELL_COLORS: Record<ManaColor, string> = { W: "#f4ecc2", U: "#5b8fd6", B: "#a06ad8", R: "#e0503a", G: "#4cc25a" };
 
 // The HUD (tech.md, B5): who you are and the stats a duel starts from (design.md, A1), your identity's pips, your gold
 // and the value of your ante (A2); the area you stand in and its tier; the regional map - the land round you with the
@@ -32,6 +36,9 @@ interface Marker {
   readonly kind: "dungeon" | "tower" | "town";
   readonly tier: number;
   readonly lit?: boolean;
+  /** A color's boss's dungeon (design.md A6): the color its boss unlocks, and whether the character holds it. */
+  readonly well?: ManaColor;
+  readonly won?: boolean;
   readonly x: number;
   readonly y: number;
   readonly name: string;
@@ -143,6 +150,8 @@ export class Hud {
   private readonly fullMap: HTMLElement;
   private picture: WorldPicture | null = null;
   private attuned: readonly string[] = [];
+  /** The character's identity, for the boss dungeons' rings on the maps. */
+  private held: readonly ManaColor[] = [];
   readonly log: string[] = [];
   /** What the map shows now, for tests: the space, the tile it is centred on, the markers on it. */
   mapState: { space: string; centre: { x: number; z: number } | null; markers: Marker[] } = { space: "", centre: null, markers: [] };
@@ -164,7 +173,7 @@ export class Hud {
     legend.dataset.test = "hud:legend";
     legend.innerHTML =
       [1, 2, 3, 4].map((t) => `<span class="tier" data-tier="${t}"><i style="background:${TIER_COLORS[t]}"></i>${t}</span>`).join("") +
-      `<span class="mark"><b class="diamond"></b>dungeon</span><span class="mark"><b class="tri lit"></b>attuned</span><span class="mark"><b class="tri"></b>dormant</span>`;
+      `<span class="mark"><b class="diamond"></b>dungeon</span><span class="mark"><b class="ring"></b>boss</span><span class="mark"><b class="tri lit"></b>attuned</span><span class="mark"><b class="tri"></b>dormant</span>`;
     document.querySelector("#hud-place")!.appendChild(legend);
     this.minimap.dataset.test = "hud:minimap";
     this.minimap.addEventListener("click", () => this.openMap());
@@ -193,6 +202,7 @@ export class Hud {
   showCharacter(c: CharacterData): void {
     // All five colors: the identity's filled, the rest a faint ring each until a boss unlocks it (design.md A1, A6).
     const held = identityOf(c);
+    this.held = held;
     const pips = (["W", "U", "B", "R", "G"] as const)
       .map((color) => held.includes(color)
         ? `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}" data-test="hud:pip-${color.toLowerCase()}" data-state="held"></span>`
@@ -342,13 +352,34 @@ export class Hud {
     }
     for (const d of this.dungeons.values()) {
       const p = pic.at(d.entrance[0], d.entrance[1]);
-      found.push({ id: d.id, kind: d.waystone ? "tower" : "dungeon", tier: d.tier, ...(d.waystone ? { lit: attuned.includes(d.id) } : {}), x: p.x, y: p.y, name: d.name });
+      const well = mobInfo(d.boss).unlocks;
+      found.push({ id: d.id, kind: d.waystone ? "tower" : "dungeon", tier: d.tier, ...(d.waystone ? { lit: attuned.includes(d.id) } : {}), ...(well ? { well, won: this.held.includes(well) } : {}), x: p.x, y: p.y, name: d.name });
     }
     return found;
   }
 
-  private drawMarker(g: CanvasRenderingContext2D, m: Pick<Marker, "kind" | "tier" | "lit">, x: number, y: number, k: number): void {
+  private drawMarker(g: CanvasRenderingContext2D, m: Pick<Marker, "kind" | "tier" | "lit" | "well" | "won">, x: number, y: number, k: number): void {
     const s = 3 * k;
+    // A color's boss: its dungeon ringed in the well's color, the ring filled in once the color is held.
+    if (m.well) {
+      g.beginPath();
+      g.arc(x, y, s + 3 * k, 0, Math.PI * 2);
+      g.lineWidth = 2 * k;
+      g.strokeStyle = "#0b0c10";
+      g.stroke();
+      g.lineWidth = (m.won ? 2 : 1) * k;
+      g.strokeStyle = WELL_COLORS[m.well];
+      g.globalAlpha = m.won ? 1 : 0.75;
+      g.stroke();
+      g.globalAlpha = 1;
+    }
+    // An attuned waystone glows.
+    if (m.kind === "tower" && m.lit) {
+      g.fillStyle = "#7fe7ff44";
+      g.beginPath();
+      g.arc(x, y + 1, s + 3 * k, 0, Math.PI * 2);
+      g.fill();
+    }
     g.lineWidth = 1;
     g.strokeStyle = "#0b0c10";
     if (m.kind === "town") {
@@ -368,7 +399,7 @@ export class Hud {
       g.moveTo(x, y - s - 2);
       g.lineTo(x + s + 1, y + s);
       g.lineTo(x - s - 1, y + s);
-      g.fillStyle = m.lit ? "#84bfd3" : "#575c6e";
+      g.fillStyle = m.lit ? "#7fe7ff" : "#575c6e";
     }
     g.closePath();
     g.fill();
@@ -415,10 +446,11 @@ export class Hud {
       const x = (m.x - crop.x) * k;
       const y = (m.y - crop.y) * k;
       this.drawMarker(g, m, x, y, 1.5);
-      if (m.kind === "town") {
+      if (m.kind === "town" || m.well) {
         const label = document.createElement("span");
-        label.className = "map-label";
-        label.textContent = m.name;
+        label.className = m.well ? "map-label well" : "map-label";
+        label.textContent = m.well ? mobInfo(this.dungeons.get(m.id)!.boss).name.split(",")[0]! : m.name;
+        if (m.well) label.style.color = WELL_COLORS[m.well];
         label.style.left = `${Math.round(x)}px`;
         label.style.top = `${Math.round(y + 8)}px`;
         labels.appendChild(label);

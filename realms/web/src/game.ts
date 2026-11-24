@@ -1046,7 +1046,7 @@ export class Overworld {
     // Both raise their hands to cast as the duel begins.
     this.player.figure.act("cast");
     mob.actor.figure.act("cast");
-    this.say(`The ${mob.info.name} attacks!`);
+    this.say(`${theMob(mob.info)} attacks!`);
     const run = this.run;
     let start;
     try {
@@ -1066,11 +1066,11 @@ export class Overworld {
     if (result.Outcome === "won") {
       if (run && mob.run) {
         run.beaten.add(`${mob.run.floor}:${mob.run.index}`);
-        if (mob.run.role === "boss" && run.dungeon.waystone) this.say(`The waystone of ${run.dungeon.name} is attuned to you.`);
+        if (mob.run.role === "boss" && run.dungeon.waystone) this.say(`${run.dungeon.name}'s waystone is attuned to you: travel between it and any other you attune.`);
       }
       else this.beaten.add(`${mob.spawn.id}|${mob.epoch}`);
       this.removeMob(mob);
-      this.say(`You defeated the ${mob.info.name}: ${gold(result.Gold)} gold.`);
+      this.say(`You defeated ${theMob(mob.info, false)}: ${gold(result.Gold)} gold.`);
       for (const relic of result.Relics ?? []) this.say(`A relic falls from the ${mob.info.name}: ${relic} is yours, and yours alone.`);
       if (result.Gear) this.say(`The ${mob.info.name} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
       if (result.Offer.length > 0 || result.Gear) {
@@ -1090,6 +1090,7 @@ export class Overworld {
       this.paused = false;
     } else {
       await this.refresh();
+      const lostRun = this.run?.dungeon.name ?? null;
       if (this.run) {
         this.run = null;
         for (const m2 of [...this.mobs]) if (m2.run) this.removeMob(m2);
@@ -1098,7 +1099,7 @@ export class Overworld {
       const at = tileOfCharacter(this.data);
       const inn = this.data.Space !== "world" ? await this.places.read(this.data.Space).catch(() => null) : null;
       await this.jump(inn ? { spot: this.places.room(inn.id, inn), tile: { x: inn.entry[0], z: inn.entry[1] - 1 }, facing: [0, -1] } : this.toWorld(at));
-      this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.${result.Lost ? ` ${result.Lost} of your ante is gone.` : ""}`);
+      this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.${result.Lost ? ` ${result.Lost} of your ante is gone.` : ""}${lostRun ? ` Your run of ${lostRun} is over: what you won in it is yours.` : ""}`);
     }
   }
 
@@ -1309,6 +1310,11 @@ export class Overworld {
     set("zoom-in", here.inside || rig.zoom === 0);
     set("zoom-out", here.inside || rig.zoom === rig.maxZoom());
   }
+}
+
+/** A mob as a sentence names it: "The Llanowar Elves", but a boss or a named legend ("Rofellos, Llanowar Emissary") bare. */
+function theMob(info: { readonly name: string; readonly boss: boolean }, start = true): string {
+  return info.boss || info.name.includes(",") ? info.name : `${start ? "The" : "the"} ${info.name}`;
 }
 
 function refusal(e: unknown): string {

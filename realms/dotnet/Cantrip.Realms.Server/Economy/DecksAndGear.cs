@@ -65,7 +65,7 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
     {
         ArgumentNullException.ThrowIfNull(change);
         PlayerRow row = await characters.Require(player).ConfigureAwait(false);
-        if (!characters.AtSpellTable(row)) throw Refusal.Conflict(Codes.NotAtTable, "A deck is changed only at a spell table.");
+        if (!characters.AtSpellTable(row) && !await characters.InAntechamber(row).ConfigureAwait(false)) throw Refusal.Conflict(Codes.NotAtTable, "A deck is changed only at a spell table.");
 
         List<CardCount> main = Merge(change.Main);
         List<CardCount> ante = Merge(change.Ante);

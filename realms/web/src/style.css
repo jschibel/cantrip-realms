@@ -125,7 +125,7 @@ button.primary:hover { filter: brightness(1.08); }
   box-shadow: 0 0 60px -10px var(--well, var(--accent)), 0 12px 40px #0008;
 }
 .boss-beaten .kicker { color: var(--fg-soft); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
-.boss-beaten h2 { font-size: 30px; margin: 6px 0 14px; color: var(--well, var(--accent)); }
+.boss-beaten .panel-card h2 { font-size: 30px; margin: 6px 0 14px; color: var(--well, var(--accent)); }
 .boss-beaten .well-pips { display: flex; gap: 12px; justify-content: center; margin: 6px 0 14px; }
 .boss-beaten .well-pips .pip { width: 26px; height: 26px; border-width: 2px; }
 .boss-beaten .well-pips .pip.new { animation: well-rise 1.6s ease-out both; box-shadow: 0 0 16px 4px var(--well, #fff8); }
@@ -304,7 +304,8 @@ button.primary:hover { filter: brightness(1.08); }
 #hud-place .legend i { width: 10px; height: 10px; display: inline-block; border: 1px solid #0b0c10; }
 #hud-place .legend .diamond { width: 7px; height: 7px; background: #ffc94a; transform: rotate(45deg); display: inline-block; border: 1px solid #0b0c10; }
 #hud-place .legend .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #575c6e; display: inline-block; }
-#hud-place .legend .tri.lit { border-bottom-color: #84bfd3; }
+#hud-place .legend .tri.lit { border-bottom-color: #7fe7ff; }
+#hud-place .legend .ring { width: 7px; height: 7px; border-radius: 50%; border: 2px solid #4cc25a; display: inline-block; }
 
 /* What the pointer is over. */
 #hud-tooltip {

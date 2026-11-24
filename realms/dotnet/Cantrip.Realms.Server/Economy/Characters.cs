@@ -350,6 +350,18 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         return content.Space(row.Space) is { } space && space.SpellTables.Any(table => table.DistanceTo(new Tile(row.X, row.Z)) <= 1);
     }
 
+    /// <summary>
+    /// Whether a character stands in a dungeon's antechamber, where its spell table is (design.md A6, "the entrance has a
+    /// spell table"): on the first floor of a live run of theirs. A run's layout is the browser's, so the server takes any
+    /// tile of it, as it takes any tile of the run for where the character stands.
+    /// </summary>
+    public async Task<bool> InAntechamber(PlayerRow row)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        return RealmContent.RunOf(row.Space) is { } run
+            && await db.Runs.AnyAsync(stored => stored.Id == run && stored.PlayerId == row.Id && stored.State == RunRow.Live && stored.Floor == 0).ConfigureAwait(false);
+    }
+
     /// <summary>Adds copies of a card to a character's collection (or takes them, with a negative count).</summary>
     public async Task AddToCollection(string player, string card, int count)
     {
