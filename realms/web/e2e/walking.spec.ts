@@ -5,7 +5,8 @@ import { type Tile, advance, at, openNear, openRealm, realm } from "./realm";
 // Walking beside buildings, frame by frame (realmTest.track notes where the figure is drawn every sixtieth): holding the
 // button walks straight at the cursor and slides along the shop's walls, never jumping, turning back and forth or
 // stopping and starting; a held walk goes up to the shop's door but never in; letting go stops the player where it
-// stands; a click walks round the shop without a jump, in straight legs, and a line of sight is one straight walk.
+// stands; a click walks round the shop without a jump, in straight legs, and a line of sight is one straight walk; and
+// a player opened on a raised square stands on it from the first frame.
 
 interface Frame {
   readonly x: number;
@@ -207,5 +208,21 @@ test("walking: a click round a shop walks it in straight legs with no jump, and 
   smooth("in plain sight", line);
   expect(straight(line), "in plain sight: one straight line").toBe(true);
   expect(Math.floor(line.at(-1)!.x) === target!.x && Math.floor(line.at(-1)!.z) === target!.z).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test("walking: opened by ?at= on a raised square, the player stands on it from the first frame, not sunk to its foot", async ({ page }) => {
+  // New Benalia's square stands three quarters of a tile up, and a start at a world tile is put there before its chunk
+  // is read.
+  const errors = await openRealm(page, { at: "world:523,733", extra: "&mobs=0" });
+  const stood = await page.evaluate(() => {
+    const s = (globalThis as any).sliceStage;
+    const p = s.player.position;
+    return { y: p.y, floor: s.current.floorAt ? s.current.floorAt(p.x, p.z) : s.current.grid.heightAt(Math.floor(p.x), Math.floor(p.z)) };
+  });
+  expect(stood.floor, "the square is raised").toBeGreaterThan(0.5);
+  expect(Math.abs(stood.y - stood.floor), "on the floor").toBeLessThan(0.01);
+  const frames = await track(page, 0.5);
+  expect(Math.max(...frames.map((f) => Math.abs(f.y - stood.floor))), "and stays there standing").toBeLessThan(0.01);
   expect(errors).toEqual([]);
 });

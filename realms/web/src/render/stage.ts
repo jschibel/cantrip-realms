@@ -192,6 +192,8 @@ export class Stage {
     await s.settle(this.player.position.x, this.player.position.z, this.streamReach());
     this.player.grid = s.grid;
     for (const a of this.current.actors) a.grid = s.grid;
+    // The player was stood there before the floor was read: on it now, before the first frame.
+    this.player.standOnFloor();
   }
 
   // --- The camera ------------------------------------------------------------------------------------------------------

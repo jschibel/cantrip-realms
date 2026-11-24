@@ -9,7 +9,7 @@ import { character, place, query } from "./server";
 
 test("walking beside a shop: the relay refuses none of a held walk's or the clicks' walks, and the player never jumps", async ({ page }) => {
   test.setTimeout(180_000);
-  await character(page.request, 41, "Wanda");
+  await character(page.request, 71, "Wanda");
   await place(page.request, openNear(doorOf("argive-goblin-trader-shop"), 2));
   await page.goto(query("&mobs=0"));
   await waitReady(page);

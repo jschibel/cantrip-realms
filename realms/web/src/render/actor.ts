@@ -239,16 +239,28 @@ export class Actor {
       this.moved += step;
       this.stepFloor(dt);
     } else {
+      // The player standing keeps to the floor too: one read in after it was stood there rises under it.
+      if (this.smooth) this.stepFloor(dt);
       this.think(dt, player);
     }
     this.figure.root.position.copy(this.position);
     this.figure.update(dt, speed);
   }
 
+  /** The floor's height under it. */
+  private floorHere(): number {
+    return this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
+  }
+
   /** Up and down steps as the floor under it rises and falls. */
   private stepFloor(dt: number): void {
-    const floor = this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
-    this.position.y += (floor - this.position.y) * Math.min(1, dt * 14);
+    this.position.y += (this.floorHere() - this.position.y) * Math.min(1, dt * 14);
+  }
+
+  /** Stands it on the floor where it is at once (the floor read in after it was put there). */
+  standOnFloor(): void {
+    this.position.y = this.floorHere();
+    this.figure.root.position.copy(this.position);
   }
 
   /**
