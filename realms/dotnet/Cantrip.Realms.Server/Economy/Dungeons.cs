@@ -13,11 +13,16 @@ namespace Cantrip.Realms.Server.Economy;
 /// table, the warden at every stair, the boss on the last floor - so the server checks each duel of the run against what
 /// it named. The stair down opens once its warden is beaten; leaving, or losing any duel of the run, ends it. A mage
 /// tower's waystone, attuned by beating its boss (<see cref="Encounters"/>), takes the character from one attuned tower to
-/// another at once.
+/// another at once. A boss beaten rests for a week (design.md A6: refought weekly): a run begun meanwhile finds its last
+/// floor without it, and the run says when it is back. A live run is what a character resumes (<see cref="Current"/>):
+/// the floor reached and the fights won stay with it until it ends.
 /// </summary>
 public sealed class Dungeons(RealmDb db, RealmContent content, Characters characters, RealmDice dice, TimeProvider time)
 {
     private static readonly JsonSerializerOptions Json = new();
+
+    /// <summary>How long a beaten boss rests before it can be fought again (design.md A6: bosses are refought weekly).</summary>
+    public static TimeSpan BossRest { get; } = TimeSpan.FromDays(7);
 
     private long Now => time.GetUtcNow().ToUnixTimeMilliseconds();
 
@@ -32,6 +37,13 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         await characters.RequireOpen(player, dungeon).ConfigureAwait(false);
 
         List<RunFloor> floors = Roll(dungeon);
+        RestingView? resting = await Resting(player, dungeon).ConfigureAwait(false);
+        if (resting is not null)
+        {
+            // The boss rests: the last floor holds no boss this run.
+            floors[^1] = floors[^1] with { Boss = null };
+        }
+
         var run = new RunRow
         {
             Id = RealmDice.Token(),
@@ -53,7 +65,44 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             await transaction.CommitAsync().ConfigureAwait(false);
         }
 
-        return new RunView(run.Id, run.Seed, floors);
+        return new RunView(run.Id, run.Seed, floors, dungeon.Id, 0, [], resting);
+    }
+
+    /// <summary>
+    /// The character's live run, to resume it (a reload, a return): its floors as they began, the floor reached, the
+    /// encounters won, and the boss that rests. 404 <c>NotThere</c> with none.
+    /// </summary>
+    public async Task<RunView> Current(string player)
+    {
+        PlayerRow row = await characters.Require(player).ConfigureAwait(false);
+        RunRow run = await db.Runs.AsNoTracking().Where(stored => stored.PlayerId == player && stored.State == RunRow.Live).OrderByDescending(stored => stored.StartedAt).FirstOrDefaultAsync().ConfigureAwait(false)
+            ?? throw Refusal.NotFound(Codes.NotThere, "You are in no dungeon run.");
+        string space = RealmContent.RunSpace(run.Id);
+        if (row.Space != space) throw Refusal.NotFound(Codes.NotThere, "You are in no dungeon run.");
+        List<RunFloor> floors = FloorsOf(run);
+        List<string> beaten = [.. (await db.Duels.AsNoTracking().Where(duel => duel.PlayerId == player && duel.Space == space && (duel.State == DuelRow.Won || duel.State == DuelRow.Looted))
+            .Select(duel => duel.Spawn).ToListAsync().ConfigureAwait(false)).Order(StringComparer.Ordinal)];
+        RestingView? resting = content.Dungeons.TryGetValue(run.Dungeon, out RealmDungeon? dungeon) && floors.Count > 0 && floors[^1].Boss is null
+            ? await Resting(player, dungeon).ConfigureAwait(false)
+            : null;
+        return new RunView(run.Id, run.Seed, floors, run.Dungeon, run.Floor, beaten, resting);
+    }
+
+    /// <summary>
+    /// Whether a dungeon's boss rests for this character: a boss (<c>"boss": true</c>) they have beaten within
+    /// <see cref="BossRest"/>, and when it is back. Other mobs that end a dungeon (a mage, a wanderer) never rest.
+    /// </summary>
+    public async Task<RestingView?> Resting(string player, RealmDungeon dungeon)
+    {
+        ArgumentNullException.ThrowIfNull(dungeon);
+        string boss = dungeon.File.Boss;
+        if (!content.Mobs.TryGetValue(boss, out Mob? mob) || !mob.File.Boss) return null;
+        long? last = await db.Duels.AsNoTracking()
+            .Where(duel => duel.PlayerId == player && duel.Mob == boss && (duel.State == DuelRow.Won || duel.State == DuelRow.Looted))
+            .MaxAsync(duel => duel.FinishedAt).ConfigureAwait(false);
+        if (last is not long won) return null;
+        DateTimeOffset until = DateTimeOffset.FromUnixTimeMilliseconds(won) + BossRest;
+        return until > time.GetUtcNow() ? new RestingView(boss, until) : null;
     }
 
     /// <summary>

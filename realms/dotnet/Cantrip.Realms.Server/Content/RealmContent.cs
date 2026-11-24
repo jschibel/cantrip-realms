@@ -189,6 +189,24 @@ public sealed partial class RealmContent
         return mob.File.Boss ? Relics.Where(relic => relic.Bosses.Contains(mob.Id, StringComparer.Ordinal)) : [];
     }
 
+    /// <summary>The rarities a boss's gift is of (design.md A6: a rare or mythic guaranteed).</summary>
+    public static IReadOnlyList<string> GiftRarities { get; } = ["rare", "mythic"];
+
+    /// <summary>
+    /// The cards a boss's win may give outright, outside the prize cap (design.md A6): the rares and mythics of its loot - of
+    /// its loot's subtypes where it has any such, else of its loot's colors and types alone. None for any other mob.
+    /// </summary>
+    public IReadOnlyList<string> GiftsOf(Mob mob)
+    {
+        ArgumentNullException.ThrowIfNull(mob);
+        if (!mob.File.Boss) return [];
+        CardFilter loot = mob.File.Loot;
+        string pool = loot.Pool ?? mob.Plane;
+        var rare = new CardFilter { Pool = pool, Colors = loot.Colors, Types = loot.Types, Subtypes = loot.Subtypes, Rarities = GiftRarities };
+        IReadOnlyList<string> gifts = Cards.Filter(pool, rare);
+        return gifts.Count > 0 || loot.Subtypes.Count == 0 ? gifts : Cards.Filter(pool, new CardFilter { Pool = pool, Colors = loot.Colors, Types = loot.Types, Rarities = GiftRarities });
+    }
+
     /// <summary>Each plane's starter decks, by color letter.</summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, DeckList>> Starters { get; private set; } =
         new Dictionary<string, IReadOnlyDictionary<string, DeckList>>();
@@ -495,6 +513,18 @@ public sealed partial class RealmContent
         foreach (string gear in file.Gear.Where(gear => !Gear.ContainsKey(gear)))
         {
             problems.Add($"{where}: wears '{gear}', which is no gear item.");
+        }
+
+        if (file.Unique is { } unique)
+        {
+            if (!file.Boss) problems.Add($"{where}: only a boss drops a unique item.");
+            else if (!Gear.TryGetValue(unique, out GearItem? item) || !item.Unique) problems.Add($"{where}: its unique '{unique}' is no unique gear item.");
+        }
+
+        // A boss's win always gives a rare or mythic card of its loot (design.md A6): its loot must hold one.
+        if (file.Boss && Cards.Planes.Contains(file.Loot.Pool ?? mob.Plane, StringComparer.Ordinal) && GiftsOf(mob).Count == 0)
+        {
+            problems.Add($"{where}: its loot holds no rare or mythic card for a boss's gift.");
         }
 
         if (!MobMeshes.Contains(file.Model.Mesh)) problems.Add($"{where}: its model '{file.Model.Mesh}' is none of the mob meshes ({string.Join(", ", MobMeshes)}).");

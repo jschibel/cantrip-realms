@@ -74,7 +74,8 @@ export function check(floor: DungeonFloor, run: RunFloor): void {
   }
   if (floor.last) {
     expect(floor.down).toBeNull();
-    if (run.Boss) expect(floor.wayOut && walk(floor.wayOut[0], floor.wayOut[1]), "the way out is walked onto").toBe(true);
+    // The way out, beside the boss - or where it would stand, when it rests this run (design.md A6).
+    expect(floor.wayOut && walk(floor.wayOut[0], floor.wayOut[1]), "the way out is walked onto").toBe(true);
   } else {
     expect(floor.down && walk(floor.down[0], floor.down[1]), "the stairs down are walked onto").toBe(true);
     const warden = floor.spots.find((s) => s.role === "warden");

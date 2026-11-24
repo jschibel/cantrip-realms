@@ -84,6 +84,43 @@ const CARDS: readonly { Name: string; Gold: number; Color: ManaColor | "C" }[] =
 /** The basic lands, free and never in the collection (design.md A1). */
 const BASICS: ReadonlySet<string> = new Set(["Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes"]);
 
+/** The gear catalogue's files (realms/content/gear), for a boss's unique item as the server drops it. */
+interface GearFile {
+  readonly id: string;
+  readonly name: string;
+  readonly slot: Gear["Slot"];
+  readonly rarity: Gear["Rarity"];
+  readonly gold: number;
+  readonly stats: { readonly life: number; readonly hand: number; readonly maxHand: number };
+  readonly effects: readonly Record<string, unknown>[];
+  readonly text: string;
+  readonly look: { readonly mesh: string; readonly palette: readonly string[] };
+  readonly unique?: boolean;
+}
+const GEAR_FILES = new Map(Object.values(import.meta.glob<GearFile>("../../../content/gear/*.json", { eager: true, import: "default" })).map((g) => [g.id, g]));
+
+/** A gear item of the catalogue as the server sends it (PascalCase, with its emblem's name). */
+function catalogueGear(id: string): Gear | null {
+  const g = GEAR_FILES.get(id);
+  if (!g) return null;
+  return {
+    Id: g.id,
+    Name: g.name,
+    Slot: g.slot,
+    Rarity: g.rarity,
+    Gold: g.gold,
+    Stats: { Life: g.stats.life, Hand: g.stats.hand, MaxHand: g.stats.maxHand },
+    Effects: g.effects,
+    Text: g.text,
+    Look: { Mesh: g.look.mesh, Palette: g.look.palette },
+    Unique: g.unique ?? false,
+    Emblem: g.effects.length > 0 ? `${g.name} (gear)` : null,
+  };
+}
+
+/** How long a beaten boss rests (design.md A6: refought weekly), as the server's Dungeons.BossRest. */
+export const BOSS_REST_MS = 7 * DAY_MS;
+
 const gear = (g: Omit<Gear, "Effects" | "Unique" | "Stats" | "Emblem"> & { Stats?: Partial<Gear["Stats"]> }): Gear => ({
   Effects: [],
   Unique: false,
@@ -140,6 +177,8 @@ export class MockApi implements RealmApi {
   private readonly chestsOpened = new Set<string>();
   private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean }>();
   private attuned: string[];
+  /** When each boss was last beaten (unix ms on the stand-in clock), for its week of rest. */
+  private readonly bossWins = new Map<string, number>();
   /** The town whose inn the character set as home. */
   private inn: string | null = null;
   private readonly random: () => number;
@@ -361,8 +400,28 @@ export class MockApi implements RealmApi {
       const gold = low + Math.floor(this.random() * (high - low + 1));
       const fits = CARDS.filter((k) => k.Gold <= encounter.cap);
       const offer = encounter.cap > 0 && fits.length > 0 ? [fits[Math.floor(this.random() * fits.length)]!, ...[0, 1].map(() => CARDS[Math.floor(this.random() * CARDS.length)]!)] : [];
-      encounter.result = { Outcome: "won", Gold: gold, Offer: offer.map((k) => ({ Name: k.Name, Gold: k.Gold })), Cap: encounter.cap, Gear: null, Relics: [], Detail: null };
-      this.update({ Gold: c.Gold + gold });
+      // A boss (design.md A6): its color unlocked, a rare of its loot given outright, its unique item the first time.
+      let unlocked: ManaColor | null = null;
+      let gift: string | null = null;
+      let dropped: GearInstance | null = null;
+      if (mob.boss) {
+        this.bossWins.set(mob.id, this.now() * 1000);
+        if (mob.unlocks && !c.Identity.includes(mob.unlocks)) {
+          unlocked = mob.unlocks;
+          const colors = [...c.Unlocked, mob.unlocks];
+          this.update({ Unlocked: colors, Identity: "WUBRG".split("").filter((l) => c.Identity.includes(l) || l === mob.unlocks).join("") });
+        }
+        const rares = CARDS.filter((k) => k.Gold >= 120);
+        gift = rares[Math.floor(this.random() * rares.length)]!.Name;
+        this.cards[gift] = (this.cards[gift] ?? 0) + 1;
+        const own = mob.unique ? catalogueGear(mob.unique) : null;
+        if (own && !this.need().Gear.some((g) => g.Gear.Id === own.Id)) {
+          dropped = { InstanceId: this.nextInstance++, Gear: own };
+          this.update({ Gear: [...this.need().Gear, dropped] });
+        }
+      }
+      encounter.result = { Outcome: "won", Gold: gold, Offer: offer.map((k) => ({ Name: k.Name, Gold: k.Gold })), Cap: encounter.cap, Gear: dropped, Relics: [], Detail: null, Gift: gift, Unlocked: unlocked };
+      this.update({ Gold: this.need().Gold + gold });
       if (encounter.run) {
         const live = this.runs.get(encounter.run.id)!;
         live.fought.add(`${encounter.run.floor}:${encounter.run.index}`);
@@ -452,12 +511,26 @@ export class MockApi implements RealmApi {
         Boss: f === count - 1 ? dungeon.boss : null,
       };
     });
+    // A boss beaten within the week rests: the last floor is without it (design.md A6).
+    const won = this.bossWins.get(dungeon.boss);
+    const nowMs = this.now() * 1000;
+    const resting = mobInfo(dungeon.boss).boss && won !== undefined && won + BOSS_REST_MS > nowMs ? { Boss: dungeon.boss, Until: new Date(won + BOSS_REST_MS).toISOString() } : null;
+    if (resting) floors[count - 1] = { ...floors[count - 1]!, Boss: null };
     const id = `run-${this.nextToken++}`;
-    const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors };
+    const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting };
     for (const other of this.runs.values()) other.live = false;
     this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
     this.update({ Space: `run:${id}`, X: 0, Z: 0 });
     return run;
+  }
+
+  async currentRun(): Promise<Run | null> {
+    this.log("currentRun");
+    const c = this.need();
+    for (const [id, live] of this.runs) {
+      if (live.live && c.Space === `run:${id}`) return { ...live.run, Floor: live.floor, Beaten: [...live.fought].sort() };
+    }
+    return null;
   }
 
   async dungeonFloor(body: { Run: string; Floor: number }): Promise<void> {

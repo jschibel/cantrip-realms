@@ -1,6 +1,6 @@
 // The run's contract on a carved floor (interfaces.md, "Dungeons"; design.md A6): the way up at the arrival, the run's
 // encounters through the rooms, the floor's warden on the walk to the stairs down, the boss in the farthest room of the
-// last floor with the way out beside it, the spell table by the arrival of the first floor - and every tile of floor
+// last floor with the way out beside it (beside its empty place when it rests), the spell table by the arrival of the first floor - and every tile of floor
 // walked to from the arrival without stepping onto a stair or the way out, which are walked onto only to be taken.
 // Then the theme dresses the floor where nobody's way is cut, and the floor's lights are chosen.
 
@@ -148,9 +148,11 @@ export function finish(plan: Plan, rooms: readonly Room[], request: FloorRequest
       spots.push({ index: wardenIndex(request), mob: request.run.Warden, role: "warden", x: at[0], z: at[1] });
       claim(at[0], at[1]);
     }
-  } else if (request.run.Boss) {
+  } else {
+    // The boss in the farthest room, the way out beside it; a boss that rests this run (design.md A6: refought weekly)
+    // leaves its room empty, and the way out stands there all the same.
     const [bx, bz] = end.at;
-    spots.push({ index: bossIndex(request), mob: request.run.Boss, role: "boss", x: bx, z: bz });
+    if (request.run.Boss) spots.push({ index: bossIndex(request), mob: request.run.Boss, role: "boss", x: bx, z: bz });
     claim(bx, bz);
     const beside = STEPS.slice(0, 4)
       .map(([dx, dz]) => [bx + dx, bz + dz] as [number, number])

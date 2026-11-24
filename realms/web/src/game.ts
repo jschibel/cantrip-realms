@@ -10,7 +10,7 @@ import { type MinimapDot, Hud, gold } from "./hud";
 import { surfaceColor } from "./surfaceColors";
 import { renderPortrait } from "./portrait";
 import { mobInfo } from "./mobs";
-import { ApiError, type Character as CharacterData, type Place as ApiPlace, type RealmApi, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
+import { ApiError, type Character as CharacterData, type EncounterResult, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
 import { Actor } from "./render/actor";
@@ -81,6 +81,8 @@ interface ActiveRun {
   floor: number;
   readonly beaten: Set<string>;
   plan: FloorPlan | null;
+  /** The boss that rests this run (design.md A6: refought weekly), and when it is back; its hall stands empty. */
+  readonly resting: Resting | null;
 }
 
 /** Where the heading and the zoom are kept between visits (shared with nothing else). Storage may be refused. */
@@ -240,10 +242,15 @@ export class Overworld {
       this.dropMobsOf(key);
     };
 
+    // A live run is resumed where it was left (a reload, a return): its floor, its beaten mobs; else the world.
+    const resumed = !start && data.Space.startsWith("run:") ? await this.resumeRun() : null;
     const where = start ?? (data.Space.startsWith("run:") ? { space: "world" } : { space: data.Space, tile: tileOfCharacter(data) });
     let spot: Spot = this.world;
     let tile = where.tile ?? tileOfCharacter(data);
-    if (where.space !== "world") {
+    if (resumed) {
+      spot = resumed.spot;
+      tile = resumed.tile;
+    } else if (where.space !== "world") {
       const room = await this.places.read(where.space).catch(() => null);
       if (room) {
         spot = this.places.room(room.id, room);
@@ -630,9 +637,10 @@ export class Overworld {
       this.say(refusal(e));
       throw e;
     });
-    const run: ActiveRun = { id: started.Run, dungeon, seed: started.Seed, floors: started.Floors, floor: 0, beaten: new Set(), plan: null };
+    const run = this.activeRun(started, dungeon);
     this.run = run;
     this.say(`${dungeon.name}. The run begins.`);
+    this.sayResting(run, true);
     return this.showFloor(run);
   }
 
@@ -648,9 +656,36 @@ export class Overworld {
     return { spot: plan.spot, tile: plan.arrive, facing: [0, 1] };
   }
 
+  /** Whether the way out stands open: the boss beaten, or resting this run (its hall empty). */
   private bossBeaten(run: ActiveRun): boolean {
     const last = run.floors.length - 1;
-    return run.beaten.has(`${last}:${run.floors[last]!.Encounters.length + 1}`);
+    return !run.floors[last]!.Boss || run.beaten.has(`${last}:${run.floors[last]!.Encounters.length + 1}`);
+  }
+
+  /** The run the server has the character in, resumed on its floor at the floor's arrival; null with none. */
+  private async resumeRun(): Promise<Arrival | null> {
+    const live = await this.api.currentRun().catch(() => null);
+    const dungeon = live?.Dungeon ? this.dungeons.get(live.Dungeon) : undefined;
+    if (!live || !dungeon) return null;
+    const run = this.activeRun(live, dungeon);
+    this.run = run;
+    const arrival = this.showFloor(run);
+    this.say(`You are back in ${dungeon.name}${run.floors.length > 1 ? `, on floor ${run.floor + 1} of ${run.floors.length}` : ""}.`);
+    this.sayResting(run, true);
+    return arrival;
+  }
+
+  private activeRun(r: Run, dungeon: DungeonData): ActiveRun {
+    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null };
+  }
+
+  /** Says that the boss rests this run, on entering and again on the last floor. */
+  private sayResting(run: ActiveRun, entering: boolean): void {
+    const r = run.resting;
+    if (!r || (!entering && run.floor !== run.floors.length - 1)) return;
+    const when = new Date(r.Until).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    const who = mobInfo(r.Boss).name;
+    this.say(run.floor === run.floors.length - 1 ? `The hall is empty: ${who} rests until ${when}. The way out is open.` : `${who} was beaten here this week and rests until ${when}: the hall below stands empty.`);
   }
 
   private async descend(): Promise<Arrival> {
@@ -662,6 +697,7 @@ export class Overworld {
     await this.api.dungeonFloor({ Run: run.id, Floor: run.floor + 1 });
     run.floor++;
     this.say(`Floor ${run.floor + 1} of ${run.dungeon.name}.`);
+    this.sayResting(run, false);
     return this.showFloor(run);
   }
 
@@ -1050,6 +1086,7 @@ export class Overworld {
         }
       }
       await this.refresh();
+      if (mob.info.boss) await this.bossCeremony(mob.info.name, result);
       this.paused = false;
     } else {
       await this.refresh();
@@ -1063,6 +1100,21 @@ export class Overworld {
       await this.jump(inn ? { spot: this.places.room(inn.id, inn), tile: { x: inn.entry[0], z: inn.entry[1] - 1 }, facing: [0, -1] } : this.toWorld(at));
       this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.${result.Lost ? ` ${result.Lost} of your ante is gone.` : ""}`);
     }
+  }
+
+  /**
+   * A boss beaten (design.md A6): the moment it deserves - the color it unlocks, the identity's pips with the new one lit,
+   * its gift and its unique item - over the world, until the player goes on.
+   */
+  private async bossCeremony(boss: string, result: EncounterResult): Promise<void> {
+    const { showBossBeaten } = await import("./screens/bossBeaten");
+    this.screen = "boss";
+    try {
+      await showBossBeaten({ boss, unlocked: result.Unlocked ?? null, identity: identityOf(this.data), gift: result.Gift ?? null, gear: result.Gear?.Gear.Name ?? null });
+    } finally {
+      this.screen = "world";
+    }
+    if (result.Unlocked) this.hud.flashPip(result.Unlocked);
   }
 
   async openGear(): Promise<void> {

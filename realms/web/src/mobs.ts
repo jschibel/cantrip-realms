@@ -2,7 +2,7 @@
 // models. A map may name a mob whose file the server's content has not written yet; such a mob is shown with a look
 // guessed from its id - a stand-in for display only, never for anything of value, which the server owns.
 
-import type { MobModel } from "./art/figures";
+import type { ManaColor, MobModel } from "./art/figures";
 
 export interface MobInfo {
   readonly id: string;
@@ -14,6 +14,10 @@ export interface MobInfo {
   readonly goldRange: readonly [number, number];
   readonly model: MobModel;
   readonly boss: boolean;
+  /** The color a boss unlocks when beaten (design.md A6); none for any other mob, or the capstone. */
+  readonly unlocks?: ManaColor;
+  /** A boss's own unique gear item, by id. */
+  readonly unique?: string;
   /** Whether this came from a mob file, rather than being guessed from the id. */
   readonly known: boolean;
 }
@@ -27,6 +31,8 @@ interface MobFile {
   readonly goldRange: readonly [number, number];
   readonly model: MobModel;
   readonly boss?: boolean;
+  readonly unlocks?: ManaColor;
+  readonly unique?: string;
 }
 
 const files = import.meta.glob<MobFile>("../../content/*/mobs/*.json", { eager: true, import: "default" });

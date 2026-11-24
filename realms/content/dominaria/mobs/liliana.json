@@ -43,5 +43,6 @@
     "size": 1.5
   },
   "boss": true,
-  "unlocks": "B"
+  "unlocks": "B",
+  "unique": "vess-veil-signet"
 }

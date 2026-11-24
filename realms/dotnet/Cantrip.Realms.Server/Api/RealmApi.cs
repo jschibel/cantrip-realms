@@ -112,6 +112,9 @@ public static class RealmApi
         api.MapPost("/dungeon/enter", async (HttpContext context, Dungeons dungeons, DungeonEnter body) =>
             Results.Ok(await dungeons.Enter(Player(context), body).ConfigureAwait(false)));
 
+        api.MapGet("/dungeon/run", async (HttpContext context, Dungeons dungeons) =>
+            Results.Ok(await dungeons.Current(Player(context)).ConfigureAwait(false)));
+
         api.MapPost("/dungeon/floor", async (HttpContext context, Dungeons dungeons, FloorTake body) =>
         {
             await dungeons.Floor(Player(context), body).ConfigureAwait(false);

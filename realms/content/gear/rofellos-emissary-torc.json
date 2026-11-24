@@ -1,0 +1,38 @@
+{
+  "id": "rofellos-emissary-torc",
+  "name": "Rofellos's Emissary Torc",
+  "slot": "neck",
+  "rarity": "mythic",
+  "gold": 15000,
+  "stats": {
+    "life": -2,
+    "hand": 0,
+    "maxHand": 1
+  },
+  "effects": [
+    {
+      "family": "mana-on-turn",
+      "turn": 1,
+      "mana": "{G}"
+    },
+    {
+      "family": "mana-on-turn",
+      "turn": 2,
+      "mana": "{G}"
+    },
+    {
+      "family": "mana-on-turn",
+      "turn": 3,
+      "mana": "{G}"
+    }
+  ],
+  "text": "You start the game with 2 less life.\nYour maximum hand size is increased by one.\nAt the beginning of your precombat main phase, if it's your first turn, add {G}.\nAt the beginning of your precombat main phase, if it's your second turn, add {G}.\nAt the beginning of your precombat main phase, if it's your third turn, add {G}.",
+  "look": {
+    "mesh": "amulet",
+    "palette": [
+      "#3e9a4a",
+      "#f1b44c"
+    ]
+  },
+  "unique": true
+}

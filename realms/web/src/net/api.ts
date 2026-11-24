@@ -134,6 +134,10 @@ export interface EncounterResult {
   readonly Detail: string | null;
   /** The ante card a loss cost, if the ante held one. */
   readonly Lost?: string | null;
+  /** A boss win's gift (design.md A6): a rare or mythic of its loot, already in the collection, outside the cap. */
+  readonly Gift?: string | null;
+  /** The color a boss win unlocked just now (design.md A6), else null. */
+  readonly Unlocked?: ManaColor | null;
 }
 
 /** A place (interfaces.md, "Places"). */
@@ -150,10 +154,22 @@ export interface RunFloor {
   readonly Boss: string | null;
 }
 
+/** A boss resting after a win (design.md A6: refought weekly): who, and when it is back (UTC ISO-8601). */
+export interface Resting {
+  readonly Boss: string;
+  readonly Until: string;
+}
+
 export interface Run {
   readonly Run: string;
   readonly Seed: number;
   readonly Floors: readonly RunFloor[];
+  /** The dungeon's id, the floor the character stands on, the encounters beaten (`<floor>:<index>`). */
+  readonly Dungeon?: string | null;
+  readonly Floor?: number;
+  readonly Beaten?: readonly string[] | null;
+  /** The boss that rests, so the last floor is without it; null when it fights. */
+  readonly Resting?: Resting | null;
 }
 
 /** An encounter's start: a world spawn's mob, or one of a dungeon run's. */
@@ -221,6 +237,8 @@ export interface RealmApi {
   /** Reports where the character is (a world or interior place). */
   position(body: Place): Promise<void>;
   enterDungeon(body: { Dungeon: string }): Promise<Run>;
+  /** The character's live run, to resume it after a reload; null with none. */
+  currentRun(): Promise<Run | null>;
   /** Takes the stair down to floor `Floor` (from 0) of the run. */
   dungeonFloor(body: { Run: string; Floor: number }): Promise<void>;
   leaveDungeon(body: { Run: string }): Promise<void>;
@@ -278,6 +296,14 @@ export class HttpApi implements RealmApi {
     await this.call<unknown>("POST", "position", body);
   };
   enterDungeon = (body: { Dungeon: string }) => this.call<Run>("POST", "dungeon/enter", body);
+  currentRun = async (): Promise<Run | null> => {
+    try {
+      return await this.call<Run>("GET", "dungeon/run");
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "NotThere") return null;
+      throw e;
+    }
+  };
   dungeonFloor = async (body: { Run: string; Floor: number }) => {
     await this.call<unknown>("POST", "dungeon/floor", body);
   };

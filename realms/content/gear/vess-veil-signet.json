@@ -1,0 +1,36 @@
+{
+  "id": "vess-veil-signet",
+  "name": "Signet of the Vess Veil",
+  "slot": "ring",
+  "rarity": "mythic",
+  "gold": 15000,
+  "stats": {
+    "life": -2,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "opponent-discards-on-turn",
+      "turn": 2
+    },
+    {
+      "family": "opponent-discards-on-turn",
+      "turn": 3
+    },
+    {
+      "family": "mana-on-turn",
+      "turn": 2,
+      "mana": "{B}"
+    }
+  ],
+  "text": "You start the game with 2 less life.\nAt the beginning of each opponent's upkeep, if it's that player's second turn, that player discards a card.\nAt the beginning of each opponent's upkeep, if it's that player's third turn, that player discards a card.\nAt the beginning of your precombat main phase, if it's your second turn, add {B}.",
+  "look": {
+    "mesh": "ring",
+    "palette": [
+      "#2a2a2d",
+      "#8e5bc8"
+    ]
+  },
+  "unique": true
+}

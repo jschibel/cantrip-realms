@@ -120,8 +120,10 @@ public sealed record OfferedCard(string Name, long Gold);
 /// How a duel ended: <c>won</c> or <c>lost</c>; the gold a win paid; the cards offered, each with its list price, and the cap
 /// their picks fit under; a gear item that dropped; the relics that dropped, already in the collection (design.md A3a); and,
 /// for a duel counted as lost without being played out, why; and for a loss, the ante card it cost, if the ante held one.
+/// A boss's win also gives <see cref="Gift"/>, a rare or mythic card of its loot already in the collection (outside the
+/// cap), and <see cref="Unlocked"/> names the color it unlocked, when it unlocked one now (design.md A6).
 /// </summary>
-public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, IReadOnlyList<string> Relics, string? Detail, string? Lost = null);
+public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, IReadOnlyList<string> Relics, string? Detail, string? Lost = null, string? Gift = null, string? Unlocked = null);
 
 public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
 
@@ -144,8 +146,14 @@ public sealed record RunEncounter(int Index, string Mob);
 /// </summary>
 public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss);
 
-/// <summary>A run begun: its id, its seed for the browser's layout, and every encounter it holds.</summary>
-public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors);
+/// <summary>A boss resting after a win (design.md A6: refought weekly): who, and when it is back.</summary>
+public sealed record RestingView(string Boss, DateTimeOffset Until);
+
+/// <summary>
+/// A run: its id, its seed for the browser's layout, every encounter it holds, its dungeon, the floor the character stands
+/// on, the encounters of it beaten (<c>&lt;floor&gt;:&lt;index&gt;</c>), and the boss that rests and so is not on its last floor.
+/// </summary>
+public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors, string? Dungeon = null, int Floor = 0, IReadOnlyList<string>? Beaten = null, RestingView? Resting = null);
 
 public sealed record FloorTake(string? Run, int Floor);
 

@@ -13,7 +13,8 @@ namespace Cantrip.Realms.Server.Economy;
 /// and that the spawn has not been fought this epoch; then commits the seed, the mob, both seats and the prize cap. The
 /// browser plays it; finishing it checks the log (<see cref="IDuelVerifier"/>) and pays out - gold, three cards offered
 /// under the cap, perhaps a gear item, from a boss perhaps a relic (design.md A3a), and from a mage tower's boss its
-/// waystone's attunement (A6) - or takes a random ante card, ends the dungeon run it was fought in, and sends the character
+/// waystone's attunement (A6); a boss's win also unlocks its color, gives a rare or mythic of its loot outright and drops
+/// its own unique item the first time (A6) - or takes a random ante card, ends the dungeon run it was fought in, and sends the character
 /// to their inn. A duel never finished is lost when the next one starts, or after 24 hours. A dungeon run's encounter is
 /// started the same way, checked against the run (<see cref="Dungeons"/>) rather than a spawn.
 /// </summary>
@@ -242,7 +243,11 @@ public sealed class Encounters(
         Mob mob = content.Mobs[duel.Mob];
         long gold = dice.Between(mob.File.GoldRange[0], mob.File.GoldRange[1]);
         List<string> offer = Offer(mob, duel.Cap);
-        GearItem? drop = mob.File.Boss || (devVerdicts.GearRoll(player) ?? dice.Roll(GearChance.GetValueOrDefault(mob.File.Tier) / 100.0)) ? Drop(mob) : null;
+        HashSet<string> gearOwned = mob.File.Boss
+            ? [.. await db.GearOwned.Where(row => row.PlayerId == player).Select(row => row.GearId).ToListAsync().ConfigureAwait(false)]
+            : [];
+        GearItem? drop = mob.File.Boss || (devVerdicts.GearRoll(player) ?? dice.Roll(GearChance.GetValueOrDefault(mob.File.Tier) / 100.0)) ? Drop(mob, gearOwned) : null;
+        string? gift = Gift(mob, offer);
 
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
         if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Open)
@@ -268,14 +273,37 @@ public sealed class Encounters(
         List<string> relics = await DropRelics(player, mob, duel.Token).ConfigureAwait(false);
         await Attune(duel).ConfigureAwait(false);
 
+        string? unlocked = null;
         if (mob.File.Boss && mob.File.Unlocks is { } color && !await db.Unlocks.AnyAsync(unlock => unlock.PlayerId == player && unlock.Color == color).ConfigureAwait(false))
         {
             db.Unlocks.Add(new UnlockRow { PlayerId = player, Color = color, At = Now });
             await db.SaveChangesAsync().ConfigureAwait(false);
+            unlocked = color;
+        }
+
+        if (gift is not null)
+        {
+            await characters.AddToCollection(player, gift, 1).ConfigureAwait(false);
+            await db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         await transaction.CommitAsync().ConfigureAwait(false);
-        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, relics, null);
+        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, relics, null, Gift: gift, Unlocked: unlocked);
+    }
+
+    /// <summary>
+    /// A boss's gift (design.md A6, "a rare or mythic guaranteed"): one rare or mythic of its loot, given outright -
+    /// whatever the ante, outside the cap, as a relic is - and one the offer does not hold where the loot has another.
+    /// None for any other mob.
+    /// </summary>
+    public string? Gift(Mob mob, IReadOnlyCollection<string> offer)
+    {
+        ArgumentNullException.ThrowIfNull(mob);
+        ArgumentNullException.ThrowIfNull(offer);
+        IReadOnlyList<string> gifts = content.GiftsOf(mob);
+        List<string> fresh = [.. gifts.Where(card => !offer.Contains(card))];
+        List<string> from = fresh.Count > 0 ? fresh : [.. gifts];
+        return from.Count == 0 ? null : from[dice.Below(from.Count)];
     }
 
     /// <summary>
@@ -334,11 +362,17 @@ public sealed class Encounters(
         return dice.Draw(fitting, Offered);
     }
 
-    /// <summary>A gear item a win drops: the boss's own unique for a boss, else any item of the tier's rarity.</summary>
-    private GearItem? Drop(Mob mob)
+    /// <summary>
+    /// A gear item a win drops: a boss's own unique (its file's <c>unique</c>) while the character owns none of it, and once
+    /// they have it a rare or mythic item of the catalogue, never a unique; any other mob's an item of its tier's rarity.
+    /// </summary>
+    public GearItem? Drop(Mob mob, IReadOnlySet<string> owned)
     {
+        ArgumentNullException.ThrowIfNull(mob);
+        ArgumentNullException.ThrowIfNull(owned);
+        if (mob.File.Boss && mob.File.Unique is { } unique && !owned.Contains(unique) && content.Gear.TryGetValue(unique, out GearItem? own)) return own;
         string rarity = mob.File.Tier switch { <= 2 => "common", 3 => "uncommon", _ => "rare" };
-        List<GearItem> items = [.. content.Gear.Values.Where(item => mob.File.Boss ? item.Unique : !item.Unique && item.Rarity == rarity).OrderBy(item => item.Id, StringComparer.Ordinal)];
+        List<GearItem> items = [.. content.Gear.Values.Where(item => !item.Unique && (mob.File.Boss ? item.Rarity is "rare" or "mythic" : item.Rarity == rarity)).OrderBy(item => item.Id, StringComparer.Ordinal)];
         return items.Count == 0 ? null : items[dice.Below(items.Count)];
     }
 

@@ -96,6 +96,48 @@ button.primary:hover { filter: brightness(1.08); }
 .pip-b { background: #121214; border-color: #8a8d96; }
 .pip-r { background: #c8432c; }
 .pip-g { background: #3e9a4a; }
+/* A color not yet unlocked: its ring only, faint (design.md A1: one color to start, the bosses unlock the rest). */
+.pip.locked { background: transparent; border-style: dashed; opacity: 0.45; }
+.pip.locked.pip-w { border-color: #f4ecc2; }
+.pip.locked.pip-u { border-color: #5b8fd6; }
+.pip.locked.pip-b { border-color: #8a8d96; }
+.pip.locked.pip-r { border-color: #c8432c; }
+.pip.locked.pip-g { border-color: #3e9a4a; }
+.pip.flash { animation: pip-flash 1.2s ease-out 3; }
+@keyframes pip-flash {
+  0% { box-shadow: 0 0 0 0 #fff8; transform: scale(1); }
+  40% { box-shadow: 0 0 10px 4px #fff6; transform: scale(1.5); }
+  100% { box-shadow: 0 0 0 0 #0000; transform: scale(1); }
+}
+
+/* A boss beaten: the color it unlocks, the five pips, its gift. */
+:root {
+  --well-w: #f4ecc2;
+  --well-u: #5b8fd6;
+  --well-b: #8e5bc8;
+  --well-r: #c8432c;
+  --well-g: #3e9a4a;
+}
+.boss-beaten .panel-card {
+  text-align: center;
+  min-width: 380px;
+  border-color: var(--well, var(--accent));
+  box-shadow: 0 0 60px -10px var(--well, var(--accent)), 0 12px 40px #0008;
+}
+.boss-beaten .kicker { color: var(--fg-soft); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.boss-beaten h2 { font-size: 30px; margin: 6px 0 14px; color: var(--well, var(--accent)); }
+.boss-beaten .well-pips { display: flex; gap: 12px; justify-content: center; margin: 6px 0 14px; }
+.boss-beaten .well-pips .pip { width: 26px; height: 26px; border-width: 2px; }
+.boss-beaten .well-pips .pip.new { animation: well-rise 1.6s ease-out both; box-shadow: 0 0 16px 4px var(--well, #fff8); }
+@keyframes well-rise {
+  0% { transform: scale(0.2); opacity: 0; }
+  60% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.boss-beaten .spoils { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; }
+.boss-beaten .spoils li { display: flex; justify-content: space-between; gap: 16px; color: var(--fg-soft); }
+.boss-beaten .spoils b { color: var(--fg); }
+.boss-beaten .buttons { justify-content: center; }
 
 #hud-side {
   position: absolute;

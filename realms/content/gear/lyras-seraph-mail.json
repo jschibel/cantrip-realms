@@ -1,0 +1,32 @@
+{
+  "id": "lyras-seraph-mail",
+  "name": "Lyra's Seraph Mail",
+  "slot": "body",
+  "rarity": "mythic",
+  "gold": 15000,
+  "stats": {
+    "life": 8,
+    "hand": 0,
+    "maxHand": -1
+  },
+  "effects": [
+    {
+      "family": "prevent-damage-on-turn",
+      "turn": 2
+    },
+    {
+      "family": "gain-life-on-turn",
+      "turn": 3,
+      "count": 4
+    }
+  ],
+  "text": "You start the game with 8 additional life.\nYour maximum hand size is reduced by one.\nAt the beginning of your upkeep, if it's your second turn, prevent all damage that would be dealt to you this turn.\nAt the beginning of your upkeep, if it's your third turn, you gain 4 life.",
+  "look": {
+    "mesh": "armor",
+    "palette": [
+      "#f2efe6",
+      "#f1b44c"
+    ]
+  },
+  "unique": true
+}

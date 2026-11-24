@@ -122,6 +122,12 @@ public sealed class MobFile
     /// <summary>The color a boss unlocks when beaten; none for a plane's capstone boss, which ends its arc instead.</summary>
     public string? Unlocks { get; init; }
 
+    /// <summary>
+    /// A boss's own unique gear item (a gear id, <c>"unique": true</c>): what its first win drops (design.md A6); none for
+    /// any other mob.
+    /// </summary>
+    public string? Unique { get; init; }
+
     /// <summary>The creature card the mob is (design.md A6): a card of its deck, which the mob is drawn as.</summary>
     public string Creature { get; init; } = string.Empty;
 

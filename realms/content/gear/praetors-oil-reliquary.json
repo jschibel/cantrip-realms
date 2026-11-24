@@ -1,0 +1,36 @@
+{
+  "id": "praetors-oil-reliquary",
+  "name": "Reliquary of Glistening Oil",
+  "slot": "relic",
+  "rarity": "mythic",
+  "gold": 15000,
+  "stats": {
+    "life": -3,
+    "hand": 0,
+    "maxHand": 0
+  },
+  "effects": [
+    {
+      "family": "token-on-turn",
+      "turn": 1,
+      "token": "thopter"
+    },
+    {
+      "family": "opponent-discards-on-turn",
+      "turn": 2
+    },
+    {
+      "family": "opponent-discards-on-turn",
+      "turn": 3
+    }
+  ],
+  "text": "You start the game with 3 less life.\nAt the beginning of your upkeep, if it's your first turn, create a 1/1 colorless Thopter artifact creature token with flying.\nAt the beginning of each opponent's upkeep, if it's that player's second turn, that player discards a card.\nAt the beginning of each opponent's upkeep, if it's that player's third turn, that player discards a card.",
+  "look": {
+    "mesh": "relic",
+    "palette": [
+      "#b3b5bc",
+      "#7a1f24"
+    ]
+  },
+  "unique": true
+}

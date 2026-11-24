@@ -289,14 +289,19 @@ MOBS = [
     dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
     dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"]),
     # The five bosses, each unlocking its color: its region's legend the pool has.
-    dict(kind="boss", id="lyra-dawnbringer", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"]),
-    dict(kind="boss", id="teferi", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"]),
+    dict(kind="boss", id="lyra-dawnbringer", unique="lyras-seraph-mail", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="teferi", unique="teferis-temporal-circlet", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"]),
     # Liliana Vess at her family's estate in the Morass: the pool's one Liliana.
-    dict(kind="boss", id="liliana", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"]),
+    dict(kind="boss", id="liliana", unique="vess-veil-signet", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"]),
     # Keld's warlord: the pool's Keldon legend, with the Keldon Warlord.
-    dict(kind="boss", id="garna", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="garna", unique="garnas-bloodfists", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"],
+         # Garna is {1}{B}{R}{R}: enough black mana to cast her - Badlands and Swamps beside the Mountains - round Keld's
+         # hasty raiders and burn.
+         decklist=[(4, "Garna, Bloodfist of Keld"), (2, "Goblins of the Flarg"), (2, "Blazing Effigy"), (1, "Ball Lightning"),
+                   (4, "Keldon Warlord"), (1, "Thundering Giant"), (1, "Rorix Bladewing"), (4, "Lightning Bolt"), (4, "Flare"),
+                   (2, "Badlands"), (5, "Swamp"), (10, "Mountain")]),
     # Llanowar's emissary, round his Forests: big green creatures and green ramp.
-    dict(kind="boss", id="rofellos", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="rofellos", unique="rofellos-emissary-torc", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"]),
     # The Phyrexian Portal (the capstone): the invasion's war-machines and priests, its warden, and the praetor.
     dict(kind="portal", id="phyrexian-ravager", name="Phyrexian Ravager", creature="Phyrexian Dragon Engine", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct", "Dragon"], themes=["artifacts", "burn"], gear=["mantle-of-the-ancients", "thran-amulet"]),
     dict(kind="portal", id="phyrexian-negator", name="Phyrexian Negator", creature="Gallowbraid", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Imp", "Demon"], themes=["removal", "discard"], gear=["serran-vestments", "thran-amulet"]),
@@ -306,6 +311,7 @@ MOBS = [
     dict(
         kind="boss",
         id="phyrexian-praetor",
+        unique="praetors-oil-reliquary",
         name="Phyrexian Praetor",
         creature="Sheoldred, the Apocalypse",
         colors="WUBRG",
@@ -811,6 +817,8 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
     })
     if mob.get("unlocks"):
         data["unlocks"] = mob["unlocks"]
+    if mob.get("unique"):
+        data["unique"] = mob["unique"]
     return data
 
 

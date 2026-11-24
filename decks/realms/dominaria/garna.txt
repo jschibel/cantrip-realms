@@ -9,5 +9,6 @@
 1 Rorix Bladewing
 4 Lightning Bolt
 4 Flare
-2 Swamp
-15 Mountain
+2 Badlands
+5 Swamp
+10 Mountain

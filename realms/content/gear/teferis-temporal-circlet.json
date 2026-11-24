@@ -1,0 +1,33 @@
+{
+  "id": "teferis-temporal-circlet",
+  "name": "Teferi's Temporal Circlet",
+  "slot": "head",
+  "rarity": "mythic",
+  "gold": 15000,
+  "stats": {
+    "life": -3,
+    "hand": 1,
+    "maxHand": 1
+  },
+  "effects": [
+    {
+      "family": "scry-on-turn",
+      "turn": 1,
+      "count": 3
+    },
+    {
+      "family": "draw-on-turn",
+      "turn": 4,
+      "count": 1
+    }
+  ],
+  "text": "You start the game with 3 less life.\nYou draw an additional card for your opening hand.\nYour maximum hand size is increased by one.\nAt the beginning of your upkeep, if it's your first turn, scry 3.\nAt the beginning of your draw step, if it's your fourth turn, draw a card.",
+  "look": {
+    "mesh": "circlet",
+    "palette": [
+      "#5b8fd6",
+      "#e8eaee"
+    ]
+  },
+  "unique": true
+}

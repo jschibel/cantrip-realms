@@ -191,12 +191,27 @@ export class Hud {
   }
 
   showCharacter(c: CharacterData): void {
-    const pips = identityOf(c).map((color) => `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}"></span>`).join("");
+    // All five colors: the identity's filled, the rest a faint ring each until a boss unlocks it (design.md A1, A6).
+    const held = identityOf(c);
+    const pips = (["W", "U", "B", "R", "G"] as const)
+      .map((color) => held.includes(color)
+        ? `<span class="pip pip-${color.toLowerCase()}" title="${COLOR_NAMES[color]}" data-test="hud:pip-${color.toLowerCase()}" data-state="held"></span>`
+        : `<span class="pip pip-${color.toLowerCase()} locked" title="${COLOR_NAMES[color]} (locked: beat its boss)" data-test="hud:pip-${color.toLowerCase()}" data-state="locked"></span>`)
+      .join("");
     this.character.innerHTML = `
       <div class="name"><span class="pips">${pips}</span><span data-test="hud:name"></span></div>
       <div class="stats"><span title="Starting life">Life <b>${c.Stats.Life}</b></span><span title="Starting hand size">Hand <b>${c.Stats.Hand}</b></span><span title="Maximum hand size">Max <b>${c.Stats.MaxHand}</b></span></div>
       <div class="money"><span class="gold" title="Gold"><b data-test="hud:gold">${gold(c.Gold)}</b> gold</span><span class="ante" title="The value of your ante">Ante <b data-test="hud:ante">${gold(c.AnteValue)}</b></span></div>`;
     this.character.querySelector<HTMLElement>("[data-test='hud:name']")!.textContent = c.Name;
+  }
+
+  /** Calls the eye to a pip: a color just unlocked. */
+  flashPip(color: ManaColor): void {
+    const pip = this.character.querySelector<HTMLElement>(`[data-test='hud:pip-${color.toLowerCase()}']`);
+    if (!pip) return;
+    pip.classList.remove("flash");
+    void pip.offsetWidth;
+    pip.classList.add("flash");
   }
 
   showLayer(): void {

@@ -44,5 +44,6 @@
     "size": 1.6
   },
   "boss": true,
-  "unlocks": "G"
+  "unlocks": "G",
+  "unique": "rofellos-emissary-torc"
 }
