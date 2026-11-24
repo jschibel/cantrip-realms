@@ -6,9 +6,9 @@
   "tier": 3,
   "deck": "decks/realms/dominaria/mage-benalia-3.txt",
   "stats": {
-    "life": 26,
-    "hand": 7,
-    "maxHand": 7
+    "life": 40,
+    "hand": 10,
+    "maxHand": 10
   },
   "gear": [
     "chain-hauberk",

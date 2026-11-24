@@ -36,7 +36,7 @@ describe("offline duels", () => {
     expect(player).toMatchObject({ Name: "Tester", StartingLife: me.Stats.Life, StartingHandSize: me.Stats.Hand, MaximumHandSize: me.Stats.MaxHand, Sideboard: [], Commanders: [] });
     expect((player!.Deck as string[]).length).toBe(40);
     expect((player!.Deck as string[]).filter((c) => c === "Plains").length).toBe(17);
-    expect(mob).toMatchObject({ Name: "Benalish Hero", StartingLife: 20 });
+    expect(mob).toMatchObject({ Name: "Benalish Hero", StartingLife: 15 }); // a tier 1 wanderer's life, its mob file's
     expect(mob!.Deck as string[]).toContain("Benalish Hero");
     expect(start.Duel.MinimumDeckSize).toBe(40);
   });

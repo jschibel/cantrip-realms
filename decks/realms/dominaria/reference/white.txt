@@ -1,0 +1,16 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): the white starter upgraded with the pool's commons and
+# uncommons a player could hold after about a dozen wins - fliers, first strikers and removal.
+
+2 Blade of the Sixth Pride
+2 Knight of Grace
+2 White Knight
+2 Longbow Archer
+1 Benalish Knight
+2 Pegasus Charger
+2 Baird, Steward of Argive
+2 Ekundu Griffin
+2 Melesse Spirit
+1 Angel of Retribution
+3 Swords to Plowshares
+2 Pacifism
+17 Plains

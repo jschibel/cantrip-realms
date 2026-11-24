@@ -145,8 +145,8 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
     Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `rofellos` (G,
     Rofellos, Llanowar Emissary, a mono-green deck); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
-    `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 42 life, a hand of 9, a
-    maximum of 10 with its gear), whose deck the script writes out card by card.
+    `phyrexian-gorger`, `gitaxian-mindcutter`); and the capstone's praetor (`phyrexian-praetor`, 32 life, a hand of 6, a
+    maximum of 7 with its gear, as the balance lab fitted them), whose deck the script writes out card by card.
 
 ### The world, interiors and dungeons (`<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`)
 

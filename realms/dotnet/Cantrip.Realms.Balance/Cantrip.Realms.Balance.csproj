@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The balance lab (realms/docs/tech.md C5, tools/realms/balance.cmd): whole duels against the realm's mobs, dealt as
+       the realm server deals an encounter (Encounters.Deal, PlayerSeat, MobSeat) and played on the browser's table
+       (DuelTable) on the native engine, the player's seat by the tactical bot and the mob's by RealmBot; tallied as win
+       rates with their 95% intervals, by tier and by boss. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>cantrip-realm-balance</AssemblyName>
+    <RootNamespace>Cantrip.Realms.Balance</RootNamespace>
+    <!-- A game per worker, each cloning its state on every zone change: the server collector, as the bot lab's. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <!-- The server's content reads culture names (its project says why), and the lab loads the same content. -->
+    <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cantrip.Realms.Server.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cantrip.Realms\Cantrip.Realms.csproj" />
+    <ProjectReference Include="..\Cantrip.Realms.Server\Cantrip.Realms.Server.csproj" />
+  </ItemGroup>
+
+</Project>

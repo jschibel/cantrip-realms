@@ -6,9 +6,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/lyra-dawnbringer.txt",
   "stats": {
-    "life": 30,
-    "hand": 7,
-    "maxHand": 7
+    "life": 14,
+    "hand": 6,
+    "maxHand": 6
   },
   "gear": [
     "benalish-plate",

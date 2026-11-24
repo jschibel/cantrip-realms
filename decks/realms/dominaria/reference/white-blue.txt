@@ -1,0 +1,15 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): a strong white-blue deck of the Dominaria pool, rares
+# included, for a character with a second color unlocked - first strikers, angels and djinn, Swords and Control Magic.
+
+2 White Knight
+2 Knight of Grace
+2 Pegasus Charger
+2 Soaring Drake
+4 Serra Angel
+2 Air Elemental
+2 Mahamoti Djinn
+4 Swords to Plowshares
+2 Control Magic
+1 Pacifism
+9 Plains
+8 Island

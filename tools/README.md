@@ -29,6 +29,7 @@ header; most pass every argument on to the script behind them.
 | | |
 |---|---|
 | `realms\play.cmd` | the game on this machine in one command, from a fresh clone: builds what is stale (the native host that checks duels, the engine for the browser, the web client, the realm server, the overworld's packages), starts the realm server with the development sign-in on its own SQLite file (`realms\web\.play`), serves the card layer, starts the overworld and opens the browser signed in; every duel a real game on the rules engine in the page. `/offline` plays with no server (the in-memory API), `/fresh` starts a new store, `/player N` signs in as another player, `/nobuild` builds nothing. Card art when `CANTRIP_ART` names a content folder with illustrations (or this repository's `content\mtg\images` has them). `realms/docs/tech.md`, "Playing it locally" |
+| `realms\balance.cmd` | the balance lab (`realms/docs/tech.md` C5): plays reference players (the starter decks, upgraded and two-color decks of `decks\realms\dominaria\reference`) against the realm's mobs on the native engine, dealt as the realm server deals an encounter and played by the tactical bot in both seats, and reports each tier's, boss's, deck's and mob's win rate with its 95% interval. `--games N`, `--boss-games N` per pairing, `--mobs t1,boss,<id>`, `--decks starter,upgraded,duo,<id>`, `--log`/`--from` to keep and re-report games, `--parallel N` (half the cores by default) |
 | `realms\sync-upstream.cmd` | merges cantrip-rs's `main` into the fork |
 
 ## Draft against bots

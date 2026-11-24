@@ -5,9 +5,9 @@
   "tier": 1,
   "deck": "decks/realms/dominaria/warden-1.txt",
   "stats": {
-    "life": 26,
-    "hand": 7,
-    "maxHand": 7
+    "life": 32,
+    "hand": 8,
+    "maxHand": 8
   },
   "gear": [
     "padded-jerkin",

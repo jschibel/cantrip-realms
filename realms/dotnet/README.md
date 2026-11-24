@@ -8,6 +8,7 @@ relay. Its API, its presence protocol and its content are `realms/docs/interface
 | --- | --- |
 | `Cantrip.Realms` | What the browser and the server must do alike: the `Duel` and the table it is dealt to (`DuelTable`), the log codec and `RecordingTransport`, the mob's bot (`RealmBot`), the spawn table (`Spawns`). |
 | `Cantrip.Realms.Server` | The ASP.NET Core server (`cantrip-realms-server`). |
+| `Cantrip.Realms.Balance` | The balance lab (`cantrip-realm-balance`, `tools\realms\balance.cmd`; `realms/docs/tech.md` C5): reference players against the mobs, whole duels dealt as an encounter is and played by the tactical bot on both seats, reported as win rates with 95% intervals. |
 | `Cantrip.Realms.Server.Tests` | Its tests (xUnit). |
 
 `Cantrip.Realms.sln` holds them and the cantrip-rs projects they reference. `Directory.Build.props` and

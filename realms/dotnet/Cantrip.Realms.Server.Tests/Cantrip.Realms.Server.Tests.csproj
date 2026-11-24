@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cantrip.Realms\Cantrip.Realms.csproj" />
     <ProjectReference Include="..\Cantrip.Realms.Server\Cantrip.Realms.Server.csproj" />
+    <ProjectReference Include="..\Cantrip.Realms.Balance\Cantrip.Realms.Balance.csproj" />
   </ItemGroup>
 
 </Project>

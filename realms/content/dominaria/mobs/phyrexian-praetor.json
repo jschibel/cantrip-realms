@@ -5,9 +5,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/phyrexian-praetor.txt",
   "stats": {
-    "life": 30,
-    "hand": 7,
-    "maxHand": 7
+    "life": 20,
+    "hand": 4,
+    "maxHand": 4
   },
   "gear": [
     "mantle-of-the-ancients",

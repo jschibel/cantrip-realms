@@ -908,7 +908,27 @@ sign-in alone answers with its form.
 The work runs through agents in worktrees of this fork, one per piece (the server, the overworld, gear, the card screens, content), each merged into this fork's `main` and pushed. Nothing of it goes to cantrip-rs (B2).
 
 ### C5. The balance lab (milestone 9)
-- **Gear costs:** `tools/realms/balance.cmd` uses `Cantrip.BotLab` to run tactical-vs-tactical games on reference mob decks, with and without each item, spread over the worker pool (`tools\cantrip-workers.cmd`). Each effect's cost is fitted to the change in log-odds of winning.
+- **The lab** (built): `tools\realms\balance.cmd`, the console app `realms/dotnet/Cantrip.Realms.Balance`
+  (`cantrip-realm-balance`). It plays whole duels on the native engine with no server: each is the `Duel` the realm
+  server would deal for that player and mob (`Encounters.Deal`, `PlayerSeat`, `MobSeat`: the player's deck, stats and
+  gear emblems against the mob's deck, stats with its gear's, and its gear's emblems), played to its end on the
+  browser's `DuelTable`, the player's seat by the tactical bot and the mob's by `RealmBot` on the duel's seed. Each game's
+  seed comes from the run's seed, the player, the mob and the game's number, so a run is repeatable; the win rates are a
+  deliberate statistical sample, reported with Wilson 95% intervals by tier (wanderers apart from the mages and
+  wardens), by boss, by deck and by mob. `--log` keeps every game as a JSON line and `--from` reports logs again.
+  - **Reference players.** (a) Each color's starter deck with the starting kit. (b) An upgraded deck per color
+    (`decks/realms/dominaria/reference/<color>.txt`): the starter with the pool's commons and uncommons a player could
+    hold after about a dozen wins, wearing four uncommon items (Circlet of Foresight, Silver Pendant, Chain Hauberk,
+    Boots of the March). (c) Two strong two-color decks of the pool, rares included (`white-blue`, `black-red`), with the
+    same gear; a boss faces only those without the color it unlocks, since it is fought before that color is yours.
+  - **The plan** (without `--decks`): T1 and T2 against the starters, T3 and T4 against the upgraded decks, the bosses
+    against the upgraded and two-color decks. Targets for the player's win rate: T1 65-75%, T2 50-60% (starters); T3
+    50-60%, T4 45-55%, bosses 35-45% (upgraded); every boss distinctly harder than T4.
+  - **Tuning.** Mob stats and stats-only gear are `tools/realms/sample-decks.py`'s (`STATS`, `GEAR`, each boss's own
+    `stats` and `gear`), which writes the mob files; the lab's last measurements and what they changed are
+    `realms/docs/balance.md`.
+- **Gear costs** (to come): the same lab, with and without each item, spread over the worker pool
+  (`tools\cantrip-workers.cmd`). Each effect's cost is fitted to the change in log-odds of winning.
 - **Economy:** an agent-based simulation of N players farming, selling and buying checks the trickle, rotation and purse limits.
 
 ---

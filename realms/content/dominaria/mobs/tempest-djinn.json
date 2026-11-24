@@ -6,9 +6,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/tempest-djinn.txt",
   "stats": {
-    "life": 24,
-    "hand": 7,
-    "maxHand": 7
+    "life": 27,
+    "hand": 8,
+    "maxHand": 8
   },
   "gear": [
     "tolarian-robe",

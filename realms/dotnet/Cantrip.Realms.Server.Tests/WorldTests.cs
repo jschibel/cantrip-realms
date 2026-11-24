@@ -138,7 +138,7 @@ public sealed class PlacesTests
         Assert.Equal(plain.Seats[0] with { StartingHandSize = 5, Emblems = ["Circlet of Foresight (gear)"] }, forced.Seats[0], SeatComparer.Instance);
         Assert.Equal(0, forced.Seats[1].StartingLife);
         Assert.Equal(Enumerable.Repeat("Plains", 40), forced.Seats[1].Deck);
-        Assert.Equal(20, (await Deal(other)).Seats[1].StartingLife);
+        Assert.Equal(15, (await Deal(other)).Seats[1].StartingLife); // a tier 1 wanderer's life (tools/realms/sample-decks.py, STATS)
 
         await browser.Ok<object>(HttpMethod.Post, "/dev/duel", new { Player = (object?)null, Mob = (object?)null });
         Assert.Equal(plain.Seats[0], (await Deal(browser)).Seats[0], SeatComparer.Instance);

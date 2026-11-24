@@ -24,12 +24,12 @@ Durkwood and Verdura):
   mythics; the creature's rarity is within its tier's deck rarities.
 - **Mage bosses** of the mage towers, `mage-<region>-<tier>` for the regions benalia, orvada, caligo, keld and llanowar
   and tiers 1-4: Dominaria's mages (wizards, clerics, druids, shamans and artificers), each a card of its own, with
-  spell-heavy decks. They are paid as their tier and start with a warden's stats and gear.
+  spell-heavy decks. They are paid as their tier and start with a warden's stats (of their tier) and gear.
 - **Wardens**: the five dungeons' and the Portal's `*-warden` keepers (tier 4 mini-bosses), and the generic `warden-1`
   to `warden-4`, constructs keeping the mage towers and small wilderness dungeons at their tier.
 - **Bosses**: the five that unlock a color, each a legend of its region, and the Phyrexian Portal's tier 4
-  Phyrexians and its capstone, the five-color praetor, whose deck is written out card by card and whose stats with its
-  gear are design.md's 42 life, a hand of 9 and a maximum of 10.
+  Phyrexians and its capstone, the five-color praetor, whose deck is written out card by card. Each boss's stats with
+  its gear (`totals`) are the balance lab's fit (realms/docs/balance.md).
 
 Each deck is built round its creature from data: the creature as a 2- to 4-of (more the higher the tier), its kin (its
 `lean`, creature types), cards that do what its `themes` name (flyers, ramp, burn, removal, counters, ...), and its
@@ -81,9 +81,13 @@ DECK_RARITIES = {
     "boss": ["common", "uncommon", "rare", "mythic"],
 }
 LOOT_RARITIES = {1: ["common"], 2: ["common", "uncommon"], 3: ["common", "uncommon", "rare"], 4: ["uncommon", "rare", "mythic"], "boss": ["rare", "mythic"]}
-# The setup values a mob starts from before its gear's (design.md A1's base, a little more the deeper it lives); mages
-# and wardens start as wardens do.
-STATS = {1: (20, 7, 7), 2: (20, 7, 7), 3: (22, 7, 7), 4: (24, 7, 7), "warden": (26, 7, 7), "boss": (30, 7, 7)}
+# The setup values a mob starts from before its gear's, by tier: a wanderer's (and a Portal mob's), and a mage's or a
+# warden's (WARDEN_STATS), which keep a tower or a floor and start stronger. Each boss says its own with its gear
+# (`totals`). They are fitted by the balance lab (tools/realms/balance.cmd, realms/docs/balance.md) to the player's win
+# rates realms/docs/tech.md C5 aims at, so they follow how strong each tier's decks play rather than a rule: tier 3's
+# decks play much weaker than tier 4's, so its mobs start with more.
+STATS = {1: (15, 7, 7), 2: (18, 7, 7), 3: (34, 9, 9), 4: (27, 8, 8), "boss": (30, 7, 7)}
+WARDEN_STATS = {1: (32, 8, 8), 2: (32, 8, 8), 3: (40, 10, 10), 4: (36, 9, 9)}
 # How many copies the best cards of a deck get, and its own creature: a tougher mob plays more of fewer, better cards.
 MOST_COPIES = {1: 2, 2: 2, 3: 3, 4: 4, "boss": 4}
 CREATURE_COPIES = {1: 2, 2: 3, 3: 4, 4: 4, "boss": 4}
@@ -289,19 +293,19 @@ MOBS = [
     dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
     dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"]),
     # The five bosses, each unlocking its color: its region's legend the pool has.
-    dict(kind="boss", id="lyra-dawnbringer", unique="lyras-seraph-mail", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], gear=["benalish-plate", "argivian-crown"]),
-    dict(kind="boss", id="teferi", unique="teferis-temporal-circlet", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), gear=["serran-vestments", "argivian-crown"]),
+    dict(kind="boss", id="lyra-dawnbringer", unique="lyras-seraph-mail", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], totals=(22, 7, 7), gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="teferi", unique="teferis-temporal-circlet", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), totals=(64, 11, 11), gear=["serran-vestments", "argivian-crown"]),
     # Liliana Vess at her family's estate in the Morass: the pool's one Liliana.
-    dict(kind="boss", id="liliana", unique="vess-veil-signet", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), gear=["benalish-plate", "thran-amulet"]),
+    dict(kind="boss", id="liliana", unique="vess-veil-signet", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), totals=(44, 9, 10), gear=["benalish-plate", "thran-amulet"]),
     # Keld's warlord: the pool's Keldon legend, with the Keldon Warlord.
-    dict(kind="boss", id="garna", unique="garnas-bloodfists", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], gear=["benalish-plate", "argivian-crown"],
+    dict(kind="boss", id="garna", unique="garnas-bloodfists", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], totals=(42, 10, 9), gear=["benalish-plate", "argivian-crown"],
          # Garna is {1}{B}{R}{R}: enough black mana to cast her - Badlands and Swamps beside the Mountains - round Keld's
          # hasty raiders and burn.
          decklist=[(4, "Garna, Bloodfist of Keld"), (2, "Goblins of the Flarg"), (2, "Blazing Effigy"), (1, "Ball Lightning"),
                    (4, "Keldon Warlord"), (1, "Thundering Giant"), (1, "Rorix Bladewing"), (4, "Lightning Bolt"), (4, "Flare"),
                    (2, "Badlands"), (5, "Swamp"), (10, "Mountain")]),
     # Llanowar's emissary, round his Forests: big green creatures and green ramp.
-    dict(kind="boss", id="rofellos", unique="rofellos-emissary-torc", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), gear=["benalish-plate", "argivian-crown"]),
+    dict(kind="boss", id="rofellos", unique="rofellos-emissary-torc", name="Rofellos, Llanowar Emissary", creature="Rofellos, Llanowar Emissary", region="G", unlocks="G", lean=["Elf", "Druid", "Beast", "Wurm"], themes=["big", "ramp"], featured=["Llanowar Elves", "Silverback Elder", "Primordial Wurm", "Enormous Baloth"], shape=(19, 4, 4), totals=(35, 7, 7), gear=["benalish-plate", "argivian-crown"]),
     # The Phyrexian Portal (the capstone): the invasion's war-machines and priests, its warden, and the praetor.
     dict(kind="portal", id="phyrexian-ravager", name="Phyrexian Ravager", creature="Phyrexian Dragon Engine", tier=4, colors="BR", artifacts=True, lean=["Phyrexian", "Horror", "Construct", "Dragon"], themes=["artifacts", "burn"], gear=["mantle-of-the-ancients", "thran-amulet"]),
     dict(kind="portal", id="phyrexian-negator", name="Phyrexian Negator", creature="Gallowbraid", tier=4, colors="B", artifacts=True, lean=["Phyrexian", "Horror", "Imp", "Demon"], themes=["removal", "discard"], gear=["serran-vestments", "thran-amulet"]),
@@ -316,8 +320,9 @@ MOBS = [
         creature="Sheoldred, the Apocalypse",
         colors="WUBRG",
         lean=["Phyrexian", "Praetor"],
-        # 42 life, a hand of 9 and a maximum of 10 with its gear (design.md A6): it starts from what the gear leaves.
-        totals=(42, 9, 10),
+        # 32 life, a hand of 6 and a maximum of 7 with its gear (design.md A6, as the balance lab fitted it): it starts
+        # from what the gear leaves.
+        totals=(32, 6, 7),
         gear=["mantle-of-the-ancients", "crown-of-the-ages", "thran-amulet"],
         # Five colors on the ten original duals and five fetches, round Sheoldred, the Apocalypse (the pool's one
         # praetor): the best creatures, removal and card advantage of each color the pool holds.
@@ -796,8 +801,8 @@ def loot(mob, pool, prices, legality, cards):
 
 def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
     key = deck_key(mob)
-    stats = {"wanderer": key, "portal": key, "mage": "warden", "warden": "warden", "boss": "boss"}[mob["kind"]]
-    life, hand, max_hand = mob.get("stats", STATS[stats])
+    base = WARDEN_STATS[mob["tier"]] if mob["kind"] in ("mage", "warden") else STATS[key]
+    life, hand, max_hand = mob.get("stats", base)
     if "totals" in mob:
         worn = [gear[g]["stats"] for g in mob["gear"]]
         life, hand, max_hand = (mob["totals"][i] - sum(w[k] for w in worn) for i, k in enumerate(("life", "hand", "maxHand")))

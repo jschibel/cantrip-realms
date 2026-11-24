@@ -6,9 +6,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/teferi.txt",
   "stats": {
-    "life": 30,
-    "hand": 7,
-    "maxHand": 7
+    "life": 57,
+    "hand": 10,
+    "maxHand": 10
   },
   "gear": [
     "serran-vestments",

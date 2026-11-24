@@ -6,9 +6,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/garna.txt",
   "stats": {
-    "life": 30,
-    "hand": 7,
-    "maxHand": 7
+    "life": 34,
+    "hand": 9,
+    "maxHand": 8
   },
   "gear": [
     "benalish-plate",

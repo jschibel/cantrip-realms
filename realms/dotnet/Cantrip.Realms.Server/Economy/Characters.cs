@@ -111,7 +111,10 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     }
 
     /// <summary>The kit a new character wears: the first common item without effects of each slot, three slots of them.</summary>
-    public IEnumerable<(string Slot, GearItem Item)> StartingKit() =>
+    public IEnumerable<(string Slot, GearItem Item)> StartingKit() => StartingKit(content);
+
+    /// <summary>The starting kit of <paramref name="content"/>'s gear catalogue (<see cref="StartingKit()"/>).</summary>
+    public static IEnumerable<(string Slot, GearItem Item)> StartingKit(RealmContent content) =>
         RealmContent.LoadoutSlots
             .Select(slot => (slot.Key, Item: content.Gear.Values
                 .Where(item => item.Slot == slot.Value && item.Rarity == "common" && item.Effects.Count == 0 && !item.Unique)

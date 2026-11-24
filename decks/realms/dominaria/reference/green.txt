@@ -1,0 +1,16 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): the green starter upgraded with the pool's commons and
+# uncommons a player could hold after about a dozen wins - mana elves, big bodies and Rancor.
+
+3 Llanowar Elves
+2 Elvish Warrior
+2 Ashcoat Bear
+2 Branchsnap Lorian
+2 Nessian Courser
+2 Erhnam Djinn
+2 Elfhame Wurm
+1 Enormous Baloth
+2 Rancor
+2 Giant Growth
+2 Bite Down
+1 Overrun
+17 Forest

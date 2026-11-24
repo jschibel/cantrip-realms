@@ -1,0 +1,16 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): the blue starter upgraded with the pool's commons and
+# uncommons a player could hold after about a dozen wins - fliers, counters and stolen creatures.
+
+2 Storm Crow
+2 Prodigal Sorcerer
+3 Soaring Drake
+2 Azure Drake
+2 Serra Sphinx
+2 Air Elemental
+2 Tolarian Terror
+2 Pongify
+1 Psionic Blast
+2 Control Magic
+2 Essence Scatter
+1 Memory Lapse
+17 Island

@@ -1,0 +1,18 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): the red starter upgraded with the pool's commons and
+# uncommons a player could hold after about a dozen wins - fast creatures, dragons and burn.
+
+2 Monastery Swiftspear
+2 Blood Knight
+2 Roc Hunter
+2 Giant Cindermaw
+1 Coalition Warbrute
+2 Flametongue Kavu
+2 Dragon Whelp
+1 Earth Elemental
+1 Volcanic Dragon
+2 Chain Lightning
+2 Lightning Strike
+2 Incinerate
+1 Fireball
+1 Lava Dart
+17 Mountain

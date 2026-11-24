@@ -77,13 +77,7 @@ public sealed class Encounters(
         long seed = dice.Seed();
         long cap = Math.Min(deck.AnteValue, mob.File.Prize);
         (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck), MobSeat(mob));
-        var duel = new Duel(
-            [seat1, seat2],
-            Duel.RealmMinimumDeckSize,
-            seed,
-            new DuelMob(mob.File.Name, mob.File.Boss ? 0 : mob.File.Tier, mob.File.Prize),
-            deck.AnteValue,
-            cap);
+        Duel duel = Deal(seat1, seat2, mob, seed, deck.AnteValue, cap);
 
         string token = RealmDice.Token();
         db.Duels.Add(new DuelRow
@@ -176,16 +170,46 @@ public sealed class Encounters(
         return (space, encounter, 0, mob);
     }
 
+    /// <summary>
+    /// A duel against a mob as an encounter deals it: the player's seat and the mob's, the seed, the realm's minimum deck
+    /// size, who seat 2 is (a boss's tier 0), the ante's value and the prize cap. The balance lab deals its games with this
+    /// too (tools/realms/balance.cmd), so they are the server's duels.
+    /// </summary>
+    public static Duel Deal(DuelSeat player, DuelSeat mobSeat, Mob mob, long seed, long anteValue, long cap)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(mobSeat);
+        ArgumentNullException.ThrowIfNull(mob);
+        return new Duel(
+            [player, mobSeat],
+            Duel.RealmMinimumDeckSize,
+            seed,
+            new DuelMob(mob.File.Name, mob.File.Boss ? 0 : mob.File.Tier, mob.File.Prize),
+            anteValue,
+            cap);
+    }
+
     /// <summary>The player's seat: their deck, their stats with their gear's, an emblem per worn item with effects.</summary>
     public static DuelSeat PlayerSeat(CharacterView character, DeckView deck)
     {
         ArgumentNullException.ThrowIfNull(character);
         ArgumentNullException.ThrowIfNull(deck);
         List<GearItem> worn = [.. RealmContent.LoadoutSlots.Keys.Select(slot => character.Loadout.GetValueOrDefault(slot)?.Gear).OfType<GearItem>()];
+        return PlayerSeat(character.Name, worn, deck.Main.SelectMany(card => Enumerable.Repeat(card.Name, card.Count)));
+    }
+
+    /// <summary>
+    /// A player's seat from its parts: the deck, the base stats with the worn items' (in loadout order), an emblem per worn
+    /// item with effects.
+    /// </summary>
+    public static DuelSeat PlayerSeat(string name, IReadOnlyList<GearItem> worn, IEnumerable<string> deck)
+    {
+        ArgumentNullException.ThrowIfNull(worn);
+        ArgumentNullException.ThrowIfNull(deck);
         GearStats stats = Characters.Stats(worn);
         return new DuelSeat(
-            character.Name,
-            [.. deck.Main.SelectMany(card => Enumerable.Repeat(card.Name, card.Count))],
+            name,
+            [.. deck],
             [],
             null,
             [],
@@ -196,8 +220,12 @@ public sealed class Encounters(
     }
 
     /// <summary>The mob's seat: its deck, its stats with its gear's, and its gear's emblems.</summary>
-    public DuelSeat MobSeat(Mob mob)
+    public DuelSeat MobSeat(Mob mob) => MobSeat(content, mob);
+
+    /// <summary>A mob's seat in a duel dealt from <paramref name="content"/>.</summary>
+    public static DuelSeat MobSeat(RealmContent content, Mob mob)
     {
+        ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(mob);
         List<GearItem> worn = [.. mob.File.Gear.Select(id => content.Gear[id])];
         GearStats stats = worn.Aggregate(mob.File.Stats, (sum, item) => sum + item.Stats);

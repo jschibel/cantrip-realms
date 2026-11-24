@@ -1,0 +1,15 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): a strong black-red deck of the Dominaria pool, rares
+# included, for a character with a second color unlocked - knights, Flametongue Kavu, dragons and vampires, and burn.
+
+2 Black Knight
+2 Knight of Malice
+2 Blood Knight
+3 Flametongue Kavu
+2 Abyssal Specter
+2 Sengir Vampire
+2 Shivan Dragon
+4 Lightning Bolt
+2 Chain Lightning
+2 Go for the Throat
+9 Swamp
+8 Mountain

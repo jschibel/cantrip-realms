@@ -1,0 +1,18 @@
+# Reference deck for the balance lab (tools/realms/balance.cmd): the black starter upgraded with the pool's commons and
+# uncommons a player could hold after about a dozen wins - knights, evasive threats and removal.
+
+2 Black Knight
+2 Knight of Malice
+2 Knight of Dusk's Shadow
+2 Legions of Lim-Dûl
+2 Bog Wraith
+1 Moor Fiend
+2 Abyssal Specter
+1 Yargle, Glutton of Urborg
+2 Cut Down
+2 Go for the Throat
+2 Terror
+1 Dark Banishing
+1 Drain Life
+1 Hymn to Tourach
+17 Swamp

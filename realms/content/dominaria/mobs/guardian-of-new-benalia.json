@@ -6,9 +6,9 @@
   "tier": 3,
   "deck": "decks/realms/dominaria/guardian-of-new-benalia.txt",
   "stats": {
-    "life": 22,
-    "hand": 7,
-    "maxHand": 7
+    "life": 34,
+    "hand": 9,
+    "maxHand": 9
   },
   "gear": [
     "padded-jerkin",

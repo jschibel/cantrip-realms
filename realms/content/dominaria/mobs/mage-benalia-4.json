@@ -6,9 +6,9 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/mage-benalia-4.txt",
   "stats": {
-    "life": 26,
-    "hand": 7,
-    "maxHand": 7
+    "life": 36,
+    "hand": 9,
+    "maxHand": 9
   },
   "gear": [
     "serran-vestments",

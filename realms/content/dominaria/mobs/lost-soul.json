@@ -6,7 +6,7 @@
   "tier": 2,
   "deck": "decks/realms/dominaria/lost-soul.txt",
   "stats": {
-    "life": 20,
+    "life": 18,
     "hand": 7,
     "maxHand": 7
   },
