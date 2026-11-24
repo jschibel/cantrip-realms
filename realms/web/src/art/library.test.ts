@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { boards, missing } from "../gallery/boards";
 import type { BuildingData, PropData } from "../world/format";
-import { BUILDINGS, SHOWCASE, splitAt } from "./buildings";
+import { BUILDINGS, SHOWCASE } from "./buildings";
 import { MeshBuilder, type Model, sides } from "./paint/builder";
 import * as C from "./paint/colors";
 import { flat } from "./paint/materials";
@@ -146,28 +146,14 @@ describe("the buildings", () => {
     }
   });
 
-  it("cut away above the ground floor, losing nothing", () => {
-    const b = new MeshBuilder();
-    b.box(0, 0, 0, 2, 3, 2, sides(flat(C.IRON[2]!)));
-    const model = b.model();
-    const area = (m: Model) => {
-      let a = 0;
-      for (const p of m.parts) {
-        for (let t = 0; t < p.indices.length; t += 3) {
-          const v = [0, 1, 2].map((k) => p.indices[t + k]! * 3).map((i) => [p.positions[i]!, p.positions[i + 1]!, p.positions[i + 2]!]);
-          const [a0, a1, a2] = v as [number[], number[], number[]];
-          const u = [a1[0]! - a0[0]!, a1[1]! - a0[1]!, a1[2]! - a0[2]!];
-          const w = [a2[0]! - a0[0]!, a2[1]! - a0[1]!, a2[2]! - a0[2]!];
-          a += Math.hypot(u[1]! * w[2]! - u[2]! * w[1]!, u[2]! * w[0]! - u[0]! * w[2]!, u[0]! * w[1]! - u[1]! * w[0]!) / 2;
-        }
-      }
-      return a;
-    };
-    const { below, above } = splitAt(model, 1.25);
-    expect(area(below) + area(above)).toBeCloseTo(area(model), 6);
-    expect(Math.max(...below.parts.flatMap((p) => p.positions.filter((_, i) => i % 3 === 1)))).toBeLessThanOrEqual(1.25 + 1e-9);
-    expect(Math.min(...above.parts.flatMap((p) => p.positions.filter((_, i) => i % 3 === 1)))).toBeGreaterThanOrEqual(1.25 - 1e-9);
-  });
+  it("stand on their footprints: a building on its own, a gatehouse either side of its passage", () => {
+    const house = BUILDINGS.build("benalish", { id: "h", style: "benalish", kind: "house", x: 10, z: 20, w: 4, d: 3, rot: 0 });
+    expect(house.footprints).toEqual([[10, 20, 14, 23]]);
+    const gate = BUILDINGS.build("benalish", { id: "g", style: "benalish", kind: "gatehouse", x: 0, z: 0, w: 6, d: 4, rot: 0 });
+    expect(gate.footprints).toEqual([[0, 0, 2, 4], [4, 0, 6, 4]]);
+    const turned = BUILDINGS.build("benalish", { id: "g", style: "benalish", kind: "gatehouse", x: 0, z: 0, w: 4, d: 6, rot: 1 });
+    expect(turned.footprints).toEqual([[0, 0, 4, 2], [0, 4, 4, 6]]);
+});
 });
 
 describe("the palettes", () => {

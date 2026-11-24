@@ -11,4 +11,4 @@ import "./phyrexian";
 export { BUILDINGS, SHOWCASE, type Showcase, placeBuilding, showcase } from "./registry";
 export { house, type HouseSpec, type Opening } from "./benalish";
 export * as kit from "./kit";
-export { CUT, TRADES, type Trade, splitAt, styled } from "./kit";
+export { TRADES, type Trade, styled } from "./kit";

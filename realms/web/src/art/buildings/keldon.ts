@@ -528,46 +528,45 @@ function keldon(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const m = mats(pal, building);
   const trade = tradeOf(building);
-  const cap = m.stone;
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   const lit = (built: Built, spots: (x0: number, z0: number, x1: number, z1: number) => XYZ[]): Built => ({ ...built, frames: [...(built.frames ?? []), fireFrames(building, spots)] });
   const ridge = (d: number) => 0.5 + 2.0 + Math.max(2.2, d * 0.75) + 0.6;
   switch (kind) {
     case "shop":
-      return go(ridge(building.d - 1.5), shop(building, m, trade ?? "general"));
+      return go(shop(building, m, trade ?? "general"));
     case "inn":
-      return lit(go(ridge(building.d - 1.2) + 0.4, inn(building, m, trade ?? "drink")), innFires);
+      return lit(go(inn(building, m, trade ?? "drink")), innFires);
     case "temple":
-      return lit(go(ridge(building.d - 3) + 0.8, temple(m)), templeFires);
+      return lit(go(temple(m)), templeFires);
     case "guildhall":
-      return go(ridge(building.d - 1.4) + 0.4, guildhall(m, trade ?? "guild"));
+      return go(guildhall(m, trade ?? "guild"));
     case "smithy":
-      return lit(go(5.4, smithy(m, trade ?? "smith")), smithyFires);
+      return lit(go(smithy(m, trade ?? "smith")), smithyFires);
     case "library":
-      return go(ridge(building.d - 1) + 0.5, library(m, trade ?? "books"));
+      return go(library(m, trade ?? "books"));
     case "tower": {
       const floors = P.num("floors", 2);
-      return go(1.2 + floors * 1.5 + 2.9, tower(m, trade ?? "magic", floors));
+      return go(tower(m, trade ?? "magic", floors));
     }
     case "barn":
     case "warehouse":
-      return go(0.8 + 3.0 + 1.9 + 0.6, warehouse(m));
+      return go(warehouse(m));
     case "gatehouse":
-      return go(6.1, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(3.4, (b, x0, z0, x1, z1) => {
+      return go((b, x0, z0, x1, z1) => {
         if (x1 - x0 >= z1 - z0) palisade(b, x0, (z0 + z1) / 2, x1, (z0 + z1) / 2, 2.8, m, Math.round(Math.abs(x0)));
         else palisade(b, (x0 + x1) / 2, z0, (x0 + x1) / 2, z1, 2.8, m, Math.round(Math.abs(z0)));
         return undefined;
       });
     case "wall-tower":
-      return go(6.1, (b, x0, z0, x1, z1) => {
+      return go((b, x0, z0, x1, z1) => {
         logTower(b, x0, z0, x1, z1, 3.6, m);
         shield(b, (x0 + x1) / 2, 2.2, z1 + 0.01, m, 2);
         return undefined;
       });
     default:
-      return go(ridge(building.d - 0.4), house(building, m));
+      return go(house(building, m));
   }
 }
 

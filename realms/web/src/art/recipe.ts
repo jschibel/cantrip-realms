@@ -19,14 +19,14 @@ export interface Frames {
 }
 
 /**
- * Something drawn twice, whole and cut down, the cut-down one shown while it would hide the player: while the player
- * stands in `player` (a rectangle of world units, edges excluded) - a gate tower over the gateway - or while the camera
- * is swung round toward `camera`'s side (a room's side wall on the camera's side).
+ * Something drawn twice, whole and cut down, the cut-down one shown while the camera is swung round toward `camera`'s
+ * side (a room's side wall on the camera's side). What stands between the camera and the player out of doors is not cut
+ * away but faded (render/occlude.ts).
  */
 export interface Cutaway {
   readonly full: Model;
   readonly low: Model;
-  readonly when: { readonly player: Rect } | { readonly camera: "east" | "west" };
+  readonly when: { readonly camera: "east" | "west" };
 }
 
 /** What a recipe makes. Everything but `model` is optional. */
@@ -37,6 +37,11 @@ export interface Built {
   readonly cutaways?: readonly Cutaway[];
   /** Lights that belong to the thing itself whatever the data says (a room's daylight, its shade). */
   readonly lights?: readonly LightSpec[];
+  /**
+   * The ground it stands solid on, rectangles (x0, z0, x1, z1) in world units: what the occluder fade never fades over
+   * (render/occlude.ts), so the ground under it is never seen. None: the rectangle its lowest parts stand on.
+   */
+  readonly footprints?: readonly Rect[];
   /** Where its door is, world units: what a doorway's iris closes on. Buildings and rooms. */
   readonly doorway?: XYZ;
   /** Rooms: the rectangle (x0, z0, x1, z1) of the ground the camera keeps its view within. */

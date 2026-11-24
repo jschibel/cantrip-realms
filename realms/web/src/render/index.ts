@@ -21,7 +21,7 @@
 //   StreamedWorld, WorldPlaces, roomSpot, npcActor   a version-2 world and its rooms as spots (spots.ts)
 //   ChunkStreamer, buildChunk   chunks read, built a step at a time, dropped; the walk grid as a window (chunks.ts)
 //   floorAt, cornersOf, banksOf, floorGeometry, RAMP   terrain from the tiles' heights (terrain.ts)
-//   XRAY, aimXray, cuttableOf   the cut through what stands in front of the player (xray.ts)
+//   OCCLUDE, aimOccluders, occluderOf, FADE_MIN   the fade of what stands in front of the player (occlude.ts)
 //   WalkInput        click and hold-to-walk on the canvas (pointer.ts)
 //   runBench         the benchmark's scripted walk (bench.ts; e2e/bench)
 
@@ -33,7 +33,7 @@ export { WalkInput } from "./pointer";
 export { StreamedWorld, WorldPlaces, npcActor, roomSpot } from "./spots";
 export { type Arrival, LEAN, type Spot, type Spots, Stage, type StageDoor, type StageOptions } from "./stage";
 export { RAMP, banksOf, cornersOf, floorAt, floorGeometry } from "./terrain";
-export { XRAY, XRAY_RADIUS, aimXray, cuttableOf } from "./xray";
+export { FADE_MIN, OCCLUDE, aimOccluders, occluderOf } from "./occlude";
 export { CameraRig, type Framing, HEADING_NAMES, type Heading, NAME_OF, ZOOM_EASE, type Zoom } from "./camera";
 export { type GrassField, grassField } from "./grass";
 export { type GroundSurface, buildGround } from "./ground";

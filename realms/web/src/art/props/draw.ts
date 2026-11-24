@@ -291,9 +291,6 @@ export function townWall(
   z1: number,
   g0: number,
   g1: number,
-  /** The tower south of the gate and the lintel, which stand in front of the gateway from the south: built full and cut down. */
-  southFull: MeshBuilder,
-  southLow: MeshBuilder,
 ): void {
   const lime = tiled(stock.limestone());
   const top = tiled(stock.flagstone());
@@ -323,23 +320,18 @@ export function townWall(
     const xa = x - t - 0.5;
     const xb = x + 0.5;
     const south = za >= g1;
-    const tb = south ? southFull : b;
-    tb.box(xa, 0, za, xb, 4.0, zb, sides(lime, top));
+    b.box(xa, 0, za, xb, 4.0, zb, sides(lime, top));
     for (let mx = xa; mx < xb - 0.1; mx += 0.5) {
-      tb.box(mx, 4.0, zb - 0.25, mx + 0.25, 4.375, zb, sides(lime));
-      tb.box(mx, 4.0, za, mx + 0.25, 4.375, za + 0.25, sides(lime));
+      b.box(mx, 4.0, zb - 0.25, mx + 0.25, 4.375, zb, sides(lime));
+      b.box(mx, 4.0, za, mx + 0.25, 4.375, za + 0.25, sides(lime));
     }
-    tb.gableRoof(xa - 0.15, za - 0.15, xb + 0.15, zb + 0.15, 4.375, 1.2, stock.slate(), lime);
-    tb.card(slit, (xa + xb) / 2 - 0.125, 2.6, (xa + xb) / 2 + 0.125, 3.35, zb + 0.01);
-    if (south) {
-      bannerAt(tb, (xa + xb) / 2, 2.3, zb);
-      // Cut down to the wall's height, its top showing: what stands there while someone is in the gateway.
-      southLow.box(xa, 0, za, xb, 1.0, zb, sides(lime, top));
-    }
+    b.gableRoof(xa - 0.15, za - 0.15, xb + 0.15, zb + 0.15, 4.375, 1.2, stock.slate(), lime);
+    b.card(slit, (xa + xb) / 2 - 0.125, 2.6, (xa + xb) / 2 + 0.125, 3.35, zb + 0.01);
+    if (south) bannerAt(b, (xa + xb) / 2, 2.3, zb);
   }
-  // The lintel goes with the south tower: from the south it too stands over whoever is in the gateway.
-  southFull.box(x - t - 0.12, 2.5, g0, x + 0.12, 3.25, g1, sides(lime, top));
-  for (let z = g0; z < g1 - 0.1; z += 0.5) southFull.box(x - t - 0.12, 3.25, z, x - t + 0.07, 3.56, z + 0.25, sides(lime));
+  // The lintel over the gateway, high enough to walk under.
+  b.box(x - t - 0.12, 2.5, g0, x + 0.12, 3.25, g1, sides(lime, top));
+  for (let z = g0; z < g1 - 0.1; z += 0.5) b.box(x - t - 0.12, 3.25, z, x - t + 0.07, 3.56, z + 0.25, sides(lime));
 }
 
 /** A stone bridge over a stream: a deck at `y`, its arch's face to the water, a low parapet along each side. */

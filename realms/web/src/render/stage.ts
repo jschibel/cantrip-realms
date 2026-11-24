@@ -7,7 +7,7 @@ import { CameraRig, type Framing, type Heading } from "./camera";
 import type { ChunkStreamer, StreamReach } from "./chunks";
 import type { Place } from "./place";
 import { THREE_QUARTER, type View, blendViews } from "./view";
-import { aimXray } from "./xray";
+import { aimOccluders } from "./occlude";
 
 // The stage: what every page that shows the world runs each frame - the camera rig and its three headings and stepped
 // zoom, the place the player is in and the figures in it, walking and the doors between places with the doorway's iris
@@ -113,8 +113,8 @@ export class Stage {
   intercept: (tile: Tile) => boolean = () => false;
   /** Called each frame before the player moves (the page's input: a held button). */
   beforeTick: (dt: number) => void = () => {};
-  /** Whether the x-ray cuts through what stands in front of the player (tests compare with it off). */
-  xray = true;
+  /** Whether what stands in front of the player fades (render/occlude.ts; tests compare with it off). */
+  occlude = true;
   /** Whether the walk may go through doors on its own (a game paused by a dialog stops everything). */
   paused = false;
   private lastTile = "";
@@ -414,7 +414,6 @@ export class Stage {
     }
     const here = this.current;
     here.place.update(this.time, this.renderer.view.yaw, this.viewFor(here).yaw, this.focus);
-    here.place.follow(this.player.position);
     if (!this.transition) this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
     this.renderer.focus.copy(this.focus);
     // Every figure leans for the camera as it is this frame, so the lean turns with the camera and never lags it.
@@ -463,12 +462,12 @@ export class Stage {
     }
   }
 
-  /** Draws the frame: the x-ray aimed at the player as the camera stands now. */
+  /** Draws the frame: the occluder fade aimed at the player as the camera stands now. */
   render(): void {
     const r = this.renderer;
     const p = this.player.position;
     r.placeCamera();
-    aimXray(this.xray && !this.current.inside && !this.transition, new THREE.Vector3(p.x, p.y + 0.75, p.z), p.y, r.camera, r.width, r.height);
+    aimOccluders(this.occlude && !this.current.inside && !this.transition, new THREE.Vector3(p.x, p.y, p.z), r.camera, r.view.wppX, r.view.wppY, this.current.place.scene);
     r.render(this.current.place.scene);
   }
 

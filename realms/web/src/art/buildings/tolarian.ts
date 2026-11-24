@@ -523,35 +523,34 @@ function tolarian(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const kind = building.kind ?? "house";
   const trade = tradeOf(building);
-  const cap = marbleSlab(pal.stone!);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "shop":
-      return go(0.3 + P.num("floors", 1) * 2.2 + 1, house(m, building, P.num("floors", 1), false, trade ?? "general"));
+      return go(house(m, building, P.num("floors", 1), false, trade ?? "general"));
     case "inn":
-      return go(8.5, inn(m, building, trade ?? "inn"));
+      return go(inn(m, building, trade ?? "inn"));
     case "temple":
-      return go(9.5, temple(m));
+      return go(temple(m));
     case "guildhall":
-      return go(8, guildhall(m, trade ?? "guild"));
+      return go(guildhall(m, trade ?? "guild"));
     case "smithy":
-      return go(4.8, smithy(m, trade ?? "smith"));
+      return go(smithy(m, trade ?? "smith"));
     case "library":
-      return go(9, library(m, trade ?? "books"));
+      return go(library(m, trade ?? "books"));
     case "tower":
-      return go(2.4 + P.num("floors", 3) * 2.2 + 3.5, tower(m, trade ?? "magic", P.num("floors", 3)));
+      return go(tower(m, trade ?? "magic", P.num("floors", 3)));
     case "barn":
     case "warehouse":
-      return go(5, warehouse(m));
+      return go(warehouse(m));
     case "gatehouse":
-      return go(5.5, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(3.1, wall(m));
+      return go(wall(m));
     case "wall-tower":
-      return go(6, wallTower(m));
+      return go(wallTower(m));
     default: {
       const floors = P.num("floors", 1);
-      return go(0.3 + floors * 2.2 + 3, house(m, building, floors, P.bool("dome", true)));
+      return go(house(m, building, floors, P.bool("dome", true)));
     }
   }
 }

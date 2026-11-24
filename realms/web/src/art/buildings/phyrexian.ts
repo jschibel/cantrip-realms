@@ -387,28 +387,27 @@ function phyrexian(building: BuildingData, pal: Palette): Built {
   const m = mats(pal);
   const P = paramsOf(building);
   const kind = building.kind ?? "hall";
-  const cap = plating(pal.metal!);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "portal":
-      return go(10, portal(m), true);
+      return go(portal(m), true);
     case "spire":
-      return go(P.num("h", 6) + 1.5, spire(m, P.num("h", 6)));
+      return go(spire(m, P.num("h", 6)));
     case "vat":
-      return go(3.8, vat(m));
+      return go(vat(m));
     case "obelisk":
-      return go(P.num("h", 5) + 1, obelisk(m, P.num("h", 5)));
+      return go(obelisk(m, P.num("h", 5)));
     case "gatehouse":
-      return go(7, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(3.8, wall(m));
+      return go(wall(m));
     case "wall-tower":
-      return go(7.5, (b, x0, z0, x1, z1) => {
+      return go((b, x0, z0, x1, z1) => {
         towerOf(b, m, x0, z0, x1, z1, 5.0);
         return undefined;
       });
     default:
-      return go(8.5, hall(m));
+      return go(hall(m));
   }
 }
 

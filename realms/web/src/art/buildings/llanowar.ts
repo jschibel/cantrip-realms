@@ -541,39 +541,39 @@ function llanowar(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const m = mats(pal);
   const trade = tradeOf(building);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap: m.deck, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   const s = Math.min(building.w, building.d);
   const treeTop = (levels: number) => P.num("deck", 3) + (levels - 1) * 3.2 + 3.2 + Math.max(2.0, (s / 2) * 0.95) * 1.15;
   switch (kind) {
     case "shop":
-      return go(treeTop(1), treeHouse(building, m, 1, shopStall(m, trade ?? "general")));
+      return go(treeHouse(building, m, 1, shopStall(m, trade ?? "general")));
     case "tenement":
-      return go(treeTop(P.num("floors", 3)), treeHouse(building, m, P.num("floors", 3)));
+      return go(treeHouse(building, m, P.num("floors", 3)));
     case "inn":
-      return go(treeTop(2), treeHouse(building, m, 2, (b, t) => hangingSign(b, t.cx + 1.25, 2.4, t.door - 0.4, leafSign(trade ?? "inn", m), tiled(m.wood))));
+      return go(treeHouse(building, m, 2, (b, t) => hangingSign(b, t.cx + 1.25, 2.4, t.door - 0.4, leafSign(trade ?? "inn", m), tiled(m.wood))));
     case "temple":
-      return go(10.6 + s * 0.45 * 1.15, temple(m, trade ?? "temple"));
+      return go(temple(m, trade ?? "temple"));
     case "guildhall":
-      return go(8.5, guildhall(m, trade ?? "guild"));
+      return go(guildhall(m, trade ?? "guild"));
     case "smithy":
-      return { ...go(4.4, smithy(m, trade ?? "smith")), frames: [fireFrames(building, (x0, z0) => smithyFire(x0, z0))] };
+      return { ...go(smithy(m, trade ?? "smith")), frames: [fireFrames(building, (x0, z0) => smithyFire(x0, z0))] };
     case "library":
-      return go(treeTop(3), library(building, m, trade ?? "books"));
+      return go(library(building, m, trade ?? "books"));
     case "tower": {
       const floors = P.num("floors", 3);
-      return go(3.0 + floors * 1.8 + 5.6, tower(building, m, floors));
+      return go(tower(building, m, floors));
     }
     case "barn":
     case "warehouse":
-      return go(3.0, warehouse(m, trade ?? "general"));
+      return go(warehouse(m, trade ?? "general"));
     case "gatehouse":
-      return go(8.2, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(2.6, wall(building, m));
+      return go(wall(building, m));
     case "wall-tower":
-      return go(6.8, wallTower(m));
+      return go(wallTower(m));
     default:
-      return go(treeTop(1), treeHouse(building, m, 1));
+      return go(treeHouse(building, m, 1));
   }
 }
 

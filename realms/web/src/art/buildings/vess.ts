@@ -484,41 +484,40 @@ function vess(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const kind = building.kind ?? "house";
   const trade = tradeOf(building);
-  const cap = vessFlag(pal.stone!);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "manor":
-      return go(14, manor(m));
+      return go(manor(m));
     case "shop":
-      return go(8, house(m, building, P.num("floors", 2), trade ?? "general"));
+      return go(house(m, building, P.num("floors", 2), trade ?? "general"));
     case "inn":
-      return go(8.5, inn(m, building, trade ?? "inn"));
+      return go(inn(m, building, trade ?? "inn"));
     case "temple":
-      return go(11, chapel(m));
+      return go(chapel(m));
     case "guildhall":
-      return go(9, hall(m, trade ?? "guild", "guildhall"));
+      return go(hall(m, trade ?? "guild", "guildhall"));
     case "library":
-      return go(9.5, hall(m, trade ?? "books", "library"));
+      return go(hall(m, trade ?? "books", "library"));
     case "smithy":
-      return go(5.6, smithy(m, trade ?? "smith"));
+      return go(smithy(m, trade ?? "smith"));
     case "tower":
-      return go(1.2 + P.num("floors", 3) * 2.2 + 6, tower(m, trade ?? "magic", P.num("floors", 3)));
+      return go(tower(m, trade ?? "magic", P.num("floors", 3)));
     case "barn":
     case "warehouse":
-      return go(6.4, warehouse(m));
+      return go(warehouse(m));
     case "gatehouse":
-      return go(8, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(3.3, wall(m));
+      return go(wall(m));
     case "wall-tower":
-      return go(9, (b, x0, z0, x1, z1) => {
+      return go((b, x0, z0, x1, z1) => {
         squareTower(b, m, x0, z0, x1, z1, 5.2);
         return undefined;
       });
     case "mausoleum":
-      return go(5.4, mausoleum(m));
+      return go(mausoleum(m));
     default:
-      return go(9, house(m, building, P.num("floors", 2)));
+      return go(house(m, building, P.num("floors", 2)));
   }
 }
 

@@ -4,7 +4,7 @@ import { flat } from "../art/paint/materials";
 import type { Built } from "../art/recipe";
 import { Place } from "./place";
 
-// A place's moving parts (place.ts): cut-aways for the player and for the camera, flames in steps, a fire's light in
+// A place's moving parts (place.ts): cut-aways for the camera, flames in steps, a fire's light in
 // step with them - all set by the clock and the camera's turn, nothing by the wall clock.
 
 const cube = (x: number) => {
@@ -14,27 +14,21 @@ const cube = (x: number) => {
 };
 
 describe("a place", () => {
-  it("cuts a gate tower down while the player stands in its gateway, and a side wall while the camera looks across it", () => {
+  it("cuts a side wall down while the camera looks across it", () => {
     const place = new Place("#000000");
-    const pieces: Built[] = [
-      { model: cube(0), cutaways: [{ full: cube(1), low: cube(2), when: { player: [-1, 9, 2, 15] } }] },
-      { model: cube(3), cutaways: [{ full: cube(4), low: cube(5), when: { camera: "east" } }, { full: cube(6), low: cube(7), when: { camera: "west" } }] },
-    ];
+    const pieces: Built[] = [{ model: cube(3), cutaways: [{ full: cube(4), low: cube(5), when: { camera: "east" } }, { full: cube(6), low: cube(7), when: { camera: "west" } }] }];
     place.addPieces(pieces, "scenery");
     const groups = place.scene.children;
     // Each cut-away's whole and cut-down groups, then the merged scenery: one mesh for the one material.
-    expect(groups.map((g) => g.name)).toEqual(["cutaway", "cutaway-low", "cutaway", "cutaway-low", "cutaway", "cutaway-low", "scenery"]);
+    expect(groups.map((g) => g.name)).toEqual(["cutaway", "cutaway-low", "cutaway", "cutaway-low", "scenery"]);
     expect(groups.at(-1)!.children).toHaveLength(1);
-    const shown = () => groups.slice(0, 6).map((g) => g.visible);
-    expect(shown()).toEqual([true, false, true, false, true, false]);
-    place.follow({ x: 0.5, z: 12 });
-    expect(shown()).toEqual([false, true, true, false, true, false]);
-    place.follow({ x: 3, z: 12 });
+    const shown = () => groups.slice(0, 4).map((g) => g.visible);
+    expect(shown()).toEqual([true, false, true, false]);
     place.update(0, Math.PI / 4, Math.PI / 4);
-    expect(shown()).toEqual([true, false, false, true, true, false]);
+    expect(shown()).toEqual([false, true, true, false]);
     // Turning from the right to the left: both sides are cut while it swings past the front.
     place.update(0, 0.3, -Math.PI / 4);
-    expect(shown()).toEqual([true, false, false, true, false, true]);
+    expect(shown()).toEqual([false, true, false, true]);
   });
 
   it("steps flames eight times a second, and the fire's light with them", () => {

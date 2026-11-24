@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { normalMaterialFor } from "./edges";
+import { OCCLUDE, OCCLUDER_LAYER, type OccluderRun, occluding } from "./occlude";
 import type { View } from "./view";
 
 // The slice's renderer: a real 3D scene drawn small and shown in big, clean pixels.
@@ -18,6 +19,10 @@ import type { View } from "./view";
 // A second pass draws every surface's facing; the post pass uses it and the depth to draw a soft outline in the
 // darkened color of whatever stands in front of something farther, and a bright line on convex edges - the stepped,
 // hand-drawn edges pixel artists put on blocks and boxes. It also draws the iris that closes over a doorway.
+//
+// Out of doors, what stands between the camera and the player fades (render/occlude.ts): the two passes draw only what
+// is opaque, a third draws the fading parts of the occluders into a target of their own - the nearest at each pixel,
+// with its alpha - and the post pass lays it over the scene, outlines and all, as a ghost of what was there.
 
 const DISTANCE = 120;
 const NEAR = 1;
@@ -34,6 +39,9 @@ const POST_FRAGMENT = /* glsl */ `
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
 uniform sampler2D tNormal;
+uniform sampler2D tGhost;
+uniform sampler2D tGhostDepth;
+uniform float ghosts;
 uniform vec2 resolution;
 uniform float depthRange;
 uniform vec3 irisCenter; // x, y in pixels, radius in pixels (negative: no iris)
@@ -43,6 +51,21 @@ uniform float highlightStrength;
 varying vec2 vUv;
 
 float depthAt(vec2 uv) { return texture2D(tDepth, uv).r * depthRange; }
+// The faded occluders' ghost at a pixel: its color and alpha, where it stands in front of the scene (else alpha 0).
+vec4 ghostAt(vec2 uv) {
+  if (ghosts < 0.5) return vec4(0.0);
+  vec4 g = texture2D(tGhost, uv);
+  if (g.a <= 0.0 || texture2D(tGhostDepth, uv).r >= texture2D(tDepth, uv).r) return vec4(0.0);
+  return g;
+}
+// The depth a pixel's outline is judged against: a ghost in front counts as there, so the edge where an occluder
+// starts to fade is not outlined - unless the pixel itself is under a ghost (then what is behind is outlined as ever).
+float edgeDepthAt(vec2 uv, bool under) {
+  float d = depthAt(uv);
+  if (under || ghosts < 0.5) return d;
+  if (ghostAt(uv).a > 0.0) d = min(d, texture2D(tGhostDepth, uv).r * depthRange);
+  return d;
+}
 
 void main() {
   vec2 px = 1.0 / resolution;
@@ -51,6 +74,8 @@ void main() {
   float kind = nk.a;
   vec3 n = normalize(nk.rgb * 2.0 - 1.0);
   float d = depthAt(vUv);
+  vec4 ghost = ghostAt(vUv);
+  bool under = ghost.a > 0.0;
 
   vec2 offsets[4] = vec2[4](vec2(px.x, 0.0), vec2(-px.x, 0.0), vec2(0.0, px.y), vec2(0.0, -px.y));
   float outline = 0.0;
@@ -59,18 +84,20 @@ void main() {
   // no highlights; flat ground and decals (0.5) neither.
   if (kind > 0.85 && kind < 0.9) {
     for (int i = 0; i < 4; i++) {
-      float gap = depthAt(vUv + offsets[i]) - d;
+      float gap = edgeDepthAt(vUv + offsets[i], under) - d;
       if (gap > 0.32) outline = 1.0;
     }
   }
   if (kind > 0.9) {
     for (int i = 0; i < 4; i++) {
       vec2 at = vUv + offsets[i];
-      float dn = depthAt(at);
+      float dn = edgeDepthAt(at, under);
       vec4 nn = texture2D(tNormal, at);
-      // In front of something markedly farther (or of nothing): the silhouette.
+      // In front of something markedly farther (or of nothing): the silhouette. A neighbour a ghost stands over is
+      // part of the occluder this pixel belongs to.
+      bool ghosted = !under && ghostAt(at).a > 0.0;
       float gap = dn - d;
-      if (gap > 0.32 || nn.a < 0.1) outline = 1.0;
+      if (gap > 0.32 || (nn.a < 0.1 && !ghosted)) outline = 1.0;
       // A convex crease: the facing turns, the neighbour is not in front, and it is the side that faces more up and
       // towards the light that is lit (one pixel wide).
       if (nn.a > 0.9 && gap > -0.06) {
@@ -87,6 +114,9 @@ void main() {
   } else if (highlight > 0.5) {
     color = min(vec3(1.0), color * (1.0 + 0.32 * highlightStrength) + vec3(0.05, 0.045, 0.03) * highlightStrength);
   }
+
+  // The faded occluders over it all.
+  color = mix(color, ghost.rgb, ghost.a);
 
   if (irisCenter.z >= 0.0) {
     vec2 p = floor(vUv * resolution) + 0.5;
@@ -116,6 +146,8 @@ export class PixelRenderer {
 
   private readonly color: THREE.WebGLRenderTarget;
   private readonly normals: THREE.WebGLRenderTarget;
+  /** The faded occluders: their color and alpha, and their depth. */
+  private readonly ghost: THREE.WebGLRenderTarget;
   private readonly post: THREE.ShaderMaterial;
   private readonly postScene = new THREE.Scene();
   private readonly postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -142,6 +174,11 @@ export class PixelRenderer {
       depthTexture: new THREE.DepthTexture(2, 2, THREE.FloatType),
     });
     this.normals = new THREE.WebGLRenderTarget(2, 2, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+    this.ghost = new THREE.WebGLRenderTarget(2, 2, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      depthTexture: new THREE.DepthTexture(2, 2, THREE.FloatType),
+    });
 
     this.post = new THREE.ShaderMaterial({
       vertexShader: POST_VERTEX,
@@ -150,6 +187,9 @@ export class PixelRenderer {
         tColor: { value: this.color.texture },
         tDepth: { value: this.color.depthTexture },
         tNormal: { value: this.normals.texture },
+        tGhost: { value: this.ghost.texture },
+        tGhostDepth: { value: this.ghost.depthTexture },
+        ghosts: { value: 0 },
         resolution: { value: new THREE.Vector2(2, 2) },
         depthRange: { value: FAR - NEAR },
         irisCenter: { value: new THREE.Vector3(0, 0, -1) },
@@ -185,6 +225,7 @@ export class PixelRenderer {
       this.renderer.setSize(width, height, false);
       this.color.setSize(width, height);
       this.normals.setSize(width, height);
+      this.ghost.setSize(width, height);
       (this.post.uniforms.resolution!.value as THREE.Vector2).set(width, height);
     }
     const shownWidth = width * scale;
@@ -201,7 +242,7 @@ export class PixelRenderer {
     this.resize();
   }
 
-  /** Places the camera for the frame as `render` will (for what is aimed by the camera before drawing: the x-ray). */
+  /** Places the camera for the frame as `render` will (for what is aimed by the camera before drawing: the occluder fade). */
   placeCamera(): void {
     this.place();
   }
@@ -272,6 +313,10 @@ export class PixelRenderer {
     this.swapped.length = 0;
     for (const o of hidden) o.visible = true;
 
+    // The fading pass: the occluders near the player again, only what of them fades, with its light and alpha.
+    const ghosts = occluding() && this.drawGhosts(scene);
+    this.post.uniforms.ghosts!.value = ghosts ? 1 : 0;
+
     const iris = this.post.uniforms.irisCenter!.value as THREE.Vector3;
     if (this.iris) {
       const p = this.iris.at.clone().project(this.camera);
@@ -284,6 +329,56 @@ export class PixelRenderer {
     r.render(this.postScene, this.postCamera);
     this.stats.calls = r.info.render.calls;
     this.stats.triangles = r.info.render.triangles;
+  }
+
+  /**
+   * Draws the fading parts of the occluders fading this frame into the ghost target; false if none were drawn. Only
+   * their own triangles are drawn: each one's run of its merged mesh, as a draw group for the pass.
+   */
+  private drawGhosts(scene: THREE.Scene): boolean {
+    const r = this.renderer;
+    const fading = new Set(OCCLUDE.occFading.value);
+    const hidden: THREE.Object3D[] = [];
+    const grouped: { mesh: THREE.Mesh; material: THREE.Material }[] = [];
+    scene.traverse((o) => {
+      // The lights light the fading pass as they do the scene.
+      if ((o as THREE.Light).isLight) o.layers.enable(OCCLUDER_LAYER);
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh || !mesh.layers.isEnabled(OCCLUDER_LAYER) || !mesh.visible) return;
+      const runs = (mesh.userData.occluders as readonly OccluderRun[] | undefined)?.filter((run) => fading.has(run.id)) ?? [];
+      if (runs.length === 0 || Array.isArray(mesh.material)) {
+        mesh.visible = false;
+        hidden.push(mesh);
+        return;
+      }
+      for (const run of runs) mesh.geometry.addGroup(run.start, run.count, 0);
+      grouped.push({ mesh, material: mesh.material });
+      mesh.material = [mesh.material];
+    });
+    if (grouped.length > 0) {
+      const background = scene.background;
+      scene.background = null;
+      const shadows = r.shadowMap.autoUpdate;
+      r.shadowMap.autoUpdate = false;
+      const layers = this.camera.layers.mask;
+      this.camera.layers.set(OCCLUDER_LAYER);
+      OCCLUDE.occGhost.value = 1;
+      r.setClearColor(0x000000, 0);
+      r.setRenderTarget(this.ghost);
+      r.clear();
+      r.render(scene, this.camera);
+      r.setClearColor(0x000000, 1);
+      OCCLUDE.occGhost.value = 0;
+      this.camera.layers.mask = layers;
+      r.shadowMap.autoUpdate = shadows;
+      scene.background = background;
+    }
+    for (const { mesh, material } of grouped) {
+      mesh.geometry.clearGroups();
+      mesh.material = material;
+    }
+    for (const o of hidden) o.visible = true;
+    return grouped.length > 0;
   }
 
   /** Where a point in the world is on the page, in CSS pixels. */

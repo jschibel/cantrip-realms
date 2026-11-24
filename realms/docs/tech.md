@@ -67,7 +67,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   snapped to whole pixels at rest. Three headings, front and 45 degrees to either side and never further round, so
   nothing is drawn from behind: Q/E or the HUD's turn buttons. Stepped zoom outdoors (whole-number screen-pixel scales
   only; the wheel, +/- or the HUD's buttons); rooms and dungeons stay at the closest step. Where something tall stands
-  between the camera and the player, the x-ray cuts a circle through it.
+  between the camera and the player, the whole of it fades (the occluder fade), never over its own footprint.
 - **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile (`world/grid.ts`). Click to
   walk, and hold to keep walking toward the cursor (it re-paths when the cursor is more than 1.25 tiles from the path's
   target, with a 0.1 s cap for slow drift). Doors and gates are entered only by a click, or by holding still on them.
@@ -126,7 +126,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 
 | Module | What it is |
 | --- | --- |
-| `render/` | the renderer: pixel target and upscale, camera (headings, zoom, texel snapping), band lighting, the edge pass, the ground shader, terrain, grass, shadows, the chunk streamer, cut-aways and the x-ray, door transitions, the stage every page runs |
+| `render/` | the renderer: pixel target and upscale, camera (headings, zoom, texel snapping), band lighting, the edge pass, the ground shader, terrain, grass, shadows, the chunk streamer, the occluder fade, rooms' cut-aways, door transitions, the stage every page runs |
 | `art/paint/` | the painting toolkit: pixmaps, ramps and palettes, procedural surface painting, text sprites, the material helpers, the mesh builder |
 | `art/recipe.ts` | what every registry is: `Registry`, `Recipe`, `Built` |
 | `art/surfaces/` | tiling surfaces by id, per biome |
@@ -155,11 +155,10 @@ The world calls the renderer with a scene of chunks, figures, doors and lights:
 - `PixelRenderer` (renderer.ts): draws a `THREE.Scene` small and shows it in whole pixels; `view`, `setView`, `focus`,
   `snap`, `iris` (a doorway's), `fade`, `setEdges`, `toScreen`, `rayAt`, `readFrame`. `View`, `THREE_QUARTER`,
   `blendViews` are in view.ts.
-- `Place` (place.ts): one place as drawn - a `scene` with its ground, its scenery merged into a handful of meshes, its
-  cut-aways, flipbooks (flames), scrolling materials (water), standing grass and lights. `addGround`, `addPieces(built[],
+- `Place` (place.ts): one place as drawn - a `scene` with its ground, its scenery merged into a handful of meshes (the
+  tall as occluders), its rooms' cut-aways, flipbooks (flames), scrolling materials (water), standing grass and lights. `addGround`, `addPieces(built[],
   name)`, `addLight(spec)`, `addSun(x, z, reach)`, `addGrass(field)`, `addFigure(root)` / `removeFigure(root)`. Each
-  frame: `update(time, yaw, toward)` (grass, water, flames and their light, the walls on the camera's side) and
-  `follow(player)` (a cut-away the player stands behind).
+  frame: `update(time, yaw, toward)` (grass, water, flames and their light, the walls on the camera's side).
 - `assembleWorld(world, chunks)` and `assembleInterior(room)` (assemble.ts): the one place world ids meet the art
   registries. A world's loaded chunks become a `Place` and its `doors` (`DoorSpot`: `{tile, step, to, at}`); an interior
   becomes a `Place`, its `doorway` and `bounds`. `assembleWorld` draws given chunks as one place (the cast page, tests); the chunk
@@ -194,7 +193,8 @@ type Recipe<R> = (recipe: R, palette: Palette) => Built;
 interface Built {
   model: Model;                    // still geometry, world coordinates: merged into the place's scenery
   frames?: Frames[];               // flipbooks: {models, rate}, one shown at a time (flames)
-  cutaways?: Cutaway[];            // {full, low, when: {player: rect} | {camera: "east" | "west"}}
+  cutaways?: Cutaway[];            // {full, low, when: {camera: "east" | "west"}}: a room's side walls
+  footprints?: Rect[];             // the ground it stands solid on, which the occluder fade never fades over
   lights?: LightSpec[];            // a room's own: hemisphere, directional, or the data's point and spot
   doorway?: XYZ;                   // buildings and rooms: where the iris closes
   bounds?: Rect;                   // rooms: the ground the camera keeps to
@@ -206,7 +206,7 @@ class Registry<R> { define(id, about, recipe, palette?, check?); has(id); get(id
   usual way to define one; `num`, `bool`, `str`, `point`, `turnOf`, `needs` read and check `args`. The drawing kit is
   `art/props/draw.ts`. Ids so far - outdoors: `barrel`, `crate`, `sack`, `pot`, `lamp-post`, `bench`, `market-stall`,
   `fountain`, `gravestone`, `railings`, `hedge-wall`, `tree`, `bush`, `hedgerow`, `boulder`, `stepping-stone`,
-  `town-wall` (cut-away gate tower), `bridge`, `terrace`, `ruined-tower`; indoors: `hearth` (flames), `candle`, `skull`,
+  `town-wall` (a gate between towers), `bridge`, `terrace`, `ruined-tower`; indoors: `hearth` (flames), `candle`, `skull`,
   `bookshelf`, `back-window`, `poster`, `blade-rack`, `shield`, `shop-counter`, `scales`, `coins`, `ledger`,
   `card-table`, `stool`, `rug`, `ossuary`, `buttress`, `tattered-banner`, `torch` (flames), `cobweb`, `crypt-pillar`,
   `fallen-drum`, `crypt-dais`, `brazier` (flames), `candles`, `coffin`, `bones`, `rubble`. Each entry's `about` says
@@ -290,16 +290,21 @@ What the renderer does with the interfaces above at the scale of the whole world
   on it. Terrain ground is outlined where a terrace's edge stands in front of lower ground (normal-pass kind 0.875). For
   the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
   terrace's rim is best blocked except where a ramp meets it (the grid does not know edges). Rooms are still drawn level.
-- **Cut-aways at every heading** (`render/xray.ts`): a circle of 26 scene pixels round the player is cut out of tall
-  scenery (anything over 1.6 high: buildings, trees, walls) that is nearer the camera than the player's chest by 0.55
-  and higher than their knees, in the color and normal passes alike, so the outline pass rims the hole. Recipes' own
-  cut-aways (`player` rects, `camera` sides) work as before. Off indoors.
+- **The occluder fade** (`render/occlude.ts`), the one way of seeing past scenery out of doors: tall scenery (anything
+  over 1.6 high: buildings, trees, walls) is merged with each thing's id, foot and footprints (`Built.footprints`; by
+  default the rectangle its lowest parts stand on) on its vertices. Each frame five rays from the player's figure
+  toward the camera are tried against the occluders' boxes, then their triangles; the ones met fade - the whole of each
+  - except what is drawn over its own footprint as the camera sees it, so the ground under a building never shows.
+  From a pixel past the footprint's edge it fades over 7 scene pixels to 10%. The color and normal passes drop what
+  fades; a third pass draws only the fading parts of those occluders into a target of its own (the nearest at each
+  pixel, with its alpha), and the post pass lays it over the scene, judging outlines as if it were there so the fade's
+  start is not outlined. A gatehouse stands on its two towers, so its arch fades over its passage. Off indoors.
 - **Shadows** follow the camera: the sun's shadow camera is fitted to the view's ground at its heading and zoom (plus 6
   high past its edges), its middle snapped in texels along the sun's axes, 2048 square (the all-at-once
   `assembleWorld` keeps 4096). **Lights** of the chunks (fires, lamps) go to a pool of eight point lights given to the
   nearest each frame, so streaming never changes the shaders' light count.
 - **The far zoom** (step 2) leaves out small props (no more than 1.05 by 1.05 by 1.35) and standing grass.
-- **Merging:** each chunk's scenery is sorted into tall (x-ray), small (detail) and the rest, each merged by material
+- **Merging:** each chunk's scenery is sorted into tall (occluders), small (detail) and the rest, each merged by material
   straight into typed arrays; a kind over 24,000 triangles (a forest) is merged in 16-tile cells so the view culls it
   finely.
 - **The benchmark** (`npm run bench`, `e2e/bench`): a scripted walk through the large synthetic world's town and
@@ -328,7 +333,7 @@ What the renderer does with the interfaces above at the scale of the whole world
 - **A prop:** draw it in `art/props/draw.ts` (or beside its definition) on a `MeshBuilder` in world units, then
   `drawn(id, about, draw, palette?, needs({...}))` it in `art/props/outdoors.ts` or `indoors.ts` (or a new file imported
   by `art/props/index.ts`). Read its `args` with `num`, `bool`, `str`, `point`; return `{frames}` for flames,
-  `{cutaways}` for what must drop out of the player's way. Draw in world coordinates (tiled faces follow the world's
+  `{footprints}` where what it stands solid on is not the rectangle under its lowest parts (a gate's towers). Draw in world coordinates (tiled faces follow the world's
   grid); turn with `b.at(x, y, z, turnOf(prop), ...)`.
 - **A building style:** a file in `art/buildings/` defining `BUILDINGS.define(style, about, recipe, palette)`, drawing
   each `kind` it knows facing south on its footprint through `placeBuilding` and returning the door's point. Its
@@ -403,12 +408,8 @@ from the registries; `src/art/library.test.ts` builds every id from its own exam
 - **Banks:** every surface's look carries `cliff` (earth under grass with a fringe of turf, loam under the forest, peat
   in the Morass, granite in the mountains with a fringe of tundra, ice under snow, sand, basalt, masonry under paving,
   Phyrexian metal), a 32-square picture whose top row is the ground's edge.
-- **Cut-aways:** every building (all styles) returns `cutaways: [{full, low, when: {player}}]`: above `CUT` (1.25) it is
-  in `full`, and `low` is a cap over its footprint at that height; it drops while the player stands north of it within
-  its height (and inside a gatehouse's passage). The chunk streamer merges a chunk's player cut-aways into one group per
-  material (New Benalia's 25 chunks: 1,969 meshes a pass before, 994 after), re-merged without the ones the player
-  stands behind (under 1 ms; the last 3 sets kept); the merged upper storeys take the x-ray too. `params.cutaway:
-  false` turns it off.
+- **Footprints:** every building (all styles) returns `footprints`, its rectangle - a gatehouse's two, either side of
+  its passage (`styled(building, draw, through)`) - for the occluder fade. Nothing is cut away for the player.
 - **Flames** (`frames`) come from props (torches, fire bowls, campfires, the foundry's chimney) and from buildings (the
   Keldon inn, temple and smithy, the Llanowar smithy), kept through assembly and merged per chunk, one group a frame.
 - **Holes:** `render/ground.ts` gives each tile of a block's map its own surface, priority rank and hole flag, so

@@ -183,36 +183,40 @@ function differences(a: Frame, b: Frame, cx: number, cy: number): { count: numbe
   return { count, furthest };
 }
 
-// In the town the player stands just north of a lamp post: the houses south of them drop away by their own cut-aways
-// (art/buildings kit.ts `styled`) while they stand behind one, so what the x-ray cuts there is the lamp.
+// The occluder fade (render/occlude.ts): what stands between the camera and the player fades, so their middle shows
+// where it was hidden, and nothing else of the frame changes but the occluders.
 for (const [place, at, heading] of [
   ["town", "134,133", "front"],
   ["forest", "40,60", "left"],
   ["forest", "40,60", "front"],
   ["forest", "40,60", "right"],
 ] as const) {
-  test(`render: the x-ray cuts what stands in front of the player in the ${place}, at the ${heading} heading`, async ({ page }) => {
+  test(`render: what stands in front of the player fades in the ${place}, at the ${heading} heading`, async ({ page }) => {
     const errors = await open(page, `still&nohud&at=${at}&heading=${heading}&zoom=0`);
     await advance(page, 1);
-    const cut = await frame(page);
-    const circle = await page.evaluate(() => {
+    const faded = await frame(page);
+    const chest = await page.evaluate(() => {
       const v = (globalThis as any).sliceStage.renderer;
-      const p = (globalThis as any).sliceStage.player.position;
-      // The circle's middle as the x-ray aims it: the player's chest, in the target's pixels.
-      const THREE_ = v.camera;
-      const q = p.clone();
+      const q = (globalThis as any).sliceStage.player.position.clone();
       q.y += 0.75;
-      q.project(THREE_);
-      return { x: ((q.x + 1) / 2) * v.width, y: v.height - ((q.y + 1) / 2) * v.height };
+      q.project(v.camera);
+      return { x: Math.floor(((q.x + 1) / 2) * v.width), y: Math.floor(v.height - ((q.y + 1) / 2) * v.height) };
     });
-    await page.screenshot({ path: join(out, `xray-${place}-${heading}.png`) });
-    await page.evaluate(() => ((globalThis as any).sliceTest.xray = false));
+    await page.screenshot({ path: join(out, `occlude-${place}-${heading}.png`) });
+    await page.evaluate(() => ((globalThis as any).sliceTest.occlude = false));
     const whole = await frame(page);
-    await page.screenshot({ path: join(out, `xray-${place}-${heading}-off.png`) });
-    const d = differences(cut, whole, circle.x, circle.y);
-    expect(d.count, "something was cut away").toBeGreaterThan(40);
-    // Everything cut is in the circle round the player (26 pixels, and a pixel of outline round its rim).
-    expect(d.furthest).toBeLessThanOrEqual(28.5);
+    await page.screenshot({ path: join(out, `occlude-${place}-${heading}-off.png`) });
+    const d = differences(faded, whole, chest.x, chest.y);
+    expect(d.count, "something faded").toBeGreaterThan(40);
+    // Round the player's middle, what hid them has faded.
+    let near = 0;
+    for (let y = chest.y - 14; y <= chest.y + 14; y++) {
+      for (let x = chest.x - 10; x <= chest.x + 10; x++) {
+        const i = (y * faded.width + x) * 4;
+        if (faded.rgba[i] !== whole.rgba[i] || faded.rgba[i + 1] !== whole.rgba[i + 1] || faded.rgba[i + 2] !== whole.rgba[i + 2]) near++;
+      }
+    }
+    expect(near, "the player shows through").toBeGreaterThan(20);
     expect(errors).toEqual([]);
   });
 }

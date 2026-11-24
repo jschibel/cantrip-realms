@@ -38,12 +38,13 @@ function building(style: string, kind: string, x0: number, z0: number, x1: numbe
   return BUILDINGS.build(style, bd, p.tint ? namedPalette(p.tint) : undefined);
 }
 
-/** Several Built as one: their models merged, their cut-aways and flames kept. */
+/** Several Built as one: their models merged, their cut-aways, flames and footprints kept. */
 function together(parts: readonly Built[]): Built {
   return {
     model: mergeModels(parts.map((b) => b.model)),
     cutaways: parts.flatMap((b) => b.cutaways ?? []),
     frames: parts.flatMap((b) => b.frames ?? []),
+    ...(parts.every((b) => b.footprints) ? { footprints: parts.flatMap((b) => b.footprints!) } : {}),
   };
 }
 
@@ -74,7 +75,7 @@ describe("wall-tower", { category: "fence", biomes: ["town"], footprint: centred
 
 PROPS.define(
   "gatehouse",
-  "a town gate at x, z (the gap's middle), facing rot (out of the town), args.width tiles wide (3): a tower of args.style's each side of the gap and its wall carried over it on an arch; what spans the gap is cut away while the player is under it",
+  "a town gate at x, z (the gap's middle), facing rot (out of the town), args.width tiles wide (3): a tower of args.style's each side of the gap and its wall carried over it on an arch",
   (p) => {
     const width = num(p, "width", 3);
     const rot = (((p.rot ?? 0) % 4) + 4) % 4;
@@ -86,10 +87,9 @@ PROPS.define(
     const towers = alongX ? [tower(p.x - h - 1), tower(p.x + h + 1)] : [tower(p.z - h - 1), tower(p.z + h + 1)];
     // The arch: the style's wall over the gap, lifted clear of a rider's head.
     const span = alongX ? building(style, "wall", p.x - h, p.z - 0.5, p.x + h, p.z + 0.5, p) : building(style, "wall", p.x - 0.5, p.z - h, p.x + 0.5, p.z + h, p);
-    const lintel = whole(span, 2.6);
-    const gap: Rect = alongX ? [p.x - h, p.z - 2.5, p.x + h, p.z + 1.5] : [p.x - 2.5, p.z - h, p.x + 1.5, p.z + h];
+    // The towers stand on their footprints; the arch over the gap has none, so it fades while the player walks under it.
     const t = together(towers);
-    return { ...t, cutaways: [...(t.cutaways ?? []), { full: lintel, low: { parts: [] }, when: { player: gap } }] };
+    return { ...t, model: mergeModels([t.model, whole(span, 2.6)]) };
   },
 );
 describe("gatehouse", {

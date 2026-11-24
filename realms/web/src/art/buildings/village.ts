@@ -423,35 +423,34 @@ function village(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const kind = building.kind ?? "house";
   const trade = tradeOf(building);
-  const cap = fieldstone(pal.stone!);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "shop":
-      return go(5.2, cottage(m, building, 1, trade ?? "general"));
+      return go(cottage(m, building, 1, trade ?? "general"));
     case "tenement":
     case "inn":
-      return go(7.0, kind === "inn" ? inn(m, building, trade ?? "inn") : cottage(m, building, 2));
+      return go(kind === "inn" ? inn(m, building, trade ?? "inn") : cottage(m, building, 2));
     case "temple":
-      return go(6.5, chapel(m));
+      return go(chapel(m));
     case "guildhall":
-      return go(7.2, mootHall(m, trade ?? "guild"));
+      return go(mootHall(m, trade ?? "guild"));
     case "smithy":
-      return go(4.8, smithy(m, trade ?? "smith"));
+      return go(smithy(m, trade ?? "smith"));
     case "library":
-      return go(5.4, cottage(m, building, 1, trade ?? "books", true));
+      return go(cottage(m, building, 1, trade ?? "books", true));
     case "tower":
-      return go(0.4 + P.num("floors", 3) * 1.9 + 4, crookedTower(m, trade ?? "magic", P.num("floors", 3)));
+      return go(crookedTower(m, trade ?? "magic", P.num("floors", 3)));
     case "barn":
     case "warehouse":
-      return go(6.0, barn(m));
+      return go(barn(m));
     case "gatehouse":
-      return go(3.8, gate(m), true);
+      return go(gate(m), true);
     case "wall":
-      return go(1.4, wall(m));
+      return go(wall(m));
     case "wall-tower":
-      return go(6.0, watchtower(m));
+      return go(watchtower(m));
     default:
-      return go(0.4 + P.num("floors", 1) * 2.0 + 3, cottage(m, building, P.num("floors", 1)));
+      return go(cottage(m, building, P.num("floors", 1)));
   }
 }
 

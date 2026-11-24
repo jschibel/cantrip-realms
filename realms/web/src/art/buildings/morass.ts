@@ -519,16 +519,16 @@ function morass(building: BuildingData, pal: Palette): Built {
   const P = paramsOf(building);
   const m = mats(pal);
   const trade = tradeOf(building);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap: m.deck, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "shop":
-      return go(6.2, stiltHouse(building, m, { extra: shopExtra(m, trade ?? "general") }));
+      return go(stiltHouse(building, m, { extra: shopExtra(m, trade ?? "general") }));
     case "tenement": {
       const floors = P.num("floors", 2);
-      return go(3.8 + 2.2 * floors + 0.4, stiltHouse(building, m, { storeys: floors, rise: 2.6 }));
+      return go(stiltHouse(building, m, { storeys: floors, rise: 2.6 }));
     }
     case "inn":
-      return go(8.6, stiltHouse(building, m, {
+      return go(stiltHouse(building, m, {
         storeys: 2,
         rise: 2.6,
         extra: (b, s, door) => {
@@ -539,9 +539,9 @@ function morass(building: BuildingData, pal: Palette): Built {
         },
       }));
     case "temple":
-      return go(11, temple(m));
+      return go(temple(m));
     case "guildhall":
-      return go(8.8, stiltHouse(building, m, {
+      return go(stiltHouse(building, m, {
         storeys: 2,
         rise: 2.2,
         sag: 0.35,
@@ -552,20 +552,20 @@ function morass(building: BuildingData, pal: Palette): Built {
         },
       }));
     case "smithy":
-      return go(5, smithy(m, trade ?? "smith"));
+      return go(smithy(m, trade ?? "smith"));
     case "library":
-      return go(9.4, stiltHouse(building, m, {
+      return go(stiltHouse(building, m, {
         storeys: 2,
         rise: 2.8,
         extra: (b, s, door) => plaque(b, s.x0 + door, s.floor + 2.6, s.zf, signMaterial(trade ?? "books", R.TARRED, C.BONE, "board")),
       }));
     case "tower": {
       const floors = P.num("floors", 3);
-      return go(1.4 + 2.1 * floors + 2.8, tower(m, floors));
+      return go(tower(m, floors));
     }
     case "barn":
     case "warehouse":
-      return go(7, stiltHouse(building, m, {
+      return go(stiltHouse(building, m, {
         rise: 2.0,
         sag: 0.3,
         extra: (b, s, door) => {
@@ -576,13 +576,13 @@ function morass(building: BuildingData, pal: Palette): Built {
         },
       }));
     case "gatehouse":
-      return go(6.2, gatehouse(m), true);
+      return go(gatehouse(m), true);
     case "wall":
-      return go(2.9, wall(building, m));
+      return go(wall(building, m));
     case "wall-tower":
-      return go(6.8, wallTower(m));
+      return go(wallTower(m));
     default:
-      return go(6.2, stiltHouse(building, m, {}));
+      return go(stiltHouse(building, m, {}));
   }
 }
 

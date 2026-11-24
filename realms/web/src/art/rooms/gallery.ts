@@ -122,7 +122,6 @@ function start(shown: Shown): void {
     const view = rig.viewFor(shown);
     renderer.setView(view);
     shown.place.update(time, view.yaw, view.yaw);
-    shown.place.follow(hero.position);
     renderer.focus.copy(rig.clampFocus(hero.position, shown));
     for (const f of [hero.figure, ...actors.map((a) => a.figure)]) {
       f.update(0, 0);

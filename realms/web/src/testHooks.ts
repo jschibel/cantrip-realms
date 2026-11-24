@@ -324,12 +324,12 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
         calls: s.renderer.stats.calls,
         detail: s.current.place.detail,
         lights: s.current.place.pooledNow.filter((l) => l !== null).length,
-        xray: s.current.inside ? null : true,
+        occlude: s.current.inside ? null : s.occlude,
       };
     },
-    set xray(on: boolean) {
+    set occlude(on: boolean) {
       const s = stage();
-      if (s) s.xray = on;
+      if (s) s.occlude = on;
     },
     floor(x: number, z: number) {
       return floorOf(x, z);

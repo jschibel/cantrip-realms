@@ -580,41 +580,40 @@ function benalish(building: BuildingData, pal: Palette): Built {
   const kind = building.kind ?? "house";
   const P = paramsOf(building);
   const trade = tradeOf(building);
-  const cap = stock.flagstone(pal.stone);
-  const go = (height: number, draw: Draw, through = false) => styled(building, { cap, height, through }, draw);
+  const go = (draw: Draw, through = false) => styled(building, draw, through);
   switch (kind) {
     case "mausoleum":
-      return go(3.9, (b, x0, z0, x1, z1) => {
+      return go((b, x0, z0, x1, z1) => {
         mausoleum(b, x0, x1, z0, z1);
         return [(x0 + x1) / 2, 1, z1 + 0.5];
       });
     case "shop":
-      return go(5.8, houseOf(building, pal, { upper: 1.7 }, "shopDoor"));
+      return go(houseOf(building, pal, { upper: 1.7 }, "shopDoor"));
     case "tenement":
-      return go(7.6, houseOf(building, pal, { ground: 2.5, upper: 3.4, rise: 1.8, chimney: 1.2 }, "door"));
+      return go(houseOf(building, pal, { ground: 2.5, upper: 3.4, rise: 1.8, chimney: 1.2 }, "door"));
     case "inn":
-      return go(6.4, houseOf(building, pal, { ground: 2.6, upper: 2.0, rise: 1.8, chimney: 1.4, wall: "plaster" }, "door", [{ at: 0.8, kind: "lamp" }]));
+      return go(houseOf(building, pal, { ground: 2.6, upper: 2.0, rise: 1.8, chimney: 1.4, wall: "plaster" }, "door", [{ at: 0.8, kind: "lamp" }]));
     case "temple":
-      return go(10, (b, x0, z0, x1, z1) => temple(b, x0, z0, x1, z1, pal));
+      return go((b, x0, z0, x1, z1) => temple(b, x0, z0, x1, z1, pal));
     case "guildhall":
-      return go(6.9, (b, x0, z0, x1, z1) => guildhall(b, x0, z0, x1, z1, pal, trade));
+      return go((b, x0, z0, x1, z1) => guildhall(b, x0, z0, x1, z1, pal, trade));
     case "smithy":
-      return go(4.7, (b, x0, z0, x1, z1) => smithy(b, x0, z0, x1, z1, pal, trade));
+      return go((b, x0, z0, x1, z1) => smithy(b, x0, z0, x1, z1, pal, trade));
     case "library":
-      return go(8.7, (b, x0, z0, x1, z1) => library(b, x0, z0, x1, z1, pal, trade));
+      return go((b, x0, z0, x1, z1) => library(b, x0, z0, x1, z1, pal, trade));
     case "tower":
-      return go(2.4 + P.num("floors", 3) * 2.2 + 3.5, (b, x0, z0, x1, z1) => tower(b, x0, z0, x1, z1, pal, trade, P.num("floors", 3)));
+      return go((b, x0, z0, x1, z1) => tower(b, x0, z0, x1, z1, pal, trade, P.num("floors", 3)));
     case "barn":
     case "warehouse":
-      return go(5.6, (b, x0, z0, x1, z1) => warehouse(b, x0, z0, x1, z1, pal));
+      return go((b, x0, z0, x1, z1) => warehouse(b, x0, z0, x1, z1, pal));
     case "gatehouse":
-      return go(5.3, (b, x0, z0, x1, z1) => gatehouse(b, x0, z0, x1, z1, pal), true);
+      return go((b, x0, z0, x1, z1) => gatehouse(b, x0, z0, x1, z1, pal), true);
     case "wall":
-      return go(3.3, (b, x0, z0, x1, z1) => wall(b, x0, z0, x1, z1, pal));
+      return go((b, x0, z0, x1, z1) => wall(b, x0, z0, x1, z1, pal));
     case "wall-tower":
-      return go(5.9, (b, x0, z0, x1, z1) => wallTower(b, x0, z0, x1, z1, pal));
+      return go((b, x0, z0, x1, z1) => wallTower(b, x0, z0, x1, z1, pal));
     default:
-      return go(5.9, houseOf(building, pal, {}, "door"));
+      return go(houseOf(building, pal, {}, "door"));
   }
 }
 

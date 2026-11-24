@@ -32,10 +32,10 @@ import { type TileAt, banksOf, floorAt, floorGeometry } from "./terrain";
 // its ground grows over its neighbours' edges and its banks meet theirs as if the world were one piece.
 //
 // What a chunk is built into (`chunkPieces`): the ground's mesh (floors at their heights: render/terrain.ts), its banks
-// of rock, the water under its streams, every building and prop from its recipe - merged per chunk into the tall (cut
-// by the x-ray), the small (left out at the furthest zoom) and the rest, trees and hedgerows near and far (`Built.far`,
-// shown at the furthest zoom instead), the buildings' cut-aways merged and the flames merged a frame (buildings' and
-// props' alike) - its lights (pooled), its standing grass and its doors. `assembleWorld` (assemble.ts) calls the same steps for every chunk at once.
+// of rock, the water under its streams, every building and prop from its recipe - merged per chunk into the tall (the
+// occluders, faded when they stand between the camera and the player: render/occlude.ts), the small (left out at the
+// furthest zoom) and the rest, trees and hedgerows near and far (`Built.far`, shown at the furthest zoom instead), the
+// flames merged a frame (buildings' and props' alike) - its lights (pooled), its standing grass and its doors. `assembleWorld` (assemble.ts) calls the same steps for every chunk at once.
 
 /** A door in a place: stand on `tile` and step `step` to go through to `to` (an interior's id); `at` is the doorway. */
 export interface DoorSpot {
@@ -153,11 +153,11 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
     }
   }
   yield "banks+props";
-  // The cut-aways merged a chunk (a set of them re-merged as the player drops some), its flames merged a frame.
+  // Its flames merged a frame.
   section.addMoving(pieces, true);
-  yield "cutaways";
+  yield "flames";
   // Trees and hedgerows: near, and their far stand-ins merged apart for the furthest zoom.
-  for (const g of sortScenery(pieces.map((p) => p.model), `chunk:${c.cx}_${c.cz}`, pieces.map((p) => p.far))) {
+  for (const g of sortScenery(pieces.map((p) => p.model), `chunk:${c.cx}_${c.cz}`, pieces.map((p) => p.far), pieces.map((p) => p.footprints))) {
     section.addMerged(g);
     yield `merge ${g.label} (${g.models.length})`;
   }

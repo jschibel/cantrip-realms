@@ -1,134 +1,43 @@
 import "../paint/regions";
 import type { BuildingData, Rect, XYZ } from "../../world/format";
-import { type Face, type Material, MeshBuilder, type Model, type ModelPart, fitted, sides, tiled } from "../paint/builder";
+import { type Face, type Material, MeshBuilder, fitted, sides, tiled } from "../paint/builder";
 import * as C from "../paint/colors";
 import { material } from "../paint/materials";
 import { type Palette, type Ramp, rampKey } from "../paint/palette";
 import { Pixmap, type Rgb, hash2 } from "../paint/pixmap";
 import { sprite } from "../paint/sprite";
 import { iron, ironLight } from "../props/draw";
-import type { Built, Cutaway } from "../recipe";
+import type { Built } from "../recipe";
 import { placeBuilding } from "./registry";
 
-// The building styles' shared kit: how a building is laid on its footprint and cut away when the player walks behind
-// it, its doors and windows painted in a style's colors, its hanging sign showing its trade, and the params every style
-// reads alike. Each style (benalish.ts, llanowar.ts, ...) draws its kinds facing south between x0..x1 and z0..z1 and
+// The building styles' shared kit: how a building is laid on its footprint, its doors and windows painted in a style's
+// colors, its hanging sign showing its trade, and the params every style reads alike. Each style (benalish.ts, llanowar.ts, ...) draws its kinds facing south between x0..x1 and z0..z1 and
 // returns its door's point; `styled` does the rest.
 //
 // Every style reads these `params` (besides its own):
 //   trade      what a shop's sign shows: weapons, armor, potions, magic, books, food, bread, drink, inn, smith, cards,
 //              general, jewels, herbs, fish, tailor, temple, guild, arena, goblin (default by kind)
 //   doorAt     the door's middle along the front, tiles from the west end (default the middle)
-//   cutaway    false: never cut away (default true: above the ground floor's door it drops away while the player stands
-//              behind it, its walls' tops capped)
 //   floors     storeys, where a kind has a choice
 
 export const PX = 1 / 16;
 
-/** The height a building is cut down to while the player is behind it: the ground floor's walls up to the lintels. */
-export const CUT = 1.25;
-
-// --- Cutting a building away --------------------------------------------------------------------------------------------
-
-interface Vert {
-  readonly p: readonly [number, number, number];
-  readonly n: readonly [number, number, number];
-  readonly uv: readonly [number, number];
-}
-
-function lerpVert(a: Vert, b: Vert, t: number): Vert {
-  const l = (x: number, y: number) => x + (y - x) * t;
-  return { p: [l(a.p[0], b.p[0]), l(a.p[1], b.p[1]), l(a.p[2], b.p[2])], n: [l(a.n[0], b.n[0]), l(a.n[1], b.n[1]), l(a.n[2], b.n[2])], uv: [l(a.uv[0], b.uv[0]), l(a.uv[1], b.uv[1])] };
-}
-
-/** A polygon clipped to one side of the plane y = cut (Sutherland-Hodgman on one plane). */
-function clip(poly: readonly Vert[], cut: number, keepBelow: boolean): Vert[] {
-  const inside = (v: Vert) => (keepBelow ? v.p[1] <= cut + 1e-6 : v.p[1] >= cut - 1e-6);
-  const out: Vert[] = [];
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % poly.length]!;
-    const ia = inside(a);
-    const ib = inside(b);
-    if (ia) out.push(a);
-    if (ia !== ib) {
-      const t = (cut - a.p[1]) / (b.p[1] - a.p[1]);
-      out.push(lerpVert(a, b, t));
-    }
-  }
-  return out;
-}
-
-/** A model split at the height `cut`: what lies below it and what above, faces crossing it clipped in two. */
-export function splitAt(model: Model, cut: number): { readonly below: Model; readonly above: Model } {
-  const below: ModelPart[] = [];
-  const above: ModelPart[] = [];
-  for (const part of model.parts) {
-    const halves = [
-      { positions: [] as number[], normals: [] as number[], uvs: [] as number[], indices: [] as number[] },
-      { positions: [] as number[], normals: [] as number[], uvs: [] as number[], indices: [] as number[] },
-    ];
-    const vert = (i: number): Vert => ({
-      p: [part.positions[i * 3]!, part.positions[i * 3 + 1]!, part.positions[i * 3 + 2]!],
-      n: [part.normals[i * 3]!, part.normals[i * 3 + 1]!, part.normals[i * 3 + 2]!],
-      uv: [part.uvs[i * 2]!, part.uvs[i * 2 + 1]!],
-    });
-    const emit = (h: (typeof halves)[number], poly: readonly Vert[]) => {
-      if (poly.length < 3) return;
-      const base = h.positions.length / 3;
-      for (const v of poly) {
-        h.positions.push(...v.p);
-        h.normals.push(...v.n);
-        h.uvs.push(...v.uv);
-      }
-      for (let k = 1; k + 1 < poly.length; k++) h.indices.push(base, base + k, base + k + 1);
-    };
-    for (let t = 0; t < part.indices.length; t += 3) {
-      const tri = [vert(part.indices[t]!), vert(part.indices[t + 1]!), vert(part.indices[t + 2]!)];
-      const ys = tri.map((v) => v.p[1]);
-      if (Math.max(...ys) <= cut + 1e-6) emit(halves[0]!, tri);
-      else if (Math.min(...ys) >= cut - 1e-6) emit(halves[1]!, tri);
-      else {
-        emit(halves[0]!, clip(tri, cut, true));
-        emit(halves[1]!, clip(tri, cut, false));
-      }
-    }
-    if (halves[0]!.indices.length) below.push({ material: part.material, ...halves[0]! });
-    if (halves[1]!.indices.length) above.push({ material: part.material, ...halves[1]! });
-  }
-  return { below: { parts: below }, above: { parts: above } };
-}
-
-export interface StyledOptions {
-  /** The material the cut-down walls' tops are capped with. */
-  readonly cap: Material;
-  /** The building's full height (roof ridge, tower top): how far behind it the player is hidden. */
-  readonly height: number;
-  /** A gatehouse: cut away also while the player walks through it. */
-  readonly through?: boolean;
-  /** The rectangle (unturned, as drawn facing south) the cap covers; the whole footprint by default. */
-  readonly capRect?: Rect;
-}
+// --- Laying a building down ---------------------------------------------------------------------------------------------
 
 /**
- * Lays a style's drawing on a building's footprint, turned to its `rot` (registry.ts, `placeBuilding`), and cuts it
- * away: above `CUT` it drops while the player stands where it would hide them (north of its footprint, within its
- * height; or in a gatehouse's passage), and its walls are capped at that height.
+ * Lays a style's drawing on a building's footprint, turned to its `rot` (registry.ts, `placeBuilding`), and gives it
+ * its footprint: the ground it stands on, which the occluder fade never fades over (render/occlude.ts). A gatehouse
+ * (`through`) stands on two footprints either side of its passage - the middle 2 tiles across its front - so what is
+ * over the passage fades while the player walks through it.
  */
-export function styled(building: BuildingData, options: StyledOptions, draw: (b: MeshBuilder, x0: number, z0: number, x1: number, z1: number) => XYZ | undefined): Built {
+export function styled(building: BuildingData, draw: (b: MeshBuilder, x0: number, z0: number, x1: number, z1: number) => XYZ | undefined, through = false): Built {
   const placed = placeBuilding(building, draw);
-  const params = building.params ?? {};
-  if (params.cutaway === false || options.height <= CUT + 0.2) return placed;
-  const { below, above } = splitAt(placed.model, CUT);
-  if (above.parts.length === 0) return placed;
-  const { x, z, w, d } = building;
-  const low = new MeshBuilder();
-  const [cx0, cz0, cx1, cz1] = options.capRect ?? [x + 0.05, z + 0.05, x + w - 0.05, z + d - 0.05];
-  low.decal(tiled(options.cap), cx0, cz0, cx1, cz1, CUT);
-  const m = Math.min(2, options.height * 0.5);
-  const rect: Rect = [x - m, z - options.height * 1.1, x + w + m, options.through ? z + d + 0.5 : z + 0.4];
-  const cut: Cutaway = { full: above, low: low.model(), when: { player: rect } };
-  return { ...placed, model: below, cutaways: [cut] };
+  const { x, z, w, d, rot } = building;
+  if (!through) return { ...placed, footprints: [[x, z, x + w, z + d]] };
+  const cx = x + w / 2;
+  const cz = z + d / 2;
+  const halves: Rect[] = ((rot % 2) + 2) % 2 === 0 ? [[x, z, cx - 1, z + d], [cx + 1, z, x + w, z + d]] : [[x, z, x + w, cz - 1], [x, cz + 1, x + w, z + d]];
+  return { ...placed, footprints: halves };
 }
 
 // --- Params ---------------------------------------------------------------------------------------------------------------

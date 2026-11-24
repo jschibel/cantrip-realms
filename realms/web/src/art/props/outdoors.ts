@@ -78,14 +78,14 @@ drawn("stepping-stone", "a flat stone in a stream at x, z", (b, p) => D.stepping
 
 drawn(
   "town-wall",
-  "a town wall running south from x, z to args.to's z, its outer face west, a gate over the road between args.gate's two z's: its south tower and lintel are cut down while the player is in the gateway",
+  "a town wall running south from x, z to args.to's z, its outer face west, a gate over the road between args.gate's two z's, a tower either side of it",
   (b, p) => {
     const [g0, g1] = point(p, "gate");
-    const full = new MeshBuilder();
-    const low = new MeshBuilder();
-    D.townWall(b, p.x, p.z, point(p, "to")[1], g0, g1, full, low);
-    // In or about the gateway the tower south of it would stand in front of the player: it is cut down.
-    return { cutaways: [{ full: full.model(), low: low.model(), when: { player: [p.x - 4, g0 - 2, p.x + 2.5, g1 + 0.5] } }] };
+    const z1 = point(p, "to")[1];
+    D.townWall(b, p.x, p.z, z1, g0, g1);
+    // It stands on the wall and tower each side of the gateway; the lintel over the gateway has no footprint, so it fades
+    // while the player walks under it (render/occlude.ts).
+    return { footprints: [[p.x - 1.25, p.z, p.x + 0.5, g0], [p.x - 1.25, g1, p.x + 0.5, z1]] };
   },
   {},
   needs({ to: "point", gate: "point" }),
