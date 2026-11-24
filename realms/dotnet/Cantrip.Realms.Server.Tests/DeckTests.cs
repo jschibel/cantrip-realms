@@ -93,6 +93,37 @@ public sealed class DeckTests
     }
 
     [Fact]
+    public async Task A_card_outside_the_identity_may_be_anted_but_never_dealt()
+    {
+        // The identity holds the deck alone, as Commander's does: the ante is cards owned, whatever their colors.
+        await using var app = new RealmApp();
+        Browser browser = await AtTable(app, ("Goblin King", 1), ("Benalish Hero", 3));
+        List<CardCount> main = Starter(await browser.Deck());
+        DeckView anted = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Ante = new[] { new CardCount("Goblin King", 1) } });
+        Assert.Equal([new CardCount("Goblin King", 1)], anted.Ante);
+        Assert.Equal(RealmApp.Content.Cards.Price("Goblin King"), anted.AnteValue);
+
+        ApiError dealt = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = main.Append(new CardCount("Goblin King", 1)), Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Equal(["Goblin King is outside the color identity W."], dealt.Problems);
+
+        // Four copies of a card are the most a deck holds: owning five, the fifth may be anted beside them.
+        int owned = (await browser.Collection())["Benalish Hero"];
+        if (owned < 5) await app.Give(browser, "Benalish Hero", 5 - owned);
+        int inStarter = main.SingleOrDefault(card => card.Name == "Benalish Hero")?.Count ?? 0;
+        List<CardCount> others = [.. main.Where(card => card.Name != "Benalish Hero")];
+        ApiError five = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 5)), Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Equal(["Benalish Hero: 5 copies, more than the 4 a deck may have."], five.Problems);
+        DeckView saved = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 4)), Ante = new[] { new CardCount("Benalish Hero", 1) } });
+
+        // The realm keeps what was saved, ante and all, until it is changed at a table again.
+        DeckView kept = await browser.Deck();
+        Assert.Equal(saved.Main, kept.Main);
+        Assert.Equal(saved.Ante, kept.Ante);
+        Assert.Equal(40 + 4 - inStarter, saved.Main.Sum(card => card.Count));
+        Assert.Equal([new CardCount("Benalish Hero", 1)], saved.Ante);
+    }
+
+    [Fact]
     public async Task A_deck_breaking_the_rules_is_refused_with_every_problem()
     {
         await using var app = new RealmApp();
