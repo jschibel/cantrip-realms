@@ -1294,8 +1294,14 @@ export function buildTown(land: Land, spec: TownSpec, seed: number): BuiltTown {
   if (F.guards) {
     let k = 0;
     for (const g of gateMouths) {
-      // Just inside the gate, and up the way in.
-      const stops = [1, 9].map((s): [number, number] => [g.x - g.ux * s, g.z - g.uz * s]).filter((p) => land.open(I(p[0], p[1])));
+      // Just inside the gate, and up the way in: never within a few tiles of a door or of what is used from beside it (a
+      // guard who stops there watches whoever comes, and stands in the way of the click meant for the board or the door).
+      const clear = (x: number, z: number) => land.open(I(x, z)) && places.every((p) => Math.max(Math.abs(p.x - x), Math.abs(p.z - z)) > 3) && [...doors].every((d) => Math.max(Math.abs(land.xOf(d) - x), Math.abs(land.zOf(d) - z)) > 3);
+      const stopAt = (from: number, to: number): [number, number] | undefined => {
+        for (let s = from; s <= to; s++) if (clear(g.x - g.ux * s, g.z - g.uz * s)) return [g.x - g.ux * s, g.z - g.uz * s];
+        return undefined;
+      };
+      const stops = [stopAt(1, 5), stopAt(8, 16)].filter((p): p is [number, number] => !!p);
       if (stops.length < 2) continue;
       npcs.push({
         id: `${plan.id}-guard-${++k}`,

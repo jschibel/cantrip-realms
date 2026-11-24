@@ -141,6 +141,17 @@ describe("Dominaria's files", () => {
     }
   });
 
+  it("keep the guards' beats off the towns' doors and what is used from beside it, so no guard stops in the way of a click", () => {
+    const close: string[] = [];
+    const doors = all("buildings").flatMap((b) => (b.door ? [b.door] : []));
+    for (const g of all("npcs").filter((n) => n.kind === "guard")) {
+      const town = world.towns.find((t) => t.id === g.id.slice(0, g.id.lastIndexOf("-guard-")))!;
+      const marks = [...town.plan!.places.map((p) => [p.x, p.z] as const), ...doors];
+      for (const [x, z] of g.behaviour!.beat!.stops) if (marks.some(([mx, mz]) => Math.max(Math.abs(mx - x), Math.abs(mz - z)) <= 3)) close.push(`${g.id} stops at ${x},${z}`);
+    }
+    expect(close).toEqual([]);
+  });
+
   it("face every door into an interior south, west or east, toward the camera, at its building's front", () => {
     for (const b of all("buildings")) {
       if (!b.door) continue;
