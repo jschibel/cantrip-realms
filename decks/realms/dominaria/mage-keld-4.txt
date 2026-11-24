@@ -6,8 +6,8 @@
 1 Crimson Manticore
 1 Two-Headed Giant of Foriys
 1 Rorix Bladewing
-2 Chain Lightning
+4 Chain Lightning
 4 Lightning Bolt
-4 Blood Moon
+2 Fiery Temper
 4 Flare
 17 Mountain

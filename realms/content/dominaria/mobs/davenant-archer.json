@@ -6,7 +6,7 @@
   "tier": 1,
   "deck": "decks/realms/dominaria/davenant-archer.txt",
   "stats": {
-    "life": 15,
+    "life": 18,
     "hand": 7,
     "maxHand": 7
   },

@@ -1,12 +1,11 @@
 # Liliana of the Veil (liliana, Liliana of the Veil), a boss: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Liliana of the Veil
-1 Will-o'-the-Wisp
-4 Cyclopean Mummy
-3 Zombie Master
+2 Will-o'-the-Wisp
+3 Cyclopean Mummy
+4 Hypnotic Specter
 2 Moor Fiend
-1 Eater of the Dead
-1 Minion of Leshrac
-4 Cut Down
-3 Go for the Throat
+4 Sengir Vampire
+2 Phyrexian Fleshgorger
+2 Cut Down
 17 Swamp

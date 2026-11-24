@@ -1,6 +1,6 @@
 # The blue starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
 
-2 Aven Envoy
+2 Coral Merfolk
 2 Bay Falcon
 2 Storm Crow
 2 Tetsuko Umezawa, Fugitive
@@ -9,7 +9,7 @@
 2 Azure Drake
 2 Serra Sphinx
 2 Pongify
-2 Force Void
-2 Force Spike
+2 Prodigal Sorcerer
+2 Air Elemental
 1 Psionic Blast
 17 Island

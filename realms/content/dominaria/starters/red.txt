@@ -4,12 +4,12 @@
 2 Blood Knight
 2 Roc Hunter
 2 Dwarven Forge-Chanter
-2 Giant Cindermaw
+2 Hill Giant
 2 Balduvian Barbarians
 2 Coalition Warbrute
 2 Earth Elemental
 2 Flare
-2 Chain Lightning
+2 Shock
 2 Firebolt
 1 Lava Dart
 17 Mountain

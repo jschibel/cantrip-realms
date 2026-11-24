@@ -6,11 +6,11 @@
 1 Voice of Duty
 1 Dragonstalker
 1 Noble Templar
-2 Blue Ward
-2 Green Ward
+2 Heal
 2 Mana Tithe
-2 Red Ward
 2 Swords to Plowshares
+2 Blessed Wine
 2 Deadly Riposte
 2 Destroy Evil
+2 Fire and Brimstone
 17 Plains

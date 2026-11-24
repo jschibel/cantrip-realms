@@ -102,17 +102,18 @@ public static class Lab
     }
 
     /// <summary>
-    /// The duel the realm server would deal this reference player against this mob, on this seed: a color boss with what
-    /// it gains in its dungeon by where its color stands to the player's (design.md A6, <see cref="Dungeons.BossGains"/>),
-    /// the reference's first color taken as the one it started with.
+    /// The duel the realm server would deal this reference player against this mob, on this seed. With
+    /// <paramref name="standing"/>, a color boss has what it gains in its dungeon by where its color stands to the player's
+    /// (design.md A6, <see cref="Dungeons.BossGains"/>), the reference's first color taken as the one it started with;
+    /// without it, the boss is as its file has it, as an own or ally color's run deals it - the stats the lab fits.
     /// </summary>
-    public static Duel Deal(RealmContent content, Reference reference, Mob mob, long seed)
+    public static Duel Deal(RealmContent content, Reference reference, Mob mob, long seed, bool standing = true)
     {
         ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(mob);
         DuelSeat player = Encounters.PlayerSeat(reference.Id, reference.Gear, reference.Deck);
-        GearStats? gains = Dungeons.BossGains(content, mob, reference.Colors[..1], reference.Colors);
+        GearStats? gains = standing ? Dungeons.BossGains(content, mob, reference.Colors[..1], reference.Colors) : null;
         return Encounters.Deal(player, Encounters.MobSeat(content, mob, gains), mob, seed, 0, 0);
     }
 

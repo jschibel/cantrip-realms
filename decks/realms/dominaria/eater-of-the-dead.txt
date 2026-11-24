@@ -5,7 +5,7 @@
 3 Frankenstein's Monster
 3 Zombie Master
 2 Ashen Ghoul
-2 Yawgmoth Demon
+2 Ebon Praetor
 3 Cut Down
 3 Go for the Throat
 1 Terror

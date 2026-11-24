@@ -1,14 +1,12 @@
 # Dragon Mage (mage-keld-3, Dragon Mage), the mage of Keld's tier 3 tower: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Dragon Mage
-1 Ghitu Lavarunner
-1 Dwarven Forge-Chanter
-1 Phyrexian Dragon Engine
-1 Dragon Whelp
-1 Two-Headed Giant of Foriys
-3 Chain Lightning
-2 Lightning Axe
+2 Ghitu Lavarunner
+3 Dwarven Forge-Chanter
+2 Phyrexian Dragon Engine
+2 Dragon Whelp
+2 Two-Headed Giant of Foriys
+2 Chain Lightning
 3 Lightning Bolt
-3 Fiery Temper
 3 Flare
 17 Mountain

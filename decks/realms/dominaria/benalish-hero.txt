@@ -9,8 +9,8 @@
 1 Kjeldoran Escort
 2 Border Patrol
 2 Noble Templar
-1 Deadly Riposte
+1 Adamant Will
+2 Deadly Riposte
 2 Destroy Evil
 2 Shield Wall
-2 Fortified Area
 17 Plains

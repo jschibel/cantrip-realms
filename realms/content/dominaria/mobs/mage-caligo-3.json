@@ -24,9 +24,7 @@
     "pool": "dominaria",
     "colors": "UB",
     "types": [],
-    "subtypes": [
-      "Wizard"
-    ],
+    "subtypes": [],
     "rarities": [
       "common",
       "uncommon",

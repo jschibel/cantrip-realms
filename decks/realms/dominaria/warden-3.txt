@@ -1,13 +1,12 @@
 # Triskelion (warden-3, Triskelion), a tier 3 warden: written by tools/realms/sample-decks.py; tune it by hand.
 
 4 Triskelion
-1 Ornithopter
-2 Battering Ram
+2 Ornithopter
+3 Battering Ram
 2 Dragon Engine
 2 Su-Chi
-1 Adarkar Sentinel
-3 Goblin Firebomb
+2 Adarkar Sentinel
+2 Goblin Firebomb
 3 Aeolipile
-2 Pit Trap
 3 The Mightstone and Weakstone
 17 Island

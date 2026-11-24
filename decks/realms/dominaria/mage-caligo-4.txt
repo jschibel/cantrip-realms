@@ -5,11 +5,11 @@
 1 Zuran Enchanter
 1 Ertai Resurrected
 1 Yargle, Glutton of Urborg
-1 Minion of Leshrac
+1 Phyrexian Fleshgorger
 4 Cut Down
 2 Go for the Throat
 4 Vindicate
 4 Leyline Binding
-5 Plains
+6 Plains
 3 Island
-9 Swamp
+8 Swamp

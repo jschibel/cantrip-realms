@@ -68,6 +68,16 @@ CREATURE_CURVE = {1: 1, 2: 3, 3: 2, 4: 1, 5: 1}
 SPELLS = 4
 CREATURES = sum(CREATURE_CURVE.values())
 SPELL_CARDS = 23
+# Cards each starter swaps after it is built, from the same commons and uncommons of its color: the balance lab
+# (realms/docs/balance.md) found the white and blue starters far weaker than the others and the red one stronger, so
+# white and blue take better creatures and removal for their weakest cards, red gives up a little burn and body, and
+# green, the weakest once those were swapped, takes a mana elf and a removal spell.
+STARTER_SWAPS = {
+    "W": {"Benalish Hero": "Blade of the Sixth Pride", "Yotian Medic": "Pegasus Charger", "Ardent Militia": "Melesse Spirit", "Mana Tithe": "Pacifism"},
+    "U": {"Aven Envoy": "Coral Merfolk", "Force Spike": "Air Elemental", "Force Void": "Prodigal Sorcerer"},
+    "R": {"Chain Lightning": "Shock", "Giant Cindermaw": "Hill Giant"},
+    "G": {"Rime Dryad": "Llanowar Elves", "Foxfire": "Bite Down"},
+}
 
 # What each tier is worth and pays (design.md A3); a boss is "boss" here, tier 0 in a duel.
 PRIZE = {1: 100, 2: 300, 3: 800, 4: 2000, "boss": 6000}
@@ -86,12 +96,16 @@ LOOT_RARITIES = {1: ["common"], 2: ["common", "uncommon"], 3: ["common", "uncomm
 # (`totals`). They are fitted by the balance lab (tools/realms/balance.cmd, realms/docs/balance.md) to the player's win
 # rates realms/docs/tech.md C5 aims at, so they follow how strong each tier's decks play rather than a rule: tier 3's
 # decks play much weaker than tier 4's, so its mobs start with more.
-STATS = {1: (15, 7, 7), 2: (18, 7, 7), 3: (34, 9, 9), 4: (27, 8, 8), "boss": (30, 7, 7)}
-WARDEN_STATS = {1: (32, 8, 8), 2: (32, 8, 8), 3: (40, 10, 10), 4: (36, 9, 9)}
+STATS = {1: (18, 7, 7), 2: (18, 7, 7), 3: (34, 9, 9), 4: (27, 8, 8), "boss": (30, 7, 7)}
+WARDEN_STATS = {1: (34, 8, 8), 2: (32, 8, 8), 3: (40, 10, 10), 4: (36, 9, 9)}
 # How many copies the best cards of a deck get, and its own creature: a tougher mob plays more of fewer, better cards.
 MOST_COPIES = {1: 2, 2: 2, 3: 3, 4: 4, "boss": 4}
 CREATURE_COPIES = {1: 2, 2: 3, 3: 4, 4: 4, "boss": 4}
 # A deck's 23 spells: how many are creatures and how many other spells, and the highest mana value of those others.
+# Tier 3's mages and warden take more creatures than the mage's and warden's shapes: their spell-heavy decks played far
+# weaker than their tier (realms/docs/balance.md). Three of the mages also lean to no creature type (`lean=[]`), so
+# that their creatures are the best bodies of their colors rather than their kin's 1/1s.
+KEEPER_SHAPE_T3 = (15, 8, 5)
 SHAPES = {"wanderer": (16, 7, 4), "portal": (15, 8, 5), "mage": (9, 14, 6), "warden": (15, 8, 5), "boss": (15, 8, 5)}
 
 # The mob meshes a mob may be drawn with: the server's list (RealmContent.MobMeshes, the figures' meshes of
@@ -264,23 +278,23 @@ MOBS = [
     # The mage towers: each region's mages, the farther the tower the stronger.
     mage("benalia", 1, "Keepers of the Faith", lean=["Cleric"], themes=["lifegain", "removal"]),
     mage("benalia", 2, "Mother of Runes", lean=["Cleric"], themes=["protection", "removal"]),
-    mage("benalia", 3, "Loran of the Third Path", lean=["Artificer", "Cleric"], themes=["artifacts", "removal"], artifacts=True),
+    mage("benalia", 3, "Loran of the Third Path", lean=[], themes=["artifacts", "removal"], artifacts=True, shape=KEEPER_SHAPE_T3),
     mage("benalia", 4, "Anointed Peacekeeper", lean=["Cleric"], themes=["wrath", "removal"]),
     mage("orvada", 1, "Tolarian Scholar", lean=["Wizard"], themes=["counters", "bounce"]),
     mage("orvada", 2, "Prodigal Sorcerer", lean=["Wizard"], themes=["counters", "draw"]),
-    mage("orvada", 3, "Naban, Dean of Iteration", lean=["Wizard"], themes=["counters", "draw"]),
+    mage("orvada", 3, "Naban, Dean of Iteration", lean=["Wizard"], themes=["counters", "draw"], shape=KEEPER_SHAPE_T3),
     mage("orvada", 4, "Arcanis the Omnipotent", lean=["Wizard"], themes=["counters", "draw"]),
     mage("caligo", 1, "Cabal Evangel", lean=["Cleric", "Minion"], themes=["removal", "discard"]),
     mage("caligo", 2, "Thrull Wizard", lean=["Wizard", "Thrull"], themes=["removal", "discard"]),
-    mage("caligo", 3, "Nebuchadnezzar", colors="UB", prefer="B", lean=["Wizard"], themes=["removal", "discard"]),
+    mage("caligo", 3, "Nebuchadnezzar", colors="UB", prefer="B", lean=[], themes=["removal", "discard"], shape=KEEPER_SHAPE_T3),
     mage("caligo", 4, "Zur, Eternal Schemer", colors="WUB", prefer="B", lean=["Wizard", "Minion"], themes=["removal", "enchantments"]),
     mage("keld", 1, "Brothers of Fire", lean=["Shaman", "Wizard"], themes=["burn"]),
     mage("keld", 2, "Pyromantic Pilgrim", lean=["Wizard", "Shaman"], themes=["burn", "draw"]),
-    mage("keld", 3, "Dragon Mage", lean=["Wizard", "Dragon"], themes=["burn", "draw"]),
-    mage("keld", 4, "Magus of the Moon", lean=["Wizard"], themes=["burn", "wrath"], featured=["Blood Moon"]),
+    mage("keld", 3, "Dragon Mage", lean=["Wizard", "Dragon"], themes=["burn", "draw"], shape=KEEPER_SHAPE_T3),
+    mage("keld", 4, "Magus of the Moon", lean=["Wizard"], themes=["burn", "wrath"]),
     mage("llanowar", 1, "Woodland Druid", lean=["Druid", "Elf"], themes=["ramp", "pump"]),
     mage("llanowar", 2, "Argothian Elder", lean=["Druid", "Elf"], themes=["ramp", "big"]),
-    mage("llanowar", 3, "Verduran Enchantress", lean=["Druid"], themes=["enchantments", "pump"]),
+    mage("llanowar", 3, "Verduran Enchantress", lean=[], themes=["enchantments", "pump"], shape=KEEPER_SHAPE_T3),
     mage("llanowar", 4, "Silverback Elder", lean=["Shaman", "Ape"], themes=["big", "ramp"]),
     # The dungeons' floor wardens (tier 4 mini-bosses), and the generic wardens of the towers and wilderness dungeons.
     dict(kind="warden", id="sanctum-warden", name="Sanctum Warden", creature="Archangel", region="W", lean=["Angel", "Knight"], themes=["flyers", "vigilance"], gear=["benalish-plate", "silver-pendant"]),
@@ -290,13 +304,14 @@ MOBS = [
     dict(kind="warden", id="heart-warden", name="Heart Warden", creature="Wirewood Guardian", region="G", lean=["Elf", "Treefolk", "Wurm", "Elemental"], themes=["big", "ramp"], gear=["benalish-plate", "silver-pendant"]),
     dict(kind="warden", id="warden-1", name="Yotian Soldier", creature="Yotian Soldier", tier=1, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Soldier", "Thopter"], themes=["artifacts", "defenders"]),
     dict(kind="warden", id="warden-2", name="Obsianus Golem", creature="Obsianus Golem", tier=2, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Thopter"], themes=["artifacts"]),
-    dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
+    dict(kind="warden", id="warden-3", name="Triskelion", creature="Triskelion", tier=3, colors="U", artifacts=True, artifact_creatures=True, shape=KEEPER_SHAPE_T3, lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts"]),
     dict(kind="warden", id="warden-4", name="Cityscape Leveler", creature="Cityscape Leveler", tier=4, colors="U", artifacts=True, artifact_creatures=True, shape=(12, 11, 5), lean=["Construct", "Golem", "Myr", "Thopter"], themes=["artifacts", "counters"]),
     # The five bosses, each unlocking its color: its region's legend the pool has.
     dict(kind="boss", id="lyra-dawnbringer", unique="lyras-seraph-mail", name="Lyra Dawnbringer", creature="Lyra Dawnbringer", region="W", unlocks="W", lean=["Angel"], themes=["flyers", "lifegain"], featured=["Serra Angel", "Archangel"], totals=(22, 7, 7), gear=["benalish-plate", "argivian-crown"]),
     dict(kind="boss", id="teferi", unique="teferis-temporal-circlet", name="Teferi", creature="Teferi, Hero of Dominaria", region="U", colors="WU", unlocks="U", prefer="U", lean=["Wizard", "Drake", "Bird"], themes=["counters", "draw"], shape=(10, 13, 6), totals=(64, 11, 11), gear=["serran-vestments", "argivian-crown"]),
-    # Liliana Vess at her family's estate in the Morass: the pool's one Liliana.
-    dict(kind="boss", id="liliana", unique="vess-veil-signet", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], shape=(12, 11, 5), totals=(44, 9, 10), gear=["benalish-plate", "thran-amulet"]),
+    # Liliana Vess at her family's estate in the Morass: the pool's one Liliana, with creatures enough to close a game
+    # (her first, spell-heavy shape played her into long games she lost; realms/docs/balance.md).
+    dict(kind="boss", id="liliana", unique="vess-veil-signet", name="Liliana of the Veil", creature="Liliana of the Veil", region="B", unlocks="B", lean=["Zombie", "Horror", "Minion"], themes=["removal", "discard"], featured=["Sengir Vampire", "Hypnotic Specter"], shape=(17, 6, 4), totals=(40, 9, 10), gear=["benalish-plate", "thran-amulet"]),
     # Keld's warlord: the pool's Keldon legend, with the Keldon Warlord.
     dict(kind="boss", id="garna", unique="garnas-bloodfists", name="Garna, Bloodfist of Keld", creature="Garna, Bloodfist of Keld", region="R", colors="BR", unlocks="R", prefer="R", lean=["Berserker", "Barbarian", "Warrior"], themes=["haste", "burn"], featured=["Keldon Warlord"], totals=(42, 10, 9), gear=["benalish-plate", "argivian-crown"],
          # Garna is {1}{B}{R}{R}: enough black mana to cast her - Badlands and Swamps beside the Mountains - round Keld's
@@ -388,8 +403,10 @@ MOB_EXCLUDED = {
     "Sorcerous Spyglass", "Mox Amber", "Everflowing Chalice", "Natural Order", "Worldly Tutor",
     "Enlightened Tutor", "Bontu's Monument", "Panharmonicon", "Mind Twist", "Dancing Scimitar", "Moat",
     "Ensnaring Bridge", "Gix's Command", "Haywire Mite", "Elvish Spirit Guide", "Simian Spirit Guide",
-    # Hosers of one color or kind, dead against most decks.
-    "Annul", "Deathmark", "Flashfreeze", "Pyroblast", "Black Ward", "Avoid Fate",
+    # Hosers of one color or kind, dead against most decks: the wards give protection from one color, and Blood Moon
+    # touches only nonbasic lands, which hardly any deck here plays.
+    "Annul", "Deathmark", "Flashfreeze", "Pyroblast", "Black Ward", "Avoid Fate", "White Ward", "Blue Ward", "Red Ward",
+    "Green Ward", "Blood Moon",
     # Cards that do as much for the opponent: board-wide, every player alike.
     "The Abyss", "Concordant Crossroads", "Land's Edge",
 }
@@ -401,10 +418,57 @@ DRAWBACKS = re.compile(
     r"|can't attack unless|doesn't untap during your untap step|when you control no \w+s?, sacrifice|flip a coin"
     r"|gains? control of [^.]*you control|an opponent gains control|gains control of this creature|skip your|you lose the game"
     r"|when this creature enters, sacrifice|can't attack if|skip (it|that step)\b|destroy target [^.]*you own"
+    # An upkeep toll on its own side, paid in its own creatures or life (Minion of Leshrac, Lord of the Pit).
+    r"|damage to you unless you sacrifice"
     # A hoser of one color or of artifacts, dead against most decks.
     r"|target (black|white|blue|red|green)( or (black|white|blue|red|green))? (spell|creature|permanent)|if it's (black|white|blue|red|green)"
     r"|from an artifact source|counter target artifact|casts an? (black|white|blue|red|green) spell"
 )
+
+# What a card needs of its own deck to do anything at all: an artifact of its own to enchant, sacrifice or untap,
+# Walls of its own, or snow mana, which no deck here makes. A deck that holds such a card without what it needs is
+# broken (`dead_cards`), and the builders leave the card out and build again.
+NEEDS = {
+    "artifacts": re.compile(r"enchant artifact|sacrifice an artifact|artifacts? you control|untap target artifact you control"),
+    "walls": re.compile(r"(?<!non-)wall creatures you control|enchant wall|target wall\b"),
+}
+
+
+def needs(card):
+    """What a card needs of its own deck (NEEDS), and "snow" for a cost or ability paid in snow mana."""
+    found = {need for need, pattern in NEEDS.items() if pattern.search(text_of(card))}
+    if "{S}" in (card.get("manaCost") or "") + (card.get("oracleText") or ""):
+        found.add("snow")
+    return found
+
+
+def serves(card, need):
+    """Whether a card is what another card's need asks for."""
+    if need == "artifacts":
+        return "Artifact" in card.get("type", "")
+    if need == "walls":
+        return "Wall" in subtypes_of(card)
+    return False
+
+
+def dead_cards(deck, cards):
+    """The cards of a deck that can never do anything in it: (name, need) for each whose need no other card serves."""
+    names = [name for _, name in deck]
+    return [(name, need) for name in names for need in sorted(needs(cards[name]))
+            if not any(serves(cards[other], need) for other in names if other != name)]
+
+
+def without_dead(make, cards):
+    """A deck from `make(banned)`, built again leaving out every card that would be dead in it, until none is (or
+    only cards it cannot leave out are: those it is made to play, which `problems_of` then reports)."""
+    banned = set()
+    while True:
+        deck = make(banned)
+        dead = {name for name, _ in dead_cards(deck, cards)} - banned
+        if not dead:
+            return deck
+        banned |= dead
+
 
 # What a mob's themes look for in a card: (card, its lowered text, whether it is a creature) -> whether it does that.
 THEMES = {
@@ -551,9 +615,10 @@ def candidates_for(colors, rarities, pool, prices, legality, cards, exact, artif
     return found
 
 
-def build(colors, rarities, pool, prices, legality, cards):
-    """A starter: 23 spells along the curve and 17 basic lands, of exactly `colors`, each slot's best cards two apiece."""
-    candidates = candidates_for(colors, rarities, pool, prices, legality, cards, True, False)
+def build(colors, rarities, pool, prices, legality, cards, banned=frozenset()):
+    """A starter: 23 spells along the curve and 17 basic lands, of exactly `colors`, each slot's best cards two apiece,
+    then STARTER_SWAPS's."""
+    candidates = [(n, c, v) for n, c, v in candidates_for(colors, rarities, pool, prices, legality, cards, True, False) if n not in banned]
     # A wall holds the ground but never wins; a spell is worth what it does (role_score), and one that does none of it
     # is no starter's.
     wall = lambda c: 4 if has_keyword(c, "defender") else 0
@@ -584,6 +649,11 @@ def build(colors, rarities, pool, prices, legality, cards):
             left -= take
     if sum(copies.values()) != SPELL_CARDS:
         sys.exit(f"sample-decks: {colors} {rarities} has too few cards for {SPELL_CARDS} spells")
+    for out, card in STARTER_SWAPS.get(colors, {}).items():
+        if out not in copies or card in copies or card not in {n for n, _, _ in candidates}:
+            sys.exit(f"sample-decks: the {colors} starter's swap of {out} for {card} does not fit (one is missing, or {card} is no starter card)")
+        copies[card] = copies.pop(out)
+        chosen[chosen.index(out)] = card
     deck = [(copies[n], n) for n in chosen if copies[n]]
     deck += lands(deck, colors, cards)
     return deck
@@ -593,9 +663,10 @@ def restricted(name, legality):
     return legality.get(name, {}).get("legalities", {}).get("vintage") == "restricted"
 
 
-def themed(mob, pool, prices, legality, cards):
+def themed(mob, pool, prices, legality, cards, banned=frozenset()):
     """A mob's deck round its creature: the creature, its featured cards, then creatures and spells by what they are
-    worth to it - their body and text, its creature types (`lean`) and what its `themes` look for - and 17 basics."""
+    worth to it - their body and text, its creature types (`lean`) and what its `themes` look for - and 17 basics.
+    Cards in `banned` are left out."""
     key = deck_key(mob)
     rarities = DECK_RARITIES[key]
     most = MOST_COPIES[key]
@@ -608,7 +679,7 @@ def themed(mob, pool, prices, legality, cards):
     reserved |= {m["creature"] for m in MOBS if m["kind"] == "mage" and "Legendary" in cards[m["creature"]]["type"]}
     reserved |= {m["creature"] for m in MOBS if m.get("decklist")}
     reserved.discard(mob["creature"])
-    candidates = [(n, c, v) for n, c, v in candidates_for(mob["colors"], rarities, pool, prices, legality, cards, False, mob["artifacts"]) if n not in MOB_EXCLUDED and n not in reserved]
+    candidates = [(n, c, v) for n, c, v in candidates_for(mob["colors"], rarities, pool, prices, legality, cards, False, mob["artifacts"]) if n not in MOB_EXCLUDED and n not in reserved and n not in banned]
 
     def worth(name, card, mv):
         text = text_of(card)
@@ -859,6 +930,7 @@ def problems_of(mob, deck, pool, prices, legality, cards, relics, gear):
             found.append(f"{name} is a relic")
         if not within(info.get("identity", "?"), mob["colors"], True):
             found.append(f"{name} ({info.get('identity')}) is outside its colors {mob['colors']}")
+    found += [f"it plays {name}, which needs {need} its deck has none of" for name, need in dead_cards(deck, cards)]
     held = sum(count for count, name in deck if name == mob["creature"])
     need = 1 if mob["kind"] == "boss" or restricted(mob["creature"], legality) else 2
     if held < need:
@@ -905,9 +977,10 @@ def main():
     gear = {g["id"]: g for g in (load(os.path.join(gear_folder, f)) for f in sorted(os.listdir(gear_folder)) if f.endswith(".json"))}
     cards = cards_by_name()
 
-    starters = {}
+    starters, problems = {}, []
     for color, name in NAMES.items():
-        starters[name] = build(color, ["common", "uncommon"], pool, prices, legality, cards)
+        starters[name] = without_dead(lambda banned, color=color: build(color, ["common", "uncommon"], pool, prices, legality, cards, banned), cards)
+        problems += [f"the {name} starter: plays {card}, which needs {need} its deck has none of" for card, need in dead_cards(starters[name], cards)]
 
     # Each mob file's model, kept as it is: models are chosen for what each creature is (realms/web/src/art/figures),
     # and this script chooses one only for a mob that has no file yet.
@@ -919,7 +992,6 @@ def main():
             if model is not None:
                 models[entry[: -len(".json")]] = model
     mobs = [normalize(mob, cards, legality, models) for mob in MOBS]
-    problems = []
     ids = [mob["id"] for mob in mobs]
     for mob_id in sorted(set(i for i in ids if ids.count(i) > 1)):
         problems.append(f"{mob_id}: the id is taken twice")
@@ -938,7 +1010,7 @@ def main():
         if missing:
             problems.append(f"{mob['id']}: plays {', '.join(missing)}, which the {PLANE} pool does not have")
             continue
-        deck = mob.get("decklist") or themed(mob, pool, prices, legality, cards)
+        deck = mob.get("decklist") or without_dead(lambda banned, mob=mob: themed(mob, pool, prices, legality, cards, banned), cards)
         problems += [f"{mob['id']}: {p}" for p in problems_of(mob, deck, pool, prices, legality, cards, relics, gear)]
         written.append((mob, deck))
     if problems:

@@ -44,6 +44,9 @@ public static class Program
 
           --games N        games per deck-and-mob pairing of the tiers (4)
           --boss-games N   games per deck-and-boss pairing (20)
+          --standing       deal each color boss as its dungeon's run deals it for the deck's colors: an enemy color's
+                           boss with its gains. Without it every boss is as its file has it (an own or ally run's),
+                           which is what the boss targets are fitted on.
           --mobs LIST      which mobs: t1, t2, t3, t4, boss, wanderers, minibosses, or mob ids, comma-separated (all)
           --decks LIST     which reference decks: starter, upgraded, duo, or their ids; each faces every mob chosen.
                            Without it, the plan: T1 and T2 face the starters, T3 and T4 the upgraded decks, the bosses
@@ -74,7 +77,7 @@ public static class Program
             Console.Error.WriteLine($"{jobs.Count} games: {jobs.Select(job => (job.Reference.Id, job.Mob.Id)).Distinct().Count()} pairings, {jobs.Select(job => job.Mob.Id).Distinct().Count()} mobs, {jobs.Select(job => job.Reference.Id).Distinct().Count()} decks.");
             if (args.Contains("--list")) return 0;
             int parallel = Number(args, "--parallel", Math.Clamp(Environment.ProcessorCount / 2, 1, 16));
-            lines = Play(content, jobs, parallel, Value(args, "--log"));
+            lines = Play(content, jobs, parallel, Value(args, "--log"), args.Contains("--standing"));
         }
 
         string report = Report(lines);
@@ -173,7 +176,7 @@ public static class Program
         _ => mob.Id == token,
     };
 
-    private static List<GameLine> Play(RealmContent content, List<Job> jobs, int parallel, string? logFile)
+    private static List<GameLine> Play(RealmContent content, List<Job> jobs, int parallel, string? logFile, bool standing)
     {
         var queue = new ConcurrentQueue<Job>(jobs);
         var lines = new ConcurrentBag<GameLine>();
@@ -188,7 +191,7 @@ public static class Program
             using NativeHostProcess host = NativeHostProcess.Start();
             while (queue.TryDequeue(out Job? job))
             {
-                Duel duel = Lab.Deal(content, job.Reference, job.Mob, job.Seed);
+                Duel duel = Lab.Deal(content, job.Reference, job.Mob, job.Seed, standing);
                 var game = Stopwatch.StartNew();
                 GameResult result;
                 try

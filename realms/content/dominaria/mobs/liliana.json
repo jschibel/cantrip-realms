@@ -7,7 +7,7 @@
   "tier": 4,
   "deck": "decks/realms/dominaria/liliana.txt",
   "stats": {
-    "life": 36,
+    "life": 32,
     "hand": 9,
     "maxHand": 7
   },

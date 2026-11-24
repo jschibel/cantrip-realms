@@ -6,7 +6,7 @@
   "tier": 1,
   "deck": "decks/realms/dominaria/mage-benalia-1.txt",
   "stats": {
-    "life": 32,
+    "life": 34,
     "hand": 8,
     "maxHand": 8
   },

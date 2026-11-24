@@ -1,6 +1,6 @@
 # The green starter deck (realms/docs/design.md, A1): written by tools/realms/sample-decks.py.
 
-2 Rime Dryad
+2 Llanowar Elves
 2 Ashcoat Bear
 2 Elvish Warrior
 2 Thornweald Archer
@@ -9,7 +9,7 @@
 2 Erhnam Djinn
 2 Elfhame Wurm
 2 Audacity
-2 Foxfire
+2 Bite Down
 2 Giant Growth
 1 Touch of Vitae
 17 Forest

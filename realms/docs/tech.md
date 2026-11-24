@@ -916,9 +916,10 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
 - **The lab** (built): `tools\realms\balance.cmd`, the console app `realms/dotnet/Cantrip.Realms.Balance`
   (`cantrip-realm-balance`). It plays whole duels on the native engine with no server: each is the `Duel` the realm
   server would deal for that player and mob (`Encounters.Deal`, `PlayerSeat`, `MobSeat`: the player's deck, stats and
-  gear emblems against the mob's deck, stats with its gear's, and its gear's emblems; a color boss with what its dungeon's
-  run adds for the player's standing to its color, `Dungeons.BossGains`, the reference's first color its starting one),
-  played to its end on the
+  gear emblems against the mob's deck, stats with its gear's, and its gear's emblems; with `--standing`, a color boss
+  with what its dungeon's run adds for the player's standing to its color, `Dungeons.BossGains`, the reference's first
+  color its starting one; without it, every boss as its file has it, as an own or ally color's run deals it), played to
+  its end on the
   browser's `DuelTable`, the player's seat by the tactical bot and the mob's by `RealmBot` on the duel's seed. Each game's
   seed comes from the run's seed, the player, the mob and the game's number, so a run is repeatable; the win rates are a
   deliberate statistical sample, reported with Wilson 95% intervals by tier (wanderers apart from the mages and
@@ -930,9 +931,11 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
     same gear; a boss faces only those without the color it unlocks, since it is fought before that color is yours.
   - **The plan** (without `--decks`): T1 and T2 against the starters, T3 and T4 against the upgraded decks, the bosses
     against the upgraded and two-color decks. Targets for the player's win rate: T1 65-75%, T2 50-60% (starters); T3
-    50-60%, T4 45-55%, bosses 35-45% (upgraded); every boss distinctly harder than T4.
+    50-60%, T4 45-55%, bosses 35-45% (upgraded, without `--standing`: an own or ally color's run); every boss
+    distinctly harder than T4. An enemy color's run is harder by design, its numbers measured with `--standing`.
   - **Tuning.** Mob stats and stats-only gear are `tools/realms/sample-decks.py`'s (`STATS`, `GEAR`, each boss's own
-    `stats` and `gear`), which writes the mob files; the lab's last measurements and what they changed are
+    `totals`), which writes the mob files and their decks - each deck rebuilt without any card that could never do
+    anything in it (`dead_cards`); the lab's last measurements and what they changed are
     `realms/docs/balance.md`.
 - **Gear costs** (to come): the same lab, with and without each item, spread over the worker pool
   (`tools\cantrip-workers.cmd`). Each effect's cost is fitted to the change in log-odds of winning.
