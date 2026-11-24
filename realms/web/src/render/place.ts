@@ -38,6 +38,8 @@ const DETAIL_SIZE = 1.05;
 const DETAIL_HEIGHT = 1.35;
 /** Tall enough to stand between the camera and the player: what the occluder fade fades (render/occlude.ts). */
 const TALL = 1.6;
+/** How far the focus moves before the sun's shadows move with it, tiles (`followSun`). */
+const SUN_STEP = 2;
 
 export class Section {
   readonly frames: { readonly groups: THREE.Group[]; readonly rate: number }[] = [];
@@ -459,9 +461,11 @@ export class Place {
 
   /**
    * Keeps the sun's shadows on the view: the shadow camera fitted to the ground the view sees - `halfX` by `halfZ`
-   * tiles round `focus`, turned by the camera's `yaw` - and what stands up to `tall` high just past it, its middle at the
-   * focus moved in whole texels of the shadow map along the sun's own axes, so the shadows' edges never crawl as the
-   * camera follows the player. The fit changes only with the view's size and heading, never as it moves.
+   * tiles round `focus`, turned by the camera's `yaw` - and what stands up to `tall` high just past it, with a margin.
+   * Its middle stays where it is until the focus is `SUN_STEP` tiles from it, then moves to the focus in whole texels of
+   * the shadow map along the sun's own axes: so the shadow map is drawn exactly as it was while the camera follows the
+   * player within the margin (no shadow's edge flickers as the view moves over it, render/renderer.ts `place`), and its
+   * edges never crawl when it moves. The fit changes only with the view's size and heading, never as it moves.
    */
   followSun(focus: { readonly x: number; readonly z: number }, halfX: number, halfZ: number, yaw: number, tall = 6): void {
     const sun = this.sun;
@@ -472,7 +476,8 @@ export class Place {
     const right = new THREE.Vector3(0, 1, 0).cross(dir).normalize();
     const up = dir.clone().cross(right).normalize();
     const fit = `${halfX.toFixed(2)}:${halfZ.toFixed(2)}:${yaw.toFixed(3)}`;
-    if (fit !== this.sunFit) {
+    const refit = fit !== this.sunFit;
+    if (refit) {
       this.sunFit = fit;
       const c = Math.cos(yaw);
       const s = Math.sin(yaw);
@@ -480,7 +485,7 @@ export class Place {
       let r = -Infinity;
       let b = Infinity;
       let t = -Infinity;
-      const margin = 3;
+      const margin = 3 + SUN_STEP;
       for (const [a, d] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
         // A corner of the view's ground, the camera's right and back turned by the yaw; and the same corner `tall` up.
         const x = a * (halfX + margin);
@@ -499,6 +504,8 @@ export class Place {
       cam.updateProjectionMatrix();
       sun.reach = Math.max(r - l, t - b) / 2;
     }
+    if (!refit && this.sunAt && Math.hypot(focus.x - this.sunAt.x, focus.z - this.sunAt.z) < SUN_STEP) return;
+    this.sunAt = { x: focus.x, z: focus.z };
     const cam2 = cam as THREE.OrthographicCamera;
     const texelX = (cam2.right - cam2.left) / sun.light.shadow.mapSize.x;
     const texelY = (cam2.top - cam2.bottom) / sun.light.shadow.mapSize.y;
@@ -510,6 +517,8 @@ export class Place {
   }
 
   private sunFit = "";
+  /** The focus the sun's shadows were last moved to. */
+  private sunAt: { x: number; z: number } | null = null;
 
   get sunLight(): THREE.DirectionalLight | null {
     return this.sun?.light ?? null;

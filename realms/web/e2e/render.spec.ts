@@ -196,11 +196,10 @@ for (const [place, at, heading] of [
     await advance(page, 1);
     const faded = await frame(page);
     const chest = await page.evaluate(() => {
-      const v = (globalThis as any).sliceStage.renderer;
       const q = (globalThis as any).sliceStage.player.position.clone();
       q.y += 0.75;
-      q.project(v.camera);
-      return { x: Math.floor(((q.x + 1) / 2) * v.width), y: Math.floor(v.height - ((q.y + 1) / 2) * v.height) };
+      const p = (globalThis as any).sliceStage.renderer.scenePixel(q);
+      return { x: Math.floor(p.x), y: Math.floor(p.y) };
     });
     await page.screenshot({ path: join(out, `occlude-${place}-${heading}.png`) });
     await page.evaluate(() => ((globalThis as any).sliceTest.occlude = false));

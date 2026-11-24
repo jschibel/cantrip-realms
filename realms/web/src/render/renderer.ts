@@ -6,8 +6,9 @@ import type { View } from "./view";
 // The slice's renderer: a real 3D scene drawn small and shown in big, clean pixels.
 //
 // The scene is drawn to a low-resolution target - a texel of every texture is one of its pixels - and the canvas is
-// scaled up by a whole number with nearest-neighbour filtering. The camera is orthographic and moves only in whole
-// pixels, so nothing shimmers as it follows the player.
+// scaled up by a whole number with nearest-neighbour filtering. The camera is orthographic and its view moves only in
+// whole pixels - over a frame drawn a margin larger, the camera standing still while it can (`place`) - so nothing
+// shimmers or flickers as it follows the player.
 //
 // One view, three-quarter, as A Link to the Past, Chrono Trigger and Final Fantasy VI draw a town or a room. The camera
 // is pitched 45 degrees and its image drawn at 1/sin 45 vertically, so a floor's texel is one pixel - tiles are 16 by 16
@@ -25,13 +26,16 @@ import type { View } from "./view";
 // with its alpha - and the post pass lays it over the scene, outlines and all, as a ghost of what was there.
 
 const DISTANCE = 120;
+/**
+ * Scene pixels drawn past each edge of the view: how far the view moves over a drawn frame before the camera is placed
+ * again (`place`).
+ */
+const MARGIN = 32;
 const NEAR = 1;
 const FAR = 300;
 
 const POST_VERTEX = /* glsl */ `
-varying vec2 vUv;
 void main() {
-  vUv = uv;
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
@@ -42,13 +46,13 @@ uniform sampler2D tNormal;
 uniform sampler2D tGhost;
 uniform sampler2D tGhostDepth;
 uniform float ghosts;
-uniform vec2 resolution;
+uniform vec2 resolution; // the drawn frame's: the view's and its margins
+uniform vec2 window; // where the view's lower left corner is in the drawn frame, pixels
 uniform float depthRange;
-uniform vec3 irisCenter; // x, y in pixels, radius in pixels (negative: no iris)
+uniform vec3 irisCenter; // x, y in the view's pixels, radius in pixels (negative: no iris)
 uniform float fade;
 uniform float outlineStrength;
 uniform float highlightStrength;
-varying vec2 vUv;
 
 float depthAt(vec2 uv) { return texture2D(tDepth, uv).r * depthRange; }
 // The faded occluders' ghost at a pixel: its color and alpha, where it stands in front of the scene (else alpha 0).
@@ -69,6 +73,7 @@ float edgeDepthAt(vec2 uv, bool under) {
 
 void main() {
   vec2 px = 1.0 / resolution;
+  vec2 vUv = (gl_FragCoord.xy + window) * px;
   vec3 color = texture2D(tColor, vUv).rgb;
   vec4 nk = texture2D(tNormal, vUv);
   float kind = nk.a;
@@ -119,8 +124,7 @@ void main() {
   color = mix(color, ghost.rgb, ghost.a);
 
   if (irisCenter.z >= 0.0) {
-    vec2 p = floor(vUv * resolution) + 0.5;
-    if (distance(p, irisCenter.xy) > irisCenter.z) color = vec3(0.0);
+    if (distance(gl_FragCoord.xy, irisCenter.xy) > irisCenter.z) color = vec3(0.0);
   }
   color = mix(color, vec3(0.0), fade);
   gl_FragColor = vec4(color, 1.0);
@@ -191,6 +195,7 @@ export class PixelRenderer {
         tGhostDepth: { value: this.ghost.depthTexture },
         ghosts: { value: 0 },
         resolution: { value: new THREE.Vector2(2, 2) },
+        window: { value: new THREE.Vector2(MARGIN, MARGIN) },
         depthRange: { value: FAR - NEAR },
         irisCenter: { value: new THREE.Vector3(0, 0, -1) },
         fade: { value: 0 },
@@ -223,10 +228,12 @@ export class PixelRenderer {
       this.width = width;
       this.height = height;
       this.renderer.setSize(width, height, false);
-      this.color.setSize(width, height);
-      this.normals.setSize(width, height);
-      this.ghost.setSize(width, height);
-      (this.post.uniforms.resolution!.value as THREE.Vector2).set(width, height);
+      const drawnWidth = width + 2 * MARGIN;
+      const drawnHeight = height + 2 * MARGIN;
+      this.color.setSize(drawnWidth, drawnHeight);
+      this.normals.setSize(drawnWidth, drawnHeight);
+      this.ghost.setSize(drawnWidth, drawnHeight);
+      (this.post.uniforms.resolution!.value as THREE.Vector2).set(drawnWidth, drawnHeight);
     }
     const shownWidth = width * scale;
     const shownHeight = height * scale;
@@ -247,31 +254,71 @@ export class PixelRenderer {
     this.place();
   }
 
-  /** Places the camera on the view and the focus, the focus rounded to a whole pixel in the camera's frame. */
+  /**
+   * Places the camera on the view and the focus, the focus rounded to a whole pixel in the camera's frame.
+   *
+   * The frame is drawn `MARGIN` pixels wider than the view on every side, and the post pass shows the view's part of it
+   * (`window`). Snapped, the camera stays where it is while the view moves within that margin: only the window moves,
+   * by whole pixels, and the scene is drawn exactly as it was - every edge and texel on the same pixels to the last
+   * bit. Moving the camera instead, even by whole pixels, rounds differently at each step, and an edge or a texel's
+   * border that runs within a hundredth of a pixel of the pixels' centres - a roof's eave or a row of its tiles, seen
+   * from a turned heading, runs along a diagonal of them - would land on some steps and not on others: a line that
+   * flickers while the camera follows a walk. The camera is placed again when the view would leave the margin, turns,
+   * zooms or glides.
+   */
   private place(): void {
     const v = this.view;
     this.camera.rotation.set(-v.pitch, v.yaw, 0);
     this.camera.updateMatrix();
-    const halfW = (this.width / 2) * v.wppX;
-    const halfH = (this.height / 2) * v.wppY;
-    this.camera.left = -halfW;
-    this.camera.right = halfW;
-    this.camera.top = halfH;
-    this.camera.bottom = -halfH;
-    this.camera.updateProjectionMatrix();
 
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
     const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
     const across = this.focus.dot(right);
     const along = this.focus.dot(up);
-    this.camera.position.copy(this.focus).addScaledVector(back, DISTANCE);
+    const at = this.focus.clone().addScaledVector(back, DISTANCE);
+    let dx = 0;
+    let dy = 0;
     if (this.snap) {
-      this.camera.position
-        .addScaledVector(right, Math.round(across / v.wppX) * v.wppX - across)
-        .addScaledVector(up, Math.round(along / v.wppY) * v.wppY - along);
+      at.addScaledVector(right, Math.round(across / v.wppX) * v.wppX - across).addScaledVector(up, Math.round(along / v.wppY) * v.wppY - along);
+      const key = `${v.yaw}:${v.pitch}:${v.wppX}:${v.wppY}`;
+      if (this.anchor && this.anchorKey === key) {
+        const off = at.clone().sub(this.anchor);
+        dx = Math.round(off.dot(right) / v.wppX);
+        dy = Math.round(off.dot(up) / v.wppY);
+      }
+      if (!this.anchor || this.anchorKey !== key || Math.abs(dx) > MARGIN || Math.abs(dy) > MARGIN) {
+        this.anchor = at.clone();
+        this.anchorKey = key;
+        dx = dy = 0;
+      }
+      this.camera.position.copy(this.anchor);
+    } else {
+      this.anchor = null;
+      this.camera.position.copy(at);
     }
+    (this.post.uniforms.window!.value as THREE.Vector2).set(MARGIN + dx, MARGIN + dy);
+    const halfW = (this.width / 2 + MARGIN) * v.wppX;
+    const halfH = (this.height / 2 + MARGIN) * v.wppY;
+    this.camera.left = -halfW;
+    this.camera.right = halfW;
+    this.camera.top = halfH;
+    this.camera.bottom = -halfH;
+    this.camera.updateProjectionMatrix();
     this.camera.updateMatrixWorld();
+  }
+
+  /** Where the snapped camera stands while the view moves over its frame (`place`), and the view it stands for. */
+  private anchor: THREE.Vector3 | null = null;
+  private anchorKey = "";
+
+  /** Where a point in the world is in the view as last placed: scene pixels from its upper left corner. */
+  scenePixel(point: THREE.Vector3): { x: number; y: number } {
+    const p = point.clone().project(this.camera);
+    const w = this.post.uniforms.window!.value as THREE.Vector2;
+    const x = ((p.x + 1) / 2) * (this.width + 2 * MARGIN) - w.x;
+    const y = ((p.y + 1) / 2) * (this.height + 2 * MARGIN) - w.y;
+    return { x, y: this.height - y };
   }
 
   /** What the last frame drew: draw calls and triangles over all its passes (shadows, color, normals, post). */
@@ -319,8 +366,8 @@ export class PixelRenderer {
 
     const iris = this.post.uniforms.irisCenter!.value as THREE.Vector3;
     if (this.iris) {
-      const p = this.iris.at.clone().project(this.camera);
-      iris.set(((p.x + 1) / 2) * this.width, ((p.y + 1) / 2) * this.height, this.iris.radius);
+      const p = this.scenePixel(this.iris.at);
+      iris.set(p.x, this.height - p.y, this.iris.radius);
     } else {
       iris.set(0, 0, -1);
     }
@@ -384,16 +431,20 @@ export class PixelRenderer {
   /** Where a point in the world is on the page, in CSS pixels. */
   toScreen(point: THREE.Vector3): { x: number; y: number } {
     this.place();
-    const p = point.clone().project(this.camera);
+    const p = this.scenePixel(point);
     const rect = this.canvas.getBoundingClientRect();
-    return { x: rect.left + ((p.x + 1) / 2) * rect.width, y: rect.top + ((1 - p.y) / 2) * rect.height };
+    return { x: rect.left + (p.x / this.width) * rect.width, y: rect.top + (p.y / this.height) * rect.height };
   }
 
   /** The ray under a point on the page. */
   rayAt(x: number, y: number): THREE.Ray {
     this.place();
     const rect = this.canvas.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((x - rect.left) / rect.width) * 2 - 1, -(((y - rect.top) / rect.height) * 2 - 1));
+    // The view's pixel, then where it is in the drawn frame.
+    const w = this.post.uniforms.window!.value as THREE.Vector2;
+    const px = ((x - rect.left) / rect.width) * this.width + w.x;
+    const py = (1 - (y - rect.top) / rect.height) * this.height + w.y;
+    const ndc = new THREE.Vector2((px / (this.width + 2 * MARGIN)) * 2 - 1, (py / (this.height + 2 * MARGIN)) * 2 - 1);
     const caster = new THREE.Raycaster();
     caster.setFromCamera(ndc, this.camera);
     return caster.ray;
