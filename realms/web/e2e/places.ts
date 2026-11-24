@@ -198,3 +198,44 @@ export function terraceFoot(near = "new-benalia"): { x: number; z0: number; z1: 
   }
   throw new Error(`no terrace's foot in the open near ${near}`);
 }
+
+/**
+ * The brink of a straight ledge near a town (world/grid.ts canStep): an open tile with open ground a whole level below
+ * it to the west, and the same for two tiles north and south of it, with open ground on its level east of all five for a
+ * few tiles - walked up to and along, never over.
+ */
+export function ledgeBrink(town = "new-benalia"): { at: Tile; below: Tile } {
+  const t = world().towns.find((x) => x.id === town)!;
+  const tile = (x: number, z: number) => {
+    const c = chunkAt({ x, z });
+    return c ? c.tiles[(z - c.cz * CHUNK) * CHUNK + (x - c.cx * CHUNK)]! : null;
+  };
+  const level = (x: number, z: number, h: number) => {
+    const n = tile(x, z);
+    return !!n && openWorld({ x, z }) && (n[2] & RAMP) === 0 && n[0] === h;
+  };
+  const found: Tile[] = [];
+  for (let r = t.radius + 2; r < t.radius + 160 && found.length === 0; r++) {
+    for (let dz = -r; dz <= r; dz++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+        const x = t.center[0] + dx;
+        const z = t.center[1] + dz;
+        const here = tile(x, z);
+        if (!here || !level(x, z, here[0])) continue;
+        const west = tile(x - 1, z);
+        if (!west || !level(x - 1, z, west[0]) || here[0] - west[0] < 12) continue;
+        // A straight ledge: the same drop to the west all along five rows, open ground on top east of it.
+        let room = true;
+        for (let k = -2; k <= 2 && room; k++) {
+          room = level(x - 1, z + k, west[0]);
+          for (let e = 0; e <= 3 && room; e++) room = level(x + e, z + k, here[0]);
+        }
+        if (room) found.push({ x, z });
+      }
+    }
+  }
+  found.sort((a, b) => a.z - b.z || a.x - b.x);
+  if (!found[0]) throw new Error(`no ledge near ${town}`);
+  return { at: found[0], below: { x: found[0].x - 1, z: found[0].z } };
+}

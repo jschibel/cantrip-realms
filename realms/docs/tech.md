@@ -145,7 +145,11 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
   until a test advances it: the offline suites never wait on the wall clock. `npm test` runs vitest; `npm run e2e` runs
   the Playwright suite (`e2e/`) against the offline overworld with real clicks (`walking.spec.ts` follows the player
-  beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back); `tour.spec.ts` takes the pictures of the
+  beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back; `sweep.spec.ts` walks
+  and steers the player about towns and the country round them, every frame checked for a jump and the body for a
+  closed tile or a ledge under it, and walks a ledge's brink; SWEEP_TOWNS, SWEEP_WALKS sweep more, and
+  `e2e/server/sweep.spec.ts`, with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too);
+  `tour.spec.ts` takes the pictures of the
   Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
   view in New Benalia at every heading; `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face. `npm run e2e:server` runs `e2e/server/` against the real realm
   server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
