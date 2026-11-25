@@ -65,6 +65,26 @@ export interface Character {
   readonly Attuned?: readonly string[];
   /** The character's home inn (world.json's `inns[].id`). */
   readonly Inn?: string;
+  /**
+   * The heartblooms of the world the character picked that have not grown back (design.md A3b), and when each does (UTC
+   * ISO-8601): drawn without their bloom meanwhile.
+   */
+  readonly Picked?: readonly Picked[];
+}
+
+/** A heartbloom of the world a character picked: its id (a chunk's `chests` entry), and when it grows back for them. */
+export interface Picked {
+  readonly Chest: string;
+  readonly Until: string;
+}
+
+/** What a find held: a chest's gold and gear, or (`Heart`) a heartbloom's heart; the character's gold and hearts after. */
+export interface ChestFound {
+  readonly Gold: number;
+  readonly Found: number;
+  readonly Gear?: GearInstance | null;
+  readonly Hearts: number;
+  readonly Heart?: boolean;
 }
 
 /** A character's identity as colors, in WUBRG order. */
@@ -211,6 +231,8 @@ export interface RunFloor {
   readonly Boss: string | null;
   readonly Tier?: number | null;
   readonly BossStats?: { readonly Life: number; readonly Hand: number; readonly MaxHand: number } | null;
+  /** The floor holds the run's shrine (design.md A6: one run in eight has one), which gives back a heart once in the run. */
+  readonly Shrine?: boolean;
 }
 
 /** A boss resting after a win (design.md A6: refought weekly): who, and when it is back (UTC ISO-8601). */
@@ -231,6 +253,8 @@ export interface Run {
   readonly Resting?: Resting | null;
   /** The run's tier: its dungeon's, or the one the character's standing to its color deals it at (design.md A6). */
   readonly Tier?: number | null;
+  /** Whether the run's shrine, if it has one, has given its heart. */
+  readonly ShrineUsed?: boolean;
 }
 
 /** An encounter's start: a world spawn's mob, or one of a dungeon run's. */
@@ -295,8 +319,8 @@ export interface RealmApi {
   rematch(body: Rematch): Promise<EncounterStart>;
   /** Buys one more heart at the healer the character stands with. */
   buyHeart(): Promise<HeartsBought>;
-  /** Opens a chest: the character's gold after, and what the chest held. */
-  openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }>;
+  /** Opens a chest or picks a heartbloom: the character's gold and hearts after, and what it held. */
+  openChest(body: { Space: string; Chest: string }): Promise<ChestFound>;
   /** Makes the inn the character stands in their home: where they wake when their last heart is lost. */
   setInn(): Promise<{ Inn: string }>;
   /** Reports where the character is (a world or interior place): their hearts after, which a town fills. */
@@ -304,6 +328,8 @@ export interface RealmApi {
   enterDungeon(body: { Dungeon: string }): Promise<Run>;
   /** The character's live run, to resume it after a reload; null with none. */
   currentRun(): Promise<Run | null>;
+  /** Prays at the shrine of the run's floor the character stands on: their hearts after, one given back. */
+  prayAtShrine(body: { Run: string }): Promise<{ Hearts: number }>;
   /** Takes the stair down to floor `Floor` (from 0) of the run. */
   dungeonFloor(body: { Run: string; Floor: number }): Promise<void>;
   leaveDungeon(body: { Run: string }): Promise<void>;
@@ -357,7 +383,7 @@ export class HttpApi implements RealmApi {
   payEncounter = (body: { Token: string }) => this.call<{ Gold: number }>("POST", "encounter/pay", body);
   rematch = (body: Rematch) => this.call<EncounterStart>("POST", "encounter/rematch", body);
   buyHeart = () => this.call<HeartsBought>("POST", "hearts/buy", {});
-  openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number; Gear?: GearInstance | null }>("POST", "chest/open", body);
+  openChest = (body: { Space: string; Chest: string }) => this.call<ChestFound>("POST", "chest/open", body);
   setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
   position = (body: Place) => this.call<{ Hearts: number }>("POST", "position", body);
   enterDungeon = (body: { Dungeon: string }) => this.call<Run>("POST", "dungeon/enter", body);
@@ -369,6 +395,7 @@ export class HttpApi implements RealmApi {
       throw e;
     }
   };
+  prayAtShrine = (body: { Run: string }) => this.call<{ Hearts: number }>("POST", "dungeon/shrine", body);
   dungeonFloor = async (body: { Run: string; Floor: number }) => {
     await this.call<unknown>("POST", "dungeon/floor", body);
   };

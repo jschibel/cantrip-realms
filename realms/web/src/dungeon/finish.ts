@@ -1,7 +1,8 @@
 // The run's contract on a carved floor (interfaces.md, "Dungeons"; design.md A6): the way up at the arrival, the run's
 // encounters through the rooms, the floor's warden on the walk to the stairs down, the boss in the farthest room of the
-// last floor with the way out beside it (beside its empty place when it rests), the spell table by the arrival of the first floor - and every tile of floor
-// walked to from the arrival without stepping onto a stair or the way out, which are walked onto only to be taken.
+// last floor with the way out beside it (beside its empty place when it rests), the spell table by the arrival of the first floor,
+// the run's shrine on the floor that holds it - and every tile of floor walked to from the arrival without stepping onto
+// a stair or the way out, which are walked onto only to be taken.
 // Then the theme dresses the floor where nobody's way is cut, and the floor's lights are chosen.
 
 import type { LightData, NpcData, TileData } from "../world/format";
@@ -212,6 +213,33 @@ export function finish(plan: Plan, rooms: readonly Room[], request: FloorRequest
     npcs.push({ id: "spell-desk", x: table[0], z: table[1], kind: "spell-table", name: "Spell table" });
   }
 
+  // The run's shrine, on the floor that holds it (design.md A6): in a room on the way, by its middle, against a wall if it
+  // can be, with open floor before it to pray from; it blocks no way.
+  let shrine: [number, number] | null = null;
+  if (request.run.Shrine) {
+    // The middle room between the arrival and the farthest first, then the others; on a floor of one room, that room.
+    const rooms = between.length > 0 ? [between[Math.floor(between.length / 2)]!, ...between] : others.length > 0 ? others : [{ room: first, at: [ax, az] as [number, number] }];
+    const ok = ([x, z]: [number, number]) =>
+      plan.walkable(x, z) && !isTaken(x, z) && !keep.has(plan.index(x, z)) && plan.safe(x, z) && far(x, z) > 0 && !plan.stops.has(plan.index(x, z)) && plan.passable(x, z + 1) && !isTaken(x, z + 1);
+    for (const { at } of rooms) {
+      const options: [number, number][] = [];
+      for (let r = 0; r <= 4; r++) for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) if (Math.max(Math.abs(dx), Math.abs(dz)) === r) options.push([at[0] + dx, at[1] + dz]);
+      shrine = options.find((t) => ok(t) && plan.cell(t[0], t[1] - 1) === WALL) ?? options.find(ok) ?? null;
+      if (shrine) break;
+    }
+    if (!shrine) {
+      const any = plan.walkables().filter(ok);
+      any.sort((a, b) => far(a[0], a[1]) - far(b[0], b[1]) || a[1] - b[1] || a[0] - b[0]);
+      shrine = any[Math.floor(any.length / 2)] ?? null;
+    }
+    if (!shrine) throw new Error(`${request.theme} ${request.seed}/${request.floor}: no room for the shrine`);
+    plan.block(shrine[0], shrine[1], { id: "dungeon-shrine", x: shrine[0] + 0.5, z: shrine[1] + 0.5, args: { stone: theme.stone } });
+    claim(shrine[0], shrine[1]);
+    keepRound(shrine[0], shrine[1]);
+    npcs.push({ id: "heart-shrine", x: shrine[0], z: shrine[1], kind: "heart-shrine", name: "A shrine of Serra" });
+    plan.light({ kind: "point", at: [shrine[0] + 0.5, 1.1, shrine[1] + 0.8], color: [1, 0.62, 0.62], intensity: 3, reach: 4 }, 85);
+  }
+
   // The stairs and the way out, drawn.
   plan.put({ id: "dungeon-stairs-up", x: up[0], z: up[1], args: { stone: theme.stone } });
   if (down) {
@@ -254,6 +282,7 @@ export function finish(plan: Plan, rooms: readonly Room[], request: FloorRequest
     up,
     down,
     wayOut,
+    shrine,
     spots,
   };
 }

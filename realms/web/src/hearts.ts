@@ -1,9 +1,10 @@
 // Hearts and the defeat that costs one (design.md A3, A3b), as the overworld shows them and the in-memory API keeps them:
-// the buyout a world mob asks, the hearts a healer sells and what they cost, and the line a mob says over the player it
-// beat. The realm server owns all of it (Encounters.Buyout, Hearts.Prices); these are its numbers, which
+// the buyout a world mob asks, the hearts a healer sells and what they cost, a dungeon run's shrine, and the line a mob
+// says over the player it beat. The realm server owns all of it (Encounters.Buyout, Hearts.Prices); these are its numbers, which
 // hearts.test.ts holds to the same cases its tests check.
 
 import { mobInfo } from "./mobs";
+import { mulberry32 } from "./random";
 
 /** The hearts a new character has and holds. */
 export const STARTING_HEARTS = 2;
@@ -16,6 +17,20 @@ export const HEART_PRICES: Readonly<Record<number, number>> = { 3: 1_000, 4: 3_0
 
 /** What a character holding `capacity` hearts pays for one more; null at the most. */
 export const heartPriceAfter = (capacity: number): number | null => HEART_PRICES[capacity + 1] ?? null;
+
+/** The chance a dungeon run holds a shrine (design.md A6), which gives back a heart once in the run: one run in eight. */
+export const SHRINE_CHANCE = 1 / 8;
+
+/**
+ * Whether a run holds a shrine, and on which floor, as the in-memory API deals it: decided from the run's own seed, so it
+ * takes nothing of the dice everything else is dealt from (the server rolls its dice for it, `Dungeons.ShrineChance`);
+ * `forced` (a test's, as the server's `POST /dev/drop {Shrine}`) puts one in, or keeps one out. Null for none.
+ */
+export function shrineFloor(seed: number, floors: number, forced: boolean | null = null, random: () => number = mulberry32((seed ^ 0x5eed5) >>> 0)): number | null {
+  const comes = random() < SHRINE_CHANCE;
+  const floor = Math.min(floors - 1, Math.floor(random() * floors));
+  return (forced ?? comes) && floors > 0 ? floor : null;
+}
 
 /** What a mob of each tier asks to be paid off with after a flawless win. */
 export const BUYOUT_BASE: Readonly<Record<number, number>> = { 1: 30, 2: 120, 3: 400, 4: 1_200 };

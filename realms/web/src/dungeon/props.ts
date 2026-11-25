@@ -1,7 +1,8 @@
 // The dungeons' own props (art/props), each prefixed `dungeon-`: the stairs and the way out, and what dresses each
 // theme - stalagmites and crystals, glowing mushrooms and hanging roots, a keep's well, banners, statues and parapets,
-// a foundry's forges, anvils and crucibles, a time-rift, and the Phyrexian pylons, altars and vats. Things against a
-// wall take its face's z and turn with `rot` (1 west, 2 north, 3 east); the rest stand by their middle at x, z.
+// a foundry's forges, anvils and crucibles, a time-rift, the Phyrexian pylons, altars and vats, and the shrine a run
+// now and then holds, with its heart. Things against a wall take its face's z and turn with `rot` (1 west, 2 north, 3
+// east); the rest stand by their middle at x, z.
 
 import { MeshBuilder, fitted, sides, tiled } from "../art/paint/builder";
 import * as C from "../art/paint/colors";
@@ -436,5 +437,84 @@ drawn("dungeon-grime", "grime and moss on the floor round x, z (a tile across); 
   b.decal(fitted(material(`dungeon-grime-${seed}`, () => Pic.grime(seed), { cutout: true })), p.x - 0.75, p.z - 0.75, p.x + 0.75, p.z + 0.75, 0.005 + (seed % 3) * 0.001);
 });
 
-void bool;
+// --- A shrine (design.md A6: one run in eight holds one) ---------------------------------------------------------------
+
+/** The heart a shrine gives: rose-red light. */
+const SHRINE_HEART: Ramp = [0x3c0614, 0x6c0e24, 0xa8163a, 0xd82a4c, 0xf8546a, 0xff94a0, 0xffd8dc];
+/** A spent shrine's heart: cold grey stone. */
+const SPENT_HEART: Ramp = [0x18161c, 0x2a2730, 0x3c3842, 0x504a54, 0x665e66, 0x7e767c, 0x968c90];
+
+drawn(
+  "dungeon-shrine",
+  "a forgotten shrine of Serra at x, z (a tile, used from beside it): a stepped plinth of args.stone (keep), a stele carved with an angel's spread wings, a candle burning at each side; its heart hovers over it (dungeon-shrine-heart)",
+  (b, p) => {
+    const stone = str(p, "stone", "keep");
+    const side = stoneOf(stone);
+    const tread = treadOf(stone);
+    const { x, z } = p;
+    // Two steps up to an altar block, and the stele behind it, its face to the south.
+    b.box(x - 0.5, 0, z - 0.46, x + 0.5, 0.14, z + 0.46, { top: tread, south: side, east: side, west: side, north: side });
+    b.box(x - 0.42, 0.14, z - 0.38, x + 0.42, 0.3, z + 0.36, { top: tread, south: side, east: side, west: side, north: side });
+    b.box(x - 0.3, 0.3, z - 0.14, x + 0.3, 0.74, z + 0.24, sides(side));
+    b.box(x - 0.36, 0.74, z - 0.2, x + 0.36, 0.82, z + 0.3, sides(side));
+    b.box(x - 0.24, 0.3, z - 0.38, x + 0.24, 1.7, z - 0.24, sides(side));
+    b.box(x - 0.3, 1.7, z - 0.42, x + 0.3, 1.8, z - 0.2, sides(side));
+    const wings = fitted(material("dungeon-shrine-wings", () => wingsPicture(P.MARBLE), { cutout: true }));
+    b.card(wings, x - 0.55, 0.9, x + 0.55, 1.62, z - 0.23);
+    // The candles: wax, and a flame on each.
+    const wax = fitted(material("dungeon-candle-wax", () => new Pixmap(2, 2, 0xe8dcc0)));
+    const flame = fitted(glowFlat("dungeon-candle-flame", 0xffd070));
+    for (const dx of [-0.38, 0.38]) {
+      b.box(x + dx - 0.04, 0.3, z + 0.14, x + dx + 0.04, 0.56, z + 0.22, sides(wax));
+      b.box(x + dx - 0.025, 0.56, z + 0.16, x + dx + 0.025, 0.65, z + 0.2, sides(flame));
+    }
+  },
+);
+
+drawn(
+  "dungeon-shrine-heart",
+  "a shrine's heart hovering over its plinth at x, z: a heart of rose-red light in a halo, which gives back a heart once in the run; args.spent cold grey stone, its blessing given",
+  (b, p) => {
+    const spent = bool(p, "spent", false);
+    const { x, z } = p;
+    const heart = fitted(material(spent ? "dungeon-shrine-heart-spent" : "dungeon-shrine-heart", () => Pic.heart(spent ? SPENT_HEART : SHRINE_HEART, 16), spent ? { cutout: true } : { glowing: true, cutout: true }));
+    b.card(heart, x - 0.28, 0.9, x + 0.28, 1.46, z + 0.06);
+    if (spent) return;
+    const halo = fitted(material("dungeon-shrine-halo", () => halo16(SHRINE_HEART), { glowing: true, cutout: true }));
+    b.card(halo, x - 0.5, 0.68, x + 0.5, 1.68, z + 0.02);
+  },
+);
+
+/** An angel's wings spread, 24 by 14, cut out: rows of feathers fanning out from the middle, carved in pale stone. */
+function wingsPicture(r: Ramp): Pixmap {
+  const p = new Pixmap(24, 14);
+  p.fill(0, 0);
+  for (let y = 0; y < 14; y++) {
+    for (let x = 0; x < 24; x++) {
+      const u = Math.abs(x - 11.5) / 12;
+      // The wing's edge rises from the middle and sweeps down to its tip; feathers hang under it in steps.
+      const top = 1 + u * 3 + (u > 0.75 ? (u - 0.75) * 16 : 0);
+      const bottom = 13 - u * 7 + ((Math.floor(u * 6) % 2) * 1.5);
+      if (u < 0.08 || y < top || y > bottom) continue;
+      const feather = Math.floor(u * 6);
+      p.set(x, y, y - top < 1 ? r[6]! : (x + feather) % 4 === 0 ? r[3]! : y > bottom - 1.5 ? r[4]! : r[5]!);
+    }
+  }
+  return p;
+}
+
+/** A soft round glow, 16 by 16, cut out: thinning out from the middle, in the ramp's light. */
+function halo16(r: Ramp): Pixmap {
+  const p = new Pixmap(16, 16);
+  p.fill(0, 0);
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const d = Math.hypot(x - 7.5, y - 7.5) / 8;
+      if (d > 1 || hash2(x, y, 37) > 1.05 - d) continue;
+      p.set(x, y, d < 0.45 ? r[5]! : r[4]!);
+    }
+  }
+  return p;
+}
+
 void PX;

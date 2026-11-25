@@ -7,7 +7,7 @@ import { type DevDuel, MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
 import { type BenchLeg, runBench, yieldFrame } from "./render/bench";
 import { NAME_OF } from "./render/camera";
-import { CHUNK, OBJECT_KINDS, areaAt, chunkKey } from "./world/format";
+import { CHUNK, OBJECT_KINDS, areaAt, chunkKey, isHeartbloom } from "./world/format";
 import type { WalkInput } from "./render/pointer";
 
 // Playwright's view of the page (?test): where everything is, by name, with its position on the page in CSS pixels,
@@ -124,7 +124,11 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
         ...o.traderActors.map(({ actor, npc }) => ({ name: npc.name ?? npc.id, kind: npc.kind, id: npc.vendor ?? npc.id, tile: actor.tile, moving: actor.moving, ...at(actor.position, 0.6) })),
         ...things.filter((n) => OBJECT_KINDS.has(n.kind)).map((n) => ({ name: n.name ?? n.kind, kind: n.kind, id: n.tower ?? n.id, tile: { x: n.x, z: n.z }, ...at(centre({ x: n.x, z: n.z }, floor(n.x, n.z)), 0.15) })),
         ...markers.map((w) => ({ name: `Tier ${w.tier}`, kind: "waymarker", id: `${w.x},${w.z}`, tier: w.tier, tile: { x: w.x, z: w.z }, ...at(centre({ x: w.x, z: w.z }, floor(w.x, w.z)), 0.8) })),
-        ...chests.map((c) => ({ name: "A chest", kind: "chest", id: c.id, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.3) })),
+        ...chests.map((c) =>
+          isHeartbloom(c)
+            ? { name: "A heartbloom", kind: "heartbloom", id: c.id, picked: o.bloomsHere.find((b) => b.id === c.id)?.picked ?? null, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.5) }
+            : { name: "A chest", kind: "chest", id: c.id, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.3) },
+        ),
         ...o.spot.doors.map((d) => ({ name: d.name, kind: d.kind ?? "door", id: d.to, to: d.to, tile: d.tile, ...at(centre(d.tile, floor(d.tile.x, d.tile.z)), 0) })),
       ];
     },
@@ -145,6 +149,25 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     forceDuel(duel: DevDuel | null) {
       const o = game();
       if (o?.api instanceof MockApi) o.api.devDuel = duel;
+    },
+    /**
+     * Offline, whether the runs begun hold a shrine (MockApi.shrineRoll), as the server's POST /dev/drop {Shrine} decides:
+     * true every one, false none, null as each run's seed says.
+     */
+    forceShrine(on: boolean | null) {
+      const o = game();
+      if (o?.api instanceof MockApi) o.api.shrineRoll = on;
+    },
+    /** Offline, sets the character's hearts at once (MockApi.arrangeHearts, the server's POST /dev/hearts) and shows them. */
+    async setHearts(hearts: number, maxHearts?: number) {
+      const o = game();
+      if (!(o?.api instanceof MockApi)) return;
+      o.api.arrangeHearts(hearts, maxHearts);
+      await o.refresh();
+    },
+    /** The heartblooms drawn round the player: each id, tile and whether it is picked (drawn without its bloom). */
+    get blooms() {
+      return live()?.bloomsHere ?? [];
     },
     /**
      * The mob's life at the end of a duel the stand-in card layer loses (cardStub.ts): what the real one reads from the

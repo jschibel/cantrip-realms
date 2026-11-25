@@ -1,8 +1,20 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
 import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/realm";
 import { MockApi, travelersAt } from "./mockApi";
 import { buyout } from "../hearts";
+import { type ChestData, type ChunkData, HEARTBLOOM_REGROWTH, isHeartbloom } from "../world/format";
+
+/** Dominaria's heartblooms, as its chunk files hold them (read straight from the files: only those that name one parsed). */
+function heartblooms(): ChestData[] {
+  const dir = join(__dirname, "..", "..", "..", "content", "dominaria", "world", "chunks");
+  return readdirSync(dir)
+    .map((f) => readFileSync(join(dir, f), "utf8"))
+    .filter((text) => text.includes('"heart":true'))
+    .flatMap((text) => (JSON.parse(text) as ChunkData).chests.filter(isHeartbloom));
+}
 
 describe("HttpApi", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -136,6 +148,85 @@ describe("MockApi", () => {
     const api = make();
     expect((await api.openChest({ Space: "world", Chest: "10_10:c1" })).Gold).toBeGreaterThan(0);
     await expect(api.openChest({ Space: "world", Chest: "10_10:c1" })).rejects.toMatchObject({ code: "Empty" });
+  });
+
+  /** Loses a world duel and pays the mob off: a heart gone. */
+  const loseOne = async (api: MockApi, spawn: string) => {
+    const lost = await api.startEncounter({ Spawn: spawn, Mob: "bog-rats" });
+    api.settle(lost.Token, "lost");
+    await api.finishEncounter({ Token: lost.Token, Log: [] });
+    await api.payEncounter({ Token: lost.Token });
+  };
+
+  it("gives back a heart at a heartbloom, picked from on it or beside it, gone for that character for a week", async () => {
+    const api = make();
+    let now = 1_800_000_000;
+    api.now = () => now;
+    const bloom = heartblooms()[0]!;
+    const pick = () => api.openChest({ Space: "world", Chest: bloom.id });
+    await api.position({ Space: "world", X: bloom.x, Z: bloom.z + 3 });
+    // From beside it, never from afar; hearts full, it keeps; a heart lost, it is picked.
+    await expect(pick()).rejects.toMatchObject({ code: "NotNear" });
+    await api.position({ Space: "world", X: bloom.x + 1, Z: bloom.z });
+    await expect(pick()).rejects.toMatchObject({ code: "FullHearts" });
+    await loseOne(api, "s1");
+    expect((await api.me())!.Picked).toEqual([]);
+    expect(await pick()).toMatchObject({ Found: 0, Hearts: 2, Heart: true });
+    expect((await api.me())!.Picked).toEqual([{ Chest: bloom.id, Until: new Date((now + HEARTBLOOM_REGROWTH) * 1000).toISOString() }]);
+    // Gone a week, then back.
+    await loseOne(api, "s2");
+    now += HEARTBLOOM_REGROWTH - 1;
+    await expect(pick()).rejects.toMatchObject({ code: "Empty" });
+    now += 1;
+    expect((await api.me())!.Picked).toEqual([]);
+    expect(await pick()).toMatchObject({ Hearts: 2, Heart: true });
+  });
+
+  it("puts a shrine on one floor of a run in eight, which blesses once in the run, on its floor, with a heart missing", async () => {
+    const dungeon = [...DUNGEONS.values()].find((d) => !d.requires && d.floors[0] >= 2)!;
+    const at = (api: MockApi) => api.position({ Space: "world", X: dungeon.entrance[0], Z: dungeon.entrance[1] });
+    // As each run's seed says: about one run in eight, on one floor at most.
+    const odds = make();
+    let shrines = 0;
+    for (let k = 0; k < 400; k++) {
+      await at(odds);
+      const run = await odds.enterDungeon({ Dungeon: dungeon.id });
+      expect(run.Floors.filter((f) => f.Shrine).length).toBeLessThanOrEqual(1);
+      shrines += run.Floors.some((f) => f.Shrine) ? 1 : 0;
+      await odds.leaveDungeon({ Run: run.Run });
+    }
+    expect(shrines).toBeGreaterThan(400 / 8 / 2);
+    expect(shrines).toBeLessThan((400 / 8) * 2);
+
+    // As a test forces it: none, then one.
+    const api = make();
+    api.shrineRoll = false;
+    await at(api);
+    const bare = await api.enterDungeon({ Dungeon: dungeon.id });
+    expect(bare.Floors.some((f) => f.Shrine)).toBe(false);
+    await expect(api.prayAtShrine({ Run: bare.Run })).rejects.toMatchObject({ code: "NotThere" });
+    await api.leaveDungeon({ Run: bare.Run });
+    api.shrineRoll = true;
+    await at(api);
+    const run = await api.enterDungeon({ Dungeon: dungeon.id });
+    const floor = run.Floors.findIndex((f) => f.Shrine);
+    expect(floor).toBeGreaterThanOrEqual(0);
+    // Off its floor, nothing; on it with the hearts full, it keeps.
+    if (floor > 0) await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "NotThere" });
+    for (let f = 0; f < floor; f++) {
+      const warden = await api.startEncounter({ Run: run.Run, Floor: f, Index: run.Floors[f]!.Encounters.length, Mob: run.Floors[f]!.Warden! });
+      api.settle(warden.Token, "won");
+      await api.finishEncounter({ Token: warden.Token, Log: [] });
+      await api.dungeonFloor({ Run: run.Run, Floor: f + 1 });
+    }
+    await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "FullHearts" });
+    const e = run.Floors[floor]!.Encounters[0] ?? { Index: run.Floors[floor]!.Encounters.length, Mob: run.Floors[floor]!.Warden ?? run.Floors[floor]!.Boss! };
+    const lost = await api.startEncounter({ Run: run.Run, Floor: floor, Index: e.Index, Mob: e.Mob });
+    api.settle(lost.Token, "lost");
+    await api.finishEncounter({ Token: lost.Token, Log: [] });
+    expect(await api.prayAtShrine({ Run: run.Run })).toEqual({ Hearts: 2 });
+    expect((await api.currentRun())!.ShrineUsed).toBe(true);
+    await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "Empty" });
   });
 
   it("runs a dungeon as the server does: its floors, the warden before each stair, the boss's index past it", async () => {

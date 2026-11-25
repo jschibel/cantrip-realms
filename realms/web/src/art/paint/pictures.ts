@@ -832,3 +832,33 @@ export function stepTread(ramp: readonly Rgb[] = C.DUNGEON): Pixmap {
 }
 
 export { T as TRANSPARENT };
+
+/**
+ * A heart, `n` by `n`, cut out (the HUD's heart's shape): two lobes and a point, shaded from `ramp`'s light at the upper
+ * left to its dark at the point, rimmed in its darkest, with a glint - a heartbloom's petals, a shrine's crystal.
+ */
+export function heart(ramp: readonly Rgb[], n = 16): Pixmap {
+  const p = new Pixmap(n, n);
+  p.fill(0, 0);
+  const s = n / 16;
+  const inside = (x: number, y: number) => {
+    // Two circles of radius 4 at (4.5, 5.5) and (11.5, 5.5), and the triangle under them to the point at (8, 14.5).
+    const u = x / s;
+    const v = y / s;
+    if (Math.hypot(u - 4.6, v - 5.2) <= 4 || Math.hypot(u - 11.4, v - 5.2) <= 4) return true;
+    return v >= 5.2 && v <= 14.6 && Math.abs(u - 8) <= (14.6 - v) * 0.78;
+  };
+  const top = ramp.length - 1;
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      if (!inside(x + 0.5, y + 0.5)) continue;
+      const rim = !inside(x - 0.5, y + 0.5) || !inside(x + 1.5, y + 0.5) || !inside(x + 0.5, y - 0.5) || !inside(x + 0.5, y + 1.5);
+      const light = 1 - (x / n) * 0.45 - (y / n) * 0.75;
+      const k = rim ? 0 : Math.max(1, Math.min(top - 1, Math.round(light * top)));
+      p.set(x, y, ramp[k]!);
+    }
+  }
+  // The glint on the left lobe.
+  for (const [gx, gy] of [[4, 3], [3, 4], [4, 4]] as const) p.set(Math.floor(gx * s), Math.floor(gy * s), ramp[top]!);
+  return p;
+}

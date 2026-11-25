@@ -8,12 +8,14 @@ import type { DungeonFloor, RunFloor } from "./types";
 // Each theme's generator makes valid floors on squares: every tile of floor walked to from the arrival - eight ways,
 // never cutting a corner - without stepping onto a stair or the way out; exactly the run's encounters placed, each on
 // a tile of its own, the warden on the walk to the stairs and the boss on the last floor; the entrance's spell table;
-// every id the floor names known to the art; and the same floor every time for the same run.
+// the run's shrine on the floor that holds it, prayed at from beside it; every id the floor names known to the art; and
+// the same floor every time for the same run.
 
-const runFloor = (floor: number, floors: number, count: number): RunFloor => ({
+const runFloor = (floor: number, floors: number, count: number, shrine = false): RunFloor => ({
   Encounters: Array.from({ length: count }, (_, i) => ({ Index: i, Mob: `mob-${floor}-${i}` })),
   Warden: floor < floors - 1 ? `warden-${floor}` : null,
   Boss: floor === floors - 1 ? "the-boss" : null,
+  Shrine: shrine,
 });
 
 const key = (x: number, z: number) => `${x},${z}`;
@@ -90,6 +92,20 @@ export function check(floor: DungeonFloor, run: RunFloor): void {
     expect(beside, "the spell table is reached").toBe(true);
     expect(floor.props.some((p) => p.id === "spell-desk")).toBe(true);
   } else expect(tables).toHaveLength(0);
+  // The run's shrine (design.md A6): on its floor alone, on a blocked tile of its own, prayed at from a tile walked to.
+  const shrines = floor.npcs.filter((n) => n.kind === "heart-shrine");
+  if (run.Shrine) {
+    expect(shrines).toHaveLength(1);
+    const s = shrines[0]!;
+    expect(floor.shrine).toEqual([s.x, s.z]);
+    expect(walk(s.x, s.z), "the shrine stands on its tile").toBe(false);
+    expect(places.has(key(s.x, s.z)) || stops.has(key(s.x, s.z))).toBe(false);
+    expect(reached.has(key(s.x, s.z + 1)), "the shrine is prayed at from the tile before it").toBe(true);
+    expect(floor.props.filter((p) => p.id === "dungeon-shrine" && Math.floor(p.x) === s.x && Math.floor(p.z) === s.z)).toHaveLength(1);
+  } else {
+    expect(shrines).toHaveLength(0);
+    expect(floor.shrine).toBeNull();
+  }
   for (const p of floor.props) expect(PROPS.has(p.id), `prop ${p.id}`).toBe(true);
   for (const t of floor.tiles) if (t[1] !== "") expect(SURFACES.has(t[1]), `surface ${t[1]}`).toBe(true);
 }
@@ -100,7 +116,7 @@ describe("dungeon floors on squares", () => {
       for (let seed = 1; seed <= 40; seed++) {
         const floors = theme === "tower" && seed % 3 === 0 ? 1 : 2 + (seed % 4);
         for (let floor = 0; floor < floors; floor++) {
-          const run = runFloor(floor, floors, 2 + ((seed + floor) % 4));
+          const run = runFloor(floor, floors, 2 + ((seed + floor) % 4), (seed + floor) % 3 === 0);
           const f = generateDungeonFloor({ theme, seed: seed * 7919, floor, floors, run });
           check(f, run);
         }
@@ -118,7 +134,7 @@ describe("dungeon floors on squares", () => {
 
     it(`${theme}: every prop it names builds`, () => {
       for (const floor of [0, 2]) {
-        const f = generateDungeonFloor({ theme, seed: 5, floor, floors: 3, run: runFloor(floor, 3, 3) });
+        const f = generateDungeonFloor({ theme, seed: 5, floor, floors: 3, run: runFloor(floor, 3, 3, true) });
         for (const p of f.props) expect(PROPS.build(p.id, p).model.parts.length, `${theme}: ${p.id}`).toBeGreaterThan(0);
       }
     });

@@ -38,7 +38,8 @@ export const heartsHtml = (have: number, hold: number, test = "hud:hearts"): str
 export interface MinimapDot {
   readonly x: number;
   readonly z: number;
-  readonly kind: "player" | "mob" | "npc" | "chest" | "exit" | "other";
+  /** `heart`: a heartbloom in bloom, or a run's shrine not yet prayed at (design.md A3b, A6). */
+  readonly kind: "player" | "mob" | "npc" | "chest" | "heart" | "exit" | "other";
 }
 
 const rgb = (hex: string): [number, number, number] => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
@@ -414,7 +415,7 @@ export class Hud {
   }
 
   private dot(g: CanvasRenderingContext2D, x: number, y: number, kind: MinimapDot["kind"]): void {
-    const colors: Record<MinimapDot["kind"], string> = { player: "#f2f7f8", mob: "#e02a3a", npc: "#5296b5", chest: "#ffc94a", exit: "#ffc94a", other: "#8e82c8" };
+    const colors: Record<MinimapDot["kind"], string> = { player: "#f2f7f8", mob: "#e02a3a", npc: "#5296b5", chest: "#ffc94a", heart: "#ff8fc4", exit: "#ffc94a", other: "#8e82c8" };
     const r = kind === "player" ? 3 : 2;
     g.fillStyle = "#0b0c10";
     g.fillRect(Math.round(x) - r - 1, Math.round(y) - r - 1, r * 2 + 2, r * 2 + 2);

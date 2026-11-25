@@ -2,17 +2,18 @@ import { type Material, MeshBuilder, fitted, sides, tiled } from "../paint/build
 import * as C from "../paint/colors";
 import { material } from "../paint/materials";
 import { type Palette, type Ramp, rampKey } from "../paint/palette";
+import * as Pic from "../paint/pictures";
 import { Pixmap, type Rgb, hash2, seeded } from "../paint/pixmap";
 import * as R from "../paint/ramps";
 import type { PropData } from "../../world/format";
 import { along, centred, prop } from "./catalogue";
-import { bark, cutout, disc, foliage, frustum, limb, lump, needleMaterial, ringsMaterial, rock, snowCover, standingCard } from "./kit";
+import { bark, cutout, disc, foliage, frustum, glowing, limb, lump, needleMaterial, ringsMaterial, rock, snowCover, standingCard } from "./kit";
 import { needs, num, point, str, turnOf } from "./registry";
 
 // The open country's growing things and its stone, by biome: Benalia's oaks and birches; Llanowar's giant trees,
 // undergrowth and ferns; the Morass's dead trees and cypresses hung with moss; Keld's pines and snowy firs; the coasts'
-// palms and scrub; Verdura's lush trees and flowering bushes; stumps, logs, mushrooms, reeds and lily pads; and rocks of
-// every stone, crags, cliffs and whole mountains for the far view. Each tree's crown is its palette's `leaves` and its
+// palms and scrub; Verdura's lush trees and flowering bushes; stumps, logs, mushrooms, reeds and lily pads; the rare
+// heartbloom; and rocks of every stone, crags, cliffs and whole mountains for the far view. Each tree's crown is its palette's `leaves` and its
 // trunk its `bark`; a tree's size is its `scale` and its shape its `seed`.
 
 type V3 = [number, number, number];
@@ -901,3 +902,66 @@ prop(
     for (let y = 0.35; y < h; y += 0.35) b.box(x - 0.22, y - 0.025, z + 1.42 - (y / h) * 0.15, x + 0.22, y + 0.025, z + 1.47 - (y / h) * 0.15, sides(tiled(wood)));
   },
 );
+
+// --- Heartblooms ----------------------------------------------------------------------------------------------------------
+
+/** A heartbloom's petals: rose-red, deepening to wine, glowing from within. */
+const HEARTBLOOM: Ramp = [0x3c0614, 0x6c0e24, 0xa8163a, 0xd82a4c, 0xf8546a, 0xff94a0, 0xffd8dc];
+
+prop(
+  "heartbloom",
+  "a heartbloom of the wilds at x, z (design.md A3b): a low clump of dark leaves and, on a stem over it, a heart-shaped bloom glowing rose-red, motes of its light about it - picked, it gives back a heart; args.picked the clump alone, its stem snapped, until it grows back",
+  { category: "plant", biomes: ["any"], footprint: centred(0.6, 0.6, false), sample: { args: { picked: false } } },
+  (b, p) => {
+    const random = seeded(sd(p) + 23);
+    const { x, z } = p;
+    const leaves = foliage(C.LEAF);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2 + random() * 0.6;
+      const r = k === 0 ? 0 : 0.14 + random() * 0.06;
+      const s = 0.8 + random() * 0.4;
+      lump(b, x + Math.sin(a) * r, z + Math.cos(a) * r * 0.8, 0, [[0.13 * s, 0], [0.18 * s, 0.1 * s], [0.12 * s, 0.22 * s], [0, 0.28 * s]], 6, leaves, sd(p) + k, 0.25);
+    }
+    const stem = material("heartbloom-stem", () => new Pixmap(4, 4, C.LEAF[2]!), { smooth: true });
+    if (p.args?.["picked"] === true) {
+      // Snapped: a stub, and the stem fallen over the leaves.
+      limb(b, [x, 0.18, z], [x + 0.02, 0.36, z + 0.01], 0.022, 0.018, stem, 4);
+      limb(b, [x + 0.02, 0.36, z + 0.01], [x + 0.28, 0.24, z + 0.12], 0.016, 0.012, stem, 4);
+      return;
+    }
+    limb(b, [x, 0.18, z], [x + 0.02, 0.7, z + 0.01], 0.026, 0.018, stem, 4);
+    // Two leaves on the stem, and the bloom: a heart as wide as a hand is long, facing the camera's way, a soft halo
+    // behind it - seen from afar in the grass.
+    const leaf = fitted(cutout("heartbloom-leaf", () => frondPicture(C.LEAF)));
+    standingCard(b, leaf, x - 0.08, 0.3, z + 0.01, 0.16, 0.3, 0.9);
+    standingCard(b, leaf, x + 0.1, 0.38, z + 0.01, 0.16, 0.28, -0.9);
+    const halo = fitted(material("heartbloom-halo", () => haloPicture(HEARTBLOOM), { glowing: true, cutout: true }));
+    b.card(halo, x - 0.5, 0.42, x + 0.52, 1.44, z - 0.04);
+    const bloom = fitted(material("heartbloom-bloom", () => Pic.heart(HEARTBLOOM, 16), { glowing: true, cutout: true }));
+    b.card(bloom, x - 0.3, 0.62, x + 0.32, 1.24, z + 0.02);
+    // Motes of its light, hanging about it.
+    const mote = glowing(HEARTBLOOM[5]!);
+    for (let k = 0; k < 6; k++) {
+      const mx = x + (random() - 0.5) * 1.0;
+      const my = 0.35 + random() * 1.1;
+      const mz = z + (random() - 0.5) * 0.4;
+      b.box(mx - 0.02, my - 0.02, mz - 0.02, mx + 0.02, my + 0.02, mz + 0.02, sides(fitted(mote)));
+    }
+  },
+);
+
+/** A soft round glow, 16 by 16, cut out: dotted rings fading out from the middle, in the ramp's light. */
+function haloPicture(r: Ramp): Pixmap {
+  const p = new Pixmap(16, 16);
+  p.fill(0, 0);
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const d = Math.hypot(x - 7.5, y - 7.5) / 8;
+      if (d > 1) continue;
+      // Thinner the farther out: every texel near the middle, a scattering at the rim.
+      if (hash2(x, y, 31) > 1.05 - d) continue;
+      p.set(x, y, d < 0.45 ? r[5]! : r[4]!);
+    }
+  }
+  return p;
+}

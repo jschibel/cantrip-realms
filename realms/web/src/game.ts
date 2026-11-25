@@ -21,16 +21,16 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, townAt } from "./world/format";
+import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, isHeartbloom, townAt } from "./world/format";
 import { type Grid, type Tile, flatGround } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
 // The overworld (tech.md, B5) on the renderer's stage (render/stage.ts): one connected world of version-2 chunks
 // streamed round the player, the rooms behind its doors entered seamlessly, everyone on the ground you stand on as
 // Actors on square tiles - the townsfolk, the mobs of the spawn points, the other players the relay tells of - what a
-// click means, chests, waystones, and what happens when a mob reaches you. The server owns everything of value; this
-// asks it (RealmApi) and shows the answers, and opens card screens over the world (CardScreens) for duels, the spell
-// table, vendors, loot and gear.
+// click means, chests, heartblooms and a run's shrine, waystones, and what happens when a mob reaches you. The server
+// owns everything of value; this asks it (RealmApi) and shows the answers, and opens card screens over the world
+// (CardScreens) for duels, the spell table, vendors, loot and gear.
 //
 // Positions are tiles `{Space, X, Z}` (realms/docs/interfaces.md). A walk sent to the relay is the path the grid found:
 // eight ways, never a cut corner, from the open tile the player stands on. Nearness - beside a door, a chest, a vendor -
@@ -74,6 +74,8 @@ export interface FloorPlan {
   readonly up?: Tile | null;
   readonly down?: Tile | null;
   readonly wayOut?: Tile | null;
+  /** The run's shrine, on the floor that holds it (design.md A6): its tile, prayed at from beside it. */
+  readonly shrine?: Tile | null;
 }
 
 interface ActiveRun {
@@ -88,6 +90,10 @@ interface ActiveRun {
   plan: FloorPlan | null;
   /** The boss that rests this run (design.md A6: refought weekly), and when it is back; its hall stands empty. */
   readonly resting: Resting | null;
+  /** Whether the run's shrine has given its heart (one run in eight has one, on one floor). */
+  shrineUsed: boolean;
+  /** The heart over the shrine of the floor shown, drawn lit or spent. */
+  shrineHeart: THREE.Group | null;
 }
 
 /** Where the heading and the zoom are kept between visits (shared with nothing else). Storage may be refused. */
@@ -142,6 +148,10 @@ export class Overworld {
   /** Spawn epochs whose mob was beaten: `spawn|epoch`; chests opened: `chest|epoch`. */
   private readonly beaten = new Set<string>();
   private readonly opened = new Set<string>();
+  /** The heartblooms of the chunks built, each drawn in bloom or picked, by id (design.md A3b). */
+  private readonly blooms = new Map<string, { readonly chest: ChestData; readonly chunk: string; picked: boolean; readonly group: THREE.Group }>();
+  /** A heartbloom being picked now: one ask of the server at a time. */
+  private picking = false;
   /** Something to do on reaching a tile (talk to someone, open a chest, engage a mob). */
   private pending: { readonly at: Tile; readonly then: () => void } | null = null;
   /** What the relay has refused of this page, its reasons (for tests: a walk told right is never refused). */
@@ -238,6 +248,7 @@ export class Overworld {
     this.world.streamer.onBuilt = (key, chunk) => {
       built(key, chunk);
       this.spawnChunk(key);
+      this.bloomChunk(key, chunk);
     };
     const onGrid = this.world.streamer.onGrid;
     this.world.streamer.onGrid = (grid) => {
@@ -249,6 +260,7 @@ export class Overworld {
     this.world.streamer.onDropped = (key, chunk) => {
       dropped(key, chunk);
       this.dropMobsOf(key);
+      this.dropBloomsOf(key);
     };
 
     // A live run is resumed where it was left (a reload, a return): its floor, its beaten mobs; else the world.
@@ -296,6 +308,7 @@ export class Overworld {
     const looks = JSON.stringify(this.data.Loadout) !== JSON.stringify(data.Loadout);
     this.data = data;
     this.hud.showCharacter(data);
+    this.showBlooms();
     if (looks) {
       this.sendLook();
       this.stage.dress(playerFigure(appearanceOf(data)));
@@ -420,6 +433,7 @@ export class Overworld {
     return undefined;
   }
 
+  /** A find of the world on a tile: a treasure chest, or a heartbloom. */
   private chestAt(t: Tile): ChestData | undefined {
     if (!this.inWorld) return undefined;
     const c = this.world.streamer.data.get(chunkKey(Math.floor(t.x / CHUNK), Math.floor(t.z / CHUNK)));
@@ -447,7 +461,8 @@ export class Overworld {
     const thing = this.objectAt(t);
     if (thing?.kind === "waystone") return `${thing.name ?? "A waystone"} (${this.attuned.includes(thing.tower ?? "") ? "attuned" : "dormant"})`;
     if (thing) return thing.name ?? thing.kind;
-    if (this.chestAt(t)) return "A chest";
+    const chest = this.chestAt(t);
+    if (chest) return isHeartbloom(chest) ? (this.blooms.get(chest.id)?.picked ? "A heartbloom, picked" : "A heartbloom") : "A chest";
     const door = this.stage.doorAt(t);
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
     return null;
@@ -472,6 +487,13 @@ export class Overworld {
       return true;
     }
     const chest = this.chestAt(t);
+    if (chest && isHeartbloom(chest)) {
+      // Walked onto, and picked on arriving (stepped); clicked where one stands, picked at once.
+      const me = this.player.tile;
+      if (me.x === t.x && me.z === t.z) void this.pickBloom(chest, true);
+      else if (!this.player.goTo(t)) this.walkBeside({ tile: t } as Actor, () => void this.pickBloom(chest, true));
+      return true;
+    }
     if (chest) {
       this.walkBeside({ tile: t } as Actor, () => void this.openChest(chest));
       return true;
@@ -559,6 +581,9 @@ export class Overworld {
     }
     // On a door's tile, at once: the server lets one into a room only from beside its door.
     if (!arriving) this.report(!!this.stage.doorAt(t));
+    // Onto a heartbloom in bloom: picked.
+    const bloom = !arriving && this.inWorld ? this.chestAt(t) : undefined;
+    if (bloom && isHeartbloom(bloom) && !this.blooms.get(bloom.id)?.picked) void this.pickBloom(bloom, false);
   }
 
   /** Where the player is, to the server: on standing, and every two seconds of walking. */
@@ -636,6 +661,79 @@ export class Overworld {
     this.mobs.splice(this.mobs.indexOf(mob), 1);
   }
 
+  // --- Heartblooms ------------------------------------------------------------------------------------------------------
+
+  /** Whether the character has picked a heartbloom that has not grown back (the server's word: `Picked`). */
+  private isPicked(id: string): boolean {
+    const nowMs = this.options.now() * 1000;
+    return (this.data?.Picked ?? []).some((p) => p.Chest === id && Date.parse(p.Until) > nowMs);
+  }
+
+  /** Draws the heartblooms of a chunk just built: in bloom, or picked (the clump alone) until they grow back. */
+  private bloomChunk(key: string, chunk: { readonly chests: readonly ChestData[] }): void {
+    for (const chest of chunk.chests) {
+      if (!isHeartbloom(chest) || this.blooms.has(chest.id)) continue;
+      const picked = this.isPicked(chest.id);
+      const group = this.bloomFigure(chest, picked);
+      this.world.place.addFigure(group);
+      this.blooms.set(chest.id, { chest, chunk: key, picked, group });
+    }
+  }
+
+  private bloomFigure(chest: ChestData, picked: boolean): THREE.Group {
+    const group = meshesOf(PROPS.build("heartbloom", { id: "heartbloom", x: 0, z: 0, seed: chest.x * 31 + chest.z, args: { picked } }).model, "heartbloom");
+    group.position.set(chest.x + 0.5, this.world.floorAt(chest.x + 0.5, chest.z + 0.5), chest.z + 0.5);
+    return group;
+  }
+
+  private dropBloomsOf(key: string): void {
+    for (const [id, b] of this.blooms) {
+      if (b.chunk !== key) continue;
+      b.group.removeFromParent();
+      this.blooms.delete(id);
+    }
+  }
+
+  /** Redraws each heartbloom whose state the character's `Picked` changed: picked now, or grown back. */
+  private showBlooms(): void {
+    if (!this.world) return;
+    for (const [id, b] of this.blooms) {
+      const picked = this.isPicked(id);
+      if (picked === b.picked) continue;
+      b.group.removeFromParent();
+      const group = this.bloomFigure(b.chest, picked);
+      this.world.place.addFigure(group);
+      this.blooms.set(id, { ...b, picked, group });
+    }
+  }
+
+  /**
+   * Picks a heartbloom (design.md A3b): where the character stands told the server first (it picks only from on the bloom
+   * or beside it), then the pick - a heart given back, or the bloom left standing when the hearts are full.
+   */
+  private async pickBloom(bloom: ChestData, clicked: boolean): Promise<void> {
+    if (this.picking) return;
+    this.picking = true;
+    try {
+      const at = this.player.tile;
+      this.lastReported = `${this.spaceId}:${at.x},${at.z}`;
+      await this.api.position(placeOf(this.spaceId, at)).then((r) => this.heartsAre(r.Hearts), () => {});
+      const found = await this.api.openChest({ Space: this.spaceId, Chest: bloom.id });
+      this.player.figure.act("interact");
+      await this.refresh();
+      this.hud.flashHearts();
+      this.say(`You pick the heartbloom, and its warmth fills you: ${found.Hearts} of ${this.data.MaxHearts} hearts. It will grow back in a week.`);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "FullHearts") this.say("Your hearts are full. The heartbloom will keep until you need it.");
+      else if (e instanceof ApiError && e.code === "Empty") {
+        if (clicked) this.say("The heartbloom has been picked. It will grow back.");
+        await this.refresh();
+      } else this.say(refusal(e));
+    } finally {
+      this.picking = false;
+    }
+  }
+
   private dropMobsOf(key: string): void {
     for (const mob of [...this.mobs]) if (!mob.run && !mob.engaged && mob.spawn.id.startsWith(`${key}:`)) this.removeMob(mob);
   }
@@ -672,6 +770,8 @@ export class Overworld {
     for (const m of [...this.mobs]) if (m.run) this.removeMob(m);
     const plan = this.floors({ id: run.id, dungeon: run.dungeon, seed: run.seed, floor: run.floor, floors: run.floors.length, run: run.floors[run.floor]! });
     run.plan = plan;
+    run.shrineHeart = null;
+    if (plan.shrine) this.showShrineHeart(run);
     for (const e of plan.encounters) {
       if (run.beaten.has(`${run.floor}:${e.index}`)) continue;
       const spawn: SpawnData = { id: `${run.floor}:${e.index}`, x: e.x, z: e.z, mobs: [e.mob], radius: e.role === "encounter" ? 1 : 0, respawnSeconds: 86400, tier: run.tier };
@@ -700,7 +800,55 @@ export class Overworld {
   }
 
   private activeRun(r: Run, dungeon: DungeonData): ActiveRun {
-    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, tier: r.Tier ?? dungeon.tier, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null };
+    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, tier: r.Tier ?? dungeon.tier, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null, shrineUsed: r.ShrineUsed ?? false, shrineHeart: null };
+  }
+
+  /** The heart over the shrine of the floor shown: lit until it has given its blessing, then cold stone. */
+  private showShrineHeart(run: ActiveRun): void {
+    const at = run.plan?.shrine;
+    if (!at) return;
+    run.shrineHeart?.removeFromParent();
+    const group = meshesOf(PROPS.build("dungeon-shrine-heart", { id: "dungeon-shrine-heart", x: 0, z: 0, args: { spent: run.shrineUsed } }).model, "shrine-heart");
+    group.position.set(at.x + 0.5, run.plan!.spot.floorAt?.(at.x + 0.5, at.z + 0.5) ?? 0, at.z + 0.5);
+    run.plan!.spot.place.addFigure(group);
+    run.shrineHeart = group;
+  }
+
+  /**
+   * A run's shrine (design.md A6): a prayer gives back a heart, once in the run - the server's to say, which holds the
+   * character to the floor it stands on; with the hearts full the blessing keeps.
+   */
+  async shrine(npc: NpcData): Promise<void> {
+    const run = this.run;
+    if (!run) return;
+    if (run.shrineUsed) {
+      await this.dialog(npc.name ?? "A shrine", ["The heart over the stone has gone cold. Its blessing was given this run."], [{ caption: "Leave", value: null, primary: true }]);
+      return;
+    }
+    const c = this.data;
+    const lines = ["A forgotten shrine of Serra. A heart of rose-red light hangs over the stone, and the wings carved behind it are warm to the touch.", `You have ${c.Hearts} of ${c.MaxHearts} hearts.`];
+    const choice = await this.dialog(npc.name ?? "A shrine", lines, [
+      { caption: "Pray", value: "pray", primary: true },
+      { caption: "Leave", value: null },
+    ]);
+    if (choice !== "pray") return;
+    try {
+      const { Hearts } = await this.api.prayAtShrine({ Run: run.id });
+      this.player.figure.act("cast");
+      run.shrineUsed = true;
+      this.showShrineHeart(run);
+      this.data = { ...this.data, Hearts };
+      this.hud.showCharacter(this.data);
+      this.hud.flashHearts();
+      this.say(`Serra's blessing: a heart comes back to you, ${Hearts} of ${this.data.MaxHearts}. The heart over the shrine goes cold.`);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "FullHearts") this.say("Your hearts are full. The shrine's blessing will keep until you need it.");
+      else if (e instanceof ApiError && e.code === "Empty") {
+        run.shrineUsed = true;
+        this.showShrineHeart(run);
+        this.say("The shrine has given its blessing this run.");
+      } else this.say(refusal(e));
+    }
   }
 
   /** Says that the boss rests this run, on entering and again on the last floor. */
@@ -757,7 +905,7 @@ export class Overworld {
     this.roomNpcs.set(id, f.npcs);
     const title = r.floors > 1 ? `${r.dungeon.name}, floor ${r.floor + 1}` : r.dungeon.name;
     const spot: Spot = { id, title, inside: true, turns: true, place: built.place, grid, doors, actors: [], start: tile(f.arrive), bounds: built.bounds };
-    return { spot, arrive: tile(f.arrive), encounters: f.spots, up: tile(f.up), down: f.down ? tile(f.down) : null, wayOut: f.wayOut ? tile(f.wayOut) : null };
+    return { spot, arrive: tile(f.arrive), encounters: f.spots, up: tile(f.up), down: f.down ? tile(f.down) : null, wayOut: f.wayOut ? tile(f.wayOut) : null, shrine: f.shrine ? tile(f.shrine) : null };
   }
 
   /** The world at a tile, its chunks there read and built first (the iris is shut meanwhile). */
@@ -865,6 +1013,9 @@ export class Overworld {
       }
       case "waystone":
         await this.waystone(npc);
+        break;
+      case "heart-shrine":
+        await this.shrine(npc);
         break;
       case "ferryman":
         await this.ferryman(npc);
@@ -998,10 +1149,26 @@ export class Overworld {
   }
 
   /** A run under way, for tests: its id, floor and the floor's ways. */
-  get runState(): { readonly id: string; readonly floor: number; readonly floors: number; readonly up: Tile | null; readonly down: Tile | null; readonly wayOut: Tile | null } | null {
+  get runState(): {
+    readonly id: string;
+    readonly floor: number;
+    readonly floors: number;
+    readonly up: Tile | null;
+    readonly down: Tile | null;
+    readonly wayOut: Tile | null;
+    readonly shrine: Tile | null;
+    readonly shrineFloor: number | null;
+    readonly shrineUsed: boolean;
+  } | null {
     const r = this.run;
     if (!r?.plan) return null;
-    return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null };
+    const shrineFloor = r.floors.findIndex((f) => f.Shrine === true);
+    return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null, shrine: r.plan.shrine ?? null, shrineFloor: shrineFloor < 0 ? null : shrineFloor, shrineUsed: r.shrineUsed };
+  }
+
+  /** The heartblooms drawn round the player, for tests: each id, its tile and whether it is picked. */
+  get bloomsHere(): { readonly id: string; readonly tile: Tile; readonly picked: boolean }[] {
+    return [...this.blooms.values()].map((b) => ({ id: b.chest.id, tile: { x: b.chest.x, z: b.chest.z }, picked: b.picked }));
   }
 
   /** Whether the player is crossing on a ferry now. */
@@ -1394,7 +1561,9 @@ export class Overworld {
 
   dots(): { x: number; z: number; kind: MinimapDot["kind"] }[] {
     const p = (a: Actor, kind: MinimapDot["kind"]) => ({ x: a.position.x, z: a.position.z, kind });
-    return [...this.mobsHere().map((m) => p(m.actor, "mob")), ...[...this.visitors.values()].map((v) => p(v.actor, "other")), p(this.player, "player")];
+    const blooms = this.inWorld ? [...this.blooms.values()].filter((b) => !b.picked).map((b) => ({ x: b.chest.x + 0.5, z: b.chest.z + 0.5, kind: "heart" as const })) : [];
+    const shrine = this.run?.plan?.shrine && this.spot === this.run.plan.spot && !this.run.shrineUsed ? [{ x: this.run.plan.shrine.x + 0.5, z: this.run.plan.shrine.z + 0.5, kind: "heart" as const }] : [];
+    return [...blooms, ...shrine, ...this.mobsHere().map((m) => p(m.actor, "mob")), ...[...this.visitors.values()].map((v) => p(v.actor, "other")), p(this.player, "player")];
   }
 
   /** Moves the game on by `dt` seconds: the stage (the player, the townsfolk, the camera, the world), then the rest. */

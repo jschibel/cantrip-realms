@@ -1,7 +1,7 @@
 // A dungeon floor on squares, as the browser generates it for a run (realms/docs/tech.md B5, "Dungeons on
 // squares"): the floor's own tiles `w` by `d` from (0, 0), in version 2's tile format, the props and lights that
-// furnish and light it, the spell table's NPC on the first floor, and where the run's way up, way down, way out and
-// encounters stand. The same request always gives the same floor.
+// furnish and light it, the spell table's NPC on the first floor, and where the run's way up, way down, way out,
+// encounters and shrine stand. The same request always gives the same floor.
 
 import type { RunFloor } from "../net/api";
 import type { LightData, NpcData, PropData, Theme, TileData, XZ } from "../world/format";
@@ -56,5 +56,7 @@ export interface DungeonFloor {
   readonly down: XZ | null;
   /** Beside the boss: the way out once it is beaten. */
   readonly wayOut: XZ | null;
+  /** The run's shrine, on the floor its `Shrine` names (design.md A6): its blocked tile, prayed at from beside it. */
+  readonly shrine: XZ | null;
   readonly spots: readonly Spot[];
 }

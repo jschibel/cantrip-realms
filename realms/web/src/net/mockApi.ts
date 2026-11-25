@@ -1,14 +1,14 @@
 // The realm server's API in memory (?offline): a character, their hearts, a collection, gold, vendors, an armorer,
-// encounters - a loss's heart, the buyout, the rematch, death - and chests that behave as interfaces.md says the server's do, so the whole overworld can be played and tested with no
-// server. Nothing here is the economy - the server owns that - and the cards and gear in it are a small stand-in set.
+// encounters - a loss's heart, the buyout, the rematch, death - chests, heartblooms and a run's shrine that behave as
+// interfaces.md says the server's do, so the whole overworld can be played and tested with no server. Nothing here is the economy - the server owns that - and the cards and gear in it are a small stand-in set.
 
 import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
-import { STARTING_HEARTS, buyout, heartPriceAfter } from "../hearts";
+import { STARTING_HEARTS, buyout, heartPriceAfter, shrineFloor } from "../hearts";
 import { mobInfo } from "../mobs";
 import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
-import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
-import { type DungeonData, townAt } from "../world/format";
+import { DOMINARIA, DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
+import { type ChestData, type ChunkData, type DungeonData, isHeartbloom, parseChunkKey, townAt } from "../world/format";
 import { dealtBy, tableOf } from "../world/standing";
 
 const INNS = WORLD.inns;
@@ -44,6 +44,7 @@ import {
   ApiError,
   type Character,
   type CardCount,
+  type ChestFound,
   type Collection,
   type Deck,
   type Defeat,
@@ -196,8 +197,11 @@ export class MockApi implements RealmApi {
   private cards: Record<string, number> = {};
   private deck: Deck = { Main: [], Sideboard: [] };
   private readonly encounters = new Map<string, Encounter>();
-  private readonly chestsOpened = new Set<string>();
-  private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean }>();
+  /** When each find was last taken (unix ms on the stand-in clock), by `space|id`: a chest's opening, a heartbloom's picking. */
+  private readonly chestsOpened = new Map<string, number>();
+  /** The heartblooms picked and when each grows back (unix ms), as the character shows them (`Picked`). */
+  private readonly picked = new Map<string, number>();
+  private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean; prayed: boolean }>();
   private attuned: string[];
   /** When each boss was last beaten (unix ms on the stand-in clock), for its week of rest. */
   private readonly bossWins = new Map<string, number>();
@@ -210,6 +214,8 @@ export class MockApi implements RealmApi {
   readonly calls: { name: string; body?: unknown }[] = [];
   /** The seats a test forced the next duels to be dealt with (realmTest.forceDuel), or null. */
   devDuel: DevDuel | null = null;
+  /** Whether a run begun holds a shrine, as a test forced it (realmTest.forceShrine, the server's POST /dev/drop); null: as its seed says. */
+  shrineRoll: boolean | null = null;
   /** What the clock says, in unix seconds (tests may pin it). */
   now: () => number = () => Date.now() / 1000;
 
@@ -217,6 +223,11 @@ export class MockApi implements RealmApi {
     this.random = mulberry32(seed);
     this.attuned = [...attuned];
     if (character) this.make(character.name, character.body, character.palette, character.color);
+  }
+
+  /** Sets the character's hearts at once, as a test arranges a heart missing (the server's POST /dev/hearts). */
+  arrangeHearts(hearts: number, maxHearts?: number): void {
+    this.update({ Hearts: hearts, MaxHearts: maxHearts ?? this.need().MaxHearts });
   }
 
   private log(name: string, body?: unknown): void {
@@ -230,7 +241,9 @@ export class MockApi implements RealmApi {
 
   private update(patch: Partial<Character>): Character {
     this.character = { ...this.need(), ...patch };
-    this.character = { ...this.character, HeartPrice: heartPriceAfter(this.character.MaxHearts), Defeat: this.pendingDefeat() };
+    const nowMs = this.now() * 1000;
+    const picked = [...this.picked].filter(([, until]) => until > nowMs).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([Chest, until]) => ({ Chest, Until: new Date(until).toISOString() }));
+    this.character = { ...this.character, HeartPrice: heartPriceAfter(this.character.MaxHearts), Defeat: this.pendingDefeat(), Picked: picked };
     return this.character;
   }
 
@@ -301,7 +314,8 @@ export class MockApi implements RealmApi {
 
   async me(): Promise<Character | null> {
     this.log("me");
-    return this.character;
+    // The heartblooms grown back since are drawn again.
+    return this.character ? this.update({}) : null;
   }
 
   async createCharacter(body: { Name: string; Body: Body; Palette: number; Color: ManaColor }): Promise<Character> {
@@ -579,20 +593,46 @@ export class MockApi implements RealmApi {
     return { Gold: now.Gold, Hearts: now.Hearts, MaxHearts: now.MaxHearts, Price: now.HeartPrice };
   }
 
-  async openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }> {
+  /** A find of the world by its id (its chunk's `chests`): the chunk is the id's first part. */
+  private async chestOf(space: string, id: string): Promise<ChestData | null> {
+    const at = space === "world" ? parseChunkKey(id.slice(0, id.indexOf(":"))) : null;
+    if (!at) return null;
+    const chunk = (await DOMINARIA.chunk(at.cx, at.cz)) as ChunkData | null;
+    return chunk?.chests.find((c) => c.id === id) ?? null;
+  }
+
+  async openChest(body: { Space: string; Chest: string }): Promise<ChestFound> {
     this.log("openChest", body);
     const c = this.need();
     const key = `${body.Space}|${body.Chest}`;
-    if (this.chestsOpened.has(key)) throw new ApiError(409, "Empty", "The chest is empty.");
-    this.chestsOpened.add(key);
+    const chest = await this.chestOf(body.Space, body.Chest);
+    const nowMs = this.now() * 1000;
+    const last = this.chestsOpened.get(key);
+    const full = last !== undefined && (!chest || nowMs - last < chest.respawnSeconds * 1000);
+    if (chest && isHeartbloom(chest)) {
+      // A heartbloom (design.md A3b): picked from on it or beside it, a heart given back, gone for a week; left standing
+      // by a character whose hearts are full.
+      if (c.Space !== body.Space || tilesApart([c.X, c.Z], [chest.x, chest.z]) > 1) throw new ApiError(409, "NotNear", "You are not at that heartbloom.");
+      if (full) throw new ApiError(409, "Empty", "The heartbloom has been picked. It will grow back.");
+      if (c.Hearts >= c.MaxHearts) throw new ApiError(409, "FullHearts", "Your hearts are full. The heartbloom will keep.");
+      this.chestsOpened.set(key, nowMs);
+      this.picked.set(chest.id, nowMs + chest.respawnSeconds * 1000);
+      this.update({ Hearts: c.Hearts + 1 });
+      return { Gold: this.need().Gold, Found: 0, Gear: null, Hearts: this.need().Hearts, Heart: true };
+    }
+    if (full) throw new ApiError(409, "Empty", "The chest is empty.");
+    this.chestsOpened.set(key, nowMs);
     const found = 50 + Math.floor(this.random() * 150);
     this.update({ Gold: c.Gold + found });
-    return { Gold: this.need().Gold, Found: found };
+    return { Gold: this.need().Gold, Found: found, Hearts: this.need().Hearts };
   }
 
   async position(body: Place): Promise<{ Hearts: number }> {
     this.log("position", body);
     if (!this.character) return { Hearts: 0 };
+    // In a live run, no other place is reported until it ends (a report the walk in sent late, as the server refuses it).
+    const c = this.character;
+    if (c.Space !== body.Space && c.Space.startsWith("run:") && this.runs.get(c.Space.slice("run:".length))?.live) throw new ApiError(409, "NoWay", "Leave the dungeon first.");
     this.update({ Space: body.Space, X: body.X, Z: body.Z });
     // In a town - within its walls, or a building of it (its room's id starts with the town's) - the hearts fill.
     const inTown = body.Space === "world" ? townAt(WORLD.towns, body.X, body.Z) !== null : WORLD.towns.some((t) => body.Space.startsWith(`${t.id}-`));
@@ -644,9 +684,13 @@ export class MockApi implements RealmApi {
     const resting = mobInfo(dungeon.boss).boss && won !== undefined && won + BOSS_REST_MS > nowMs ? { Boss: dungeon.boss, Until: new Date(won + BOSS_REST_MS).toISOString() } : null;
     if (resting) floors[count - 1] = { ...floors[count - 1]!, Boss: null, BossStats: null };
     const id = `run-${this.nextToken++}`;
-    const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting, Tier: standing?.tier ?? dungeon.tier };
+    const seed = Math.floor(this.random() * 2 ** 31);
+    // Now and then a shrine, on one of the floors (design.md A6).
+    const shrine = shrineFloor(seed, count, this.shrineRoll);
+    if (shrine !== null) floors[shrine] = { ...floors[shrine]!, Shrine: true };
+    const run: Run = { Run: id, Seed: seed, Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting, Tier: standing?.tier ?? dungeon.tier, ShrineUsed: false };
     for (const [other, live] of this.runs) if (live.live) this.endRun(other);
-    this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
+    this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true, prayed: false });
     this.update({ Space: `run:${id}`, X: 0, Z: 0 });
     return run;
   }
@@ -655,9 +699,24 @@ export class MockApi implements RealmApi {
     this.log("currentRun");
     const c = this.need();
     for (const [id, live] of this.runs) {
-      if (live.live && c.Space === `run:${id}`) return { ...live.run, Floor: live.floor, Beaten: [...live.fought].sort() };
+      if (live.live && c.Space === `run:${id}`) return { ...live.run, Floor: live.floor, Beaten: [...live.fought].sort(), ShrineUsed: live.prayed };
     }
     return null;
+  }
+
+  async prayAtShrine(body: { Run: string }): Promise<{ Hearts: number }> {
+    this.log("prayAtShrine", body);
+    const c = this.need();
+    const live = this.runs.get(body.Run);
+    if (!live) throw new ApiError(404, "NotThere", "You have no such dungeon run.");
+    if (!live.live) throw new ApiError(409, "NotThere", "That run is over.");
+    if (c.Space !== `run:${body.Run}`) throw new ApiError(409, "NotNear", "You are not in that run.");
+    if (!live.run.Floors[live.floor]?.Shrine) throw new ApiError(409, "NotThere", "There is no shrine on this floor.");
+    if (live.prayed) throw new ApiError(409, "Empty", "The shrine has given its blessing this run.");
+    if (c.Hearts >= c.MaxHearts) throw new ApiError(409, "FullHearts", "Your hearts are full. The shrine's blessing will keep.");
+    live.prayed = true;
+    this.update({ Hearts: c.Hearts + 1 });
+    return { Hearts: this.need().Hearts };
   }
 
   async dungeonFloor(body: { Run: string; Floor: number }): Promise<void> {

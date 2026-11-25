@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUYOUT_BASE, HEART_PRICES, MOST_HEARTS, buyout, defeatLine, heartPriceAfter, isNarrated, marginOf } from "./hearts";
+import { BUYOUT_BASE, HEART_PRICES, MOST_HEARTS, SHRINE_CHANCE, buyout, defeatLine, heartPriceAfter, isNarrated, marginOf, shrineFloor } from "./hearts";
 import { mobInfo } from "./mobs";
 
 // The numbers of hearts and buyouts (design.md A3, A3b), as the server's Encounters.Buyout and Hearts.Prices have them:
@@ -21,6 +21,28 @@ describe("hearts at a healer", () => {
     expect(heartPriceAfter(2)).toBe(HEART_PRICES[3]);
     expect(HEART_PRICES[3]! < HEART_PRICES[4]! && HEART_PRICES[4]! < HEART_PRICES[5]!).toBe(true);
     expect(heartPriceAfter(MOST_HEARTS)).toBeNull();
+  });
+});
+
+describe("a dungeon run's shrine", () => {
+  it("is in one run in eight, as the server's Dungeons.ShrineChance, on a floor of the run", () => {
+    expect(SHRINE_CHANCE).toBe(1 / 8);
+    let held = 0;
+    for (let seed = 1; seed <= 4000; seed++) {
+      const floor = shrineFloor(seed, 4);
+      if (floor === null) continue;
+      held++;
+      expect(floor).toBeGreaterThanOrEqual(0);
+      expect(floor).toBeLessThan(4);
+    }
+    expect(Math.abs(held / 4000 - SHRINE_CHANCE)).toBeLessThan(0.02);
+  });
+
+  it("comes up as its seed says, every time, and as a test forces it", () => {
+    expect(shrineFloor(99, 3)).toBe(shrineFloor(99, 3));
+    expect(shrineFloor(99, 3, true)).not.toBeNull();
+    expect(shrineFloor(99, 3, false)).toBeNull();
+    expect(shrineFloor(99, 0, true)).toBeNull();
   });
 });
 
