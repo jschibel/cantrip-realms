@@ -1,8 +1,8 @@
 // Presence (realms/docs/interfaces.md, "Presence"): the WebSocket at /realm/ws that shows the other players on your
 // map instance walking, in their gear. Each frame is one MessagePack union, `[key, {Field: value, ...}]`, as
 // Cantrip.Protocol's messages are: the key names the message (the tables below), the map holds its fields by name,
-// PascalCase. A time is Unix milliseconds on the server's clock. Paths are sent, not frames - every client walks the
-// others itself. Offline (?offline) the same messages go between the tabs of one browser over a BroadcastChannel,
+// PascalCase. A point is [x, z] in world units (the tile (x, z) covers [x, x + 1) by [z, z + 1)); a time is Unix
+// milliseconds on the server's clock. Walks are sent, not frames - every client walks the others itself. Offline (?offline) the same messages go between the tabs of one browser over a BroadcastChannel,
 // which stands in for the server's relay so two tabs see each other.
 
 import { decode, encode } from "@msgpack/msgpack";
@@ -30,13 +30,13 @@ export interface Other {
   /** The player's colors, as letters in WUBRG order. */
   readonly Identity: string;
   readonly Look: Look;
-  /** Where the player's current walk began. */
+  /** Where the player's current walk began, a point. */
   readonly At: At;
-  /** The hexes of that walk, after `At`; empty when standing. */
+  /** The points of that walk after `At`, joined by straight lines; empty when standing. */
   readonly Path: readonly At[];
   /** When the walk began, Unix milliseconds on the server's clock. */
   readonly Since: number;
-  /** The walk's speed, hexes a second. */
+  /** The walk's speed, tiles a second. */
   readonly Speed: number;
 }
 

@@ -736,17 +736,18 @@ far (the server takes it as a loss, the game not being over).
 A WebSocket of MessagePack messages, one per binary frame (16 KB at most), on the signed-in cookie. The server relays
 positions and looks by area: in the world, among the players of a layer within two chunks of each other (their chunks
 at most 2 apart along each axis, each player's chunk (cx, cz) = (floor(x / 32), floor(z / 32)) of the tile their walk
-ends in); a player entering the world takes the
+ends on); a player entering the world takes the
 first layer whose players within two chunks of them number fewer than 40 (`REALMS_INSTANCE_SIZE`), and keeps it until
 they leave. In an interior, among those in the same instance of it (40 to an instance, another opening when one is
 full). A dungeon run is single-player and shares nothing. Nothing else is shared between players (design.md A6). Each frame is a MessagePack union, `[key, {Field: value, ...}]`, as `Cantrip.Protocol`'s messages
-are: the key names the message, its fields by name, PascalCase. A tile is `[x, z]`, a time Unix milliseconds on the
-server's clock. A frame whose key a client doesn't know is ignored. `realms/web/src/net/presence.ts` is the client.
+are: the key names the message, its fields by name, PascalCase. A point is `[x, z]` in world units, at any fraction
+(tile (x, z) covers [x, x + 1) by [z, z + 1), so its middle is (x + 0.5, z + 0.5); a whole number may be written as an
+integer), a time Unix milliseconds on the server's clock. A frame whose key a client doesn't know is ignored. `realms/web/src/net/presence.ts` is the client.
 
 | From | Key | Message | Fields |
 | --- | --- | --- | --- |
 | client | 0 | `Enter` | `Space` (`"world"` or an interior's id, the place last reported through `/api/position`; frame `920081a55370616365a5776f726c64` for the world) |
-| client | 1 | `Move` | `From: [x, z]`, `Path: [[x, z], ...]` (the tiles after `From`, each a step of eight ways from the one before), `Speed` (tiles a second) |
+| client | 1 | `Move` | `From: [x, z]`, `Path: [[x, z], ...]` (the points after `From`, walked in straight lines from one to the next), `Speed` (tiles a second) |
 | client | 2 | `Look` | `Body, Palette, Slots: {slot: {Mesh, Palette: ["#rrggbb", ...]}}` (a body name, and a worn item's `look`) |
 | client | 3 | `Emote` | `Emote` |
 | server | 0 | `Welcome` | `Instance` (the world's layer, or the interior's instance, from 1), `Player` (this connection's own number), `Others: [Other]` |
@@ -755,25 +756,29 @@ server's clock. A frame whose key a client doesn't know is ignored. `realms/web/
 | server | 3 | `Looked` | `Player, Look` |
 | server | 4 | `Emoted` | `Player, Emote` |
 | server | 5 | `Left` | `Player` |
-| server | 6 | `Refused` | `Reason, At`: a message refused, and where the player truly is |
+| server | 6 | `Refused` | `Reason, At`: a message refused, and where the player truly is (a point) |
 
 - `Other` is sent for everyone the player sees in `Welcome`, and again whenever someone comes into sight: enters, or in
   the world walks within two chunks; `Left` when someone leaves or walks out of sight. `Moved`, `Looked` and `Emoted`
   reach those who see the player. `At` and `Path` are the walk the player is on (`Path` empty when standing), begun at
-  `Since`, so a client that hears of it late starts it partway: a walk's length is counted along it (1 tile a straight
-  step, the square root of 2 a diagonal one), and at a moment the player stands on the last tile of it they have reached
-  at `Speed` since `Since`.
+  `Since`, so a client that hears of it late starts it partway: at a moment the player is as far along its lines as
+  `Speed` has taken them since `Since`.
 - `Player` is a number for the connection, never the player's account. A connection from a page of another origin than
   the world client's (`REALMS_CLIENT`) or the server's own is refused.
-- `Enter` enters the space the character last reported standing in (`/api/position`), at that tile; another space, and
-  any dungeon run, is refused. The character's look starts as their loadout's meshes.
-- The server refuses a `Move` that starts on a tile nobody stands on, or more than one tile (Chebyshev) from where the
-  player is (as far along their last walk as its speed has taken them); whose path leaves the space (off the world's
-  chunks or the interior's tiles), crosses a tile nobody stands on, steps anywhere but to one of the eight tiles round,
-  steps over a ledge or cuts the corner of a blocked tile or a ledge (Places, "Walking"); that is walked faster than
-  walking allows (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2), is longer than 256
-  steps, or comes more than 10 to a second; a refusal sends `Refused` with the player's true `At`, and they stay there.
-  The overworld then tells the grid's way from `At` to where its figure stands (24 steps at most) at the fastest, rather
+- `Enter` enters the space the character last reported standing in (`/api/position`), at that tile's middle; another
+  space, and any dungeon run, is refused. The character's look starts as their loadout's meshes.
+- The server refuses a `Move` that starts on a tile nobody stands on, or more than 1.5 tiles (in a straight line) from
+  where the player is (as far along their last walk as its speed has taken them); one of whose lines leaves the space
+  (off the world's chunks or the interior's tiles) or crosses tiles that are not each a step of the grid's from the one
+  before - a tile nobody stands on, a ledge, or (through a tile's corner, a diagonal step) the corner of a blocked tile or
+  a ledge (Places, "Walking"; `RealmSpace.CanWalk`, and `legClear` of `realms/web/src/render/motion.ts`, the same rule;
+  the overworld's body, which never overlaps a blocked tile nor stands across a ledge, walks only such lines); that is
+  walked faster than walking allows (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2),
+  has more than 256 points or is longer than 256 tiles, or comes more than 10 to a second; a refusal sends `Refused`
+  with the player's true `At`, and they stay there. The overworld tells a click's walk from where its figure is through
+  the points ahead (again whenever the figure and the server's reckoning are half a tile apart), and a held walk as it is
+  walked, every 150 ms, from where the last ended through where the figure has been (`realms/web/src/net/relay.ts`).
+  After a refusal it tells the grid's way from `At` to where its figure stands (24 steps at most) at the fastest, rather
   than snapping the figure back; only where there is none, or that is refused too, does it stand the figure on `At`.
 - An emote is a lower-case id (`[a-z0-9-]`, 32 at most), two a second; a look is a body of `Character`'s, a palette 0-5,
   and for loadout slots only a gear mesh (Models, `RealmContent.GearMeshes`) and up to eight `#rrggbb` colors.

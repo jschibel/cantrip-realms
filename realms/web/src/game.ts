@@ -15,8 +15,9 @@ import { type MobInfo, mobInfo, theMob } from "./mobs";
 import { ApiError, type CardCount, type Character as CharacterData, type Defeat, type EncounterResult, type EncounterStart, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
-import { MAX_SPEED, WalkRelay } from "./net/relay";
+import { WalkRelay } from "./net/relay";
 import { Actor } from "./render/actor";
+import { type Point, middle } from "./render/motion";
 import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera";
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
@@ -124,6 +125,11 @@ const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z
 const JUMP = 0.6;
 /** A change of the figure's height in one frame larger than this is a jump: a step eases in. */
 const DROP = 0.3;
+/** How far from where another player is seen their walk may begin and be walked on to, tiles; further, they are put there. */
+const VISITOR_NEAR = 2;
+
+/** A point for the trace and the debug overlay: "x,z" to a hundredth. */
+export const pointText = (p: Point): string => `${p.x.toFixed(2)},${p.z.toFixed(2)}`;
 /** How many of what passed between the page and the server the page keeps (`trace`): a few seconds of walking. */
 const TRACE = 60;
 /** The least time between two refusals the page answers by telling the server again where the player stands, ms. */
@@ -183,13 +189,13 @@ export class Overworld {
    * The server's refusals of a walk, newest first (the last few): why, where it had the player and where the figure
    * stood, and what the page did about it - the debug overlay's (debug.ts), so a correction seen in play says its cause.
    */
-  readonly refusedWalks: { readonly at: string; readonly reason: string; readonly server: Tile | null; readonly here: Tile; readonly did: string }[] = [];
+  readonly refusedWalks: { readonly at: string; readonly reason: string; readonly server: Point | null; readonly here: Point; readonly did: string }[] = [];
 
-  private refusedLog(reason: string, server: Tile | null, did: string): void {
-    const entry = { at: new Date().toLocaleTimeString(), reason, server, here: { ...this.player.tile }, did };
+  private refusedLog(reason: string, server: Point | null, did: string): void {
+    const entry = { at: new Date().toLocaleTimeString(), reason, server, here: { x: this.player.position.x, z: this.player.position.z }, did };
     this.refusedWalks.unshift(entry);
     this.refusedWalks.length = Math.min(this.refusedWalks.length, 6);
-    const text = `walk refused in ${this.spot.id}: ${reason} - the server has the player at ${server ? `${server.x},${server.z}` : "-"}, the figure at ${entry.here.x},${entry.here.z}; ${did}`;
+    const text = `walk refused in ${this.spot.id}: ${reason} - the server has the player at ${server ? pointText(server) : "-"}, the figure at ${pointText(entry.here)}; ${did}`;
     this.note(text);
     console.warn(`[realm] ${text}`);
   }
@@ -237,7 +243,8 @@ export class Overworld {
 
   /** The walks the relay is told (net/relay.ts). */
   private readonly relay = new WalkRelay((move) => {
-    this.note(`told a walk from ${move.From.join(",")}: ${move.Path.length} steps to ${(move.Path.at(-1) ?? move.From).join(",")} at ${move.Speed.toFixed(2)}`);
+    const to = move.Path.at(-1) ?? move.From;
+    this.note(`told a walk from ${move.From.map((v) => v.toFixed(2)).join(",")}: ${move.Path.length} points to ${to.map((v) => v.toFixed(2)).join(",")} at ${move.Speed.toFixed(2)}`);
     this.presence?.send({ Type: "Move", ...move });
   });
   /** When the server was last told again where the player stands after a refusal (`enter`), ms; at most once in RESYNC. */
@@ -449,7 +456,7 @@ export class Overworld {
     if (this.spaceId !== space) return took;
     this.note(`entering ${space} at ${at.x},${at.z}`);
     this.presence?.send({ Type: "Enter", Space: space });
-    this.relay.stand(at, PLAYER_SPEED);
+    this.relay.stand(middle(at));
     return took;
   }
 
@@ -713,36 +720,20 @@ export class Overworld {
   private lastReported = "";
 
   /**
-   * Tells the relay of a walk when it changes (net/relay.ts): a click's walk when it begins or heads somewhere new, the
-   * tiles still ahead from the open tile the player stands on; a held walk each time it comes onto another tile, the step
-   * there. A ferry's crossing is told as its lane, closed to walking.
+   * Tells the relay, every frame, where the figure is and the points of a click's walk still ahead of it (net/relay.ts),
+   * which tells the server walks as it says. Not while going through a door (the doorway is walked as far as nobody
+   * sees: the next place is entered afresh), nor off open ground (coming out of a doorway). A ferry's crossing is told
+   * as its lane, closed to walking.
    */
   private relayWalk(): void {
-    if (this.spot.id.startsWith("run:") || !this.presence) return;
-    const here = this.player.tile;
-    this.relay.on(here);
-    // Nothing before the place is entered (`arrived`: the relay is told it stands there first).
-    if (!this.relay.ready || this.relay.end === null) return;
-    const grid = this.spot.grid;
+    if (this.spot.id.startsWith("run:") || !this.presence || this.stage.transition) return;
     // A ferry's passenger crosses its lane, closed to walking: every tile is open to them, and no ledge.
-    const ground = this.riding !== null ? flatGround(() => true) : grid.ground;
-    const open = ground.open;
-    if (!open(here.x, here.z)) return;
-    // The tiles still to walk, each a step from the one before: none the same as the last (the tile stood on first),
-    // which the server takes as a step of no length and refuses (walking into a doorway ends on the tile stood on).
-    // Only the open tiles: a doorway's last step into the building or the dungeon is not walked as far as anyone sees.
-    const ahead = this.player.steering
-      ? []
-      : this.player.remaining.filter((t, i, all) => {
-          const before = i === 0 ? here : all[i - 1]!;
-          return (t.x !== before.x || t.z !== before.z) && open(t.x, t.z);
-        });
-    const goal = ahead.at(-1) ?? here;
-    const end = this.relay.end;
-    // A new walk, or a new goal; not every step of the same walk.
-    if (end && end.x === goal.x && end.z === goal.z) return;
-    if (ahead.length === 0) this.relay.walk([], Math.min(MAX_SPEED, PLAYER_SPEED * 1.1), ground);
-    else this.relay.walk(ahead, this.player.speed, ground, this.player.distanceLeft);
+    const ground = this.riding !== null ? flatGround(() => true) : this.spot.grid.ground;
+    const here = this.player.tile;
+    if (!ground.open(here.x, here.z)) return;
+    const p = this.player.position;
+    const ahead = this.player.steering ? [] : this.player.ahead;
+    this.relay.frame({ x: p.x, z: p.z }, ahead.length > 0 ? ahead : null, this.player.speed, ground);
   }
 
   // --- Mobs --------------------------------------------------------------------------------------------------------------
@@ -1244,7 +1235,7 @@ export class Overworld {
     this.world.place.addFigure(boat);
     const end = { x: lane.at(-1)![0], z: lane.at(-1)![1] };
     this.riding = { ferry, boat, end };
-    this.player.walkPath(lane.slice(1).map(([x, z]) => ({ x, z })));
+    this.player.walkPoints(lane.slice(1).map(([x, z]) => middle({ x, z })));
     this.say(`You board ${ferry.name}.`);
     this.stepRide();
   }
@@ -1594,9 +1585,12 @@ export class Overworld {
       case "Other": {
         this.visitors.get(message.Player)?.actor.figure.root.removeFromParent();
         const from = { x: message.At[0], z: message.At[1] };
-        const actor = new Actor(lookFigure(message.Look, message.Identity), this.spot.grid.walkable(from.x, from.z) ? from : this.player.tile, this.spot.grid, {}, message.Name);
+        const tile = { x: Math.floor(from.x), z: Math.floor(from.z) };
+        const open = this.spot.grid.walkable(tile.x, tile.z);
+        const actor = new Actor(lookFigure(message.Look, message.Identity), open ? tile : this.player.tile, this.spot.grid, {}, message.Name);
         actor.floor = this.spot.floorAt ?? null;
-        actor.place(actor.tile);
+        if (open) actor.placeAt(from);
+        else actor.place(actor.tile);
         this.spot.place.addFigure(actor.figure.root);
         const visitor: Visitor = { player: message.Player, name: message.Name, identity: message.Identity, actor };
         this.visitors.set(message.Player, visitor);
@@ -1619,7 +1613,7 @@ export class Overworld {
         actor.position.copy(old.position);
         actor.figure.root.position.copy(old.position);
         actor.speed = old.speed;
-        if (old.moving) actor.walkPath(old.remaining);
+        if (old.moving) actor.walkPoints(old.ahead);
         old.figure.root.removeFromParent();
         this.spot.place.addFigure(actor.figure.root);
         this.visitors.set(message.Player, { ...v, actor });
@@ -1642,14 +1636,15 @@ export class Overworld {
         // `catchUp`). Only where there is no such way, or catching up was refused too, is the figure stood there.
         this.refusals.push(message.Reason);
         if (message.At.length !== 2) {
-          this.refusedLog(message.Reason, null, "no tile");
+          this.refusedLog(message.Reason, null, "no point");
           break;
         }
         const at = { x: message.At[0]!, z: message.At[1]! };
+        const atTile = { x: Math.floor(at.x), z: Math.floor(at.z) };
         const grid = this.spot.grid;
         const here = this.player.tile;
-        const way = grid.walkable(at.x, at.z) && grid.walkable(here.x, here.z) ? grid.path(at, here) : null;
-        if (way && this.relay.catchUp(way, here)) {
+        const way = grid.walkable(atTile.x, atTile.z) && grid.walkable(here.x, here.z) ? grid.path(atTile, here) : null;
+        if (way && this.relay.catchUp(at, way, { x: this.player.position.x, z: this.player.position.z })) {
           this.refusedLog(message.Reason, at, `caught up, ${way.length - 1} steps`);
           break;
         }
@@ -1665,8 +1660,8 @@ export class Overworld {
           });
           break;
         }
-        const placed = grid.walkable(at.x, at.z);
-        if (placed) this.player.place(at);
+        const placed = grid.walkable(atTile.x, atTile.z);
+        if (placed) this.player.placeAt(at);
         this.refusedLog(message.Reason, at, placed ? "stood there" : "not stood there (not open here)");
         this.relay.placed(at);
         break;
@@ -1676,15 +1671,24 @@ export class Overworld {
     }
   }
 
-  /** Another player's walk: from where it began, along its path, caught up by however long ago it began. */
+  /**
+   * Another player's walk: from where it began, along its points, caught up by however long ago it began. One from near
+   * where they are seen is walked on from there (the way to where it begins as well, a little faster to keep its time);
+   * one from further off is a jump to it.
+   */
   private walkVisitor(visitor: Visitor, from: readonly [number, number], path: readonly (readonly [number, number])[], speed: number, since: number): void {
     const a = visitor.actor;
     const start = { x: from[0], z: from[1] };
-    // A walk from a tile beside where they are seen is walked on from there; one from further off is a jump to it.
-    const beside = chebyshev(a.tile, start) <= 1;
-    if (!beside) a.place(start);
-    a.speed = Math.min(5, speed || PLAYER_SPEED);
-    a.walkPath([...(beside && (a.tile.x !== start.x || a.tile.z !== start.z) ? [start] : []), ...path.map(([x, z]) => ({ x, z }))]);
+    const points = path.map(([x, z]) => ({ x, z }));
+    const off = Math.hypot(a.position.x - start.x, a.position.z - start.z);
+    const near = off <= VISITOR_NEAR;
+    if (!near) a.placeAt(start);
+    const lead = near && off > 0.02 ? off : 0;
+    let length = 0;
+    for (let i = 0, at = start; i < points.length; at = points[i]!, i++) length += Math.hypot(points[i]!.x - at.x, points[i]!.z - at.z);
+    const pace = speed || PLAYER_SPEED;
+    a.speed = Math.min(5, length > 0 ? (pace * (length + lead)) / length : pace);
+    a.walkPoints([...(lead > 0 ? [start] : []), ...points]);
     const late = (Date.now() - since) / 1000;
     if (Number.isFinite(late) && late > 0.05) for (let t = Math.min(late, 60); t > 0 && a.moving; t -= 1 / 30) a.update(Math.min(1 / 30, t));
   }

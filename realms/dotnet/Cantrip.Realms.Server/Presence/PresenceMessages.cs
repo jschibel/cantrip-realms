@@ -3,8 +3,9 @@ using MessagePack;
 namespace Cantrip.Realms.Server.Presence;
 
 // The presence protocol (realms/docs/interfaces.md, "Presence"): MessagePack, one message a WebSocket frame. Each frame is a
-// union, [key, {Field: value, ...}] - the fields by name, as the overworld reads them - with the keys below. A tile is
-// [x, z]; a time is Unix milliseconds on the server's clock.
+// union, [key, {Field: value, ...}] - the fields by name, as the overworld reads them - with the keys below. A point is
+// [x, z] in world units (Content.Point: the tile (x, z) covers [x, x + 1) by [z, z + 1)); a time is Unix milliseconds on
+// the server's clock.
 
 /// <summary>What a client sends.</summary>
 [Union(0, typeof(EnterMessage))]
@@ -20,13 +21,16 @@ public sealed class EnterMessage : PresenceClientMessage
     public string Space { get; set; } = string.Empty;
 }
 
-/// <summary>Walks a path: from a tile, through each tile of the path in turn (each a step of eight ways), at a speed in tiles a second.</summary>
+/// <summary>
+/// Walks a path: from a point, in straight lines through each point of the path in turn (each line crossing only tiles
+/// the grid lets one walk from tile to tile, <see cref="Content.RealmSpace.CanWalk"/>), at a speed in tiles a second.
+/// </summary>
 [MessagePackObject(true)]
 public sealed class MoveMessage : PresenceClientMessage
 {
-    public int[] From { get; set; } = [];
+    public double[] From { get; set; } = [];
 
-    public int[][] Path { get; set; } = [];
+    public double[][] Path { get; set; } = [];
 
     public double Speed { get; set; }
 }
@@ -108,9 +112,9 @@ public sealed class OtherMessage : PresenceServerMessage
 
     public LookView Look { get; set; } = new();
 
-    public int[] At { get; set; } = [];
+    public double[] At { get; set; } = [];
 
-    public int[][] Path { get; set; } = [];
+    public double[][] Path { get; set; } = [];
 
     public double Speed { get; set; }
 
@@ -122,9 +126,9 @@ public sealed class MovedMessage : PresenceServerMessage
 {
     public int Player { get; set; }
 
-    public int[] From { get; set; } = [];
+    public double[] From { get; set; } = [];
 
-    public int[][] Path { get; set; } = [];
+    public double[][] Path { get; set; } = [];
 
     public double Speed { get; set; }
 
@@ -153,11 +157,11 @@ public sealed class LeftMessage : PresenceServerMessage
     public int Player { get; set; }
 }
 
-/// <summary>A message refused, why, and where the player truly is: a refused walk leaves them there.</summary>
+/// <summary>A message refused, why, and where the player truly is (a point): a refused walk leaves them there.</summary>
 [MessagePackObject(true)]
 public sealed class RefusedMessage : PresenceServerMessage
 {
     public string Reason { get; set; } = string.Empty;
 
-    public int[] At { get; set; } = [];
+    public double[] At { get; set; } = [];
 }

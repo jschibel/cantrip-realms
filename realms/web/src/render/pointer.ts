@@ -1,5 +1,6 @@
 import type { Tile } from "../world/grid";
-import type { Stage } from "./stage";
+import type { Point } from "./motion";
+import type { Stage, StageDoor } from "./stage";
 
 // Holding the button: walking after the cursor.
 //
@@ -7,12 +8,18 @@ import type { Stage } from "./stage";
 // HOLD_AFTER seconds. From then no path is found: every frame the player is steered straight at the point on the ground
 // under the cursor (Actor.steer), so it walks wherever the cursor is now, at every heading and while the camera turns,
 // follows or zooms; what is in the way it slides along, and it stops only where nothing is left to go (render/motion.ts).
-// A drag goes up to a door but never through it. Only a click goes in: a press on the door, or holding still on it,
-// keeps the click's walk to it while the cursor stays there. Holding still on whatever else the press used (a person, a
-// chest) keeps that walk too. Sweeping past a shop never pulls you inside. Letting go of a drag (or the cursor leaving
-// the window, or the window losing focus) stops the player where it stands.
+// A drag goes through a door (a building's, a dungeon's way in, a room's way out) as walking into it would: standing on
+// the door's tile (or in its doorway) steered into the doorway - the cursor past the tile's middle by INTO the way the
+// door goes, the walk heading within THROUGH of that way. Sweeping along a street of shops, or past a doorway at a slant,
+// never pulls you inside. A press on the door, or holding still on it, keeps the click's walk to it and through while the
+// cursor stays there; holding still on whatever else the press used (a person, a chest) keeps that walk too. Letting go
+// of a drag (or the cursor leaving the window, or the window losing focus) stops the player where it stands.
 
 export const HOLD_AFTER = 0.3;
+/** How far past the middle of a door's tile, the way the door goes, a drag's cursor goes through it, tiles: into the doorway. */
+export const INTO = 0.5;
+/** How near the way a door goes a drag must head to go through it: the cosine of the most it may turn from it (55 degrees). */
+export const THROUGH = Math.cos((55 * Math.PI) / 180);
 
 interface Hold {
   x: number;
@@ -86,7 +93,31 @@ export class WalkInput {
     }
     stage.pendingDoor = null;
     const point = stage.floorPointAt(hold.x, hold.y);
-    if (point) stage.player.steer(point);
+    if (!point) return;
+    const door = this.doorAhead(point);
+    if (door) {
+      this.hold = null;
+      stage.startDoor(door);
+      return;
+    }
+    stage.player.steer(point);
+  }
+
+  /** The door a drag steered at a point walks through: one whose tile or doorway the player is on, steered into the doorway. */
+  private doorAhead(point: Point): StageDoor | undefined {
+    const player = this.stage.player;
+    const door = this.stage.doorAt(player.tile);
+    if (!door) return undefined;
+    const [sx, sz] = door.step;
+    const n = Math.hypot(sx, sz);
+    if (n === 0) return undefined;
+    const ux = sx / n;
+    const uz = sz / n;
+    const past = (point.x - (door.tile.x + 0.5)) * ux + (point.z - (door.tile.z + 0.5)) * uz;
+    const dx = point.x - player.position.x;
+    const dz = point.z - player.position.z;
+    const d = Math.hypot(dx, dz);
+    return past >= INTO && d > 1e-6 && (dx * ux + dz * uz) / d >= THROUGH ? door : undefined;
   }
 
   private release(): void {

@@ -34,13 +34,17 @@ const hex = (bytes: Uint8Array) => [...bytes].map((b) => b.toString(16).padStart
 
 describe("presence messages", () => {
   it("are MessagePack unions, [key, {Field: value}], as the server's are", () => {
-    const move: ClientMessage = { Type: "Move", From: [1, 2], Path: [[2, 2], [3, 2]], Speed: 3.4 };
-    expect(decode(encodeClient(move))).toEqual([1, { From: [1, 2], Path: [[2, 2], [3, 2]], Speed: 3.4 }]);
+    const move: ClientMessage = { Type: "Move", From: [1.25, 2.5], Path: [[2.5, 2.5], [3.75, 2.1]], Speed: 3.4 };
+    expect(decode(encodeClient(move))).toEqual([1, { From: [1.25, 2.5], Path: [[2.5, 2.5], [3.75, 2.1]], Speed: 3.4 }]);
     expect(decodeClient(encodeClient(move))).toEqual(move);
 
-    // Byte for byte what the server's MessagePack makes of the same messages (PresenceTests checks these too).
+    // Byte for byte what the server's MessagePack makes of the same messages (PresenceTests checks these too); a point's
+    // whole numbers go as integers, which the server reads as the points they are (PresenceTests too).
     expect(hex(encodeClient({ Type: "Enter", Space: "world" }))).toBe("920081a55370616365a5776f726c64");
-    expect(hex(encodeClient({ Type: "Move", From: [0, 0], Path: [[1, 0]], Speed: 3.5 }))).toBe("920183a446726f6d920000a45061746891920100a55370656564cb400c000000000000");
+    expect(hex(encodeClient({ Type: "Move", From: [0.5, 0.25], Path: [[1.5, 0.25]], Speed: 3.5 }))).toBe(
+      "920183a446726f6d92cb3fe0000000000000cb3fd0000000000000a4506174689192cb3ff8000000000000cb3fd0000000000000a55370656564cb400c000000000000",
+    );
+    expect(hex(encodeClient({ Type: "Move", From: [5, 5], Path: [[6, 5]], Speed: 3 }))).toBe("920183a446726f6d920505a45061746891920605a5537065656403");
   });
 
   it("decode the server's messages by their keys and ignore what they don't know", () => {

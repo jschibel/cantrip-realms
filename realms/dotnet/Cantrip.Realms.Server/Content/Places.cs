@@ -63,6 +63,60 @@ public abstract class RealmSpace
         return Walkable(across) && Walkable(along) && Passes(from, across) && Passes(across, to) && Passes(from, along) && Passes(along, to);
     }
 
+    /// <summary>
+    /// Whether a straight line walked from one point to another keeps the grid's rule (the rule of
+    /// <c>realms/web/src/render/motion.ts</c>, <c>legClear</c>, exactly): the tiles it crosses, in turn, are each a step
+    /// (<see cref="CanStep"/>) from the one before - through a tile's corner, the diagonal step, which never cuts the corner
+    /// of a blocked tile or a ledge. The overworld's body, which never overlaps a blocked tile nor stands across a ledge,
+    /// walks only such lines. The caller bounds the line's length (it is walked tile by tile).
+    /// </summary>
+    public bool CanWalk(Point from, Point to)
+    {
+        int tx = (int)Math.Floor(from.X);
+        int tz = (int)Math.Floor(from.Z);
+        var end = to.Tile;
+        double dx = to.X - from.X;
+        double dz = to.Z - from.Z;
+        int stepX = Math.Sign(dx);
+        int stepZ = Math.Sign(dz);
+        double deltaX = stepX != 0 ? Math.Abs(1 / dx) : double.PositiveInfinity;
+        double deltaZ = stepZ != 0 ? Math.Abs(1 / dz) : double.PositiveInfinity;
+        double maxX = stepX > 0 ? (tx + 1 - from.X) * deltaX : stepX < 0 ? (from.X - tx) * deltaX : double.PositiveInfinity;
+        double maxZ = stepZ > 0 ? (tz + 1 - from.Z) * deltaZ : stepZ < 0 ? (from.Z - tz) * deltaZ : double.PositiveInfinity;
+        // Amanatides and Woo's walk over the squares a segment crosses before its end, crossings within Corner of each
+        // other a corner; an end on the edge of the tile reached (a point on a tile's edge is the tile east or south of
+        // it) is a step on to that tile.
+        for (int guard = 0; Math.Min(maxX, maxZ) < 1 - Corner && guard < 4096; guard++)
+        {
+            var was = new Tile(tx, tz);
+            if (Math.Abs(maxX - maxZ) < Corner)
+            {
+                tx += stepX;
+                tz += stepZ;
+                maxX += deltaX;
+                maxZ += deltaZ;
+            }
+            else if (maxX < maxZ)
+            {
+                tx += stepX;
+                maxX += deltaX;
+            }
+            else
+            {
+                tz += stepZ;
+                maxZ += deltaZ;
+            }
+
+            if (!CanStep(was, new Tile(tx, tz))) return false;
+        }
+
+        var reached = new Tile(tx, tz);
+        return reached == end || (reached.DistanceTo(end) == 1 && CanStep(reached, end));
+    }
+
+    /// <summary>How near, in the line's own measure, two crossings are one through a corner (a line from tile middle to middle on the diagonal goes exactly through it).</summary>
+    private const double Corner = 1e-9;
+
     /// <summary>Whether a walk is one: from a tile, each tile of the path a step (<see cref="CanStep"/>) from the one before.</summary>
     public bool IsWalk(Tile from, IEnumerable<Tile> path)
     {

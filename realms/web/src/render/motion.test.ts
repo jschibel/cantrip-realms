@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Grid } from "../world/grid";
-import { BODY, canStep, clear, fits, slide, smooth, tilesAlong } from "./motion";
+import { BODY, canStep, clear, fits, legClear, slide, smooth } from "./motion";
 
 function grid(rows: string[]): Grid {
   const g = new Grid(rows[0]!.length, rows.length);
@@ -133,17 +133,32 @@ describe("a click's walk pulled straight", () => {
     }
   });
 
-  it("is told as the tiles it passes, each a step of the grid's, its corners never cut", () => {
+  it("is legs the server takes: each crosses tiles a step of the grid's apart, its corners never cut", () => {
     const g = grid(["..........", "..........", "...####...", "...####...", "...####...", ".........."]);
     const open = openOf(g);
     const from = { x: 1.5, z: 5.5 };
     const route = g.path({ x: 1, z: 5 }, { x: 8, z: 0 })!;
-    const tiles = tilesAlong(open, from, smooth(open, from, route));
-    expect(tiles[0]).toEqual({ x: 1, z: 5 });
-    expect(tiles.at(-1)).toEqual({ x: 8, z: 0 });
-    for (let i = 1; i < tiles.length; i++) expect(canStep(open, tiles[i - 1]!, tiles[i]!), JSON.stringify(tiles.slice(i - 1, i + 1))).toBe(true);
-    // Straight lines drawn together into diagonal steps: no longer than the grid's own path.
-    expect(tiles.length).toBeLessThanOrEqual(route.length + 1);
+    let at = from;
+    for (const p of smooth(open, from, route)) {
+      expect(legClear(open, at, p), `${at.x},${at.z} to ${p.x},${p.z}`).toBe(true);
+      at = p;
+    }
+    expect(at).toEqual({ x: 8.5, z: 0.5 });
+    // Through the block's corner, and a slant that clips it: not walks; a slant past it is.
+    expect(legClear(open, { x: 2.5, z: 1.5 }, { x: 3.5, z: 2.5 })).toBe(false);
+    expect(legClear(open, { x: 2.5, z: 1.5 }, { x: 3.9, z: 2.5 })).toBe(false);
+    expect(legClear(open, { x: 2.5, z: 1.5 }, { x: 4.5, z: 1.9 })).toBe(true);
+    expect(legClear(open, { x: 2.5, z: 0.5 }, { x: 9.5, z: 1.5 })).toBe(true);
+  });
+
+  it("walks only lines the server takes, however it is steered round what is in the way", () => {
+    const g = grid(["..........", "..........", "...####...", "...####...", "...####...", ".........."]);
+    const open = openOf(g);
+    // Steered at points all round the block from beside it, frame by frame: every frame's line is a walk.
+    for (const [sx, sz, tx, tz] of [[2.5, 1.5, 8, 5], [1.5, 5.5, 8, 1], [8.5, 0.5, 1, 5], [5, 1.4, 5, 5.5], [2.7, 3, 8, 3]] as const) {
+      const frames = hold(g, { x: sx, z: sz }, { x: tx, z: tz }, 240);
+      for (let f = 1; f < frames.length; f++) expect(legClear(open, frames[f - 1]!, frames[f]!), JSON.stringify(frames.slice(f - 1, f + 1))).toBe(true);
+    }
   });
 });
 

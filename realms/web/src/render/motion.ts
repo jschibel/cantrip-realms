@@ -8,7 +8,8 @@ import { type Ground, type Open, type Pass, type Tile, canStep as stepOver, flat
 // (`smooth`): from where the body stands to the furthest corner of the path it can walk to in a line, and on from there,
 // so a click walk is a few straight legs, not a staircase of eight-way steps. Both keep the grid's rule: a body whose
 // middle goes from one tile to a diagonal one overlaps all four tiles at the corner, so it never cuts the corner of a
-// closed tile or a ledge - `tilesAlong` turns a line walked back into the eight-way steps the relay sends.
+// closed tile or a ledge - so every line its middle walks crosses tiles each a step of the grid's from the one before
+// (`legClear`), which is the rule the server checks the walks the relay tells it by (net/relay.ts).
 //
 // What is walked is a `Ground` (world/grid.ts): the open tiles and the edges between them. A plain test of open tiles
 // stands for ground with no ledges.
@@ -222,58 +223,47 @@ export function canStep(ground: Ground | Open, a: Tile, b: Tile): boolean {
   return stepOver(groundOf(ground), a.x, a.z, b.x, b.z);
 }
 
-/**
- * The tiles a body's middle passes walking from a point through others in straight lines, each a step of the grid's
- * from the one before: the tiles it crosses, two straight steps round a corner drawn together as the diagonal step
- * where that is a step of the grid's (so the walk's length is near the line's).
- */
-export function tilesAlong(ground: Ground | Open, from: Point, points: readonly Point[]): Tile[] {
-  const crossed: Tile[] = [{ x: Math.floor(from.x), z: Math.floor(from.z) }];
-  let a = from;
-  for (const b of points) {
-    // Amanatides and Woo's walk over the squares a segment crosses.
-    let tx = Math.floor(a.x);
-    let tz = Math.floor(a.z);
-    const end = { x: Math.floor(b.x), z: Math.floor(b.z) };
-    const dx = b.x - a.x;
-    const dz = b.z - a.z;
-    const stepX = Math.sign(dx);
-    const stepZ = Math.sign(dz);
-    const deltaX = stepX !== 0 ? Math.abs(1 / dx) : Infinity;
-    const deltaZ = stepZ !== 0 ? Math.abs(1 / dz) : Infinity;
-    let maxX = stepX > 0 ? (tx + 1 - a.x) * deltaX : stepX < 0 ? (a.x - tx) * deltaX : Infinity;
-    let maxZ = stepZ > 0 ? (tz + 1 - a.z) * deltaZ : stepZ < 0 ? (a.z - tz) * deltaZ : Infinity;
-    for (let guard = 0; (tx !== end.x || tz !== end.z) && guard < 4096; guard++) {
-      if (Math.abs(maxX - maxZ) < 1e-9) {
-        tx += stepX;
-        tz += stepZ;
-        maxX += deltaX;
-        maxZ += deltaZ;
-      } else if (maxX < maxZ) {
-        tx += stepX;
-        maxX += deltaX;
-      } else {
-        tz += stepZ;
-        maxZ += deltaZ;
-      }
-      crossed.push({ x: tx, z: tz });
-    }
-    a = b;
-  }
-  return joinCorners(ground, crossed);
-}
+/** How near, in the line's own measure, two crossings are one through a corner (as the server takes it). */
+const CORNER = 1e-9;
 
-/** Two straight steps that turn a corner drawn together as the one diagonal step, where it is a step of the grid's. */
-export function joinCorners(ground: Ground | Open, tiles: readonly Tile[]): Tile[] {
+/**
+ * Whether a straight line walked from one point to another keeps the grid's rule, as the server checks a walk told
+ * (Places.cs `CanWalk`, exactly): the tiles it crosses, in turn, each a step (`canStep`) from the one before - through a
+ * tile's corner, the diagonal step. A line the body's middle walks always does.
+ */
+export function legClear(ground: Ground | Open, a: Point, b: Point): boolean {
   const g = groundOf(ground);
-  const out: Tile[] = [];
-  for (let i = 0; i < tiles.length; i++) {
-    const t = tiles[i]!;
-    const last = out.at(-1);
-    if (last && last.x === t.x && last.z === t.z) continue;
-    const before = out.at(-2);
-    if (before && last && Math.abs(t.x - before.x) === 1 && Math.abs(t.z - before.z) === 1 && canStep(g, before, t)) out[out.length - 1] = t;
-    else out.push(t);
+  let tx = Math.floor(a.x);
+  let tz = Math.floor(a.z);
+  const ex = Math.floor(b.x);
+  const ez = Math.floor(b.z);
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const stepX = Math.sign(dx);
+  const stepZ = Math.sign(dz);
+  const deltaX = stepX !== 0 ? Math.abs(1 / dx) : Infinity;
+  const deltaZ = stepZ !== 0 ? Math.abs(1 / dz) : Infinity;
+  let maxX = stepX > 0 ? (tx + 1 - a.x) * deltaX : stepX < 0 ? (a.x - tx) * deltaX : Infinity;
+  let maxZ = stepZ > 0 ? (tz + 1 - a.z) * deltaZ : stepZ < 0 ? (a.z - tz) * deltaZ : Infinity;
+  // Amanatides and Woo's walk over the squares a segment crosses, before its end; an end on the edge of the tile reached
+  // (a point on a tile's edge is the tile east or south of it) is a step on to that tile.
+  for (let guard = 0; Math.min(maxX, maxZ) < 1 - CORNER && guard < 4096; guard++) {
+    const wx = tx;
+    const wz = tz;
+    if (Math.abs(maxX - maxZ) < CORNER) {
+      tx += stepX;
+      tz += stepZ;
+      maxX += deltaX;
+      maxZ += deltaZ;
+    } else if (maxX < maxZ) {
+      tx += stepX;
+      maxX += deltaX;
+    } else {
+      tz += stepZ;
+      maxZ += deltaZ;
+    }
+    if (!stepOver(g, wx, wz, tx, tz)) return false;
   }
-  return out;
+  if (tx === ex && tz === ez) return true;
+  return Math.max(Math.abs(ex - tx), Math.abs(ez - tz)) === 1 && stepOver(g, tx, tz, ex, ez);
 }

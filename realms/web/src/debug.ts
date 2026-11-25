@@ -1,4 +1,4 @@
-import { type Overworld, describeJump } from "./game";
+import { type Overworld, describeJump, pointText } from "./game";
 import { CHUNK } from "./world/format";
 
 // The debug overlay (F3, or `?debug`; remembered in the browser): where the player is - the place, the chunk, their exact
@@ -64,7 +64,7 @@ export function bindDebug(game: Overworld): void {
     for (const j of jumps) lines.push(`  ${j.at} ${j.place}: ${describeJump(j)}`);
     const refused = game.refusedWalks;
     lines.push(refused.length ? "walks refused (newest first):" : "refused none");
-    for (const r of refused) lines.push(`  ${r.at} ${r.reason} server ${r.server ? `${r.server.x},${r.server.z}` : "-"}, figure ${r.here.x},${r.here.z}: ${r.did}`);
+    for (const r of refused) lines.push(`  ${r.at} ${r.reason} server ${r.server ? pointText(r.server) : "-"}, figure ${pointText(r.here)}: ${r.did}`);
     lines.push("F3 hides this; click to copy");
     const text = lines.join("\n");
     if (panel.textContent !== text) panel.textContent = text;

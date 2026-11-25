@@ -4,8 +4,8 @@ import { type Tile, advance, at, openNear, openRealm, realm } from "./realm";
 
 // Walking beside buildings, frame by frame (realmTest.track notes where the figure is drawn every sixtieth): holding the
 // button walks straight at the cursor and slides along the shop's walls, never jumping, turning back and forth or
-// stopping and starting; a held walk goes up to the shop's door but never in; letting go stops the player where it
-// stands; a click walks round the shop without a jump, in straight legs, and a line of sight is one straight walk; and
+// stopping and starting; a held walk goes up to the shop's door, and in only when pushed on into the doorway; letting go
+// stops the player where it stands; a click walks round the shop without a jump, in straight legs, and a line of sight is one straight walk; and
 // a player opened on a raised square stands on it from the first frame.
 
 interface Frame {
@@ -106,7 +106,7 @@ async function shopFrom(page: Page, me: Tile): Promise<{ wall: Tile; past: Tile 
   return { wall, past };
 }
 
-test("walking: held beside a shop, the player follows the cursor smoothly, slides along its walls and never goes in", async ({ page }) => {
+test("walking: held beside a shop, the player follows the cursor smoothly, slides along its walls, and goes in only pushed into its door", async ({ page }) => {
   const errors = await openRealm(page, { at: at(openNear(doorOf(SHOP), 2)), extra: "&mobs=0" });
   await advance(page, 0.5);
   const centre = await playerOnPage(page);
@@ -133,14 +133,6 @@ test("walking: held beside a shop, the player follows the cursor smoothly, slide
     expect(m.restarts, `held at ${dx},${dy}: stopped and went on`).toBe(0);
   }
 
-  // The shop's door, held on by a drag: the walk goes up to it and stays outside.
-  const door = await tileOnPage(page, doorOf(SHOP));
-  await page.mouse.move(door.x, door.y);
-  smooth("held on the door", await track(page, 2));
-  await page.mouse.move(door.x, door.y - 30);
-  smooth("held past the door", await track(page, 1));
-  expect(await realm<string>(page, "space.id"), "a drag never goes through a door").toBe("world");
-
   // Let go mid-walk: it stops where it is, at once.
   await page.mouse.move(centre.x, centre.y + 220);
   await track(page, 0.5);
@@ -149,6 +141,34 @@ test("walking: held beside a shop, the player follows the cursor smoothly, slide
   expect(motion(after.slice(1)).step, "stopped where it was let go").toBeLessThan(1e-6);
   expect(after.at(-1)!.moving).toBe(false);
   expect(await realm<boolean>(page, "dragging")).toBe(false);
+  expect(await realm<string>(page, "space.id"), "never in the shop, all that way round it").toBe("world");
+
+  // The shop's door, held on by a drag: the walk goes up to it and stays outside; held on past it, into the doorway,
+  // it goes in, as a walk into the door would.
+  // (Held from where the player stands: a press on the door would be a click on it, which goes in on its own.)
+  const me = await playerOnPage(page);
+  await page.mouse.move(me.x, me.y);
+  await page.mouse.down();
+  await track(page, 0.4);
+  expect(await realm<boolean>(page, "dragging")).toBe(true);
+  // (The cursor kept on the door as the camera follows the player.)
+  const onDoor = async (up: number) => {
+    const door = await tileOnPage(page, doorOf(SHOP));
+    await page.mouse.move(door.x, door.y - up);
+  };
+  for (let i = 0; i < 8; i++) {
+    await onDoor(0);
+    await track(page, 0.25);
+  }
+  await onDoor(0);
+  smooth("held on the door", await track(page, 0.5));
+  expect(await realm<string>(page, "space.id"), "held on the door's tile, still outside").toBe("world");
+  for (let i = 0; i < 20 && (await realm<string>(page, "space.id")) === "world"; i++) {
+    await onDoor(40);
+    await track(page, 0.25);
+  }
+  expect(await realm<string>(page, "space.id"), "pushed into the doorway, in").toBe(SHOP);
+  await page.mouse.up();
   expect(errors).toEqual([]);
 });
 

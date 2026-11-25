@@ -1,39 +1,45 @@
-import { type Ground, type Open, canStep, joinCorners } from "../render/motion";
+import { type Ground, type Open, type Point, legClear, middle } from "../render/motion";
 import type { Tile } from "../world/grid";
 
-// What the relay is told of the player's walks (interfaces.md, "Presence"). A `Move` is a walk of eight-way steps from
-// a tile, at a speed. The server takes one only from within a tile of where it has the player (as far along the last
-// walk told as its speed has taken them), and no more than ten a second. So the relay keeps the walk it last told,
-// works out where the server has the player now the way the server does (`where`), and notes every tile the player
-// comes onto since (`on`). Each new walk is told from the tile the server has the player on: through the tiles of the
-// old walk still ahead of the server - or back along it, when the player is behind the server (slow frames run the game
-// slower than the clock) - to the last tile the player passed that is on it, along the tiles passed since to where the
-// player stands, then on ahead. However far the server runs behind, no walk starts anywhere but where it
-// has the player. Walks are told at most one each MOVE_GAP; one wanted in between waits for the next.
+// What the relay is told of the player's walks (interfaces.md, "Presence"). A `Move` is a walk of straight lines through
+// points of the place - where the figure truly is and goes, at any angle, never snapped to tiles - at a speed. The server
+// takes one only from within 1.5 tiles of where it has the player (as far along the last walk told as its speed has taken
+// them), each line crossing tiles a step of the grid's apart (render/motion.ts `legClear`, which every line the body's
+// middle walks keeps), and no more than ten a second. Every walk is told from a point the figure was truly at, so where the
+// server has the player is never anywhere the figure was not, and nothing builds up between them.
+//
+// A click's walk is told when it begins or heads somewhere new: from where the figure stands, through the points ahead.
+// The server walks it on its own clock; should the figure fall behind it or run ahead (frames slower than the clock), the
+// walk is told again from where the figure is once the two are DRIFT apart. A held walk has no points ahead: it is told
+// as it is walked, every MOVE_GAP, from where the last ended through where the figure has been since (its frames, the
+// bends kept) at the pace it went - so the server has the player a sixth of a second or so behind the figure. Standing
+// where the last walk told does not end (a click's walk given up), the figure is told standing.
 //
 // Should the server still refuse one (it had the player somewhere else: a reconnection entered them where they last
-// reported standing, a report that never arrived), its refusal says where it has them, and the relay tells it the way
-// from there to where the player stands (`catchUp`), at the fastest, so it catches up and the figure is never snapped
-// back in plain sight. Only a way too long, or a second refusal straight after, leaves the page to stand the figure
-// where the server says.
+// reported standing), its refusal says where it has them, and the relay tells it the way from there to where the figure
+// stands (`catchUp`), at the fastest, and joins the walks after on to it while the server is behind - so the figure is
+// never snapped back in plain sight. Only a way too long, or a second refusal straight after, leaves the page to stand the
+// figure where the server says.
 
 /** The fastest walk the server takes, tiles a second (REALMS_WALKING_SPEED). */
 export const MAX_SPEED = 5;
 /** The least time between two walks told, milliseconds: the server takes ten a second, this tells under seven. */
 export const MOVE_GAP = 150;
-/** How long a walk told takes to reach the server, milliseconds: where it has the player is worked out this far back. */
-const LATENCY = 60;
-/** The longest way the server is told to catch up along, steps. */
+/** The longest way the server is told to catch up along, steps of the grid's. */
 export const CATCH_UP = 24;
 /** How long after catching up a refusal means the way was refused too, milliseconds. */
 const CAUGHT_UP = 1000;
+/** How far apart where the server has the player and the figure on a click's walk may be before it is told again, tiles. */
+export const DRIFT = 0.5;
 /**
- * How far into a step the server must be for a new walk to start on the tile it leads to (`startIndex`): never so little
- * that a server a little behind the reckoning here (a walk that took longer to reach it than the one before) is more than
- * a step from it, and less than any walk told MOVE_GAP after the last gets into a step - a diagonal one, at the slowest
- * pace a walk is told.
+ * How far from where a walk told starts the server may have the player before the walk is joined on to what the server
+ * has still to walk (`tellFrom`), tiles: well within what the server allows (1.5).
  */
-const ONWARD = 0.25;
+const JOIN = 1;
+/** How far a held walk's way may bend from a line drawn through it before its bend is told as a point, tiles. */
+const BEND = 0.05;
+/** A move of the figure in one frame further than this is no walk (a correction): its way begins afresh, tiles. */
+const LEAP = 1;
 
 export interface Move {
   readonly From: readonly [number, number];
@@ -42,20 +48,61 @@ export interface Move {
 }
 
 interface Told {
-  readonly tiles: readonly Tile[];
+  readonly points: readonly Point[];
   readonly speed: number;
   readonly at: number;
 }
 
-const same = (a: Tile | undefined, b: Tile | undefined) => !!a && !!b && a.x === b.x && a.z === b.z;
-const stepLength = (a: Tile, b: Tile) => (a.x !== b.x && a.z !== b.z ? Math.SQRT2 : 1);
+/** Where the figure was in a frame, and when (ms). */
+interface Mark extends Point {
+  readonly t: number;
+}
+
+const apart = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.z - b.z);
+
+function lengthOf(points: readonly Point[]): number {
+  let d = 0;
+  for (let i = 1; i < points.length; i++) d += apart(points[i - 1]!, points[i]!);
+  return d;
+}
+
+/** How far a point is from the line between two others. */
+function offLine(p: Point, a: Point, b: Point): number {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const l2 = dx * dx + dz * dz;
+  const t = l2 > 0 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / l2)) : 0;
+  return Math.hypot(p.x - (a.x + t * dx), p.z - (a.z + t * dz));
+}
+
+/**
+ * A held walk's frames as the points to tell after its first: each the furthest mark on that the line to it from the one
+ * before passes within BEND of the marks between and is a walk the server takes.
+ */
+function bends(ground: Ground | Open, marks: readonly Point[]): Point[] {
+  const out: Point[] = [];
+  let i = 0;
+  while (i < marks.length - 1) {
+    let j = marks.length - 1;
+    const fits = (k: number) => {
+      for (let m = i + 1; m < k; m++) if (offLine(marks[m]!, marks[i]!, marks[k]!) > BEND) return false;
+      return legClear(ground, marks[i]!, marks[k]!);
+    };
+    while (j > i + 1 && !fits(j)) j--;
+    out.push({ x: marks[j]!.x, z: marks[j]!.z });
+    i = j;
+  }
+  return out;
+}
 
 export class WalkRelay {
   private told: Told | null = null;
   private last = -Infinity;
   private caughtUp = -Infinity;
-  /** The tiles the player has come onto since the last walk told, each a step from the one before, the last stood on. */
-  private passed: Tile[] = [];
+  /** A held walk's way since the last walk told: where the figure was each frame it moved, the first where it last stood. */
+  private trail: Mark[] = [];
+  /** Whether the walk last told is a click's, its points ahead known. */
+  private clicked = false;
 
   constructor(
     private readonly send: (move: Move) => void,
@@ -67,147 +114,135 @@ export class WalkRelay {
     return this.now() - this.last >= MOVE_GAP;
   }
 
-  /** The tile the last walk told ends on, or null before any. */
-  get end(): Tile | null {
-    return this.told?.tiles.at(-1) ?? null;
-  }
-
-  /** Where the server has the player at a moment: the index of the last tile of the walk told its speed has reached. */
-  private reached(at: number): number {
-    return this.progress(at).i;
+  /** The point the last walk told ends on, or null before any (before the place is entered). */
+  get end(): Point | null {
+    return this.told?.points.at(-1) ?? null;
   }
 
   /**
-   * Where the server has the player at a moment: the index of the last tile of the walk told its speed has reached, and
-   * how far on it is into the step from there to the next (0 to 1; 0 at the walk's end).
+   * Where the server has the player at a moment, reckoned as the server does from the walk last told (its clock starting
+   * when the walk reaches it, as this one's when it was sent): the point, and the leg of the walk it is on.
    */
-  private progress(at: number): { readonly i: number; readonly into: number } {
-    const told = this.told;
-    if (!told || told.speed <= 0) return { i: told ? told.tiles.length - 1 : 0, into: 0 };
+  private along(at: number): { readonly point: Point; readonly leg: number } {
+    const told = this.told!;
+    const points = told.points;
+    if (told.speed <= 0 || points.length < 2) return { point: points.at(-1)!, leg: points.length - 1 };
     let walked = (Math.max(0, at - told.at) / 1000) * told.speed;
-    let i = 0;
-    while (i + 1 < told.tiles.length) {
-      const step = stepLength(told.tiles[i]!, told.tiles[i + 1]!);
-      if (walked < step) return { i, into: walked / step };
-      walked -= step;
-      i++;
+    for (let i = 0; i + 1 < points.length; i++) {
+      const a = points[i]!;
+      const b = points[i + 1]!;
+      const leg = apart(a, b);
+      if (walked < leg) return { point: { x: a.x + ((b.x - a.x) * walked) / leg, z: a.z + ((b.z - a.z) * walked) / leg }, leg: i };
+      walked -= leg;
     }
-    return { i, into: 0 };
-  }
-
-  /**
-   * The tile of the walk told a new walk starts on: the one the server has the player on, or the next once the server is
-   * a quarter of the way (ONWARD) into the step there. The server's clock for a walk starts when it takes it, so a walk begun again on
-   * the tile the server was leaving throws away the part of the step walked; a held walk is told again a tile at a time,
-   * sooner than a step is walked on a slant, and the server fell further behind with each one - minutes behind, until a
-   * refusal stood the figure back there. The next tile is a step from the one the server has them on, so the server takes
-   * the walk from it (PresenceHub: a walk starts on or beside where it has the player).
-   */
-  private startIndex(at: number): number {
-    const { i, into } = this.progress(at);
-    return into >= ONWARD && i + 1 < this.told!.tiles.length ? i + 1 : i;
+    return { point: points.at(-1)!, leg: points.length - 1 };
   }
 
   /** Where the server has the player now, or null before any walk is told. */
-  get where(): Tile | null {
-    return this.told ? this.told.tiles[this.reached(this.now() - LATENCY)]! : null;
-  }
-
-  /**
-   * The tile the player stands on this frame (every frame). One a step from the last is a tile passed; one further (a
-   * door's other side, a correction) begins the tiles passed afresh.
-   */
-  on(tile: Tile): void {
-    const last = this.passed.at(-1);
-    if (same(last, tile)) return;
-    if (last && Math.max(Math.abs(tile.x - last.x), Math.abs(tile.z - last.z)) === 1) this.passed.push(tile);
-    else this.passed = [tile];
+  get where(): Point | null {
+    return this.told ? this.along(this.now()).point : null;
   }
 
   /** Leaving a place: nothing is told until the next is entered (`stand`). */
   leave(): void {
     this.told = null;
-    this.passed = [];
+    this.trail = [];
+    this.clicked = false;
   }
 
-  /** Tells the server the player stands on a tile (on entering a place), as a walk of no steps, at once. */
-  stand(at: Tile, speed: number): void {
-    this.passed = [at];
-    this.tell([at], speed);
+  /** Tells the server the player stands at a point (on entering a place), as a walk of no steps, at once. */
+  stand(at: Point): void {
+    this.trail = [{ x: at.x, z: at.z, t: this.now() }];
+    this.clicked = false;
+    this.tell([at], 0);
   }
 
-  /** The server put the player on a tile (a walk refused): nothing is told, but that is where it has them now. */
-  placed(at: Tile): void {
-    this.passed = [at];
-    this.told = { tiles: [at], speed: 0, at: this.now() };
+  /** The server put the player at a point (a walk refused): nothing is told, but that is where it has them now. */
+  placed(at: Point): void {
+    const now = this.now();
+    this.trail = [{ x: at.x, z: at.z, t: now }];
+    this.clicked = false;
+    this.told = { points: [at], speed: 0, at: now };
   }
 
   /**
-   * The server refused a walk and has the player at the first tile of `way`, the grid's path from there to `here`, the
-   * tile the player stands on: tells it that way at the fastest, so it catches up. False (nothing told) when the way is
-   * longer than CATCH_UP, or a catch-up was told within CAUGHT_UP (the server refused that too).
+   * The server refused a walk and has the player at `at`; `way` is the grid's path from the tile that is on to the tile
+   * the figure stands on, at `here`: tells it that way at the fastest (`at`, the middles of the tiles, `here`), so it
+   * catches up. False (nothing told) when the way is longer than CATCH_UP steps, or a catch-up was told within CAUGHT_UP
+   * (the server refused that too).
    */
-  catchUp(way: readonly Tile[], here: Tile): boolean {
+  catchUp(at: Point, way: readonly Tile[], here: Point): boolean {
     const now = this.now();
     if (way.length < 1 || way.length - 1 > CATCH_UP || now - this.caughtUp < CAUGHT_UP) return false;
     this.caughtUp = now;
-    this.passed = [here];
-    this.tell(way, MAX_SPEED);
+    this.trail = [{ x: here.x, z: here.z, t: now }];
+    this.clicked = false;
+    const points = [at, ...way.map(middle), here].filter((p, i, all) => i === 0 || apart(p, all[i - 1]!) > 1e-9);
+    this.tell(points, MAX_SPEED);
     return true;
   }
 
   /**
-   * Tells a walk on from the tile the player stands on (`on`'s last) along `ahead` (each tile an eight-way step from the
-   * one before; none for a held walk, told a step at a time), joined on to where the server has the player now, as the
-   * header says. Given the distance the player truly has left to walk (tiles), it is told as fast as the tiles need to
-   * keep time with it; without, at `speed`, or at the fastest when the server is more than a step behind. Never slower
-   * than `speed`, never faster than MAX_SPEED. False (nothing told) when it is too soon after the last, or before the
-   * place is entered.
+   * Every frame once the place is entered: where the figure is, and the points of a click's walk still ahead of it (null
+   * for a held walk, or standing), walked at `speed`. Tells a walk as the header says; whether one was told.
    */
-  walk(ahead: readonly Tile[], speed: number, open: Ground | Open, distance?: number): boolean {
-    if (!this.ready || !this.told || this.passed.length === 0) return false;
-    const mine = [...joinCorners(open, this.passed), ...ahead];
-    let walk = mine.slice(-1 - ahead.length);
-    // What the server has the player still to walk, from where it has them now; the latest tile passed that is on it is
-    // where the walk turns off it.
-    const told = this.told.tiles;
-    const i = this.startIndex(this.now() - LATENCY);
-    const rest = told.slice(i);
-    let joined = false;
-    for (let p = mine.length - ahead.length - 1; p >= 0 && !joined; p--) {
-      const on = rest.findIndex((t) => same(t, mine[p]));
-      if (on >= 0) {
-        walk = [...rest.slice(0, on), ...mine.slice(p)];
-        joined = true;
-        continue;
-      }
-      // Behind where the server has them (frames slower than the clock, the walk late): back along the old walk to it.
-      let back = -1;
-      for (let j = i - 1; j >= 0 && back < 0; j--) if (same(told[j], mine[p])) back = j;
-      if (back >= 0) {
-        walk = [...told.slice(back + 1, i + 1).reverse(), ...mine.slice(p)];
-        joined = true;
-      }
+  frame(at: Point, ahead: readonly Point[] | null, speed: number, ground: Ground | Open): boolean {
+    if (!this.told) return false;
+    const now = this.now();
+    if (ahead && ahead.length > 0) {
+      this.trail = [{ x: at.x, z: at.z, t: now }];
+      const fresh = !this.clicked || apart(ahead.at(-1)!, this.end!) > 1e-6;
+      if (!this.ready || (!fresh && apart(this.along(now).point, at) <= DRIFT)) return false;
+      this.clicked = true;
+      return this.tellFrom(at, ahead, Math.min(MAX_SPEED, speed), ground);
     }
-    // Off it altogether: a step across from where the server has them, where there is one.
-    if (!joined) {
-      let off = rest.length - 1;
-      while (off >= 0 && !canStep(open, rest[off]!, walk[0]!)) off--;
-      if (off >= 0) walk = [...rest.slice(0, off + 1), ...walk];
+    if (this.clicked) {
+      // A click's walk over, or given up for a held one: the held walk's way begins where the figure is.
+      this.clicked = false;
+      this.trail = [{ x: at.x, z: at.z, t: now }];
     }
-    let length = 0;
-    for (let k = 1; k < walk.length; k++) length += stepLength(walk[k - 1]!, walk[k]!);
-    // A walk with nowhere left to go (a held walk's step) catches up at the fastest pace when the server is behind.
-    const pace = distance === undefined ? (walk.length > 2 ? MAX_SPEED : speed) : distance > 0.05 ? Math.max(speed, (speed * length) / distance) : speed;
-    this.passed = [this.passed.at(-1)!];
-    this.tell(walk, Math.min(MAX_SPEED, pace));
+    const last = this.trail.at(-1);
+    const moved = last ? apart(last, at) : Infinity;
+    if (moved > LEAP) this.trail = [{ x: at.x, z: at.z, t: now }];
+    else if (moved > 1e-4) this.trail.push({ x: at.x, z: at.z, t: now });
+    else if (this.trail.length === 1) this.trail[0] = { x: at.x, z: at.z, t: now };
+    if (!this.ready) return false;
+    const trail = this.trail;
+    if (trail.length > 1) {
+      const from = trail[0]!;
+      const points = bends(ground, trail);
+      const took = (now - from.t) / 1000;
+      const walked = lengthOf([from, ...points]);
+      this.trail = [{ x: at.x, z: at.z, t: now }];
+      return this.tellFrom(from, points, took > 0 ? Math.min(MAX_SPEED, walked / took) : MAX_SPEED, ground);
+    }
+    // Standing short of where the last walk told ends: told standing.
+    if (apart(this.end!, at) > 0.01) return this.tellFrom(at, [], 0, ground);
+    return false;
+  }
+
+  /**
+   * Tells a walk from a point the figure was at. Where the server has the player more than JOIN from there and the walk
+   * it has still to walk ends at it (a way to catch up along, frames slower than the clock), it is joined on to that, at
+   * the fastest, so the server is never told a walk from somewhere it does not have them.
+   */
+  private tellFrom(from: Point, path: readonly Point[], speed: number, ground: Ground | Open): boolean {
+    const told = this.told!;
+    const { point: est, leg } = this.along(this.now());
+    const end = told.points.at(-1)!;
+    if (apart(est, from) > JOIN && apart(end, from) <= JOIN && legClear(ground, end, from)) {
+      const rest = [est, ...told.points.slice(leg + 1), ...(apart(end, from) > 1e-9 ? [from] : []), ...path];
+      this.tell(rest, MAX_SPEED);
+      return true;
+    }
+    this.tell([from, ...path], path.length > 0 ? speed : 0);
     return true;
   }
 
-  private tell(tiles: readonly Tile[], speed: number): void {
+  private tell(points: readonly Point[], speed: number): void {
     const at = this.now();
-    this.told = { tiles, speed: tiles.length > 1 ? speed : 0, at };
+    this.told = { points, speed: points.length > 1 ? speed : 0, at };
     this.last = at;
-    this.send({ From: [tiles[0]!.x, tiles[0]!.z], Path: tiles.slice(1).map((t) => [t.x, t.z] as const), Speed: speed });
+    this.send({ From: [points[0]!.x, points[0]!.z], Path: points.slice(1).map((p) => [p.x, p.z] as const), Speed: points.length > 1 ? speed : 0 });
   }
 }

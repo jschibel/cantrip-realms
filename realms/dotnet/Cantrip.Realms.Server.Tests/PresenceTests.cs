@@ -59,11 +59,15 @@ public sealed class PresenceTests
         return new Walker(await client.ConnectAsync(new Uri(app.Server.BaseAddress, PresenceEndpoint.Route), CancellationToken.None));
     }
 
-    private static int[][] Path(params (int X, int Z)[] steps) => [.. steps.Select(step => new[] { step.X, step.Z })];
+    /// <summary>A tile's middle, as a walk's point.</summary>
+    private static double[] Mid(int x, int z) => [x + 0.5, z + 0.5];
 
-    /// <summary>A walk along the x axis, one tile at a time, from a tile (not in the path) to another.</summary>
-    private static int[][] Along(int fromX, int toX, int z) =>
-        [.. Enumerable.Range(1, Math.Abs(toX - fromX)).Select(step => new[] { fromX + (Math.Sign(toX - fromX) * step), z })];
+    /// <summary>A walk's path through tiles' middles.</summary>
+    private static double[][] Path(params (int X, int Z)[] steps) => [.. steps.Select(step => Mid(step.X, step.Z))];
+
+    /// <summary>A walk along the x axis through each tile's middle, from a tile (not in the path) to another.</summary>
+    private static double[][] Along(int fromX, int toX, int z) =>
+        [.. Enumerable.Range(1, Math.Abs(toX - fromX)).Select(step => Mid(fromX + (Math.Sign(toX - fromX) * step), z))];
 
     [Fact]
     public void A_frame_is_the_union_the_overworld_writes_byte_for_byte()
@@ -71,8 +75,12 @@ public sealed class PresenceTests
         // realms/web/src/net/presence.test.ts checks the same bytes from its side.
         Assert.Equal("920081a55370616365a5776f726c64", Convert.ToHexStringLower(MessagePackSerializer.Serialize<PresenceClientMessage>(new EnterMessage { Space = "world" })));
         Assert.Equal(
-            "920183a446726f6d920000a45061746891920100a55370656564cb400c000000000000",
-            Convert.ToHexStringLower(MessagePackSerializer.Serialize<PresenceClientMessage>(new MoveMessage { From = [0, 0], Path = [[1, 0]], Speed = 3.5 })));
+            "920183a446726f6d92cb3fe0000000000000cb3fd0000000000000a4506174689192cb3ff8000000000000cb3fd0000000000000a55370656564cb400c000000000000",
+            Convert.ToHexStringLower(MessagePackSerializer.Serialize<PresenceClientMessage>(new MoveMessage { From = [0.5, 0.25], Path = [[1.5, 0.25]], Speed = 3.5 })));
+
+        // A whole number the overworld writes as an integer (as JavaScript's encoder does) is read as the point it is.
+        MoveMessage whole = Assert.IsType<MoveMessage>(MessagePackSerializer.Deserialize<PresenceClientMessage>(Convert.FromHexString("920183a446726f6d920505a45061746891920605a5537065656403")));
+        Assert.Equal([5.0, 5.0, 6.0, 5.0, 3.0], [.. whole.From, .. whole.Path[0], whole.Speed]);
     }
 
     [Fact]
@@ -90,15 +98,15 @@ public sealed class PresenceTests
         WelcomeMessage bobIn = await bob.Next<WelcomeMessage>();
         OtherMessage annSeen = Assert.Single(bobIn.Others);
         Assert.Equal(("Walker 1", "W"), (annSeen.Name, annSeen.Identity));
-        Assert.Equal(new[] { 5, 5 }, annSeen.At);
+        Assert.Equal(Mid(5, 5), annSeen.At);
         Assert.Equal(3, annSeen.Look.Slots.Count);
 
         OtherMessage bobSeen = await ann.Next<OtherMessage>();
         Assert.Equal(bobIn.Player, bobSeen.Player);
-        Assert.Equal(new[] { 6, 5 }, bobSeen.At);
+        Assert.Equal(Mid(6, 5), bobSeen.At);
 
         // A walk, relayed with the server's time.
-        await ann.Send(new MoveMessage { From = [5, 5], Path = Path((6, 4), (7, 4), (8, 3)), Speed = 3 });
+        await ann.Send(new MoveMessage { From = Mid(5, 5), Path = Path((6, 4), (7, 4), (8, 3)), Speed = 3 });
         MovedMessage moved = await bob.Next<MovedMessage>();
         Assert.Equal(annIn.Player, moved.Player);
         Assert.Equal(Path((6, 4), (7, 4), (8, 3)), moved.Path);
@@ -125,26 +133,30 @@ public sealed class PresenceTests
         await ann.Next<WelcomeMessage>();
 
         // Into the rock at (26, 5).
-        await ann.Send(new MoveMessage { From = [25, 5], Path = Path((26, 5)), Speed = 3 });
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = Path((26, 5)), Speed = 3 });
         RefusedMessage blocked = await ann.Next<RefusedMessage>();
-        Assert.Equal(new[] { 25, 5 }, blocked.At);
+        Assert.Equal(Mid(25, 5), blocked.At);
 
-        // Two tiles in one step; off the edge of the world; faster than walking; from three tiles away.
-        await ann.Send(new MoveMessage { From = [25, 5], Path = Path((25, 7)), Speed = 3 });
-        Assert.Equal(new[] { 25, 5 }, (await ann.Next<RefusedMessage>()).At);
-        await ann.Send(new MoveMessage { From = [25, 5], Path = [.. Enumerable.Range(1, 7).Select(step => new[] { 25, 5 - step })], Speed = 3 });
+        // Off the edge of the world; faster than walking; from three tiles away; not a point.
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [.. Enumerable.Range(1, 7).Select(step => Mid(25, 5 - step))], Speed = 3 });
         Assert.Contains("leaves the place", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
-        await ann.Send(new MoveMessage { From = [25, 5], Path = Path((25, 6)), Speed = 40 });
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = Path((25, 6)), Speed = 40 });
         Assert.Contains("faster", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
-        await ann.Send(new MoveMessage { From = [22, 5], Path = Path((22, 6)), Speed = 3 });
-        Assert.Equal(new[] { 25, 5 }, (await ann.Next<RefusedMessage>()).At);
+        await ann.Send(new MoveMessage { From = Mid(22, 5), Path = Path((22, 6)), Speed = 3 });
+        Assert.Equal(Mid(25, 5), (await ann.Next<RefusedMessage>()).At);
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [[25.5, double.NaN]], Speed = 3 });
+        Assert.Equal("A point is [x, z].", (await ann.Next<RefusedMessage>()).Reason);
 
-        // Down the rock's west side and round its foot: cutting the corner of its last tile, (26, 12), is refused; walking
-        // round it is taken, a diagonal step clear of it too (nothing comes back but the refused emote after it).
-        int[][] down = [.. Enumerable.Range(6, 7).Select(z => new[] { 25, z })];
-        await ann.Send(new MoveMessage { From = [25, 5], Path = [.. down, [26, 13]], Speed = 3 });
+        // Down the rock's west side and round its foot: through the corner of its last tile, (26, 12), is refused, and so
+        // is a line at a slant that clips it; walking round it is taken, and so is a slant clear of it (nothing comes back
+        // but the refused emote after them).
+        double[][] down = [.. Enumerable.Range(6, 7).Select(z => Mid(25, z))];
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [.. down, Mid(26, 13)], Speed = 3 });
         Assert.Contains("cuts a corner", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
-        await ann.Send(new MoveMessage { From = [25, 5], Path = [.. down, [25, 13], [26, 13], [27, 14]], Speed = 3 });
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [.. down, [26.9, 13.5]], Speed = 3 });
+        Assert.Contains("cuts a corner", (await ann.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [.. down, Mid(25, 13), Mid(26, 13), Mid(27, 14)], Speed = 3 });
+        await ann.Send(new MoveMessage { From = Mid(25, 5), Path = [.. down, [25.5, 12.9], [26.5, 13.9]], Speed = 3 });
         await ann.Send(new EmoteMessage { Emote = "bad emote!" });
         Assert.Equal("That emote can't be made now.", (await ann.Next<RefusedMessage>()).Reason);
     }
@@ -158,18 +170,21 @@ public sealed class PresenceTests
         await ann.Next<WelcomeMessage>();
 
         // A step south, then south-west at two tiles a second: a diagonal step is the square root of 2 tiles long.
-        await ann.Send(new MoveMessage { From = [10, 10], Path = Path((10, 11), (9, 12), (8, 13), (7, 14), (6, 15), (5, 16)), Speed = 2 });
+        await ann.Send(new MoveMessage { From = Mid(10, 10), Path = Path((10, 11), (9, 12), (8, 13), (7, 14), (6, 15), (5, 16)), Speed = 2 });
 
-        // At once, a walk from the far end is from six tiles away; two seconds on the player has walked 4 tiles, past
-        // (8, 13) (1 + 2 x 1.41 along) and short of (7, 14) (1 + 3 x 1.41).
-        await ann.Send(new MoveMessage { From = [5, 16], Path = [], Speed = 0 });
-        Assert.Equal(new[] { 10, 10 }, (await ann.Next<RefusedMessage>()).At);
+        // At once, a walk from the far end is from six tiles away; two seconds on the player has walked 4 tiles: past
+        // (8, 13)'s middle (1 + 2 x 1.41 along) and 0.17 of a tile on toward (7, 14)'s.
+        await ann.Send(new MoveMessage { From = Mid(5, 16), Path = [], Speed = 0 });
+        Assert.Equal(Mid(10, 10), (await ann.Next<RefusedMessage>()).At);
         app.Time.Advance(TimeSpan.FromSeconds(2));
-        await ann.Send(new MoveMessage { From = [5, 16], Path = [], Speed = 0 });
-        Assert.Equal(new[] { 8, 13 }, (await ann.Next<RefusedMessage>()).At);
+        await ann.Send(new MoveMessage { From = Mid(5, 16), Path = [], Speed = 0 });
+        double[] at = (await ann.Next<RefusedMessage>()).At;
+        double on = (4 - 1 - (2 * Math.Sqrt(2))) / Math.Sqrt(2);
+        Assert.Equal(8.5 - on, at[0], 9);
+        Assert.Equal(13.5 + on, at[1], 9);
 
-        // From the next tile along, it is taken: nothing comes back but the refused emote after it.
-        await ann.Send(new MoveMessage { From = [7, 14], Path = Path((6, 14)), Speed = 2 });
+        // From the next tile's middle along, 1.24 tiles from there, it is taken: nothing comes back but the refused emote after it.
+        await ann.Send(new MoveMessage { From = Mid(7, 14), Path = Path((6, 14)), Speed = 2 });
         await ann.Send(new EmoteMessage { Emote = "bad emote!" });
         Assert.Equal("That emote can't be made now.", (await ann.Next<RefusedMessage>()).Reason);
     }
@@ -211,11 +226,11 @@ public sealed class PresenceTests
         Assert.Equal("Walker 4", (await ann.Next<OtherMessage>()).Name);
 
         // A walk inside is checked against the interior's own tiles: off its floor, or onto the innkeeper's, is refused.
-        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((1, -1)), Speed = 3 });
+        await bob.Send(new MoveMessage { From = Mid(1, 0), Path = Path((1, -1)), Speed = 3 });
         Assert.Contains("leaves the place", (await bob.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
-        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((2, 0), (3, 1)), Speed = 3 });
+        await bob.Send(new MoveMessage { From = Mid(1, 0), Path = Path((2, 0), (3, 1)), Speed = 3 });
         Assert.Contains("leaves the place", (await bob.Next<RefusedMessage>()).Reason, StringComparison.Ordinal);
-        await bob.Send(new MoveMessage { From = [1, 0], Path = Path((2, 0)), Speed = 3 });
+        await bob.Send(new MoveMessage { From = Mid(1, 0), Path = Path((2, 0)), Speed = 3 });
         Assert.Equal(Path((2, 0)), (await ann.Next<MovedMessage>()).Path);
     }
 
@@ -268,10 +283,10 @@ public sealed class PresenceTests
         Assert.DoesNotContain(annBox, message => message is OtherMessage);
 
         // Bob walks west into chunk 2_0, two chunks from Ann's: each is told of the other, Bob's walk and all.
-        presence.Move(bob, new MoveMessage { From = [100, 5], Path = Along(100, 97, 5), Speed = 4 });
+        presence.Move(bob, new MoveMessage { From = Mid(100, 5), Path = Along(100, 97, 5), Speed = 4 });
         Assert.DoesNotContain(annBox, message => message is OtherMessage);
         time.Advance(TimeSpan.FromSeconds(2));
-        presence.Move(bob, new MoveMessage { From = [97, 5], Path = Along(97, 90, 5), Speed = 4 });
+        presence.Move(bob, new MoveMessage { From = Mid(97, 5), Path = Along(97, 90, 5), Speed = 4 });
         OtherMessage bobSeen = Assert.Single(annBox.OfType<OtherMessage>());
         Assert.Equal("Bob", bobSeen.Name);
         Assert.Equal(Along(97, 90, 5), bobSeen.Path);
@@ -279,17 +294,17 @@ public sealed class PresenceTests
 
         // In sight, a walk is relayed; Ann's own walk reaches Bob.
         time.Advance(TimeSpan.FromSeconds(2));
-        presence.Move(ann, new MoveMessage { From = [5, 5], Path = Path((6, 5)), Speed = 4 });
+        presence.Move(ann, new MoveMessage { From = Mid(5, 5), Path = Path((6, 5)), Speed = 4 });
         Assert.Equal(Path((6, 5)), Assert.Single(bobBox.OfType<MovedMessage>()).Path);
         time.Advance(TimeSpan.FromSeconds(2));
 
         // Bob walks back east, out of sight: each hears the other has left, and Bob's walks reach Ann no more.
-        presence.Move(bob, new MoveMessage { From = [90, 5], Path = Along(90, 96, 5), Speed = 4 });
+        presence.Move(bob, new MoveMessage { From = Mid(90, 5), Path = Along(90, 96, 5), Speed = 4 });
         Assert.Equal(bob.Id, Assert.Single(annBox.OfType<LeftMessage>()).Player);
         Assert.Equal(ann.Id, Assert.Single(bobBox.OfType<LeftMessage>()).Player);
         int heard = annBox.Count;
         time.Advance(TimeSpan.FromSeconds(2));
-        presence.Move(bob, new MoveMessage { From = [96, 5], Path = Along(96, 97, 5), Speed = 4 });
+        presence.Move(bob, new MoveMessage { From = Mid(96, 5), Path = Along(96, 97, 5), Speed = 4 });
         presence.Emote(bob, new EmoteMessage { Emote = "wave" });
         Assert.Equal(heard, annBox.Count);
     }

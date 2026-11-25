@@ -83,13 +83,19 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   A click walks the grid's A* path pulled straight: from where the player stands to the furthest corner of the path in
   plain sight, and on from there. A held button finds no path: every frame it steers the player straight at the
   cursor's point on the ground, sliding along whatever is in the way and stopping only where nothing is left to go.
-  Letting go stops the player where it stands. Doors and gates are entered only by a click, or by holding still on
-  them. The tile the game uses (encounters, doors, presence, the server's place) is the one under the body's middle.
-  The relay is told the tiles walked as eight-way steps, joined on to where the server has the player
-  (`net/relay.ts`), at most one walk each 150 ms. A walk the server still refuses (it had the player elsewhere: a
-  reconnection entered them where they last reported standing) is followed by the grid's way from where it has them to
-  where the figure stands, at the fastest, so the server catches up and the figure is never snapped back; only a way
-  longer than 24 steps, or a refusal of that way too, stands the figure where the server says.
+  Letting go stops the player where it stands. Doors and gates are entered by a click, by holding still on them, or by
+  a held walk that pushes into the doorway from the door's tile (the cursor in the doorway, the walk heading within 55
+  degrees of the way the door goes: `render/pointer.ts`), never by sweeping past. The tile the game uses (encounters,
+  doors, the server's place) is the one under the body's middle.
+  Presence is not tile-based: the relay is told points, where the figure truly is and goes (`net/relay.ts`, at most one
+  walk each 150 ms) - a click's walk from the figure through the points ahead, told again when the figure and the
+  server's reckoning are half a tile apart; a held walk as it is walked, from where the last ended through where the
+  figure has been. The server checks each line crosses tiles a step of the grid's apart (`legClear`, which the body's
+  every line keeps) and that a walk starts within 1.5 tiles of where it has the player, so the two never drift apart.
+  A walk the server still refuses (it had the player elsewhere: a reconnection entered them where they last reported
+  standing) is followed by the grid's way from where it has them to where the figure stands, at the fastest, so the
+  server catches up and the figure is never snapped back; only a way longer than 24 steps, or a refusal of that way
+  too, stands the figure where the server says.
 - **The debug overlay** (F3, or `?debug`; `src/debug.ts`): the place, chunk, the player's exact position, tile and
   floor height, the tile under the pointer (open or closed, its floor), and every jump of the player's figure - a move
   in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also
