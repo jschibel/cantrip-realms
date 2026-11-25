@@ -61,6 +61,33 @@ export type LightSpec =
 
 export const NOTHING: Built = { model: EMPTY_MODEL };
 
+/** A model raised `dy` world units. */
+export function liftModel(m: Model, dy: number): Model {
+  if (dy === 0) return m;
+  return { parts: m.parts.map((p) => ({ ...p, positions: p.positions.map((v, i) => (i % 3 === 1 ? v + dy : v)) })) };
+}
+
+/**
+ * What a recipe made, raised `dy` world units with everything that goes with it - its far stand-in, flames, cut-aways,
+ * lights and doorway: a world prop or building stood on the floor it stands on (a recipe draws from the ground's zero;
+ * render/chunks.ts lifts it onto a terrace).
+ */
+export function lifted(built: Built, dy: number): Built {
+  if (dy === 0) return built;
+  const up = (p: XYZ): XYZ => [p[0], p[1] + dy, p[2]];
+  return {
+    ...built,
+    model: liftModel(built.model, dy),
+    ...(built.far ? { far: liftModel(built.far, dy) } : {}),
+    ...(built.frames ? { frames: built.frames.map((f) => ({ ...f, models: f.models.map((m) => liftModel(m, dy)) })) } : {}),
+    ...(built.cutaways ? { cutaways: built.cutaways.map((c) => ({ ...c, full: liftModel(c.full, dy), low: liftModel(c.low, dy) })) } : {}),
+    ...(built.lights
+      ? { lights: built.lights.map((l) => (l.kind === "point" || l.kind === "spot" ? { ...l, at: up(l.at), ...(l.to ? { to: up(l.to) } : {}) } : l)) }
+      : {}),
+    ...(built.doorway ? { doorway: up(built.doorway) } : {}),
+  };
+}
+
 /** A recipe: the same recipe data and palette always make the same thing. */
 export type Recipe<R> = (recipe: R, palette: Palette) => Built;
 

@@ -3,7 +3,7 @@ import { BUILDINGS } from "../art/buildings";
 import { type Material, MeshBuilder } from "../art/paint/builder";
 import { namedPalette } from "../art/paint/palette";
 import { PROPS } from "../art/props";
-import type { Built } from "../art/recipe";
+import { type Built, lifted } from "../art/recipe";
 import { SURFACES, type SurfaceLook } from "../art/surfaces";
 import {
   CHUNK,
@@ -105,6 +105,20 @@ export function underOf(tileAt: TileAt, x0: number, z0: number, cols: number, ro
 export const buildingOf = (bd: ChunkData["buildings"][number]): Built => BUILDINGS.build(bd.style, bd, namedPalette(bd.palette));
 export const propOf = (p: ChunkData["props"][number]): Built => PROPS.build(p.id, p, namedPalette(p.tint));
 
+/**
+ * Props whose recipes stand them at a height of the world's own (`args.y`: a bridge's deck, a pier's), not on the floor
+ * under their anchor: the rest are lifted onto it.
+ */
+const STANDS_AT_ITS_OWN_HEIGHT: ReadonlySet<string> = new Set(["bridge", "pier"]);
+
+/** A world building stood on its lot's floor (every lot is level), its recipe drawing from the ground's zero. */
+export const worldBuildingOf = (bd: ChunkData["buildings"][number], tileAt: TileAt): Built =>
+  lifted(buildingOf(bd), floorAt(tileAt, bd.x + bd.w / 2, bd.z + bd.d / 2));
+
+/** A world prop stood on the floor under its anchor (its `y` is its foot's height above that floor, format.ts). */
+export const worldPropOf = (p: ChunkData["props"][number], tileAt: TileAt): Built =>
+  STANDS_AT_ITS_OWN_HEIGHT.has(p.id) ? propOf(p) : lifted(propOf(p), floorAt(tileAt, p.x, p.z));
+
 /** How long a step of building recipes runs before it gives the frame back, ms. */
 const STEP_MS = 2.5;
 
@@ -135,7 +149,7 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
   pieces.push(underOf(tileAt, x0, z0, CHUNK, CHUNK, (t) => lookOf(t[1])));
   let since = performance.now();
   for (const bd of c.buildings) {
-    const built = buildingOf(bd);
+    const built = worldBuildingOf(bd, tileAt);
     pieces.push(built);
     if (bd.door && bd.interior && built.doorway) {
       const [fx, fz] = frontStep(bd.rot);
@@ -147,7 +161,7 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
     }
   }
   for (const p of c.props) {
-    pieces.push(propOf(p));
+    pieces.push(worldPropOf(p, tileAt));
     if (performance.now() - since > STEP_MS) {
       yield "props";
       since = performance.now();

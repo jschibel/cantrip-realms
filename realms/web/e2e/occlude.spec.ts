@@ -63,8 +63,11 @@ for (const heading of ["left", "front", "right"] as const) {
     // The awning over them fades: pixels over their figure (the figure's box above their feet).
     const over = changed.filter((p) => Math.abs(p.x - f.x) <= 8 && p.y <= f.y && p.y >= f.y - 26);
     expect(over.length, "the awning fades over the player").toBeGreaterThan(8);
-    // And nothing far from them: before, the shop's back fell to a ghost while the awning stood.
-    const far = changed.filter((p) => Math.abs(p.x - f.x) > 20 || p.y < f.y - 44 || p.y > f.y + 8);
+    // And nothing far from them: before, the shop's back fell to a ghost while the awning stood. Near is the fade's own
+    // reach - the ground round their feet (occlude.ts AROUND_RADIUS and AROUND_OVER, 2.75 tiles: 44 scene pixels), where
+    // what stands past the shop's footprint in front of them (its stall's counter, its step) fades too - and up to
+    // 44 above their feet, short of the shop's back.
+    const far = changed.filter((p) => Math.abs(p.x - f.x) > 44 || p.y < f.y - 44 || p.y > f.y + 44);
     expect(far, "nothing fades away from the player").toEqual([]);
   });
 
