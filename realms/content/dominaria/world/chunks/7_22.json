@@ -47,7 +47,6 @@
   "spawns": [
     {"id":"7_22:1","x":249,"z":713,"mobs":["orcish-artillery","pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

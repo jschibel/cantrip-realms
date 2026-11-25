@@ -76,7 +76,6 @@ function draw(x0: number, z0: number, x1: number, z1: number, scale: number, zon
     }
     for (const n of c.npcs) p.fill(px(n.x), pz(n.z), scale, scale, rgb("#00e0ff"));
     for (const e of c.entrances) p.fill(px(e.x) - scale, pz(e.z) - scale, scale * 3, scale * 3, rgb("#ff40ff"));
-    for (const ch of c.chests) p.fill(px(ch.x), pz(ch.z), scale, scale, rgb("#ffd700"));
     if (zones || scale >= 3) {
       for (const s of c.spawns) p.ring(px(s.x) + scale / 2, pz(s.z) + scale / 2, Math.max(1, scale), TIER_COLORS[s.tier]!);
       for (const m of c.waymarkers) p.fill(px(m.x) - 1, pz(m.z) - 1, scale + 2, scale + 2, darker(TIER_COLORS[m.tier]!, 0.7));

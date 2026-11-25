@@ -21,7 +21,7 @@
     [0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],
     [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],
     [0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"bog",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"bog",1],[0,"bog",1],[0,"bog",1],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],
@@ -128,9 +128,6 @@
   "npcs": [],
   "spawns": [
     {"id":"8_11:1","x":274,"z":380,"mobs":["bog-imp","bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
-  "chests": [
-    {"id":"8_11:c1","x":274,"z":371,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

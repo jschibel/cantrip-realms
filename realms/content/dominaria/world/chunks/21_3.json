@@ -47,7 +47,6 @@
   "spawns": [
     {"id":"21_3:1","x":673,"z":110,"mobs":["shivan-dragon","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -123,7 +123,6 @@
     {"id":"12_18:1","x":402,"z":580,"mobs":["azure-drake","elven-riders","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"12_18:2","x":403,"z":605,"mobs":["craw-wurm","elven-riders","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

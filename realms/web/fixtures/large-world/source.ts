@@ -268,7 +268,6 @@ export function largeChunk(cx: number, cz: number): ChunkData | null {
     buildings: here(m.buildings),
     npcs: here(m.npcs),
     spawns: here(m.spawns),
-    chests: [],
     entrances: [],
     waymarkers: [],
     lights: m.lights.filter((l) => inChunk(cx, cz, Math.floor(l.at[0]), Math.floor(l.at[2]))),

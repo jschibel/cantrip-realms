@@ -65,16 +65,17 @@ export interface Character {
   readonly Attuned?: readonly string[];
   /** The character's home inn (world.json's `inns[].id`). */
   readonly Inn?: string;
-  /**
-   * The heartblooms of the world the character picked that have not grown back (design.md A3b), and when each does (UTC
-   * ISO-8601): drawn without their bloom meanwhile.
-   */
-  readonly Picked?: readonly Picked[];
 }
 
-/** A heartbloom of the world a character picked: its id (a chunk's `chests` entry), and when it grows back for them. */
-export interface Picked {
-  readonly Chest: string;
+/**
+ * A find standing in the world's wilds (`GET /api/finds`; design.md A5, A3b): a treasure chest or a heartbloom, which the
+ * server spawns and nobody keeps - its id, kind and tile, and when it goes if nobody takes it (UTC ISO-8601).
+ */
+export interface Find {
+  readonly Id: string;
+  readonly Kind: "chest" | "heartbloom";
+  readonly X: number;
+  readonly Z: number;
   readonly Until: string;
 }
 
@@ -319,7 +320,9 @@ export interface RealmApi {
   rematch(body: Rematch): Promise<EncounterStart>;
   /** Buys one more heart at the healer the character stands with. */
   buyHeart(): Promise<HeartsBought>;
-  /** Opens a chest or picks a heartbloom: the character's gold and hearts after, and what it held. */
+  /** The finds standing in the world's wilds now. */
+  finds(): Promise<Find[]>;
+  /** Opens a chest or picks a heartbloom (a find's id): the character's gold and hearts after, and what it held; it is gone for all. */
   openChest(body: { Space: string; Chest: string }): Promise<ChestFound>;
   /** Makes the inn the character stands in their home: where they wake when their last heart is lost. */
   setInn(): Promise<{ Inn: string }>;
@@ -388,6 +391,7 @@ export class HttpApi implements RealmApi {
   payEncounter = (body: { Token: string }) => this.call<{ Gold: number }>("POST", "encounter/pay", body);
   rematch = (body: Rematch) => this.call<EncounterStart>("POST", "encounter/rematch", body);
   buyHeart = () => this.call<HeartsBought>("POST", "hearts/buy", {});
+  finds = () => this.call<Find[]>("GET", "finds");
   openChest = (body: { Space: string; Chest: string }) => this.call<ChestFound>("POST", "chest/open", body);
   setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
   position = (body: Place) => this.call<{ Hearts: number }>("POST", "position", body);

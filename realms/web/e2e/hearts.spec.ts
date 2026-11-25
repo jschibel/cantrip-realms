@@ -1,15 +1,15 @@
 import { type Page, expect, test } from "@playwright/test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { heartbloomNear, spawnNear } from "./places";
+import { spawnNear } from "./places";
 import { at, chebyshev, clickClear, clickControl, clickEntity, entities, entity, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
 import { enter, run, toShrine, walkInside } from "./runs";
 
 // Hearts (design.md A3, A3b), offline with the stand-in card layer: a lost duel costs a heart and pays nothing; a world
 // mob offers its buyout or a rematch, the rematch sideboarded and dealt with the mob at the life it kept; a dungeon's mob
 // is only fought again; the last heart lost is death, and home; a town fills the hearts and a temple's healer sells more.
-// A heartbloom of the wilds gives one back, picked walking onto it, and a dungeon run's shrine once in the run; neither
-// is used up by a character whose hearts are full.
+// A heartbloom of the wilds gives one back, picked walking onto it, and is gone; a dungeon run's shrine once in the run;
+// neither is used up by a character whose hearts are full.
 // The stand-in's loss says the mob's life at the end as the real card layer reads it from the game (realmTest.duelEnd).
 
 const SHOTS = join(dirname(fileURLToPath(import.meta.url)), "screenshots", "hearts");
@@ -159,41 +159,57 @@ test("a temple's healer sells a heart, which fills as it is bought", async ({ pa
 });
 
 const messaged = async (page: Page, pattern: RegExp) => (await realm<string[]>(page, "messages")).some((m) => pattern.test(m));
-const bloomOf = async (page: Page, id: string) => (await realm<{ id: string; picked: boolean }[]>(page, "blooms")).find((b) => b.id === id);
 
 test("a heartbloom of the wilds gives back a heart, picked walking onto it, and is left standing while the hearts are full", async ({ page }) => {
   test.setTimeout(120_000);
-  const bloom = heartbloomNear("new-benalia");
-  await openRealm(page, { at: at(openNear(bloom, 3)), extra: "&mobs=0" });
-  const isBloom = (e: { kind: string; id: string }) => e.kind === "heartbloom" && e.id === bloom.id;
-  expect((await entity(page, isBloom, "the heartbloom", 30)).picked).toBe(false);
+  // A heartbloom stood in the wilds by the capital (the server's POST /dev/find): finds come and go, none kept in the world.
+  const tile = openNear(spawn, 6);
+  await openRealm(page, { at: at(openNear(tile, 3)), extra: "&mobs=0" });
+  const bloom = await page.evaluate(([x, z]) => (globalThis as any).realmTest.placeFind("heartbloom", x, z), [tile.x, tile.z] as const);
+  const isBloom = (e: { kind: string; id: string }) => e.kind === "heartbloom" && e.id === bloom.Id;
+  await entity(page, isBloom, "the heartbloom", 30);
   await page.screenshot({ path: join(SHOTS, "heartbloom.png") });
 
   // The hearts full: walked onto, it keeps.
   await clickEntity(page, isBloom, "the heartbloom");
   await until(page, () => messaged(page, /Your hearts are full\. The heartbloom will keep/), "the hearts full", 30);
-  expect(await playerTile(page)).toEqual({ x: bloom.x, z: bloom.z });
-  expect((await bloomOf(page, bloom.id))!.picked).toBe(false);
+  expect(await playerTile(page)).toEqual(tile);
+  expect((await realm<{ id: string }[]>(page, "finds")).map((f) => f.id)).toEqual([bloom.Id]);
   expect((await me(page)).hearts).toBe(2);
 
-  // A heart missing (arranged): picked, the heart back, the bloom gone from its stem.
+  // A heart missing (arranged): picked, the heart back, the bloom gone.
   await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
   await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "1");
-  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [bloom.x, bloom.z] as const);
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [tile.x, tile.z] as const);
   await until(page, async () => (await me(page)).hearts === 2, "a heart given back", 30);
   expect(await messaged(page, /You pick the heartbloom, and its warmth fills you: 2 of 2 hearts/)).toBe(true);
   await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "2");
-  expect((await entity(page, isBloom, "the picked heartbloom")).picked).toBe(true);
-  expect((await realm<{ name: string; body?: any }[]>(page, "api")).filter((c) => c.name === "openChest").map((c) => c.body.Chest)).toEqual([bloom.id, bloom.id]);
-  // Stepped off a little, so the picked stem shows.
-  await walkTo(page, openNear(bloom, 2), 0);
+  expect(await realm<unknown[]>(page, "finds")).toEqual([]);
+  expect((await entities(page)).some(isBloom)).toBe(false);
+  expect((await realm<{ name: string; body?: any }[]>(page, "api")).filter((c) => c.name === "openChest").map((c) => c.body.Chest)).toEqual([bloom.Id, bloom.Id]);
+  await walkTo(page, openNear(tile, 2), 0);
   await page.screenshot({ path: join(SHOTS, "heartbloom-picked.png") });
 
-  // Picked, it gives nothing until it grows back.
+  // Picked, nothing is there: walking back onto its tile gives nothing.
   await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
-  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [bloom.x, bloom.z] as const);
-  await until(page, async () => chebyshev(await playerTile(page), bloom) === 0 && !(await entity(page, (e) => e.kind === "player", "the player")).moving, "on the bloom again", 30);
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [tile.x, tile.z] as const);
+  await until(page, async () => chebyshev(await playerTile(page), tile) === 0 && !(await entity(page, (e) => e.kind === "player", "the player")).moving, "on its tile again", 30);
   expect((await me(page)).hearts).toBe(1);
+});
+
+test("a treasure chest of the wilds is opened walking onto it, its gold the character's, and it is gone", async ({ page }) => {
+  const tile = openNear(spawn, 6);
+  await openRealm(page, { at: at(openNear(tile, 3)), extra: "&mobs=0" });
+  const gold = (await me(page)).gold;
+  const chest = await page.evaluate(([x, z]) => (globalThis as any).realmTest.placeFind("chest", x, z), [tile.x, tile.z] as const);
+  const isChest = (e: { kind: string; id: string }) => e.kind === "chest" && e.id === chest.Id;
+  await entity(page, isChest, "the chest", 30);
+  await page.screenshot({ path: join(SHOTS, "chest.png") });
+  await clickEntity(page, isChest, "the chest");
+  await until(page, () => messaged(page, /You open the chest: [\d,]+ gold/), "the chest opened", 30);
+  expect((await me(page)).gold).toBeGreaterThan(gold);
+  expect(await realm<unknown[]>(page, "finds")).toEqual([]);
+  expect((await entities(page)).some(isChest)).toBe(false);
 });
 
 test("a dungeon run's shrine gives back a heart once in the run, prayed at from beside it", async ({ page }) => {

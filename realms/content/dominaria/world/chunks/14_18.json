@@ -102,7 +102,6 @@
   "spawns": [
     {"id":"14_18:1","x":465,"z":587,"mobs":["bog-wraith","orcish-artillery","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

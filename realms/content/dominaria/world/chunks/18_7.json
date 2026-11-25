@@ -144,7 +144,6 @@
     {"id":"keld-arena","x":579,"z":224,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[579.5,0.625,224.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

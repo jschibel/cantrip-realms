@@ -138,10 +138,10 @@ owner may extend.
   character whose hearts are full - it keeps until they need it - and the server alone says whether each is there and
   whether it was taken.
   - **Heartblooms** grow in the wilds between the towns: a low clump of dark leaves and, on its stem, a bloom shaped like
-    a heart that glows rose-red in the grass. They are rare - eight across Dominaria, two in each tier's wilds, each
-    alone in a clearing at least 150 tiles from the next - so the far ones are worth the walk. Walking onto one, or
-    clicking it, picks it: a heart back. Picked, it is a stem among the leaves for that character for **a week**, as a
-    beaten boss rests; every other character's is still in bloom.
+    a heart that glows rose-red in the grass. They come and go: never more than eight across Dominaria at once, each in
+    a clearing at least 150 tiles from the next, a new one now and then (about every half hour while there are fewer),
+    wilting after a few hours if nobody picks it - so one seen is worth the walk. Walking onto one, or clicking it,
+    picks it: a heart back. It is everyone's: picked, it is gone for all.
   - **A shrine of Serra** stands in one dungeon run in eight, on one of its floors drawn at random: a stepped altar
     and a stele carved with an angel's wings, a heart of light hanging over it. Praying at it gives back a heart **once
     in the run**; its heart then goes cold. The next run of the dungeon is new, and may hold one again or not.
@@ -213,7 +213,7 @@ owner may extend.
     grows a plane per trader).
   - Exotic dealers buy and sell only off-plane cards, at list price and half back as any vendor does, so what players
     sell them circulates. Dominaria's own vendors, loot and starter decks never hold an off-plane card.
-- **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear).
+- **Other gold sources:** treasure chests in the wilds (50–500 g, richer the higher the zone's tier) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear). Chests are not fixtures: they appear at random on open ground, a couple to a zone at most, a new one about every ten minutes in a zone with fewer, and crumble after half an hour unopened. Each is everyone's - the first to open it has it.
 - **Gold sinks beside cards and gear:** a world mob's buyout after a lost game (A3: 30 to 1,200 g at its fullest by
   tier), and hearts at a temple's or shrine's healer (A3b: 1,000, 3,000 and 8,000 g for the 3rd, 4th and 5th). A third
   heart is about 25 tier 1 wins' gold, or two or three of tier 4; the fifth a boss's purse five times over.

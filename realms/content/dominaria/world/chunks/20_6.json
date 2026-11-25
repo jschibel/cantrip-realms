@@ -129,7 +129,6 @@
     {"id":"keldon-watch-guard-1","x":664,"z":220,"kind":"guard","name":"Keldon Watch guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[664,220],[664,213]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

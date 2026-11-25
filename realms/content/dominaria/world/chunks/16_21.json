@@ -115,7 +115,6 @@
     {"id":"new-benalia-arena","x":536,"z":691,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[536.5,0.9375,691.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

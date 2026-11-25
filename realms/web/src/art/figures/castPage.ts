@@ -58,7 +58,7 @@ for (let cz = 0; cz < cd; cz++) {
         tiles.push([0, surface, 0] as unknown as TileData);
       }
     }
-    chunks.push({ cx, cz, tiles, props: [], buildings: [], npcs: [], spawns: [], chests: [], entrances: [], waymarkers: [] });
+    chunks.push({ cx, cz, tiles, props: [], buildings: [], npcs: [], spawns: [], entrances: [], waymarkers: [] });
   }
 }
 const built = assembleWorld(world, chunks);

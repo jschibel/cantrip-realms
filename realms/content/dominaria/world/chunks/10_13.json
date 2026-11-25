@@ -85,7 +85,6 @@
     {"id":"vess-estate-folk-1","x":342,"z":416,"kind":"townsfolk","name":"Gravedigger","text":["The Morass was a forest once. The trees remember."],"figure":"townsfolk-caligo","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[342,416],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

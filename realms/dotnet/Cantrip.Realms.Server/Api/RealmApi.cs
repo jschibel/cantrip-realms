@@ -103,6 +103,8 @@ public static class RealmApi
         api.MapPost("/hearts/buy", async (HttpContext context, Hearts hearts) =>
             Results.Ok(await hearts.Buy(Player(context)).ConfigureAwait(false)));
 
+        api.MapGet("/finds", (Chests chests) => Results.Ok(chests.Standing()));
+
         api.MapPost("/chest/open", async (HttpContext context, Chests chests, ChestOpen body) =>
             Results.Ok(await chests.Open(Player(context), body).ConfigureAwait(false)));
 

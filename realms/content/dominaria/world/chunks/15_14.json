@@ -33,7 +33,7 @@
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],
     [12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
+    [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
   ],
   "props": [
     {"id":"pine","x":483.625,"z":448.375,"seed":0,"scale":1.0625},
@@ -247,9 +247,6 @@
     {"id":"15_14:1","x":480,"z":455,"mobs":["cradle-guard","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"15_14:2","x":506,"z":455,"mobs":["elven-riders","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"15_14:3","x":499,"z":471,"mobs":["benalish-knight","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
-  ],
-  "chests": [
-    {"id":"15_14:c1","x":497,"z":479,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

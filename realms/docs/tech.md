@@ -179,7 +179,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   next game dealt with the mob at the life it kept and conceded, and death and home), each a position forced through
   `POST /dev/duel` (a seat beginning at 0 life, the mob at a life it keeps), never a seed; hearts with the stand-in
   (`hearts.spec.ts`: a buyout paid and the answer coming back after a reload, a town filling the hearts, a dungeon's mob
-  fought again, a temple's healer, a heartbloom picked and drawn picked again after a reload, a run's shrine made to
+  fought again, a temple's healer, a heartbloom stood in the wilds (`POST /dev/find`) picked and gone for all, a run's shrine made to
   stand by `POST /dev/drop {Shrine}` blessing once, each with a heart missing arranged by `POST /dev/hearts`); an offline duel and a rematch sideboarded in the real card layer
   (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`); and builds a deck and a sideboard at a spell table in the
   real card layer (the server's refusals shown, the saved deck the one the next duel deals) and buys and sells at a card
@@ -332,7 +332,8 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   in their towns, spell tables spell-table NPCs, each town's streets (`lintTown`, below), and - given `known.propTiles`
   and `known.liquid` - nothing closed unseen: every closed tile a walker comes up against on its own level (not seen as a
   bank from below) has what closes it drawn there (no ground, a liquid, a building, a prop that blocks over it, a thing
-  used from beside it, a chest, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground.
+  used from beside it, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground. (The renderer
+  keeps a small prop on a closed tile at every zoom, `sortScenery`'s `solid`, so none is left out far either.)
   src/world/dominaria.test.ts runs it on Dominaria. `lintTown(town, open, buildings, limits?)` holds a town to its street
   plan: its nodes, ways, gates and places well formed; every way's ends, every door of the town and every key place
   walked to from every gate along the open street tiles alone (every door opening onto a street); no street running on
@@ -862,8 +863,9 @@ is gone.
   seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
   the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
   where the old map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 851 spawns, 237 chests,
-  8 heartblooms, 120 waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB.
+- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 851 spawns, 120
+  waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB. No chest or heartbloom is placed:
+  the server spawns them (interfaces.md, "Finds of the wilds").
 - **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
   0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.
   Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
@@ -880,8 +882,8 @@ is gone.
 - **Towns** are laid out by their `form` (layout.json; towns.ts), their streets planned whole before anything is built
   (plan.ts) and kept in world.json (`towns[].plan`, interfaces.md "Town plans") for the maps and the lint:
   - the outline is a polygon of 9 to 13 corners round the centre, pulled in from the coast, rivers and cliffs, inside the
-    town's square (`radius` along x and z, what the server calls the town), straightened across each gate; spawns,
-    chests and waymarkers keep out of the square and its apron;
+    town's square (`radius` along x and z, what the server calls the town), straightened across each gate; spawns
+    and waymarkers keep out of the square and its apron;
   - a wall (`wall-run`s along each edge, cut at chunk edges and 16 tiles at most, `wall-tower`s at the corners and beside
     the gates, a `gatehouse` in each gate, `args.kind` wall or palisade), or hedgerows, or nothing, with a gate where each
     road arrives and onto the harbour (with its `pier`): on the side facing the road, where a street of the plan meets the
@@ -1066,7 +1068,8 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   |---|---|
   | Pricing | the price formula |
   | Hearts | the start, the migration, a town's refill, a heart given back, buying to five, death |
-  | Hearts found | a heartbloom picked from beside it, a week to grow back for its picker alone, left standing with the hearts full; a run's shrine in one run in eight, on its floor alone, once a run; Dominaria's heartblooms |
+  | Hearts found | a heartbloom picked from on or beside it, gone for everyone, left standing with the hearts full; a run's shrine in one run in eight, on its floor alone, once a run |
+  | Finds | chests and heartblooms spawned a few to a zone on open ground of the wilds, never at a player's feet, crumbling in their time; a chest's tier gold, gone for everyone once opened (FindsTests) |
   | Losing | a heart and no reward; the buyout's measure, its payment and its refusal in a dungeon; the rematch's carried life and swapped deck; death taking back a run's winnings |
   | Vendors | buy and sell atomicity; a purse too small; a full stock; trickle and rotation on a fake `TimeProvider` |
   | Encounters | spawn-table validation against the golden vectors; a tampered log rejected; a mob answer that doesn't match rejected |

@@ -81,7 +81,6 @@
     {"id":"18_4:2","x":580,"z":135,"mobs":["marhault-elsdragon","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"18_4:3","x":597,"z":154,"mobs":["mahamoti-djinn","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -289,7 +289,6 @@
   "spawns": [
     {"id":"18_16:1","x":597,"z":525,"mobs":["azure-drake","longbow-archer","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": [
     {"x":591,"z":534,"tier":3}

@@ -50,7 +50,6 @@
     {"id":"22_7:1","x":715,"z":231,"mobs":["fallen-angel","mahamoti-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"22_7:2","x":707,"z":247,"mobs":["keldon-warlord","orcish-artillery","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

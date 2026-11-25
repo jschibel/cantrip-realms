@@ -30,10 +30,10 @@
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",3],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],
+    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",3],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",0],[12,"rock",0],[12,"rock",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[12,"rock",3],[12,"rock",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",0],[12,"rock",0]
+    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",3],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[24,"rock",0],[12,"rock",0],[12,"rock",0]
   ],
   "props": [
     {"id":"boulder","x":707.5625,"z":608.5,"seed":3,"scale":1.1875},
@@ -103,11 +103,8 @@
     {"id":"22_19:2","x":735,"z":612,"mobs":["fallen-angel","mahamoti-djinn","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"22_19:3","x":723,"z":627,"mobs":["enormous-baloth","karplusan-yeti","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [
-    {"id":"22_19:c1","x":720,"z":636,"gold":[300,500],"respawnSeconds":86400}
-  ],
   "entrances": [],
   "waymarkers": [
-    {"x":710,"z":639,"tier":4}
+    {"x":725,"z":639,"tier":4}
   ]
 }

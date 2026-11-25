@@ -50,7 +50,6 @@
   "spawns": [
     {"id":"18_1:1","x":604,"z":60,"mobs":["sengir-vampire","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -1,10 +1,10 @@
 // The wilds between the towns: dungeon entrances and mage towers with their waystones and spell tables, fields round
 // the towns of the plains, the scenery of each region, a pass that joins every open tile to the rest of the world (or
-// fills a pocket nobody could reach), then the spawn points by tier, chests, the waymarkers where the tier rises, and the
-// few heartblooms of the wilds.
+// fills a pocket nobody could reach), then the spawn points by tier and the waymarkers where the tier rises. (The finds of
+// the wilds - treasure chests, heartblooms - are none of the world's files: the server spawns them, by its zones.)
 
-import type { ChestData, NpcData, Region, SpawnData, Theme, WaymarkerData, Zones } from "../../src/world/format";
-import { BLOCKED, CHUNK, HEARTBLOOM_APART, HEARTBLOOM_REGROWTH, MAX_TIER, RAMP, chunkKey } from "../../src/world/format";
+import type { NpcData, Region, SpawnData, Theme, WaymarkerData, Zones } from "../../src/world/format";
+import { BLOCKED, CHUNK, MAX_TIER, RAMP, chunkKey } from "../../src/world/format";
 import type { Footprint } from "./buildings";
 import { S } from "./ids";
 import { type Land, Use, between, pick, randomFor, shuffle, texel } from "./land";
@@ -376,16 +376,10 @@ function poolFor(roster: readonly MobFile[], tier: number, region: Region | null
 
 export interface Placed {
   readonly spawns: SpawnData[];
-  readonly chests: ChestData[];
   readonly waymarkers: WaymarkerData[];
 }
 
-const GOLD: Record<number, readonly [number, number]> = { 1: [50, 150], 2: [100, 250], 3: [180, 380], 4: [300, 500] };
-
-/** Heartblooms in each tier's wilds (design.md A3b): eight across the realm. */
-const HEARTBLOOMS_PER_TIER = 2;
-
-/** Spawn points, chests and waymarkers, by tier, and the heartblooms. Nothing placed here cuts a way off. */
+/** Spawn points and waymarkers, by tier. Nothing placed here cuts a way off. */
 export function populate(land: Land, zones: Zones, roster: readonly MobFile[], seed: number, keepAway: readonly number[]): Placed {
   const random = randomFor(seed, "populate");
   const away = new Uint8Array(land.size);
@@ -429,21 +423,6 @@ export function populate(land: Land, zones: Zones, roster: readonly MobFile[], s
     met.add(m.id);
   }
 
-  // Chests: on a tile of their own with open ground all round, far apart.
-  const chestTaken = new Uint8Array(land.size);
-  const chests: ChestData[] = [];
-  for (const i of order) {
-    if (!wild(i) || !land.open(i) || chestTaken[i] || land.use[i] === Use.Field) continue;
-    const tier = tierOf(i);
-    if (tier === 0 || random() > 0.03) continue;
-    const ring = land.n8(i, near);
-    if (ring.length !== 8 || !ring.every((n) => land.open(n) && land.use[n] === Use.Wild)) continue;
-    if (spawns.some((s) => Math.abs(s.x - land.xOf(i)) < 5 && Math.abs(s.z - land.zOf(i)) < 5)) continue;
-    for (const j of land.disc(land.xOf(i), land.zOf(i), 30)) chestTaken[j] = 1;
-    land.block(i);
-    chests.push({ id: "", x: land.xOf(i), z: land.zOf(i), gold: GOLD[tier]!, respawnSeconds: 86400 });
-  }
-
   // Waymarkers: where the tier rises, a marker beside every road that crosses, and standing stones along the rest.
   const waymarkers: WaymarkerData[] = [];
   const markerTaken = new Uint8Array(land.size);
@@ -483,31 +462,9 @@ export function populate(land: Land, zones: Zones, roster: readonly MobFile[], s
     for (const n of harder) if (mark(n, tierOf(n), 26)) break;
   }
 
-  // Heartblooms (design.md A3b): rare, a few in each tier's wilds, each alone in a clearing - an open, level tile with
-  // nothing standing on it and open, level ground all round, off the roads and the fields - far from every other and from
-  // the spawns and chests. Walked onto, not round: the tile stays open. Chosen in the populating order, rolling no dice,
-  // so the rest of the world is as it was without them.
-  const blooms: ChestData[] = [];
-  const ring: number[] = [];
-  const apart = (x: number, z: number, others: readonly { x: number; z: number }[], reach: number) => others.every((o) => Math.max(Math.abs(o.x - x), Math.abs(o.z - z)) >= reach);
-  for (let tier = 1; tier <= MAX_TIER; tier++) {
-    let grown = 0;
-    for (const i of order) {
-      if (grown >= HEARTBLOOMS_PER_TIER) break;
-      if (tierOf(i) !== tier || !wild(i) || land.use[i] !== Use.Wild || !land.open(i) || land.decor.has(i) || (land.flags[i]! & RAMP) !== 0) continue;
-      if (land.steps(i, ring).length !== 8 || !ring.every((n) => land.use[n] === Use.Wild && !land.decor.has(n) && (land.flags[n]! & RAMP) === 0)) continue;
-      const x = land.xOf(i);
-      const z = land.zOf(i);
-      if (!apart(x, z, blooms, HEARTBLOOM_APART) || !apart(x, z, spawns, 6) || !apart(x, z, chests, 6)) continue;
-      blooms.push({ id: "", x, z, heart: true, respawnSeconds: HEARTBLOOM_REGROWTH });
-      grown++;
-    }
-  }
-
   const byPlace = <T extends { x: number; z: number }>(list: T[]) => list.sort((a, b) => a.z - b.z || a.x - b.x);
   return {
     spawns: byPlace(spawns).map((s) => ({ ...s, id: nextId(land.idx(s.x, s.z)) })),
-    chests: [...byPlace(chests).map((c) => ({ ...c, id: nextId(land.idx(c.x, c.z), "c") })), ...byPlace(blooms).map((c) => ({ ...c, id: nextId(land.idx(c.x, c.z), "h") }))],
     waymarkers: byPlace(waymarkers),
   };
 }

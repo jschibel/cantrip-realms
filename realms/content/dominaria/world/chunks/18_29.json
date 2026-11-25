@@ -208,7 +208,6 @@
   "spawns": [
     {"id":"18_29:1","x":604,"z":937,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

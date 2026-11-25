@@ -304,7 +304,6 @@
     {"id":"18_15:2","x":601,"z":495,"mobs":["merfolk-raiders","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"18_15:3","x":584,"z":507,"mobs":["guardian-of-new-benalia","knight-of-malice","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

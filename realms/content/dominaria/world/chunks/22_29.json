@@ -33,7 +33,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",3],[0,"forest-floor",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],
-    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",3],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0]
+    [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"forest-floor",0],[0,"grass",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0]
   ],
   "props": [
     {"id":"pine","x":730.5,"z":928.5625,"seed":7,"scale":0.8125},
@@ -105,9 +105,6 @@
   "npcs": [],
   "spawns": [
     {"id":"22_29:1","x":726,"z":942,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
-  "chests": [
-    {"id":"22_29:c1","x":725,"z":959,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

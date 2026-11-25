@@ -59,7 +59,6 @@
   "spawns": [
     {"id":"16_26:1","x":519,"z":848,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -8,74 +8,46 @@ using Xunit;
 namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
-/// The two hearts found rather than bought (design.md A3b): a heartbloom of the wilds, picked from beside it, which grows
-/// back for that character a week later; and a dungeon run's shrine (A6), on one floor of a run in eight, which blesses
-/// once in the run. Each gives back one heart up to the capacity, and neither is used up by a character whose hearts are
-/// full. Both are kept in the <c>chests</c> table, as a chest's opening is.
+/// The two hearts found rather than bought (design.md A3b): a heartbloom of the wilds, picked from on or beside it, gone for
+/// everyone once picked (Finds spawns them); and a dungeon run's shrine (A6), on one floor of a run in eight, which blesses
+/// once in the run (kept in the <c>chests</c> table). Each gives back one heart up to the capacity, and neither is used up
+/// by a character whose hearts are full.
 /// </summary>
 public sealed class HeartFindsTests
 {
     private const string World = RealmContent.WorldSpace;
 
-    /// <summary>The test world's heartbloom (World/make-world.py).</summary>
-    private static MapChest Bloom => RealmApp.Content.World.Chest("1_1:h1")!;
+    private static Task<ChestView> Pick(Browser browser, FindView bloom) =>
+        browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = bloom.Id });
 
-    private static Task<ChestView> Pick(Browser browser) =>
-        browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = Bloom.Id });
-
-    private static Task<ApiError> PickRefused(Browser browser, string code) =>
-        browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = Bloom.Id }, HttpStatusCode.Conflict, code);
+    private static Task<ApiError> PickRefused(Browser browser, FindView bloom, string code) =>
+        browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = bloom.Id }, HttpStatusCode.Conflict, code);
 
     [Fact]
-    public void The_test_worlds_heartbloom_is_a_heart_and_no_gold_on_an_open_tile_of_the_wilds()
-    {
-        Assert.True(Bloom.Heart);
-        Assert.Empty(Bloom.Gold);
-        Assert.Equal((int)Chests.HeartbloomRegrowth.TotalSeconds, Bloom.RespawnSeconds);
-        Assert.True(RealmApp.Content.World.Walkable(Bloom.At));
-        Assert.Null(RealmApp.Content.TownAt(Bloom.At));
-        Assert.DoesNotContain(RealmApp.Content.World.Chests, chest => chest.Heart && chest.Id != Bloom.Id);
-    }
-
-    [Fact]
-    public async Task A_heartbloom_gives_back_a_heart_and_grows_back_for_its_picker_a_week_later()
+    public async Task A_heartbloom_gives_back_a_heart_once_and_is_gone_for_everyone()
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         await app.SetHearts(browser, 1, 3);
+        FindView bloom = await RealmApp.Stand(browser, "heartbloom", RealmApp.Wilds);
+        Assert.Equal(("heartbloom", RealmApp.Wilds.X, RealmApp.Wilds.Z), (bloom.Kind, bloom.X, bloom.Z));
 
-        // Picked from beside it, never from afar.
-        await browser.Put(World, RealmApp.Away(Bloom.At, 2));
-        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = Bloom.Id }, HttpStatusCode.Conflict, Codes.NotNear);
-        await browser.Put(World, Bloom.At);
-        Assert.Empty((await browser.Me()).Picked);
-
-        ChestView picked = await Pick(browser);
+        // Picked from on or beside it, never from afar.
+        await browser.Put(World, RealmApp.Away(RealmApp.Wilds, 2));
+        await PickRefused(browser, bloom, Codes.NotNear);
+        await browser.Put(World, RealmApp.Wilds);
+        ChestView picked = await Pick(browser, bloom);
         Assert.Equal((true, 0L, (GearInstance?)null, 2, Characters.StartingGold), (picked.Heart, picked.Found, picked.Gear, picked.Hearts, picked.Gold));
         CharacterView me = await browser.Me();
         Assert.Equal((2, 3), (me.Hearts, me.MaxHearts));
-        PickedView gone = Assert.Single(me.Picked);
-        Assert.Equal((Bloom.Id, RealmApp.Start + Chests.HeartbloomRegrowth), (gone.Chest, gone.Until));
 
-        // Gone for this character until it grows back, a week on, a heart missing or not.
-        await browser.Put(World, RealmApp.Beside(World, Bloom.At));
-        await PickRefused(browser, Codes.Empty);
-        app.Time.Advance(Chests.HeartbloomRegrowth - TimeSpan.FromSeconds(1));
-        await PickRefused(browser, Codes.Empty);
-        Assert.Single((await browser.Me()).Picked);
-        app.Time.Advance(TimeSpan.FromSeconds(1));
-        Assert.Empty((await browser.Me()).Picked);
-        Assert.Equal(3, (await Pick(browser)).Hearts);
-
-        // Another character's is theirs: still there for them.
+        // Gone: for its picker, and for anyone else who comes to it.
+        Assert.DoesNotContain(await browser.Ok<List<FindView>>(HttpMethod.Get, "/api/finds"), find => find.Id == bloom.Id);
+        await PickRefused(browser, bloom, Codes.Empty);
         Browser other = await app.Character(2);
         await app.SetHearts(other, 1);
-        await other.Put(World, Bloom.At);
-        Assert.Equal(2, (await Pick(other)).Hearts);
-
-        // One row a find, as a chest's: the bloom's time taken, by whom.
-        List<ChestRow> rows = await app.Store(db => db.Chests.AsNoTracking().Where(row => row.Chest == Bloom.Id).OrderBy(row => row.PlayerId).ToListAsync());
-        Assert.Equal([browser.Player, other.Player], rows.Select(row => row.PlayerId));
+        await other.Put(World, RealmApp.Wilds);
+        await PickRefused(other, bloom, Codes.Empty);
     }
 
     [Fact]
@@ -83,18 +55,18 @@ public sealed class HeartFindsTests
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
-        await browser.Put(World, Bloom.At);
+        FindView bloom = await RealmApp.Stand(browser, "heartbloom", RealmApp.Wilds);
+        await browser.Put(World, RealmApp.Wilds);
 
-        ApiError full = await PickRefused(browser, Codes.FullHearts);
+        ApiError full = await PickRefused(browser, bloom, Codes.FullHearts);
         Assert.Contains("full", full.Detail, StringComparison.Ordinal);
         CharacterView me = await browser.Me();
         Assert.Equal((2, 2, Characters.StartingGold), (me.Hearts, me.MaxHearts, me.Gold));
-        Assert.Empty(me.Picked);
-        Assert.False(await app.Store(db => db.Chests.AnyAsync(row => row.PlayerId == browser.Player)));
+        Assert.Contains(await browser.Ok<List<FindView>>(HttpMethod.Get, "/api/finds"), find => find.Id == bloom.Id);
 
         // A heart lost since, it is there to pick.
         await app.SetHearts(browser, 1);
-        Assert.Equal(2, (await Pick(browser)).Hearts);
+        Assert.Equal(2, (await Pick(browser, bloom)).Hearts);
     }
 
     [Fact]
@@ -103,11 +75,10 @@ public sealed class HeartFindsTests
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         await app.SetHearts(browser, 1);
-        MapChest chest = RealmApp.Content.World.Chest("0_0:1")!;
-        await browser.Put(World, RealmApp.Beside(World, chest.At));
+        FindView chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
+        await browser.Put(World, RealmApp.Beside(World, RealmApp.Wilds));
         ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
         Assert.Equal((false, 1), (found.Heart, found.Hearts));
-        Assert.Empty((await browser.Me()).Picked);
     }
 
     [Fact]
@@ -217,26 +188,5 @@ public sealed class HeartFindsTests
         }
 
         Assert.Equal((3, 4), ((await browser.Me()).Hearts, (await browser.Me()).MaxHearts));
-    }
-
-    [Fact]
-    public void Dominaria_grows_a_handful_of_heartblooms_in_its_wilds()
-    {
-        RealmContent content = RealmApp.Generated;
-        List<MapChest> blooms = [.. content.World.Chests.Where(chest => chest.Heart)];
-        Assert.InRange(blooms.Count, 6, 12);
-        foreach (MapChest bloom in blooms)
-        {
-            Assert.Empty(bloom.Gold);
-            Assert.Equal((int)Chests.HeartbloomRegrowth.TotalSeconds, bloom.RespawnSeconds);
-            Assert.True(content.World.Walkable(bloom.At), $"{bloom.Id} stands on a closed tile");
-            Assert.Null(content.TownAt(bloom.At));
-        }
-
-        // Rare: far apart, never two in one stretch of the wilds.
-        foreach (MapChest bloom in blooms)
-        {
-            Assert.All(blooms.Where(other => other != bloom), other => Assert.True(bloom.At.DistanceTo(other.At) >= 100, $"{bloom.Id} and {other.Id} grow close"));
-        }
     }
 }

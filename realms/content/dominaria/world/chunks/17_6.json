@@ -100,7 +100,6 @@
     {"id":"keld-folk-1","x":560,"z":220,"kind":"townsfolk","name":"Keldon warrior","text":["Fight me. No? Then fight the giants, they're asking for it."],"figure":"townsfolk-keld","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[560,220],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -30,10 +30,10 @@
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[60,"rock",1],[60,"rock",1],[60,"rock",1],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],
-    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",0],[0,"scree",0],
-    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",2],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0]
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"scree",0],[0,"scree",2],[0,"scree",0],[0,"scree",0],[0,"scree",3],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0]
   ],
   "props": [
     {"id":"boulder","x":440.4375,"z":609.4375,"seed":6,"scale":1.25},
@@ -74,13 +74,8 @@
     {"id":"13_19:2","x":438,"z":633,"mobs":["bog-wraith","craw-wurm","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"13_19:3","x":420,"z":635,"mobs":["craw-wurm","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"13_19:c1","x":426,"z":636,"gold":[100,250],"respawnSeconds":86400}
-  ],
   "entrances": [
     {"x":439,"z":619,"dungeon":"hurloon-caves"}
   ],
-  "waymarkers": [
-    {"x":426,"z":639,"tier":2}
-  ]
+  "waymarkers": []
 }

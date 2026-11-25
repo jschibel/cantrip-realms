@@ -132,7 +132,6 @@
     {"id":"llanowar-folk-2","x":730,"z":859,"kind":"townsfolk","name":"Wurm herder","text":["They're gentle, really. Just very, very large."],"figure":"townsfolk-llanowar","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[730,859],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

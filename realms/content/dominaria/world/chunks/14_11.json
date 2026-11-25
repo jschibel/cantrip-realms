@@ -5,7 +5,7 @@
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",3],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
-    [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
+    [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
     [0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"bog",1],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],
@@ -32,7 +32,7 @@
     [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",2],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
-    [0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
+    [0,"mud",3],[0,"mud",0],[0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],
     [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3]
   ],
   "props": [
@@ -115,11 +115,10 @@
     {"id":"14_11:1","x":469,"z":357,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"14_11:2","x":478,"z":381,"mobs":["bog-wraith","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [
-    {"id":"14_11:c1","x":463,"z":355,"gold":[100,250],"respawnSeconds":86400}
-  ],
   "entrances": [
     {"x":454,"z":368,"dungeon":"caligo-3"}
   ],
-  "waymarkers": []
+  "waymarkers": [
+    {"x":448,"z":382,"tier":2}
+  ]
 }

@@ -69,7 +69,6 @@
     {"id":"15_31:1","x":498,"z":997,"mobs":["abomination","river-merfolk"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"15_31:2","x":504,"z":1018,"mobs":["birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -88,7 +88,6 @@
     {"id":"tolarian-academy-folk-1","x":124,"z":667,"kind":"townsfolk","name":"Lecturer","text":["We rebuilt the Academy on Walassa. The old one is best not spoken of."],"figure":"townsfolk-orvada","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[124,667],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

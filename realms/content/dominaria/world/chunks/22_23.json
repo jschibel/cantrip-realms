@@ -260,7 +260,6 @@
     {"id":"22_23:2","x":731,"z":748,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"22_23:3","x":717,"z":763,"mobs":["durkwood-boars","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

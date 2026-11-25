@@ -82,7 +82,6 @@
     {"id":"11_22:1","x":360,"z":714,"mobs":["benalish-knight","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"11_22:2","x":375,"z":723,"mobs":["benalish-knight","longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

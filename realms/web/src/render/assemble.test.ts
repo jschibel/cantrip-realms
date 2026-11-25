@@ -43,7 +43,7 @@ const PROPS_HERE: PropData[] = [
 
 function chunk(): ChunkData {
   const tiles: TileData[] = Array.from({ length: CHUNK * CHUNK }, () => [0, "grass", 0] as TileData);
-  return { cx: 0, cz: 0, tiles, props: PROPS_HERE, buildings: BUILDINGS_HERE, npcs: [], spawns: [], chests: [], entrances: [], waymarkers: [] };
+  return { cx: 0, cz: 0, tiles, props: PROPS_HERE, buildings: BUILDINGS_HERE, npcs: [], spawns: [], entrances: [], waymarkers: [] };
 }
 
 const meshes = (o: THREE.Object3D, visibleOnly = true) => {

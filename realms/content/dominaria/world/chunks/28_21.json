@@ -172,7 +172,6 @@
     {"id":"28_21:1","x":911,"z":680,"mobs":["air-elemental","knight-of-malice","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"28_21:2","x":913,"z":702,"mobs":["guardian-of-new-benalia","marton-stromgald"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

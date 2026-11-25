@@ -181,7 +181,6 @@
     {"id":"15_35:1","x":508,"z":1128,"mobs":["serra-angel","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"15_35:2","x":490,"z":1140,"mobs":["enormous-baloth","fallen-angel","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

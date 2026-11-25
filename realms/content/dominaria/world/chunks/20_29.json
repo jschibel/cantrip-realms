@@ -267,7 +267,6 @@
     {"id":"20_29:1","x":651,"z":931,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"20_29:2","x":647,"z":954,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [
     {"x":666,"z":937,"dungeon":"llanowar-1"}
   ],

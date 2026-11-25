@@ -103,7 +103,6 @@
   "spawns": [
     {"id":"27_20:1","x":865,"z":654,"mobs":["abomination","guardian-of-new-benalia","marton-stromgald"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

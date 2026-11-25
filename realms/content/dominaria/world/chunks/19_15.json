@@ -370,7 +370,6 @@
     {"id":"19_15:1","x":626,"z":486,"mobs":["longbow-archer","moor-fiend","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"19_15:2","x":622,"z":505,"mobs":["lost-soul","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -72,7 +72,6 @@
   "spawns": [
     {"id":"15_25:1","x":509,"z":821,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

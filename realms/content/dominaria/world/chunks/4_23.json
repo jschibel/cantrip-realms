@@ -51,7 +51,6 @@
   "spawns": [
     {"id":"4_23:1","x":136,"z":755,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

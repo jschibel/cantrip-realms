@@ -62,7 +62,6 @@
     {"id":"8_23:2","x":271,"z":747,"mobs":["merfolk-raiders","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"8_23:3","x":286,"z":759,"mobs":["pegasus-charger","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

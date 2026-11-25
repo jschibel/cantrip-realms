@@ -93,7 +93,6 @@
     {"id":"22_15:2","x":729,"z":487,"mobs":["rorix-bladewing","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"22_15:3","x":734,"z":504,"mobs":["mahamoti-djinn","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

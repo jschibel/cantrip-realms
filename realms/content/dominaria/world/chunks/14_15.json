@@ -203,7 +203,6 @@
     {"id":"14_15:1","x":476,"z":494,"mobs":["moor-fiend","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"14_15:2","x":460,"z":506,"mobs":["bog-wraith","cradle-guard"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

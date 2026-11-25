@@ -200,32 +200,6 @@ export interface SpawnData {
   readonly tier: number;
 }
 
-/**
- * A find of a place, a character's own again on its own timer (design.md A5, A3b): a treasure chest on a blocked tile of
- * its own, its `gold` the least and the most it holds (`"<cx>_<cz>:c<n>"`); or, `heart`, a heartbloom of the wilds on an
- * open tile, which gives back a heart and holds no gold (`"<cx>_<cz>:h<n>"`).
- */
-export interface ChestData {
-  readonly id: string;
-  readonly x: number;
-  readonly z: number;
-  readonly gold?: readonly [number, number];
-  readonly heart?: boolean;
-  readonly respawnSeconds: number;
-}
-
-/** Whether a find is a heartbloom (design.md A3b), not a treasure chest. */
-export const isHeartbloom = (c: ChestData): boolean => c.heart === true;
-
-/**
- * Heartblooms (design.md A3b): the most the world grows ("a handful"), how far apart they grow at the least (Chebyshev,
- * tiles), and how long one takes to grow back for the character who picked it - a week, the server's
- * `Chests.HeartbloomRegrowth`.
- */
-export const HEARTBLOOMS_MOST = 12;
-export const HEARTBLOOM_APART = 150;
-export const HEARTBLOOM_REGROWTH = 7 * 86_400;
-
 /** Walking onto an entrance starts a run of its dungeon. */
 export interface EntranceData {
   readonly x: number;
@@ -270,7 +244,6 @@ export interface ChunkData {
   readonly buildings: readonly BuildingData[];
   readonly npcs: readonly NpcData[];
   readonly spawns: readonly SpawnData[];
-  readonly chests: readonly ChestData[];
   readonly entrances: readonly EntranceData[];
   readonly waymarkers: readonly WaymarkerData[];
   readonly lights?: readonly LightData[];

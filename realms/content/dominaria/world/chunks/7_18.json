@@ -32,7 +32,7 @@
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
-    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],
+    [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",3],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],
     [0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sand",0],[0,"sand",0],[0,"meadow",0],[0,"meadow",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0],[12,"meadow",0]
   ],
   "props": [
@@ -57,9 +57,6 @@
     {"id":"7_18:2","x":237,"z":577,"mobs":["keldon-warlord","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"7_18:3","x":245,"z":594,"mobs":["craw-wurm","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"7_18:4","x":234,"z":607,"mobs":["benalish-knight","longbow-archer","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
-  ],
-  "chests": [
-    {"id":"7_18:c1","x":254,"z":606,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

@@ -119,7 +119,6 @@
     {"id":"serras-rest-quest-board","x":569,"z":933,"kind":"quest-board","name":"Notice board","text":["Ferry to Verdura at the south dock."],"stand":[569.5,0.625,933.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

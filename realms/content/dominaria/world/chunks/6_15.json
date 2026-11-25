@@ -69,7 +69,6 @@
     {"id":"6_15:1","x":222,"z":493,"mobs":["merfolk-raiders","sandbar-serpent","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"6_15:2","x":204,"z":496,"mobs":["bog-wraith","moor-fiend","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

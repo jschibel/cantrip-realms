@@ -47,7 +47,6 @@
   "spawns": [
     {"id":"6_20:1","x":221,"z":670,"mobs":["bog-raiders","hurloon-minotaur"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -101,7 +101,6 @@
     {"id":"vess-estate-folk-2","x":333,"z":415,"kind":"townsfolk","name":"Cabal defector","text":["The Cabal made this swamp. I helped. I'm sorry."],"figure":"townsfolk-caligo","speed":1.6,"seed":2,"behaviour":{"wander":{"home":[333,415],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

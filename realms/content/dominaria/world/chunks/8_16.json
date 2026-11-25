@@ -107,7 +107,6 @@
     {"id":"sursi-quest-board","x":267,"z":534,"kind":"quest-board","name":"Notice board","text":["The ferry to Stahaan sails from the west cliffs. The minotaurs do not welcome visitors."],"stand":[267.5,1,534.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

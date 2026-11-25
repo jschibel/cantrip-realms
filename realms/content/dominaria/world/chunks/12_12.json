@@ -142,7 +142,6 @@
   "spawns": [
     {"id":"12_12:1","x":408,"z":403,"mobs":["bog-imp","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [
     {"x":413,"z":384,"dungeon":"caligo-barrow"}
   ],

@@ -102,7 +102,6 @@
     {"id":"tolarian-academy-quest-board","x":145,"z":658,"kind":"quest-board","name":"Quest board","text":["Lost: one automaton, answers to nothing.","Research assistants wanted for the tower. Hazard pay."],"stand":[145.5,0.4375,658.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

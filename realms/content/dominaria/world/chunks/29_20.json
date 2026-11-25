@@ -57,7 +57,6 @@
     {"id":"29_20:1","x":935,"z":668,"mobs":["enormous-baloth","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"29_20:2","x":953,"z":668,"mobs":["sengir-vampire","sibilant-spirit","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -121,7 +121,6 @@
     {"id":"new-benalia-guard-2","x":594,"z":746,"kind":"guard","name":"New Benalia guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-benalia","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[594,746],[582,746]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

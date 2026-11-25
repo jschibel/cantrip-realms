@@ -63,7 +63,6 @@
     {"id":"new-benalia-folk-1","x":528,"z":734,"kind":"townsfolk","name":"Benalish herald","text":["Every road in Aerona leads to New Benalia. Most of them come back."],"figure":"townsfolk-benalia","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[528,734],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

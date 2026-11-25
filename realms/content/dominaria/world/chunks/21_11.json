@@ -18,7 +18,7 @@
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],
+    [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],[0,"shallows",1],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"shallows",1],
     [0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",2],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],
     [0,"grass",0],[0,"grass",2],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"sand",0],[0,"sand",0],
@@ -56,11 +56,8 @@
     {"id":"21_11:2","x":700,"z":375,"mobs":["abomination","frost-giant","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"21_11:3","x":682,"z":378,"mobs":["arrogant-wurm","guardian-of-new-benalia"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [
-    {"id":"21_11:c1","x":692,"z":368,"gold":[180,380],"respawnSeconds":86400}
-  ],
   "entrances": [],
   "waymarkers": [
-    {"x":684,"z":368,"tier":3}
+    {"x":680,"z":368,"tier":3}
   ]
 }

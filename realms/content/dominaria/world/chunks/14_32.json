@@ -48,7 +48,6 @@
   "spawns": [
     {"id":"14_32:1","x":467,"z":1052,"mobs":["birds-of-paradise","marton-stromgald","two-headed-giant-of-foriys"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

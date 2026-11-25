@@ -415,7 +415,6 @@
   "spawns": [
     {"id":"28_22:1","x":902,"z":717,"mobs":["abomination","marton-stromgald"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

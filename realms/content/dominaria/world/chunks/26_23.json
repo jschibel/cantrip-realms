@@ -266,7 +266,6 @@
     {"id":"26_23:1","x":837,"z":750,"mobs":["bog-wraith","keldon-warlord","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"26_23:2","x":862,"z":753,"mobs":["longbow-archer","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

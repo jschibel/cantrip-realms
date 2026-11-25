@@ -35,6 +35,10 @@ namespace Cantrip.Realms.Server;
 /// (or takes them, with a negative count), as a test arranges what is owned; 422 <c>NoSuchCard</c> for any other.</item>
 /// <item><c>GET /dev/where</c>: where the presence relay has each of the signed-in player's connections now, <c>[{Member,
 /// Space, X, Z}]</c> - what a test reads a page's walks against.</item>
+/// <item><c>POST /dev/find {Kind, X, Z, Clear}</c> stands a find of the wilds on an open tile of the world now -
+/// <c>chest</c> or <c>heartbloom</c>, its tier its zone's - after taking away every other when <c>Clear</c>, as a test
+/// arranges what is there instead of waiting on the spawner's dice: the <c>Find</c>; 422 <c>NoSuchPlace</c> for a tile nobody
+/// stands on, or another kind.</item>
 /// <item><c>POST /dev/log {Text}</c> writes what the page saw to the server's log, as a warning under the player's id (the
 /// overworld's report of a jump of the player's figure, with the presence events before it), at most 16 KB of it.</item>
 /// </list>
@@ -82,6 +86,19 @@ public static class DevApi
 
         dev.MapGet("/where", (HttpContext context, Presence.PresenceHub hub) =>
             Results.Ok(hub.WhereIs(RealmSignIn.PlayerId(context)!).Select(where => new { where.Member, where.Space, where.At.X, where.At.Z })));
+
+        dev.MapPost("/find", (Economy.Finds finds, DevFind body) =>
+        {
+            var at = new Tile(body.X, body.Z);
+            Economy.FindKind? kind = body.Kind switch { "chest" => Economy.FindKind.Chest, "heartbloom" => Economy.FindKind.Heartbloom, _ => null };
+            if (kind is null || !finds.CanStand(at))
+            {
+                throw Refusal.Unprocessable(Codes.NoSuchPlace, "A find is a chest or a heartbloom, on an open tile of the world.");
+            }
+
+            if (body.Clear) finds.Clear();
+            return Results.Ok(Economy.Chests.View(finds.Place(kind.Value, at)));
+        });
 
         dev.MapPost("/log", (HttpContext context, ILoggerFactory logs, DevLog body) =>
         {
@@ -206,6 +223,9 @@ public static class DevApi
 
     /// <summary><c>POST /dev/log</c>'s body.</summary>
     public sealed record DevLog(string? Text);
+
+/// <summary>A find a test stands on a tile (<c>POST /dev/find</c>): its kind, its tile, and whether every other goes first.</summary>
+public sealed record DevFind(string? Kind, int X, int Z, bool Clear = false);
 }
 
 /// <summary>

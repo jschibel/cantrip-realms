@@ -4,7 +4,7 @@
   "tiles": [
     [36,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[33,"scree",4],[27,"scree",4],[24,"scree",0],[24,"scree",0],[60,"rock",1],[60,"rock",1],[72,"rock",1],[84,"rock",1],[84,"snow",1],[96,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[84,"snow",1],
     [48,"scree",0],[48,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[36,"scree",0],[60,"rock",1],[72,"rock",1],[84,"rock",1],[84,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],
-    [48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",3],[36,"scree",0],[36,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],
+    [48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",3],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],
     [48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[36,"scree",0],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],
     [72,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[36,"scree",0],[36,"scree",3],[36,"scree",3],[36,"scree",0],[36,"scree",3],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[96,"snow",1],[96,"snow",1],[108,"snow",1],[108,"snow",1],[108,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[84,"snow",1],
     [96,"rock",1],[96,"rock",1],[84,"rock",1],[84,"rock",1],[84,"rock",1],[72,"rock",1],[72,"rock",1],[72,"rock",1],[60,"rock",1],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[48,"scree",0],[36,"scree",3],[36,"scree",3],[36,"scree",3],[60,"rock",1],[72,"rock",1],[72,"rock",1],[84,"rock",1],[84,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[96,"snow",1],[84,"snow",1],[84,"snow",1],
@@ -76,9 +76,6 @@
   "npcs": [],
   "spawns": [
     {"id":"21_18:1","x":685,"z":604,"mobs":["mahamoti-djinn","tombstalker","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
-  "chests": [
-    {"id":"21_18:c1","x":683,"z":578,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

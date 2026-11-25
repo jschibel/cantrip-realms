@@ -33,7 +33,7 @@
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",2],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",3],[12,"moss",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],
     [12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"moss",0],[12,"moss",3],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],
-    [12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",2],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
+    [12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",3],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"forest-floor",0],[12,"moss",0],[12,"moss",0],[12,"moss",0],[12,"moss",2],[12,"grass",3],[12,"grass",3],[12,"grass",0],[12,"grass",0],[12,"grass",0],[12,"grass",0]
   ],
   "props": [
     {"id":"boulder","x":726.4375,"z":704.375,"seed":6,"scale":0.9375},
@@ -251,7 +251,8 @@
     {"id":"22_22:1","x":715,"z":716,"mobs":["cradle-guard","craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"22_22:2","x":729,"z":730,"mobs":["craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
-  "waymarkers": []
+  "waymarkers": [
+    {"x":709,"z":735,"tier":2}
+  ]
 }

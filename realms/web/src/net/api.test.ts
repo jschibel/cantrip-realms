@@ -1,20 +1,9 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
 import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/realm";
 import { MockApi, travelersAt } from "./mockApi";
 import { buyout } from "../hearts";
-import { type ChestData, type ChunkData, HEARTBLOOM_REGROWTH, isHeartbloom } from "../world/format";
-
-/** Dominaria's heartblooms, as its chunk files hold them (read straight from the files: only those that name one parsed). */
-function heartblooms(): ChestData[] {
-  const dir = join(__dirname, "..", "..", "..", "content", "dominaria", "world", "chunks");
-  return readdirSync(dir)
-    .map((f) => readFileSync(join(dir, f), "utf8"))
-    .filter((text) => text.includes('"heart":true'))
-    .flatMap((text) => (JSON.parse(text) as ChunkData).chests.filter(isHeartbloom));
-}
+import { goldOf, zoneOf } from "../world/finds";
 
 describe("HttpApi", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -144,10 +133,22 @@ describe("MockApi", () => {
     expect(await api.buyHeart()).toMatchObject({ Hearts: 3, MaxHearts: 3, Price: 3000 });
   });
 
-  it("opens a chest once", async () => {
+  it("opens a chest from on it or beside it, its tier's gold, and it is gone", async () => {
     const api = make();
-    expect((await api.openChest({ Space: "world", Chest: "10_10:c1" })).Gold).toBeGreaterThan(0);
-    await expect(api.openChest({ Space: "world", Chest: "10_10:c1" })).rejects.toMatchObject({ code: "Empty" });
+    const me = (await api.me())!;
+    const chest = api.placeFind("chest", me.X + 2, me.Z);
+    expect(await api.finds()).toEqual([chest]);
+    const open = () => api.openChest({ Space: "world", Chest: chest.Id });
+    await expect(open()).rejects.toMatchObject({ code: "NotNear" });
+    await api.position({ Space: "world", X: me.X + 1, Z: me.Z });
+    const found = await open();
+    const zone = zoneOf(WORLD, chest.X, chest.Z);
+    const [low, high] = goldOf(zone >= 0 ? WORLD.zones.areas[zone]!.tier : 0);
+    expect(found.Found).toBeGreaterThanOrEqual(low);
+    expect(found.Found).toBeLessThanOrEqual(high);
+    expect(found.Gold).toBe(me.Gold + found.Found);
+    await expect(open()).rejects.toMatchObject({ code: "Empty" });
+    expect(await api.finds()).toEqual([]);
   });
 
   /** Loses a world duel and pays the mob off: a heart gone. */
@@ -158,28 +159,20 @@ describe("MockApi", () => {
     await api.payEncounter({ Token: lost.Token });
   };
 
-  it("gives back a heart at a heartbloom, picked from on it or beside it, gone for that character for a week", async () => {
+  it("gives back a heart at a heartbloom, picked from on it or beside it, and it is gone; one with full hearts keeps", async () => {
     const api = make();
-    let now = 1_800_000_000;
-    api.now = () => now;
-    const bloom = heartblooms()[0]!;
-    const pick = () => api.openChest({ Space: "world", Chest: bloom.id });
-    await api.position({ Space: "world", X: bloom.x, Z: bloom.z + 3 });
+    const me = (await api.me())!;
+    const bloom = api.placeFind("heartbloom", me.X, me.Z + 3);
+    const pick = () => api.openChest({ Space: "world", Chest: bloom.Id });
     // From beside it, never from afar; hearts full, it keeps; a heart lost, it is picked.
     await expect(pick()).rejects.toMatchObject({ code: "NotNear" });
-    await api.position({ Space: "world", X: bloom.x + 1, Z: bloom.z });
+    await api.position({ Space: "world", X: bloom.X + 1, Z: bloom.Z });
     await expect(pick()).rejects.toMatchObject({ code: "FullHearts" });
+    expect(await api.finds()).toEqual([bloom]);
     await loseOne(api, "s1");
-    expect((await api.me())!.Picked).toEqual([]);
     expect(await pick()).toMatchObject({ Found: 0, Hearts: 2, Heart: true });
-    expect((await api.me())!.Picked).toEqual([{ Chest: bloom.id, Until: new Date((now + HEARTBLOOM_REGROWTH) * 1000).toISOString() }]);
-    // Gone a week, then back.
-    await loseOne(api, "s2");
-    now += HEARTBLOOM_REGROWTH - 1;
     await expect(pick()).rejects.toMatchObject({ code: "Empty" });
-    now += 1;
-    expect((await api.me())!.Picked).toEqual([]);
-    expect(await pick()).toMatchObject({ Hearts: 2, Heart: true });
+    expect(await api.finds()).toEqual([]);
   });
 
   it("puts a shrine on one floor of a run in eight, which blesses once in the run, on its floor, with a heart missing", async () => {

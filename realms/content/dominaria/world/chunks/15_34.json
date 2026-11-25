@@ -150,7 +150,6 @@
     {"id":"verdura-grove-folk-1","x":481,"z":1107,"kind":"townsfolk","name":"Druid","text":["Verdura grows back faster than you can cut it."],"figure":"townsfolk-llanowar","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[481,1107],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

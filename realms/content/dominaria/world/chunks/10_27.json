@@ -88,7 +88,6 @@
     {"id":"capashen-hold-arena","x":323,"z":883,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[323.5,0.125,883.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

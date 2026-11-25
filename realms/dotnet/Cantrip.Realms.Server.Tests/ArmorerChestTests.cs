@@ -64,35 +64,33 @@ public sealed class ArmorerChestTests
     }
 
     [Fact]
-    public async Task A_chest_holds_gold_in_its_range_and_refills_on_its_timer()
+    public async Task A_chest_holds_its_tiers_gold_and_is_gone_for_everyone_once_opened()
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         const string World = RealmContent.WorldSpace;
-        MapChest chest = RealmApp.Content.World.Chest("0_0:1")!;
+        FindView chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
+        IReadOnlyList<long> gold = Finds.GoldOf(2);
 
-        await browser.Put(World, RealmApp.Away(chest.At, 2));
+        await browser.Put(World, RealmApp.Away(RealmApp.Wilds, 2));
         await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.NotNear);
 
-        await browser.Put(World, RealmApp.Beside(World, chest.At));
+        // A chest is named in the world: none of that name inside a building.
+        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = "new-benalia-inn", Chest = chest.Id }, HttpStatusCode.NotFound, Codes.NoSuchPlace);
+
+        await browser.Put(World, RealmApp.Beside(World, RealmApp.Wilds));
         ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
-        Assert.InRange(found.Found, chest.Gold[0], chest.Gold[1]);
+        Assert.InRange(found.Found, gold[0], gold[1]);
         Assert.Equal(Characters.StartingGold + found.Found, found.Gold);
 
+        // Opened, it is gone: for its opener and for another beside it, now and later.
+        Assert.Empty(await browser.Ok<List<FindView>>(HttpMethod.Get, "/api/finds"));
         await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
-        app.Time.Advance(TimeSpan.FromSeconds(chest.RespawnSeconds - 1));
-        await browser.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
-        app.Time.Advance(TimeSpan.FromSeconds(1));
-        ChestView again = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
-        Assert.Equal(found.Gold + again.Found, again.Gold);
-
-        // Another player's chest is full.
         Browser other = await app.Character(2);
-        await other.Put(World, RealmApp.Beside(World, chest.At));
-        await other.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
-
-        // A chest is named by its space: none of that name inside a building.
-        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = "new-benalia-inn", Chest = chest.Id }, HttpStatusCode.NotFound, Codes.NoSuchPlace);
+        await other.Put(World, RealmApp.Beside(World, RealmApp.Wilds));
+        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
+        app.Time.Advance(TimeSpan.FromDays(1));
+        await other.Refused(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id }, HttpStatusCode.Conflict, Codes.Empty);
     }
 }
 

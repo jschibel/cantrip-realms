@@ -149,7 +149,6 @@
     {"id":"16_12:2","x":524,"z":387,"mobs":["bog-wraith","craw-wurm","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"16_12:3","x":525,"z":408,"mobs":["lost-soul","orcish-artillery","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

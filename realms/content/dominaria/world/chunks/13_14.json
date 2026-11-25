@@ -79,7 +79,6 @@
     {"id":"cabal-crossing-folk-1","x":444,"z":468,"kind":"townsfolk","name":"Lantern keeper","text":["Keep the lantern lit and the dead keep their distance. Usually."],"figure":"townsfolk-caligo","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[444,468],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

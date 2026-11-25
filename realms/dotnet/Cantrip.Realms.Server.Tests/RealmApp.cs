@@ -78,6 +78,9 @@ public sealed class RealmApp : WebApplicationFactory<Program>
         builder.UseSetting("REALMS_DATABASE", $"sqlite:{_database}");
         builder.UseSetting("REALMS_ROOT", Root);
         builder.UseSetting("REALMS_DEV_SIGNIN", "1");
+        // No finds spawn by the dice: a test stands its own (Stand), unless it asks for the spawner.
+        builder.UseSetting("REALMS_CHESTS_PER_ZONE", "0");
+        builder.UseSetting("REALMS_HEARTBLOOMS", "0");
         foreach ((string key, string value) in Settings) builder.UseSetting(key, value);
 
         builder.ConfigureServices(services =>
@@ -124,6 +127,13 @@ public sealed class RealmApp : WebApplicationFactory<Program>
 
     /// <summary>A space of the test world: the world, or an interior.</summary>
     public static RealmSpace Space(string id) => Content.Space(id) ?? throw new ArgumentException($"No space '{id}'.", nameof(id));
+
+    /// <summary>An open tile of the test world's wilds, between the towns, in a tier 2 zone: where a test stands a find.</summary>
+    public static Tile Wilds { get; } = new(34, 34);
+
+    /// <summary>Stands a find of the wilds on a tile, every other taken away first (<c>POST /dev/find</c>).</summary>
+    public static Task<FindView> Stand(Browser browser, string kind, Tile at) =>
+        browser.Ok<FindView>(HttpMethod.Post, "/dev/find", new { Kind = kind, at.X, at.Z, Clear = true });
 
     /// <summary>The first open tile a step from a tile of a space (in <see cref="Tile.Steps"/>'s order), to stand at.</summary>
     public static Tile Beside(string space, Tile at) => Tile.Steps.Select(at.Plus).First(Space(space).Walkable);

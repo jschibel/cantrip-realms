@@ -117,7 +117,6 @@
     {"id":"denawa-folk-1","x":147,"z":782,"kind":"townsfolk","name":"Scribe","text":["Denawa copies what Walassa forgets."],"figure":"townsfolk-orvada","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[147,782],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

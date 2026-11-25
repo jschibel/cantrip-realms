@@ -137,7 +137,6 @@
     {"id":"vess-estate-arena","x":299,"z":412,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[299.5,0.1875,412.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -91,7 +91,6 @@
   "spawns": [
     {"id":"7_15:1","x":241,"z":480,"mobs":["bog-wraith","lost-soul","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

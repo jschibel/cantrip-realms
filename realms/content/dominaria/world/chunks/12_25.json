@@ -4,7 +4,7 @@
   "tiles": [
     [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
     [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
-    [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",3],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
+    [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
     [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"meadow",0],[0,"meadow",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",3],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
     [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
     [0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"furrows",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[12,"road",0],[12,"road",0],[12,"road",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],[0,"meadow",0],
@@ -60,9 +60,6 @@
   "spawns": [
     {"id":"12_25:1","x":398,"z":808,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"12_25:2","x":414,"z":817,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
-  "chests": [
-    {"id":"12_25:c1","x":393,"z":802,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

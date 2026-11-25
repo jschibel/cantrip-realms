@@ -49,6 +49,22 @@ export const verdict = (request: APIRequestContext, outcome: "won" | "lost" | nu
   post(request, "dev/verdict", { Outcome: outcome, MobLife: mobLife });
 
 /** Sets the signed-in character's hearts at once (POST /dev/hearts): a heart missing, arranged without a lost duel. */
+/** A find of the wilds as the server tells of it (GET /api/finds). */
+export interface FindView {
+  readonly Id: string;
+  readonly Kind: "chest" | "heartbloom";
+  readonly X: number;
+  readonly Z: number;
+  readonly Until: string;
+}
+
+/** Stands a find of the wilds on a tile, every other taken away first (POST /dev/find): the find. */
+export async function find(request: APIRequestContext, kind: "chest" | "heartbloom", at: Tile): Promise<FindView> {
+  const response = await request.post(new URL("dev/find", SERVER).toString(), { data: { Kind: kind, X: at.x, Z: at.z, Clear: true } });
+  if (!response.ok()) throw new Error(`dev/find: ${response.status()} ${await response.text()}`);
+  return (await response.json()) as FindView;
+}
+
 export const hearts = (request: APIRequestContext, have: number, hold: number | null = null) => post(request, "dev/hearts", { Hearts: have, MaxHearts: hold });
 
 /** Decides the signed-in player's rolls (POST /dev/drop): their gear rolls, and whether a run they begin holds a shrine. */
@@ -76,8 +92,6 @@ export interface Me {
   readonly MaxHearts: number;
   readonly Defeat: { readonly Token: string; readonly Price: number | null; readonly MobLife: number; readonly MobFullLife: number } | null;
   readonly Attuned: readonly string[];
-  /** The heartblooms picked that have not grown back, and when each does. */
-  readonly Picked: readonly { readonly Chest: string; readonly Until: string }[];
   readonly Loadout: Record<string, { readonly InstanceId: number } | null>;
 }
 

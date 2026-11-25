@@ -128,7 +128,6 @@
     {"id":"keld-guard-1","x":602,"z":222,"kind":"guard","name":"Keld guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-keld","seed":1,"speed":2.2,"behaviour":{"beat":{"stops":[[602,222],[588,222]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

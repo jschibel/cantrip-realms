@@ -48,7 +48,6 @@
   "spawns": [
     {"id":"9_29:1","x":318,"z":941,"mobs":["davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

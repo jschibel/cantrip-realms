@@ -33,10 +33,6 @@ import {
   type XZ,
   PLACE_KINDS,
   LEDGE,
-  HEARTBLOOMS_MOST,
-  HEARTBLOOM_APART,
-  HEARTBLOOM_REGROWTH,
-  isHeartbloom,
 } from "./format";
 import { type Ground, canStep } from "./grid";
 import { inSquare, streetTiles, wayPoints } from "./streets";
@@ -186,7 +182,7 @@ export function checkChunk(data: unknown, cx: number, cz: number): Problems {
       if (b.interior !== undefined && b.door === undefined) out.push(`${bw} (${b.id}) leads into ${b.interior} with no door`);
     });
   }
-  for (const k of ["spawns", "chests", "entrances", "waymarkers"]) {
+  for (const k of ["spawns", "entrances", "waymarkers"]) {
     const list = data[k];
     if (!Array.isArray(list)) {
       out.push(`${w}: ${k} should be a list`);
@@ -196,11 +192,6 @@ export function checkChunk(data: unknown, cx: number, cz: number): Problems {
       if (!isObject(e) || !isInt(e.x) || !isInt(e.z)) return void out.push(`${w}: ${k}[${i}] should stand on a tile (x, z)`);
       if (!inside(e.x, e.z)) out.push(`${w}: ${k}[${i}] stands at ${e.x},${e.z}, outside`);
       if (k === "spawns" && !(isStr(e.id) && e.id.startsWith(`${chunkKey(cx, cz)}:`))) out.push(`${w}: spawns[${i}].id should be "${chunkKey(cx, cz)}:<n>"`);
-      if (k === "chests") {
-        const gold = Array.isArray(e.gold) && e.gold.length === 2 && e.gold.every(isInt) && (e.gold[0] as number) <= (e.gold[1] as number);
-        if (e.heart === true ? e.gold !== undefined : !gold) out.push(`${w}: chests[${i}] should hold gold [low, high], or be a heartbloom (heart: true) with none`);
-        if (!isInt(e.respawnSeconds) || (e.respawnSeconds as number) <= 0) out.push(`${w}: chests[${i}] should refill after some seconds (respawnSeconds)`);
-      }
     });
   }
   return out;
@@ -328,7 +319,6 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
     for (const b of c.buildings) unique("building", b.id, where);
     for (const n of c.npcs) unique("npc", n.id, where);
     for (const s of c.spawns) unique("spawn", s.id, where);
-    for (const s of c.chests) unique("chest", s.id, where);
   }
   for (const r of interiors) for (const n of r.npcs) unique("npc", n.id, `interior ${r.id}`);
 
@@ -438,7 +428,7 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     return (ramps[a]! & ramps[b]!) === 1 || Math.abs(floors[a]! - floors[b]!) <= LEDGE;
   };
   const ground: Ground = { open, pass };
-  const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "chests" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
+  const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
     chunks.flatMap((c) => [...c[k]] as ChunkData[K][number][]);
   const npcs = all("npcs");
   const at = (p: { x: number; z: number }) => `${p.x},${p.z}`;
@@ -529,22 +519,6 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   for (const r of interiors) {
     for (const p of r.props) if (p.id === "spell-table" && !r.npcs.some((n) => n.kind === "spell-table" && n.x === Math.floor(p.x) && n.z === Math.floor(p.z))) out.push(`interior ${r.id}: a spell-table prop is no spell-table NPC`);
   }
-  for (const c of all("chests")) if (!beside(c)) out.push(`chest ${c.id} at ${at(c)} is not walked to`);
-
-  // Heartblooms (design.md A3b): a handful at most, each in the wilds on an open tile walked onto, far from every other,
-  // growing back a week after it is picked.
-  const blooms = all("chests").filter(isHeartbloom);
-  if (blooms.length > HEARTBLOOMS_MOST) out.push(`the world grows ${blooms.length} heartblooms, more than a handful (${HEARTBLOOMS_MOST})`);
-  for (const b of blooms) {
-    const where = `heartbloom ${b.id} at ${at(b)}`;
-    if (!walked(b.x, b.z)) out.push(`${where} is not walked onto`);
-    if (townAt(world.towns, b.x, b.z)) out.push(`${where} grows in a town`);
-    if (tierAt(world, b.x, b.z) < 1) out.push(`${where} grows in no tier's wilds`);
-    if (b.respawnSeconds !== HEARTBLOOM_REGROWTH) out.push(`${where} grows back in ${b.respawnSeconds} seconds, not a week`);
-    const near = blooms.find((o) => o !== b && Math.max(Math.abs(o.x - b.x), Math.abs(o.z - b.z)) < HEARTBLOOM_APART);
-    if (near) out.push(`${where} grows within ${HEARTBLOOM_APART} tiles of ${near.id}`);
-  }
-
   // Spawns and tiers: each of its zone's tier, harder the farther from the starting areas.
   const starts = world.towns.filter((t) => t.start);
   const fromStart = (x: number, z: number) => Math.min(...starts.map((t) => Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) - t.radius));
@@ -631,7 +605,7 @@ function unseenClosed(
       if (blocks) for (const [x, z] of tiles) seen.add(key(x, z));
     }
     for (const n of c.npcs) if (OBJECT_KINDS.has(n.kind)) seen.add(key(n.x, n.z));
-    for (const t of [...c.chests, ...c.waymarkers]) seen.add(key(t.x, t.z));
+    for (const t of c.waymarkers) seen.add(key(t.x, t.z));
   }
   for (const f of world.ferries) for (const [x, z] of f.lane) seen.add(key(x, z));
   const out: Problems = [];

@@ -131,7 +131,6 @@
     {"id":"oneah-quest-board","x":864,"z":684,"kind":"quest-board","name":"Notice board","text":["Do not go south into Amjad."],"stand":[864.5,0.5625,684.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

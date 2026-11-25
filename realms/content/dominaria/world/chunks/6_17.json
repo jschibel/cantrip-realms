@@ -67,7 +67,6 @@
   "spawns": [
     {"id":"6_17:1","x":210,"z":556,"mobs":["azure-drake","keldon-warlord","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [
     {"x":220,"z":565,"dungeon":"orvada-3"}
   ],

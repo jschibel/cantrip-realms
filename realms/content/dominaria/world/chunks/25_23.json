@@ -370,7 +370,6 @@
     {"id":"25_23:1","x":802,"z":749,"mobs":["craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"25_23:2","x":815,"z":765,"mobs":["craw-wurm","elven-riders"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": [
     {"x":800,"z":763,"tier":2}

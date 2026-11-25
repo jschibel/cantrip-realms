@@ -55,7 +55,7 @@ export function createCharacter(api: RealmApi): Promise<CharacterData> {
   const box = root.querySelector<HTMLElement>(".create-preview")!;
   const pixels = new PixelRenderer(canvas, { ...THREE_QUARTER, scale: 4 }, () => ({ width: box.clientWidth || 220, height: box.clientHeight || 280 }));
   const tiles: TileData[] = Array.from({ length: 32 * 32 }, () => [0, "grass", 0] as TileData);
-  const patch: ChunkData = { cx: 0, cz: 0, tiles, props: [], buildings: [], npcs: [], spawns: [], chests: [], entrances: [], waymarkers: [] };
+  const patch: ChunkData = { cx: 0, cz: 0, tiles, props: [], buildings: [], npcs: [], spawns: [], entrances: [], waymarkers: [] };
   const lawn = { size: [32, 32], chunk: 32, tile: 1, regions: [], towns: [], inns: [], dungeons: [], roads: [], ferries: [], pitches: [], zones: { cell: 16, cols: 0, rows: 0, areas: [], grid: [] }, overview: { cell: 8, legend: {}, rows: [] } } as unknown as WorldData;
   const place = assembleWorld(lawn, [patch]).place;
   pixels.focus.set(16, 1.0, 16.5);

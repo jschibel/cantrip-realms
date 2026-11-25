@@ -29,6 +29,12 @@ namespace Cantrip.Realms.Server;
 ///                                fetch-card-art leaves them): served at /art/{size}/{slug}.webp, for local play; a
 ///                                deployed realm's art is on the CDN instead (tech.md B8)
 /// REALMS_ART_CACHE               where the art's sizes are kept once made; a folder in the temporary directory by default
+/// REALMS_CHESTS_PER_ZONE         the most treasure chests a tier zone of the wilds holds at once (Economy/Finds); 2
+/// REALMS_CHEST_EVERY             about how often, seconds, a zone below that gets a new one; 600
+/// REALMS_CHEST_LASTS             how long, seconds, a chest nobody opens stands before it crumbles; 1800
+/// REALMS_HEARTBLOOMS             the most heartblooms the world's wilds grow at once; 8
+/// REALMS_HEARTBLOOM_EVERY        about how often, seconds, a new one grows while there are fewer; 1800
+/// REALMS_HEARTBLOOM_LASTS        how long, seconds, a heartbloom nobody picks stands before it wilts; 10800
 /// CANTRIP_NATIVE_HOST            the native engine host that checks duels (cantrip-rs's own setting)
 /// </code>
 /// ASP.NET Core's own (<c>ASPNETCORE_URLS</c>, <c>ASPNETCORE_ENVIRONMENT</c>) work as they always do.
@@ -77,6 +83,9 @@ public sealed class RealmOptions
     /// <summary>The most players one layer of an area of the world, or one instance of an interior, holds (design.md A6).</summary>
     public int InstanceSize { get; init; } = 40;
 
+    /// <summary>How the finds of the wilds spawn (Economy/Finds): REALMS_CHESTS_PER_ZONE and the rest.</summary>
+    public FindOptions Finds { get; init; } = new();
+
     /// <summary>A content folder with card illustrations to serve at <c>/art</c> (REALMS_ART), or null to serve none.</summary>
     public string? Art { get; init; }
 
@@ -88,6 +97,9 @@ public sealed class RealmOptions
     {
         ArgumentNullException.ThrowIfNull(configuration);
         string? Setting(string name) => configuration[$"REALMS_{name}"] is { Length: > 0 } value ? value : null;
+        int Count(string name, int otherwise) => Setting(name) is { } value ? int.Parse(value, System.Globalization.CultureInfo.InvariantCulture) : otherwise;
+        TimeSpan Seconds(string name, TimeSpan otherwise) => Setting(name) is { } value ? TimeSpan.FromSeconds(double.Parse(value, System.Globalization.CultureInfo.InvariantCulture)) : otherwise;
+        var finds = new FindOptions();
 
         return new RealmOptions
         {
@@ -107,6 +119,15 @@ public sealed class RealmOptions
             Places = Setting("PLACES"),
             Art = Setting("ART"),
             ArtCache = Setting("ART_CACHE") ?? Path.Combine(Path.GetTempPath(), "cantrip-realms-art"),
+            Finds = new FindOptions
+            {
+                ChestsPerZone = Count("CHESTS_PER_ZONE", finds.ChestsPerZone),
+                ChestEvery = Seconds("CHEST_EVERY", finds.ChestEvery),
+                ChestLasts = Seconds("CHEST_LASTS", finds.ChestLasts),
+                Heartblooms = Count("HEARTBLOOMS", finds.Heartblooms),
+                HeartbloomEvery = Seconds("HEARTBLOOM_EVERY", finds.HeartbloomEvery),
+                HeartbloomLasts = Seconds("HEARTBLOOM_LASTS", finds.HeartbloomLasts),
+            },
         };
     }
 
@@ -123,4 +144,25 @@ public sealed class RealmOptions
 
         return null;
     }
+}
+
+/// <summary>
+/// How the finds of the wilds spawn (design.md A5, A3b; Economy/Finds): at most <see cref="ChestsPerZone"/> treasure
+/// chests in each tier zone of the wilds, a new one about every <see cref="ChestEvery"/> in a zone with fewer, each
+/// standing <see cref="ChestLasts"/> unless opened; at most <see cref="Heartblooms"/> heartblooms in the world, one about
+/// every <see cref="HeartbloomEvery"/> while there are fewer, each standing <see cref="HeartbloomLasts"/> unless picked.
+/// </summary>
+public sealed record FindOptions
+{
+    public int ChestsPerZone { get; init; } = 2;
+
+    public TimeSpan ChestEvery { get; init; } = TimeSpan.FromMinutes(10);
+
+    public TimeSpan ChestLasts { get; init; } = TimeSpan.FromMinutes(30);
+
+    public int Heartblooms { get; init; } = 8;
+
+    public TimeSpan HeartbloomEvery { get; init; } = TimeSpan.FromMinutes(30);
+
+    public TimeSpan HeartbloomLasts { get; init; } = TimeSpan.FromHours(3);
 }

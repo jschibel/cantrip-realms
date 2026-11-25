@@ -114,7 +114,6 @@
     {"id":"15_11:1","x":487,"z":359,"mobs":["orcish-artillery","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"15_11:2","x":498,"z":378,"mobs":["elven-riders","lost-soul","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

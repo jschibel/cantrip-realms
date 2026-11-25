@@ -29,8 +29,6 @@ public abstract class RealmSpace
     /// <summary>The tiles a spell table stands on (design.md A2): its <c>spell-table</c> NPCs'.</summary>
     public abstract IReadOnlyList<Tile> SpellTables { get; }
 
-    public abstract MapChest? Chest(string id);
-
     public const string SpellTable = "spell-table";
 
     /// <summary>A mage tower's waystone (an NPC of the world beside its entrance, naming its <c>tower</c>).</summary>
@@ -131,12 +129,18 @@ public abstract class RealmSpace
         return true;
     }
 
-    // A tile as kept: none (no tile of the space), open or blocked, and whether it is bare, and a ramp.
+    /// <summary>
+    /// The surfaces of worked ground - roads, streets, floors and fields - where no find of the wilds spawns (Finds).
+    /// </summary>
+    public static IReadOnlySet<string> WorkedGround { get; } = new HashSet<string>(StringComparer.Ordinal) { "road", "cobbles", "flagstones", "planks", "wheat", "furrows" };
+
+    // A tile as kept: none (no tile of the space), open or blocked, and whether it is bare, a ramp, and worked ground.
     private protected const byte None = 0;
     private protected const byte Open = 1;
     private protected const byte Blocked = 2;
     private protected const byte Bare = 4;
     private protected const byte Ramp = 8;
+    private protected const byte Worked = 16;
 
     /// <summary>
     /// Reads a list of tiles, <c>[height (texels), surface, flags]</c> (interfaces.md, "Version 2 of the world data"): the floor's height in whole texels,
@@ -154,7 +158,7 @@ public abstract class RealmSpace
             }
 
             bool blocked = (flags & 1) != 0 || surface.Length == 0;
-            states[i] = (byte)((blocked ? Blocked : Open) | ((flags & 2) != 0 ? Bare : 0) | ((flags & 4) != 0 ? Ramp : 0));
+            states[i] = (byte)((blocked ? Blocked : Open) | ((flags & 2) != 0 ? Bare : 0) | ((flags & 4) != 0 ? Ramp : 0) | (WorkedGround.Contains(surface) ? Worked : 0));
             heights[i] = height;
         }
     }
@@ -187,7 +191,6 @@ public sealed class RealmWorld : RealmSpace
 {
     private readonly Dictionary<(int, int), (byte[] States, short[] Heights)> _cells = [];
     private readonly Dictionary<string, MapSpawn> _spawns = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, MapChest> _chests = new(StringComparer.Ordinal);
     private readonly Dictionary<Tile, string> _doors = [];
     private readonly Dictionary<Tile, string> _entrances = [];
     private readonly List<MapNpc> _npcs = [];
@@ -227,8 +230,6 @@ public sealed class RealmWorld : RealmSpace
     public IReadOnlyCollection<(int Cx, int Cz)> Chunks => _cells.Keys;
 
     public IReadOnlyCollection<MapSpawn> Spawns => _spawns.Values;
-
-    public IReadOnlyCollection<MapChest> Chests => _chests.Values;
 
     /// <summary>Every door with an interior, by its tile: the interior it enters.</summary>
     public IReadOnlyDictionary<Tile, string> Doors => _doors;
@@ -270,13 +271,25 @@ public sealed class RealmWorld : RealmSpace
 
     public override bool IsRamp(Tile at) => (Cell(at).State & Ramp) != 0;
 
-    public MapSpawn? Spawn(string id) => _spawns.GetValueOrDefault(id);
+    /// <summary>Whether a tile is worked ground (<see cref="RealmSpace.WorkedGround"/>): a road, a street, a field.</summary>
+    public bool IsWorked(Tile at) => (Cell(at).State & Worked) != 0;
 
-    public override MapChest? Chest(string id) => _chests.GetValueOrDefault(id);
+    /// <summary>The tier zone a tile is in: its index among the zones' areas, or -1 for none.</summary>
+    public int ZoneOf(Tile at)
+    {
+        if (File.Zones is not { Cell: > 0 } zones) return -1;
+        int col = (int)Math.Floor((at.X - X0) / (double)zones.Cell);
+        int row = (int)Math.Floor((at.Z - Z0) / (double)zones.Cell);
+        if (row < 0 || row >= zones.Grid.Count || col < 0 || col >= zones.Grid[row].Count) return -1;
+        int zone = zones.Grid[row][col];
+        return zone >= 0 && zone < zones.Areas.Count ? zone : -1;
+    }
+
+    public MapSpawn? Spawn(string id) => _spawns.GetValueOrDefault(id);
 
     /// <summary>
     /// Reads a chunk's file into the world: its tiles, and the doors (its buildings' with an interior), entrances, NPCs,
-    /// spawns, chests and spell tables in it. What does not hold together is a problem, and what can't be read is left out.
+    /// spawns and spell tables in it. What does not hold together is a problem, and what can't be read is left out.
     /// </summary>
     internal void Add(int cx, int cz, ChunkFile chunk, string where, List<string> problems)
     {
@@ -325,11 +338,6 @@ public sealed class RealmWorld : RealmSpace
             }
 
             if (ChunkOf(spawn.At) != (cx, cz)) problems.Add($"{where}: spawn {spawn.Id} stands at {spawn.At}, outside its chunk.");
-        }
-
-        foreach (MapChest chest in chunk.Chests)
-        {
-            if (!_chests.TryAdd(chest.Id, chest)) problems.Add($"{where}: a second chest '{chest.Id}' in the world.");
         }
 
         _npcs.AddRange(chunk.Npcs);
@@ -409,7 +417,6 @@ public sealed class RealmInterior : RealmSpace
 
     public override IReadOnlyList<Tile> SpellTables => _spellTables;
 
-    public override MapChest? Chest(string id) => File.Chests.FirstOrDefault(chest => chest.Id == id);
 }
 
 /// <summary>A dungeon (interfaces.md, "Dungeons"), with its mob tables read: one list of mobs a floor.</summary>

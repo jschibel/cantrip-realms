@@ -17,7 +17,7 @@
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",2],
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
-    [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[12,"ash",0],[12,"ash",0],[12,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[12,"ash",0],[12,"ash",0],[12,"ash",0],[9,"ash",4],[3,"rock",4],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],
     [0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[12,"ash",0],[12,"ash",0],[12,"ash",0],[12,"cracked-earth",0],[12,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],[0,"sand",0],
@@ -90,7 +90,8 @@
     {"id":"17_11:2","x":551,"z":365,"mobs":["enormous-baloth","tarmogoyf","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"17_11:3","x":558,"z":381,"mobs":["benalish-knight","lost-soul","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
-  "waymarkers": []
+  "waymarkers": [
+    {"x":560,"z":367,"tier":4}
+  ]
 }

@@ -108,7 +108,6 @@
   "spawns": [
     {"id":"7_16:1","x":228,"z":520,"mobs":["elven-riders","moor-fiend","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

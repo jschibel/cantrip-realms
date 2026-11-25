@@ -68,7 +68,6 @@
   "spawns": [
     {"id":"14_7:1","x":474,"z":238,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [
     {"x":477,"z":226,"dungeon":"keld-2"}
   ],

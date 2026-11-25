@@ -19,7 +19,6 @@ import {
   type TileData,
   type WorldData,
   chunkKey,
-  isHeartbloom,
 } from "../../src/world/format";
 import { S, SURFACES } from "./ids";
 import { Land, Use, terraces } from "./land";
@@ -134,8 +133,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     ...docks.values(),
   ];
   const placed = populate(land, zones, roster, seed, keepAway);
-  const blooms = placed.chests.filter(isHeartbloom).length;
-  log(`populate: ${placed.spawns.length} spawns, ${placed.chests.length - blooms} chests, ${blooms} heartblooms, ${placed.waymarkers.length} waymarkers`);
+  log(`populate: ${placed.spawns.length} spawns, ${placed.waymarkers.length} waymarkers`);
 
   // --- The files ------------------------------------------------------------------------------------------------------
 
@@ -159,7 +157,6 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   const buildingsBy = byChunk(buildings, (b) => [b.x, b.z]);
   const npcsBy = byChunk(outdoor, (n) => [n.x, n.z]);
   const spawnsBy = byChunk(placed.spawns, (s) => [s.x, s.z]);
-  const chestsBy = byChunk(placed.chests, (c) => [c.x, c.z]);
   const entrancesBy = byChunk(entrances, (e) => [e.x, e.z]);
   const markersBy = byChunk(placed.waymarkers, (m) => [m.x, m.z]);
   const order = <T extends { x: number; z: number; id?: string }>(a: T, b: T) => a.z - b.z || a.x - b.x || (a.id ?? "").localeCompare(b.id ?? "");
@@ -181,7 +178,6 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
         buildings: (buildingsBy.get(k) ?? []).sort(order),
         npcs: (npcsBy.get(k) ?? []).sort(order),
         spawns: (spawnsBy.get(k) ?? []).sort(order),
-        chests: (chestsBy.get(k) ?? []).sort(order),
         entrances: (entrancesBy.get(k) ?? []).sort(order),
         waymarkers: (markersBy.get(k) ?? []).sort(order),
       };
@@ -240,8 +236,6 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
       dungeons: dungeons.length,
       towers: dungeons.filter((d) => d.waystone).length,
       spawns: placed.spawns.length,
-      chests: placed.chests.length - blooms,
-      heartblooms: blooms,
       waymarkers: placed.waymarkers.length,
       props: props.length,
       roadTiles: roads.laid.reduce((n, r) => n + r.tiles.length, 0),
@@ -393,7 +387,7 @@ export function formatRecord(record: Record<string, unknown>, lists: readonly st
 }
 
 function formatChunk(chunk: ChunkData): string {
-  return formatRecord(chunk as unknown as Record<string, unknown>, ["tiles", "props", "buildings", "npcs", "spawns", "chests", "entrances", "waymarkers", "lights"], { tiles: CHUNK });
+  return formatRecord(chunk as unknown as Record<string, unknown>, ["tiles", "props", "buildings", "npcs", "spawns", "entrances", "waymarkers", "lights"], { tiles: CHUNK });
 }
 
 function formatInterior(room: InteriorData): string {

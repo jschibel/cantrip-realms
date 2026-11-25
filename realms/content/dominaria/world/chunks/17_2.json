@@ -69,7 +69,6 @@
   "spawns": [
     {"id":"17_2:1","x":565,"z":71,"mobs":["fallen-angel","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

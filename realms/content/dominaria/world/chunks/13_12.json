@@ -169,7 +169,6 @@
     {"id":"13_12:1","x":431,"z":394,"mobs":["bog-raiders","bog-rats"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"13_12:2","x":434,"z":412,"mobs":["bog-imp","bog-raiders"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

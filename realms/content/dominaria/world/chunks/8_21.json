@@ -84,7 +84,6 @@
     {"id":"8_21:1","x":268,"z":691,"mobs":["bog-rats","durkwood-boars"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"8_21:2","x":285,"z":695,"mobs":["hurloon-minotaur","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

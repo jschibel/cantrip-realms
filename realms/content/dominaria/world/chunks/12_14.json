@@ -89,7 +89,6 @@
   "spawns": [
     {"id":"12_14:1","x":399,"z":463,"mobs":["bog-imp","bog-raiders"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -2,7 +2,7 @@
   "cx": 17,
   "cz": 3,
   "tiles": [
-    [0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[12,"snow",0],[12,"snow",0],[12,"snow",3],[12,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
+    [0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"ice",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [0,"ice",0],[0,"ice",0],[0,"ice",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [0,"ice",0],[0,"ice",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [0,"ice",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",0],[24,"snow",3],[24,"snow",0],[24,"snow",0],[24,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
@@ -100,9 +100,6 @@
     {"id":"17_3:2","x":546,"z":102,"mobs":["sengir-vampire","tempest-djinn","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"17_3:3","x":561,"z":115,"mobs":["karplusan-yeti","rorix-bladewing","serra-paragon"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"17_3:4","x":547,"z":126,"mobs":["mahamoti-djinn","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
-  "chests": [
-    {"id":"17_3:c1","x":550,"z":96,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

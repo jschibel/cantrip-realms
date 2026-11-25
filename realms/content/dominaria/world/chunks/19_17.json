@@ -285,7 +285,6 @@
     {"id":"19_17:1","x":616,"z":562,"mobs":["merfolk-raiders","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"19_17:2","x":632,"z":570,"mobs":["keldon-warlord","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

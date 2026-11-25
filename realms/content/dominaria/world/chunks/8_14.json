@@ -67,7 +67,6 @@
     {"id":"8_14:1","x":276,"z":466,"mobs":["lost-soul","moor-fiend","pegasus-charger"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"8_14:2","x":259,"z":474,"mobs":["craw-wurm","keldon-warlord"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

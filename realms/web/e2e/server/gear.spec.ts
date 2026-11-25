@@ -1,7 +1,7 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { type Tile, chunk, entity, openNear, openWorld, realm, until, waitReady, world } from "../realm";
-import { SERVER, api, character, place, verdict } from "./server";
+import { entity, openNear, realm, until, waitReady } from "../realm";
+import { SERVER, api, character, find, place, verdict } from "./server";
 
 // Gear end to end (design.md A4, A3, A5) against the real realm server, with the real card layer framed over the world
 // (playwright.config.ts here): the paper doll's equipping by click and by drag, saved on the server; the armorer's
@@ -283,12 +283,13 @@ test("worn gear is in the duel's command zone, and a won duel's gear drop and a 
   await clickCardControl(page, /^Take|^Leave them|^Done$/);
   await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe(null);
 
-  // A chest near the capital, with its gear roll come up: the item shown on the loot screen as well.
-  const chest = chestNear();
-  await place(page.request, chest.beside);
+  // A chest stood in the wilds by the capital (POST /dev/find), its gear roll come up: the item on the loot screen as well.
+  const tile = openNear(spawnNear("new-benalia"), 6);
+  await place(page.request, openNear(tile, 1));
+  const chest = await find(page.request, "chest", tile);
   await page.reload();
   await open(page);
-  const lid = await entity(page, (e) => e.kind === "chest" && e.id === chest.id, "the chest", 30);
+  const lid = await entity(page, (e) => e.kind === "chest" && e.id === chest.Id, "the chest", 30);
   const opened = page.waitForResponse((response) => response.url().endsWith("/api/chest/open"), { timeout: 60_000 });
   await page.mouse.click(lid.x, lid.y);
   const found = (await (await opened).json()) as { Found: number; Gear: Owned | null };
@@ -302,21 +303,3 @@ test("worn gear is in the duel's command zone, and a won duel's gear drop and a 
   await drop(page.request, null);
   await verdict(page.request, null);
 });
-
-/** A chest of the world near the capital, and the open tile beside it a character stands on to open it. */
-function chestNear(): { id: string; beside: Tile } {
-  const capital = world().towns.find((t) => t.kind === "capital")!;
-  const [cx, cz] = [Math.floor(capital.center[0] / 32), Math.floor(capital.center[1] / 32)];
-  for (let r = 0; r < 6; r++) {
-    for (let dz = -r; dz <= r; dz++) {
-      for (let dx = -r; dx <= r; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
-        for (const c of chunk(cx + dx, cz + dz)?.chests ?? []) {
-          const beside = [[0, 1], [1, 0], [-1, 0], [0, -1]].map(([x, z]) => ({ x: c.x + x!, z: c.z + z! })).find(openWorld);
-          if (beside) return { id: c.id, beside };
-        }
-      }
-    }
-  }
-  throw new Error("no chest near the capital");
-}

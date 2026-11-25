@@ -17,7 +17,7 @@
     [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"mud",2],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"mud",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"moss",0],[0,"moss",3],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",0],[0,"moss",3],[0,"moss",0],[0,"moss",0],[0,"mud",0],[0,"mud",0],[0,"mud",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -80,7 +80,8 @@
     {"id":"30_25:1","x":972,"z":808,"mobs":["fallen-angel","sengir-vampire","tombstalker"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"30_25:2","x":970,"z":829,"mobs":["abomination","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
-  "waymarkers": []
+  "waymarkers": [
+    {"x":968,"z":815,"tier":4}
+  ]
 }

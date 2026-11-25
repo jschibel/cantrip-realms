@@ -7,7 +7,7 @@ import { type DevDuel, MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
 import { type BenchLeg, runBench, yieldFrame } from "./render/bench";
 import { NAME_OF } from "./render/camera";
-import { CHUNK, OBJECT_KINDS, areaAt, chunkKey, isHeartbloom } from "./world/format";
+import { CHUNK, OBJECT_KINDS, areaAt, chunkKey } from "./world/format";
 import type { WalkInput } from "./render/pointer";
 
 // Playwright's view of the page (?test): where everything is, by name, with its position on the page in CSS pixels,
@@ -110,7 +110,6 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       const things = o.inWorld ? near.flatMap((c) => c!.npcs) : o.roomNpcsHere;
       const npcs = new Map(things.map((n) => [n.name ?? n.id, n]));
       const markers = near.flatMap((c) => c!.waymarkers);
-      const chests = near.flatMap((c) => c!.chests);
       return [
         { name: o.data.Name, kind: "player", id: "player", tile: p.tile, moving: p.moving, ...at(p.position, 0.6) },
         ...o.mobs
@@ -124,11 +123,9 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
         ...o.traderActors.map(({ actor, npc }) => ({ name: npc.name ?? npc.id, kind: npc.kind, id: npc.vendor ?? npc.id, tile: actor.tile, moving: actor.moving, ...at(actor.position, 0.6) })),
         ...things.filter((n) => OBJECT_KINDS.has(n.kind)).map((n) => ({ name: n.name ?? n.kind, kind: n.kind, id: n.tower ?? n.id, tile: { x: n.x, z: n.z }, ...at(centre({ x: n.x, z: n.z }, floor(n.x, n.z)), 0.15) })),
         ...markers.map((w) => ({ name: `Tier ${w.tier}`, kind: "waymarker", id: `${w.x},${w.z}`, tier: w.tier, tile: { x: w.x, z: w.z }, ...at(centre({ x: w.x, z: w.z }, floor(w.x, w.z)), 0.8) })),
-        ...chests.map((c) =>
-          isHeartbloom(c)
-            ? { name: "A heartbloom", kind: "heartbloom", id: c.id, picked: o.bloomsHere.find((b) => b.id === c.id)?.picked ?? null, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.5) }
-            : { name: "A chest", kind: "chest", id: c.id, tile: { x: c.x, z: c.z }, ...at(centre({ x: c.x, z: c.z }, floor(c.x, c.z)), 0.3) },
-        ),
+        ...o.findsHere
+          .filter((f) => f.drawn)
+          .map((f) => ({ name: f.kind === "heartbloom" ? "A heartbloom" : "A chest", kind: f.kind, id: f.id, tile: f.tile, ...at(centre(f.tile, floor(f.tile.x, f.tile.z)), f.kind === "heartbloom" ? 0.5 : 0.3) })),
         ...o.spot.doors.map((d) => ({ name: d.name, kind: d.kind ?? "door", id: d.to, to: d.to, tile: d.tile, ...at(centre(d.tile, floor(d.tile.x, d.tile.z)), 0) })),
       ];
     },
@@ -165,9 +162,24 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
       o.api.arrangeHearts(hearts, maxHearts);
       await o.refresh();
     },
-    /** The heartblooms drawn round the player: each id, tile and whether it is picked (drawn without its bloom). */
-    get blooms() {
-      return live()?.bloomsHere ?? [];
+    /** The finds of the wilds standing (Overworld.findsHere): each id, kind, tile and whether it is drawn. */
+    get finds() {
+      return live()?.findsHere ?? [];
+    },
+    /**
+     * Offline, stands a find on a tile now, every other taken away (MockApi.placeFind, the server's POST /dev/find), and
+     * has the page ask for the finds at once: the find.
+     */
+    async placeFind(kind: "chest" | "heartbloom", x: number, z: number) {
+      const o = game();
+      if (!(o?.api instanceof MockApi)) return null;
+      const find = o.api.placeFind(kind, x, z);
+      await o.refreshFinds();
+      return find;
+    },
+    /** Has the page ask the server which finds stand now, at once (after a test stood one there). */
+    async refreshFinds() {
+      await live()?.refreshFinds();
     },
     /**
      * The mob's life at the end of a duel the stand-in card layer loses (cardStub.ts): what the real one reads from the

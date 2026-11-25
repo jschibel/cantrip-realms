@@ -22,6 +22,7 @@ public static class RealmServer
         services.AddSingleton(_ => new RealmDice());
         services.AddSingleton<IDuelVerifier>(_ => new NativeDuelVerifier());
         services.AddSingleton<PresenceHub>();
+        services.AddSingleton(provider => new Finds(provider.GetRequiredService<RealmContent>(), options, provider.GetRequiredService<TimeProvider>(), provider.GetRequiredService<PresenceHub>()));
         services.AddSingleton<DevVerdicts>();
         services.AddSingleton<DevDuels>();
         options.Database.Register(services);

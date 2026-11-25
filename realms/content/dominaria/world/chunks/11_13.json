@@ -109,7 +109,6 @@
     {"id":"vess-estate-quest-board","x":376,"z":425,"kind":"quest-board","name":"Quest board","text":["Bounty: bog-wraiths on the Morass road.","Do not wander into the Vess crypts. Do not."],"stand":[376.5,0.1875,425.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

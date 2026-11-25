@@ -79,7 +79,6 @@
     {"id":"11_25:1","x":359,"z":807,"mobs":["benalish-hero","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"11_25:2","x":381,"z":810,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

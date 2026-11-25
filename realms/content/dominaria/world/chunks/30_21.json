@@ -90,7 +90,6 @@
     {"id":"30_21:1","x":969,"z":684,"mobs":["marhault-elsdragon","serra-angel","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"30_21:2","x":970,"z":702,"mobs":["karplusan-yeti","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -79,7 +79,6 @@
     {"id":"21_14:1","x":673,"z":449,"mobs":["air-elemental","commander-eesha"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"21_14:2","x":689,"z":472,"mobs":["enormous-baloth","mahamoti-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -374,7 +374,6 @@
     {"id":"15_13:1","x":505,"z":418,"mobs":["azure-drake","keldon-warlord","merfolk-raiders"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"15_13:2","x":495,"z":432,"mobs":["cradle-guard","longbow-archer"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

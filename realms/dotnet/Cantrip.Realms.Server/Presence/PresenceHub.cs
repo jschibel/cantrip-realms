@@ -93,6 +93,19 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         }
     }
 
+    /// <summary>Where the hub has every player of a space now (the finds of the wilds spawn away from them).</summary>
+    public IReadOnlyList<Point> Everyone(string space)
+    {
+        lock (_gate)
+        {
+            long now = Now;
+            IEnumerable<Member> members = space == RealmContent.WorldSpace
+                ? _layers.Values.SelectMany(layer => layer)
+                : _interiors.GetValueOrDefault(space)?.SelectMany(instance => instance.Members.Values) ?? [];
+            return [.. members.Select(member => member.Where(now))];
+        }
+    }
+
     /// <summary>Whether two chunks are near enough for players in them to see each other.</summary>
     public static bool Near((int Cx, int Cz) a, (int Cx, int Cz) b) => Math.Abs(a.Cx - b.Cx) <= AreaChunks && Math.Abs(a.Cz - b.Cz) <= AreaChunks;
 

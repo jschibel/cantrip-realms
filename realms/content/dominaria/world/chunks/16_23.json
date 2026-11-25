@@ -77,7 +77,6 @@
     {"id":"new-benalia-folk-4","x":521,"z":737,"kind":"townsfolk","name":"Old soldier","text":["Past the Hurloons the wilds turn hard. The waymarkers say how hard."],"figure":"townsfolk-benalia","speed":1.6,"seed":4,"behaviour":{"wander":{"home":[521,737],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

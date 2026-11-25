@@ -62,7 +62,6 @@
   "spawns": [
     {"id":"5_12:1","x":177,"z":412,"mobs":["marhault-elsdragon","sengir-vampire","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

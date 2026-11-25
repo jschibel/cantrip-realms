@@ -64,6 +64,9 @@ export default defineConfig({
       timeout: 300_000,
       env: {
         REALMS_DEV_SIGNIN: "1",
+        // No finds spawn by the dice: a test stands its own (POST /dev/find, server.ts `find`).
+        REALMS_CHESTS_PER_ZONE: "0",
+        REALMS_HEARTBLOOMS: "0",
         REALMS_DATABASE: `sqlite:${process.env.REALMS_E2E_DATABASE}`,
         REALMS_CLIENT: `http://localhost:${web}/`,
         REALMS_CARDS: `http://localhost:${cards}/`,

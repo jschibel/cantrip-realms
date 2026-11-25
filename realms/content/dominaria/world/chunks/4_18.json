@@ -64,7 +64,6 @@
     {"id":"4_18:1","x":137,"z":593,"mobs":["coral-merfolk","soaring-drake"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"4_18:2","x":155,"z":594,"mobs":["coral-merfolk","soaring-drake","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -342,7 +342,6 @@
     {"id":"14_16:1","x":448,"z":523,"mobs":["keldon-warlord","lost-soul","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"14_16:2","x":470,"z":524,"mobs":["cradle-guard","lost-soul","orcish-artillery"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -118,7 +118,6 @@
     {"id":"vess-estate-guard-2","x":327,"z":467,"kind":"guard","name":"The Vess Estate guard","text":["Keep to the roads. The waymarkers say how bad it gets past them."],"figure":"guard-caligo","seed":2,"speed":2.2,"behaviour":{"beat":{"stops":[[327,467],[327,460]],"pause":3.5},"watch":4}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

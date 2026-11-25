@@ -144,7 +144,6 @@
     {"id":"llanowar-arena","x":776,"z":864,"kind":"arena","name":"The arena","text":["The arena is closed. A sign reads: coming soon."],"stand":[776.5,0.375,864.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

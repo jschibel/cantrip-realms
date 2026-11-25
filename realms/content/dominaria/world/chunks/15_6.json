@@ -116,7 +116,6 @@
   "spawns": [
     {"id":"15_6:1","x":490,"z":218,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [
     {"x":481,"z":209,"dungeon":"keldon-fortress"}
   ],

@@ -103,7 +103,6 @@
     {"id":"21_5:2","x":674,"z":172,"mobs":["karplusan-yeti","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"21_5:3","x":696,"z":188,"mobs":["enormous-baloth","marhault-elsdragon"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

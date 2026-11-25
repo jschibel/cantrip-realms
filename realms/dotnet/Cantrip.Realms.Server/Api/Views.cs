@@ -44,8 +44,7 @@ public sealed record CharacterView(
     IReadOnlyDictionary<string, GearInstance?> Loadout,
     IReadOnlyList<GearInstance> Gear,
     IReadOnlyList<string> Unlocked,
-    IReadOnlyList<string> Attuned,
-    IReadOnlyList<PickedView> Picked);
+    IReadOnlyList<string> Attuned);
 
 /// <summary>A new character: a name, a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a palette and a starting color.</summary>
 public sealed record NewCharacter(string? Name, string? Body, int Palette, string? Color);
@@ -188,8 +187,11 @@ public sealed record ChestOpen(string? Space, string? Chest);
 /// <summary>What a chest held - its gold, and a gear item now theirs or null - and the character's gold with it.</summary>
 public sealed record ChestView(long Gold, long Found, GearInstance? Gear, int Hearts, bool Heart = false);
 
-/// <summary>A heartbloom of the world a character picked, and when it grows back for them.</summary>
-public sealed record PickedView(string Chest, DateTimeOffset Until);
+/// <summary>
+/// A find standing in the world's wilds (<c>GET /api/finds</c>): its id, its kind (<c>chest</c> or <c>heartbloom</c>), its
+/// tile, and when it goes if nobody takes it.
+/// </summary>
+public sealed record FindView(string Id, string Kind, int X, int Z, DateTimeOffset Until);
 
 /// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a tile of it, x east and z south.</summary>
 public sealed record PlaceView(string Space, int X, int Z);

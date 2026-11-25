@@ -233,7 +233,6 @@
     {"id":"17_15:2","x":549,"z":502,"mobs":["lord-of-atlantis","northern-paladin"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"17_15:3","x":567,"z":509,"mobs":["air-elemental","guardian-of-new-benalia","lord-of-atlantis"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

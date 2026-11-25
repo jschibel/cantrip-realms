@@ -165,7 +165,6 @@
     {"id":"15_36:1","x":492,"z":1162,"mobs":["enormous-baloth","fallen-angel","rorix-bladewing"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"15_36:2","x":495,"z":1179,"mobs":["enormous-baloth","mahamoti-djinn","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [
     {"x":501,"z":1156,"dungeon":"benalia-4"}
   ],

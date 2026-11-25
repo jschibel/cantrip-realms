@@ -8,7 +8,8 @@ import { mobInfo } from "../mobs";
 import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
 import { DOMINARIA, DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
-import { type ChestData, type ChunkData, type DungeonData, isHeartbloom, parseChunkKey, townAt } from "../world/format";
+import { type ChunkData, type DungeonData, townAt } from "../world/format";
+import { FindSpawner, type FindKind, type StandingFind, goldOf } from "../world/finds";
 import { dealtBy, tableOf } from "../world/standing";
 
 const INNS = WORLD.inns;
@@ -45,6 +46,7 @@ import {
   type Character,
   type CardCount,
   type ChestFound,
+  type Find,
   type Collection,
   type Deck,
   type Defeat,
@@ -197,10 +199,8 @@ export class MockApi implements RealmApi {
   private cards: Record<string, number> = {};
   private deck: Deck = { Main: [], Sideboard: [] };
   private readonly encounters = new Map<string, Encounter>();
-  /** When each find was last taken (unix ms on the stand-in clock), by `space|id`: a chest's opening, a heartbloom's picking. */
-  private readonly chestsOpened = new Map<string, number>();
-  /** The heartblooms picked and when each grows back (unix ms), as the character shows them (`Picked`). */
-  private readonly picked = new Map<string, number>();
+  /** The finds of the wilds, spawned as the server spawns them (world/finds.ts), on the stand-in's clock and dice. */
+  private readonly finding: FindSpawner;
   private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean; prayed: boolean }>();
   private attuned: string[];
   /** When each boss was last beaten (unix ms on the stand-in clock), for its week of rest. */
@@ -221,6 +221,7 @@ export class MockApi implements RealmApi {
 
   constructor(seed = 1, character?: { name: string; body: Body; palette: number; color: ManaColor }, attuned: readonly string[] = []) {
     this.random = mulberry32(seed);
+    this.finding = new FindSpawner(WORLD, async (cx, cz) => (await DOMINARIA.chunk(cx, cz)) as ChunkData | null, mulberry32(seed + 7));
     this.attuned = [...attuned];
     if (character) this.make(character.name, character.body, character.palette, character.color);
   }
@@ -241,9 +242,7 @@ export class MockApi implements RealmApi {
 
   private update(patch: Partial<Character>): Character {
     this.character = { ...this.need(), ...patch };
-    const nowMs = this.now() * 1000;
-    const picked = [...this.picked].filter(([, until]) => until > nowMs).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([Chest, until]) => ({ Chest, Until: new Date(until).toISOString() }));
-    this.character = { ...this.character, HeartPrice: heartPriceAfter(this.character.MaxHearts), Defeat: this.pendingDefeat(), Picked: picked };
+    this.character = { ...this.character, HeartPrice: heartPriceAfter(this.character.MaxHearts), Defeat: this.pendingDefeat() };
     return this.character;
   }
 
@@ -314,7 +313,6 @@ export class MockApi implements RealmApi {
 
   async me(): Promise<Character | null> {
     this.log("me");
-    // The heartblooms grown back since are drawn again.
     return this.character ? this.update({}) : null;
   }
 
@@ -593,36 +591,40 @@ export class MockApi implements RealmApi {
     return { Gold: now.Gold, Hearts: now.Hearts, MaxHearts: now.MaxHearts, Price: now.HeartPrice };
   }
 
-  /** A find of the world by its id (its chunk's `chests`): the chunk is the id's first part. */
-  private async chestOf(space: string, id: string): Promise<ChestData | null> {
-    const at = space === "world" ? parseChunkKey(id.slice(0, id.indexOf(":"))) : null;
-    if (!at) return null;
-    const chunk = (await DOMINARIA.chunk(at.cx, at.cz)) as ChunkData | null;
-    return chunk?.chests.find((c) => c.id === id) ?? null;
+  /** A find as the server tells of it. */
+  private static findView(f: StandingFind): Find {
+    return { Id: f.id, Kind: f.kind, X: f.x, Z: f.z, Until: new Date(f.until).toISOString() };
+  }
+
+  async finds(): Promise<Find[]> {
+    this.log("finds");
+    const c = this.character;
+    const players = c && c.Space === "world" ? [{ x: c.X, z: c.Z }] : [];
+    return (await this.finding.standing(this.now() * 1000, players)).map(MockApi.findView);
+  }
+
+  /** Stands a find on a tile now, every other taken away (the server's POST /dev/find), as a test arranges one. */
+  placeFind(kind: FindKind, x: number, z: number): Find {
+    return MockApi.findView(this.finding.place(kind, x, z, this.now() * 1000, true));
   }
 
   async openChest(body: { Space: string; Chest: string }): Promise<ChestFound> {
     this.log("openChest", body);
     const c = this.need();
-    const key = `${body.Space}|${body.Chest}`;
-    const chest = await this.chestOf(body.Space, body.Chest);
-    const nowMs = this.now() * 1000;
-    const last = this.chestsOpened.get(key);
-    const full = last !== undefined && (!chest || nowMs - last < chest.respawnSeconds * 1000);
-    if (chest && isHeartbloom(chest)) {
-      // A heartbloom (design.md A3b): picked from on it or beside it, a heart given back, gone for a week; left standing
-      // by a character whose hearts are full.
-      if (c.Space !== body.Space || tilesApart([c.X, c.Z], [chest.x, chest.z]) > 1) throw new ApiError(409, "NotNear", "You are not at that heartbloom.");
-      if (full) throw new ApiError(409, "Empty", "The heartbloom has been picked. It will grow back.");
+    if (body.Space !== "world") throw new ApiError(404, "NoSuchPlace", "There is no such find.");
+    const find = this.finding.get(body.Chest, this.now() * 1000);
+    if (!find) throw new ApiError(409, "Empty", "It is gone: someone got there first, or it crumbled.");
+    if (c.Space !== "world" || tilesApart([c.X, c.Z], [find.x, find.z]) > 1) throw new ApiError(409, "NotNear", find.kind === "chest" ? "You are not at that chest." : "You are not at that heartbloom.");
+    if (find.kind === "heartbloom") {
+      // A heartbloom (design.md A3b): a heart given back, and gone for all; left standing by a character whose hearts are full.
       if (c.Hearts >= c.MaxHearts) throw new ApiError(409, "FullHearts", "Your hearts are full. The heartbloom will keep.");
-      this.chestsOpened.set(key, nowMs);
-      this.picked.set(chest.id, nowMs + chest.respawnSeconds * 1000);
+      this.finding.take(find.id);
       this.update({ Hearts: c.Hearts + 1 });
       return { Gold: this.need().Gold, Found: 0, Gear: null, Hearts: this.need().Hearts, Heart: true };
     }
-    if (full) throw new ApiError(409, "Empty", "The chest is empty.");
-    this.chestsOpened.set(key, nowMs);
-    const found = 50 + Math.floor(this.random() * 150);
+    this.finding.take(find.id);
+    const [low, high] = goldOf(find.tier);
+    const found = low + Math.floor(this.random() * (high - low + 1));
     this.update({ Gold: c.Gold + found });
     return { Gold: this.need().Gold, Found: found, Hearts: this.need().Hearts };
   }

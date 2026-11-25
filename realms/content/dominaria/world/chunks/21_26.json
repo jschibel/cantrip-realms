@@ -134,7 +134,6 @@
     {"id":"llanowar-quest-board","x":694,"z":861,"kind":"quest-board","name":"Quest board","text":["Bounty: the wurm eating the north orchard.","The Steel Leaf ride at dawn. Stay off the trails."],"stand":[694.5,0.375,861.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

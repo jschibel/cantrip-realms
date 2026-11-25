@@ -78,20 +78,21 @@ public sealed class GearDropTests
     {
         var rolls = new ForcedRolls(Chests.GearChance / 100.0 - 1e-9);
         await using var app = new RealmApp { Random = rolls };
-        MapChest chest = RealmApp.Content.World.Chest("0_0:1")!;
-        Assert.Equal("common", Chests.GearRarity(chest));
+        IReadOnlyList<long> gold = Finds.GoldOf(2);
+        Assert.Equal("common", Chests.GearRarity(gold));
 
         Browser browser = await app.Character(1);
-        await browser.Put(World, RealmApp.Beside(World, chest.At));
+        await browser.Put(World, RealmApp.Beside(World, RealmApp.Wilds));
+        FindView chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
         ChestView found = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
         GearInstance gear = Assert.IsType<GearInstance>(found.Gear);
         Assert.Equal("common", gear.Gear.Rarity);
-        Assert.InRange(found.Found, chest.Gold[0], chest.Gold[1]);
+        Assert.InRange(found.Found, gold[0], gold[1]);
         Assert.Contains((await browser.Me()).Gear, owned => owned.InstanceId == gear.InstanceId);
 
-        // Refilled, and the roll of the chance itself: gold alone.
+        // Another chest, and the roll of the chance itself: gold alone.
         rolls.Value = Chests.GearChance / 100.0;
-        app.Time.Advance(TimeSpan.FromSeconds(chest.RespawnSeconds));
+        chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
         ChestView again = await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id });
         Assert.Null(again.Gear);
         Assert.Equal(found.Gold + again.Found, again.Gold);
@@ -100,9 +101,12 @@ public sealed class GearDropTests
     [Fact]
     public void The_richest_chests_hold_uncommon_items_and_the_rest_common_ones()
     {
-        Assert.Equal("uncommon", Chests.GearRarity(new MapChest { Gold = [Chests.RichChest, 500] }));
-        Assert.Equal("common", Chests.GearRarity(new MapChest { Gold = [Chests.RichChest - 1, 500] }));
-        Assert.Equal("common", Chests.GearRarity(new MapChest { Gold = [50, 150] }));
+        Assert.Equal("uncommon", Chests.GearRarity([Chests.RichChest, 500]));
+        Assert.Equal("common", Chests.GearRarity([Chests.RichChest - 1, 500]));
+        Assert.Equal("common", Chests.GearRarity([50, 150]));
+
+        // A chest's gold is its zone's tier's: the richest, in the hardest wilds.
+        Assert.Equal(["common", "common", "common", "uncommon"], Enumerable.Range(1, 4).Select(tier => Chests.GearRarity(Finds.GoldOf(tier))));
     }
 
     [Fact]
@@ -116,12 +120,12 @@ public sealed class GearDropTests
         OutcomeView won = await browser.Ok<OutcomeView>(HttpMethod.Post, "/api/encounter/finish", new { Token = encounter.Token, Log = new[] { "AA==" } });
         Assert.NotNull(won.Gear);
 
-        MapChest chest = RealmApp.Content.World.Chest("0_0:1")!;
-        await browser.Put(World, RealmApp.Beside(World, chest.At));
+        await browser.Put(World, RealmApp.Beside(World, RealmApp.Wilds));
+        FindView chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
         Assert.NotNull((await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id })).Gear);
 
         await browser.Ok<object>(HttpMethod.Post, "/dev/drop", new { Gear = (bool?)null });
-        app.Time.Advance(TimeSpan.FromSeconds(chest.RespawnSeconds));
+        chest = await RealmApp.Stand(browser, "chest", RealmApp.Wilds);
         Assert.Null((await browser.Ok<ChestView>(HttpMethod.Post, "/api/chest/open", new { Space = World, Chest = chest.Id })).Gear);
     }
 

@@ -62,7 +62,6 @@
     {"id":"22_12:2","x":726,"z":397,"mobs":["sibilant-spirit","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"22_12:3","x":707,"z":407,"mobs":["abomination","birds-of-paradise","knight-of-malice"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": [
     {"x":717,"z":399,"tier":4}

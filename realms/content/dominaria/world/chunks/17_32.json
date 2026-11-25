@@ -63,7 +63,6 @@
     {"id":"verdura-ferry-ferryman-from","x":546,"z":1026,"kind":"ferryman","ferry":"verdura-ferry","name":"The ferryman of the Verdura Ferry","figure":"ferryman","behaviour":{"watch":5}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -68,7 +68,6 @@
   "spawns": [
     {"id":"24_13:1","x":778,"z":422,"mobs":["enormous-baloth","sibilant-spirit"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

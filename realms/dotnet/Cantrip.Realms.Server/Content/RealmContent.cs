@@ -604,15 +604,15 @@ public sealed partial class RealmContent
             interior.Town = towns.FirstOrDefault();
             if (file.Town is { } named && named != interior.Town?.Id) problems.Add($"{where}: it says it is in {named}, but its doors stand in {interior.Town?.Id ?? "no town"}.");
             CheckNpcs(interior, where, problems);
-            CheckChests(interior, interior.File.Chests, where, problems);
         }
 
         CheckNpcs(world, "the world", problems);
-        CheckChests(world, world.Chests, "the world", problems);
-        foreach (MapChest bloom in world.Chests.Where(chest => chest.Heart))
+        if (world.File.Zones is { } zones)
         {
-            if (!world.Walkable(bloom.At)) problems.Add($"the world: heartbloom {bloom.Id} stands at {bloom.At}, a tile nobody can stand on.");
-            if (TownAt(bloom.At) is { } town) problems.Add($"the world: heartbloom {bloom.Id} grows in {town.Id}, not in the wilds.");
+            if (zones.Cell <= 0 || zones.Grid.Count != zones.Rows || zones.Grid.Any(row => row.Count != zones.Cols) || zones.Grid.Any(row => row.Any(zone => zone < -1 || zone >= zones.Areas.Count)))
+            {
+                problems.Add("world.json: its zones are a grid of rows by cols cells, each the index of an area or -1.");
+            }
         }
 
         foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is { } round))
@@ -731,31 +731,6 @@ public sealed partial class RealmContent
             problems.Add($"{where}: a spell table stands off it at {table}.");
         }
     }
-
-    private static void CheckChests(RealmSpace space, IEnumerable<MapChest> chests, string where, List<string> problems)
-    {
-        HashSet<string> ids = new(StringComparer.Ordinal);
-        foreach (MapChest chest in chests)
-        {
-            if (!ChestId().IsMatch(chest.Id) || !ids.Add(chest.Id)) problems.Add($"{where}: chest '{chest.Id}' is not a fresh id (lower-case letters, digits, '-', '_' and ':', a letter or digit first but for a leading '-').");
-            if (!space.Has(chest.At)) problems.Add($"{where}: chest {chest.Id} is off it at {chest.At}.");
-            if (chest.Heart)
-            {
-                if (chest.Gold.Count > 0) problems.Add($"{where}: heartbloom {chest.Id} holds a heart, and no gold.");
-                if (space is not RealmWorld) problems.Add($"{where}: heartbloom {chest.Id} grows only in the world's wilds.");
-            }
-            else if (chest.Gold is not [long low, long high] || low < 0 || high < low)
-            {
-                problems.Add($"{where}: chest {chest.Id}'s gold is two amounts, the lower first.");
-            }
-
-            if (chest.RespawnSeconds <= 0) problems.Add($"{where}: chest {chest.Id} refills after some seconds.");
-        }
-    }
-
-    // A chunk's own id serves, "<cx>_<cz>:<n>", a negative chunk's ("-1_0:1") too.
-    [GeneratedRegex("^-?[a-z0-9][a-z0-9_:-]{0,63}$")]
-    private static partial Regex ChestId();
 
     private void CheckDungeon(RealmDungeon dungeon, DungeonPlace? place, List<string> problems)
     {

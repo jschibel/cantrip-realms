@@ -12,7 +12,7 @@ import { surfaceColor } from "./surfaceColors";
 import { renderMob, renderPortrait } from "./portrait";
 import { defeatLine, marginOf } from "./hearts";
 import { type MobInfo, mobInfo, theMob } from "./mobs";
-import { ApiError, type CardCount, type Character as CharacterData, type Defeat, type EncounterResult, type EncounterStart, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
+import { ApiError, type CardCount, type Character as CharacterData, type Find, type Defeat, type EncounterResult, type EncounterStart, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
 import { WalkRelay } from "./net/relay";
@@ -22,7 +22,7 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type ChestData, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, isHeartbloom, townAt } from "./world/format";
+import { CHUNK, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, townAt } from "./world/format";
 import { type Grid, type Tile, flatGround } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
@@ -125,6 +125,8 @@ const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z
 const JUMP = 0.6;
 /** A change of the figure's height in one frame larger than this is a jump: a step eases in. */
 const DROP = 0.3;
+/** How often the finds standing in the world are asked of the server while in it, seconds (`askFinds`). */
+const FIND_POLL = 10;
 /** How far from where another player is seen their walk may begin and be walked on to, tiles; further, they are put there. */
 const VISITOR_NEAR = 2;
 
@@ -174,13 +176,17 @@ export class Overworld {
   area: { readonly name: string; readonly tier: number; readonly region: string | null } | null = null;
   /** The traveling traders and their schedule, as `GET /api/travelers` last said. */
   travelers: readonly Traveler[] = [];
-  /** Spawn epochs whose mob was beaten: `spawn|epoch`; chests opened: `chest|epoch`. */
+  /** Spawn epochs whose mob was beaten: `spawn|epoch`. */
   private readonly beaten = new Set<string>();
-  private readonly opened = new Set<string>();
-  /** The heartblooms of the chunks built, each drawn in bloom or picked, by id (design.md A3b). */
-  private readonly blooms = new Map<string, { readonly chest: ChestData; readonly chunk: string; picked: boolean; readonly group: THREE.Group }>();
-  /** A heartbloom being picked now: one ask of the server at a time. */
-  private picking = false;
+  /**
+   * The finds of the wilds standing (design.md A5, A3b), as the server last said (`askFinds`), by id: each drawn while
+   * its chunk is built.
+   */
+  private readonly finds = new Map<string, { readonly find: Find; group: THREE.Group | null }>();
+  /** A find being taken now: one ask of the server at a time. */
+  private taking = false;
+  /** Seconds until the finds are asked again. */
+  private findsTimer = 0;
   /** Something to do on reaching a tile (talk to someone, open a chest, engage a mob). */
   private pending: { readonly at: Tile; readonly then: () => void } | null = null;
   /** What the relay has refused of this page, its reasons (for tests: a walk told right is never refused). */
@@ -342,7 +348,7 @@ export class Overworld {
     this.world.streamer.onBuilt = (key, chunk) => {
       built(key, chunk);
       this.spawnChunk(key);
-      this.bloomChunk(key, chunk);
+      this.drawFinds();
     };
     const onGrid = this.world.streamer.onGrid;
     this.world.streamer.onGrid = (grid) => {
@@ -354,7 +360,7 @@ export class Overworld {
     this.world.streamer.onDropped = (key, chunk) => {
       dropped(key, chunk);
       this.dropMobsOf(key);
-      this.dropBloomsOf(key);
+      this.dropFindsOf(key);
     };
 
     // A live run is resumed where it was left (a reload, a return): its floor, its beaten mobs; else the world.
@@ -402,7 +408,6 @@ export class Overworld {
     const looks = JSON.stringify(this.data.Loadout) !== JSON.stringify(data.Loadout);
     this.data = data;
     this.hud.showCharacter(data);
-    this.showBlooms();
     if (looks) {
       this.sendLook();
       this.stage.dress(playerFigure(appearanceOf(data)));
@@ -420,6 +425,8 @@ export class Overworld {
   /** On arriving in a place: its name, the server and the relay told, the people there. */
   private arrived(spot: Spot, first = false): void {
     this.pending = null;
+    // Back in the world: which finds stand there is asked at once.
+    this.findsTimer = 0;
     this.relay.leave();
     this.showCamera();
     this.area = null;
@@ -543,11 +550,11 @@ export class Overworld {
     return undefined;
   }
 
-  /** A find of the world on a tile: a treasure chest, or a heartbloom. */
-  private chestAt(t: Tile): ChestData | undefined {
+  /** A find of the wilds standing on a tile: a treasure chest, or a heartbloom. */
+  private findAt(t: Tile): Find | undefined {
     if (!this.inWorld) return undefined;
-    const c = this.world.streamer.data.get(chunkKey(Math.floor(t.x / CHUNK), Math.floor(t.z / CHUNK)));
-    return c?.chests.find((ch) => ch.x === t.x && ch.z === t.z);
+    for (const { find } of this.finds.values()) if (find.X === t.x && find.Z === t.z) return find;
+    return undefined;
   }
 
   /** What a click on a tile would do. */
@@ -556,7 +563,7 @@ export class Overworld {
     const who = this.personAt(t);
     if (who?.mob) return "attack";
     if (who?.npc || this.objectAt(t)) return "talk";
-    if (this.chestAt(t)) return "open";
+    if (this.findAt(t)) return "open";
     if (this.stage.doorAt(t)) return "exit";
     return this.spot.grid.walkable(t.x, t.z) ? "walk" : "none";
   }
@@ -571,8 +578,8 @@ export class Overworld {
     const thing = this.objectAt(t);
     if (thing?.kind === "waystone") return `${thing.name ?? "A waystone"} (${this.attuned.includes(thing.tower ?? "") ? "attuned" : "dormant"})`;
     if (thing) return thing.name ?? thing.kind;
-    const chest = this.chestAt(t);
-    if (chest) return isHeartbloom(chest) ? (this.blooms.get(chest.id)?.picked ? "A heartbloom, picked" : "A heartbloom") : "A chest";
+    const find = this.findAt(t);
+    if (find) return find.Kind === "heartbloom" ? "A heartbloom" : "A chest";
     const door = this.stage.doorAt(t);
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
     return null;
@@ -596,16 +603,13 @@ export class Overworld {
       this.walkBeside({ tile: t } as Actor, () => void this.talk(thing));
       return true;
     }
-    const chest = this.chestAt(t);
-    if (chest && isHeartbloom(chest)) {
-      // Walked onto, and picked on arriving (stepped); clicked where one stands, picked at once.
+    // A find is walked onto, and taken on arriving (stepped); clicked where one stands, taken at once.
+    const find = this.findAt(t);
+    if (find) {
       const me = this.player.tile;
-      if (me.x === t.x && me.z === t.z) void this.pickBloom(chest, true);
-      else if (!this.player.goTo(t)) this.walkBeside({ tile: t } as Actor, () => void this.pickBloom(chest, true));
-      return true;
-    }
-    if (chest) {
-      this.walkBeside({ tile: t } as Actor, () => void this.openChest(chest));
+      if (me.x === t.x && me.z === t.z) void this.takeFind(find, true);
+      else if (this.player.goTo(t)) this.pending = { at: t, then: () => void this.takeFind(find, true) };
+      else this.walkBeside({ tile: t } as Actor, () => void this.takeFind(find, true));
       return true;
     }
     return false;
@@ -691,9 +695,9 @@ export class Overworld {
     }
     // On a door's tile, at once: the server lets one into a room only from beside its door.
     if (!arriving) this.report(!!this.stage.doorAt(t));
-    // Onto a heartbloom in bloom: picked.
-    const bloom = !arriving && this.inWorld ? this.chestAt(t) : undefined;
-    if (bloom && isHeartbloom(bloom) && !this.blooms.get(bloom.id)?.picked) void this.pickBloom(bloom, false);
+    // Onto a find: taken (a click's walk to one takes it on arriving instead).
+    const find = !arriving && !this.pending ? this.findAt(t) : undefined;
+    if (find) void this.takeFind(find, false);
   }
 
   /** Where the player is, to the server: on standing, and every two seconds of walking. */
@@ -763,78 +767,93 @@ export class Overworld {
     this.mobs.splice(this.mobs.indexOf(mob), 1);
   }
 
-  // --- Heartblooms ------------------------------------------------------------------------------------------------------
+  // --- The finds of the wilds -------------------------------------------------------------------------------------------
 
-  /** Whether the character has picked a heartbloom that has not grown back (the server's word: `Picked`). */
-  private isPicked(id: string): boolean {
-    const nowMs = this.options.now() * 1000;
-    return (this.data?.Picked ?? []).some((p) => p.Chest === id && Date.parse(p.Until) > nowMs);
-  }
-
-  /** Draws the heartblooms of a chunk just built: in bloom, or picked (the clump alone) until they grow back. */
-  private bloomChunk(key: string, chunk: { readonly chests: readonly ChestData[] }): void {
-    for (const chest of chunk.chests) {
-      if (!isHeartbloom(chest) || this.blooms.has(chest.id)) continue;
-      const picked = this.isPicked(chest.id);
-      const group = this.bloomFigure(chest, picked);
-      this.world.place.addFigure(group);
-      this.blooms.set(chest.id, { chest, chunk: key, picked, group });
+  /** Asks the server which finds stand now, and draws them (every FIND_POLL seconds in the world). */
+  private async askFinds(): Promise<void> {
+    let standing: readonly Find[];
+    try {
+      standing = await this.api.finds();
+    } catch {
+      return;
     }
+    if (!this.inWorld) return;
+    const ids = new Set(standing.map((f) => f.Id));
+    for (const id of [...this.finds.keys()]) if (!ids.has(id)) this.dropFind(id);
+    for (const find of standing) if (!this.finds.has(find.Id)) this.finds.set(find.Id, { find, group: null });
+    this.drawFinds();
   }
 
-  private bloomFigure(chest: ChestData, picked: boolean): THREE.Group {
-    const group = meshesOf(PROPS.build("heartbloom", { id: "heartbloom", x: 0, z: 0, seed: chest.x * 31 + chest.z, args: { picked } }).model, "heartbloom");
-    group.position.set(chest.x + 0.5, this.world.floorAt(chest.x + 0.5, chest.z + 0.5), chest.z + 0.5);
-    return group;
-  }
-
-  private dropBloomsOf(key: string): void {
-    for (const [id, b] of this.blooms) {
-      if (b.chunk !== key) continue;
-      b.group.removeFromParent();
-      this.blooms.delete(id);
-    }
-  }
-
-  /** Redraws each heartbloom whose state the character's `Picked` changed: picked now, or grown back. */
-  private showBlooms(): void {
+  /** Draws each find standing in a chunk built and not drawn yet: a chest, or a heartbloom in bloom. */
+  private drawFinds(): void {
     if (!this.world) return;
-    for (const [id, b] of this.blooms) {
-      const picked = this.isPicked(id);
-      if (picked === b.picked) continue;
-      b.group.removeFromParent();
-      const group = this.bloomFigure(b.chest, picked);
+    const built = new Set(this.world.streamer.builtKeys);
+    for (const f of this.finds.values()) {
+      if (f.group || !built.has(chunkKey(Math.floor(f.find.X / CHUNK), Math.floor(f.find.Z / CHUNK)))) continue;
+      const { X: x, Z: z } = f.find;
+      const prop = f.find.Kind === "heartbloom" ? PROPS.build("heartbloom", { id: "heartbloom", x: 0, z: 0, seed: x * 31 + z, args: { picked: false } }) : PROPS.build("chest", { id: "chest", x: 0, z: 0, rot: (x * 7 + z) % 4 });
+      const group = meshesOf(prop.model, f.find.Kind);
+      group.position.set(x + 0.5, this.world.floorAt(x + 0.5, z + 0.5), z + 0.5);
       this.world.place.addFigure(group);
-      this.blooms.set(id, { ...b, picked, group });
+      f.group = group;
+    }
+  }
+
+  /** A find gone: taken, or crumbled. */
+  private dropFind(id: string): void {
+    this.finds.get(id)?.group?.removeFromParent();
+    this.finds.delete(id);
+  }
+
+  /** The finds drawn in a chunk let go: undrawn, kept until the server says they are gone. */
+  private dropFindsOf(key: string): void {
+    for (const f of this.finds.values()) {
+      if (!f.group || chunkKey(Math.floor(f.find.X / CHUNK), Math.floor(f.find.Z / CHUNK)) !== key) continue;
+      f.group.removeFromParent();
+      f.group = null;
     }
   }
 
   /**
-   * Picks a heartbloom (design.md A3b): where the character stands told the server first (it picks only from on the bloom
-   * or beside it), then the pick - a heart given back, or the bloom left standing when the hearts are full.
+   * Takes a find (design.md A5, A3b): where the character stands told the server first (it gives a find only to one on it
+   * or beside it), then the taking - a chest's gold (and now and then gear), or a heartbloom's heart; gone for all. A
+   * heartbloom is left standing for a character whose hearts are full; one someone else took first is gone.
    */
-  private async pickBloom(bloom: ChestData, clicked: boolean): Promise<void> {
-    if (this.picking) return;
-    this.picking = true;
+  private async takeFind(find: Find, clicked: boolean): Promise<void> {
+    if (this.taking) return;
+    this.taking = true;
     try {
       const at = this.player.tile;
       this.lastReported = `${this.spaceId}:${at.x},${at.z}`;
       await this.api.position(placeOf(this.spaceId, at)).then((r) => this.heartsAre(r.Hearts), () => {});
-      const found = await this.api.openChest({ Space: this.spaceId, Chest: bloom.id });
+      const found = await this.api.openChest({ Space: this.spaceId, Chest: find.Id });
+      this.dropFind(find.Id);
       this.player.figure.act("interact");
-      await this.refresh();
-      this.hud.flashHearts();
-      this.say(`You pick the heartbloom, and its warmth fills you: ${found.Hearts} of ${this.data.MaxHearts} hearts. It will grow back in a week.`);
-    } catch (e) {
-      if (e instanceof ApiError && e.code === "FullHearts") this.say("Your hearts are full. The heartbloom will keep until you need it.");
-      else if (e instanceof ApiError && e.code === "Empty") {
-        if (clicked) this.say("The heartbloom has been picked. It will grow back.");
+      if (found.Heart) {
         await this.refresh();
+        this.hud.flashHearts();
+        this.say(`You pick the heartbloom, and its warmth fills you: ${found.Hearts} of ${this.data.MaxHearts} hearts.`);
+      } else {
+        this.say(found.Gear ? `You open the chest: ${gold(found.Found)} gold, and ${found.Gear.Gear.Name}.` : `You open the chest: ${gold(found.Found)} gold.`);
+        // Gear found is shown as the card it is, on the loot screen with nothing else to take.
+        if (found.Gear) await this.openCards("loot", { offer: [], cap: 0, mob: "The chest", source: "chest", gear: found.Gear }, false);
+        await this.refresh();
+      }
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "FullHearts") {
+        if (clicked || !this.fullNoted.has(find.Id)) this.say("Your hearts are full. The heartbloom will keep until you need it.");
+        this.fullNoted.add(find.Id);
+      } else if (e instanceof ApiError && e.code === "Empty") {
+        this.dropFind(find.Id);
+        this.say(find.Kind === "heartbloom" ? "Someone picked the heartbloom first." : "Someone got to the chest first.");
       } else this.say(refusal(e));
     } finally {
-      this.picking = false;
+      this.taking = false;
     }
   }
+
+  /** The heartblooms the character was told their full hearts leave standing: told once, unless they click it. */
+  private readonly fullNoted = new Set<string>();
 
   private dropMobsOf(key: string): void {
     for (const mob of [...this.mobs]) if (!mob.run && !mob.engaged && mob.spawn.id.startsWith(`${key}:`)) this.removeMob(mob);
@@ -1176,20 +1195,6 @@ export class Overworld {
     this.say(`A trader from ${visit.PlaneName} is in ${this.worldData.towns.find((t) => t.id === town)?.name ?? town} until ${clock}.`);
   }
 
-  private async openChest(chest: ChestData): Promise<void> {
-    try {
-      const { Found, Gear } = await this.api.openChest({ Space: this.spaceId, Chest: chest.id });
-      this.opened.add(`${chest.id}|${spawnEpoch(chest, this.options.now())}`);
-      this.say(Gear ? `You open the chest: ${gold(Found)} gold, and ${Gear.Gear.Name}.` : `You open the chest: ${gold(Found)} gold.`);
-      // Gear found is shown as the card it is, on the loot screen with nothing else to take.
-      if (Gear) await this.openCards("loot", { offer: [], cap: 0, mob: "The chest", source: "chest", gear: Gear }, false);
-      await this.refresh();
-    } catch (e) {
-      if (e instanceof ApiError && e.code === "Empty") this.say("The chest is empty.");
-      else this.say(refusal(e));
-    }
-  }
-
   // --- Ferries and traders --------------------------------------------------------------------------------------------
 
   /** A ferry's lane is open water only to its passengers: closed to walking between its docks. */
@@ -1268,9 +1273,14 @@ export class Overworld {
     return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null, shrine: r.plan.shrine ?? null, shrineFloor: shrineFloor < 0 ? null : shrineFloor, shrineUsed: r.shrineUsed };
   }
 
-  /** The heartblooms drawn round the player, for tests: each id, its tile and whether it is picked. */
-  get bloomsHere(): { readonly id: string; readonly tile: Tile; readonly picked: boolean }[] {
-    return [...this.blooms.values()].map((b) => ({ id: b.chest.id, tile: { x: b.chest.x, z: b.chest.z }, picked: b.picked }));
+  /** The finds of the wilds standing, for tests: each id, kind, tile and whether it is drawn. */
+  get findsHere(): { readonly id: string; readonly kind: Find["Kind"]; readonly tile: Tile; readonly drawn: boolean }[] {
+    return [...this.finds.values()].map((f) => ({ id: f.find.Id, kind: f.find.Kind, tile: { x: f.find.X, z: f.find.Z }, drawn: f.group !== null }));
+  }
+
+  /** Asks the server which finds stand now at once, rather than at the next turn (tests). */
+  refreshFinds(): Promise<void> {
+    return this.askFinds();
   }
 
   /** Whether the player is crossing on a ferry now. */
@@ -1697,9 +1707,9 @@ export class Overworld {
 
   dots(): { x: number; z: number; kind: MinimapDot["kind"] }[] {
     const p = (a: Actor, kind: MinimapDot["kind"]) => ({ x: a.position.x, z: a.position.z, kind });
-    const blooms = this.inWorld ? [...this.blooms.values()].filter((b) => !b.picked).map((b) => ({ x: b.chest.x + 0.5, z: b.chest.z + 0.5, kind: "heart" as const })) : [];
+    const finds = this.inWorld ? [...this.finds.values()].map(({ find }) => ({ x: find.X + 0.5, z: find.Z + 0.5, kind: find.Kind === "heartbloom" ? ("heart" as const) : ("chest" as const) })) : [];
     const shrine = this.run?.plan?.shrine && this.spot === this.run.plan.spot && !this.run.shrineUsed ? [{ x: this.run.plan.shrine.x + 0.5, z: this.run.plan.shrine.z + 0.5, kind: "heart" as const }] : [];
-    return [...blooms, ...shrine, ...this.mobsHere().map((m) => p(m.actor, "mob")), ...[...this.visitors.values()].map((v) => p(v.actor, "other")), p(this.player, "player")];
+    return [...finds, ...shrine, ...this.mobsHere().map((m) => p(m.actor, "mob")), ...[...this.visitors.values()].map((v) => p(v.actor, "other")), p(this.player, "player")];
   }
 
   /** Moves the game on by `dt` seconds: the stage (the player, the townsfolk, the camera, the world), then the rest. */
@@ -1738,6 +1748,11 @@ export class Overworld {
     // The game's own figures lean for the camera as the stage's do.
     const { pitch, yaw } = stage.renderer.view;
     for (const f of [...this.mobsHere().map((m) => m.actor.figure), ...[...this.visitors.values()].map((v) => v.actor.figure)]) f.setLean(LEAN, pitch, yaw);
+    this.findsTimer -= dt;
+    if (this.findsTimer <= 0 && this.inWorld && this.screen === "world") {
+      this.findsTimer = FIND_POLL;
+      void this.askFinds();
+    }
     this.travelersTimer -= dt;
     if (this.travelersTimer <= 0) {
       this.travelersTimer = 60;

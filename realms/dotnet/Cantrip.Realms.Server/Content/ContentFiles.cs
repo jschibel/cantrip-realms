@@ -252,29 +252,6 @@ public sealed class MapSpawn
     public Tile At => new(X, Z);
 }
 
-/// <summary>
-/// A find of a space, a character's own on its own timer (design.md A5, A3b): a treasure chest, its gold within
-/// <see cref="Gold"/>; or, <see cref="Heart"/>, a heartbloom of the wilds, which gives back a heart and holds no gold.
-/// </summary>
-public sealed class MapChest
-{
-    public string Id { get; init; } = string.Empty;
-
-    public int X { get; init; }
-
-    public int Z { get; init; }
-
-    /// <summary>A chest's gold, the least and the most; none for a heartbloom.</summary>
-    public IReadOnlyList<long> Gold { get; init; } = [];
-
-    /// <summary>A heartbloom (design.md A3b): it gives back a heart, up to the character's capacity, and no gold.</summary>
-    public bool Heart { get; init; }
-
-    public int RespawnSeconds { get; init; }
-
-    public Tile At => new(X, Z);
-}
-
 public sealed class MapNpc
 {
     public string Id { get; init; } = string.Empty;
@@ -339,8 +316,6 @@ public sealed class ChunkFile
     public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
 
     public IReadOnlyList<MapSpawn> Spawns { get; init; } = [];
-
-    public IReadOnlyList<MapChest> Chests { get; init; } = [];
 
     public IReadOnlyList<MapEntrance> Entrances { get; init; } = [];
 }
@@ -457,6 +432,9 @@ public sealed class WorldFile
     public IReadOnlyList<PitchEntry> Pitches { get; init; } = [];
 
     public IReadOnlyList<FerryEntry> Ferries { get; init; } = [];
+
+    /// <summary>The tier zones (interfaces.md, "Version 2 of the world data"): what the finds of the wilds spawn by.</summary>
+    public ZonesEntry? Zones { get; init; }
 }
 
 /// <summary>
@@ -486,9 +464,6 @@ public sealed class InteriorFile
     public IReadOnlyList<JsonElement> Tiles { get; init; } = [];
 
     public IReadOnlyList<MapNpc> Npcs { get; init; } = [];
-
-    /// <summary>Chests inside (the server's own field: <c>{id, x, z, gold, respawnSeconds}</c>, as a chunk's).</summary>
-    public IReadOnlyList<MapChest> Chests { get; init; } = [];
 
     /// <summary>Its own tile at the door, <c>[x, z]</c>: stepping onto it leaves.</summary>
     public IReadOnlyList<int> Entry { get; init; } = [];
@@ -647,3 +622,32 @@ public sealed class TraderRound
 }
 
 
+
+/// <summary>
+/// The world's tier zones: a grid of <see cref="Cell"/>-tile cells from the world's origin, <see cref="Cols"/> by
+/// <see cref="Rows"/>, each the index of one of <see cref="Areas"/> (or -1, none), row by row.
+/// </summary>
+public sealed class ZonesEntry
+{
+    public int Cell { get; init; }
+
+    public int Cols { get; init; }
+
+    public int Rows { get; init; }
+
+    public IReadOnlyList<ZoneArea> Areas { get; init; } = [];
+
+    public IReadOnlyList<IReadOnlyList<int>> Grid { get; init; } = [];
+}
+
+/// <summary>A tier zone: its id and name, its region's letter (or none) and its tier (0: no wilds, the sea).</summary>
+public sealed class ZoneArea
+{
+    public string Id { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    public string? Region { get; init; }
+
+    public int Tier { get; init; }
+}

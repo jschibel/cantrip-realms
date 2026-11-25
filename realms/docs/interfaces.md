@@ -173,10 +173,9 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
 The server reads these files in version 2 of the world data, on square tiles ("Version 2 of the world data", below;
 Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
 (the doors into interiors), its `npcs` (vendors, armorers, innkeepers, spell tables: a spell table is a `spell-table`
-NPC), `spawns`, `chests` (treasure chests and heartblooms) and `entrances`; of an interior its `w`, `d`, `area`,
-`tiles`, `npcs`, `entry`, `exit`, `town` and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's: a
-heartbloom grows only in the world); of world.json its `size`, `origin`, `chunk`,
-`tile`, `towns`, `inns`, `dungeons`, `pitches` and `ferries`.
+NPC), `spawns` and `entrances`; of an interior its `w`, `d`, `area`, `tiles`, `npcs`, `entry`, `exit` and `town`; of
+world.json its `size`, `origin`, `chunk`, `tile`, `towns`, `inns`, `dungeons`, `pitches`, `ferries` and `zones` (what the
+finds of the wilds spawn by: "Finds of the wilds", below). No file holds a chest or a heartbloom: they come and go.
 
 - **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains), in square tiles `[x, z]`
   (x east, z south) and lengths in tiles: its `size` (whole chunks each way) and `relief` (how much the land rolls, 1 as
@@ -201,7 +200,7 @@ heartbloom grows only in the world); of world.json its `size`, `origin`, `chunk`
   ...]}] (each road's middle line, tile by tile, edge to edge), ferries, pitches, zones, overview}`:
   - a town is the square of tiles within `radius` of its `center` along x and along z (Chebyshev distance; `inTown`,
     `townAt` in format.ts): its walls (or its edge, where it has none) are an outline inside that square, hugging the
-    land, and no spawn, chest or waymarker stands within it;
+    land, and no spawn or waymarker stands within it (nor any find of the wilds);
   - `ferries` are `[{id, name, from: [x, z], to: [x, z], lane: [[x, z], ...]}]`: a ferry to a far isle. `from` and `to`
     are its docks, open shore tiles with a `ferryman` NPC (`ferry` names the ferry) beside each; `lane` runs from one dock
     to the other (`lane[0]` is `from`, the last `to`), sea tiles edge to edge, open (a walk of eight-way steps with no
@@ -221,20 +220,13 @@ heartbloom grows only in the world); of world.json its `size`, `origin`, `chunk`
 
   `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk ("Version 2 of the world data" has every field): its `tiles` (`[height, surface,
   flags]`, row by row; flags 1 blocked, 2 bare, 4 a ramp, which is walked as any open tile), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
-  `chests`, `entrances` and `waymarkers`, all in tiles but props' places, in world units. In Dominaria:
+  `entrances` and `waymarkers`, all in tiles but props' places, in world units. In Dominaria:
   - `npcs` stand outdoors on open tiles: townsfolk and guards who walk, ferrymen. What a player uses but nobody walks
     through - quest boards, the arena's gate, a dungeon's spell table and a mage tower's `waystone` (`tower` names it) -
     stands on a blocked tile of its own with `stand` (its middle), an open tile beside it, and a prop of the same id
     drawn there;
   - `spawns` are `[{id, x, z, mobs, radius, respawnSeconds, tier}]` on open tiles, with ids unique across the world
     (`"<cx>_<cz>:<n>"`: the chunk the spawn stands in, and a number);
-  - `chests` are the world's finds, each a character's own on its own timer, ids unique across the world: treasure
-    chests, `{id, x, z, gold: [low, high], respawnSeconds}` (`"<cx>_<cz>:c<n>"`), each on a blocked tile of its own with
-    open ground round it; and heartblooms (design.md A3b), `{id, x, z, heart: true, respawnSeconds: 604800}`
-    (`"<cx>_<cz>:h<n>"`), no gold, each on an open tile of the wilds (no town's, a tier's zone) walked onto, level and
-    open all round with nothing standing on it, at least 150 tiles from the next (`HEARTBLOOM_APART`, Chebyshev); the
-    world grows at most 12 (`HEARTBLOOMS_MOST`), Dominaria 8, two in each tier's wilds. The generator places them last,
-    rolling no dice, so the rest of the world is as it was without them; the lint holds every rule here;
   - `entrances` are `[{x, z, dungeon}]`: the open tile before the dungeon's structure (a prop of its theme over a
     blocked footprint), walked onto to start a run, with an open step out of it;
   - `waymarkers` are `[{x, z, tier}]`: where the tier rises, in the harder side's tier, on a blocked tile beside a road
@@ -343,7 +335,7 @@ The art slice's small world is `realms/web/fixtures/slice-world`.
     stand?}]`: `figure` and `palette` its look, `behaviour` `{wander?: {home, reach, pause}, beat?: {stops, pause},
     watch?, rest?}` (tiles), `speed` tiles a second, `seed` makes its wandering the same every visit, `stand: [x, y, z]`
     where it stands when not on its tile's middle (a vendor on a crate). Kinds add `ambient` (only there to be seen).
-  - `spawns`, `chests`, `entrances`, `waymarkers`: as before, in tiles (`{x, z, ...}`).
+  - `spawns`, `entrances`, `waymarkers`: as before, in tiles (`{x, z, ...}`).
   - `lights?`: `[{kind: point | spot, at: [x, y, z], color: [r, g, b] (linear, 0-1), intensity, reach, decay?, to?,
     angle?, penumbra?, shadow?, flicker?: {base, steps, rate, phase?}}]`: a fire, a candle, a window's daylight. A
     flicker's intensity is `base + steps[(floor(time * rate) + phase) % steps.length]`, in step with the flames.
@@ -555,17 +547,17 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/encounter/pay` | `{Token}` | `{Gold}`: the lost game's mob paid off (its `Defeat.Price`), the encounter over; 409 `NoBuyout` (a dungeon's mob), `CannotAfford`, `Finished` (no answer owed); 404 `NoDuel` |
 | `POST /api/encounter/rematch` | `{Token, Main, Sideboard, PlayFirst}` | `{Token, Seed, Duel}`: the encounter's next game; 422 `IllegalDeck` with `Problems`; 409 `Finished`; 404 `NoDuel` |
 | `POST /api/hearts/buy` | `{}` | `{Gold, Hearts, MaxHearts, Price}`: one more heart's capacity, filled, from a healer the character stands with (inside an interior with a `healer` NPC); `Price` the next one's, null at 5; 409 `NotNear`, `MostHearts`, `CannotAfford` |
-| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear, Hearts, Heart}`: a find taken standing on or beside it (Places, "Proximity") in its space - the character's gold and hearts after, and what it held. A treasure chest: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common). A heartbloom (`Heart` true; design.md A3b): one heart given back, `Found` 0, and the bloom gone for that character for its `respawnSeconds` (a week); 409 `FullHearts` with the hearts full (and the bloom left standing). 409 `NotNear`, `Empty` (taken, and not back yet); 404 `NoSuchPlace` |
+| `GET /api/finds` | | `[{Id, Kind, X, Z, Until}]`: the finds of the wilds standing now (below), each `chest` or `heartbloom`, its tile, and when it goes if nobody takes it (UTC) |
+| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear, Hearts, Heart}`: a find of the wilds (`Chest` its `Id`; `Space` `world`) taken standing on or beside it (Places, "Proximity") - the character's gold and hearts after, and what it held; it is gone for everyone. A treasure chest: `Found` gold of its zone's tier (below), and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common). A heartbloom (`Heart` true; design.md A3b): one heart given back, `Found` 0; 409 `FullHearts` with the hearts full (and the bloom left standing). 409 `NotNear`, `Empty` (taken by someone, crumbled, or never one); 404 `NoSuchPlace` for a space other than the world |
 | `POST /api/position` | `{Space, X, Z}` | `{Hearts}`: where the character is (Places, above), and their hearts after it - a town fills them; 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, Hearts, MaxHearts, HeartPrice, Defeat, Space, X, Z, Inn,
   Stats: {Life, Hand, MaxHand}, Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned:
-  [tower], Picked: [{Chest, Until}]}`. `Space`, `X`, `Z` are their place (Places, above; a live run's space names the run to resume); `Inn` their
+  [tower]}`. `Space`, `X`, `Z` are their place (Places, above; a live run's space names the run to resume); `Inn` their
   home inn's id; `Attuned` the mage towers whose waystones they have attuned, by dungeon id. `Id` is the player id
   (`discord-<id>`, `dev-<id>`) the spawn algorithm hashes. `Hearts` and `MaxHearts` are the hearts they have and hold
   (design.md A3b: 2 of 2 to start, 5 at most), `HeartPrice` what a healer asks for one more (null at 5), and `Defeat` a
-  lost game still to answer (below), which a reload comes back to, or null. `Picked` are the heartblooms of the world
-  they picked that have not grown back, in id order, each with when it does (UTC): the overworld draws them picked. `Body` is one of
+  lost game still to answer (below), which a reload comes back to, or null. `Body` is one of
   `lithe`, `broad`, `tall`, `stocky` (as `POST /api/character` takes it); `Palette` 0-5, the skin and hair palette
   (`realms/web/src/character.ts`). `Identity` is the starting color and the unlocked ones, as one string of letters in WUBRG
   order (`"WU"`). The
@@ -589,8 +581,21 @@ player with no character is 404 `NoCharacter`.
   at random, which says so (`Floors[n].Shrine`, true; the browser's layout stands it in a room on the way, a
   `heart-shrine` NPC on a blocked tile of its own, prayed at from beside it). The run says whether it has blessed
   (`ShrineUsed`, in `/api/dungeon/enter`'s and `/api/dungeon/run`'s reply); `/api/dungeon/shrine` is the prayer. A
-  shrine's blessing and a heartbloom's picking are kept where a chest's opening is (the `chests` table: who, what, when;
-  a shrine's under the run's space, so it is once a run).
+  shrine's blessing is kept in the `chests` table (who, what, when; under the run's space, so it is once a run).
+- **Finds of the wilds** (design.md A5, A3b; `Economy/Finds.cs`, and `realms/web/src/world/finds.ts` for the offline
+  stand-in): treasure chests and heartblooms come and go, never kept in the world's files nor the store, and each is
+  everyone's - the first to take it has it, and it is gone for all. Treasure chests spawn in each tier zone of the wilds
+  (world.json's `zones`, a tier above 0): at most `REALMS_CHESTS_PER_ZONE` (2) at once, a new one about every
+  `REALMS_CHEST_EVERY` (600 seconds, give or take half) while a zone has fewer, crumbling after `REALMS_CHEST_LASTS`
+  (1,800) unopened; a chest's gold is its zone's tier's (1: 50-150, 2: 100-250, 3: 180-380, 4: 300-500). Heartblooms grow
+  anywhere in the wilds: at most `REALMS_HEARTBLOOMS` (8) at once, each at least 150 tiles (Chebyshev) from the next, one
+  about every `REALMS_HEARTBLOOM_EVERY` (1,800), wilting after `REALMS_HEARTBLOOM_LASTS` (10,800). A find stands on a
+  random open tile of a zone with open, level ground all round (each of the eight round a step of the grid's) - never on
+  worked ground (a `road`, `cobbles`, `flagstones`, `planks`, `wheat` or `furrows` tile), in a town, within 3 tiles of a
+  door, an entrance, an NPC or a spawn point, within 8 of another find, or within 4 of a player the relay has there. A
+  find closes no tile: it is walked onto (or clicked, which walks onto it) and taken there. The overworld asks for
+  them every ten seconds in the world and on coming back into it. The world moves on when asked, on the server's clock;
+  a server started anew grows its own.
 - A dungeon encounter is the run's: the server checks that the run is the character's (404 `NotThere`) and live (409
   `NotThere`), that they stand in it (409 `NotNear`), that `Floor` is the one they stand on (0 the first; 409
   `NotThere`), that `Index` is an encounter of that floor (404 `NotThere`) not yet fought (409 `TooSoon`), and that `Mob`
@@ -680,7 +685,9 @@ player with no character is 404 `NoCharacter`.
   and replayed so, and its result is the engine's; and `POST /dev/cards {Name, Count}` adds copies of a card the engine
   plays to the collection (a negative count takes them; 422 `NoSuchCard` otherwise), as a test arranges what is owned;
   `GET /dev/where` says where the presence relay has each of the player's connections now (`[{Member, Space, X, Z}]`),
-  what a test reads the page's walks against; and `POST /dev/log {Text}` writes what the page saw to the server's log
+  what a test reads the page's walks against; `POST /dev/find {Kind, X, Z, Clear}` stands a find of the wilds (`chest` or
+  `heartbloom`) on an open tile of the world now, every other taken away first when `Clear` (422 `NoSuchPlace`
+  otherwise), as a test arranges one rather than waiting on the spawner's dice; and `POST /dev/log {Text}` writes what the page saw to the server's log
   (the overworld's report of a jump of the player's figure, with the presence events before it; at most 16 KB).
   Never in production.
 

@@ -57,7 +57,6 @@
     {"id":"6_14:1","x":193,"z":453,"mobs":["enormous-baloth","serra-angel"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"6_14:2","x":213,"z":472,"mobs":["azure-drake","bog-wraith","sandbar-serpent"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

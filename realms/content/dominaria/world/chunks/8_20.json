@@ -106,7 +106,6 @@
     {"id":"avenant-quest-board","x":258,"z":665,"kind":"quest-board","name":"Notice board","text":["Archers wanted for the Hurloon passes."],"stand":[258.5,0.375,665.5]}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

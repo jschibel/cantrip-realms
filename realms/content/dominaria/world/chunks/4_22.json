@@ -52,7 +52,6 @@
     {"id":"4_22:1","x":136,"z":726,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"4_22:2","x":156,"z":727,"mobs":["coral-merfolk","vodalian-soldiers"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

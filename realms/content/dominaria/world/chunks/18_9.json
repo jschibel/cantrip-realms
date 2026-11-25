@@ -4,7 +4,7 @@
   "tiles": [
     [0,"ash",0],[0,"scree",0],[0,"scree",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],
+    [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],
     [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",3],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",3],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],
     [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [0,"ash",0],[0,"dirt",0],[0,"dirt",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"ash",0],[0,"cracked-earth",0],[0,"cracked-earth",0],[0,"cracked-earth",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",2],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
@@ -79,9 +79,6 @@
   "spawns": [
     {"id":"18_9:1","x":602,"z":297,"mobs":["karplusan-yeti","serra-paragon","tarmogoyf"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"18_9:2","x":594,"z":314,"mobs":["rorix-bladewing","shivan-dragon"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
-  "chests": [
-    {"id":"18_9:c1","x":584,"z":290,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [
     {"x":593,"z":302,"dungeon":"keld-1"},

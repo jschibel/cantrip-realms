@@ -56,7 +56,6 @@
   "spawns": [
     {"id":"19_8:1","x":628,"z":261,"mobs":["balduvian-barbarians","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

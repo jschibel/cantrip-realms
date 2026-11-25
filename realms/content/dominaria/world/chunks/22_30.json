@@ -59,7 +59,6 @@
   "spawns": [
     {"id":"22_30:1","x":734,"z":960,"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

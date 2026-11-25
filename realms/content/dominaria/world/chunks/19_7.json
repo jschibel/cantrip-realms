@@ -32,7 +32,7 @@
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",2],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
-    [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",2],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],
+    [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",2],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],
     [12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",0],[12,"snow",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0]
   ],
   "props": [
@@ -90,9 +90,6 @@
   "spawns": [
     {"id":"19_7:1","x":631,"z":225,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1},
     {"id":"19_7:2","x":620,"z":244,"mobs":["balduvian-barbarians","hurloon-minotaur","ironclaw-orcs"],"radius":6,"respawnSeconds":600,"tier":1}
-  ],
-  "chests": [
-    {"id":"19_7:c1","x":638,"z":254,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

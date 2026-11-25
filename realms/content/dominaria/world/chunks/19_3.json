@@ -101,7 +101,6 @@
     {"id":"19_3:2","x":632,"z":113,"mobs":["rorix-bladewing","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"19_3:3","x":617,"z":122,"mobs":["sibilant-spirit","tarmogoyf","tempest-djinn"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
-  "chests": [],
   "entrances": [
     {"x":622,"z":109,"dungeon":"parma-caves"}
   ],

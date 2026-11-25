@@ -124,7 +124,6 @@
     {"id":"llanowar-folk-1","x":743,"z":861,"kind":"townsfolk","name":"Elvish ranger","text":["Across the Suder the forest begins, and it does not end politely."],"figure":"townsfolk-llanowar","speed":1.6,"seed":1,"behaviour":{"wander":{"home":[743,861],"reach":4,"pause":[2,6]},"watch":3}}
   ],
   "spawns": [],
-  "chests": [],
   "entrances": [],
   "waymarkers": []
 }

@@ -3,7 +3,7 @@
   "cz": 16,
   "tiles": [
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
-    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],
+    [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",3],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",0],[12,"scree",3],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
     [24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[24,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],[12,"scree",0],
@@ -108,9 +108,6 @@
     {"id":"23_16:1","x":740,"z":522,"mobs":["enormous-baloth","fallen-angel"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"23_16:2","x":760,"z":523,"mobs":["karplusan-yeti","sengir-vampire"],"radius":6,"respawnSeconds":600,"tier":4},
     {"id":"23_16:3","x":753,"z":539,"mobs":["marhault-elsdragon","serra-angel","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
-  ],
-  "chests": [
-    {"id":"23_16:c1","x":757,"z":513,"gold":[300,500],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []

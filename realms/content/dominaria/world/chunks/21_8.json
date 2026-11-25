@@ -2,7 +2,7 @@
   "cx": 21,
   "cz": 8,
   "tiles": [
-    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
+    [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
     [12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",3],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[12,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],
@@ -75,9 +75,6 @@
   "spawns": [
     {"id":"21_8:1","x":697,"z":264,"mobs":["keldon-warlord","orcish-artillery","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"21_8:2","x":682,"z":273,"mobs":["bog-wraith","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2}
-  ],
-  "chests": [
-    {"id":"21_8:c1","x":689,"z":256,"gold":[100,250],"respawnSeconds":86400}
   ],
   "entrances": [],
   "waymarkers": []
