@@ -1,5 +1,5 @@
-// The mobs the overworld shows (realms/content/<plane>/mobs/*.json; interfaces.md, "Mobs"): their names, tiers and
-// models. A map may name a mob whose file the server's content has not written yet; such a mob is shown with a look
+// The mobs the overworld shows (realms/content/<plane>/mobs/*.json; interfaces.md, "Mobs"): their names, tiers, models
+// and what they say when they beat the player. A map may name a mob whose file the server's content has not written yet; such a mob is shown with a look
 // guessed from its id - a stand-in for display only, never for anything of value, which the server owns.
 
 import type { ManaColor, MobModel } from "./art/figures";
@@ -15,10 +15,11 @@ export interface MobInfo {
   /** The card the mob is (its file's `creature`): it picks the figure's variations with the id (art/figures/mobs.ts). */
   readonly creature: string;
   readonly tier: number;
-  readonly prize: number;
   readonly goldRange: readonly [number, number];
   readonly model: MobModel;
   readonly boss: boolean;
+  /** What it says (a beast: does, between asterisks) over the player it beat, by how the game went (hearts.ts, defeatLine). */
+  readonly lines?: MobLines;
   /** The color a boss unlocks when beaten (design.md A6); none for any other mob, or the capstone. */
   readonly unlocks?: ManaColor;
   /** A boss's own unique gear item, by id. */
@@ -27,16 +28,23 @@ export interface MobInfo {
   readonly known: boolean;
 }
 
+/** A mob's lines (its file's `lines`): for a win without a point of life lost, one with some lost, and a close one. */
+export interface MobLines {
+  readonly flawless?: readonly string[];
+  readonly solid?: readonly string[];
+  readonly close?: readonly string[];
+}
+
 interface MobFile {
   readonly id: string;
   readonly name: string;
   readonly named?: boolean;
   readonly creature?: string;
   readonly tier: number;
-  readonly prize: number;
   readonly goldRange: readonly [number, number];
   readonly model: MobModel;
   readonly boss?: boolean;
+  readonly lines?: MobLines;
   readonly unlocks?: ManaColor;
   readonly unique?: string;
 }
@@ -61,7 +69,7 @@ function guess(id: string): MobInfo {
   const name = id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const found = GUESSES.find(([pattern]) => pattern.test(id));
   const [mesh, palette, size] = found ? [found[1], found[2], found[3]] : ["humanoid", ["#8c909c", "#7a1f24", "#4a3122"] as const, undefined];
-  return { id, name, named: false, creature: name, tier: 1, prize: 100, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
+  return { id, name, named: false, creature: name, tier: 1, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
 }
 
 export function mobInfo(id: string): MobInfo {

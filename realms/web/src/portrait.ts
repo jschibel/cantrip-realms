@@ -1,10 +1,11 @@
 import * as THREE from "three";
-import { type Appearance, Figure, type GearLook, playerFigure } from "./art/figures";
+import { type Appearance, Figure, type FigureSpec, type GearLook, type MobModel, mobFigure, playerFigure } from "./art/figures";
 
 // The character's portrait for the card layer's gear screen (interfaces.md, "The card layer": `portrait`): the player's
 // figure as the world draws it - the same rig, texels and gear meshes (art/figures) - standing in three-quarter view
 // under a sun and a sky like the open air's, rendered on a small canvas of its own and handed over as a PNG. The card
-// layer magnifies it by whole pixels, so it stays pixel art. It asks again whenever what is worn changes.
+// layer magnifies it by whole pixels, so it stays pixel art. It asks again whenever what is worn changes. A mob's
+// portrait is drawn the same way, for the dialog of a duel it won (screens/defeat.ts).
 
 /** Pixels to a world unit: three to a texel (a texel is a sixteenth of a unit), so the card layer magnifies whole pixels. */
 const PIXELS_PER_UNIT = 48;
@@ -13,6 +14,15 @@ let renderer: THREE.WebGLRenderer | null = null;
 
 /** The figure of `appearance` wearing `slots` instead of what it wears, as a PNG data URL; null where WebGL is not to be had. */
 export function renderPortrait(appearance: Appearance, slots: Readonly<Record<string, GearLook>>): string | null {
+  return renderFigure(playerFigure({ ...appearance, slots }));
+}
+
+/** A mob's figure (`mobFigure`) as a PNG data URL, as the player's is drawn; null where WebGL is not to be had. */
+export function renderMob(model: MobModel, id: string, creature: string): string | null {
+  return renderFigure(mobFigure(model, id, creature));
+}
+
+function renderFigure(spec: FigureSpec): string | null {
   try {
     renderer ??= new THREE.WebGLRenderer({ canvas: document.createElement("canvas"), alpha: true, antialias: false, preserveDrawingBuffer: true });
   } catch {
@@ -28,7 +38,7 @@ export function renderPortrait(appearance: Appearance, slots: Readonly<Record<st
   scene.add(sun);
   scene.add(new THREE.HemisphereLight(new THREE.Color(0.6, 0.68, 1.0), new THREE.Color(0.52, 0.42, 0.5), 0.6 * Math.PI));
 
-  const figure = new Figure(playerFigure({ ...appearance, slots }));
+  const figure = new Figure(spec);
   figure.face(0.5, 1);
   // Settled: turned to the three-quarter view, standing at rest.
   for (let i = 0; i < 12; i++) figure.update(0.1, 0);

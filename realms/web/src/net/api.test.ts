@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
 import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/realm";
 import { MockApi, travelersAt } from "./mockApi";
+import { buyout } from "../hearts";
 
 describe("HttpApi", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -26,11 +27,11 @@ describe("HttpApi", () => {
     expect(refused).toMatchObject({ status: 409, code: "NotNear", detail: "You are too far from that spawn." });
   });
 
-  it("reads the server's Character: its id, body name, ante value, identity letters and loadout of gear instances", async () => {
+  it("reads the server's Character: its id, body name, hearts, identity letters and loadout of gear instances", async () => {
     // As Cantrip.Realms.Server's CharacterView serialises (interfaces.md, the Character bullet).
     const plate = { Id: "padded-jerkin", Name: "Padded Jerkin", Slot: "body", Rarity: "common", Gold: 300, Stats: { Life: 3, Hand: 0, MaxHand: 0 }, Effects: [], Text: "", Look: { Mesh: "armor", Palette: ["#8a6a43", "#5a4630"], Size: null }, Unique: false, Emblem: null };
     const sent = {
-      Id: "dev-1", Name: "Ann", Body: "broad", Palette: 2, Identity: "WU", Gold: 2000, AnteValue: 150, Space: "world", X: 311, Z: 325,
+      Id: "dev-1", Name: "Ann", Body: "broad", Palette: 2, Identity: "WU", Gold: 2000, Hearts: 1, MaxHearts: 3, HeartPrice: 3000, Defeat: null, Space: "world", X: 311, Z: 325,
       Stats: { Life: 23, Hand: 7, MaxHand: 7 },
       Loadout: { head: null, neck: null, body: { InstanceId: 4, Gear: plate }, hands: null, feet: null, ring1: null, ring2: null, relic: null },
       Gear: [{ InstanceId: 4, Gear: plate }],
@@ -40,6 +41,7 @@ describe("HttpApi", () => {
     const me: Character = (await new HttpApi("https://realm.example/").me())!;
     expect(me.Id).toBe("dev-1");
     expect(me.Body).toBe("broad");
+    expect([me.Hearts, me.MaxHearts, me.HeartPrice]).toEqual([1, 3, 3000]);
     expect(identityOf(me)).toEqual(["W", "U"]);
     expect(me.Loadout.body?.Gear.Look.Mesh).toBe("armor");
     expect(me.Loadout.head).toBeNull();
@@ -68,28 +70,66 @@ describe("MockApi", () => {
     expect(Object.values(me.Loadout).filter((worn) => worn)).toHaveLength(3);
   });
 
-  it("caps the loot at the ante and refuses picks over it", async () => {
+  it("pays a win in gold alone, and costs a heart for a loss with the mob's buyout by the life it kept", async () => {
     const api = make();
     const start = await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
-    expect(start.Duel.Cap).toBe(Math.min(start.Duel.AnteValue, start.Duel.Mob.Prize));
+    expect(start.Duel).toMatchObject({ Game: 1, FirstPlayer: null });
     api.settle(start.Token, "won");
-    const result = await api.finishEncounter({ Token: start.Token, Log: [] });
-    expect(result.Outcome).toBe("won");
-    expect(result.Offer.some((card) => card.Gold <= result.Cap)).toBe(true);
-    const all = result.Offer.map((c) => c.Name);
-    const total = result.Offer.reduce((sum, c) => sum + c.Gold, 0);
-    if (total > result.Cap) await expect(api.takeLoot({ Token: start.Token, Picks: all })).rejects.toMatchObject({ code: "OverCap" });
-    const fits = result.Offer.find((c) => c.Gold <= result.Cap)!;
-    await expect(api.takeLoot({ Token: start.Token, Picks: [fits.Name] })).resolves.toBeDefined();
+    const won = await api.finishEncounter({ Token: start.Token, Log: [] });
+    expect(won).toMatchObject({ Outcome: "won", Hearts: 2 });
+    expect(won.Gold).toBeGreaterThan(0);
+
+    const next = await api.startEncounter({ Spawn: "s2", Mob: "bog-rats" });
+    const full = Number(next.Duel.Seats[1]!["StartingLife"]);
+    api.settle(next.Token, "lost", 1);
+    const lost = await api.finishEncounter({ Token: next.Token, Log: [] });
+    expect(lost).toMatchObject({ Outcome: "lost", Gold: 0, Hearts: 1, Died: false });
+    expect(lost.Defeat).toMatchObject({ Token: next.Token, Mob: "bog-rats", MobLife: 1, MobFullLife: full, Price: buyout(1, 1, full) });
+    expect((await api.me())!.Defeat?.Token).toBe(next.Token);
+    await expect(api.startEncounter({ Spawn: "s3", Mob: "bog-rats" })).rejects.toMatchObject({ code: "Defeated" });
+
+    const gold = (await api.me())!.Gold;
+    expect(await api.payEncounter({ Token: next.Token })).toEqual({ Gold: gold - lost.Defeat!.Price! });
+    expect((await api.me())!.Defeat).toBeNull();
+    await expect(api.payEncounter({ Token: next.Token })).rejects.toMatchObject({ code: "Finished" });
   });
 
-  it("loses an ante card on a loss, and counts a duel never finished as lost", async () => {
+  it("fights on with the mob at its carried life, and the last heart lost sends the character home", async () => {
     const api = make();
-    const before = (await api.me())!.AnteValue;
+    await api.position({ Space: "world", X: 0, Z: 0 });
     const first = await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
-    await api.startEncounter({ Spawn: "s2", Mob: "bog-imp" });
-    expect((await api.finishEncounter({ Token: first.Token, Log: [] })).Outcome).toBe("lost");
-    expect((await api.me())!.AnteValue).toBeLessThan(before);
+    api.settle(first.Token, "lost", 26);
+    const defeat = (await api.finishEncounter({ Token: first.Token, Log: [] })).Defeat!;
+    const again = await api.rematch({ Token: defeat.Token, Main: defeat.Main, Sideboard: defeat.Sideboard, PlayFirst: false });
+    expect(again.Duel).toMatchObject({ Game: 2, FirstPlayer: 2 });
+    expect(again.Duel.Seats[1]!["StartingLife"]).toBe(26);
+    expect(again.Duel.Seats[0]!["StartingLife"]).toBe((await api.me())!.Stats.Life);
+    api.settle(again.Token, "lost");
+    const died = await api.finishEncounter({ Token: again.Token, Log: [] });
+    expect(died).toMatchObject({ Died: true, Hearts: 2, Defeat: null });
+    const inn = innOf(WORLD.towns.find((t) => t.kind === "capital")!.id);
+    expect((await api.me())!).toMatchObject({ Space: "world", X: inn.x, Z: inn.z, Hearts: 2 });
+  });
+
+  it("counts a duel never finished as lost when the next starts", async () => {
+    const api = make();
+    await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
+    await expect(api.startEncounter({ Spawn: "s2", Mob: "bog-imp" })).rejects.toMatchObject({ code: "Unfinished" });
+    expect((await api.me())!).toMatchObject({ Hearts: 1 });
+  });
+
+  it("fills the hearts in a town and sells one more at a temple", async () => {
+    const api = make();
+    const first = await api.startEncounter({ Spawn: "s1", Mob: "bog-rats" });
+    api.settle(first.Token, "lost");
+    await api.finishEncounter({ Token: first.Token, Log: [] });
+    await api.payEncounter({ Token: first.Token });
+    expect(await api.position({ Space: "world", X: 0, Z: 0 })).toEqual({ Hearts: 1 });
+    const town = WORLD.towns.find((t) => t.kind === "capital")!;
+    expect(await api.position({ Space: "world", X: town.center[0], Z: town.center[1] })).toEqual({ Hearts: 2 });
+    await expect(api.buyHeart()).rejects.toMatchObject({ code: "NotNear" });
+    await api.position({ Space: `${town.id}-temple`, X: 1, Z: 1 });
+    expect(await api.buyHeart()).toMatchObject({ Hearts: 3, MaxHearts: 3, Price: 3000 });
   });
 
   it("opens a chest once", async () => {

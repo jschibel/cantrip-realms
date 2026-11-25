@@ -139,6 +139,33 @@ button.primary:hover { filter: brightness(1.08); }
 .boss-beaten .spoils b { color: var(--fg); }
 .boss-beaten .buttons { justify-content: center; }
 
+/* Hearts (design.md A3b): a row of them, filled for those the character has, empty for the rest they hold. */
+.hearts { display: inline-flex; gap: 2px; vertical-align: middle; }
+.heart { color: var(--danger); font-size: 15px; line-height: 1; }
+.heart.empty { color: var(--fg-soft); opacity: 0.6; }
+.hearts.flash .heart.full { animation: heart-beat 0.9s ease-out 2; }
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.45); }
+}
+
+/* A duel lost with hearts left: the mob over the player, its line, the hearts left, the answer. */
+.defeat .panel-card { min-width: 420px; border-color: var(--danger); box-shadow: 0 0 50px -12px var(--danger), 0 12px 40px #0008; }
+.defeat .defeat-top { display: flex; gap: 16px; align-items: center; }
+.defeat .portrait { width: 96px; height: 96px; object-fit: contain; image-rendering: pixelated; background: #0d0f1466; border-radius: 8px; }
+.defeat .kicker { color: var(--danger); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.defeat h2 { margin: 4px 0 0; }
+.defeat .line { font-size: 16px; color: var(--fg); margin: 14px 0 10px; }
+.defeat .line em { color: var(--fg-soft); }
+.defeat .hearts .heart, .death .hearts .heart { font-size: 20px; }
+.defeat .buttons button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* The last heart lost: the world goes dark round the word. */
+.dialog.death { background: #000000c8; }
+.death .panel-card { text-align: center; min-width: 400px; border-color: var(--danger); }
+.death h2 { font-size: 30px; color: var(--danger); margin: 4px 0 12px; }
+.death .buttons { justify-content: center; }
+
 #hud-side {
   position: absolute;
   right: 16px;

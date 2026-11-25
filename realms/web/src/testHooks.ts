@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { CardScreens } from "./cardLayer";
 import type { Overworld } from "./game";
+import { stubDuel } from "./cardStub";
 import { identityOf } from "./net/api";
 import { type DevDuel, MockApi } from "./net/mockApi";
 import { centre } from "./render/actor";
@@ -93,7 +94,7 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     get character() {
       const o = game();
       return o?.data
-        ? { name: o.data.Name, gold: o.data.Gold, ante: o.data.AnteValue, identity: identityOf(o.data), attuned: [...(o.data.Attuned ?? [])], loadout: Object.entries(o.data.Loadout).filter(([, worn]) => worn).map(([slot]) => slot) }
+        ? { name: o.data.Name, gold: o.data.Gold, hearts: o.data.Hearts, maxHearts: o.data.MaxHearts, defeat: o.data.Defeat, identity: identityOf(o.data), attuned: [...(o.data.Attuned ?? [])], loadout: Object.entries(o.data.Loadout).filter(([, worn]) => worn).map(([slot]) => slot) }
         : null;
     },
     get entities() {
@@ -144,6 +145,13 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     forceDuel(duel: DevDuel | null) {
       const o = game();
       if (o?.api instanceof MockApi) o.api.devDuel = duel;
+    },
+    /**
+     * The mob's life at the end of a duel the stand-in card layer loses (cardStub.ts): what the real one reads from the
+     * game, which the next game's mob begins at; null for the life it began with.
+     */
+    duelEnd(mobLife: number | null) {
+      stubDuel.mobLife = mobLife;
     },
     /**
      * The minimap as drawn: each tier's zone's pixels, the markers on it, the town it shows (in one) and the places of

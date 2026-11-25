@@ -1,13 +1,14 @@
-// The realm server's API in memory (?offline): a character, a collection, gold, vendors, an armorer, encounters and
-// chests that behave as interfaces.md says the server's do, so the whole overworld can be played and tested with no
+// The realm server's API in memory (?offline): a character, their hearts, a collection, gold, vendors, an armorer,
+// encounters - a loss's heart, the buyout, the rematch, death - and chests that behave as interfaces.md says the server's do, so the whole overworld can be played and tested with no
 // server. Nothing here is the economy - the server owns that - and the cards and gear in it are a small stand-in set.
 
 import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
+import { STARTING_HEARTS, buyout, heartPriceAfter } from "../hearts";
 import { mobInfo } from "../mobs";
 import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
 import { DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
-import type { DungeonData } from "../world/format";
+import { type DungeonData, townAt } from "../world/format";
 import { dealtBy, tableOf } from "../world/standing";
 
 const INNS = WORLD.inns;
@@ -42,15 +43,19 @@ export function travelersAt(nowMs: number): Traveler[] {
 import {
   ApiError,
   type Character,
+  type CardCount,
   type Collection,
   type Deck,
+  type Defeat,
   type EncounterAt,
   type EncounterResult,
   type EncounterStart,
   type Gear,
   type GearInstance,
+  type HeartsBought,
   type Place,
   type RealmApi,
+  type Rematch,
   type Run,
   type RunFloor,
   type Traveler,
@@ -159,22 +164,37 @@ export interface DevDuel {
   readonly Mob?: DevSeat | null;
 }
 
+/** A game of an encounter, as the server keeps its row: what it was dealt, and how it ended. */
 interface Encounter {
   readonly token: string;
   readonly mob: string;
   /** A dungeon run's encounter: its run, floor and index. */
   readonly run?: { readonly id: string; readonly floor: number; readonly index: number };
-  readonly cap: number;
+  /** Where it was met (the spawn's id, or the run's `<floor>:<index>`). */
+  readonly spawn: string;
+  readonly game: number;
+  /** The duel as dealt, and the sideboard it was played with. */
+  readonly duel: EncounterStart["Duel"];
+  readonly sideboard: readonly CardCount[];
+  /** The mob's full starting life for the encounter: what its buyout is measured against. */
+  readonly fullLife: number;
   outcome?: "won" | "lost";
+  /** The mob's life at the end, as the card layer said it; its starting life when it did not. */
+  mobLife?: number;
   result?: EncounterResult;
-  looted: boolean;
+  /** What the game came to: open, won, defeated (awaiting the answer), paid, rematched or lost (the last heart). */
+  state: "open" | "won" | "defeated" | "paid" | "rematched" | "lost";
+  price: number | null;
+  /** What a win in a run gave, for death in the run to take back. */
+  gift?: string | null;
+  gear?: GearInstance | null;
 }
 
 export class MockApi implements RealmApi {
   readonly offline = true;
   private character: Character | null = null;
   private cards: Record<string, number> = {};
-  private deck: Deck = { Main: [], Ante: [] };
+  private deck: Deck = { Main: [], Sideboard: [] };
   private readonly encounters = new Map<string, Encounter>();
   private readonly chestsOpened = new Set<string>();
   private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean }>();
@@ -208,14 +228,36 @@ export class MockApi implements RealmApi {
     return this.character;
   }
 
-  private anteValue(): number {
-    return this.deck.Ante.reduce((sum, c) => sum + (CARDS.find((k) => k.Name === c.Name)?.Gold ?? 0) * c.Count, 0);
-  }
-
   private update(patch: Partial<Character>): Character {
     this.character = { ...this.need(), ...patch };
-    this.character = { ...this.character, AnteValue: this.anteValue() };
+    this.character = { ...this.character, HeartPrice: heartPriceAfter(this.character.MaxHearts), Defeat: this.pendingDefeat() };
     return this.character;
+  }
+
+  /** The game lost with hearts left and not yet answered, as the character shows it. */
+  private pendingDefeat(): Defeat | null {
+    const e = [...this.encounters.values()].find((x) => x.state === "defeated");
+    return e ? this.defeatOf(e) : null;
+  }
+
+  private defeatOf(e: Encounter): Defeat {
+    const c = this.need();
+    const counts = new Map<string, number>();
+    for (const name of (e.duel.Seats[0]?.["Deck"] as string[] | undefined) ?? []) counts.set(name, (counts.get(name) ?? 0) + 1);
+    return {
+      Token: e.token,
+      Mob: e.mob,
+      Spawn: e.spawn,
+      Epoch: 0,
+      Game: e.game,
+      Hearts: c.Hearts,
+      MaxHearts: c.MaxHearts,
+      MobLife: e.mobLife ?? Number(e.duel.Seats[1]?.["StartingLife"] ?? 0),
+      MobFullLife: e.fullLife,
+      Price: e.price,
+      Main: [...counts].map(([Name, Count]) => ({ Name, Count })).sort((a, b) => (a.Name < b.Name ? -1 : 1)),
+      Sideboard: e.sideboard,
+    };
   }
 
   private make(name: string, body: Body, palette: number, color: ManaColor): Character {
@@ -232,7 +274,10 @@ export class MockApi implements RealmApi {
       Palette: palette,
       Identity: "WUBRG".split("").filter((l) => colors.includes(l as ManaColor)).join(""),
       Gold: 2000,
-      AnteValue: 0,
+      Hearts: STARTING_HEARTS,
+      MaxHearts: STARTING_HEARTS,
+      HeartPrice: heartPriceAfter(STARTING_HEARTS),
+      Defeat: null,
       Space: "world",
       X: inn.x,
       Z: inn.z,
@@ -246,10 +291,10 @@ export class MockApi implements RealmApi {
     const own = CARDS.filter((c) => colors.includes(c.Color as ManaColor) || c.Color === "C");
     this.cards = Object.fromEntries(own.map((c) => [c.Name, 4]));
     // The starting color's starter deck, as the server deals a new character (design.md A1), its cards owned beside the
-    // stand-ins; and two of the stand-ins in the ante, so a win offers cards.
+    // stand-ins; and two of the stand-ins in the sideboard, so a rematch has something to swap in.
     const starter = starterDeck(colors[0] ?? "W");
     for (const c of starter) if (!BASICS.has(c.Name)) this.cards[c.Name] = (this.cards[c.Name] ?? 0) + c.Count;
-    this.deck = { Main: starter, Ante: own.slice(0, 2).map((c) => ({ Name: c.Name, Count: 1 })) };
+    this.deck = { Main: starter, Sideboard: own.slice(0, 2).map((c) => ({ Name: c.Name, Count: 1 })) };
     return this.update({});
   }
 
@@ -297,7 +342,7 @@ export class MockApi implements RealmApi {
     this.log("vendor", { id });
     const pick = mulberry32(id.length * 7919 + id.charCodeAt(0));
     const stock = CARDS.filter(() => pick() < 0.4).map((c) => ({ Name: c.Name, Gold: c.Gold, Count: 1 + Math.floor(pick() * 3), Until: null }));
-    const used = (name: string) => [...this.deck.Main, ...this.deck.Ante].filter((c) => c.Name === name).reduce((n, c) => n + c.Count, 0);
+    const used = (name: string) => [...this.deck.Main, ...this.deck.Sideboard].filter((c) => c.Name === name).reduce((n, c) => n + c.Count, 0);
     const buying = CARDS.filter((c) => (this.cards[c.Name] ?? 0) > 0).map((c) => ({
       Name: c.Name,
       Gold: Math.floor(c.Gold / 2),
@@ -340,12 +385,15 @@ export class MockApi implements RealmApi {
   async startEncounter(body: EncounterAt): Promise<EncounterStart> {
     this.log("startEncounter", body);
     const c = this.need();
-    const open = [...this.encounters.values()].find((e) => !e.result);
+    const open = [...this.encounters.values()].find((e) => e.state === "open");
     if (open) {
       // A duel never finished counts as lost when the next encounter starts (design.md, A3).
       open.outcome = "lost";
       await this.finishEncounter({ Token: open.token, Log: [] });
+      throw new ApiError(409, "Unfinished", "The duel before this one was never finished, so it counts as lost.");
     }
+    const defeated = [...this.encounters.values()].find((e) => e.state === "defeated");
+    if (defeated) throw new ApiError(409, "Defeated", `${mobInfo(defeated.mob).name} still stands over you: pay it off or fight it again first.`);
     let run: Encounter["run"];
     let gains: RunFloor["BossStats"] = null;
     if ("Run" in body) {
@@ -363,34 +411,32 @@ export class MockApi implements RealmApi {
     }
     const mob = mobInfo(body.Mob);
     const token = `duel-${this.nextToken++}`;
-    const cap = Math.min(c.AnteValue, mob.prize);
-    this.encounters.set(token, { token, mob: body.Mob, cap, looted: false, ...(run ? { run } : {}) });
     const seed = Math.floor(this.random() * 2 ** 31);
-    return {
-      Token: token,
+    // Dealt as the server deals it (mockDuel.ts), with what a test forced; a mob with no deck file plays the white starter.
+    const dealt = gaining((await mobSeat(body.Mob)) ?? playerSeat({ ...c, Name: mob.name, Loadout: {} }, { Main: starterDeck("W"), Sideboard: [] }), gains);
+    const duel: EncounterStart["Duel"] = {
+      Seats: [{ ...playerSeat(c, this.deck), ...this.devDuel?.Player }, { ...dealt, ...this.devDuel?.Mob }],
+      MinimumDeckSize: 40,
       Seed: seed,
-      Duel: {
-        // Dealt as the server deals it (mockDuel.ts), with what a test forced; a mob with no deck file plays the white starter.
-        Seats: [
-          { ...playerSeat(c, this.deck), ...this.devDuel?.Player },
-          { ...gaining((await mobSeat(body.Mob)) ?? playerSeat({ ...c, Name: mob.name, Loadout: {} }, { Main: starterDeck("W"), Ante: [] }), gains), ...this.devDuel?.Mob },
-        ],
-        MinimumDeckSize: 40,
-        Seed: seed,
-        Mob: { Name: mob.name, Tier: mob.tier, Prize: mob.prize },
-        AnteValue: c.AnteValue,
-        Cap: cap,
-      },
+      Mob: { Name: mob.name, Tier: mob.boss ? 0 : mob.tier },
+      Game: 1,
+      FirstPlayer: null,
     };
+    const spawn = run ? `${run.floor}:${run.index}` : "Spawn" in body ? body.Spawn : "";
+    this.encounters.set(token, { token, mob: body.Mob, spawn, game: 1, duel, sideboard: this.deck.Sideboard, fullLife: Number(dealt["StartingLife"] ?? 20), state: "open", price: null, ...(run ? { run } : {}) });
+    return { Token: token, Seed: seed, Duel: duel };
   }
 
   /**
-   * The stand-in for the server's replay of the duel's log: the mock is told how the duel ended, since it plays no
-   * engine. The overworld tells it before finishing, when the card layer says.
+   * The stand-in for the server's replay of the duel's log: the mock is told how the duel ended and the mob's life at its
+   * end, since it plays no engine. The overworld tells it before finishing, when the card layer says.
    */
-  settle(token: string, outcome: "won" | "lost"): void {
+  settle(token: string, outcome: "won" | "lost", mobLife?: number): void {
     const encounter = this.encounters.get(token);
-    if (encounter && !encounter.result) encounter.outcome = outcome;
+    if (encounter && !encounter.result) {
+      encounter.outcome = outcome;
+      if (mobLife !== undefined) encounter.mobLife = mobLife;
+    }
   }
 
   async finishEncounter(body: { Token: string; Log: readonly string[] }): Promise<EncounterResult> {
@@ -404,8 +450,6 @@ export class MockApi implements RealmApi {
     if (won) {
       const [low, high] = mob.goldRange;
       const gold = low + Math.floor(this.random() * (high - low + 1));
-      const fits = CARDS.filter((k) => k.Gold <= encounter.cap);
-      const offer = encounter.cap > 0 && fits.length > 0 ? [fits[Math.floor(this.random() * fits.length)]!, ...[0, 1].map(() => CARDS[Math.floor(this.random() * CARDS.length)]!)] : [];
       // A boss (design.md A6): its color unlocked, a rare of its loot given outright, its unique item the first time.
       let unlocked: ManaColor | null = null;
       let gift: string | null = null;
@@ -428,8 +472,11 @@ export class MockApi implements RealmApi {
           this.update({ Gear: [...this.need().Gear, dropped] });
         }
       }
-      encounter.result = { Outcome: "won", Gold: gold, Offer: offer.map((k) => ({ Name: k.Name, Gold: k.Gold })), Cap: encounter.cap, Gear: dropped, Relics: [], Detail: null, Gift: gift, Unlocked: unlocked };
+      encounter.state = "won";
+      encounter.gift = gift;
+      encounter.gear = dropped;
       this.update({ Gold: this.need().Gold + gold });
+      encounter.result = { Outcome: "won", Gold: gold, Gear: dropped, Relics: [], Detail: null, Gift: gift, Unlocked: unlocked, Hearts: this.need().Hearts };
       if (encounter.run) {
         const live = this.runs.get(encounter.run.id)!;
         live.fought.add(`${encounter.run.floor}:${encounter.run.index}`);
@@ -440,33 +487,95 @@ export class MockApi implements RealmApi {
           this.update({ Attuned: [...this.attuned] });
         }
       }
-    } else {
-      // A random ante card is lost.
-      const ante = this.deck.Ante.flatMap((a) => Array.from({ length: a.Count }, () => a.Name));
-      const lost = ante[Math.floor(this.random() * ante.length)];
-      if (lost) {
-        this.deck = { ...this.deck, Ante: this.deck.Ante.map((a) => (a.Name === lost ? { ...a, Count: a.Count - 1 } : a)).filter((a) => a.Count > 0) };
-        this.cards[lost] = Math.max(0, (this.cards[lost] ?? 1) - 1);
-      }
-      encounter.result = { Outcome: "lost", Gold: 0, Offer: [], Cap: encounter.cap, Gear: null, Relics: [], Detail: null, Lost: lost ?? null };
-      // A lost duel ends any run, and the character wakes at the inn of their home town.
-      if (encounter.run) this.runs.get(encounter.run.id)!.live = false;
-      const inn = innOf(this.inn ?? startTown().id);
-      this.update({ Space: "world", X: inn.x, Z: inn.z });
+      return encounter.result;
     }
+
+    // A loss pays nothing and costs a heart (design.md A3b).
+    encounter.mobLife ??= Number(encounter.duel.Seats[1]?.["StartingLife"] ?? 0);
+    const hearts = Math.max(0, c.Hearts - 1);
+    this.update({ Hearts: hearts });
+    if (hearts > 0) {
+      encounter.state = "defeated";
+      encounter.price = encounter.run ? null : buyout(mob.tier, encounter.mobLife, encounter.fullLife);
+      const defeat = this.defeatOf(encounter);
+      this.update({});
+      encounter.result = { Outcome: "lost", Gold: 0, Gear: null, Relics: [], Detail: null, Hearts: hearts, Defeat: defeat, Died: false };
+      return encounter.result;
+    }
+
+    // The last heart: home, the hearts full, and a run died in over, its winnings taken back.
+    encounter.state = "lost";
+    let forfeit: EncounterResult["Forfeit"] = null;
+    if (encounter.run) {
+      const live = this.runs.get(encounter.run.id)!;
+      live.live = false;
+      const wins = [...this.encounters.values()].filter((e) => e.run?.id === encounter.run!.id && e.state === "won");
+      const gold = wins.reduce((n, e) => n + (e.result?.Gold ?? 0), 0);
+      const cards = wins.map((e) => e.gift).filter((g): g is string => !!g);
+      for (const card of cards) this.cards[card] = Math.max(0, (this.cards[card] ?? 1) - 1);
+      const gone = new Set(wins.map((e) => e.gear?.InstanceId).filter((g): g is number => g !== undefined));
+      const loadout = Object.fromEntries(Object.entries(this.need().Loadout).map(([slot, worn]) => [slot, worn && gone.has(worn.InstanceId) ? null : worn]));
+      this.update({ Gold: Math.max(0, this.need().Gold - gold), Gear: this.need().Gear.filter((g) => !gone.has(g.InstanceId)), Loadout: loadout });
+      forfeit = { Gold: gold, Cards: cards, Gear: wins.map((e) => e.gear?.Gear.Name).filter((g): g is string => !!g) };
+    }
+    const inn = innOf(this.inn ?? startTown().id);
+    this.update({ Space: "world", X: inn.x, Z: inn.z, Hearts: this.need().MaxHearts });
+    encounter.result = { Outcome: "lost", Gold: 0, Gear: null, Relics: [], Detail: null, Hearts: this.need().Hearts, Defeat: null, Died: true, Forfeit: forfeit };
     return encounter.result;
   }
 
-  async takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection> {
-    this.log("takeLoot", body);
-    const encounter = this.encounters.get(body.Token);
-    if (!encounter?.result || encounter.result.Outcome !== "won" || encounter.looted) throw new ApiError(409, "NoLoot", "Nothing to take.");
-    const offered = encounter.result.Offer;
-    const total = body.Picks.reduce((sum, name) => sum + (offered.find((o) => o.Name === name)?.Gold ?? Infinity), 0);
-    if (total > encounter.cap) throw new ApiError(422, "OverCap", `The picks are worth ${total}, over the cap of ${encounter.cap}.`);
-    for (const name of body.Picks) this.cards[name] = (this.cards[name] ?? 0) + 1;
-    encounter.looted = true;
-    return { Cards: { ...this.cards } };
+  private defeated(token: string): Encounter {
+    const e = this.encounters.get(token);
+    if (!e) throw new ApiError(404, "NoDuel", "You have no such duel.");
+    if (e.state !== "defeated") throw new ApiError(409, "Finished", "That duel is over.");
+    return e;
+  }
+
+  async payEncounter(body: { Token: string }): Promise<{ Gold: number }> {
+    this.log("payEncounter", body);
+    const e = this.defeated(body.Token);
+    if (e.price === null) throw new ApiError(409, "NoBuyout", `${mobInfo(e.mob).name} can't be bought off: fight it again.`);
+    const c = this.need();
+    if (c.Gold < e.price) throw new ApiError(409, "CannotAfford", `${mobInfo(e.mob).name} asks ${e.price} gold.`);
+    e.state = "paid";
+    this.update({ Gold: c.Gold - e.price });
+    return { Gold: this.need().Gold };
+  }
+
+  async rematch(body: Rematch): Promise<EncounterStart> {
+    this.log("rematch", body);
+    const last = this.defeated(body.Token);
+    const total = body.Main.reduce((n, card) => n + card.Count, 0);
+    const aside = body.Sideboard.reduce((n, card) => n + card.Count, 0);
+    if (total < 40 || aside > 15) throw new ApiError(422, "IllegalDeck", "That deck can't be played in the next game.");
+    last.state = "rematched";
+    const c = this.need();
+    const token = `duel-${this.nextToken++}`;
+    const seed = Math.floor(this.random() * 2 ** 31);
+    const carried = last.mobLife ?? Number(last.duel.Seats[1]?.["StartingLife"] ?? 0);
+    const duel: EncounterStart["Duel"] = {
+      ...last.duel,
+      Seats: [{ ...playerSeat(c, { Main: body.Main, Sideboard: body.Sideboard }), ...this.devDuel?.Player }, { ...last.duel.Seats[1], StartingLife: carried }],
+      Seed: seed,
+      Game: last.game + 1,
+      FirstPlayer: body.PlayFirst ? 1 : 2,
+    };
+    this.encounters.set(token, { ...last, token, game: last.game + 1, duel, sideboard: body.Sideboard, state: "open", price: null, outcome: undefined, mobLife: undefined, result: undefined });
+    this.update({});
+    return { Token: token, Seed: seed, Duel: duel };
+  }
+
+  async buyHeart(): Promise<HeartsBought> {
+    this.log("buyHeart");
+    const c = this.need();
+    // A healer works in a temple or a shrine (the stand-in knows them by their rooms' ids).
+    if (!/-(temple|shrine)$/.test(c.Space)) throw new ApiError(409, "NotNear", "Hearts are blessed by a healer, at a temple or a shrine.");
+    const price = heartPriceAfter(c.MaxHearts);
+    if (price === null) throw new ApiError(409, "MostHearts", "You hold as many hearts as anyone can.");
+    if (c.Gold < price) throw new ApiError(409, "CannotAfford", `A heart's blessing is ${price} gold.`);
+    this.update({ Gold: c.Gold - price, MaxHearts: c.MaxHearts + 1, Hearts: c.Hearts + 1 });
+    const now = this.need();
+    return { Gold: now.Gold, Hearts: now.Hearts, MaxHearts: now.MaxHearts, Price: now.HeartPrice };
   }
 
   async openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }> {
@@ -480,9 +589,14 @@ export class MockApi implements RealmApi {
     return { Gold: this.need().Gold, Found: found };
   }
 
-  async position(body: Place): Promise<void> {
+  async position(body: Place): Promise<{ Hearts: number }> {
     this.log("position", body);
-    if (this.character) this.update({ Space: body.Space, X: body.X, Z: body.Z });
+    if (!this.character) return { Hearts: 0 };
+    this.update({ Space: body.Space, X: body.X, Z: body.Z });
+    // In a town - within its walls, or a building of it (its room's id starts with the town's) - the hearts fill.
+    const inTown = body.Space === "world" ? townAt(WORLD.towns, body.X, body.Z) !== null : WORLD.towns.some((t) => body.Space.startsWith(`${t.id}-`));
+    if (inTown) this.update({ Hearts: this.need().MaxHearts });
+    return { Hearts: this.need().Hearts };
   }
 
   async setInn(): Promise<{ Inn: string }> {
@@ -530,7 +644,7 @@ export class MockApi implements RealmApi {
     if (resting) floors[count - 1] = { ...floors[count - 1]!, Boss: null, BossStats: null };
     const id = `run-${this.nextToken++}`;
     const run: Run = { Run: id, Seed: Math.floor(this.random() * 2 ** 31), Floors: floors, Dungeon: dungeon.id, Floor: 0, Beaten: [], Resting: resting, Tier: standing?.tier ?? dungeon.tier };
-    for (const other of this.runs.values()) other.live = false;
+    for (const [other, live] of this.runs) if (live.live) this.endRun(other);
     this.runs.set(id, { run, dungeon: dungeon.id, floor: 0, fought: new Set(), live: true });
     this.update({ Space: `run:${id}`, X: 0, Z: 0 });
     return run;
@@ -558,10 +672,18 @@ export class MockApi implements RealmApi {
     this.log("leaveDungeon", body);
     const live = this.runs.get(body.Run);
     if (!live) throw new ApiError(404, "NotThere", "No such run.");
-    live.live = false;
+    this.endRun(body.Run);
     const d = DUNGEONS.get(live.dungeon)!;
     const [x, z] = await besideEntrance(d.entrance);
     this.update({ Space: "world", X: x, Z: z });
+  }
+
+  /** Ends a run: a game of it lost and not yet answered is over with it, lost. */
+  private endRun(id: string): void {
+    const live = this.runs.get(id);
+    if (live) live.live = false;
+    for (const e of this.encounters.values()) if (e.run?.id === id && e.state === "defeated") e.state = "lost";
+    if (this.character) this.update({});
   }
 
   /** Whether a tile is at a tower's waystone, as the server reckons it: beside its entrance, or beside the stone. */

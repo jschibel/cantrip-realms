@@ -44,8 +44,13 @@ export interface Character {
   /** The starting color and the unlocked ones, as letters in WUBRG order: "WU". */
   readonly Identity: string;
   readonly Gold: number;
-  /** The total list price of the cards in the ante (design.md, A2). */
-  readonly AnteValue: number;
+  /** The hearts the character has, and holds (design.md A3b): a lost game takes one; a town fills them. */
+  readonly Hearts: number;
+  readonly MaxHearts: number;
+  /** What a healer asks for one more heart; null at the most. */
+  readonly HeartPrice: number | null;
+  /** A lost game the character has still to answer - pay or fight again - which a reload comes back to; null with none. */
+  readonly Defeat: Defeat | null;
   /** The space of the character's place (interfaces.md, "Places"): "world", an interior's id, or "run:<run>". */
   readonly Space: string;
   /** The tile the character stands on in its space (x east, z south). */
@@ -71,11 +76,10 @@ export interface CardCount {
   readonly Count: number;
 }
 
+/** A deck and its sideboard (design.md A2): up to 15 cards beside it, swapped in between the games of a rematch. */
 export interface Deck {
   readonly Main: readonly CardCount[];
-  readonly Ante: readonly CardCount[];
-  /** What the ante is worth, as the server reckons it (it ignores this when a deck is saved). */
-  readonly AnteValue?: number;
+  readonly Sideboard: readonly CardCount[];
 }
 
 /** A collection: copies owned, by card name. */
@@ -100,7 +104,7 @@ export interface VendorView {
   readonly Stock: readonly { readonly Name: string; readonly Gold: number; readonly Count: number; readonly Until: string | null }[];
   /** The character's gold. */
   readonly Gold: number;
-  /** The character's cards the vendor deals in: what it pays for one, how many they own, how many are in neither deck nor ante. */
+  /** The character's cards the vendor deals in: what it pays for one, how many they own, how many are in neither deck nor sideboard. */
   readonly Buying: readonly { readonly Name: string; readonly Gold: number; readonly Owned: number; readonly Spare: number }[];
 }
 
@@ -109,9 +113,11 @@ export interface DuelSpec {
   readonly Seats: readonly Record<string, unknown>[];
   readonly MinimumDeckSize: number;
   readonly Seed: number;
-  readonly Mob: { readonly Name: string; readonly Tier: number; readonly Prize: number };
-  readonly AnteValue: number;
-  readonly Cap: number;
+  readonly Mob: { readonly Name: string; readonly Tier: number };
+  /** Which game of its encounter this is: 1, and one more each time the player fought on (design.md A3). */
+  readonly Game: number;
+  /** The seat to play first, as the loser of the last game chose; null in an encounter's first game. */
+  readonly FirstPlayer: number | null;
 }
 
 export interface EncounterStart {
@@ -122,22 +128,70 @@ export interface EncounterStart {
 
 export interface EncounterResult {
   readonly Outcome: "won" | "lost";
+  /** The gold a win paid; a loss pays nothing. */
   readonly Gold: number;
-  /** Up to three cards, each with its list price, each within the cap alone. */
-  readonly Offer: readonly { readonly Name: string; readonly Gold: number }[];
-  readonly Cap: number;
   /** The gear item a win dropped, if one did. */
   readonly Gear: GearInstance | null;
   /** The relics a boss win dropped (design.md A3a), already in the collection; empty for most wins and every loss. */
   readonly Relics: readonly string[];
   /** Why a duel counted as lost without being played out. */
   readonly Detail: string | null;
-  /** The ante card a loss cost, if the ante held one. */
-  readonly Lost?: string | null;
-  /** A boss win's gift (design.md A6): a rare or mythic of its loot, already in the collection, outside the cap. */
+  /** A boss win's gift (design.md A6): a rare or mythic of its loot, already in the collection. */
   readonly Gift?: string | null;
   /** The color a boss win unlocked just now (design.md A6), else null. */
   readonly Unlocked?: ManaColor | null;
+  /** The character's hearts after the game. */
+  readonly Hearts: number;
+  /** A loss with hearts left: the mob's offer, to pay or fight again. */
+  readonly Defeat?: Defeat | null;
+  /** A loss of the last heart: the character is home, their hearts full again. */
+  readonly Died?: boolean;
+  /** What a dungeon run they died in had won, taken back. */
+  readonly Forfeit?: RunLoss | null;
+}
+
+/**
+ * A game lost with hearts left, its answer pending (design.md A3): the game's token, the mob, where it was met (a world
+ * spawn's id, or a run's `<floor>:<index>`) and in which epoch, which game of the encounter; the hearts left; the mob's
+ * life at the end and its full starting life; its buyout (null in a dungeon: it is fought again); and the deck and
+ * sideboard the game was played with, which the next game's are swapped from.
+ */
+export interface Defeat {
+  readonly Token: string;
+  readonly Mob: string;
+  readonly Spawn: string;
+  readonly Epoch: number;
+  readonly Game: number;
+  readonly Hearts: number;
+  readonly MaxHearts: number;
+  readonly MobLife: number;
+  readonly MobFullLife: number;
+  readonly Price: number | null;
+  readonly Main: readonly CardCount[];
+  readonly Sideboard: readonly CardCount[];
+}
+
+/** What a dungeon run had won and dying in it took back. */
+export interface RunLoss {
+  readonly Gold: number;
+  readonly Cards: readonly string[];
+  readonly Gear: readonly string[];
+}
+
+/** Fighting on after a lost game: the deck and sideboard swapped from the last game's, and whether the player plays first. */
+export interface Rematch {
+  readonly Token: string;
+  readonly Main: readonly CardCount[];
+  readonly Sideboard: readonly CardCount[];
+  readonly PlayFirst: boolean;
+}
+
+/** A character's hearts after buying one at a healer, their gold, and the next one's price (null at the most). */
+export interface HeartsBought {
+  readonly Gold: number;
+  readonly Hearts: number;
+  readonly MaxHearts: number;
+  readonly Price: number | null;
 }
 
 /** A place (interfaces.md, "Places"). */
@@ -235,14 +289,18 @@ export interface RealmApi {
   armorer(town: string): Promise<{ Stock: readonly Gear[] }>;
   startEncounter(body: EncounterAt): Promise<EncounterStart>;
   finishEncounter(body: { Token: string; Log: readonly string[] }): Promise<EncounterResult>;
-  /** Takes picks from a win's offer: the collection after. */
-  takeLoot(body: { Token: string; Picks: readonly string[] }): Promise<Collection>;
+  /** Pays off the mob of a lost game (a world mob's buyout): the character's gold after. */
+  payEncounter(body: { Token: string }): Promise<{ Gold: number }>;
+  /** Fights on after a lost game: the encounter's next game. */
+  rematch(body: Rematch): Promise<EncounterStart>;
+  /** Buys one more heart at the healer the character stands with. */
+  buyHeart(): Promise<HeartsBought>;
   /** Opens a chest: the character's gold after, and what the chest held. */
   openChest(body: { Space: string; Chest: string }): Promise<{ Gold: number; Found: number; Gear?: GearInstance | null }>;
-  /** Makes the inn the character stands in their home: where a lost duel wakes them. */
+  /** Makes the inn the character stands in their home: where they wake when their last heart is lost. */
   setInn(): Promise<{ Inn: string }>;
-  /** Reports where the character is (a world or interior place). */
-  position(body: Place): Promise<void>;
+  /** Reports where the character is (a world or interior place): their hearts after, which a town fills. */
+  position(body: Place): Promise<{ Hearts: number }>;
   enterDungeon(body: { Dungeon: string }): Promise<Run>;
   /** The character's live run, to resume it after a reload; null with none. */
   currentRun(): Promise<Run | null>;
@@ -288,7 +346,7 @@ export class HttpApi implements RealmApi {
 
   createCharacter = (body: { Name: string; Body: Body; Palette: number; Color: ManaColor }) => this.call<Character>("POST", "character", body);
   collection = () => this.call<Collection>("GET", "collection");
-  saveDeck = (deck: Deck) => this.call<Deck>("PUT", "deck", { Main: deck.Main, Ante: deck.Ante });
+  saveDeck = (deck: Deck) => this.call<Deck>("PUT", "deck", { Main: deck.Main, Sideboard: deck.Sideboard });
   saveLoadout = (slots: Partial<Record<Slot, number | null>>) => this.call<Character>("PUT", "loadout", { Slots: slots });
   vendor = (id: string) => this.call<VendorView>("GET", `vendor/${encodeURIComponent(id)}`);
   buy = (vendor: string, name: string) => this.call<{ Gold: number; Collection: Collection }>("POST", `vendor/${encodeURIComponent(vendor)}/buy`, { Name: name });
@@ -296,12 +354,12 @@ export class HttpApi implements RealmApi {
   armorer = (town: string) => this.call<{ Stock: readonly Gear[] }>("GET", `armorer/${encodeURIComponent(town)}`);
   startEncounter = (body: EncounterAt) => this.call<EncounterStart>("POST", "encounter/start", body);
   finishEncounter = (body: { Token: string; Log: readonly string[] }) => this.call<EncounterResult>("POST", "encounter/finish", body);
-  takeLoot = (body: { Token: string; Picks: readonly string[] }) => this.call<Collection>("POST", "encounter/loot", body);
+  payEncounter = (body: { Token: string }) => this.call<{ Gold: number }>("POST", "encounter/pay", body);
+  rematch = (body: Rematch) => this.call<EncounterStart>("POST", "encounter/rematch", body);
+  buyHeart = () => this.call<HeartsBought>("POST", "hearts/buy", {});
   openChest = (body: { Space: string; Chest: string }) => this.call<{ Gold: number; Found: number; Gear?: GearInstance | null }>("POST", "chest/open", body);
   setInn = () => this.call<{ Inn: string }>("POST", "inn", {});
-  position = async (body: Place) => {
-    await this.call<unknown>("POST", "position", body);
-  };
+  position = (body: Place) => this.call<{ Hearts: number }>("POST", "position", body);
   enterDungeon = (body: { Dungeon: string }) => this.call<Run>("POST", "dungeon/enter", body);
   currentRun = async (): Promise<Run | null> => {
     try {

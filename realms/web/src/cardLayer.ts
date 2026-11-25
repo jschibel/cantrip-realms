@@ -3,7 +3,7 @@
 // frame shown over the world until the client says the screen has closed. Only the frame's own origin is spoken to
 // or listened to. Realm.js and RealmBridge.cs are the other side.
 
-export type Screen = "duel" | "spell-table" | "vendor" | "loot" | "gear" | "inventory";
+export type Screen = "duel" | "sideboard" | "spell-table" | "vendor" | "loot" | "gear" | "inventory";
 
 /** A worn slot's look, as the card layer names it when it asks for a portrait. */
 export type PortraitSlots = Readonly<Record<string, { readonly mesh: string; readonly palette: readonly string[] }>>;
@@ -12,7 +12,7 @@ export interface Closed {
   readonly screen: Screen;
   /** How it closed: for a duel `won` or `lost`; otherwise `closed`, or `dismissed` / `replaced` when cut short. */
   readonly outcome: string;
-  /** What the screen hands back, if anything: a duel's `log`, a loot pick's `picks`. */
+  /** What the screen hands back, if anything: a duel's `log` and its seats' `life` at the end, a sideboarding's deck. */
   readonly result?: Readonly<Record<string, unknown>>;
 }
 
@@ -144,13 +144,13 @@ export class CardLayer implements CardScreens {
 }
 
 /**
- * The card screens of offline play (the in-memory API, no realm server): a duel is played and its loot picked in the real
- * card layer, which needs no server for either - the duel is dealt on the rules engine in its page, and only checking it
- * would need the server - while the screens that trade and save through the server's API (the spell table, vendors,
- * gear) are the stand-in's.
+ * The card screens of offline play (the in-memory API, no realm server): a duel is played, its deck sideboarded and its
+ * gear shown in the real card layer, which needs no server for any of them - the duel is dealt on the rules engine in its
+ * page, and only checking it would need the server - while the screens that trade and save through the server's API (the
+ * spell table, vendors, gear) are the stand-in's.
  */
 export class OfflineCardLayer implements CardScreens {
-  private static readonly REAL: ReadonlySet<Screen> = new Set<Screen>(["duel", "loot"]);
+  private static readonly REAL: ReadonlySet<Screen> = new Set<Screen>(["duel", "sideboard", "loot"]);
   readonly requests: { screen: Screen; args: Record<string, unknown> }[] = [];
   private changed: () => void = () => {};
 

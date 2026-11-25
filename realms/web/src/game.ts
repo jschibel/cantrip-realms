@@ -9,9 +9,10 @@ import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
 import { type MinimapDot, Hud, gold } from "./hud";
 import { surfaceColor } from "./surfaceColors";
-import { renderPortrait } from "./portrait";
-import { mobInfo, theMob } from "./mobs";
-import { ApiError, type Character as CharacterData, type EncounterResult, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
+import { renderMob, renderPortrait } from "./portrait";
+import { defeatLine, marginOf } from "./hearts";
+import { type MobInfo, mobInfo, theMob } from "./mobs";
+import { ApiError, type CardCount, type Character as CharacterData, type Defeat, type EncounterResult, type EncounterStart, type Place as ApiPlace, type RealmApi, type Resting, type Run, type RunFloor, type Traveler, identityOf, travelerIn } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
 import { MAX_SPEED, WalkRelay } from "./net/relay";
@@ -284,9 +285,11 @@ export class Overworld {
     this.arrived(this.spot, true);
     this.screen = "world";
     this.loop();
+    // A defeat left unanswered when the page closed is answered first.
+    if (data.Defeat) void this.answerPending();
   }
 
-  /** Asks the server for the character again (gold, ante, gear, attunement may have changed) and shows it. */
+  /** Asks the server for the character again (gold, hearts, gear, attunement may have changed) and shows it. */
   async refresh(): Promise<void> {
     const data = await this.api.me();
     if (!data) return;
@@ -325,7 +328,7 @@ export class Overworld {
     this.lastReported = `${space}:${at.x},${at.z}`;
     void this.api
       .position(placeOf(space, at))
-      .catch(() => {})
+      .then((r) => this.heartsAre(r.Hearts), () => {})
       .then(() => {
         if (this.spaceId !== space) return;
         this.presence?.send({ Type: "Enter", Space: space });
@@ -568,7 +571,7 @@ export class Overworld {
     if (!force && now - this.lastReport < 2000 && this.player.moving) return;
     this.lastReport = now;
     this.lastReported = where;
-    void this.api.position(placeOf(this.spaceId, this.player.tile)).catch(() => {});
+    void this.api.position(placeOf(this.spaceId, this.player.tile)).then((r) => this.heartsAre(r.Hearts), () => {});
   }
 
   private lastReported = "";
@@ -841,6 +844,9 @@ export class Overworld {
         await this.refresh();
         break;
       }
+      case "healer":
+        await this.healer(npc);
+        break;
       case "innkeeper": {
         const choice = await this.dialog(npc.name ?? "The inn", npc.text ?? ["Rest here, and here you wake."], [
           { caption: "Rest", value: "rest", primary: true },
@@ -1053,7 +1059,7 @@ export class Overworld {
 
   // --- Duels -------------------------------------------------------------------------------------------------------------
 
-  /** A mob reached you, or you it: the duel, then the loot or the walk back from the inn. */
+  /** A mob reached you, or you it: the duel, then what it came to - a win's spoils, or a defeat to answer. */
   async engage(mob: Mob): Promise<void> {
     if (mob.engaged || this.paused) return;
     mob.engaged = true;
@@ -1069,7 +1075,7 @@ export class Overworld {
     mob.actor.figure.act("cast");
     this.say(`${theMob(mob.info)} attacks!`);
     const run = this.run;
-    let start;
+    let start: EncounterStart;
     try {
       start = await this.api.startEncounter(run && mob.run ? { Run: run.id, Floor: mob.run.floor, Index: mob.run.index, Mob: mob.info.id } : { Spawn: mob.spawn.id, Mob: mob.info.id });
     } catch (e) {
@@ -1077,50 +1083,196 @@ export class Overworld {
       mob.engaged = false;
       mob.rest = 5;
       this.paused = false;
+      // A defeat still to answer comes before any other fight.
+      if (e instanceof ApiError && e.code === "Defeated") await this.refresh().then(() => this.answerPending());
       return;
     }
-    const closed = await this.openCards("duel", { token: start.Token, seed: start.Seed, duel: start.Duel, mob: { id: mob.info.id, name: mob.info.name, tier: mob.info.tier, goldRange: mob.info.goldRange, map: this.spaceId, spawn: mob.spawn.id } }, false);
-    const outcome = closed.outcome === "won" ? "won" : "lost";
-    if (this.api instanceof MockApi) this.api.settle(start.Token, outcome);
-    const log = Array.isArray(closed.result?.log) ? (closed.result.log as string[]) : [];
-    const result = await this.api.finishEncounter({ Token: start.Token, Log: log });
-    if (result.Outcome === "won") {
-      if (run && mob.run) {
-        run.beaten.add(`${mob.run.floor}:${mob.run.index}`);
-        if (mob.run.role === "boss" && run.dungeon.waystone) this.say(`${run.dungeon.name}'s waystone is attuned to you: travel between it and any other you attune.`);
+    await this.encounter(mob.info, start, { actor: mob, spawn: mob.run ? `${mob.run.floor}:${mob.run.index}` : mob.spawn.id, epoch: mob.epoch, role: mob.run?.role ?? null });
+  }
+
+  /**
+   * An encounter from a game dealt on: each game played in the card layer and finished with the server, until it is won,
+   * paid off, or the last heart is lost (design.md A3, A3b). A lost game with hearts left is answered in the defeat
+   * dialog: a world mob's buyout, or fighting on - the sideboard screen, then the next game, the mob at the life it kept.
+   */
+  private async encounter(info: MobInfo, first: EncounterStart, at: { readonly actor: Mob | null; readonly spawn: string; readonly epoch: number; readonly role: string | null }): Promise<void> {
+    this.paused = true;
+    let start = first;
+    for (;;) {
+      const closed = await this.openCards("duel", {
+        token: start.Token,
+        seed: start.Seed,
+        duel: start.Duel,
+        mob: { id: info.id, name: info.name, tier: info.tier, goldRange: info.goldRange, map: this.spaceId, spawn: at.spawn },
+        hearts: { have: this.data.Hearts, hold: this.data.MaxHearts },
+      }, false);
+      const outcome = closed.outcome === "won" ? "won" : "lost";
+      const life = closed.result?.life as { mob?: number } | undefined;
+      if (this.api instanceof MockApi) this.api.settle(start.Token, outcome, typeof life?.mob === "number" ? life.mob : undefined);
+      const log = Array.isArray(closed.result?.log) ? (closed.result.log as string[]) : [];
+      const result = await this.api.finishEncounter({ Token: start.Token, Log: log });
+      if (result.Outcome === "won") {
+        await this.won(info, result, at);
+        return;
       }
-      else this.beaten.add(`${mob.spawn.id}|${mob.epoch}`);
-      this.removeMob(mob);
-      this.say(`You defeated ${theMob(mob.info, false)}: ${gold(result.Gold)} gold.`);
-      for (const relic of result.Relics ?? []) this.say(`A relic falls from ${theMob(mob.info, false)}: ${relic} is yours, and yours alone.`);
-      if (result.Gear) this.say(`${theMob(mob.info)} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
-      if (result.Offer.length > 0 || result.Gear) {
-        const loot = await this.openCards("loot", { token: start.Token, offer: result.Offer, cap: result.Cap, mob: mob.info.name, gear: result.Gear ?? null }, false);
-        const picks = Array.isArray(loot.result?.picks) ? (loot.result.picks as string[]) : [];
-        if (picks.length > 0) {
-          try {
-            await this.api.takeLoot({ Token: start.Token, Picks: picks });
-            this.say(`You take ${picks.join(", ")}.`);
-          } catch (e) {
-            this.say(refusal(e));
-          }
+
+      await this.refresh();
+      if (result.Died || !result.Defeat) {
+        await this.died(info, result, at.actor);
+        return;
+      }
+
+      const next = await this.answer(info, result.Defeat, at);
+      if (!next) return;
+      start = next;
+    }
+  }
+
+  /** A game won: its gold, its gear shown as its card, a boss's moment; the mob gone. */
+  private async won(info: MobInfo, result: EncounterResult, at: { readonly actor: Mob | null; readonly spawn: string; readonly epoch: number; readonly role: string | null }): Promise<void> {
+    this.markBeaten(at.spawn, at.epoch);
+    if (this.run && at.role === "boss" && this.run.dungeon.waystone) this.say(`${this.run.dungeon.name}'s waystone is attuned to you: travel between it and any other you attune.`);
+    if (at.actor) this.removeMob(at.actor);
+    this.say(`You defeated ${theMob(info, false)}: ${gold(result.Gold)} gold.`);
+    for (const relic of result.Relics ?? []) this.say(`A relic falls from ${theMob(info, false)}: ${relic} is yours, and yours alone.`);
+    if (result.Gear) {
+      this.say(`${theMob(info)} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
+      await this.openCards("loot", { mob: info.name, gear: result.Gear }, false);
+    }
+    await this.refresh();
+    if (info.boss) await this.bossCeremony(info.name, result);
+    this.paused = false;
+  }
+
+  /** An encounter over in the world or a run: its spawn's mob this epoch, or the run's encounter, is not met again. */
+  private markBeaten(spawn: string, epoch: number): void {
+    if (this.run && /^\d+:\d+$/.test(spawn)) this.run.beaten.add(spawn);
+    else this.beaten.add(`${spawn}|${epoch}`);
+  }
+
+  /**
+   * A defeat to answer (design.md A3): the mob over the player, its line and its offer. Paid, the encounter is over and
+   * the mob dealt with; fought again, the sideboard screen and then the next game, which this returns.
+   */
+  private async answer(info: MobInfo, defeat: Defeat, at: { readonly actor: Mob | null; readonly spawn: string; readonly epoch: number; readonly role: string | null }): Promise<EncounterStart | null> {
+    const { showDefeat } = await import("./screens/defeat");
+    this.paused = true;
+    for (;;) {
+      this.screen = "defeat";
+      const choice = await showDefeat({
+        mob: theMob(info),
+        portrait: renderMob(info.model, info.id, info.creature),
+        line: defeatLine(info.id, marginOf(defeat.MobLife, defeat.MobFullLife)),
+        hearts: defeat.Hearts,
+        maxHearts: defeat.MaxHearts,
+        price: defeat.Price,
+        gold: this.data.Gold,
+      });
+      this.screen = "world";
+      if (choice === "pay") {
+        try {
+          await this.api.payEncounter({ Token: defeat.Token });
+          await this.refresh();
+          this.markBeaten(at.spawn, at.epoch);
+          if (at.actor) this.removeMob(at.actor);
+          this.say(`You pay ${theMob(info, false)} ${gold(defeat.Price ?? 0)} gold, and it lets you go.`);
+          this.paused = false;
+          return null;
+        } catch (e) {
+          this.say(refusal(e));
+          await this.refresh();
+          continue;
         }
       }
-      await this.refresh();
-      if (mob.info.boss) await this.bossCeremony(mob.info.name, result);
-      this.paused = false;
-    } else {
-      await this.refresh();
-      const lostRun = this.run?.dungeon.name ?? null;
-      if (this.run) {
-        this.run = null;
-        for (const m2 of [...this.mobs]) if (m2.run) this.removeMob(m2);
+
+      // Fighting on: the deck swapped from the sideboard for this encounter alone, and play or draw - the loser's choice.
+      const side = await this.openCards("sideboard", { mob: info.name, game: defeat.Game + 1, main: defeat.Main, sideboard: defeat.Sideboard, identity: this.data.Identity, mobLife: defeat.MobLife }, false);
+      const r = side.result ?? {};
+      const main = Array.isArray(r.main) ? (r.main as CardCount[]) : defeat.Main;
+      const sideboard = Array.isArray(r.sideboard) ? (r.sideboard as CardCount[]) : defeat.Sideboard;
+      try {
+        const next = await this.api.rematch({ Token: defeat.Token, Main: main, Sideboard: sideboard, PlayFirst: r.playFirst !== false });
+        this.say(`You face ${theMob(info, false)} again: it stands at ${next.Duel.Seats[1]?.["StartingLife"] ?? defeat.MobLife} life.`);
+        return next;
+      } catch (e) {
+        this.say(refusal(e));
       }
-      // The server moved the character to their inn.
-      const at = tileOfCharacter(this.data);
-      const inn = this.data.Space !== "world" ? await this.places.read(this.data.Space).catch(() => null) : null;
-      await this.jump(inn ? { spot: this.places.room(inn.id, inn), tile: { x: inn.entry[0], z: inn.entry[1] - 1 }, facing: [0, -1] } : this.toWorld(at));
-      this.say(`You lost the duel, and wake at the inn in ${this.area?.name ?? this.spot.title}.${result.Lost ? ` ${result.Lost} of your ante is gone.` : ""}${lostRun ? ` Your run of ${lostRun} is over: what you won in it is yours.` : ""}`);
+    }
+  }
+
+  /** The last heart lost (design.md A3b): the death screen, and the character wakes at home, their hearts full. */
+  private async died(info: MobInfo, result: EncounterResult, actor: Mob | null): Promise<void> {
+    const run = this.run;
+    if (actor) {
+      actor.engaged = false;
+      actor.rest = 10;
+    }
+    if (run) {
+      this.run = null;
+      for (const m2 of [...this.mobs]) if (m2.run) this.removeMob(m2);
+    }
+    const home = this.worldData.inns.find((i) => i.id === this.data.Inn);
+    const town = this.worldData.towns.find((t) => t.id === home?.town)?.name ?? "your home town";
+    const { showDeath } = await import("./screens/death");
+    this.screen = "death";
+    await showDeath({
+      mob: theMob(info, false),
+      home: town,
+      hearts: this.data.Hearts,
+      run: run ? { dungeon: run.dungeon.name, gold: result.Forfeit?.Gold ?? 0, cards: result.Forfeit?.Cards ?? [], gear: result.Forfeit?.Gear ?? [] } : null,
+    });
+    this.screen = "world";
+    // The server moved the character to their inn.
+    const at = tileOfCharacter(this.data);
+    const inn = this.data.Space !== "world" ? await this.places.read(this.data.Space).catch(() => null) : null;
+    await this.jump(inn ? { spot: this.places.room(inn.id, inn), tile: { x: inn.entry[0], z: inn.entry[1] - 1 }, facing: [0, -1] } : this.toWorld(at));
+    this.hud.flashHearts();
+    this.say(`You wake at the inn in ${town}, your hearts restored.${run ? ` Your run of ${run.dungeon.name} is over, and its winnings with it.` : ""}`);
+    this.paused = false;
+  }
+
+  /**
+   * A defeat left unanswered (a page closed on the dialog, design.md A3): it comes back with the character, and is
+   * answered before anything else - the mob over the player as it was.
+   */
+  async answerPending(): Promise<void> {
+    const defeat = this.data?.Defeat;
+    if (!defeat || this.screen === "defeat") return;
+    const info = mobInfo(defeat.Mob);
+    const actor = this.mobs.find((m) => m.info.id === defeat.Mob && (m.run ? `${m.run.floor}:${m.run.index}` : m.spawn.id) === defeat.Spawn) ?? null;
+    if (actor) actor.engaged = true;
+    const next = await this.answer(info, defeat, { actor, spawn: defeat.Spawn, epoch: defeat.Epoch, role: actor?.run?.role ?? null });
+    if (next) await this.encounter(info, next, { actor, spawn: defeat.Spawn, epoch: defeat.Epoch, role: actor?.run?.role ?? null });
+  }
+
+  /** The hearts the server says the character has after a report of where they stand: a town fills them. */
+  private heartsAre(hearts: number): void {
+    if (!this.data || hearts === this.data.Hearts) return;
+    const filled = hearts > this.data.Hearts;
+    this.data = { ...this.data, Hearts: hearts };
+    this.hud.showCharacter(this.data);
+    if (filled) {
+      this.hud.flashHearts();
+      this.say(`Safe within ${this.area?.name ?? "the town"}, your hearts are restored: ${hearts} of ${this.data.MaxHearts}.`);
+    }
+  }
+
+  /** A healer (a temple's priest, a shrine's keeper): a heart's blessing for gold, up to the most (design.md A3b). */
+  private async healer(npc: NpcData): Promise<void> {
+    const c = this.data;
+    const price = c.HeartPrice;
+    const lines = [...(npc.text ?? []), price === null ? `You hold ${c.MaxHearts} hearts, as many as anyone may.` : `Your heart holds ${c.MaxHearts}. A blessing that holds one more costs ${gold(price)} gold.`];
+    const buttons: { caption: string; value: string | null; primary?: boolean }[] = price === null ? [] : [{ caption: `Buy a heart (${gold(price)} gold)`, value: "buy", primary: c.Gold >= price }];
+    buttons.push({ caption: "Leave", value: null, primary: price === null || c.Gold < price });
+    const choice = await this.dialog(npc.name ?? "The healer", lines, buttons);
+    if (choice !== "buy") return;
+    try {
+      const bought = await this.api.buyHeart();
+      await this.refresh();
+      this.hud.flashHearts();
+      this.say(`${npc.name ?? "The healer"} blesses you: you hold ${bought.MaxHearts} hearts now.`);
+    } catch (e) {
+      this.say(refusal(e));
     }
   }
 

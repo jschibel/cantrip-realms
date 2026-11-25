@@ -11,7 +11,7 @@ import { PLACE_LOOK, TownPicture, drawPlace, gatesOf } from "./townMap";
 const WELL_COLORS: Record<ManaColor, string> = { W: "#f4ecc2", U: "#5b8fd6", B: "#a06ad8", R: "#e0503a", G: "#4cc25a" };
 
 // The HUD (tech.md, B5): who you are and the stats a duel starts from (design.md, A1), your identity's pips, your gold
-// and the value of your ante (A2); the area you stand in and its tier; the regional map - the land round you with the
+// and your hearts (A3b), filled for those you have and empty for the rest you hold; the area you stand in and its tier; the regional map - the land round you with the
 // tier zones tinted and bordered, the roads, the towns, the dungeons and mage towers with their tiers, attuned waystones
 // lit and dormant ones grey - with its legend, opening to the whole world's map; in a town, the town's map instead
 // (townMap.ts: its streets, buildings, wall and gates, and its places marked), opening to the whole town named place by
@@ -25,6 +25,10 @@ const COLOR_NAMES: Record<ManaColor, string> = { W: "White", U: "Blue", B: "Blac
 export const TIER_COLORS: readonly string[] = ["#979cab", "#1fbf62", "#ffc94a", "#f58a3a", "#e02a3a"];
 
 export const gold = (n: number): string => n.toLocaleString("en-US");
+
+/** A row of hearts as the HUD shows it: `have` filled, the rest of `hold` empty (screens/defeat.ts's heartRow, as markup). */
+export const heartsHtml = (have: number, hold: number): string =>
+  `<span class="hearts" title="${have} of ${hold} hearts: a lost duel costs one, a town fills them" data-test="hud:hearts" data-hearts="${have}" data-max="${hold}">${Array.from({ length: hold }, (_, i) => (i < have ? '<span class="heart full">♥</span>' : '<span class="heart empty">♡</span>')).join("")}</span>`;
 
 /** Someone or something on a map, at a tile. */
 export interface MinimapDot {
@@ -238,8 +242,17 @@ export class Hud {
     this.character.innerHTML = `
       <div class="name"><span class="pips">${pips}</span><span data-test="hud:name"></span></div>
       <div class="stats"><span title="Starting life">Life <b>${c.Stats.Life}</b></span><span title="Starting hand size">Hand <b>${c.Stats.Hand}</b></span><span title="Maximum hand size">Max <b>${c.Stats.MaxHand}</b></span></div>
-      <div class="money"><span class="gold" title="Gold"><b data-test="hud:gold">${gold(c.Gold)}</b> gold</span><span class="ante" title="The value of your ante">Ante <b data-test="hud:ante">${gold(c.AnteValue)}</b></span></div>`;
+      <div class="money"><span class="gold" title="Gold"><b data-test="hud:gold">${gold(c.Gold)}</b> gold</span>${heartsHtml(c.Hearts, c.MaxHearts)}</div>`;
     this.character.querySelector<HTMLElement>("[data-test='hud:name']")!.textContent = c.Name;
+  }
+
+  /** Calls the eye to the hearts: filled again in a town, or one bought. */
+  flashHearts(): void {
+    const row = this.character.querySelector<HTMLElement>("[data-test='hud:hearts']");
+    if (!row) return;
+    row.classList.remove("flash");
+    void row.offsetWidth;
+    row.classList.add("flash");
   }
 
   /** Calls the eye to a pip: a color just unlocked. */
