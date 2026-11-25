@@ -14,7 +14,7 @@ namespace Cantrip.Realms.Server.Presence;
 /// on or beside that tile) and against a walking speed, then relays it to those who see the player; clients animate the
 /// walks themselves. Time is the injected <see cref="TimeProvider"/>'s.
 /// </summary>
-public sealed partial class PresenceHub(RealmContent content, RealmOptions options, TimeProvider time)
+public sealed partial class PresenceHub(RealmContent content, RealmOptions options, TimeProvider time, ILogger<PresenceHub>? log = null)
 {
     /// <summary>The longest path one walk may be, in steps (tiles after its first).</summary>
     public const int LongestPath = 256;
@@ -68,6 +68,21 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
         }
     }
 
+    /// <summary>Where the hub has each connection of an account now (a development server's <c>GET /dev/where</c>): the space and tile.</summary>
+    public IReadOnlyList<(int Member, string Space, Tile At)> WhereIs(string account)
+    {
+        lock (_gate)
+        {
+            long now = Now;
+            return
+            [
+                .. _layers.Values.SelectMany(layer => layer).Concat(_interiors.Values.SelectMany(instances => instances).SelectMany(instance => instance.Members.Values))
+                    .Where(member => member.Account == account && member.Space is not null)
+                    .Select(member => (member.Id, member.Space!, member.Where(now))),
+            ];
+        }
+    }
+
     /// <summary>Whether two chunks are near enough for players in them to see each other.</summary>
     public static bool Near((int Cx, int Cz) a, (int Cx, int Cz) b) => Math.Abs(a.Cx - b.Cx) <= AreaChunks && Math.Abs(a.Cz - b.Cz) <= AreaChunks;
 
@@ -86,6 +101,7 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
             member.Path = [];
             member.Speed = 0;
             member.Since = Now;
+            log?.LogInformation("Presence: {Account} (#{Member}) enters {Space} at {X},{Z}", member.Account, member.Id, space, at.X, at.Z);
             List<Member> seen;
             if (space == RealmContent.WorldSpace)
             {
@@ -191,6 +207,10 @@ public sealed partial class PresenceHub(RealmContent content, RealmOptions optio
             Tile here = member.Where(now);
             if (Problem(member, space, move, here, now) is { } problem)
             {
+                log?.LogWarning(
+                    "Presence: {Account} (#{Member}) walk refused: {Problem} The walk was from {From} ({Steps} steps at {Speed}); the server has them at {X},{Z}, along a walk from {WasFrom} of {WasSteps} steps at {WasSpeed} told {Ago} ms ago",
+                    member.Account, member.Id, problem, move.From is [int fx, int fz] ? $"{fx},{fz}" : "?", move.Path.Length, move.Speed, here.X, here.Z,
+                    $"{member.From.X},{member.From.Z}", member.Path.Count, member.Speed, now - member.Since);
                 member.Send(new RefusedMessage { Reason = problem, At = [here.X, here.Z] });
                 return;
             }

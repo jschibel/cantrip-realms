@@ -97,6 +97,8 @@ export interface Presence {
   onMessage: (message: ServerMessage) => void;
   /** Whether the relay is connected. */
   readonly connected: boolean;
+  /** Called when the connection opens (again) or drops: for the page's trace of what passed (game.ts `note`). */
+  onConnection?: (open: boolean) => void;
   send(message: ClientMessage): void;
   close(): void;
 }
@@ -104,6 +106,7 @@ export interface Presence {
 /** The realm server's relay over a WebSocket, reconnecting when it drops; Enter and Look are sent again on reconnect. */
 export class SocketPresence implements Presence {
   onMessage: (message: ServerMessage) => void = () => {};
+  onConnection: (open: boolean) => void = () => {};
   private socket: WebSocket | null = null;
   private readonly queue: Uint8Array[] = [];
   private entered: ClientMessage | null = null;
@@ -127,6 +130,7 @@ export class SocketPresence implements Presence {
     socket.binaryType = "arraybuffer";
     socket.onopen = () => {
       this.retry = 500;
+      this.onConnection(true);
       for (const again of [this.entered, this.looked]) if (again) socket.send(encodeClient(again));
       for (const queued of this.queue.splice(0)) socket.send(queued);
     };
@@ -138,6 +142,7 @@ export class SocketPresence implements Presence {
     socket.onclose = () => {
       this.socket = null;
       if (this.closed) return;
+      this.onConnection(false);
       setTimeout(() => this.open(), this.retry);
       this.retry = Math.min(this.retry * 2, 15000);
     };

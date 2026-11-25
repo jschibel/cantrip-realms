@@ -33,6 +33,10 @@ namespace Cantrip.Realms.Server;
 /// losing a duel for it: the <c>Character</c>; 422 <c>NoSuchHearts</c> for any other.</item>
 /// <item><c>POST /dev/cards {Name, Count}</c> adds copies of a card the engine plays to the signed-in character's collection
 /// (or takes them, with a negative count), as a test arranges what is owned; 422 <c>NoSuchCard</c> for any other.</item>
+/// <item><c>GET /dev/where</c>: where the presence relay has each of the signed-in player's connections now, <c>[{Member,
+/// Space, X, Z}]</c> - what a test reads a page's walks against.</item>
+/// <item><c>POST /dev/log {Text}</c> writes what the page saw to the server's log, as a warning under the player's id (the
+/// overworld's report of a jump of the player's figure, with the presence events before it), at most 16 KB of it.</item>
 /// </list>
 /// </summary>
 public static class DevApi
@@ -73,6 +77,17 @@ public static class DevApi
             }
 
             await characters.Place(player, space.Id, at).ConfigureAwait(false);
+            return Results.Ok(new { });
+        });
+
+        dev.MapGet("/where", (HttpContext context, Presence.PresenceHub hub) =>
+            Results.Ok(hub.WhereIs(RealmSignIn.PlayerId(context)!).Select(where => new { where.Member, where.Space, where.At.X, where.At.Z })));
+
+        dev.MapPost("/log", (HttpContext context, ILoggerFactory logs, DevLog body) =>
+        {
+            string text = body.Text ?? string.Empty;
+            if (text.Length > 16 * 1024) text = text[..(16 * 1024)];
+            logs.CreateLogger("Cantrip.Realms.Server.Client").LogWarning("Client {Player}: {Text}", RealmSignIn.PlayerId(context), text);
             return Results.Ok(new { });
         });
 
@@ -188,6 +203,9 @@ public static class DevApi
 
     /// <summary><c>POST /dev/drop</c>'s body.</summary>
     public sealed record DevDrop(bool? Gear, bool? Shrine = null);
+
+    /// <summary><c>POST /dev/log</c>'s body.</summary>
+    public sealed record DevLog(string? Text);
 }
 
 /// <summary>

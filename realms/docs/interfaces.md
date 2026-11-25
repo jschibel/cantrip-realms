@@ -678,7 +678,10 @@ player with no character is 404 `NoCharacter`.
   Deck, Emblems}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a
   position (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played
   and replayed so, and its result is the engine's; and `POST /dev/cards {Name, Count}` adds copies of a card the engine
-  plays to the collection (a negative count takes them; 422 `NoSuchCard` otherwise), as a test arranges what is owned.
+  plays to the collection (a negative count takes them; 422 `NoSuchCard` otherwise), as a test arranges what is owned;
+  `GET /dev/where` says where the presence relay has each of the player's connections now (`[{Member, Space, X, Z}]`),
+  what a test reads the page's walks against; and `POST /dev/log {Text}` writes what the page saw to the server's log
+  (the overworld's report of a jump of the player's figure, with the presence events before it; at most 16 KB).
   Never in production.
 
 ## The card layer (`window.postMessage`)

@@ -11,7 +11,7 @@ namespace Cantrip.Realms.Server.Economy;
 /// (interfaces.md, "Places") - a town filling its hearts (<see cref="Hearts"/>) - and the inn it wakes at, and the stats its
 /// loadout gives it.
 /// </summary>
-public sealed partial class Characters(RealmDb db, RealmContent content, RealmOptions options, RealmDice dice, TimeProvider time, Hearts hearts)
+public sealed partial class Characters(RealmDb db, RealmContent content, RealmOptions options, RealmDice dice, TimeProvider time, Hearts hearts, ILogger<Characters>? log = null)
 {
     /// <summary>The setup values every character starts from (design.md A1).</summary>
     public static GearStats BaseStats { get; } = new(20, 7, 7);
@@ -235,6 +235,21 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     {
         ArgumentNullException.ThrowIfNull(request);
         PlayerRow row = await Require(player).ConfigureAwait(false);
+        try
+        {
+            return await Position(player, request, row).ConfigureAwait(false);
+        }
+        catch (Refusal refusal)
+        {
+            log?.LogWarning(
+                "Position: {Player} report of {Space} {X},{Z} refused: {Why} Last kept: {WasSpace} {WasX},{WasZ}, {Ago} ms ago",
+                player, request.Space, request.X, request.Z, refusal.Message, row.Space, row.X, row.Z, Now - row.PlacedAt);
+            throw;
+        }
+    }
+
+    private async Task<PositionView> Position(string player, PlaceView request, PlayerRow row)
+    {
         var at = new Tile(request.X, request.Z);
         var here = new Tile(row.X, row.Z);
         long now = Now;

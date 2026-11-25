@@ -337,6 +337,11 @@ export interface RealmApi {
   waystone(body: { Tower: string }): Promise<{ Place: Place }>;
   /** The traveling vendors in town now, by the server's schedule. */
   travelers(): Promise<{ Travelers: readonly Traveler[] }>;
+  /**
+   * Writes what the page saw to a development server's log (`POST /dev/log`: a jump of the player's figure, with what
+   * passed before it), so a teleport seen in play can be read beside what the server did. Nothing elsewhere.
+   */
+  report?(text: string): Promise<void>;
 }
 
 /** The realm server over HTTP: same-origin `/api`, or the server `base` names, on the signed-in cookie. */
@@ -404,4 +409,8 @@ export class HttpApi implements RealmApi {
   };
   waystone = (body: { Tower: string }) => this.call<{ Place: Place }>("POST", "waystone", body);
   travelers = () => this.call<{ Travelers: readonly Traveler[] }>("GET", "travelers");
+  report = async (text: string): Promise<void> => {
+    // Only a development server has it (404 elsewhere): whatever comes back is let be.
+    await fetch(new URL("dev/log", this.base), { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Text: text }) }).catch(() => undefined);
+  };
 }

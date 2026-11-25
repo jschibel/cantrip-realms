@@ -1,7 +1,9 @@
 // Cantrip Realms on this machine, in one command (tools/realms/play.cmd builds what is stale, then runs this): the realm
 // server with the development sign-in on a SQLite file of its own, the card layer (the web client's ?realm page) on a port
 // of its own, the overworld's dev server, and the browser opened on a signed-in game whose duels are real games of
-// Magic on the rules engine in the page. Ctrl+C stops it all.
+// Magic on the rules engine in the page. Ctrl+C stops it all. The server's log is also kept in realms/web/.play/server.log
+// (appended to): its warnings, and who connects to the presence relay and where it enters them, with the page's report of
+// any jump of the player's figure (game.ts `watchJumps`).
 //
 //   node realms/web/scripts/play.mjs [--offline] [--fresh] [--player N] [--name NAME] [--port P] [--no-open]
 //
@@ -18,7 +20,7 @@
 // decode whole for every face: by the realm server, and offline by the same server serving art alone (`art`). Without,
 // the cards are drawn with no picture.
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cardLayerBuilt, cardLayerRoot, serveCardLayer } from "./cardLayer.mjs";
@@ -61,11 +63,17 @@ function stop(code = 0) {
 process.on("SIGINT", () => stop(0));
 process.on("SIGTERM", () => stop(0));
 
-/** Starts a process whose output is shown under a label, and stops everything if it dies. */
-function run(label, command, commandArgs, options) {
+/** Starts a process whose output is shown under a label (and, given `log`, kept in that file), and stops everything if it dies. */
+function run(label, command, commandArgs, options, log) {
   const child = spawn(command, commandArgs, { ...options, stdio: ["ignore", "pipe", "pipe"] });
+  const kept = log ? createWriteStream(log, { flags: "a" }) : null;
+  kept?.write(`--- ${new Date().toISOString()} ${label} started\n`);
   const show = (stream) => (chunk) => {
-    for (const line of chunk.toString().split(/\r?\n/)) if (line.trim().length > 0) stream.write(`[${label}] ${line}\n`);
+    for (const line of chunk.toString().split(/\r?\n/)) {
+      if (line.trim().length === 0) continue;
+      stream.write(`[${label}] ${line}\n`);
+      kept?.write(`${new Date().toISOString()} ${line}\n`);
+    }
   };
   child.stdout.on("data", show(process.stdout));
   child.stderr.on("data", show(process.stderr));
@@ -145,6 +153,8 @@ if (!offline) {
       // What goes wrong, and where it listens; not every request.
       Logging__LogLevel__Default: "Warning",
       "Logging__LogLevel__Microsoft.Hosting.Lifetime": "Information",
+      // Who connects to the presence relay, enters where and leaves: what a jump of the player's figure is read against.
+      "Logging__LogLevel__Cantrip.Realms.Server.Presence": "Information",
       REALMS_ROOT: repo,
       REALMS_DEV_SIGNIN: "1",
       REALMS_DATABASE: `sqlite:${join(data, "realms.db")}`,
@@ -153,7 +163,7 @@ if (!offline) {
       ...artEnv,
       CANTRIP_NATIVE_HOST: env.CANTRIP_NATIVE_HOST ?? join(repo, "target", "cards", process.platform === "win32" ? "cantrip-native-host.exe" : "cantrip-native-host"),
     },
-  });
+  }, join(data, "server.log"));
 }
 
 await serveCardLayer(ports.cards, { quiet: true });

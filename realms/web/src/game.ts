@@ -120,6 +120,29 @@ export const tileOfCharacter = (c: CharacterData): Tile => ({ x: c.X, z: c.Z });
 /** A position for the API: `{Space, X, Z}`. */
 const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z: t.z });
 
+/** A move of the figure in one frame further than this (world units, a tile being one) is a jump: a walk covers about 0.07. */
+const JUMP = 0.6;
+/** A change of the figure's height in one frame larger than this is a jump: a step eases in. */
+const DROP = 0.3;
+/** How many of what passed between the page and the server the page keeps (`trace`): a few seconds of walking. */
+const TRACE = 60;
+/** The least time between two refusals the page answers by telling the server again where the player stands, ms. */
+const RESYNC = 5000;
+
+/** A jump of the player's figure seen (Overworld `watchJumps`): when, where, and from and to (x, y, z). */
+export interface Jump {
+  readonly at: string;
+  readonly place: string;
+  readonly from: readonly [number, number, number];
+  readonly to: readonly [number, number, number];
+}
+
+const f2 = (n: number) => n.toFixed(2);
+
+export const describeJump = (j: Jump): string =>
+  `${f2(j.from[0])},${f2(j.from[2])} (tile ${Math.floor(j.from[0])},${Math.floor(j.from[2])}) -> ${f2(j.to[0])},${f2(j.to[2])} (tile ${Math.floor(j.to[0])},${Math.floor(j.to[2])}), ` +
+  `moved ${f2(Math.hypot(j.to[0] - j.from[0], j.to[2] - j.from[2]))}, height ${f2(j.from[1])} -> ${f2(j.to[1])}`;
+
 /** How a character looks (art/figures/player.ts): body, palette, identity and the looks of what they wear. */
 export function appearanceOf(c: CharacterData): Appearance {
   const slots: Record<string, GearLook> = {};
@@ -166,10 +189,59 @@ export class Overworld {
     const entry = { at: new Date().toLocaleTimeString(), reason, server, here: { ...this.player.tile }, did };
     this.refusedWalks.unshift(entry);
     this.refusedWalks.length = Math.min(this.refusedWalks.length, 6);
-    console.warn(`[realm] walk refused in ${this.spot.id}: ${reason} - the server has the player at ${server ? `${server.x},${server.z}` : "-"}, the figure at ${entry.here.x},${entry.here.z}; ${did}`);
+    const text = `walk refused in ${this.spot.id}: ${reason} - the server has the player at ${server ? `${server.x},${server.z}` : "-"}, the figure at ${entry.here.x},${entry.here.z}; ${did}`;
+    this.note(text);
+    console.warn(`[realm] ${text}`);
   }
+
+  /**
+   * What passed between the page and the server lately, oldest first (the last TRACE): the walks told, refusals,
+   * entries, the connection dropping and coming back, position reports refused, the figure stood somewhere. A jump of the
+   * figure (`watchJumps`) is logged with it.
+   */
+  readonly trace: string[] = [];
+
+  private note(text: string): void {
+    this.trace.push(`${new Date().toLocaleTimeString()} ${text}`);
+    if (this.trace.length > TRACE) this.trace.shift();
+  }
+
+  /** The figure's jumps seen, newest first (the last few): the debug overlay's (debug.ts). */
+  readonly jumps: Jump[] = [];
+  private watched: { readonly figure: object; readonly place: string; readonly x: number; readonly y: number; readonly z: number } | null = null;
+
+  /**
+   * Each frame, the player's figure watched for a jump: a move in one frame further than a walk could take it (JUMP), or
+   * a sudden rise or drop (DROP). A deliberate one - through a door, a waystone, back to the inn - stands a new figure in
+   * the place (Stage.arrive) and is none. Each is logged with the trace before it, to the console and (a development
+   * server's) the server's log, so a teleport seen in play says its cause.
+   */
+  private watchJumps(): void {
+    const stage = this.stage;
+    const p = stage.player.figure.root.position;
+    const place = stage.current.id;
+    const last = this.watched;
+    if (last && last.figure === stage.player && last.place === place && !stage.transition) {
+      const flat = Math.hypot(p.x - last.x, p.z - last.z);
+      if (flat > JUMP || Math.abs(p.y - last.y) > DROP) {
+        const jump: Jump = { at: new Date().toLocaleTimeString(), place, from: [last.x, last.y, last.z], to: [p.x, p.y, p.z] };
+        this.jumps.unshift(jump);
+        this.jumps.length = Math.min(this.jumps.length, 6);
+        const text = `jump in ${place}: ${describeJump(jump)}; relay connected: ${this.presence?.connected ?? "none"}; what passed before it:\n  ${this.trace.join("\n  ")}`;
+        console.warn(`[realm] ${text}`);
+        void this.api.report?.(text);
+      }
+    }
+    this.watched = { figure: stage.player, place, x: p.x, y: p.y, z: p.z };
+  }
+
   /** The walks the relay is told (net/relay.ts). */
-  private readonly relay = new WalkRelay((move) => this.presence?.send({ Type: "Move", ...move }));
+  private readonly relay = new WalkRelay((move) => {
+    this.note(`told a walk from ${move.From.join(",")}: ${move.Path.length} steps to ${(move.Path.at(-1) ?? move.From).join(",")} at ${move.Speed.toFixed(2)}`);
+    this.presence?.send({ Type: "Move", ...move });
+  });
+  /** When the server was last told again where the player stands after a refusal (`enter`), ms; at most once in RESYNC. */
+  private resynced = -Infinity;
   private lastReport = 0;
   private travelersTimer = 0;
   private minimapTimer = 0;
@@ -194,7 +266,10 @@ export class Overworld {
     this.dungeons = dungeons;
     layer.onChange = () => this.hud.showLayer();
     this.hud.showLayer();
-    if (presence) presence.onMessage = (m) => this.hear(m);
+    if (presence) {
+      presence.onMessage = (m) => this.hear(m);
+      presence.onConnection = (open) => this.note(open ? "connected to the relay (again): the place is entered anew" : "the relay's connection dropped");
+    }
     window.addEventListener("resize", () => this.stage?.resize());
     document.querySelector<HTMLButtonElement>("[data-test='hud:gear']")?.addEventListener("click", () => void this.openGear());
     document.querySelector<HTMLButtonElement>("[data-test='hud:inventory']")?.addEventListener("click", () => void this.openInventory());
@@ -347,19 +422,35 @@ export class Overworld {
     if (spot.inside && !this.roomNpcs.has(spot.id)) void this.places.read(spot.id).then((d) => this.roomNpcs.set(spot.id, d.npcs), () => {});
     this.stepped(this.player.tile, true);
     if (spot.id.startsWith("run:")) return;
-    // The relay lets one into a place the server has them in: the place is told first, then the relay.
+    this.note(`arrived in ${this.spaceId} at ${this.player.tile.x},${this.player.tile.z}`);
+    void this.enter();
+    if (!first && spot.inside) this.say(`${spot.title}.`);
+  }
+
+  /**
+   * Lets the relay into the place the player is in, on the tile they stand on: the place is told first (the server
+   * checks it is no further than a walk could have come), then the relay - which enters them where the server last had
+   * them reported - and that they stand there. Whether the server took the report.
+   */
+  private async enter(): Promise<boolean> {
     const space = this.spaceId;
     const at = this.player.tile;
     this.lastReported = `${space}:${at.x},${at.z}`;
-    void this.api
-      .position(placeOf(space, at))
-      .then((r) => this.heartsAre(r.Hearts), () => {})
-      .then(() => {
-        if (this.spaceId !== space) return;
-        this.presence?.send({ Type: "Enter", Space: space });
-        this.relay.stand(at, PLAYER_SPEED);
-      });
-    if (!first && spot.inside) this.say(`${spot.title}.`);
+    const took = await this.api.position(placeOf(space, at)).then(
+      (r) => {
+        this.heartsAre(r.Hearts);
+        return true;
+      },
+      (e: unknown) => {
+        this.note(`position ${space} ${at.x},${at.z} refused: ${e instanceof Error ? e.message : String(e)}`);
+        return false;
+      },
+    );
+    if (this.spaceId !== space) return took;
+    this.note(`entering ${space} at ${at.x},${at.z}`);
+    this.presence?.send({ Type: "Enter", Space: space });
+    this.relay.stand(at, PLAYER_SPEED);
+    return took;
   }
 
   /** The world's dungeon entrances near the chunks built, as ways out of the world. */
@@ -608,7 +699,15 @@ export class Overworld {
     if (!force && now - this.lastReport < 2000 && this.player.moving) return;
     this.lastReport = now;
     this.lastReported = where;
-    void this.api.position(placeOf(this.spaceId, this.player.tile)).then((r) => this.heartsAre(r.Hearts), () => {});
+    const place = placeOf(this.spaceId, this.player.tile);
+    void this.api.position(place).then(
+      (r) => this.heartsAre(r.Hearts),
+      (e: unknown) => {
+        const text = `position ${place.Space} ${place.X},${place.Z} refused: ${e instanceof Error ? e.message : String(e)}`;
+        this.note(text);
+        console.warn(`[realm] ${text}`);
+      },
+    );
   }
 
   private lastReported = "";
@@ -1489,6 +1588,7 @@ export class Overworld {
     if (!this.stage || this.spot.id.startsWith("run:")) return;
     switch (message.Type) {
       case "Welcome":
+        this.note(`entered: instance ${message.Instance}, ${message.Others.length} others seen`);
         for (const other of message.Others) this.hear({ Type: "Other", ...other });
         break;
       case "Other": {
@@ -1553,6 +1653,18 @@ export class Overworld {
           this.refusedLog(message.Reason, at, `caught up, ${way.length - 1} steps`);
           break;
         }
+        // Too far to catch up along (or refused again): the server is told again where the player stands - the place
+        // reported, the relay entered anew there - rather than the figure jumped back to where the server had them. If
+        // that was done a moment ago and it refuses still, the server's word goes.
+        const now = performance.now();
+        if (grid.walkable(here.x, here.z) && now - this.resynced > RESYNC) {
+          this.resynced = now;
+          this.refusedLog(message.Reason, at, "told the server again where the player stands");
+          void this.enter().then((took) => {
+            if (!took) this.note("the server would not take where the player stands");
+          });
+          break;
+        }
         const placed = grid.walkable(at.x, at.z);
         if (placed) this.player.place(at);
         this.refusedLog(message.Reason, at, placed ? "stood there" : "not stood there (not open here)");
@@ -1590,6 +1702,7 @@ export class Overworld {
   tick(dt: number): void {
     const stage = this.stage;
     stage.tick(dt);
+    this.watchJumps();
     if (!this.paused) {
       const free = (who: Actor) => this.free(who);
       for (const mob of this.mobsHere()) {

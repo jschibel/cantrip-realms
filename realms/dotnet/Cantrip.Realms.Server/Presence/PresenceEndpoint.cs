@@ -78,17 +78,22 @@ public static class PresenceEndpoint
                 if (!outbox.Writer.TryWrite(message)) ending.Cancel();
             });
 
+            ILogger log = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PresenceEndpoint).FullName!);
+            log.LogInformation("Presence: {Account} (#{Member}) connected; last reported at {Space} {X},{Z}", player, member.Id, row.Space, row.X, row.Z);
             Task writing = Write(socket, outbox.Reader, ending.Token);
+            string ended = "closed";
             try
             {
-                await Read(socket, hub, content, member, row, scopes, ending.Token).ConfigureAwait(false);
+                await Read(socket, hub, content, member, row, scopes, log, ending.Token).ConfigureAwait(false);
             }
             catch (Exception problem) when (problem is OperationCanceledException or WebSocketException or MessagePackSerializationException)
             {
                 // The client went, or sent what is not a message: either way the connection ends.
+                ended = $"{problem.GetType().Name}: {problem.Message}";
             }
             finally
             {
+                log.LogInformation("Presence: {Account} (#{Member}) disconnected ({How})", player, member.Id, ended);
                 hub.Leave(member);
                 outbox.Writer.TryComplete();
                 await ending.CancelAsync().ConfigureAwait(false);
@@ -111,7 +116,7 @@ public static class PresenceEndpoint
         && (string.Equals(from.GetLeftPart(UriPartial.Authority), options.Client?.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase)
             || string.Equals(from.Authority, request.Host.Value, StringComparison.OrdinalIgnoreCase));
 
-    private static async Task Read(WebSocket socket, PresenceHub hub, RealmContent content, PresenceHub.Member member, PlayerRow row, IServiceScopeFactory scopes, CancellationToken cancel)
+    private static async Task Read(WebSocket socket, PresenceHub hub, RealmContent content, PresenceHub.Member member, PlayerRow row, IServiceScopeFactory scopes, ILogger log, CancellationToken cancel)
     {
         byte[] buffer = new byte[LargestFrame];
         while (socket.State == WebSocketState.Open && !cancel.IsCancellationRequested)
@@ -149,6 +154,7 @@ public static class PresenceEndpoint
                             .SingleAsync(stored => stored.Id == row.Id, cancel).ConfigureAwait(false);
                         if (now.Space != enter.Space || content.Space(now.Space) is null)
                         {
+                            log.LogWarning("Presence: {Account} (#{Member}) entering {Asked} refused: last reported at {Space} {X},{Z}", member.Account, member.Id, enter.Space, now.Space, now.X, now.Z);
                             member.Send(new RefusedMessage { Reason = "You are not there, or nobody else is.", At = [now.X, now.Z] });
                             break;
                         }
