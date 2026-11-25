@@ -50,6 +50,7 @@ public static class Codes
     public const string Defeated = "Defeated";
     public const string NoBuyout = "NoBuyout";
     public const string MostHearts = "MostHearts";
+    public const string FullHearts = "FullHearts";
     public const string Empty = "Empty";
     public const string NoSuchPlace = "NoSuchPlace";
     public const string NotSignedIn = "NotSignedIn";

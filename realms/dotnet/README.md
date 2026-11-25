@@ -73,7 +73,7 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_KEYS` | where the keys sealing the sign-in cookie are kept | in memory |
 | `REALMS_CLIENT` | the world client's address: where sign-in lands, and a browser origin the API answers | none |
 | `REALMS_CARDS` | the card layer's address (the web client's `?realm` page), when it has an origin of its own: the other browser origin the API answers | none |
-| `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin`, and the tests' `POST /dev/place` and `/dev/verdict` (interfaces.md) - never in production | off |
+| `REALMS_DEV_SIGNIN` | `1` allows `POST /dev/signin`, and the tests' `POST /dev/place`, `/dev/verdict`, `/dev/duel`, `/dev/drop`, `/dev/hearts`, `/dev/gear` and `/dev/cards` (interfaces.md) - never in production | off |
 | `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-benalia` |
 | `REALMS_PLACES` | where each plane's world, interiors and dungeons are read from instead of `realms/content` (a folder of `<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`) | `realms/content` |
 | `REALMS_WALKING_SPEED` | the fastest walk, tiles a second (a diagonal step the square root of 2): presence's walks and reported places | `5` |

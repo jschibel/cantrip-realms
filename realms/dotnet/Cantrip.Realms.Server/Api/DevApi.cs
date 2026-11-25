@@ -4,6 +4,7 @@ using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Duels;
 using Cantrip.Realms.Server.Economy;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cantrip.Realms.Server;
 
@@ -21,11 +22,15 @@ namespace Cantrip.Realms.Server;
 /// <item><c>POST /dev/verdict {Outcome, MobLife}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>,
 /// instead of replaying their logs on the engine, so a stand-in card layer's win counts - the mob ending each at
 /// <c>MobLife</c>, or at the life it began the game with when that is null; <c>null</c> replays them again.</item>
-/// <item><c>POST /dev/drop {Gear}</c> decides the signed-in player's gear rolls - a win's and a chest's (design.md A3, A5):
-/// <c>true</c> every one comes up, <c>false</c> none does, <c>null</c> the dice decide again. Which item drops is still the
-/// dice's.</item>
+/// <item><c>POST /dev/drop {Gear, Shrine}</c> decides the signed-in player's rolls: <c>Gear</c> their gear rolls - a win's
+/// and a chest's (design.md A3, A5) - and <c>Shrine</c> whether a run they begin holds a shrine (A6): <c>true</c> every one
+/// comes up, <c>false</c> none does, <c>null</c> (or left out) the dice decide again. Which item drops, and the shrine's
+/// floor, are still the dice's.</item>
 /// <item><c>POST /dev/gear {GearId}</c> gives the signed-in character a copy of a gear item, as a drop would: the
 /// <c>GearInstance</c>; 404 <c>NotThere</c> for no such item.</item>
+/// <item><c>POST /dev/hearts {Hearts, MaxHearts}</c> sets the signed-in character's hearts (design.md A3b) - those they
+/// have, and (if given) those they hold, 1 to 5 and none above the capacity - as a test arranges a heart missing without
+/// losing a duel for it: the <c>Character</c>; 422 <c>NoSuchHearts</c> for any other.</item>
 /// <item><c>POST /dev/cards {Name, Count}</c> adds copies of a card the engine plays to the signed-in character's collection
 /// (or takes them, with a negative count), as a test arranges what is owned; 422 <c>NoSuchCard</c> for any other.</item>
 /// </list>
@@ -91,6 +96,22 @@ public static class DevApi
             return Results.Ok(await characters.Collection(player).ConfigureAwait(false));
         });
 
+        dev.MapPost("/hearts", async (HttpContext context, Characters characters, RealmDb db, DevHearts body) =>
+        {
+            string player = RealmSignIn.PlayerId(context)!;
+            PlayerRow row = await characters.Require(player).ConfigureAwait(false);
+            int most = body.MaxHearts ?? row.MaxHearts;
+            if (most < 1 || most > Hearts.Most || body.Hearts < 1 || body.Hearts > most)
+            {
+                throw Refusal.Unprocessable("NoSuchHearts", $"A character has 1 to {most} hearts, and holds 1 to {Hearts.Most}.");
+            }
+
+            await db.Players.Where(stored => stored.Id == player).ExecuteUpdateAsync(set => set
+                .SetProperty(stored => stored.Hearts, body.Hearts)
+                .SetProperty(stored => stored.MaxHearts, most)).ConfigureAwait(false);
+            return Results.Ok(await characters.View(player).ConfigureAwait(false));
+        });
+
         dev.MapPost("/verdict", (HttpContext context, DevVerdicts verdicts, DevVerdict body) =>
         {
             string player = RealmSignIn.PlayerId(context)!;
@@ -127,6 +148,7 @@ public static class DevApi
         dev.MapPost("/drop", (HttpContext context, DevVerdicts verdicts, DevDrop body) =>
         {
             verdicts.SetGearRoll(RealmSignIn.PlayerId(context)!, body.Gear);
+            verdicts.SetShrineRoll(RealmSignIn.PlayerId(context)!, body.Shrine);
             return Results.Ok(new { });
         });
     }
@@ -155,6 +177,9 @@ public static class DevApi
     /// <summary><c>POST /dev/cards</c>'s body.</summary>
     public sealed record DevCards(string? Name, int Count);
 
+    /// <summary><c>POST /dev/hearts</c>'s body: the hearts the character has, and (null: as they are) holds.</summary>
+    public sealed record DevHearts(int Hearts, int? MaxHearts = null);
+
     /// <summary><c>POST /dev/verdict</c>'s body: the outcome, and the mob's life at the end (null: what it began with).</summary>
     public sealed record DevVerdict(string? Outcome, int? MobLife = null);
 
@@ -162,17 +187,29 @@ public static class DevApi
     public sealed record DevGear(string? GearId);
 
     /// <summary><c>POST /dev/drop</c>'s body.</summary>
-    public sealed record DevDrop(bool? Gear);
+    public sealed record DevDrop(bool? Gear, bool? Shrine = null);
 }
 
 /// <summary>
 /// The verdicts <c>POST /dev/verdict</c> has set, by player: empty unless a development server's test set one, and then
-/// <see cref="Encounters.Finish"/> takes it in place of the verifier's. And the gear rolls <c>POST /dev/drop</c> decided.
+/// <see cref="Encounters.Finish"/> takes it in place of the verifier's. And the gear and shrine rolls <c>POST /dev/drop</c>
+/// decided.
 /// </summary>
 public sealed class DevVerdicts
 {
     private readonly ConcurrentDictionary<string, (bool Won, int? MobLife)> _won = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, bool> _gear = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, bool> _shrine = new(StringComparer.Ordinal);
+
+    /// <summary>Decides whether a player's runs hold a shrine: every one, none, or (null) as the dice say.</summary>
+    public void SetShrineRoll(string player, bool? comesUp)
+    {
+        if (comesUp is { } decided) _shrine[player] = decided;
+        else _shrine.TryRemove(player, out _);
+    }
+
+    /// <summary>Whether a player's run holds a shrine when a test decided it; null when the dice decide.</summary>
+    public bool? ShrineRoll(string player) => _shrine.TryGetValue(player, out bool comesUp) ? comesUp : null;
 
     /// <summary>Decides a player's gear rolls: every one comes up, none does, or (null) the dice's again.</summary>
     public void SetGearRoll(string player, bool? comesUp)

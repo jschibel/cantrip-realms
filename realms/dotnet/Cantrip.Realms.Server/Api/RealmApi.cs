@@ -124,6 +124,9 @@ public static class RealmApi
             return Results.Ok(new { });
         });
 
+        api.MapPost("/dungeon/shrine", async (HttpContext context, Dungeons dungeons, ShrineUse body) =>
+            Results.Ok(await dungeons.Pray(Player(context), body).ConfigureAwait(false)));
+
         api.MapPost("/dungeon/leave", async (HttpContext context, Dungeons dungeons, RunLeave body) =>
         {
             await dungeons.Leave(Player(context), body).ConfigureAwait(false);

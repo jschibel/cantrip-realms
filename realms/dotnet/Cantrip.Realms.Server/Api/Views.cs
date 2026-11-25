@@ -22,7 +22,8 @@ public sealed record GearInstance(long InstanceId, GearItem Gear);
 /// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order; their hearts
 /// (design.md A3b) - how many they have, how many they hold, what a healer asks for one more (null at the most) - and the
 /// defeat they have still to answer, if any; where they stand (<see cref="Space"/>, <see cref="X"/>, <see cref="Z"/>, a
-/// tile), the inn they wake at, and the mage towers they have attuned.
+/// tile), the inn they wake at, the mage towers they have attuned, and the heartblooms of the world they have picked that
+/// have not grown back.
 /// </summary>
 public sealed record CharacterView(
     string Id,
@@ -43,7 +44,8 @@ public sealed record CharacterView(
     IReadOnlyDictionary<string, GearInstance?> Loadout,
     IReadOnlyList<GearInstance> Gear,
     IReadOnlyList<string> Unlocked,
-    IReadOnlyList<string> Attuned);
+    IReadOnlyList<string> Attuned,
+    IReadOnlyList<PickedView> Picked);
 
 /// <summary>A new character: a name, a body (<c>lithe</c>, <c>broad</c>, <c>tall</c> or <c>stocky</c>), a palette and a starting color.</summary>
 public sealed record NewCharacter(string? Name, string? Body, int Palette, string? Color);
@@ -184,7 +186,10 @@ public sealed record PositionView(int Hearts);
 public sealed record ChestOpen(string? Space, string? Chest);
 
 /// <summary>What a chest held - its gold, and a gear item now theirs or null - and the character's gold with it.</summary>
-public sealed record ChestView(long Gold, long Found, GearInstance? Gear = null);
+public sealed record ChestView(long Gold, long Found, GearInstance? Gear, int Hearts, bool Heart = false);
+
+/// <summary>A heartbloom of the world a character picked, and when it grows back for them.</summary>
+public sealed record PickedView(string Chest, DateTimeOffset Until);
 
 /// <summary>Where a character stands (interfaces.md, "Places"): a space - <c>world</c>, an interior's id, <c>run:&lt;id&gt;</c> - and a tile of it, x east and z south.</summary>
 public sealed record PlaceView(string Space, int X, int Z);
@@ -198,9 +203,10 @@ public sealed record RunEncounter(int Index, string Mob);
 /// A floor of a run: its encounters, then the warden at its stair (every floor but the last; its index the count of the
 /// encounters) and on the last floor the boss (its index one past the encounters'). A run of a color's dungeon dealt by the
 /// character's standing to its color (design.md A6, <see cref="Content.DungeonStanding"/>) says the tier it deals each floor
-/// at and what its boss gains over its own stats; null for a run dealt as the dungeon is written.
+/// at and what its boss gains over its own stats; null for a run dealt as the dungeon is written. <see cref="Shrine"/>: the
+/// floor holds the run's shrine (design.md A6), which gives back a heart once in the run; a run has one at most.
 /// </summary>
-public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss, int? Tier = null, GearStats? BossStats = null);
+public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss, int? Tier = null, GearStats? BossStats = null, bool Shrine = false);
 
 /// <summary>A boss resting after a win (design.md A6: refought weekly): who, and when it is back.</summary>
 public sealed record RestingView(string Boss, DateTimeOffset Until);
@@ -208,9 +214,16 @@ public sealed record RestingView(string Boss, DateTimeOffset Until);
 /// <summary>
 /// A run: its id, its seed for the browser's layout, every encounter it holds, its dungeon, the floor the character stands
 /// on, the encounters of it beaten (<c>&lt;floor&gt;:&lt;index&gt;</c>), the boss that rests and so is not on its last floor, and the
-/// run's tier: its dungeon's, or the one the character's standing to its color deals it at (design.md A6).
+/// run's tier: its dungeon's, or the one the character's standing to its color deals it at (design.md A6); and whether the
+/// run's shrine, if it has one, has given its heart.
 /// </summary>
-public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors, string? Dungeon = null, int Floor = 0, IReadOnlyList<string>? Beaten = null, RestingView? Resting = null, int? Tier = null);
+public sealed record RunView(string Run, long Seed, IReadOnlyList<RunFloor> Floors, string? Dungeon = null, int Floor = 0, IReadOnlyList<string>? Beaten = null, RestingView? Resting = null, int? Tier = null, bool ShrineUsed = false);
+
+/// <summary><c>POST /api/dungeon/shrine</c>'s body: the run whose shrine the character prays at.</summary>
+public sealed record ShrineUse(string? Run);
+
+/// <summary>What a shrine's blessing came to: the character's hearts after.</summary>
+public sealed record ShrineView(int Hearts);
 
 public sealed record FloorTake(string? Run, int Floor);
 

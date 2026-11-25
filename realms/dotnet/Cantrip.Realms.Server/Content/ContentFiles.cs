@@ -252,6 +252,10 @@ public sealed class MapSpawn
     public Tile At => new(X, Z);
 }
 
+/// <summary>
+/// A find of a space, a character's own on its own timer (design.md A5, A3b): a treasure chest, its gold within
+/// <see cref="Gold"/>; or, <see cref="Heart"/>, a heartbloom of the wilds, which gives back a heart and holds no gold.
+/// </summary>
 public sealed class MapChest
 {
     public string Id { get; init; } = string.Empty;
@@ -260,7 +264,11 @@ public sealed class MapChest
 
     public int Z { get; init; }
 
+    /// <summary>A chest's gold, the least and the most; none for a heartbloom.</summary>
     public IReadOnlyList<long> Gold { get; init; } = [];
+
+    /// <summary>A heartbloom (design.md A3b): it gives back a heart, up to the character's capacity, and no gold.</summary>
+    public bool Heart { get; init; }
 
     public int RespawnSeconds { get; init; }
 

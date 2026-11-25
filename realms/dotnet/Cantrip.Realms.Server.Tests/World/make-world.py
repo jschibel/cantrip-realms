@@ -14,7 +14,7 @@ Capashen Hold a smithy with an armorer and a temple with a healer too, a quest b
 traders' town. Spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
 Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage at the top and its waystone
 (layout.json's ids, the roster's bosses, wardens and mages), each with a spell table beside its entrance; a ferry; and
-three chests, one in the west chunks. Every mob of realms/content/dominaria/mobs is met somewhere, as the server's
+three chests, one in the west chunks, and a heartbloom between the towns. Every mob of realms/content/dominaria/mobs is met somewhere, as the server's
 content check asks. The same roster gives the same files.
 """
 
@@ -304,6 +304,10 @@ def main():
     for id, (x, z), gold, respawn in (("0_0:1", (6, 28), [50, 500], 86400), ("1_1:1", (40, 40), [50, 500], 3600), ("-1_0:1", (-6, 10), [20, 80], 3600)):
         take(x, z, f"chest {id}")
         chunk_of(x, z)["chests"].append({"id": id, "x": x, "z": z, "gold": gold, "respawnSeconds": respawn})
+
+    # A heartbloom of the wilds (design.md A3b) on an open tile between the towns: a heart given back, growing back in a week.
+    take(34, 34, "the heartbloom 1_1:h1")
+    chunk_of(34, 34)["chests"].append({"id": "1_1:h1", "x": 34, "z": 34, "heart": True, "respawnSeconds": 604800})
 
     # A ferry along the east edge: docks at z 4 and z 28, its lane straight between them.
     ferry_from, ferry_to = (124, 4), (124, 28)

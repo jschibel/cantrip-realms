@@ -159,7 +159,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             loadout,
             gear,
             [.. unlocked.Order(StringComparer.Ordinal)],
-            [.. attuned.Order(StringComparer.Ordinal)]);
+            [.. attuned.Order(StringComparer.Ordinal)],
+            await Chests.Picked(db, content, player, Now).ConfigureAwait(false));
     }
 
     /// <summary>A character's color identity: their starting color and every color unlocked, in WUBRG order.</summary>

@@ -262,14 +262,19 @@ public sealed class DuelRow
     public static bool IsWon(string state) => state is Won or Looted;
 }
 
-/// <summary>When a character last opened a chest (<c>chests</c>); chests refill for each player on their own timer.</summary>
+/// <summary>
+/// When a character last took a find of a space (<c>chests</c>), each theirs again on its own timer: a treasure chest's
+/// gold, a heartbloom of the wilds (design.md A3b), or a dungeon run's shrine (its space the run's, <c>run:&lt;id&gt;</c>, and
+/// its find <see cref="Economy.Dungeons.Shrine"/>: once a run, the run being a space of its own).
+/// </summary>
 public sealed class ChestRow
 {
     public string PlayerId { get; set; } = string.Empty;
 
-    /// <summary>The space the chest is in: <c>world</c> or an interior's id.</summary>
+    /// <summary>The space the find is in: <c>world</c>, an interior's id, or a run's.</summary>
     public string Space { get; set; } = string.Empty;
 
+    /// <summary>The find: a chest's or heartbloom's id, or a run's <see cref="Economy.Dungeons.Shrine"/>.</summary>
     public string Chest { get; set; } = string.Empty;
 
     public long OpenedAt { get; set; }

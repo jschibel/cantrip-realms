@@ -609,6 +609,11 @@ public sealed partial class RealmContent
 
         CheckNpcs(world, "the world", problems);
         CheckChests(world, world.Chests, "the world", problems);
+        foreach (MapChest bloom in world.Chests.Where(chest => chest.Heart))
+        {
+            if (!world.Walkable(bloom.At)) problems.Add($"the world: heartbloom {bloom.Id} stands at {bloom.At}, a tile nobody can stand on.");
+            if (TownAt(bloom.At) is { } town) problems.Add($"the world: heartbloom {bloom.Id} grows in {town.Id}, not in the wilds.");
+        }
 
         foreach (Vendor vendor in Vendors.Values.Where(vendor => vendor.File.Trader is { } round))
         {
@@ -734,7 +739,16 @@ public sealed partial class RealmContent
         {
             if (!ChestId().IsMatch(chest.Id) || !ids.Add(chest.Id)) problems.Add($"{where}: chest '{chest.Id}' is not a fresh id (lower-case letters, digits, '-', '_' and ':', a letter or digit first but for a leading '-').");
             if (!space.Has(chest.At)) problems.Add($"{where}: chest {chest.Id} is off it at {chest.At}.");
-            if (chest.Gold is not [long low, long high] || low < 0 || high < low) problems.Add($"{where}: chest {chest.Id}'s gold is two amounts, the lower first.");
+            if (chest.Heart)
+            {
+                if (chest.Gold.Count > 0) problems.Add($"{where}: heartbloom {chest.Id} holds a heart, and no gold.");
+                if (space is not RealmWorld) problems.Add($"{where}: heartbloom {chest.Id} grows only in the world's wilds.");
+            }
+            else if (chest.Gold is not [long low, long high] || low < 0 || high < low)
+            {
+                problems.Add($"{where}: chest {chest.Id}'s gold is two amounts, the lower first.");
+            }
+
             if (chest.RespawnSeconds <= 0) problems.Add($"{where}: chest {chest.Id} refills after some seconds.");
         }
     }

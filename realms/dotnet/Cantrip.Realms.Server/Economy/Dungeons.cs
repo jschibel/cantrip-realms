@@ -15,11 +15,19 @@ namespace Cantrip.Realms.Server.Economy;
 /// tower's waystone, attuned by beating its boss (<see cref="Encounters"/>), takes the character from one attuned tower to
 /// another at once. A boss beaten rests for a week (design.md A6: refought weekly): a run begun meanwhile finds its last
 /// floor without it, and the run says when it is back. A live run is what a character resumes (<see cref="Current"/>):
-/// the floor reached and the fights won stay with it until it ends.
+/// the floor reached and the fights won stay with it until it ends. Now and then a run holds a shrine on one of its floors
+/// (<see cref="ShrineChance"/>, rolled as it begins): praying at it gives back a heart, once in the run, which the
+/// <c>chests</c> table records as the run's find (<see cref="Shrine"/>).
 /// </summary>
-public sealed class Dungeons(RealmDb db, RealmContent content, Characters characters, RealmDice dice, TimeProvider time)
+public sealed class Dungeons(RealmDb db, RealmContent content, Characters characters, Hearts hearts, RealmDice dice, TimeProvider time, DevVerdicts devVerdicts)
 {
     private static readonly JsonSerializerOptions Json = new();
+
+    /// <summary>The chance a run holds a shrine (design.md A6): one run in eight, on one of its floors drawn at random.</summary>
+    public const double ShrineChance = 1.0 / 8;
+
+    /// <summary>A run's shrine as the <c>chests</c> table names the find, in the run's space.</summary>
+    public const string Shrine = "shrine";
 
     /// <summary>How long a beaten boss rests before it can be fought again (design.md A6: bosses are refought weekly).</summary>
     public static TimeSpan BossRest { get; } = TimeSpan.FromDays(7);
@@ -44,6 +52,13 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         {
             // The boss rests: the last floor holds no boss this run.
             floors[^1] = floors[^1] with { Boss = null, BossStats = null };
+        }
+
+        // A shrine, now and then, on one of the floors.
+        if (devVerdicts.ShrineRoll(player) ?? dice.Roll(ShrineChance))
+        {
+            int at = dice.Below(floors.Count);
+            floors[at] = floors[at] with { Shrine = true };
         }
 
         var run = new RunRow
@@ -92,7 +107,47 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         RestingView? resting = dungeon is not null && floors.Count > 0 && floors[^1].Boss is null
             ? await Resting(player, dungeon).ConfigureAwait(false)
             : null;
-        return new RunView(run.Id, run.Seed, floors, run.Dungeon, run.Floor, beaten, resting, TierOf(dungeon, floors));
+        bool prayed = await db.Chests.AnyAsync(stored => stored.PlayerId == player && stored.Space == space && stored.Chest == Shrine).ConfigureAwait(false);
+        return new RunView(run.Id, run.Seed, floors, run.Dungeon, run.Floor, beaten, resting, TierOf(dungeon, floors), prayed);
+    }
+
+    /// <summary>
+    /// Prays at the shrine of the floor the character stands on (<c>POST /api/dungeon/shrine</c>): a heart given back, once
+    /// in the run. 409 <c>NotThere</c> for a floor with no shrine (or a run over), <c>Empty</c> once it has given its heart,
+    /// <c>FullHearts</c> (and the shrine left for later) when their hearts are full, <c>NotNear</c> out of the run; 404
+    /// <c>NotThere</c> for no such run. The browser lays the floor out and the server does not walk it, so it holds the
+    /// character to the floor, as it does an encounter.
+    /// </summary>
+    public async Task<ShrineView> Pray(string player, ShrineUse request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        PlayerRow row = await characters.Require(player).ConfigureAwait(false);
+        RunRow run = await Live(player, request.Run).ConfigureAwait(false);
+        string space = RealmContent.RunSpace(run.Id);
+        if (row.Space != space) throw Refusal.Conflict(Codes.NotNear, "You are not in that run.");
+        List<RunFloor> floors = FloorsOf(run);
+        if (run.Floor >= floors.Count || !floors[run.Floor].Shrine) throw Refusal.Conflict(Codes.NotThere, "There is no shrine on this floor.");
+
+        await using (var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false))
+        {
+            if (await db.Chests.AnyAsync(stored => stored.PlayerId == player && stored.Space == space && stored.Chest == Shrine).ConfigureAwait(false))
+            {
+                throw Refusal.Conflict(Codes.Empty, "The shrine has given its blessing this run.");
+            }
+
+            // Taken first (two prayers at once meet the table's key), then the heart, or nothing.
+            db.Chests.Add(new ChestRow { PlayerId = player, Space = space, Chest = Shrine, OpenedAt = Now });
+            await db.SaveChangesAsync().ConfigureAwait(false);
+            if (!await hearts.Grant(player).ConfigureAwait(false))
+            {
+                throw Refusal.Conflict(Codes.FullHearts, "Your hearts are full. The shrine's blessing will keep.");
+            }
+
+            await transaction.CommitAsync().ConfigureAwait(false);
+        }
+
+        db.ChangeTracker.Clear();
+        return new ShrineView(await db.Players.AsNoTracking().Where(stored => stored.Id == player).Select(stored => stored.Hearts).SingleAsync().ConfigureAwait(false));
     }
 
     /// <summary>
