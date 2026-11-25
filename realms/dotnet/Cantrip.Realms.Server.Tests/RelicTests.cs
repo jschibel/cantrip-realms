@@ -11,7 +11,7 @@ namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
 /// Relics (design.md A3a): a drop only from the bosses their entries name, at most once per account ever, kept in the
-/// collection and the ledger together, and never anted, sold or held twice in a deck; and the Phyrexian Portal (A6) they
+/// collection and the ledger together, and never sold or held twice in a deck and its sideboard; and the Phyrexian Portal (A6) they
 /// drop in, sealed until all five colors are unlocked. The relic rolls are forced (<see cref="ForcedRolls"/>), never swept.
 /// </summary>
 public sealed class RelicTests

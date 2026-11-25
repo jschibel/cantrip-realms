@@ -42,15 +42,21 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Storage:** **PostgreSQL** through EF Core migrations. SQLite is used for local development and tests through the same EF model.
   - Why not the existing JSON store: buying and selling has to change a player's gold and collection, a vendor's purse and its stock in one atomic transaction, and `EventStore`'s file-at-a-time writes can't do that. This is a server store, not an engine system.
   - Why Postgres: a managed database gives backups and point-in-time restore, and it lets more than one server instance run later.
-  - Tables: players, collection, gear_owned, loadout, deck, ante, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels, chests, quests.
-- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and ante save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, quests.
+  - Tables: players (their hearts with them, design.md A3b), collection, gear_owned, loadout, deck, sideboard, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels (one row a game of an encounter), chests, quests, runs, attuned.
+  - The `Hearts` migration dropped the ante (its table, and the duels' ante, value and cap) and gave every character 2 of 2 hearts.
+- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and sideboard save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, hearts bought at a healer, quests.
 - **The encounter protocol** (single-player, but it can't be cheated):
-  1. **Start:** `POST /encounter/start {map, spawnId}`. The server checks that the spawn exists in that map's **deterministic spawn table** (seeded by player, map and spawn epoch; the client and server share golden test vectors) and that your last reported position is close. It then **commits** the seed, the mob, a snapshot of your deck, loadout and ante, and the prize cap, and returns a duel token.
+  1. **Start:** `POST /encounter/start {map, spawnId}`. The server checks that the spawn exists in that map's **deterministic spawn table** (seeded by player, map and spawn epoch; the client and server share golden test vectors) and that your last reported position is close. It then **commits** the seed, the mob, a snapshot of your deck, sideboard and loadout, and the mob's full starting life, and returns a duel token.
   2. **Play:** the browser plays the duel in WASM.
   3. **Report:** `POST /encounter/finish {token, decisionLog}`.
   4. **Verify:** the server **replays the log** with the native engine of the same version and recomputes the mob's answers with the same seeded `TacticalPlay`. Any mismatch rejects the report and counts the duel as a loss.
-  5. **Win:** the server rolls the 3-card offer, and `POST /encounter/loot {picks}` grants the picks that fit the cap.
-  6. **Loss:** the server removes a random ante card and moves you to the nearest inn.
+  5. **Win:** the server pays the gold and rolls the gear drop (and a boss's gift and relics).
+  6. **Loss:** the server takes a heart. With hearts left it keeps the game awaiting an answer, with the buyout it measured
+     from the mob's life at the end of the replayed log: `POST /encounter/pay` pays it (a world mob's alone), and
+     `POST /encounter/rematch` commits the encounter's next game - the deck swapped from the sideboard, the player's
+     choice of play or draw (`FirstPlayer`), and the mob's seat at the life it ended with, its variant start's
+     `StartingLife` - which is played and verified as any game is. With none left the character dies: home, hearts full,
+     a dungeon run ended and its winnings taken back.
 - **Engine versions:** each build carries its engine version, and the server keeps the previous version's verifier for 24 hours across a deploy.
 - **Vendors:** a background service applies each vendor's hourly trickle and rotation. It runs on `TimeProvider`, so tests use a fake clock.
 - **Presence:** a WebSocket at `/realm/ws` (MessagePack, following `Cantrip.Protocol`).
@@ -132,8 +138,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Without a server:** `?offline` (or no `?server=` / `VITE_REALM_SERVER`) plays the whole overworld against
   `MockApi`, the API in memory, with presence passed between the browser's own tabs. Its duels are still real games:
   `MockApi` deals them as the server does (`net/mockDuel.ts`: the starter deck of the character's color, the mob's
-  themed deck, both seats' stats and gear emblems), the real card layer plays them and offers the loot, and only the
-  verdict is taken on trust, there being no server to replay the log; the screens that trade and save through the API
+  themed deck, both seats' stats and gear emblems), the real card layer plays them, shows the gear they drop and
+  sideboards a rematch, and only the verdict - and the mob's life at the end, which the card layer reads from the game -
+  is taken on trust, there being no server to replay the log; the screens that trade and save through the API
   (spell table, vendors, gear) are the stand-in panels' (`OfflineCardLayer`). The card layer is the real one whenever
   one is built: the dev server serves the web client's built page on a port of its own (its port + 100, or
   `REALM_CARD_LAYER_PORT`; `vite.config.ts`) and says where in a `<meta name="card-layer">`; `?cards=stub` (or
@@ -158,17 +165,19 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   refusing none of the walks told: `walking.spec.ts`), goes into a shop and asks for its vendor's
   screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and
   takes its stair once the warden is beaten, resumes a run after a reload, beats Rofellos (green unlocked, his hall empty
-  for the week after; `bosses.spec.ts`) and plays his duel in the real card layer (won from a forced position, lost by
-  conceding: the run over, the character at the inn), attunes two mage towers by beating their mages and travels between their
+  for the week after; `bosses.spec.ts`) and plays his duel in the real card layer (won from a forced position), attunes two mage towers by beating their mages and travels between their
   waystones, has two players see each other walk in the world and in an inn, and plays duels in the real card layer
   whose logs the server replays on the native host: one conceded, and the whole loop won and lost
-  (`duel-loop.spec.ts`: the encounter's splash, the game, its end, the server's verdict, then the loot picked within the
-  cap and the world resumed, or a card of the ante gone and the character awake at the inn), each a position forced
-  through `POST /dev/duel` (a seat beginning at 0 life), never a seed; and an offline duel and its loot in the real card
-  layer (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`); and builds a deck and an ante at a spell table in the
+  (`duel-loop.spec.ts`: the encounter's splash, the game, its end, the server's verdict, then its gold and the world
+  resumed; or a heart gone, the mob's buyout measured from the replayed log, the deck sideboarded in the card layer, the
+  next game dealt with the mob at the life it kept and conceded, and death and home), each a position forced through
+  `POST /dev/duel` (a seat beginning at 0 life, the mob at a life it keeps), never a seed; hearts with the stand-in
+  (`hearts.spec.ts`: a buyout paid and the answer coming back after a reload, a town filling the hearts, a dungeon's mob
+  fought again, a temple's healer); an offline duel and a rematch sideboarded in the real card layer
+  (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`); and builds a deck and a sideboard at a spell table in the
   real card layer (the server's refusals shown, the saved deck the one the next duel deals) and buys and sells at a card
   vendor there (`spell-table.spec.ts`). A test starts its character where it needs to be and has the server
-  count the stand-in's wins through the development server's test-only calls (`POST /dev/place`, `/dev/verdict`, `/dev/duel`, `/dev/cards`,
+  count the stand-in's wins and losses through the development server's test-only calls (`POST /dev/place`, `/dev/verdict` with the mob's life at the end, `/dev/duel`, `/dev/cards`,
   interfaces.md); everything else is walked and clicked. `npm run bench` times the renderer on walks through the
   Domains and the large world (`e2e/bench`). The dev galleries are `gallery.html` (the art library), `rooms.html`
   (rooms and dungeon floors) and `cast.html` (figures).
@@ -932,7 +941,7 @@ content folder with illustrations is found - `CANTRIP_ART`, else the repository'
 drawn with no picture. The card layer only ever asks for those sized renditions (128 to 1024 pixels, webp, made once from
 the illustration and kept in `realms/web/.play/art`), never a full-size illustration, which a face would decode whole.
 Offline (`/offline`) the same server serves the art alone on the server's port (`cantrip-realms-server art`), so offline
-duels and loot show the art too. In the card layer's own screens (the spell table, the inventory, the ante) a card's note
+duels show the art too. In the card layer's own screens (the spell table, the inventory, the sideboard) a card's note
 (copies left, price, relic) is a band under its name across the top of the art, not a veil over the picture. A world
 client not signed in is sent to `<server>/signin`, which a server with the development sign-in alone answers with its
 form.
@@ -940,14 +949,14 @@ form.
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.
 - **Card screens open over the world**, as Fallout's barter screen does. The world pauses while they are open.
-  - The screens: duel, spell table (deck and ante), vendor, loot pick, collection, and gear and paper-doll.
+  - The screens: duel, sideboarding (a rematch's), spell table (deck and sideboard), vendor, gear found, collection, and gear and paper-doll.
   - Gear is drawn as Vanguard-style oversize cards, using the same face renderer.
 - **The bridge:** `window.realmBridge`, using `JSImport`/`JSExport` on the Uno side.
-  - Calls in: `openDuel(spec)`, `openSpellTable()`, `openVendor(id)`, `openLoot(offer)`, `openGear()`, `close()`.
+  - Calls in: `openDuel(spec)`, `openSideboard(deck)`, `openSpellTable()`, `openVendor(id)`, `openLoot(gear)`, `openGear()`, `close()`.
   - Events out: results.
 - **On the Uno side:** a `?realm` mode in the fork's `Cantrip.Client.Web`, in new partial files (`MainPage.Realm*.cs`) next to the existing ones.
   - The duel uses `WasmRulesHost` with the bot seat in the tab.
-  - Deck building reuses the `MainPage.Decks.cs` editor in a collection-limited mode that respects identity and the ante.
+  - Deck building reuses the `MainPage.Decks.cs` editor in a collection-limited mode that respects identity and the sideboard; a rematch's sideboarding is the same editor over the last game's deck and sideboard alone.
 - **Milestone 0 proves this layering** before anything else depends on it.
 
 ### B7. Data pipelines (fork, `tools/realms/`)
@@ -981,7 +990,7 @@ form.
 ### B9. PvP (last milestone, after PvE ships)
 - **The duel zone** in towns uses server-hosted tables: the existing `GameSession` and the native host through `Matchmaker`. Decks come from the collection, and both players' gear objects are in play.
 - **Ladders** are weekly Swiss and then elimination events, reusing `Swiss.cs` and `League*`, with special prizes: unique gear and cosmetic auras.
-- There is no ante in PvP unless a later decision adds it.
+- There is no ante in PvP, as there is none in PvE, unless a later decision adds it; nor hearts, which are PvE's.
 
 ---
 
@@ -1045,8 +1054,8 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   | Area | What the tests cover |
   |---|---|
   | Pricing | the price formula |
-  | Loot | the cap and the subset choice; the empty ante |
-  | Losing | losing an ante card; the nearest inn |
+  | Hearts | the start, the migration, a town's refill, a heart given back, buying to five, death |
+  | Losing | a heart and no reward; the buyout's measure, its payment and its refusal in a dungeon; the rematch's carried life and swapped deck; death taking back a run's winnings |
   | Vendors | buy and sell atomicity; a purse too small; a full stock; trickle and rotation on a fake `TimeProvider` |
   | Encounters | spawn-table validation against the golden vectors; a tampered log rejected; a mob answer that doesn't match rejected |
   | Duels | a duel left unfinished becomes a loss |
@@ -1054,7 +1063,7 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
 
 - **Overworld:** vitest for the grid and its A* (the walk vectors the server checks too), spawn generation (the same golden vectors as the server), the world format, loader and lint (Dominaria's files lint clean and are what the generator writes), the art registries, rooms, dungeon floors, figures and the renderer's pieces, and the in-memory API.
 - **Browser end to end:** Playwright in a new `Cantrip.Realms.Web.Tests`, driving `realmTest` and `cantripTest` with real clicks.
-  - The flow: create a character → walk → engage a mob → the duel → the loot pick → a vendor sale → spell table edits → a loss returns you to the inn.
+  - The flow: create a character → walk → engage a mob → the duel → its gold → a vendor sale → spell table edits → a loss, a heart gone, the buyout or a rematch → the last heart lost returns you home.
   - The duel is forced with a `.cantrip` scenario, never a seed hunt.
   - Two browser contexts see each other move and change gear.
   - Screenshot checks of the world rendering.

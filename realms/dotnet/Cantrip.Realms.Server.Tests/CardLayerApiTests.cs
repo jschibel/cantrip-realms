@@ -45,7 +45,7 @@ public sealed class CardLayerApiTests
         Assert.Equal(2, collection.Cards["Serra Angel"]);
         Assert.NotNull(collection.Prices);
         Assert.Equal(RealmApp.Content.Cards.Price("Serra Angel"), collection.Prices!["Serra Angel"]);
-        // Every owned card that has a price says it, and nothing else is listed: what the spell table sums for an ante.
+        // Every owned card that has a price says it, and nothing else is listed: what the spell table says over each card.
         Assert.Equal(
             collection.Cards.Keys.Where(name => RealmApp.Content.Cards.Price(name) is not null).Order(StringComparer.Ordinal),
             collection.Prices.Keys.Order(StringComparer.Ordinal));

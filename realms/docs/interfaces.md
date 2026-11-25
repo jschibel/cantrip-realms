@@ -62,7 +62,7 @@ same way by the tools, `tools/realms/realm_cards.py`); there are no pool files:
 
 The cards that drop only from bosses, at most once per account ever (design.md A3a). `card` is a card the engine
 plays. `bosses` are the mobs (each `"boss": true`) it drops from. `chance` is its chance on each win against one of
-them: more than 0, at most 1. A relic is in no pool, so no vendor stock, loot offer, starter deck or mob deck holds one.
+them: more than 0, at most 1. A relic is in no pool, so no vendor stock, boss's loot, starter deck or mob deck holds one.
 The server refuses to start if a pool lists one, a starter deck holds one, or an entry names no boss.
 
 ### Gear (`gear/*.json`, one file per item)
@@ -108,9 +108,7 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   "deck": "decks/realms/dominaria/llanowar-elves.txt",
   "stats": { "life": 20, "hand": 7, "maxHand": 7 },
   "gear": [],
-  "prize": 100,
   "goldRange": [20, 60],
-  "loot": { "pool": "dominaria", "colors": "G", "types": [], "subtypes": ["Elf", "Druid"], "rarities": ["common"] },
   "model": { "mesh": "elf", "palette": ["#2a4524", "#d6ae7e", "#c08a62"], "size": 0.9 },
   "boss": false,
   "lines": {
@@ -121,12 +119,12 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 }
 ```
 
-- `prize` is the mob's prize value in gold; the prize cap of a duel is `min(ante value, prize)` (design.md A3).
 - `gear` names gear items the mob wears, whose stats and emblems it starts with as a player does.
-- `loot` filters the plane's pool for the three cards offered after a win.
+- `goldRange` is what a win against it pays, rolled between the two (design.md A3); a win pays gold and gear, never cards.
 - A boss has `"boss": true` and `"unlocks": "W"`. A plane's capstone boss (`phyrexian-praetor`) has no `unlocks`: it
   ends the arc instead, and the relics drop from it. A boss names its own unique gear item, `"unique": "<gear id>"` (a
-  gear item with `"unique": true`), and its loot holds rares or mythics for its gift (`/api/encounter/finish`).
+  gear item with `"unique": true`), and its `loot` - a filter of the plane's pool, `{pool, colors, types, subtypes,
+  rarities}`, which only a boss has - holds rares or mythics for its gift (`/api/encounter/finish`).
 - `model.mesh` is a mob mesh and `model.palette` its colors (Models, below).
 - `creature` is the card the mob is (design.md A6): a creature (or, for a mage, a planeswalker) card the engine plays,
   held in its deck - a wanderer's name is its creature's, and its deck holds 2 to 4 of it.
@@ -142,10 +140,13 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   (`*The wurm settles back into its coils, unbothered.*`). The same line is said wherever the duel was, so none speaks of
   gold, paying or fighting a second time (the client adds the offer that follows); `realms/web/src/mobs.test.ts` holds
   each line to 160 characters and those words. The lines are written by hand: `sample-decks.py` keeps them when it
-  rewrites the file.
+  rewrites the file. The client picks one at random of the kind the game's end calls for (`realms/web/src/hearts.ts`,
+  `defeatLine`: `flawless` at its full starting life or more, `close` at a quarter or less), and a generic line where the
+  file has none.
 - `tools/realms/sample-decks.py` writes the whole roster and its decks (design.md A3, A6), each deck built round its
-  creature - the creature, its kin, the cards that support what it does - and by tier: its prize (tier 1 100 gold, 2 300,
-  3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can buy, and stats-only gear.
+  creature - the creature, its kin, the cards that support what it does - and by tier: its gold range (tier 1 20-60,
+  2 50-150, 3 120-300, 4 250-600, a boss 1,500), stats-only gear, and a boss's loot of its colors' rares and mythics
+  within 6,000 gold.
   The roster's ids (the Domains, design.md A6):
   - **Wanderers**, fifteen a tier for tiers 1-4, three of each region a tier: a real creature card each that fits its
     region (Benalish knights and Sursi pegasi, Orvada's merfolk and drakes, the Morass's bog creatures and Amjad's
@@ -253,8 +254,9 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
   building's door tile - and `entry` its own tile at the door (stepping onto it leaves; one arrives a step in from it).
   Kinds: shop, inn, guildhall, temple, smithy, library, house, tower, and `exotic-wares` for an exotic wares shop
   (design.md A5). Its npcs include the vendors (`"kind": "vendor", "vendor": "<id>"`, id the vendor's), the armorer
-  (`<town>-armorer`, in the smithy), the innkeeper (`<town>-innkeeper`) and the spell tables (`spell-table`:
-  `<town>-inn-spell-table`, `<town>-guild-spell-table`); vendors and armorers work only inside. An interior belongs to
+  (`<town>-armorer`, in the smithy), the innkeeper (`<town>-innkeeper`), the healer (`"kind": "healer"`: the priest of a
+  temple or the keeper of a shrine, `<interior>-keeper`, who sells hearts; design.md A3b) and the spell tables
+  (`spell-table`: `<town>-inn-spell-table`, `<town>-guild-spell-table`); vendors, armorers and healers work only inside. An interior belongs to
   the town its door stands in (a vendor file's `town`, an armorer's town); its doors stand in one town at most.
 - **Mage towers** are dungeons of theme `tower` with `"waystone": true`: beating the run's boss attunes the tower to the
   character (`Character.Attuned: [tower ids]`, kept by the server), and its waystone stands beside its entrance in the
@@ -396,8 +398,13 @@ The server keeps the last reported place (`POST /api/position`):
 - a character whose place the content no longer has (an old map's id, or a place from before squares: the database's
   move to tiles empties every place outside a run) may report any open tile.
 
-A lost duel sends the character to their inn, outside it in the world (world.json's `inns[].x, z`): the one they set with
-`POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Benalia), where a new character begins.
+Losing the last heart sends the character home to their inn, outside it in the world (world.json's `inns[].x, z`): the
+one they set with `POST /api/inn` inside an inn, else the start town's (`REALMS_START_TOWN`, New Benalia), where a new
+character begins. A game lost with hearts left leaves the character where they stand.
+
+A place in a town fills the character's hearts to their capacity (design.md A3b): a world tile within a town's `radius`
+of its `center` (Chebyshev), or any tile of an interior of a town. The server sees it in what `POST /api/position`
+reports, the place it has checked as above, and answers with the hearts after it.
 
 ### Models (figures: `realms/web/src/art/figures`)
 
@@ -517,12 +524,12 @@ player with no character is 404 `NoCharacter`.
 | --- | --- | --- |
 | `GET /api/me` | | the `Character` (below), or 404 `NoCharacter` |
 | `POST /api/character` | `{Name, Body, Palette, Color}` | the new `Character`; 409 `HasCharacter`; 400 for a name (2-24 letters, digits, spaces, `'` and `-`), body (`lithe`, `broad`, `tall`, `stocky`), palette (0-5) or color (W U B R G) that is none |
-| `GET /api/collection` | | `{Cards: {name: count}, Prices: {name: gold}, Relics: [name]}`: `Prices` each owned card's list price (none for an unpriced card), for the spell table's ante; `Relics` the owned cards that are relics (never anted), which the spell table marks |
-| `GET /api/inventory` | | `{Cards: [{Name, Count, Gold, Deck, Ante, Relic}], Value}`: the collection card by card, in name order, each with its list price (0 for none), the copies the deck and the ante use and whether it is a relic; `Value` the collection at list price. The gear is the `Character`'s |
+| `GET /api/collection` | | `{Cards: {name: count}, Prices: {name: gold}, Relics: [name]}`: `Prices` each owned card's list price (none for an unpriced card), for the spell table; `Relics` the owned cards that are relics (one copy in a deck and its sideboard), which the spell table marks |
+| `GET /api/inventory` | | `{Cards: [{Name, Count, Gold, Deck, Sideboard, Relic}], Value}`: the collection card by card, in name order, each with its list price (0 for none), the copies the deck and the sideboard use and whether it is a relic; `Value` the collection at list price. The gear is the `Character`'s |
 | `GET /api/catalog` | | every card the engine plays, as printed: `Cantrip.Protocol`'s `CardCatalogView`, MessagePack (`application/x-msgpack`), as the deck site's `/decks/api/catalog` is: the card layer's faces |
 | `GET /api/deck` | | the `Deck` |
-| `POST /api/deck/check` | `{Main, Ante}` | `{Problems: [...], AnteValue}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands, and the ante's worth |
-| `PUT /api/deck` | `{Main: [{Name, Count}], Ante: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` (a relic in the ante is one) |
+| `POST /api/deck/check` | `{Main, Sideboard}` | `{Problems: [...]}`: what `PUT /api/deck` would refuse them for (empty when it would take them), anywhere the character stands |
+| `PUT /api/deck` | `{Main: [{Name, Count}], Sideboard: [{Name, Count}]}` | the `Deck`; 409 `NotAtTable`, 422 `IllegalDeck` with `Problems` |
 | `PUT /api/loadout` | `{Slots: {slot: gearInstanceId or null}}` | the `Character`; 422 `IllegalLoadout` with `Problems` |
 | `GET /api/vendor/{id}` | | `{Vendor: {Id, Name, Town, Specialty, Kind, Plane}, Purse, Stock: [{Name, Gold, Count, Until}], Gold, Buying: [{Name, Gold, Owned, Spare}]}`: `Kind` is `shop`, `exotic` or `trader`, `Plane` a trader's home plane (else null), `Town` a trader's caravan's town now; a visit is counted; 404 `NoVendor`, 409 `NotNear` |
 | `GET /api/travelers` | | `{Travelers: [{Id, Name, Plane, PlaneName, Visit: {Town, From, Until} or null, Next: {Town, From, Until}}]}`: every traveling trader, in id order, the visit its caravan is on now (null between visits) and the next to begin |
@@ -530,23 +537,27 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/vendor/{id}/sell` | `{Name}` | `{Gold, Collection}`; 409 `Relic` (a relic is never sold, whatever the vendor), `NotTheirTrade`, `VendorCannotAfford`, `VendorFull`, `InDeck`, `NotOwned` |
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
-| `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`; 404 `NotThere`; 422 `IllegalDeck` |
+| `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`, `Defeated` (a lost game still to answer); 404 `NotThere`; 422 `IllegalDeck` |
 | `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null, Tier: tier or null, BossStats: {Life, Hand, MaxHand} or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null, Tier}`: the run (dealt by the character's standing to a color dungeon's color, Dungeons), its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `GET /api/dungeon/run` | | the character's live run, as `/api/dungeon/enter` gives it with `Dungeon`, `Floor` (the floor reached) and `Beaten` (the encounters won, `<floor>:<index>`): what a reload resumes; 404 `NotThere` with none |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside one of its `waystone` NPCs' tiles, or its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
-| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Offer: [{Name, Gold}], Cap, Gear, Relics: [name], Detail, Gift, Unlocked}`; 404 `NoDuel`, 409 `Finished` |
-| `POST /api/encounter/loot` | `{Token, Picks: [name]}` | `{Cards: {name: count}}`, the collection; 422 `OverCap`, `NotOffered`; 409 `Finished` |
+| `POST /api/encounter/finish` | `{Token, Log}` | `{Outcome: "won" or "lost", Gold, Gear, Relics: [name], Detail, Gift, Unlocked, Hearts, Defeat, Died, Forfeit}`; 404 `NoDuel`, 409 `Finished` |
+| `POST /api/encounter/pay` | `{Token}` | `{Gold}`: the lost game's mob paid off (its `Defeat.Price`), the encounter over; 409 `NoBuyout` (a dungeon's mob), `CannotAfford`, `Finished` (no answer owed); 404 `NoDuel` |
+| `POST /api/encounter/rematch` | `{Token, Main, Sideboard, PlayFirst}` | `{Token, Seed, Duel}`: the encounter's next game; 422 `IllegalDeck` with `Problems`; 409 `Finished`; 404 `NoDuel` |
+| `POST /api/hearts/buy` | `{}` | `{Gold, Hearts, MaxHearts, Price}`: one more heart's capacity, filled, from a healer the character stands with (inside an interior with a `healer` NPC); `Price` the next one's, null at 5; 409 `NotNear`, `MostHearts`, `CannotAfford` |
 | `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common); 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
-| `POST /api/position` | `{Space, X, Z}` | `{}`: where the character is (Places, above); 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
+| `POST /api/position` | `{Space, X, Z}` | `{Hearts}`: where the character is (Places, above), and their hearts after it - a town fills them; 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
-- `Character`: `{Id, Name, Body, Palette, Identity, Gold, AnteValue, Space, X, Z, Inn, Stats: {Life, Hand, MaxHand},
-  Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned: [tower]}`. `Space`, `X`, `Z`
-  are their place (Places, above; a live run's space names the run to resume); `Inn` their home inn's id; `Attuned` the
-  mage towers whose waystones they have attuned, by dungeon id. `Id` is the player id (`discord-<id>`,
-  `dev-<id>`) the spawn algorithm hashes; `AnteValue` the sum of the ante's list prices, for the HUD. `Body` is one of
+- `Character`: `{Id, Name, Body, Palette, Identity, Gold, Hearts, MaxHearts, HeartPrice, Defeat, Space, X, Z, Inn,
+  Stats: {Life, Hand, MaxHand}, Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned:
+  [tower]}`. `Space`, `X`, `Z` are their place (Places, above; a live run's space names the run to resume); `Inn` their
+  home inn's id; `Attuned` the mage towers whose waystones they have attuned, by dungeon id. `Id` is the player id
+  (`discord-<id>`, `dev-<id>`) the spawn algorithm hashes. `Hearts` and `MaxHearts` are the hearts they have and hold
+  (design.md A3b: 2 of 2 to start, 5 at most), `HeartPrice` what a healer asks for one more (null at 5), and `Defeat` a
+  lost game still to answer (below), which a reload comes back to, or null. `Body` is one of
   `lithe`, `broad`, `tall`, `stocky` (as `POST /api/character` takes it); `Palette` 0-5, the skin and hair palette
   (`realms/web/src/character.ts`). `Identity` is the starting color and the unlocked ones, as one string of letters in WUBRG
   order (`"WU"`). The
@@ -554,13 +565,13 @@ player with no character is 404 `NoCharacter`.
   ring slot. `Stats` are the base (20, 7, 7) plus every worn item's.
 - `Gear` is a gear item as its content file has it, PascalCase, with its `Emblem` (`"<name> (gear)"`, or null for an
   item with no effects) and its rarity's `Budget` of points (14 for a unique). `GearInstance` is one a character owns: `{InstanceId, Gear}`.
-- `Deck`: `{Main: [{Name, Count}], Ante: [{Name, Count}], AnteValue}`. The main deck holds the basic lands too, which
-  are free (any number of a basic land of the character's identity, and Wastes) and never in the collection; the ante
-  holds no basic land and no relic, and the main deck at most one copy of a relic. Every other copy in the deck and the
-  ante together is owned.
+- `Deck`: `{Main: [{Name, Count}], Sideboard: [{Name, Count}]}`. Both may hold basic lands, which are free (any number of
+  a basic land of the character's identity, and Wastes) and never in the collection. The sideboard is 15 cards at most;
+  the copy limits (four, one of a card restricted in Vintage or a relic) count the deck and the sideboard together, and
+  every card of both is within the identity. Every other copy in the deck and the sideboard together is owned.
 - `PUT /api/loadout` changes only the slots it names; null empties one.
 - A vendor's `Gold` is the character's; `Buying` is every card of theirs it deals in, with what it pays for one (`Gold`, half
-  the list price rounded down), how many they own and how many of those are `Spare` (in neither the deck nor the ante):
+  the list price rounded down), how many they own and how many of those are `Spare` (in neither the deck nor the sideboard):
   what the `vendor` screen offers to sell.
 - A vendor trades with a character inside its shop (an interior with its `vendor` NPC), an armorer inside a smithy of
   its town (an interior of the town with an `armorer` NPC), else 409 `NotNear`; `/api/armorer/{town}` takes a town's id.
@@ -570,16 +581,18 @@ player with no character is 404 `NoCharacter`.
   `NotThere`), that they stand in it (409 `NotNear`), that `Floor` is the one they stand on (0 the first; 409
   `NotThere`), that `Index` is an encounter of that floor (404 `NotThere`) not yet fought (409 `TooSoon`), and that `Mob`
   is its mob (409 `NotThere`). A floor's encounters are indexed from 0; its warden's index is the count of its
-  encounters, its boss's one more. Losing any duel of a run ends the run; beating the boss of a dungeon with a waystone
-  attunes it. A boss (`"boss": true`) beaten rests for a week (`Dungeons.BossRest`, from the win): a run begun meanwhile
+  encounters, its boss's one more. A game of a run lost with hearts left is fought again (its mob is never paid off);
+  losing the last heart in a run ends it, and takes back what it won; leaving it ends it too, and a game of it lost and
+  not yet answered with it. Beating the boss of a dungeon with a waystone attunes it. A boss (`"boss": true`) beaten rests for a week (`Dungeons.BossRest`, from the win): a run begun meanwhile
   has no boss on its last floor (so its boss's index is no encounter), and says so in `Resting`. A mage or a wanderer
   that ends a dungeon never rests. A run dealt by a standing (Dungeons, `standing`) keeps it as it began: each floor says
   its `Tier`, the last floor what its boss gains (`BossStats`, `{Life, Hand, MaxHand}`, added to the boss's seat), and
   the run its `Tier` (the dungeon's own for a run dealt as written).
 - A deck is saved (`PUT /api/deck`) beside a spell table of the world or an interior, or in a dungeon's antechamber: the
   first floor of a live run of the character's, whose spell table is the layout's (the server takes any tile of a run).
-- `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a card of its ante gone and
-  the character at the inn - and the call is refused 409 `Unfinished`); the spawn (404 `NotThere`); that the mob
+- `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a heart gone, as
+  any loss - and the call is refused 409 `Unfinished`); a lost game still to answer (409 `Defeated`); the spawn (404
+  `NotThere`); that the mob
   is one of the spawn's (409 `NotThere`); that the character is in the world within `radius + 8` tiles of the spawn point
   (its wander radius, the 6 it chases, and 2 for walking on since the last report; Chebyshev, Places; 409 `NotNear`);
   that the spawn holds
@@ -588,23 +601,40 @@ player with no character is 404 `NoCharacter`.
   24 hours counts as lost.
 - `POST /api/encounter/finish`: `won` only when the log is accepted and seat 1 alone won it; a draw, the mob's win and a
   log not accepted are `lost`, with the reason in `Detail`. A win's `Gold` is rolled from the mob's gold range and paid at
-  once; `Offer` is up to three different cards of the mob's loot, each with its list price (`Gold`) and within `Cap`
-  (none with an empty ante): what the `loot` screen shows; `Gear` is the gear item a win dropped (`GearInstance`, or
-  null), already the character's: 10, 15, 20 or 30 wins in a hundred by tier, common in tiers 1 and 2, uncommon in 3, rare
-  in 4; a boss always drops its unique. `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
+  once; `Gear` is the gear item a win dropped (`GearInstance`, or null), already the character's: 10, 15, 20 or 30 wins in
+  a hundred by tier, common in tiers 1 and 2, uncommon in 3, rare in 4; a boss always drops its unique. A win offers no
+  cards. `Relics` are the relics a boss win dropped, in `relics.json`'s order, already in the collection; empty for any
   other win and every loss. A win against a boss rolls, at its chance, each relic whose entry names that boss and that is
-  not in the account's relic ledger. The roll is apart from the offer and outside the cap. A win against a boss also
-  gives `Gift`, one rare or mythic of its loot (of its loot's subtypes where it has any), into the collection at once,
-  whatever the ante and outside the cap, one the offer does not hold where it can; `Unlocked` names the color the win
-  unlocked, null when it was held already (or for the capstone); its `Gear` is its own unique item while the character
-  owns none of it, else a rare or mythic item that is no unique. Any other win's `Gift` and `Unlocked` are null. Each relic that comes up is
-  added to the collection and to the ledger in the same transaction as the win. A loss moves the character to their inn
-  (Places), and ends the dungeon run it was fought in.
+  not in the account's relic ledger, and also gives `Gift`, one rare or mythic of its loot (of its loot's subtypes where it
+  has any), into the collection at once; `Unlocked` names the color the win unlocked, null when it was held already (or
+  for the capstone); its `Gear` is its own unique item while the character owns none of it, else a rare or mythic item
+  that is no unique. Any other win's `Gift` and `Unlocked` are null. Each relic that comes up is added to the collection
+  and to the ledger in the same transaction as the win. `Hearts` are the character's after the game.
+- A loss (design.md A3, A3b) pays nothing and takes a heart. With hearts left, `Defeat` is the game to answer, which the
+  `Character` keeps until it is: `{Token, Mob, Spawn, Epoch, Game, Hearts, MaxHearts, MobLife, MobFullLife, Price, Main,
+  Sideboard}` - the mob (its id), where it was met (a world spawn's id, or a run's `<floor>:<index>`) and the spawn's
+  epoch, which game of the encounter it was (from 1), the mob's life at the game's end as the replayed log has it (its
+  starting life for a game not played out), its full starting life for the encounter (its gear's and a run's gains with
+  it), its buyout, and the deck and sideboard the game was played with. `Price` is `round(base x min(1, MobLife /
+  MobFullLife))`, at least 1 gold, the base by the mob's tier (30, 120, 400, 1,200 gold for tiers 1-4), or null for a mob
+  of a dungeon run, which is never paid off. The character stays where they stand. With no heart left, `Died`: the
+  character is at their inn with their hearts full; in a run, the run is over and `Forfeit` is what it had won, taken
+  back, `{Gold, Cards: [name], Gear: [name]}` - its wins' gold (as much as the character still has), the gear items
+  they dropped (taken off if worn), and the cards they gave (a boss's gift, a relic, whose ledger entry goes too), from the
+  collection and, where those held the copies gone, the sideboard and then the deck. Outside a run nothing else is lost.
+- `POST /api/encounter/rematch` deals the encounter's next game: `Main` and `Sideboard` must be a legal deck and sideboard
+  (as `PUT /api/deck` would judge them) holding between them exactly the cards, free basic lands aside, the last game's
+  deck and sideboard held; the saved deck is unchanged. The player's seat is dealt from their loadout at their full
+  starting life, with that deck and sideboard; the mob's seat is the last game's with `StartingLife` the life it ended
+  that game with, carried as it is (never healed or capped); `Duel.Game` is one more, and `Duel.FirstPlayer` is 1 when
+  `PlayFirst` (the loser of the last game chooses, CR 103.1), else 2. It is finished and judged as any game.
 - `Duel`: everything the browser deals the game from - `{Seats: [the NewGame seat of docs/host-protocol.md, with
-  StartingLife, StartingHandSize, MaximumHandSize, Emblems], MinimumDeckSize: 40, Seed, Mob: {Name, Tier, Prize},
-  AnteValue, Cap}`. The player is seat 1, the mob seat 2. Each seat's setup values are always given: its stats with its
-  gear's, and an emblem per worn item with effects. `Seed` is below 2^53, so a JavaScript number carries it whole; nobody
-  chooses who plays first (CR 103.1, decided from the seed). `Mob.Tier` is 0 for a boss.
+  StartingLife, StartingHandSize, MaximumHandSize, Emblems], MinimumDeckSize: 40, Seed, Mob: {Name, Tier}, Game,
+  FirstPlayer}`. The player is seat 1, the mob seat 2. Each seat's setup values are always given: its stats with its
+  gear's, and an emblem per worn item with effects; the player's `Sideboard` is their sideboard, the cards they own
+  outside the game (CR 100.4a). `Seed` is below 2^53, so a JavaScript number carries it whole. In an encounter's first game
+  `FirstPlayer` is null and nobody chooses who plays first (CR 103.1, decided from the seed); in a later one it is the
+  seat the player chose, dealt as the host's `NewGame` `FirstPlayer`. `Mob.Tier` is 0 for a boss.
 - `Log` is what seat 1 sent the table, in order: each `Cantrip.Protocol` client message the player's `GameClient` sent,
   MessagePack-serialised and base64-encoded, as a JSON array of strings. Seat 2's answers are not in it. The server deals
   the same `Duel` on the native engine behind a `GameSession`, as the browser did; plays seat 1's messages back in
@@ -624,8 +654,9 @@ player with no character is 404 `NoCharacter`.
   Such a server alone also takes calls for tests, on the signed-in cookie, that arrange what play would take long to
   reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
   the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), `POST /dev/verdict
-  {Outcome}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of replaying
-  their logs, so the card layer's stand-in counts as a win; `POST /dev/drop {Gear}` (`true`, `false`, or null for the
+  {Outcome, MobLife}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of
+  replaying their logs, so the card layer's stand-in counts as a win, the mob ending each at `MobLife` (null: the life it
+  began the game with); `POST /dev/drop {Gear}` (`true`, `false`, or null for the
   dice again) decides whether the player's gear rolls, a win's and a chest's, come up; `POST /dev/duel {Player, Mob}`
   deals the player's next duels with a seat's setup changed - each `{StartingLife, StartingHandSize, MaximumHandSize,
   Deck, Emblems}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a
@@ -642,8 +673,9 @@ The overworld asks the card layer (`?realm` in `Cantrip.Client.Web`, framed over
 
 | `screen` | `args` | `outcome` and `result` |
 | --- | --- | --- |
-| `duel` | `{token, seed, duel: Duel, mob: {id, name, tier, goldRange, map, spawn}}` (the encounter's start) | `won` or `lost`; `result.log`: the `Log` for `/api/encounter/finish` |
-| `loot` | `{token, offer: [{Name, Gold}], cap, mob, gear}`; from a chest `{offer: [], cap: 0, mob, source: "chest", gear}` | `closed`; `result.picks`: the names taken, for `/api/encounter/loot` |
+| `duel` | `{token, seed, duel: Duel, mob: {id, name, tier, goldRange, map, spawn}, hearts: {have, hold}}` (a game's start) | `won` or `lost`; `result.log`: the `Log` for `/api/encounter/finish`; `result.life: {player, mob}`: each seat's life as the game ended (the offline API's word for the mob's) |
+| `sideboard` | `{mob, game, main: [{Name, Count}], sideboard: [{Name, Count}], identity, mobLife}`: the last game's deck and sideboard (a `Defeat`'s) | `closed`; `result: {main, sideboard, playFirst}` for `/api/encounter/rematch`; cut short, nothing, and the overworld deals the deck as it was, playing first |
+| `loot` | `{mob, gear}` from a won duel, `{mob: "The chest", source: "chest", gear}` from a chest | `closed` |
 | `spell-table` | `{map, name}` | `closed` |
 | `vendor` | `{id, name}`: the vendor's id | `closed` |
 | `gear` | `{name}`, or `{armorer: <town id>, name}` at an armorer | `closed` |
@@ -654,21 +686,23 @@ the API for what happens inside one (buying, selling, saving the deck and the lo
 framed as `<card layer>?realm&api=<server>`: `api` is the realm server the overworld talks to, absent when the card
 layer is served from the server's own origin, and absent offline, when the card layer reads `/api/catalog` from its own
 origin (`realms/web/scripts/cardLayer.mjs` serves the file `cantrip-realms-server catalog <file>` writes) and is opened
-only for `duel` and `loot`. `&art=<address>` tells it where card art is when not beside its own page (a realm server
+only for `duel`, `sideboard` and `loot`. `&art=<address>` tells it where card art is when not beside its own page (a realm server
 started with `REALMS_ART`, for local play). A card layer on an origin of its own is named to the server as
 `REALMS_CARDS`, the one origin beside the world client's (`REALMS_CLIENT`) that the API answers from a browser. A screen cut short closes
 `dismissed` or `replaced`, which the overworld treats as a loss for a duel; a duel cut short still hands back its log so
-far (the server takes it as a loss, the game not being over), and a loot pick cut short no picks.
+far (the server takes it as a loss, the game not being over).
 
 - `duel`: the card layer first shows the encounter's splash (design.md A3: the mob's tier, life, hand and gear, three
-  cards of its deck, the ante, the prize cap and its gold range) while the engine loads, and deals the duel when the
-  player goes on (`Fight`). It deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
+  cards of its deck, its gold range, and the player's hearts; for a game after the first, which it is and the mob's
+  carried life) while the engine loads, and deals the duel when the player goes on (`Fight`). It deals the `Duel` on the rules engine in its page (`engine/cantrip_wasm.wasm` beside it, or
   `?engine=`) through `Cantrip.Realms`' `DuelTable`, the table the server's replay deals on, with no clocks. It closes
   `won` only when seat 1 alone won, after the player has seen the result; a concession closes `lost` at once.
-- `loot` takes any subset of the offer whose prices fit under `cap`, and shows `gear` - the `GearInstance` a win dropped
-  or a chest held, already the character's, or null - as its Vanguard-style card, with a button that wears it
-  (`PUT /api/loadout`); the overworld opens it for a win that offers cards or dropped gear, and for a chest that held gear; `spell-table` reads the collection, the deck and
-  `/api/catalog`, judges the deck by `/api/deck/check` and saves with `PUT /api/deck`; `vendor` and `gear` trade and
+- `loot` shows `gear` - the `GearInstance` a win dropped or a chest held, already the character's - as its Vanguard-style
+  card, with a button that wears it (`PUT /api/loadout`); the overworld opens it for a win that dropped gear, and for a
+  chest that held gear. `sideboard` is the spell table's editor over the cards it was opened on alone, judged in the page
+  (forty or more in the deck, fifteen or fewer beside it; the server judges the rematch's deck all the same), and asks
+  play or draw when `Fight` is clicked. `spell-table` reads the collection, the deck and
+  `/api/catalog`, judges the deck and the sideboard by `/api/deck/check` and saves with `PUT /api/deck`; `vendor` and `gear` trade and
   wear through their calls, saying a refusal's `Detail` (and `Problems`) in words; `inventory` reads `/api/inventory`,
   `/api/me` and `/api/catalog` and changes nothing.
 - `gear` asks the overworld for a picture of the character wearing what its paper doll shows worn: the card layer posts

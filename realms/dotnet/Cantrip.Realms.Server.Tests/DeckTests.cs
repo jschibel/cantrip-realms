@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Cantrip.Realms.Server.Tests;
 
-/// <summary>A character's deck and ante (design.md A2), changed only at a spell table.</summary>
+/// <summary>A character's deck and sideboard (design.md A2), changed only at a spell table.</summary>
 public sealed class DeckTests
 {
     /// <summary>A white character at the spell table, owning <paramref name="cards"/> beside their starter deck.</summary>

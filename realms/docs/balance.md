@@ -35,6 +35,30 @@ The tiers are reported in two groups, the wanderers and their mages and wardens 
 dungeons' floor wardens), each held to its tier's target. Each starter is to be within about 10 points of the five's
 average at T1 and T2.
 
+The lab deals each game as an encounter's first (design.md A3): both seats at their full starting life, nobody
+sideboarded, who plays first from the seed. What a loss costs is no longer the lab's to measure - a heart, never cards
+(design.md A3b) - and a rematch only helps the player: the mob begins it at the life it kept, so an encounter fought to
+the end is won more often than one game, by a margin the lab does not report. The win rates above are a single game's,
+the same as before hearts.
+
+### What a loss costs, against what a win pays
+
+A loss pays nothing and costs a heart; a world mob then asks its buyout, at most its tier's base. At the target win
+rates a player loses about one game in three at tier 1 and one in two at tier 4, so the buyouts are set against a
+win's gold (design.md A3), the base at its fullest:
+
+| Tier | A win's gold | Its mean | Buyout base | Base / mean |
+|---|---|---|---|---|
+| 1 | 20-60 | 40 | 30 | 0.75 |
+| 2 | 50-150 | 100 | 120 | 1.2 |
+| 3 | 120-300 | 210 | 400 | 1.9 |
+| 4 | 250-600 | 425 | 1,200 | 2.8 |
+
+Paying off a tier 1 mob costs less than the win would have paid; a tier 4 mob's flawless win costs nearly three wins'
+gold, so fighting it again (at its carried life) is the cheaper answer there, and a heart spent on it is the price. The
+hearts a healer sells (1,000, 3,000 and 8,000 gold for the 3rd, 4th and 5th) are 25, 75 and 200 mean tier 1 wins, or
+2.4, 7 and 19 of tier 4: the third within reach of a few hours' wandering, the fifth a late goal.
+
 ## Results
 
 Wins/games, the rate and its Wilson 95% interval. **Before**: the stats and decks as they first were (seed 1). **First

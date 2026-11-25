@@ -9,7 +9,7 @@ namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
 /// The color bosses (design.md A6): a win unlocks the boss's color - which the deck checks take at once - gives a rare or
-/// mythic of its loot outright, whatever the ante, and drops its own unique item the first time; a beaten boss rests a week,
+/// mythic of its loot outright, and drops its own unique item the first time; a beaten boss rests a week,
 /// its hall empty meanwhile. A live run is resumed as it was left, and the first floor's spell table (the antechamber's)
 /// saves the deck there.
 /// </summary>

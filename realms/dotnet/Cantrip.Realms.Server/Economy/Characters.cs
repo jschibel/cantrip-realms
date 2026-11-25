@@ -201,8 +201,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     }
 
     /// <summary>
-    /// A character's collection, by card name, with each priced card's list price and the relics of it (design.md A3a: never
-    /// anted), for the spell table to mark.
+    /// A character's collection, by card name, with each priced card's list price and the relics of it (design.md A3a: one
+    /// copy in a deck and its sideboard), for the spell table to mark.
     /// </summary>
     public async Task<CollectionView> Collection(string player)
     {

@@ -48,38 +48,63 @@ The owner's decisions:
 - **Progression** comes from the collection, gear and unlocked colors. There are no XP levels; your power is what you own and how you combine it.
 - **Starting kit:**
   - A 40-card starter deck in your color, built from the Dominaria pool (commons and uncommons).
-  - 10 extra commons, 2,000 gold, and common gear in 3 slots.
+  - 10 extra commons, 2,000 gold, common gear in 3 slots, and 2 hearts (A3b).
   - Free, unlimited basic lands of your identity's colors. Basics are never part of the collection, and Wastes are always available.
 
-### A2. Decks, the spell table and the ante
+### A2. Decks, the spell table and the sideboard
 - **Deck rules:**
   - At least 40 cards, no maximum.
-  - At most 4 copies of any non-basic card; cards restricted in Vintage are limited to 1.
+  - At most 4 copies of any non-basic card; cards restricted in Vintage are limited to 1. The limit counts the deck and
+    its sideboard together (CR 100.4a).
   - The card pool is implemented cards that are legal or restricted in Vintage, minus Universes Beyond printings. That rule also removes the ante cards, conspiracies and Un-cards.
-- **The spell table** is where you edit your deck and your ante. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the ante. Each card shows its list price, a card outside your identity is marked for the ante only, the free basic lands of your colors are added and taken out with a button each, and the deck's mana curve and colors are drawn beside it. The server judges the deck and the ante as they change, and Save keeps them only when it would deal them.
-- **The ante slot** holds 0–10 cards from the collection, outside the deck, like a sideboard. A copy can't be in both the deck and the ante.
-  - Ante value is the sum of the cards' list prices.
-  - It is shown on the HUD, and the duel splash shows it beside the prize cap.
+- **The sideboard** holds 0–15 cards from the collection beside the deck. A copy can't be in both. Its cards are held to
+  the character's identity as the deck's are, and the free basic lands of their colors may be in it. It is what a rematch
+  swaps from (A3), and in a duel it is the cards the player owns outside the game (CR 100.4a), which a card that brings
+  one in (a Wish) chooses among.
+- **The spell table** is where you edit your deck and your sideboard. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the sideboard. Each card shows its list price, a card outside your identity is shown dimmed and can be in neither, the free basic lands of your colors are added and taken out with a button each, and the deck's mana curve and colors are drawn beside it. The server judges the deck and the sideboard as they change, and Save keeps them only when it would deal them.
 
 ### A3. Duels and rewards
 - **Starting a duel:**
   - A wandering mob that reaches your tile, or one you click, starts a duel.
-  - The splash shows the mob's name, its tier, its stats and gear traits, three cards from its deck, your ante value, the prize cap and its gold range. Then the table opens.
+  - The splash shows the mob's name, its tier, its stats and gear traits, three cards from its deck, its gold range and
+    your hearts. Then the table opens.
   - The mob's seat is played by the tactical bot in your tab.
-  - The duel is a single game. Who plays first is decided at random, as CR 103.1 says.
-- **Prize cap** = min(your ante value, the mob's prize value).
-  - Mob prize values by tier: T1 $1, T2 $3, T3 $8, T4 $20, boss $60.
-  - With an empty ante the cap is $0: you still get gold, but no cards.
-- **Winning:**
-  - Gold is rolled from the tier and is **not** limited by the ante. Base ranges: T1 20–60, T2 50–150, T3 120–300, T4 250–600, boss 1,500.
-  - You are **offered 3 cards** from the mob's loot table, and you take **any subset whose total value fits under the cap**. At least one offered card always fits.
+  - A duel is a game, and an encounter is one game or more (fighting again, below). Who plays first in an encounter's
+    first game is decided at random, as CR 103.1 says; in a game after it the loser of the last chooses.
+- **Winning** pays gold and gear, and no cards:
+  - Gold is rolled from the tier. Base ranges: T1 20–60, T2 50–150, T3 120–300, T4 250–600, boss 1,500.
   - Gear drops with a chance of 10% / 15% / 20% / 30% by tier, and bosses always drop one.
-- **Losing:**
-  - **A random card from your ante is lost**, chosen uniformly. It is gone; it does not go to a vendor.
-  - You are returned to the **nearest town's inn**.
-  - Gold is not lost.
+  - A boss also gives its gift (A6) and may drop a relic (A3a).
+- **Losing** a game costs a heart (A3b) and pays nothing: no gold, no gear. A draw counts as a loss.
+  - **Hearts left, a world mob:** it stands over you - its portrait, its name, a line of its own about the game - and
+    offers to let you go for gold, or to fight again. Paid, the encounter is over and the mob is dealt with until its
+    spawn's next epoch; the button is greyed when you can't pay.
+  - **Hearts left, a dungeon's mob** (wardens and bosses too): the only choice is to fight again. It can't be bought off.
+  - **No hearts left:** you die (A3b).
+  - What the mob says is one of its lines (its file's `lines`) for how the game went: **flawless** if it lost no life,
+    **close** if it ended at a quarter of its full starting life or less, **solid** otherwise; a beast's is a narrated
+    action.
+- **The buyout** = base(tier) × min(1, the mob's life at the end ÷ its full starting life), rounded, never less than 1 gold.
+  - Its full starting life is its life with its gear's and a dungeon standing's gains, the same in every game of the
+    encounter, so a mob worn down across games is cheaper. Ending above it, the share is capped at the whole.
+  - Bases by tier (cheap at tier 1 beside what a tier 1 win pays, dear at tier 4):
+
+    | Tier | 1 | 2 | 3 | 4 |
+    |---|---|---|---|---|
+    | Buyout base | 30 g | 120 g | 400 g | 1,200 g |
+
+    At 1 life of 20 a tier 4 mob asks 60 gold, a twentieth.
+  - The server measures it from the life the verified log ends with.
+- **Fighting again** (a rematch) is the encounter's next game:
+  - **Sideboarding:** the deck is swapped with its sideboard on the sideboard screen (the spell table's editor, over the
+    last game's deck and sideboard alone). The deck must stay legal (40 or more, the copy limits, the identity) and the
+    sideboard at 15 or fewer. The swap is for the encounter alone: the saved deck is unchanged, as a match reverts.
+  - **Play or draw:** you lost the last game, so you choose (CR 103.1).
+  - You start at your full starting life; the mob starts at **exactly the life it ended the last game with** - not
+    healed, not capped (only its buyout is). Both draw fresh hands from fresh libraries.
+  - A rematch lost is another loss: another heart, and the choice again. A rematch won pays a win's rewards.
 - **Conceding** counts as a loss.
-- **Leaving mid-duel:** the duel's log is saved locally and resumes on reload. A duel that is never finished counts as lost when you start your next encounter, or after 24 hours.
+- **Leaving mid-duel:** the duel's log is saved locally and resumes on reload. A duel that is never finished counts as lost when you start your next encounter, or after 24 hours. A defeat left unanswered (the page closed on its dialog) comes back when you return, and no other encounter starts until it is answered.
 
 ### A3a. Relics
 
@@ -89,16 +114,39 @@ owner may extend.
 
 - **Only from the highest-level bosses.** A relic drops only from the bosses its entry names: the capstone dungeon's
   boss (the Phyrexian praetor that ends the Dominaria arc), and later planes' capstones. The chance is small, about 1 in
-  50 per win, in the entry. It is rolled after the duel, apart from the three-card offer and outside the prize cap, since
-  no ante could cover a relic's value. Each relic the boss holds is rolled on its own, so one win may drop more than one,
-  and every relic that drops goes straight to the collection; the duel's result names them.
+  50 per win, in the entry. It is rolled after the duel, apart from the boss's gift. Each relic the boss holds is rolled
+  on its own, so one win may drop more than one, and every relic that drops goes straight to the collection; the duel's
+  result names them.
 - **One per account, ever.** The server keeps a ledger of every relic each account has received. One already in the
   ledger never drops for that account again, and is not even rolled, even if the card has since left the collection.
-  Each account's ledger is its own.
-- **Never anywhere else.** Relics are in no plane's pool: no vendor sells or buys one, no loot offer holds one, no starter
-  deck has one.
-- **Kept.** A relic can't be put in the ante and can't be sold, so it is never lost or passed on. A deck holds one copy at
-  most (they are restricted in Vintage).
+  Each account's ledger is its own. Dying in the dungeon run it was won in takes it back with the run's winnings (A3b),
+  and its ledger entry with it, so it may drop again.
+- **Never anywhere else.** Relics are in no plane's pool: no vendor sells or buys one, no boss's loot holds one, no
+  starter deck has one.
+- **Kept.** A relic can't be sold, so it is never passed on. A deck and its sideboard hold one copy at most between them
+  (they are restricted in Vintage).
+
+### A3b. Hearts
+- **What they are:** how many duels you may lose before you die. A character has **hearts** (how many they have now) and
+  a **capacity** (how many they can hold). A new character starts at 2 of 2. They show on the HUD as hearts, filled for
+  those you have and empty for the rest you hold, and on the duel's splash.
+- **Losing a game** costs one (A3).
+- **Refilling:** entering a **safe town** - within a town's walls, or a building of one - fills them to the capacity. The
+  server sees it from where you report standing, which it checks, never on the client's word. Waking at home after
+  dying fills them too. A heart found in the world (rare) or at a dungeon's shrine (rarer still) will give one back, up
+  to the capacity: the server has the one method for it; the pickups and shrines come later.
+- **More hearts:** the capacity is raised one heart at a time, to **5**, at a **healer**: the priest of each town's temple
+  and the keeper of each village's shrine - every town of the Domains has one. The heart bought is filled at once. The
+  price rises with each (A5):
+
+  | Heart | 3rd | 4th | 5th |
+  |---|---|---|---|
+  | Price | 1,000 g | 3,000 g | 8,000 g |
+
+- **Death:** losing the last heart sends you **home**, to your inn (the one you set, else the start town's), with your
+  hearts full. In a dungeon the run ends, and **that run's winnings are lost**: the gold of its wins (as much as you still
+  have), the gear that dropped (taken off if worn) and the cards it gave (a boss's gift, a relic). Outside a dungeon
+  nothing else is lost.
 
 ### A4. Equipment (gear)
 - **Eight fixed slots:** Head, Neck, Body, Hands, Feet, Ring ×2 and Relic.
@@ -156,6 +204,9 @@ owner may extend.
   - Exotic dealers buy and sell only off-plane cards, at list price and half back as any vendor does, so what players
     sell them circulates. Dominaria's own vendors, loot and starter decks never hold an off-plane card.
 - **Other gold sources:** treasure chests on maps (50–500 g, respawning per player on a timer) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear).
+- **Gold sinks beside cards and gear:** a world mob's buyout after a lost game (A3: 30 to 1,200 g at its fullest by
+  tier), and hearts at a temple's or shrine's healer (A3b: 1,000, 3,000 and 8,000 g for the 3rd, 4th and 5th). A third
+  heart is about 25 tier 1 wins' gold, or two or three of tier 4; the fifth a boss's purse five times over.
 
 ### A6. The world — Dominaria
 - **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
@@ -231,20 +282,20 @@ owner may extend.
   - 3–5 floors each, generated anew each run. Each floor ends at a stair guarded by a floor warden. The boss waits on the
     last floor.
   - Within a run, beaten mobs stay beaten, and the run remembers the floor reached until it ends: closing the page and
-    coming back resumes it on that floor. Leaving, or losing a duel, ends the run; the next run is a new layout from the
-    first floor. A lost duel wakes you at your inn with what the run won (gold, cards, gear) kept, and a card of the ante
-    lost as any loss takes one.
+    coming back resumes it on that floor. A lost game costs a heart and the mob is fought again (A3: a dungeon's mob is
+    never bought off). Leaving, or dying (the last heart lost), ends the run; the next run is a new layout from the
+    first floor. Dying wakes you at your inn with your hearts full, and what the run won (gold, cards, gear) is lost
+    (A3b).
   - The entrance has a spell table, outside in the world and inside on the first floor (the antechamber).
   - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
     traits. Ally and enemy are by the character's starting color (W U B R G: the two beside it are allies, the two across
     from it enemies); a color the character holds, started with or unlocked, is their own, and its dungeon is as written.
     Smaller dungeons dot the wilderness (a cave, a ruined watchtower) for lower tiers.
 - **Bosses:**
-  - Beating one **unlocks that color**, drops a unique item and offers 3 cards with a rare or mythic guaranteed.
+  - Beating one **unlocks that color**, drops a unique item and gives a rare or mythic card.
     - The color is yours at once: the HUD's five pips light it (the locked ones stay faint rings), a panel marks the
       moment, and every spell table takes its cards and basic lands from then on.
-    - The rare or mythic is the boss's **gift**: one card of its loot, straight into the collection, whatever the ante and
-      outside the prize cap. The usual 3-card offer under the cap comes beside it.
+    - The rare or mythic is the boss's **gift**: one card of its loot, straight into the collection.
     - The unique item is the boss's own (the mob file names it); once you own it, a later win drops a rare or mythic
       item instead, never a second unique.
   - You can fight them again each week for loot: a boss beaten **rests a week** from the win. A run begun meanwhile
@@ -256,7 +307,7 @@ owner may extend.
   - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then its gate stays shut, and the server refuses to start a run of it.
   - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
   - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears. Its deck is the strongest the Dominaria pool allows, so its stats are set so that it plays no easier than the other bosses (the balance lab's fit, `balance.md`: 32 life, a starting hand of 6 and a maximum hand of 7 with its gear, where 42, 9 and 10 made it unbeatable). It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
-  - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and offer, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
+  - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and gift, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
 - **Mobs are Dominaria's own creatures.** Every wanderer is a real creature of the plane: a creature card the engine has,
   printed in a Dominaria set (planes.json), drawn as that creature. Examples are a pack of Llanowar Elves, a Shivan
   Dragon, Serra Angels, Benalish Marshals, Keldon Raiders, Hurloon minotaurs and Phyrexian horrors. Its deck is themed around
@@ -282,6 +333,7 @@ owner may extend.
   - **Vendors work inside their shops**, the armorer inside the smithy, the innkeeper inside the inn. A shop's sign says
     what it trades in.
   - An **inn**, where you respawn and set your home. The spell table is inside it, and another is in the mages' guild.
+  - A **temple** (in a village a **shrine**), whose priest or keeper is a healer: hearts are bought there (A3b).
   - A **quest board** outside the inn.
   - A **PvP arena**, locked with a "coming soon" sign until Part B9.
 - **Story:** after the Phyrexian invasion, Dominaria's five color-wells are held by guardians. The player is a mage who must earn each well's attunement. The tone is light, with the story text on quest boards and NPC barks. The owner can rewrite it; it is all data.
