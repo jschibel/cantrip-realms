@@ -10,7 +10,7 @@ namespace Cantrip.Client.Web;
 /// </summary>
 /// <param name="Op">What is asked: <c>open</c> or <c>close</c>; or <c>portrait</c>, answered.</param>
 /// <param name="Id">The overworld's number for the request, echoed in the answer when the screen closes.</param>
-/// <param name="Screen">The screen to open: <c>duel</c>, <c>spell-table</c>, <c>vendor</c>, <c>loot</c>, <c>gear</c>.</param>
+/// <param name="Screen">The screen to open: <c>duel</c>, <c>sideboard</c>, <c>spell-table</c>, <c>vendor</c>, <c>loot</c>, <c>gear</c>, <c>inventory</c>.</param>
 /// <param name="Args">What the screen is opened on, as the overworld sent it.</param>
 public sealed record RealmCommand(string Op, int Id, string Screen, JsonElement Args);
 

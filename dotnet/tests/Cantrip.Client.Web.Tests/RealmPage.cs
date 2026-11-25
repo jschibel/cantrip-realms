@@ -221,7 +221,7 @@ public sealed record RealmState(
 
 /// <summary>
 /// A realm screen as the card layer publishes it: which, what it is waiting on, its header's title, facts and status (a
-/// refusal in words), the duel's state, the loot's picks, and every gear card with where it is.
+/// refusal in words), the duel's state, and every gear card with where it is.
 /// </summary>
 public sealed record RealmScreenState(
     string Screen,
@@ -231,11 +231,8 @@ public sealed record RealmScreenState(
     string Facts,
     string Status,
     RealmDuelState? Duel,
-    RealmLootState? Loot,
     IReadOnlyList<RealmGearState> Gear);
 
 public sealed record RealmDuelState(string Mob, bool Over, bool Won, bool Settled, int Log, bool Ended, string End);
-
-public sealed record RealmLootState(long Cap, long Taken, IReadOnlyList<string> Picked);
 
 public sealed record RealmGearState(string Name, string Place, long Instance, bool Selected, float X, float Y, float W, float H);

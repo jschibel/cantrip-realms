@@ -6,8 +6,8 @@ namespace Cantrip.Client.Web.Tests;
 /// <summary>
 /// Cantrip Realms' card screens (realms/docs/interfaces.md, "The card layer"), each asked for through the bridge as the
 /// overworld asks, against the real realm server, and clicked as a player clicks them: the duel played on the rules engine
-/// in the page and its log checked by the server's replay, the loot pick, the spell table, a vendor, and the gear screen
-/// with an armorer's.
+/// in the page and its log checked by the server's replay, a rematch's sideboarding, the spell table, a vendor, and the gear
+/// screen with an armorer's.
 /// </summary>
 [Collection(WebClientCollection.Name)]
 public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixture<RealmSite>, IAsyncLifetime
@@ -91,7 +91,7 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 102, "W", Pictures, async page =>
         {
             await Beside(page, "new-benalia-inn", "spell-table");
-            await page.OkAsync(HttpMethod.Put, "deck", new { Main = new[] { new { Name = "Plains", Count = 40 } }, Ante = Array.Empty<object>() });
+            await page.OkAsync(HttpMethod.Put, "deck", new { Main = new[] { new { Name = "Plains", Count = 40 } }, Sideboard = Array.Empty<object>() });
             encounter = await Encounter(page);
         }, query: "&auto");
         int id = await realm.OpenScreenAsync("duel", encounter.Args);
@@ -115,38 +115,52 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
     }
 
     [Fact]
-    public async Task The_loot_screen_hands_back_the_cards_taken_within_the_cap()
+    public async Task The_sideboard_screen_swaps_the_deck_with_its_sideboard_and_hands_back_the_deck_and_play_or_draw()
     {
+        // A rematch's sideboarding (design.md A3): the last game's deck and sideboard, judged in the page, saved nowhere.
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 103, "W", Pictures);
-        int id = await realm.OpenScreenAsync("loot", new
+        JsonElement deck = await realm.OkAsync(HttpMethod.Get, "deck");
+        int id = await realm.OpenScreenAsync("sideboard", new
         {
-            token = "t",
-            offer = new[] { new { Name = "Serra Angel", Gold = 200 }, new { Name = "Benalish Hero", Gold = 50 }, new { Name = "Llanowar Elves", Gold = 100 } },
-            cap = 260,
             mob = "Phyrexian Scout",
+            game = 2,
+            main = deck.GetProperty("Main"),
+            sideboard = new[] { new { Name = "Serra Angel", Count = 1 } },
+            identity = "W",
+            mobLife = 7,
         });
 
-        await realm.SettledAsync(state => state.Realm?.Loot is not null && state.Cards.Count(card => card.Row == "loot") == 3);
-        await realm.PictureAsync("loot");
-        await realm.ClickCardAsync("Serra Angel", "loot");
-        await realm.SettledAsync(state => state.Realm?.Loot?.Taken == 200);
+        RealmState table = await realm.SettledAsync(state => state.DeckEditor is { } editor && editor.Main.Count > 0 && editor.Side.Count == 1);
+        await realm.PictureAsync("sideboard");
+        Assert.Equal(["1 Serra Angel"], table.DeckEditor!.Side);
 
-        // The Elves would take it over the cap: refused, in words.
-        await realm.ClickCardAsync("Llanowar Elves", "loot");
-        RealmState over = await realm.SettledAsync(state => state.Realm?.Status.Contains("over the cap", StringComparison.Ordinal) == true);
-        Assert.Equal(["Serra Angel"], over.Realm!.Loot!.Picked);
+        // A card of the deck out, the Angel in: forty still, and legal.
+        string out_ = deck.GetProperty("Main").EnumerateArray().Select(card => card.GetProperty("Name").GetString()!).First(name => name != "Plains");
+        CardState card = await realm.CardAsync(out_, "pool");
+        await realm.Page.Mouse.DblClickAsync(card.X, card.Y);
+        await realm.SettledAsync(state => state.DeckEditor is { } editor && editor.Side.Count == 2);
+        CardState angel = await realm.CardAsync("Serra Angel", "sideboard");
+        await realm.Page.Mouse.DblClickAsync(angel.X, angel.Y);
+        await realm.SettledAsync(state => state.DeckEditor is { } editor && editor.Side.Count == 1 && editor.Problems.Count == 0);
 
-        await realm.ClickCardAsync("Benalish Hero", "loot");
-        await realm.SettledAsync(state => state.Realm?.Loot?.Taken == 250);
-        await realm.ClickAsync("Take");
+        // Fight: play or draw, the loser's choice; drawing.
+        await realm.ClickAsync("Fight");
+        await realm.ClickAsync("Draw first");
         JsonElement closed = await realm.ClosedAsync(id);
         Assert.Equal("closed", closed.GetProperty("outcome").GetString());
-        Assert.Equal(["Serra Angel", "Benalish Hero"], closed.GetProperty("result").GetProperty("picks").EnumerateArray().Select(pick => pick.GetString()));
+        JsonElement result = closed.GetProperty("result");
+        Assert.False(result.GetProperty("playFirst").GetBoolean());
+        Assert.Equal(40, result.GetProperty("main").EnumerateArray().Sum(entry => entry.GetProperty("Count").GetInt32()));
+        Assert.Contains(result.GetProperty("main").EnumerateArray(), entry => entry.GetProperty("Name").GetString() == "Serra Angel");
+        Assert.Contains(result.GetProperty("sideboard").EnumerateArray(), entry => entry.GetProperty("Name").GetString() == out_);
+
+        // The saved deck is as it was: the swap was for the encounter alone.
+        Assert.Equal(deck.GetProperty("Main").GetRawText(), (await realm.OkAsync(HttpMethod.Get, "deck")).GetProperty("Main").GetRawText());
         Assert.Empty(realm.Errors);
     }
 
     [Fact]
-    public async Task The_spell_table_edits_the_deck_and_the_ante_from_the_collection_and_saves_them()
+    public async Task The_spell_table_edits_the_deck_and_the_sideboard_from_the_collection_and_saves_them()
     {
         await using RealmPage realm = await RealmPage.OpenAsync(web, _site, 104, "W", Pictures, async page =>
         {
@@ -172,12 +186,12 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         table = await realm.SettledAsync(state => state.Cards.Any(card => card.Row == "search" && card.Name == "Plains"));
         Assert.Contains(table.Cards, card => card.Row == "search" && card.Name == "Plains");
 
-        // A card of the deck double-clicked into the ante: thirty-nine cards, which the server says is too few.
-        string anted = deck.GetProperty("Main").EnumerateArray().Select(card => card.GetProperty("Name").GetString()!).First(name => name != "Plains");
-        CardState card = await realm.CardAsync(anted, "pool");
+        // A card of the deck double-clicked into the sideboard: thirty-nine cards, which the server says is too few.
+        string aside = deck.GetProperty("Main").EnumerateArray().Select(card => card.GetProperty("Name").GetString()!).First(name => name != "Plains");
+        CardState card = await realm.CardAsync(aside, "pool");
         await realm.Page.Mouse.DblClickAsync(card.X, card.Y);
         RealmState short_ = await realm.SettledAsync(state => state.DeckEditor is { } editor && editor.Side.Count > 0 && editor.Problems.Any(problem => problem.Contains("at least 40", StringComparison.Ordinal)));
-        Assert.Contains(short_.DeckEditor!.Side, line => line.Contains(anted, StringComparison.Ordinal));
+        Assert.Contains(short_.DeckEditor!.Side, line => line.Contains(aside, StringComparison.Ordinal));
 
         // A Plains from the search makes forty again.
         CardState plains = await realm.CardAsync("Plains", "search");
@@ -188,9 +202,8 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         await realm.PictureAsync("spell-table-saved");
 
         JsonElement saved = await realm.OkAsync(HttpMethod.Get, "deck");
-        Assert.Equal([anted], saved.GetProperty("Ante").EnumerateArray().Select(entry => entry.GetProperty("Name").GetString()));
+        Assert.Equal([aside], saved.GetProperty("Sideboard").EnumerateArray().Select(entry => entry.GetProperty("Name").GetString()));
         Assert.Equal(40, saved.GetProperty("Main").EnumerateArray().Sum(entry => entry.GetProperty("Count").GetInt32()));
-        Assert.True(saved.GetProperty("AnteValue").GetInt64() > 0);
 
         await realm.ClickAsync("Done");
         Assert.Equal("closed", (await realm.ClosedAsync(id)).GetProperty("outcome").GetString());
@@ -223,7 +236,7 @@ public sealed class RealmScreenTests(WebClient web, RealmSite site) : IClassFixt
         string used = after.GetProperty("Buying").EnumerateArray().First(card => card.GetProperty("Spare").GetInt32() == 0).GetProperty("Name").GetString()!;
         await realm.ClickCardAsync(used, "buying");
         await realm.ClickAsync("Sell");
-        RealmState refused = await realm.SettledAsync(state => state.Realm?.Status.Contains("in your deck or your ante", StringComparison.Ordinal) == true);
+        RealmState refused = await realm.SettledAsync(state => state.Realm?.Status.Contains("in your deck or your sideboard", StringComparison.Ordinal) == true);
         Assert.Contains(used, refused.Realm!.Status, StringComparison.Ordinal);
 
         // The card bought, sold back at half its price.
