@@ -14,8 +14,10 @@ namespace Cantrip.Client.Web;
 /// started, dealt on the rules engine in this page (<see cref="BrowserEngine"/>) on the table the realm server's replay
 /// deals it on (<see cref="DuelTable"/>). Seat 1 is this page's table, played as any game is; seat 2 the mob,
 /// <see cref="RealmBot"/> on the duel's seed, settled before each of seat 1's messages reaches the table and between this
-/// page's ticks. What seat 1 sent is the duel's log, handed back when the duel closes: <c>won</c> when seat 1 alone won,
-/// else <c>lost</c>. Conceding ends the game the same way, through the table, so a concession is a log too.
+/// page's ticks. What seat 1 sent is the duel's log, handed back when the duel closes - <c>won</c> when seat 1 alone won,
+/// else <c>lost</c> - with each seat's life as the game ended (<c>life: {player, mob}</c>; the server reads the mob's from
+/// its own replay, and the offline overworld takes this one). Conceding ends the game the same way, through the table, so a
+/// concession is a log too.
 /// <para>
 /// The game has no clocks, as the replay has none: nothing but seat 1's messages and the mob's answers moves it.
 /// </para>
@@ -152,7 +154,8 @@ public sealed partial class MainPage
 
     /// <summary>
     /// The encounter's splash (design.md A3): who the mob is - its tier, its life and hand, its gear's traits - three cards
-    /// of its deck, and what the duel is for - the ante, the prize cap and the gold it carries. The duel is dealt when the
+    /// of its deck, and what the duel is for - the gold it carries, and the heart a loss costs, with the player's hearts. A
+    /// game after the first says which it is and that the mob begins it at the life it kept. The duel is dealt when the
     /// player goes on (Fight).
     /// </summary>
     private void ShowDuelSplash(RealmCommand command, Duel duel, Task engine)
@@ -175,15 +178,24 @@ public sealed partial class MainPage
         body.Children.Add(_splashBoard);
         body.Children.Add(RealmHeading("At stake"));
         string gold = GoldRange(command.Args) is { } range ? $"It carries {Gold(range.Low)} to {Gold(range.High)}" : "It carries some gold";
+        (int have, int hold) = Hearts(command.Args);
         body.Children.Add(new TextBlock
         {
-            Text = duel.AnteValue == 0
-                ? $"{gold}. Your ante is empty, so a win offers no cards: set an ante at a spell table to play for them."
-                : $"{gold}. Your ante is worth {Gold(duel.AnteValue)}: a win offers cards up to the prize cap of {Gold(duel.Cap)}; a loss costs a card of your ante.",
+            Text = $"{gold}, and perhaps gear: a win pays them. A loss pays nothing and costs a heart - you have {have} of {hold} {HeartsText(have, hold)}. Lose the last, and you wake at home.",
             FontSize = 13,
             Foreground = Theme.Brush(Theme.FgSoft),
             TextWrapping = TextWrapping.Wrap,
         });
+        if (duel.Game > 1)
+        {
+            body.Children.Insert(0, new TextBlock
+            {
+                Text = $"Game {duel.Game}: it has not healed, and begins at {mob.StartingLife} life. You begin at your full {me.StartingLife}, {(duel.FirstPlayer == Duel.PlayerSeat ? "playing first" : "drawing first")}.",
+                FontSize = 15,
+                Foreground = Theme.Brush(Theme.Accent),
+                TextWrapping = TextWrapping.Wrap,
+            });
+        }
         body.Children.Add(new TextBlock
         {
             Text = $"You: {me.StartingLife} life, a hand of {me.StartingHandSize}{(me.Emblems.Count > 0 ? $", {string.Join(", ", me.Emblems.Select(GearName))}" : string.Empty)}.",
@@ -193,7 +205,7 @@ public sealed partial class MainPage
         });
 
         ShowRealmScreen($"{duel.Mob.Name} attacks!", RealmScroll(body));
-        _realmFacts.Text = $"{(duel.Mob.Tier == 0 ? "boss" : $"tier {duel.Mob.Tier}")}  ·  ante {Gold(duel.AnteValue)}  ·  prize cap {Gold(duel.Cap)}";
+        _realmFacts.Text = $"{(duel.Mob.Tier == 0 ? "boss" : $"tier {duel.Mob.Tier}")}  ·  game {duel.Game}  ·  hearts {have} of {hold}";
         DockButton? fight = null;
         fight = RealmAction("Fight", primary: true, () =>
         {
@@ -222,6 +234,17 @@ public sealed partial class MainPage
             .Select(group => group.Key);
 
     private static readonly HashSet<string> BasicLands = new(StringComparer.Ordinal) { "Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes" };
+
+    /// <summary>The player's hearts, as the overworld sent them (<c>hearts: {have, hold}</c>); two of two when it did not.</summary>
+    private static (int Have, int Hold) Hearts(JsonElement args) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty("hearts", out JsonElement hearts) && hearts.ValueKind == JsonValueKind.Object
+        && hearts.TryGetProperty("have", out JsonElement have) && have.TryGetInt32(out int h)
+        && hearts.TryGetProperty("hold", out JsonElement hold) && hold.TryGetInt32(out int m)
+            ? (h, m)
+            : (2, 2);
+
+    /// <summary>A row of hearts in text: filled for those had, empty for the rest held.</summary>
+    private static string HeartsText(int have, int hold) => new string('♥', Math.Max(0, have)) + new string('♡', Math.Max(0, hold - have));
 
     /// <summary>The mob's gold range, as the overworld sent it (<c>mob.goldRange</c>), or null.</summary>
     private static (long Low, long High)? GoldRange(JsonElement args) =>
@@ -288,7 +311,7 @@ public sealed partial class MainPage
 
         _realmLoading = string.Empty;
         _realmPanel.Visibility = Visibility.Collapsed;
-        _duelBarText.Text = DuelLine(duel);
+        _duelBarText.Text = DuelLine(duel, Hearts(command.Args));
         _duelBar.Visibility = Visibility.Visible;
         _duelConcede.Visibility = Visibility.Visible;
         _duelEnd.Visibility = Visibility.Collapsed;
@@ -301,9 +324,9 @@ public sealed partial class MainPage
         _duelTicker.Start();
     }
 
-    /// <summary>"Phyrexian Scout · tier 1 · ante 120 gold · prize cap 100 gold".</summary>
-    private static string DuelLine(Duel duel) =>
-        $"{duel.Mob.Name}  ·  {(duel.Mob.Tier == 0 ? "boss" : $"tier {duel.Mob.Tier}")}  ·  ante {Gold(duel.AnteValue)}  ·  prize cap {Gold(duel.Cap)}";
+    /// <summary>"Phyrexian Scout · tier 1 · game 2 · ♥♡".</summary>
+    private static string DuelLine(Duel duel, (int Have, int Hold) hearts) =>
+        $"{duel.Mob.Name}  ·  {(duel.Mob.Tier == 0 ? "boss" : $"tier {duel.Mob.Tier}")}  ·  game {duel.Game}  ·  {HeartsText(hearts.Have, hearts.Hold)}";
 
     /// <summary>The table as a new game finds it: what the last game left in the log, the journal and half-made choices let go.</summary>
     private void ClearTable()
@@ -369,7 +392,7 @@ public sealed partial class MainPage
         string why = _gameClient is { } client ? WhyItEnded(client) : string.Empty;
         _duelEndDetail.Text = fault ?? (table.PlayerWon
             ? $"You defeated {mob}. {why}".Trim()
-            : $"{(draw ? $"Your duel with {mob} is drawn, which counts as a loss." : $"{mob} defeated you.")} {(_duelDealt?.AnteValue > 0 ? "A card of your ante is lost, and you" : "You")} wake at the inn. {why}".Trim());
+            : $"{(draw ? $"Your duel with {mob} is drawn, which counts as a loss." : $"{mob} defeated you.")} It costs you a heart. {why}".Trim());
         ShowDuelEndButtons(("Return to the world", true, () => CloseRealmScreen(outcome, DuelLogResult())));
     }
 
@@ -382,9 +405,7 @@ public sealed partial class MainPage
 
         _duelEndTitle.Text = "Concede the duel?";
         _duelEndTitle.Foreground = Theme.Brush(Theme.Fg);
-        _duelEndDetail.Text = _duelDealt?.AnteValue > 0
-            ? "Conceding is a loss: a card of your ante is lost, and you wake at the inn."
-            : "Conceding is a loss: you wake at the inn.";
+        _duelEndDetail.Text = "Conceding is a loss: it costs you a heart.";
         ShowDuelEndButtons(
             ("Concede", true, () =>
             {
@@ -409,8 +430,28 @@ public sealed partial class MainPage
         _duelEnd.Visibility = Visibility.Visible;
     }
 
-    /// <summary>The duel's log as the result hands it back, taken now: what seat 1 has sent the table.</summary>
-    private Action<Utf8JsonWriter> DuelLogResult() => LogResult([.. _duel?.Log ?? []]);
+    /// <summary>
+    /// The duel's result as it hands it back, taken now: what seat 1 has sent the table, and each seat's life as the game
+    /// stands (as it ended, for a game over).
+    /// </summary>
+    private Action<Utf8JsonWriter> DuelLogResult()
+    {
+        Action<Utf8JsonWriter> log = LogResult([.. _duel?.Log ?? []]);
+        if (_duel is not { } table)
+        {
+            return log;
+        }
+
+        (int player, int mob) = (table.Life(Duel.PlayerSeat), table.Life(Duel.MobSeat));
+        return writer =>
+        {
+            log(writer);
+            writer.WriteStartObject("life");
+            writer.WriteNumber("player", player);
+            writer.WriteNumber("mob", mob);
+            writer.WriteEndObject();
+        };
+    }
 
     private static Action<Utf8JsonWriter> LogResult(IReadOnlyList<string> log) => writer =>
     {
@@ -453,6 +494,9 @@ public sealed partial class MainPage
         json.WriteBoolean("settled", table.Settled);
         json.WriteNumber("log", table.Log.Count);
         json.WriteBoolean("ended", _duelEnded);
+        json.WriteNumber("game", _duelDealt?.Game ?? 0);
+        json.WriteNumber("mobLife", table.Life(Duel.MobSeat));
+        json.WriteNumber("playerLife", table.Life(Duel.PlayerSeat));
         json.WriteString("end", _duelEnd.Visibility == Visibility.Visible ? _duelEndTitle.Text : string.Empty);
         json.WriteEndObject();
     }

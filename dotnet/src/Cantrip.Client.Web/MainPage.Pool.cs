@@ -550,15 +550,14 @@ public sealed partial class MainPage
         float sideWidth = _poolSideOpen ? width : SideClosedWidth - 14;
         _sideColumn.Width = sideWidth + 14;
         _sideToggle.Caption = _poolSideOpen ? "‹" : "›";
-        string sideName = _realmDeck ? "Ante" : "Sideboard";
-        AutomationProperties.SetName(_sideToggle, _poolSideOpen ? $"Hide {sideName.ToLowerInvariant()}" : $"Show {sideName.ToLowerInvariant()}");
-        _sideLabel.Text = _poolSideOpen ? $"{sideName}  ·  {arrangement.Side.Count}" : arrangement.Side.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        AutomationProperties.SetName(_sideToggle, _poolSideOpen ? "Hide sideboard" : "Show sideboard");
+        _sideLabel.Text = _poolSideOpen ? $"Sideboard  ·  {arrangement.Side.Count}" : arrangement.Side.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _sideLabel.HorizontalAlignment = _poolSideOpen ? HorizontalAlignment.Left : HorizontalAlignment.Center;
         _sideBoard.Width = sideWidth;
         _sideBoard.Height = Math.Max(_poolSideOpen ? ((Math.Max(1, arrangement.Side.Count) - 1) * step) + height : 0, (float)_sideScroll.ActualHeight - 2);
         _sideBoard.SetCells(_poolSideOpen
             ? [.. arrangement.Side.Select((place, row) => new CardBoardElement.BoardCell(handled[place], 0, row * step, Tapped: false, Clickable: !_deckSubmitted, Selected: Picked(place),
-                Dimmed: _realmDeck && RealmAnteDimmed(handled[place].Name), Annotation: _realmDeck ? RealmAnteNote(handled[place].Name) : null))]
+                Annotation: _realmDeck ? RealmSideNote(handled[place].Name) : null))]
             : []);
 
         LayOutCommand(arrangement, handled, width, height, step);
@@ -790,11 +789,7 @@ public sealed partial class MainPage
             return;
         }
 
-        if (RealmTakesOut(arrangement, place))
-        {
-            // The spell table's: a basic land can't be anted, so it leaves the deck.
-        }
-        else if (arrangement.InSide(place) || arrangement.Command.Contains(place) || arrangement.Companion.Contains(place))
+        if (arrangement.InSide(place) || arrangement.Command.Contains(place) || arrangement.Companion.Contains(place))
         {
             arrangement.Remove(place);
             arrangement.Columns[DefaultColumn(_poolCards[place])].Add(place);

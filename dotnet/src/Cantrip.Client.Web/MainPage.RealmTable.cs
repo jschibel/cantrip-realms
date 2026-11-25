@@ -8,19 +8,28 @@ namespace Cantrip.Client.Web;
 /// <summary>
 /// The realm's <c>spell-table</c> screen (realms/docs/interfaces.md, "The card layer"; design.md A2): the deck editor of
 /// <c>?decks</c> in a realm mode. The search runs over the character's collection, each card saying how many copies are
-/// left once the deck and the ante have theirs; the basic lands of the character's colors (and Wastes) are free and
-/// unlimited; a card outside the character's color identity is shown dimmed, for the ante only. The sideboard is the ante,
-/// 0 to 10 cards beside the deck, never a copy the deck holds. Whether the pair is legal is the realm server's word
+/// left once the deck and the sideboard have theirs; the basic lands of the character's colors (and Wastes) are free and
+/// unlimited; a card outside the character's color identity is shown dimmed, and can be in neither. The sideboard is up to
+/// 15 cards beside the deck, never a copy the deck holds. Whether the pair is legal is the realm server's word
 /// (<c>/api/deck/check</c>, as it checks a deck it is asked to save), and Save keeps them (<c>PUT /api/deck</c>), which the
 /// server takes only at a spell table.
+/// <para>
+/// The <c>sideboard</c> screen is the same table between the games of a rematch (design.md A3): its cards are the last
+/// game's deck and sideboard alone, swapped between them for the encounter (the saved deck is left as it is); the deck at
+/// forty or more and the sideboard at fifteen or fewer, judged here; and Fight asks whether to play or draw - the loser of
+/// the last game chooses (CR 103.1) - and closes with <c>{main, sideboard, playFirst}</c>.
+/// </para>
 /// </summary>
 public sealed partial class MainPage
 {
-    /// <summary>The most cards an ante holds (design.md A2): the server's word, shown beside the ante's count.</summary>
-    private const int RealmMostAnte = 10;
+    /// <summary>The most cards a sideboard holds (design.md A2; CR 100.4a): the server's word, shown beside its count.</summary>
+    private const int RealmMostSideboard = 15;
 
     /// <summary>Whether the deck editor is the realm's spell table rather than the constructed deck editor.</summary>
     private bool _realmDeck;
+
+    /// <summary>Whether the table is the <c>sideboard</c> screen of a rematch rather than the spell table.</summary>
+    private bool _realmSideboarding;
 
     private RealmCommand? _tableCommand;
     private Dictionary<string, int> _realmOwned = new(StringComparer.Ordinal);
@@ -28,12 +37,12 @@ public sealed partial class MainPage
     /// <summary>Each owned card's list price in gold (the collection's <c>Prices</c>); an unpriced card is missing.</summary>
     private Dictionary<string, long> _realmPrices = new(StringComparer.Ordinal);
 
-    /// <summary>The owned cards that are relics (the collection's <c>Relics</c>), which no ante may hold (design.md A3a).</summary>
+    /// <summary>The owned cards that are relics (the collection's <c>Relics</c>), of which a deck and its sideboard hold one (design.md A3a).</summary>
     private HashSet<string> _realmRelics = new(StringComparer.Ordinal);
     private HashSet<ColorView> _realmIdentity = [];
 
     /// <summary>What the search shows of the collection, and the realm's orders (the editor's two, then price, copies left and color).</summary>
-    private static readonly string[] RealmShowNames = ["All owned", "Deck-legal", "Copies left", "Ante only"];
+    private static readonly string[] RealmShowNames = ["All owned", "Deck-legal", "Copies left"];
     private static readonly string[] RealmSortNames = ["Name", "Mana value", "Price", "Copies left", "Color"];
     private ChoiceDropdown _realmShow = null!;
 
@@ -47,8 +56,7 @@ public sealed partial class MainPage
     /// <summary>The deck's curve and colors in words, as the test state reads them: "0:1 1:4 2:8 ...", "W 18 · colorless 2".</summary>
     private string _realmCurveText = string.Empty;
     private string _realmColorsText = string.Empty;
-    private long _realmAnteValue;
-    private TextBlock _realmAnteText = null!;
+    private TextBlock _realmSideText = null!;
     private DockButton _realmDone = null!;
 
     /// <summary>The realm server's last word on the deck, and the deck (its snapshot) it was for.</summary>
@@ -56,16 +64,16 @@ public sealed partial class MainPage
     private string _realmCheckJudged = string.Empty;
     private IReadOnlyList<string> _realmChecked = [];
 
-    /// <summary>The deck editor's header made the spell table's: no deck list, name, format or import; the ante's worth and Done instead.</summary>
+    /// <summary>The deck editor's header made the spell table's: no deck list, name, format or import; the sideboard's count and Done instead.</summary>
     private void BuildRealmTable()
     {
         _realmDeck = true;
         _editingFormat = DeckFormat.Find(DeckFormat.VintageKey) ?? DeckFormat.All[0];
         _deckListOpen = false;
         _deckListColumn.Visibility = Visibility.Collapsed;
-        _poolHint.Text = "Double-click: ante";
+        _poolHint.Text = "Double-click: sideboard";
         _poolSlider.Width = 110;
-        ToolTipService.SetToolTip(_poolHint, "Drag cards from your collection into the deck, or into the ante on the left  ·  double-click a card: to or from the ante, a basic land out of the deck  ·  drag a card back onto the search to take it out");
+        ToolTipService.SetToolTip(_poolHint, "Drag cards from your collection into the deck, or into the sideboard on the left  ·  double-click a card: to or from the sideboard  ·  drag a card back onto the search to take it out");
 
         // The search's own filters for the realm: what of the collection it shows, and the realm's orders in place of the editor's.
         if (_searchText.Parent is StackPanel filters)
@@ -103,11 +111,11 @@ public sealed partial class MainPage
                 }
             }
 
-            _realmAnteText = EventText(string.Empty, 13, Theme.FgSoft, semibold: true);
-            _realmAnteText.VerticalAlignment = VerticalAlignment.Center;
-            ToolTipService.SetToolTip(_realmAnteText, "The ante: up to 10 of your cards beside the deck. A win's prize cap is the lesser of its worth and the mob's prize; with no ante a win pays gold but no cards. Losing a duel costs one ante card, at random.");
-            Grid.SetColumn(_realmAnteText, 2);
-            header.Children.Add(_realmAnteText);
+            _realmSideText = EventText(string.Empty, 13, Theme.FgSoft, semibold: true);
+            _realmSideText.VerticalAlignment = VerticalAlignment.Center;
+            ToolTipService.SetToolTip(_realmSideText, "The sideboard: up to 15 of your cards beside the deck. When you fight a mob again after losing to it, you swap cards between the deck and the sideboard for that fight.");
+            Grid.SetColumn(_realmSideText, 2);
+            header.Children.Add(_realmSideText);
 
             _realmDone = new DockButton("Done", primary: false) { VerticalAlignment = VerticalAlignment.Center };
             AutomationProperties.SetName(_realmDone, "Done");
@@ -152,23 +160,100 @@ public sealed partial class MainPage
             'R' => ColorView.Red,
             _ => ColorView.Green,
         })];
-        _realmAnteValue = saved.Value!.AnteValue;
         _realmCheckAsked = _realmCheckJudged = string.Empty;
         _realmChecked = [];
+        _realmSideboarding = false;
+        ShowTable(character.Value.Name, "Spell table", [.. saved.Value!.Main.Select(card => new DeckEntry(card.Name, card.Count))], [.. saved.Value.Sideboard.Select(card => new DeckEntry(card.Name, card.Count))]);
+    }
 
+    /// <summary>
+    /// The <c>sideboard</c> screen (design.md A3): the table over the last game's deck and sideboard (<c>args.main</c>,
+    /// <c>args.sideboard</c>), which are all its cards, in the character's identity (<c>args.identity</c>); judged here, and
+    /// saved nowhere.
+    /// </summary>
+    private async Task OpenSideboardAsync(RealmCommand command)
+    {
+        _tableCommand = command;
+        ShowRealmLoading("Sideboard", "Laying out your deck...");
+        if (!await EnsureRealmCatalogAsync())
+        {
+            if (StillOpen(command))
+            {
+                ShowRealmProblem("Sideboard", _catalogFailure ?? "The cards could not be loaded.", "closed");
+            }
+
+            return;
+        }
+
+        if (!StillOpen(command))
+        {
+            return;
+        }
+
+        List<DeckEntry> main = SideboardArg(command.Args, "main");
+        List<DeckEntry> side = SideboardArg(command.Args, "sideboard");
+        _realmOwned = main.Concat(side).Where(entry => !(_catalogByName.TryGetValue(entry.Card, out CatalogCard? card) && IsBasicLand(card)))
+            .GroupBy(entry => entry.Card, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.Sum(entry => entry.Count), StringComparer.Ordinal);
+        _realmPrices = new Dictionary<string, long>(StringComparer.Ordinal);
+        _realmRelics = new HashSet<string>(StringComparer.Ordinal);
+        _realmIdentity = [.. (Arg(command.Args, "identity") ?? string.Empty).Select(letter => letter switch
+        {
+            'W' => ColorView.White,
+            'U' => ColorView.Blue,
+            'B' => ColorView.Black,
+            'R' => ColorView.Red,
+            _ => ColorView.Green,
+        })];
+        _realmCheckAsked = _realmCheckJudged = string.Empty;
+        _realmChecked = [];
+        _realmSideboarding = true;
+        string mob = Arg(command.Args, "mob") ?? "the mob";
+        int game = command.Args.ValueKind == JsonValueKind.Object && command.Args.TryGetProperty("game", out JsonElement g) && g.TryGetInt32(out int n) ? n : 2;
+        ShowTable("Sideboard", $"Game {game} against {mob}", main, side);
+    }
+
+    /// <summary>A list of <c>{Name, Count}</c> the <c>sideboard</c> screen was opened on.</summary>
+    private static List<DeckEntry> SideboardArg(JsonElement args, string name)
+    {
+        try
+        {
+            return args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out JsonElement list)
+                ? [.. (list.Deserialize(RealmJson.Default.ListRealmCardCount) ?? []).Where(card => card.Count > 0).Select(card => new DeckEntry(card.Name, card.Count))]
+                : [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>The table laid out on a deck and its sideboard, under a title; Save the spell table's, Fight the sideboarding's.</summary>
+    private void ShowTable(string name, string title, List<DeckEntry> main, List<DeckEntry> side)
+    {
         _realmLoading = string.Empty;
         _realmPanel.Visibility = Visibility.Collapsed;
         _deckPanel.Visibility = Visibility.Visible;
+        if (_deckPanel.Children.OfType<Grid>().FirstOrDefault() is { } header)
+        {
+            foreach (TextBlock heading in header.Children.OfType<TextBlock>().Where(part => Grid.GetColumn(part) == 1))
+            {
+                heading.Text = title;
+            }
+        }
+
+        _saveButton.Visibility = _realmSideboarding ? Visibility.Collapsed : Visibility.Visible;
+        _realmDone.Caption = _realmSideboarding ? "Fight" : "Done";
+        AutomationProperties.SetName(_realmDone, _realmDone.Caption);
         OpenDeck(new SavedDeck
         {
             Id = "realm",
-            Name = character.Value.Name,
+            Name = name,
             Format = _editingFormat.Key,
-            Main = [.. saved.Value.Main.Select(card => new DeckEntry(card.Name, card.Count))],
-            Side = [.. saved.Value.Ante.Select(card => new DeckEntry(card.Name, card.Count))],
+            Main = main,
+            Side = side,
         });
         _searchText.Text = string.Empty;
-        // The ante is half of what the table is for: its column is pulled out from the start.
+        // The sideboard is half of what the table is for: its column is pulled out from the start.
         _poolSideOpen = true;
         BuildRealmBasics();
         SearchChanged();
@@ -182,19 +267,26 @@ public sealed partial class MainPage
             _askOverlay.Visibility = Visibility.Collapsed;
             _deckPanel.Visibility = Visibility.Collapsed;
             _tableCommand = null;
+            _realmSideboarding = false;
         }
     }
 
-    /// <summary>Done: closes the table, once the changes are saved or let go if there are any.</summary>
+    /// <summary>Done: closes the table, once the changes are saved or let go if there are any; Fight, once the swap is legal and play or draw chosen.</summary>
     private void LeaveTableAsked()
     {
+        if (_realmSideboarding)
+        {
+            FightAsked();
+            return;
+        }
+
         if (!DeckUnsaved())
         {
             CloseRealmScreen("closed");
             return;
         }
 
-        Ask("Save your deck?", "The deck and the ante have changes that aren't saved.",
+        Ask("Save your deck?", "The deck and the sideboard have changes that aren't saved.",
             ("Save", true, async () =>
             {
                 if (await SaveRealmDeckAsync())
@@ -229,14 +321,65 @@ public sealed partial class MainPage
             _ => true,
         }));
 
-    /// <summary>Copies of a card the deck and the ante hold now.</summary>
+    /// <summary>
+    /// Fight, at the <c>sideboard</c> screen: with the deck and sideboard legal, the loser of the last game chooses to play or
+    /// draw (CR 103.1), and the screen closes with the deck, the sideboard and the choice.
+    /// </summary>
+    private void FightAsked()
+    {
+        if (_arrangement is null)
+        {
+            return;
+        }
+
+        SavedDeck deck = CurrentDeck();
+        if (RealmProblems(deck) is { Count: > 0 } problems)
+        {
+            _editorStatus.Text = $"Not ready: {problems[0]}";
+            _editorStatus.Foreground = Theme.Brush(Theme.Danger);
+            return;
+        }
+
+        Task Close(bool first)
+        {
+            CloseRealmScreen("closed", SideboardResult(deck, first));
+            return Task.CompletedTask;
+        }
+
+        Ask("Play or draw?", "You lost the last game, so you choose who takes the first turn.",
+            ("Play first", true, () => Close(true)),
+            ("Draw first", false, () => Close(false)),
+            ("Back", false, null));
+    }
+
+    /// <summary>What the <c>sideboard</c> screen hands back: the deck, the sideboard and whether the player plays first.</summary>
+    private static Action<Utf8JsonWriter> SideboardResult(SavedDeck deck, bool playFirst) => writer =>
+    {
+        foreach ((string name, IReadOnlyList<DeckEntry> cards) in new[] { ("main", deck.Main), ("sideboard", deck.Side) })
+        {
+            writer.WriteStartArray(name);
+            foreach (DeckEntry entry in cards)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("Name", entry.Card);
+                writer.WriteNumber("Count", entry.Count);
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+        }
+
+        writer.WriteBoolean("playFirst", playFirst);
+    };
+
+    /// <summary>Copies of a card the deck and the sideboard hold now.</summary>
     private int RealmUsed(string name) =>
         _arrangement is not { } arrangement ? 0
         : arrangement.Columns.SelectMany(column => column).Concat(arrangement.Side).Count(place => _editorCards[place].Name == name);
 
     /// <summary>
     /// Whether the search shows a card: one the character owns, or a basic land of their colors (and Wastes), free. A card
-    /// outside their identity is shown too, dimmed, for the ante.
+    /// outside their identity is shown too, dimmed: it can be in neither the deck nor the sideboard.
     /// </summary>
     private bool RealmFits(CatalogCard card) =>
         (IsBasicLand(card) ? RealmWithin(card) : _realmOwned.GetValueOrDefault(card.Name) > 0)
@@ -244,7 +387,6 @@ public sealed partial class MainPage
         {
             1 => RealmWithin(card),
             2 => RealmCanAdd(card),
-            3 => !RealmWithin(card),
             _ => true,
         };
 
@@ -280,13 +422,16 @@ public sealed partial class MainPage
         _ => 5,
     };
 
-    /// <summary>Whether another copy may come out of the collection: a free basic always, else while one is left.</summary>
+    /// <summary>
+    /// Whether another copy may come out of the collection: a free basic of the identity always, else a card within the
+    /// identity while one is left.
+    /// </summary>
     private bool RealmCanAdd(CatalogCard card) =>
-        (IsBasicLand(card) && RealmWithin(card)) || RealmUsed(card.Name) < _realmOwned.GetValueOrDefault(card.Name);
+        RealmWithin(card) && (IsBasicLand(card) || RealmUsed(card.Name) < _realmOwned.GetValueOrDefault(card.Name));
 
     /// <summary>
-    /// What a card of the search says over its art: free, or how many of the copies owned are left, its price, and whether
-    /// only the ante can hold it - or, for a relic, that no ante can.
+    /// What a card of the search says over its art: free, or how many of the copies owned are left and its price; a relic
+    /// that it is one (one copy at most), a card outside the identity that it can't be used.
     /// </summary>
     private string RealmNote(CatalogCard card)
     {
@@ -298,37 +443,17 @@ public sealed partial class MainPage
         int owned = _realmOwned.GetValueOrDefault(card.Name);
         string left = $"{Math.Max(0, owned - RealmUsed(card.Name))} of {owned} left";
         string price = RealmPrice(card.Name) is { } gold ? $" · {gold}" : string.Empty;
-        return _realmRelics.Contains(card.Name) ? $"Relic, never anted · {left}"
-            : RealmWithin(card) ? left + price
-            : $"{left} · ante only{price}";
+        return !RealmWithin(card) ? $"{left} · outside your colors"
+            : _realmRelics.Contains(card.Name) ? $"Relic, one copy · {left}"
+            : left + price;
     }
 
     /// <summary>A card's list price as the table says it ("1,250 g"), or null for one with none.</summary>
     private string? RealmPrice(string name) =>
         _realmPrices.TryGetValue(name, out long gold) ? $"{gold.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)} g" : null;
 
-    /// <summary>
-    /// What a card of the ante column says, under its name where the column's stack shows it: its price - the ante's worth
-    /// is theirs added up - or, for a relic, that it can't be anted, which saving would refuse.
-    /// </summary>
-    private string? RealmAnteNote(string name) =>
-        _realmRelics.Contains(name) ? "Relic: can't be anted" : RealmPrice(name) ?? "No price";
-
-    /// <summary>Whether the ante column draws a card dimmed: a relic, which saving refuses there.</summary>
-    private bool RealmAnteDimmed(string name) => _realmRelics.Contains(name);
-
-    /// <summary>Whether a double-click on a card of the deck is the spell table's: a basic land leaves the deck (it can't be anted).</summary>
-    private bool RealmTakesOut(PoolArrangement arrangement, int place)
-    {
-        if (!_realmDeck || arrangement.InSide(place) || place >= _editorCards.Count
-            || !_catalogByName.TryGetValue(_editorCards[place].Name, out CatalogCard? card) || !IsBasicLand(card))
-        {
-            return false;
-        }
-
-        arrangement.Remove(place);
-        return true;
-    }
+    /// <summary>What a card of the sideboard column says, under its name where the column's stack shows it: its price.</summary>
+    private string? RealmSideNote(string name) => RealmPrice(name);
 
     /// <summary>The basic lands of the character's colors (and Wastes), each with a button that adds one to the deck and one that takes one out.</summary>
     private void BuildRealmBasics()
@@ -476,28 +601,41 @@ public sealed partial class MainPage
         return pip;
     }
 
-    /// <summary>Whether the search draws a card dimmed: one outside the character's color identity, which only the ante can hold.</summary>
+    /// <summary>Whether the search draws a card dimmed: one outside the character's color identity, which neither the deck nor the sideboard can hold.</summary>
     private bool RealmDimmed(CatalogCard card) => !RealmWithin(card);
 
-    /// <summary>The deck and the ante as the API takes them.</summary>
+    /// <summary>The deck and the sideboard as the API takes them.</summary>
     private static RealmDeckChange RealmChange(SavedDeck deck) =>
         new([.. deck.Main.Select(entry => new RealmCardCount(entry.Card, entry.Count))], [.. deck.Side.Select(entry => new RealmCardCount(entry.Card, entry.Count))]);
 
     /// <summary>
-    /// What is wrong with the deck and the ante: the realm server's word once it has answered for them as they are now,
-    /// and until then its word on the last it judged; it is asked again whenever they change.
+    /// What is wrong with the deck and the sideboard: the realm server's word once it has answered for them as they are now,
+    /// and until then its word on the last it judged; it is asked again whenever they change. At the <c>sideboard</c>
+    /// screen, judged here: its cards are the last game's, so only the deck's size and the sideboard's can be wrong (the
+    /// server judges the rematch's deck all the same).
     /// </summary>
     private IReadOnlyList<string> RealmProblems(SavedDeck deck)
     {
         string snapshot = Snapshot(deck);
+        ShowRealmSide();
+        ShowRealmCurve();
+        if (_realmSideboarding)
+        {
+            _realmCheckAsked = _realmCheckJudged = snapshot;
+            int main = deck.Main.Sum(entry => entry.Count);
+            int side = deck.Side.Sum(entry => entry.Count);
+            return [
+                .. main < Cantrip.Realms.Duel.RealmMinimumDeckSize ? [$"A deck is at least {Cantrip.Realms.Duel.RealmMinimumDeckSize} cards: this one is {main}."] : Array.Empty<string>(),
+                .. side > RealmMostSideboard ? [$"A sideboard is at most {RealmMostSideboard} cards: this one is {side}."] : Array.Empty<string>(),
+            ];
+        }
+
         if (snapshot != _realmCheckAsked)
         {
             _realmCheckAsked = snapshot;
             _ = CheckRealmDeckAsync(deck, snapshot);
         }
 
-        ShowRealmAnte();
-        ShowRealmCurve();
         return _realmChecked;
     }
 
@@ -510,7 +648,6 @@ public sealed partial class MainPage
         }
 
         _realmChecked = check.Value!.Problems;
-        _realmAnteValue = check.Value.AnteValue;
         _realmCheckJudged = snapshot;
         DeckEdited();
     }
@@ -518,29 +655,30 @@ public sealed partial class MainPage
     /// <summary>Whether the realm has judged the deck as it stands now.</summary>
     private bool RealmJudged => _realmCheckJudged.Length > 0 && _realmCheckJudged == _realmCheckAsked;
 
-    private void ShowRealmAnte()
+    private void ShowRealmSide()
     {
-        int anted = _arrangement?.Side.Count ?? 0;
-        _realmAnteText.Text = anted == 0
-            ? "Ante: none  ·  a win pays gold, no cards"
-            : $"Ante: {anted} of {RealmMostAnte} cards, worth {Gold(_realmAnteValue)}";
-        _realmAnteText.Foreground = Theme.Brush(anted > RealmMostAnte ? Theme.Danger : anted == 0 ? Theme.FgMuted : Theme.Accent);
+        int aside = _arrangement?.Side.Count ?? 0;
+        _realmSideText.Text = $"Sideboard: {aside} of {RealmMostSideboard} cards";
+        _realmSideText.Foreground = Theme.Brush(aside > RealmMostSideboard ? Theme.Danger : aside == 0 ? Theme.FgMuted : Theme.Accent);
     }
 
     /// <summary>
-    /// The spell table as a test reads it (<c>realm.table</c>): what the header says of the ante, the deck's curve and colors,
-    /// and what each search result laid out says over its art (copies left, price, ante only).
+    /// The spell table as a test reads it (<c>realm.table</c>), and the <c>sideboard</c> screen alike: what the header says of
+    /// the sideboard, the deck's and the sideboard's counts, the deck's curve and colors, and what each search result laid
+    /// out says over its art (copies left, price, outside the colors).
     /// </summary>
     private void WriteRealmTable(Utf8JsonWriter json)
     {
-        if (!_realmDeck || _realmOpen?.Screen != "spell-table")
+        if (!_realmDeck || _realmOpen?.Screen is not ("spell-table" or "sideboard"))
         {
             return;
         }
 
         json.WriteStartObject("table");
-        json.WriteString("ante", _realmAnteText.Text);
-        json.WriteNumber("anteValue", _realmAnteValue);
+        json.WriteBoolean("sideboarding", _realmSideboarding);
+        json.WriteString("sideboard", _realmSideText.Text);
+        json.WriteNumber("main", _arrangement?.Columns.Sum(column => column.Count) ?? 0);
+        json.WriteNumber("side", _arrangement?.Side.Count ?? 0);
         json.WriteString("curve", _realmCurveText);
         json.WriteString("colors", _realmColorsText);
         json.WriteStartObject("notes");
@@ -550,12 +688,12 @@ public sealed partial class MainPage
         }
 
         json.WriteEndObject();
-        json.WriteStartArray("anteNotes");
+        json.WriteStartArray("sideNotes");
         foreach (int place in _arrangement?.Side ?? [])
         {
             json.WriteStartObject();
             json.WriteString("name", _editorCards[place].Name);
-            json.WriteString("note", RealmAnteNote(_editorCards[place].Name));
+            json.WriteString("note", RealmSideNote(_editorCards[place].Name));
             json.WriteBoolean("relic", _realmRelics.Contains(_editorCards[place].Name));
             json.WriteEndObject();
         }
@@ -564,7 +702,7 @@ public sealed partial class MainPage
         json.WriteEndObject();
     }
 
-    /// <summary>Saves the deck and the ante with the realm server, which keeps them only if they are legal and the character is at a spell table.</summary>
+    /// <summary>Saves the deck and the sideboard with the realm server, which keeps them only if they are legal and the character is at a spell table.</summary>
     private async Task<bool> SaveRealmDeckAsync()
     {
         if (_arrangement is null)
@@ -583,7 +721,6 @@ public sealed partial class MainPage
             return false;
         }
 
-        _realmAnteValue = saved.Value!.AnteValue;
         _editingId = "realm";
         _savedSnapshot = Snapshot(CurrentDeck());
         DeckEdited();

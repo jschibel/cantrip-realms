@@ -1127,8 +1127,7 @@ public sealed partial class MainPage
         _dropPose = _searchBoard.Bounds(handle) is { } box && _searchBoard.XamlRoot is not null
             ? Middle(_searchBoard, box)
             : null;
-        // At the spell table a card outside the character's colors goes to the ante, the one place it can be.
-        AddFromSearch(handle, arrangement => _realmDeck && RealmDimmed(card) ? arrangement.Side : arrangement.Columns[DefaultColumn(card.Card)], int.MaxValue);
+        AddFromSearch(handle, arrangement => arrangement.Columns[DefaultColumn(card.Card)], int.MaxValue);
         _dropPose = null;
     }
 
@@ -1245,7 +1244,7 @@ public sealed partial class MainPage
         int creatures = cards.Count(card => card.CardTypes.Contains(CardTypeView.Creature));
         int commanders = arrangement.Command.Count;
         int total = cards.Count + (EditingCommander ? commanders : 0);
-        string side = arrangement.Side.Count > 0 ? $"  ·  {(_realmDeck ? "ante" : "sideboard")} {arrangement.Side.Count}" : string.Empty;
+        string side = arrangement.Side.Count > 0 ? $"  ·  sideboard {arrangement.Side.Count}" : string.Empty;
         return $"Deck: {total} card{(total == 1 ? string.Empty : "s")} ({lands} Land, {cards.Count - lands} Non-land, {creatures} Creature{(creatures == 1 ? string.Empty : "s")}){side}";
     }
 }

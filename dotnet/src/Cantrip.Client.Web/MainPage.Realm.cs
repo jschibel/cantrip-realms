@@ -9,8 +9,9 @@ namespace Cantrip.Client.Web;
 /// says how it closed and what it hands back (realms/docs/interfaces.md, "The card layer"):
 /// <list type="bullet">
 /// <item><c>duel</c>: the duel played on the rules engine in the page (MainPage.RealmDuel.cs);</item>
-/// <item><c>loot</c>: the cards a win offers, picked within the cap (MainPage.RealmLoot.cs);</item>
-/// <item><c>spell-table</c>: the deck editor on the character's collection, with the ante (MainPage.RealmTable.cs);</item>
+/// <item><c>sideboard</c>: the deck swapped with its sideboard between the games of a rematch (MainPage.RealmTable.cs);</item>
+/// <item><c>loot</c>: the gear item a win dropped or a chest held (MainPage.RealmLoot.cs);</item>
+/// <item><c>spell-table</c>: the deck editor on the character's collection, with the sideboard (MainPage.RealmTable.cs);</item>
 /// <item><c>vendor</c>: a vendor's stock and what of the character's it buys (MainPage.RealmVendor.cs);</item>
 /// <item><c>gear</c>: the loadout on a paper doll and the gear owned, and an armorer's stock (MainPage.RealmGear.cs);</item>
 /// <item><c>inventory</c>: everything the character owns, cards and gear (MainPage.RealmInventory.cs).</item>
@@ -145,6 +146,9 @@ public sealed partial class MainPage
             case "loot":
                 _ = OpenLootAsync(command);
                 break;
+            case "sideboard":
+                _ = OpenSideboardAsync(command);
+                break;
             case "spell-table":
                 _ = OpenSpellTableAsync(command);
                 break;
@@ -168,9 +172,6 @@ public sealed partial class MainPage
     {
         switch (_realmOpen?.Screen)
         {
-            case "loot":
-                LayOutLoot();
-                break;
             case "vendor":
                 LayOutVendor();
                 break;
@@ -188,7 +189,7 @@ public sealed partial class MainPage
 
     /// <summary>
     /// Closes the screen open, if any, telling the overworld how and handing back what <paramref name="result"/> writes
-    /// (a duel's log, a loot pick's picks); with no result given, what the screen open hands back when cut short.
+    /// (a duel's log, a sideboarding's deck); with no result given, what the screen open hands back when cut short.
     /// </summary>
     private void CloseRealmScreen(string outcome, Action<Utf8JsonWriter>? result = null)
     {
@@ -209,15 +210,10 @@ public sealed partial class MainPage
         RealmBridge.Closed(open.Id, open.Screen, outcome, result);
     }
 
-    /// <summary>What a screen hands back when it is closed before it was done with: a duel its log so far, a loot pick no picks.</summary>
+    /// <summary>What a screen hands back when it is closed before it was done with: a duel its log so far.</summary>
     private Action<Utf8JsonWriter>? CutShort(RealmCommand open) => open.Screen switch
     {
         "duel" => DuelLogResult(),
-        "loot" => writer =>
-        {
-            writer.WriteStartArray("picks");
-            writer.WriteEndArray();
-        },
         _ => null,
     };
 

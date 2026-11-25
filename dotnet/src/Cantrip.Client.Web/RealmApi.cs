@@ -126,7 +126,8 @@ public sealed record RealmCharacter(
     string Name,
     string Identity,
     long Gold,
-    long AnteValue,
+    int Hearts,
+    int MaxHearts,
     string Map,
     RealmStats Stats,
     IReadOnlyDictionary<string, RealmGearInstance?> Loadout,
@@ -134,15 +135,16 @@ public sealed record RealmCharacter(
 
 public sealed record RealmCardCount(string Name, int Count);
 
-public sealed record RealmDeck(IReadOnlyList<RealmCardCount> Main, IReadOnlyList<RealmCardCount> Ante, long AnteValue);
+/// <summary>A deck and its sideboard (design.md A2): up to 15 cards beside it, swapped in between the games of a rematch.</summary>
+public sealed record RealmDeck(IReadOnlyList<RealmCardCount> Main, IReadOnlyList<RealmCardCount> Sideboard);
 
-public sealed record RealmDeckChange(IReadOnlyList<RealmCardCount> Main, IReadOnlyList<RealmCardCount> Ante);
+public sealed record RealmDeckChange(IReadOnlyList<RealmCardCount> Main, IReadOnlyList<RealmCardCount> Sideboard);
 
-public sealed record RealmDeckCheck(IReadOnlyList<string> Problems, long AnteValue);
+public sealed record RealmDeckCheck(IReadOnlyList<string> Problems);
 
 /// <summary>
-/// The collection by card name, each priced card's list price and the relics of it, which are never anted
-/// (<c>GET /api/collection</c> sends them; a trade's answer does not).
+/// The collection by card name, each priced card's list price and the relics of it, of which a deck and its sideboard hold
+/// one at most (<c>GET /api/collection</c> sends them; a trade's answer does not).
 /// </summary>
 public sealed record RealmCollection(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null, IReadOnlyList<string>? Relics = null);
 
@@ -172,13 +174,10 @@ public sealed record RealmGearTrade(long Gold, IReadOnlyList<RealmGearInstance> 
 
 public sealed record RealmLoadoutChange(IReadOnlyDictionary<string, long?> Slots);
 
-/// <summary>A card of the collection as <c>/api/inventory</c> has it: how many, its list price, the copies the deck and the ante use.</summary>
-public sealed record RealmInventoryCard(string Name, int Count, long Gold, int Deck, int Ante, bool Relic);
+/// <summary>A card of the collection as <c>/api/inventory</c> has it: how many, its list price, the copies the deck and the sideboard use.</summary>
+public sealed record RealmInventoryCard(string Name, int Count, long Gold, int Deck, int Sideboard, bool Relic);
 
 public sealed record RealmInventory(IReadOnlyList<RealmInventoryCard> Cards, long Value);
-
-/// <summary>A card offered after a win, and its list price (the <c>loot</c> screen's <c>offer</c>).</summary>
-public sealed record RealmOffered(string Name, long Gold);
 
 [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(RealmRefusal))]
@@ -195,7 +194,7 @@ public sealed record RealmOffered(string Name, long Gold);
 [JsonSerializable(typeof(RealmGearSell))]
 [JsonSerializable(typeof(RealmGearTrade))]
 [JsonSerializable(typeof(RealmLoadoutChange))]
-[JsonSerializable(typeof(List<RealmOffered>))]
+[JsonSerializable(typeof(List<RealmCardCount>))]
 [JsonSerializable(typeof(RealmGearInstance))]
 [JsonSerializable(typeof(RealmInventory))]
 [JsonSerializable(typeof(Duel))]

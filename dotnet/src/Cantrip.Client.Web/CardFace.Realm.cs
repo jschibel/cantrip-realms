@@ -4,7 +4,7 @@ namespace Cantrip.Client.Web;
 
 /// <summary>
 /// What a card's note looks like in the realm's card layer (<c>?realm</c>, Cantrip Realms): every card of its spell table,
-/// inventory and ante carries one - copies left, its price, "relic" - so the note is a band across the top of the art,
+/// inventory and sideboard carries one - copies left, its price, "relic" - so the note is a band across the top of the art,
 /// under the name, rather than a veil over the whole picture as a table's one-off note is (<see cref="CardFace.Draw"/>'s
 /// annotation). Under the name it also shows on a card of a stacked column, where only the top of each card is seen.
 /// </summary>

@@ -9,11 +9,11 @@ namespace Cantrip.Client.Web;
 /// from the HUD anywhere. Two tabs:
 /// <list type="bullet">
 /// <item><b>Cards</b>: the collection as the table draws cards, each with how many are owned, its list price and how many
-/// copies the deck and the ante use (<c>/api/inventory</c>); searched by name, type or rules text, sorted by name, price,
-/// count or color, and narrowed to the cards in the deck, in the ante, or spare.</item>
+/// copies the deck and the sideboard use (<c>/api/inventory</c>); searched by name, type or rules text, sorted by name, price,
+/// count or color, and narrowed to the cards in the deck, in the sideboard, or spare.</item>
 /// <item><b>Gear</b>: every item owned, as the gear screen lists them, with what is worn where.</item>
 /// </list>
-/// It changes nothing: the deck and ante are changed at a spell table, the loadout on the gear screen.
+/// It changes nothing: the deck and sideboard are changed at a spell table, the loadout on the gear screen.
 /// </summary>
 public sealed partial class MainPage
 {
@@ -139,7 +139,7 @@ public sealed partial class MainPage
         }
 
         tools.Children.Add(new TextBlock { Text = "Show", FontSize = 13, Foreground = Theme.Brush(Theme.FgMuted), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) });
-        foreach ((string show, string caption) in new[] { ("all", "All"), ("deck", "In the deck"), ("ante", "In the ante"), ("spare", "Spare") })
+        foreach ((string show, string caption) in new[] { ("all", "All"), ("deck", "In the deck"), ("sideboard", "In the sideboard"), ("spare", "Spare") })
         {
             tools.Children.Add(InventoryChip(caption, caption, _inventoryShow == show, () => _inventoryShow = show));
         }
@@ -173,8 +173,8 @@ public sealed partial class MainPage
         IEnumerable<RealmInventoryCard> shown = inventory.Cards.Where(card => _inventoryShow switch
         {
             "deck" => card.Deck > 0,
-            "ante" => card.Ante > 0,
-            "spare" => card.Count > card.Deck + card.Ante,
+            "sideboard" => card.Sideboard > 0,
+            "spare" => card.Count > card.Deck + card.Sideboard,
             _ => true,
         });
         if (search.Length > 0)
@@ -200,12 +200,12 @@ public sealed partial class MainPage
         }
     }
 
-    /// <summary>What a card's annotation says: how many, its price, and the copies the deck and the ante use.</summary>
+    /// <summary>What a card's annotation says: how many, its price, and the copies the deck and the sideboard use.</summary>
     private static string InventoryNote(RealmInventoryCard card)
     {
         List<string> parts = [$"×{card.Count}", card.Gold > 0 ? Gold(card.Gold) : "no price"];
         if (card.Deck > 0) parts.Add($"{card.Deck} in deck");
-        if (card.Ante > 0) parts.Add($"{card.Ante} ante");
+        if (card.Sideboard > 0) parts.Add($"{card.Sideboard} sideboard");
         if (card.Relic) parts.Add("relic");
         return string.Join(" · ", parts);
     }
@@ -302,7 +302,7 @@ public sealed partial class MainPage
             json.WriteNumber("count", card.Count);
             json.WriteNumber("gold", card.Gold);
             json.WriteNumber("deck", card.Deck);
-            json.WriteNumber("ante", card.Ante);
+            json.WriteNumber("sideboard", card.Sideboard);
             json.WriteEndObject();
         }
 

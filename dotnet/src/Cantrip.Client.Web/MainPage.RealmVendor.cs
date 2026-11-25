@@ -5,7 +5,7 @@ namespace Cantrip.Client.Web;
 /// <summary>
 /// The realm's <c>vendor</c> screen (realms/docs/interfaces.md, "The card layer"; design.md A5): a vendor's shelves, each
 /// card at its list price with how many are left, and the character's own cards of its trade, at what it pays and with
-/// how many are spare (in neither the deck nor the ante). A card is clicked to pick it, and the header's button buys or
+/// how many are spare (in neither the deck nor the sideboard). A card is clicked to pick it, and the header's button buys or
 /// sells it through the API; the character's gold and the vendor's purse are shown, and a refusal is said in words.
 /// </summary>
 public sealed partial class MainPage
@@ -38,7 +38,7 @@ public sealed partial class MainPage
             "trader" => info.Plane is { Length: > 0 } plane ? $"cards from {char.ToUpperInvariant(plane[0])}{plane[1..]}" : "cards from another plane",
             _ => Specialty(info.Specialty),
         };
-        return $"Deals in {what}, and nothing else. Sells at list price; buys at half the list price, paid from its purse, a copy at a time. A card in your deck or ante isn't for sale.";
+        return $"Deals in {what}, and nothing else. Sells at list price; buys at half the list price, paid from its purse, a copy at a time. A card in your deck or sideboard isn't for sale.";
     }
 
     /// <summary>A specialty in words: "white cards", "Goblins", "artifacts", "rare and mythic cards", "a chosen few cards".</summary>
@@ -160,7 +160,7 @@ public sealed partial class MainPage
         _vendorPicked = _vendorPicked == (own, place) ? null : (own, place);
         SayRealm(_vendorPicked is null ? string.Empty
             : !own && vendor.Stock[place].Gold > vendor.Gold ? $"{vendor.Stock[place].Name} costs {Gold(vendor.Stock[place].Gold)}; you have {Gold(vendor.Gold)}."
-            : own && vendor.Buying[place].Spare == 0 ? $"Every {vendor.Buying[place].Name} you own is in your deck or ante: change them at a spell table to sell one."
+            : own && vendor.Buying[place].Spare == 0 ? $"Every {vendor.Buying[place].Name} you own is in your deck or sideboard: change them at a spell table to sell one."
             : own && vendor.Buying[place].Gold > vendor.Purse ? $"Their purse holds {Gold(vendor.Purse)}: too little for your {vendor.Buying[place].Name}."
             : string.Empty, trouble: true);
         LayOutVendor();
@@ -229,7 +229,7 @@ public sealed partial class MainPage
             RealmFace(item.Name, VendorOwnBase + i), 0, 0, Tapped: false,
             Dimmed: item.Spare == 0, Selected: _vendorPicked == (true, i), Clickable: true,
             Annotation: item.Spare == 0
-                ? $"Pays {item.Gold} g · all {item.Owned} in deck/ante"
+                ? $"Pays {item.Gold} g · all {item.Owned} in deck/sideboard"
                 : $"Pays {item.Gold} g · {item.Spare} of {item.Owned} spare"))];
         LayRealmRow(_vendorOwn, VendorWidth, _realmContent.ActualWidth - 24, own);
         _vendorOwn.Visibility = own.Count == 0 ? Visibility.Collapsed : Visibility.Visible;

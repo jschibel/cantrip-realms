@@ -137,7 +137,6 @@ public sealed partial class MainPage
         json.WriteString("facts", _realmFacts.Text);
         json.WriteString("status", _realmStatus.Text);
         WriteRealmDuel(json);
-        WriteRealmLoot(json);
         WriteRealmInventory(json);
         WriteRealmDuelGear(json);
         WriteRealmTable(json);
