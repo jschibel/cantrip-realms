@@ -48,6 +48,12 @@ export const place = (request: APIRequestContext, at: Tile, space = "world") => 
 export const verdict = (request: APIRequestContext, outcome: "won" | "lost" | null, mobLife: number | null = null) =>
   post(request, "dev/verdict", { Outcome: outcome, MobLife: mobLife });
 
+/** Sets the signed-in character's hearts at once (POST /dev/hearts): a heart missing, arranged without a lost duel. */
+export const hearts = (request: APIRequestContext, have: number, hold: number | null = null) => post(request, "dev/hearts", { Hearts: have, MaxHearts: hold });
+
+/** Decides the signed-in player's rolls (POST /dev/drop): their gear rolls, and whether a run they begin holds a shrine. */
+export const drop = (request: APIRequestContext, rolls: { Gear?: boolean | null; Shrine?: boolean | null }) => post(request, "dev/drop", rolls);
+
 /** The server's order of the eight steps (Tile.Steps): south, east, west, north, then the diagonals. */
 const STEPS = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
 
@@ -70,6 +76,8 @@ export interface Me {
   readonly MaxHearts: number;
   readonly Defeat: { readonly Token: string; readonly Price: number | null; readonly MobLife: number; readonly MobFullLife: number } | null;
   readonly Attuned: readonly string[];
+  /** The heartblooms picked that have not grown back, and when each does. */
+  readonly Picked: readonly { readonly Chest: string; readonly Until: string }[];
   readonly Loadout: Record<string, { readonly InstanceId: number } | null>;
 }
 

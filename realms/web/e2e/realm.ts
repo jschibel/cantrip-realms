@@ -25,6 +25,8 @@ export interface Entity {
   readonly tier?: number;
   readonly role?: string | null;
   readonly moving?: boolean;
+  /** A heartbloom's: picked (drawn without its bloom) until it grows back. */
+  readonly picked?: boolean | null;
 }
 
 export interface Control {
@@ -261,6 +263,8 @@ export function openWorld(t: Tile): boolean {
   if (!c || isBlocked(chunkTile(c, t.x, t.z))) return false;
   if (c.entrances.some((e) => e.x === t.x && e.z === t.z)) return false;
   if (c.buildings.some((b) => b.door && b.door[0] === t.x && b.door[1] === t.z)) return false;
+  // A heartbloom's tile is walked onto only to pick it.
+  if (c.chests.some((h) => h.heart && h.x === t.x && h.z === t.z)) return false;
   return !c.npcs.some((n) => n.x === t.x && n.z === t.z) && !c.spawns.some((s) => s.x === t.x && s.z === t.z);
 }
 

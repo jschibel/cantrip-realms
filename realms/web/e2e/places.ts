@@ -1,4 +1,7 @@
-import { type BuildingData, CHUNK, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile } from "../src/world/format";
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { type BuildingData, CHUNK, type ChestData, type ChunkData, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile, isHeartbloom } from "../src/world/format";
 import { type Tile, chebyshev, chunk, chunkAt, interior, openNear, openWorld, world } from "./realm";
 
 // Where the tests find what they need in the generated world: read from its files, never guessed, so a regenerated
@@ -24,6 +27,28 @@ export function doorOf(id: string): Tile {
   const building = chunksNear(door, CHUNK).flatMap((c) => c.buildings).find((b) => b.interior === id);
   if (!building) throw new Error(`no building leads into ${id}`);
   return door;
+}
+
+let blooms: ChestData[] | null = null;
+
+/** The world's heartblooms (design.md A3b), from its chunk files: only the files that name one are read whole. */
+export function heartblooms(): ChestData[] {
+  if (blooms) return blooms;
+  const dir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "content", "dominaria", "world", "chunks");
+  blooms = readdirSync(dir)
+    .map((f) => readFileSync(join(dir, f), "utf8"))
+    .filter((text) => text.includes('"heart":true'))
+    .flatMap((text) => (JSON.parse(text) as ChunkData).chests.filter(isHeartbloom));
+  return blooms;
+}
+
+/** The heartbloom nearest a town. */
+export function heartbloomNear(town: string): ChestData {
+  const t = world().towns.find((x) => x.id === town)!;
+  const centre = { x: t.center[0], z: t.center[1] };
+  const near = [...heartblooms()].sort((a, b) => chebyshev(a, centre) - chebyshev(b, centre) || a.id.localeCompare(b.id))[0];
+  if (!near) throw new Error("the world grows no heartbloom");
+  return near;
 }
 
 /** A spawn point outside a town's walls, the nearest to them of the tier asked for. */

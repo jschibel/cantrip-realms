@@ -1,13 +1,15 @@
 import { type Page, expect, test } from "@playwright/test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnNear } from "./places";
-import { at, clickClear, clickControl, clickEntity, entities, entity, openNear, openRealm, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
-import { enter, walkInside } from "./runs";
+import { heartbloomNear, spawnNear } from "./places";
+import { at, chebyshev, clickClear, clickControl, clickEntity, entities, entity, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
+import { enter, run, toShrine, walkInside } from "./runs";
 
 // Hearts (design.md A3, A3b), offline with the stand-in card layer: a lost duel costs a heart and pays nothing; a world
 // mob offers its buyout or a rematch, the rematch sideboarded and dealt with the mob at the life it kept; a dungeon's mob
 // is only fought again; the last heart lost is death, and home; a town fills the hearts and a temple's healer sells more.
+// A heartbloom of the wilds gives one back, picked walking onto it, and a dungeon run's shrine once in the run; neither
+// is used up by a character whose hearts are full.
 // The stand-in's loss says the mob's life at the end as the real card layer reads it from the game (realmTest.duelEnd).
 
 const SHOTS = join(dirname(fileURLToPath(import.meta.url)), "screenshots", "hearts");
@@ -154,6 +156,85 @@ test("a temple's healer sells a heart, which fills as it is bought", async ({ pa
   expect(await me(page)).toMatchObject({ hearts: 3, maxHearts: 3, gold: 1000 });
   await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-max", "3");
   expect((await realm<string[]>(page, "messages")).some((m) => /you hold 3 hearts now/.test(m))).toBe(true);
+});
+
+const messaged = async (page: Page, pattern: RegExp) => (await realm<string[]>(page, "messages")).some((m) => pattern.test(m));
+const bloomOf = async (page: Page, id: string) => (await realm<{ id: string; picked: boolean }[]>(page, "blooms")).find((b) => b.id === id);
+
+test("a heartbloom of the wilds gives back a heart, picked walking onto it, and is left standing while the hearts are full", async ({ page }) => {
+  test.setTimeout(120_000);
+  const bloom = heartbloomNear("new-benalia");
+  await openRealm(page, { at: at(openNear(bloom, 3)), extra: "&mobs=0" });
+  const isBloom = (e: { kind: string; id: string }) => e.kind === "heartbloom" && e.id === bloom.id;
+  expect((await entity(page, isBloom, "the heartbloom", 30)).picked).toBe(false);
+  await page.screenshot({ path: join(SHOTS, "heartbloom.png") });
+
+  // The hearts full: walked onto, it keeps.
+  await clickEntity(page, isBloom, "the heartbloom");
+  await until(page, () => messaged(page, /Your hearts are full\. The heartbloom will keep/), "the hearts full", 30);
+  expect(await playerTile(page)).toEqual({ x: bloom.x, z: bloom.z });
+  expect((await bloomOf(page, bloom.id))!.picked).toBe(false);
+  expect((await me(page)).hearts).toBe(2);
+
+  // A heart missing (arranged): picked, the heart back, the bloom gone from its stem.
+  await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
+  await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "1");
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [bloom.x, bloom.z] as const);
+  await until(page, async () => (await me(page)).hearts === 2, "a heart given back", 30);
+  expect(await messaged(page, /You pick the heartbloom, and its warmth fills you: 2 of 2 hearts/)).toBe(true);
+  await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "2");
+  expect((await entity(page, isBloom, "the picked heartbloom")).picked).toBe(true);
+  expect((await realm<{ name: string; body?: any }[]>(page, "api")).filter((c) => c.name === "openChest").map((c) => c.body.Chest)).toEqual([bloom.id, bloom.id]);
+  // Stepped off a little, so the picked stem shows.
+  await walkTo(page, openNear(bloom, 2), 0);
+  await page.screenshot({ path: join(SHOTS, "heartbloom-picked.png") });
+
+  // Picked, it gives nothing until it grows back.
+  await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [bloom.x, bloom.z] as const);
+  await until(page, async () => chebyshev(await playerTile(page), bloom) === 0 && !(await entity(page, (e) => e.kind === "player", "the player")).moving, "on the bloom again", 30);
+  expect((await me(page)).hearts).toBe(1);
+});
+
+test("a dungeon run's shrine gives back a heart once in the run, prayed at from beside it", async ({ page }) => {
+  test.setTimeout(180_000);
+  // A mage tower of one floor, its run made to hold a shrine (as the server's POST /dev/drop {Shrine} does).
+  const id = "benalia-1";
+  await openRealm(page, { at: id, extra: "&mobs=0" });
+  await page.evaluate(() => (globalThis as any).realmTest.forceShrine(true));
+  await enter(page, id);
+  await until(page, async () => /^run:/.test((await realm<string>(page, "space.id")) ?? ""), "in the run", 20);
+  const r = (await run(page))!;
+  expect(r).toMatchObject({ shrineFloor: 0, shrineUsed: false });
+  const shrine = await entity(page, (e) => e.kind === "heart-shrine", "the shrine");
+  expect(shrine.tile).toEqual(r.shrine);
+
+  // The hearts full: the blessing keeps.
+  await walkInside(page, r.shrine!, 1);
+  await page.screenshot({ path: join(SHOTS, "shrine.png") });
+  await toShrine(page);
+  await clickControl(page, "dialog:pray");
+  await until(page, () => messaged(page, /Your hearts are full\. The shrine's blessing will keep/), "the hearts full", 20);
+
+  // A heart missing: prayed at, the heart back, the heart over the stone cold.
+  await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
+  await toShrine(page);
+  await expect(page.locator(".dialog")).toContainText("A forgotten shrine of Serra");
+  await page.screenshot({ path: join(SHOTS, "shrine-prayer.png") });
+  await clickControl(page, "dialog:pray");
+  await until(page, async () => (await me(page)).hearts === 2, "a heart given back", 20);
+  expect(await messaged(page, /Serra's blessing: a heart comes back to you, 2 of 2/)).toBe(true);
+  await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "2");
+  expect(await run(page)).toMatchObject({ shrineUsed: true });
+  expect((await realm<{ name: string }[]>(page, "api")).filter((c) => c.name === "prayAtShrine")).toHaveLength(2);
+  await page.screenshot({ path: join(SHOTS, "shrine-spent.png") });
+
+  // Once in the run: its heart gone cold.
+  await page.evaluate(() => (globalThis as any).realmTest.setHearts(1));
+  await toShrine(page);
+  await expect(page.locator(".dialog")).toContainText("gone cold");
+  await clickControl(page, "dialog:leave");
+  expect((await me(page)).hearts).toBe(1);
 });
 
 test("in a dungeon the mob can't be bought off: only fought again", async ({ page }) => {

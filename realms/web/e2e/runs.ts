@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { type Entity, type Tile, clickEntity, entities, entity, realm, walkTo, winDuel } from "./realm";
+import { type Entity, type Tile, clickEntity, entities, entity, realm, until, walkTo, winDuel } from "./realm";
 
 // Dungeon runs, as the suites play them: walking a floor, beating a floor's mob with the stand-in duel, going in.
 
@@ -10,6 +10,10 @@ interface RunState {
   readonly up: Tile | null;
   readonly down: Tile | null;
   readonly wayOut: Tile | null;
+  /** The run's shrine on the floor shown (design.md A6), which floor of the run holds it, and whether it has blessed. */
+  readonly shrine: Tile | null;
+  readonly shrineFloor: number | null;
+  readonly shrineUsed: boolean;
 }
 
 export const run = (page: Page) => realm<RunState | null>(page, "run");
@@ -34,6 +38,17 @@ export async function beat(page: Page, role: string): Promise<void> {
       await clickEntity(page, same, `the ${role}`);
     }
     await winDuel(page);
+  }
+}
+
+/** Clicks the floor's shrine until its dialog opens: a duel a mob of the floor starts meanwhile is won first. */
+export async function toShrine(page: Page): Promise<void> {
+  const open = () => realm<string | null>(page, "layer.open");
+  for (let tries = 0; ; tries++) {
+    if ((await open()) !== null) await winDuel(page);
+    await clickEntity(page, (e) => e.kind === "heart-shrine", "the shrine");
+    await until(page, async () => (await realm<string>(page, "screen")) === "dialog" || (await open()) !== null, "the shrine's dialog", 20);
+    if ((await realm<string>(page, "screen")) === "dialog" || tries >= 3) return;
   }
 }
 

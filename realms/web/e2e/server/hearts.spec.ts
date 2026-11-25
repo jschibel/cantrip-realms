@@ -1,14 +1,20 @@
 import { type Page, expect, test } from "@playwright/test";
-import { spawnNear } from "../places";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { heartbloomNear, spawnNear } from "../places";
 import { chebyshev, clickClear, clickControl, clickEntity, entities, entity, interior, openNear, playerTile, realm, until, waitReady, waitSpace, walkTo, winDuel, world } from "../realm";
-import { enter } from "../runs";
-import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
+import { enter, run, toShrine, walkInside } from "../runs";
+import { type Me, SERVER, api, besideEntrance, character, drop, hearts, place, query, verdict } from "./server";
+
+const SHOTS = join(dirname(fileURLToPath(import.meta.url)), "..", "screenshots", "hearts");
 
 // Hearts against the real realm server (design.md A3, A3b), the stand-in card layer framed over the world: the server
 // counts its duels as the development verdict says, the mob ending at the life the test gives it (POST /dev/verdict,
 // test-only). A loss costs a heart, the buyout is the server's measure of the life the mob kept, paid from the
 // character's gold; a dungeon's mob is fought again, never paid; a town fills the hearts from where the server knows
-// the character stands; a temple's healer sells another. The real duel, its replay and the sideboarding in the real card
+// the character stands; a temple's healer sells another; a heartbloom of the wilds gives one back and stays picked for
+// the week whatever the page says, and a run's shrine - its run made to hold one (POST /dev/drop {Shrine}) - blesses
+// once. A heart missing is arranged (POST /dev/hearts) where losing one is not the point. The real duel, its replay and the sideboarding in the real card
 // layer are duel-loop.spec.ts's.
 
 const spawn = spawnNear("new-benalia");
@@ -130,4 +136,77 @@ test("a temple's healer on the real server sells a heart for gold, to hold one m
   expect((await (await bought).json()) as unknown).toMatchObject({ Hearts: 3, MaxHearts: 3, Price: 3000 });
   expect(await api<Me>(page.request, "me")).toMatchObject({ Hearts: 3, MaxHearts: 3, Gold: 1000 });
   await until(page, async () => (await page.locator("[data-test='hud:hearts']").getAttribute("data-max")) === "3", "three hearts on the HUD", 30);
+});
+
+test("a heartbloom on the real server gives back a heart, and stays picked for the week the server keeps", async ({ page }) => {
+  test.setTimeout(180_000);
+  await character(page.request, 84, "Bloom");
+  const bloom = heartbloomNear("new-benalia");
+  await place(page.request, openNear(bloom, 2));
+  await hearts(page.request, 1);
+  await page.goto(query("&mobs=0"));
+  await waitReady(page);
+  const isBloom = (e: { kind: string; id: string }) => e.kind === "heartbloom" && e.id === bloom.id;
+  expect((await entity(page, isBloom, "the heartbloom", 30)).picked).toBe(false);
+
+  // Walked onto: the server gives the heart back and keeps the bloom picked for a week.
+  const picked = page.waitForResponse((r) => r.url().endsWith("/api/chest/open"));
+  await clickEntity(page, isBloom, "the heartbloom");
+  expect((await (await picked).json()) as unknown).toMatchObject({ Found: 0, Hearts: 2, Heart: true });
+  const me = await api<Me>(page.request, "me");
+  expect(me.Hearts).toBe(2);
+  expect(me.Picked.map((p) => p.Chest)).toEqual([bloom.id]);
+  expect(Date.parse(me.Picked[0]!.Until) - Date.now()).toBeGreaterThan(6.9 * 86_400_000);
+  await until(page, async () => (await page.locator("[data-test='hud:hearts']").getAttribute("data-hearts")) === "2", "the HUD's heart back", 30);
+  await until(page, async () => (await entity(page, isBloom, "the heartbloom")).picked === true, "the bloom picked", 30);
+  await page.screenshot({ path: join(SHOTS, "server-heartbloom.png") });
+
+  // After a reload the page draws it picked, as the server says; and the server gives nothing more for it.
+  await hearts(page.request, 1);
+  await page.reload();
+  await waitReady(page);
+  await until(page, async () => (await entity(page, isBloom, "the heartbloom", 30)).picked === true, "still picked after a reload", 30);
+  const again = await page.request.post(new URL("api/chest/open", SERVER).toString(), { data: { Space: "world", Chest: bloom.id } });
+  expect(again.status()).toBe(409);
+  expect(((await again.json()) as { Error: string }).Error).toBe("Empty");
+  expect((await api<Me>(page.request, "me")).Hearts).toBe(1);
+});
+
+test("a run's shrine on the real server blesses once: a heart back, and the run remembers", async ({ page }) => {
+  test.setTimeout(240_000);
+  await character(page.request, 85, "Prayer");
+  // A mage tower of one floor, its run made to hold a shrine; any duel a mob of it starts counted won.
+  const id = "benalia-1";
+  await drop(page.request, { Shrine: true });
+  await verdict(page.request, "won");
+  await place(page.request, besideEntrance(id));
+  await hearts(page.request, 1);
+  await page.goto(query("&mobs=0"));
+  await waitReady(page);
+  await waitSpace(page, "world");
+  await enter(page, id);
+  await waitSpace(page, /^run:/, 60);
+  const live = await api<{ Run: string; Floors: { Shrine?: boolean }[]; ShrineUsed: boolean }>(page.request, "dungeon/run");
+  expect(live.Floors.map((f) => f.Shrine ?? false)).toEqual([true]);
+  expect(live.ShrineUsed).toBe(false);
+  const r = (await run(page))!;
+  expect(r).toMatchObject({ shrineFloor: 0, shrineUsed: false });
+
+  await walkInside(page, r.shrine!, 1);
+  await toShrine(page);
+  const prayed = page.waitForResponse((x) => x.url().endsWith("/api/dungeon/shrine"));
+  await clickControl(page, "dialog:pray");
+  expect((await (await prayed).json()) as unknown).toEqual({ Hearts: 2 });
+  expect((await api<Me>(page.request, "me")).Hearts).toBe(2);
+  expect((await api<{ ShrineUsed: boolean }>(page.request, "dungeon/run")).ShrineUsed).toBe(true);
+  await until(page, async () => (await page.locator("[data-test='hud:hearts']").getAttribute("data-hearts")) === "2", "the HUD's heart back", 30);
+  await page.screenshot({ path: join(SHOTS, "server-shrine.png") });
+
+  // Once in the run: the server refuses another blessing, a heart missing or not.
+  await hearts(page.request, 1);
+  const again = await page.request.post(new URL("api/dungeon/shrine", SERVER).toString(), { data: { Run: live.Run } });
+  expect(again.status()).toBe(409);
+  expect(((await again.json()) as { Error: string }).Error).toBe("Empty");
+  await verdict(page.request, null);
+  await drop(page.request, { Shrine: null });
 });
