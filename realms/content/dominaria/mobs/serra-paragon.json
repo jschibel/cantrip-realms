@@ -42,5 +42,19 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "What you destroyed, I brought back. What I destroyed stayed gone.",
+      "Paragon means example. Let this one be yours."
+    ],
+    "solid": [
+      "You laid my servants low and I raised them up. That is the way of the Paragon.",
+      "You wounded my wings. I've returned greater things than wings from the grave."
+    ],
+    "close": [
+      "Even my graveyard ran dry at the end. You fought magnificently.",
+      "I nearly needed someone to bring me back. Thank the light, I didn't."
+    ]
+  }
 }

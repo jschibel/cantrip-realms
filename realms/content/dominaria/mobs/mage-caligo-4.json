@@ -44,5 +44,20 @@
     ],
     "size": 1.2
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Every move you made, I had schemed three moves ahead of it. Ten, really.",
+      "I have outlived empires. You were a pleasant afternoon.",
+      "Enchantments are only plans made visible, and mine were flawless."
+    ],
+    "solid": [
+      "You unravelled a few of my plans. I always keep a few more.",
+      "A clever opponent! I shall add you to my collection of contingencies."
+    ],
+    "close": [
+      "You came within a thread of undoing me. I haven't felt that since the Ice Age thawed.",
+      "That was nearly the end of an eternal schemer. Imagine the embarrassment."
+    ]
+  }
 }

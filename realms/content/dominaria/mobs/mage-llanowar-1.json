@@ -40,5 +40,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The woods grew around you as you fought. You simply did not notice.",
+      "Not a twig broken. The forest thanks you for so gentle a visit."
+    ],
+    "solid": [
+      "You've trampled my ferns. They'll grow back, as will I.",
+      "The roots held, though you shook them. Peace, traveller."
+    ],
+    "close": [
+      "I had to call on every root in Llanowar to stand up to you.",
+      "Oh, my poor heart. Fetch me some willow bark, would you?"
+    ]
+  }
 }

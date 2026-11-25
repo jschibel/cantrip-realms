@@ -42,5 +42,19 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Eater of the Dead picks through your graveyard with long fingers, choosing a snack.*",
+      "*It smacks its lips and turns to your discards, ignoring the living entirely.*"
+    ],
+    "solid": [
+      "*The Eater of the Dead hunches over your graveyard, chewing slowly, its wounds forgotten.*",
+      "*Bloodied, it untaps with a hiss and drags your fallen creatures off for later.*"
+    ],
+    "close": [
+      "*The Eater of the Dead crouches over the last corpse it could find, gnawing to stay upright.*",
+      "*Starved and shaking, the thing crams your graveyard into its maw and flees.*"
+    ]
+  }
 }

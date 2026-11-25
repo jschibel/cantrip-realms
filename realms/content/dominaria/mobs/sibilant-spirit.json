@@ -39,5 +39,19 @@
     ],
     "size": 1.55
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Ssso many cards I let you draw, and ssstill you had nothing.",
+      "Whissspers and wind... you never even sssaw me."
+    ],
+    "solid": [
+      "Yesss... you ssstung me. Not enough, not enough.",
+      "Ssslowly you learned, but I was alwaysss quicker."
+    ],
+    "close": [
+      "Ssso close... my voice is barely a hiss now.",
+      "I nearly ssscattered to the four windsss. Well fought, ssstranger."
+    ]
+  }
 }

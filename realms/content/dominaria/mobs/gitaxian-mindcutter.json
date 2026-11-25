@@ -42,5 +42,20 @@
     ],
     "size": 1.3
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I was the finest mind of Tolaria. Now I am finer. You never had a thought I did not cut first.",
+      "Your spells were countered before you dreamed them. Compleation sharpens the mind beautifully.",
+      "No blood spilled. How tidy. I prefer my specimens intact."
+    ],
+    "solid": [
+      "You scratched the porcelain. It will be replaced with something better.",
+      "Interesting. You resisted. I will remember the precise shape of your resistance."
+    ],
+    "close": [
+      "You nearly cut deeper than I do. I want to open you up and see how.",
+      "Fascinating. My circuits are screaming. I have not felt pain since Phyrexia took my flesh."
+    ]
+  }
 }

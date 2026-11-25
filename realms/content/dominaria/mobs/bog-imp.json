@@ -34,5 +34,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Hee hee! Not a scratch! Imps one, lumbering bigfolk nothing!",
+      "Flap flap, zap zap, and you're done. You should see your face!"
+    ],
+    "solid": [
+      "Ow, my wing! Worth it, worth it, hee!",
+      "You swatted at me plenty. Swatted mostly air, though!"
+    ],
+    "close": [
+      "Eep! You nearly squashed me flat. Don't tell the other imps.",
+      "My tail's still smoking! That was too close, too close, hee... hee..."
+    ]
+  }
 }

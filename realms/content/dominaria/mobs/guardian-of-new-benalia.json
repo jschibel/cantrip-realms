@@ -42,5 +42,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "New Benalia stands, and so do I, without a scratch.",
+      "My shield held. My oath held. Your attack did not."
+    ],
+    "solid": [
+      "You tested the wall and found it sound. Take that lesson home.",
+      "A dent or two in the shield is the price of guarding New Benalia."
+    ],
+    "close": [
+      "I scried for every blow and still nearly fell. Remarkable.",
+      "One more hit and I'd have been hiding behind my shield. You fought well."
+    ]
+  }
 }

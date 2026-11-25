@@ -43,5 +43,20 @@
     ],
     "size": 1.65
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I founded a nation on ground harder than you. Rest easy; few would have done better.",
+      "Seven clans, seven blades, and not one of them was ever tested.",
+      "Benalia was built by hands like mine. You couldn't so much as shake them."
+    ],
+    "solid": [
+      "You struck the founder of Benalia and lived to tell it. That is no small thing.",
+      "My knees ache, and my children's children would laugh. Still, the day is mine."
+    ],
+    "close": [
+      "By the first stone of Benalia, you almost toppled me!",
+      "I waited ages to see this land once more, and you nearly sent me back into the past."
+    ]
+  }
 }

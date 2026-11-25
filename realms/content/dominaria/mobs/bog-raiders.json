@@ -36,5 +36,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Bog Raiders shamble back into the swamp, groaning in what might be contentment.*",
+      "*A rotting raider pockets your sideboard, forgets why, and drops it in the mud.*"
+    ],
+    "solid": [
+      "*Missing a few more pieces than before, the raiders slosh off into the reeds.*",
+      "*One raider picks up its own arm, regards it, and drags it back to the swamp with the rest.*"
+    ],
+    "close": [
+      "*The Bog Raiders sink into the muck, mostly in pieces, moaning low and long.*",
+      "*Barely holding together, the raiders stagger off, leaving a trail of loose bits behind them.*"
+    ]
+  }
 }

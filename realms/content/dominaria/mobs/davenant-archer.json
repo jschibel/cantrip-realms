@@ -37,5 +37,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Every arrow found its mark. Not one of yours found me.",
+      "Avenant's archers drill from dawn to dusk. It shows, doesn't it?"
+    ],
+    "solid": [
+      "You've a fair aim yourself. Mine was a hair fairer.",
+      "Nicked me twice. I'll be counting fletchings tonight."
+    ],
+    "close": [
+      "My quiver's empty and my hands are shaking. That was one shot from losing.",
+      "By the Serran choirs, you had me in your sights. Lucky my last arrow flew straight."
+    ]
+  }
 }

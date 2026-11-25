@@ -42,5 +42,19 @@
     ],
     "size": 1.75
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Tombstalker drifts back over the graves on silent wings, wholly unmarked.*",
+      "*A rasping hiss from the dark is all the Tombstalker leaves behind.*"
+    ],
+    "solid": [
+      "*The Tombstalker folds its ragged wings around fresh wounds and sinks among the tombstones.*",
+      "*Its tattered hide torn a little more, the Tombstalker croons over the field it claimed.*"
+    ],
+    "close": [
+      "*The Tombstalker clings to a crypt's roof, wheezing, its wings hanging in shreds.*",
+      "*It flaps away low and lopsided, casting one hollow glance back at you.*"
+    ]
+  }
 }

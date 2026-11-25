@@ -40,5 +40,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Nothing in the sky or on the ground gets past my bow.",
+      "I loosed, you fell. A tidy afternoon's work."
+    ],
+    "solid": [
+      "You brought fliers. I brought a longbow. Guess which one won.",
+      "My arm aches from the drawing, but the field is mine."
+    ],
+    "close": [
+      "My last arrow, my last breath, near enough. Well shot, stranger.",
+      "That was a narrow mark to hit. I'm glad I didn't miss it."
+    ]
+  }
 }

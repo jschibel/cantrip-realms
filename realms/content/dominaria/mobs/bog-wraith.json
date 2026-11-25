@@ -41,5 +41,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Bog Wraith drifts through your defences as if they were swamp mist, untouched.*",
+      "*A cold, hollow chuckle rises from the marsh as the wraith fades into the fog.*"
+    ],
+    "solid": [
+      "*The wraith's form wavers, torn in places, then gathers itself and glides off over the water.*",
+      "*A chill settles over the bog as the Bog Wraith sinks back beneath the surface.*"
+    ],
+    "close": [
+      "*The Bog Wraith is little more than a ragged shadow, flickering like a candle about to die.*",
+      "*The wraith lingers, thin as breath, then melts into the reeds with something like relief.*"
+    ]
+  }
 }

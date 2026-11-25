@@ -42,5 +42,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Tarmogoyf sniffs your graveyard, grows a little larger, and looks very pleased with itself.*",
+      "*The goyf chews thoughtfully on your discarded cards. Nothing has so much as touched it.*"
+    ],
+    "solid": [
+      "*Swollen with every card type you sent to the graveyard, the Tarmogoyf ambles off contentedly.*",
+      "*The goyf licks a fresh wound and grows a little bigger, just to make a point.*"
+    ],
+    "close": [
+      "*The Tarmogoyf shrinks back as if the graveyard nearly ran out on it, panting.*",
+      "*Bruised and wheezing, the goyf scuttles away, glancing nervously at your graveyard.*"
+    ]
+  }
 }

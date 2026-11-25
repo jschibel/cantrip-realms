@@ -44,5 +44,20 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Gears turning, cannons humming, and you never even dented the boiler. Lovely.",
+      "Ha! The foundry's guns are calibrated, and you're the proof.",
+      "Keld's furnaces don't stop for visitors. Step aside, the shift's changing."
+    ],
+    "solid": [
+      "You bent a few pipes, I'll grant you. Hand me that wrench.",
+      "Something's leaking and I'm not sure it's oil. Still, the foundry stands."
+    ],
+    "close": [
+      "Every machine's in pieces and I'm out of artifacts to sacrifice. Lucky last shot.",
+      "Steam everywhere, sparks everywhere... I can't hear a thing, but I think I won!"
+    ]
+  }
 }

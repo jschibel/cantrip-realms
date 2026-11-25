@@ -43,5 +43,19 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Negator's chained limbs rattle in rhythm. Not a link of it was broken.*",
+      "*It gnaws at its own flesh out of idle habit. Your attacks never added a mark of their own.*"
+    ],
+    "solid": [
+      "*The Negator wears its wounds like trophies, hooks and chains clinking as it turns away.*",
+      "*Every injury it took, it fed to its own hunger, and the hunger is still smiling.*"
+    ],
+    "close": [
+      "*The Negator sags in its chains, oil dripping from a dozen gashes, and somehow keeps grinning.*",
+      "*Its trampling bulk staggers. It fixes you with flat, hateful recognition before it withdraws.*"
+    ]
+  }
 }

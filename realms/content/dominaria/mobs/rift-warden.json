@@ -44,5 +44,19 @@
     ],
     "size": 1.3
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "You could not touch me. Nothing can. I am only a rumour that bites.",
+      "Your spells had nothing to target. I was never really there."
+    ],
+    "solid": [
+      "You struck at an illusion and hit me anyway. Remarkable, for a mortal.",
+      "Time folds strangely in the rift. You caught one of its creases."
+    ],
+    "close": [
+      "My edges are fraying. You very nearly unmade a dream.",
+      "I am flickering... for an illusion, that was far too real."
+    ]
+  }
 }

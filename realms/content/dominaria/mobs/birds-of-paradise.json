@@ -39,5 +39,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Birds of Paradise preen their rainbow feathers, utterly untroubled by the whole affair.*",
+      "*A chorus of bright, mocking trills follows you out of the clearing.*"
+    ],
+    "solid": [
+      "*The birds ruffle out a few singed plumes and resume their cheerful chirping.*",
+      "*One bird hops onto your shoulder, pecks your ear once, and flutters off in triumph.*"
+    ],
+    "close": [
+      "*The Birds of Paradise huddle together, feathers askew, chirping in exhausted little bursts.*",
+      "*A single bedraggled bird gives you a long, wide-eyed stare before fleeing into the canopy.*"
+    ]
+  }
 }

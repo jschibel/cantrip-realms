@@ -34,5 +34,20 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Hah! You fight like a Kjeldoran in summer: all armour and no fire.",
+      "Not one scratch on me. Go home and tell your hearth you met Balduvia.",
+      "The snows of Balduvia have hit me harder than you did."
+    ],
+    "solid": [
+      "Good blows, stranger. Not enough of them, but good.",
+      "You drew blood. We will sing a short song about you."
+    ],
+    "close": [
+      "By the ancestors, you nearly had me! Pass the mead, my hands are shaking.",
+      "Ha... ha! That was close enough to feel the frost spirits breathing down my neck."
+    ]
+  }
 }

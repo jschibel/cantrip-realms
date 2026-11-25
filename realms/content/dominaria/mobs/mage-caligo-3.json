@@ -40,5 +40,20 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I named your fate before you drew it. Nebuchadnezzar does not guess.",
+      "Your hand was a scroll, and I read every line of it.",
+      "Kings have trembled at less. You never even made me rise from my seat."
+    ],
+    "solid": [
+      "You hid a card or two from my sight. A fine trick, but not a winning one.",
+      "The stars favoured me, though you clouded them a little."
+    ],
+    "close": [
+      "My visions faltered and you nearly toppled me. That is a story worth the telling.",
+      "By the old empires, I named every card but the one that almost ended me."
+    ]
+  }
 }

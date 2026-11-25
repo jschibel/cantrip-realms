@@ -39,5 +39,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Boom! Boom! And none of it hit me for once!",
+      "Artillery is all about aim, and today I aimed perfect."
+    ],
+    "solid": [
+      "Every shot burns me too, but every shot burns you more!",
+      "Me singed, you smoked. Orcs call that winning."
+    ],
+    "close": [
+      "I blew myself up nearly as much as you! Still standing, though... mostly.",
+      "One more shot and I'd have gone up with it. Worth it!"
+    ]
+  }
 }

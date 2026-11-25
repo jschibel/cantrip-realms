@@ -42,5 +42,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "First arrow, last arrow, only arrow. You never got a shot off.",
+      "The canopy is our fortress, and you never once pierced it."
+    ],
+    "solid": [
+      "Good shooting from the ground, human. Better from the branches.",
+      "You drew blood from the treetops. Few do."
+    ],
+    "close": [
+      "Our quivers are empty and our bowstrings frayed. That was too close.",
+      "Gaea steadied our hands at the end. Without her, we'd have fallen."
+    ]
+  }
 }

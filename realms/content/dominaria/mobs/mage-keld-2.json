@@ -38,5 +38,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I have walked through the heart of the Flarg, and you were barely a campfire.",
+      "The pilgrimage continues. You were a short detour."
+    ],
+    "solid": [
+      "My robes are scorched in new places. Every pilgrim needs scars.",
+      "Your fire was honest. Mine was older."
+    ],
+    "close": [
+      "My flame nearly guttered out. I must pray at the first shrine I find.",
+      "That was a hard road, stranger. I'll walk the rest of it slowly."
+    ]
+  }
 }

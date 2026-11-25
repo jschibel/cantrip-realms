@@ -37,5 +37,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Cradle Guard settles its roots deeper, leaves rustling like quiet laughter.*",
+      "*A single acorn drops onto your head. The treefolk has not moved an inch.*"
+    ],
+    "solid": [
+      "*Bark split in a few places, the Cradle Guard creaks back to its post among the oaks.*",
+      "*Sap weeps from a fresh gash as the treefolk returns, unhurried, to its watch.*"
+    ],
+    "close": [
+      "*The Cradle Guard groans, branches sagging, and leans heavily on its neighbours.*",
+      "*Splintered and listing, the treefolk shivers its leaves in what can only be relief.*"
+    ]
+  }
 }

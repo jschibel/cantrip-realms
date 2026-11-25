@@ -37,5 +37,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Vodalian discipline holds the line, above the waves or below them.",
+      "Not a fin scratched. Report to your commander and tell her you lost."
+    ],
+    "solid": [
+      "You bruised the ranks, landwalker. The ranks held.",
+      "Decent tactics for a dry-lander. Ours were wetter, and better."
+    ],
+    "close": [
+      "By the deep empress, I nearly lost my post! Very well fought.",
+      "We are a few soldiers short, but the Vodalian line did not break. Just."
+    ]
+  }
 }

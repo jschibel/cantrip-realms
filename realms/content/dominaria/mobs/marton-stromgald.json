@@ -44,5 +44,19 @@
     ],
     "size": 1.3
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "When I charge, every blade beside me grows sharper. Yours never had a chance.",
+      "The Stromgald name was forged in snow and fire. You were neither."
+    ],
+    "solid": [
+      "You fought like a true northerner. Almost.",
+      "My shield arm aches. A good ache, the kind you earn."
+    ],
+    "close": [
+      "By ice and ember! I nearly lost my name to you today.",
+      "My men are scattered and my horse is limping. What a fight!"
+    ]
+  }
 }

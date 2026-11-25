@@ -44,5 +44,20 @@
     ],
     "size": 1.5
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I feast on artifacts and on hope. Today you served me both.",
+      "Your soul smells of oil already. You will make a fine Phyrexian.",
+      "The Portal stays shut to you, little thing. It always will."
+    ],
+    "solid": [
+      "You hurt me. Pain is Yawgmoth's gift, and I thank you for wrapping it.",
+      "I fed on my own machines to win. A small price for your defeat."
+    ],
+    "close": [
+      "My machines are devoured and my wings in tatters. You would make a magnificent offering.",
+      "Closer than any mortal has come to my door. Yawgmoth will want to meet you."
+    ]
+  }
 }

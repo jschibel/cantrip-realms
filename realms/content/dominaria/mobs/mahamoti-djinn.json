@@ -39,5 +39,19 @@
     ],
     "size": 1.55
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Five storms in a bottle could not have moved me, and you were far less than one.",
+      "I have granted wishes grander than your entire deck."
+    ],
+    "solid": [
+      "You raised a fine breeze, mortal. The djinn still stands.",
+      "A few cuts in a cloud. It will drift back together."
+    ],
+    "close": [
+      "Powers of the air, I nearly dispersed! A worthy duel.",
+      "Even a djinn's patience wears thin. Today it very nearly snapped."
+    ]
+  }
 }

@@ -42,5 +42,20 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I traded my halo for this. Watching you lose was worth the price.",
+      "You fought for nothing, and nothing is what you have left.",
+      "Not a feather out of place. How disappointing you are."
+    ],
+    "solid": [
+      "You wounded me. Good. I do so enjoy feeling something.",
+      "Every creature I sacrificed was a small prayer, and every prayer was answered."
+    ],
+    "close": [
+      "You nearly sent me back to the heavens. They would not have taken me.",
+      "My wings are torn and my servants spent. Leave before I reconsider mercy."
+    ]
+  }
 }

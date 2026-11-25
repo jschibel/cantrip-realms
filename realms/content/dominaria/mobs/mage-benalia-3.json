@@ -40,5 +40,20 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Neither Urza's way nor Mishra's, but a third one, and it never came near harm.",
+      "Tocasia taught us to take machines apart, not each other. I'm glad this ended gently.",
+      "Your artifacts were very interesting. I took notes before I destroyed them."
+    ],
+    "solid": [
+      "Our struggle cost us both a little. Knowledge is never cheap.",
+      "You fought well. I'd rather we had studied together, but here we are."
+    ],
+    "close": [
+      "That nearly broke me, and I've seen what brothers can do to each other.",
+      "Oh, that was too close. I have so many unfinished projects."
+    ]
+  }
 }

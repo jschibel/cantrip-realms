@@ -41,5 +41,19 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Obsianus Golem's obsidian surface reflects your face back at you. It is unmarked.*",
+      "*The golem turns slowly on its plinth and resumes its silent vigil.*"
+    ],
+    "solid": [
+      "*Chips of black glass fall from the Obsianus Golem as it grinds back to its post.*",
+      "*A fresh crack spiders across the golem's chest. It does not seem to notice.*"
+    ],
+    "close": [
+      "*The Obsianus Golem stands crazed with cracks from crown to heel, held together by sheer weight.*",
+      "*A low, grinding groan escapes the golem as it settles, splintered, into its alcove.*"
+    ]
+  }
 }

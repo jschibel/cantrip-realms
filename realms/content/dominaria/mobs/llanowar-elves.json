@@ -37,5 +37,19 @@
     ],
     "size": 0.9
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Mana in the morning, victory by noon. Such is Llanowar!",
+      "We were tapping for green before you'd played a land."
+    ],
+    "solid": [
+      "You trampled a few of us, but the forest always grows back.",
+      "That stung! Still, a little elf goes a long way."
+    ],
+    "close": [
+      "Oh, oh my. We are very glad that is over. Very glad.",
+      "We barely had a drop of mana left. Freyalise must have been watching over us."
+    ]
+  }
 }

@@ -34,5 +34,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Mesa Pegasus tosses its mane and trots a neat circle, clean as fresh snow.*",
+      "*With an almost smug whinny, the pegasus lifts off and vanishes over the mesa.*"
+    ],
+    "solid": [
+      "*The pegasus folds a scuffed wing, nickers once, and canters off over the plains.*",
+      "*Its band of fellow fliers swirls overhead as the Mesa Pegasus prances in victory.*"
+    ],
+    "close": [
+      "*The Mesa Pegasus stands trembling, wings drooping, before it limps up into the sky.*",
+      "*The pegasus noses at its torn feathers and gives you a long, wary look.*"
+    ]
+  }
 }

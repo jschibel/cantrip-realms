@@ -40,5 +40,19 @@
     ],
     "size": 1.3
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Strength is not in the fist but in the forest. You fought only me.",
+      "The troop watched you fall and did not even stop eating."
+    ],
+    "solid": [
+      "You struck true. The old ape feels it in his bones.",
+      "Every spell you cast fed my wisdom. Thank you, young one."
+    ],
+    "close": [
+      "Hrrm. Old bones, close call. The troop will groom me for days.",
+      "Rarely does a stranger push the elder so far. Go with the trees."
+    ]
+  }
 }

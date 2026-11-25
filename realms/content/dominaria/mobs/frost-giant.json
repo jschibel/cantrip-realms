@@ -42,5 +42,19 @@
     ],
     "size": 1.5
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Little one hit like snowflake. Frost Giant not even cold.",
+      "You fall down. I stay up. That is whole story."
+    ],
+    "solid": [
+      "Ow. You make big crack in ice. Still I win.",
+      "Good fight. Small fight, but good."
+    ],
+    "close": [
+      "Ugh... you almost topple mountain. Frost Giant need long nap.",
+      "Head spinning like blizzard. Frost Giant not like that feeling."
+    ]
+  }
 }

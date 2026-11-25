@@ -39,5 +39,20 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Every creature you lost made me stronger. You were most generous, dear guest.",
+      "Not a drop of my blood spilled, and the evening has only begun.",
+      "The Baron would be appalled. Fighting so poorly in the presence of a Sengir!"
+    ],
+    "solid": [
+      "You drew a little blood. Rude, but I understand the impulse.",
+      "A few wounds for a fine vintage of victory. I'll take that trade."
+    ],
+    "close": [
+      "Oh, my. You nearly ruined my best cloak. And my unlife.",
+      "I am parched, and you are still breathing. A night to remember."
+    ]
+  }
 }

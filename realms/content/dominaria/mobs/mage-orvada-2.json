@@ -40,5 +40,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Ping, ping, ping. You never got close enough to stop me.",
+      "One point at a time, and I never missed a single one."
+    ],
+    "solid": [
+      "You landed a blow or two. I landed twenty pings.",
+      "Little zaps add up. That's the whole secret, really."
+    ],
+    "close": [
+      "I was down to my last few pings! Don't tell the dean.",
+      "My fingers are numb from tapping. You nearly outlasted me."
+    ]
+  }
 }

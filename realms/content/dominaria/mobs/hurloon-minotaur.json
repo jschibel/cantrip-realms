@@ -34,5 +34,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The Hurloon horn has sounded, and you did not land a single blow.",
+      "My grandsire wrestled bears for sport. You were lighter work."
+    ],
+    "solid": [
+      "Good! You strike like a minotaur calf. Grow your horns, little one, and you'll be dangerous.",
+      "You bruised my hide. The Hurloon respect a bruise."
+    ],
+    "close": [
+      "Horns and hooves, that was close! The elders will snort at me for weeks.",
+      "I am still standing, though only just. You fight like a whole herd."
+    ]
+  }
 }

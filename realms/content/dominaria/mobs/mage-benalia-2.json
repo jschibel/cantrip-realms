@@ -40,5 +40,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I warded every one of my children, and you never touched a single one.",
+      "A rune of white, a rune of blue... whichever you aimed at, I was there first."
+    ],
+    "solid": [
+      "You hurt a few of my little ones. They will mend, and so will I.",
+      "Each rune I drew cost me a breath. You made me draw a great many."
+    ],
+    "close": [
+      "Oh, my old heart. I have not warded so fast since I was young.",
+      "Children, help me up. That stranger nearly undid every rune I know."
+    ]
+  }
 }

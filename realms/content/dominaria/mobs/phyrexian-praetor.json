@@ -39,5 +39,20 @@
     "size": 1.9
   },
   "boss": true,
-  "unique": "praetors-oil-reliquary"
+  "unique": "praetors-oil-reliquary",
+  "lines": {
+    "flawless": [
+      "Every card you drew cost you life, and you drew so very eagerly.",
+      "The Apocalypse is not a day. It is a process, and you have begun it.",
+      "Unblemished. Phyrexia did not even need to try. Lie still while I admire my work."
+    ],
+    "solid": [
+      "You scored my carapace. Every wound is only an improvement waiting to be made.",
+      "Your resistance has been noted, measured and catalogued for compleation."
+    ],
+    "close": [
+      "You came close to the throne. That makes you very interesting to Phyrexia.",
+      "So much fight in such fragile flesh. I will see that it is preserved... properly."
+    ]
+  }
 }

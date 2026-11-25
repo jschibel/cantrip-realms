@@ -43,5 +43,19 @@
     ],
     "size": 1.55
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The more who stand before me, the harder I strike. You stood alone, and fell alone.",
+      "Elsdragon's blade sings, and you barely heard its first note."
+    ],
+    "solid": [
+      "A fine fight, friend! Give it a decade in the woods and you'll make a fair warrior.",
+      "You drew elven blood, and few can claim that."
+    ],
+    "close": [
+      "Ha! I nearly met my ancestors. They'll have to wait for another tale.",
+      "The forest held its breath for that one, and so did I."
+    ]
+  }
 }

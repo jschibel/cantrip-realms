@@ -39,5 +39,19 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Karplusan Yeti beats its chest and hurls a snowball after you for good measure.*",
+      "*The yeti picks one of your creatures off the field, inspects it, and flicks it into a snowdrift.*"
+    ],
+    "solid": [
+      "*Matted with blood and ice, the Karplusan Yeti roars at the peaks and lumbers home.*",
+      "*The yeti packs snow onto a fresh wound and grunts in contentment.*"
+    ],
+    "close": [
+      "*The Karplusan Yeti drops to all fours, breath steaming in ragged clouds, glaring at you.*",
+      "*Battered and swaying, the yeti retreats up the mountain, glancing back every few steps.*"
+    ]
+  }
 }

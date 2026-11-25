@@ -41,5 +41,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "My strength is my army's strength, and my army never broke a sweat.",
+      "Keld takes what it wants. Today it wanted your pride, and took it whole."
+    ],
+    "solid": [
+      "Hah! Good! A Keldon warlord is measured by the scars he collects.",
+      "You cut down some of my warriors. The rest crushed you. That is war."
+    ],
+    "close": [
+      "Most of my warband is gone and my sword arm is numb. Glorious!",
+      "One warrior left at my side and still I won. Sing of that, outsider."
+    ]
+  }
 }

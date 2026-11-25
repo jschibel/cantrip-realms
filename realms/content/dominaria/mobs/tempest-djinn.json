@@ -39,5 +39,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Every island you saw was a gust in my sails. You never found the shore.",
+      "I am the storm over Orvada's isles. You were a ripple."
+    ],
+    "solid": [
+      "You scattered some of my clouds. The storm still broke over you.",
+      "Thunder rolls twice; you only heard the first."
+    ],
+    "close": [
+      "My winds are spent. You nearly calmed a tempest!",
+      "I am more drizzle than storm now. That was close, mortal."
+    ]
+  }
 }

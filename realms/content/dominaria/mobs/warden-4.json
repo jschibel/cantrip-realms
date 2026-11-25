@@ -43,5 +43,19 @@
     ],
     "size": 1.75
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Cityscape Leveler grinds over your side of the field, flattening it into neat rubble.*",
+      "*The Leveler's furnace roars once, then settles back into a contented idle.*"
+    ],
+    "solid": [
+      "*Dented plates clanging, the Cityscape Leveler rolls back into its bay, trailing smoke.*",
+      "*The Leveler tears a broken permanent off your board and adds it to its scrap heap.*"
+    ],
+    "close": [
+      "*The Cityscape Leveler shudders to a stop, one tread broken, its engines coughing black smoke.*",
+      "*A ragged warning whistle sounds deep inside the Leveler as it limps back to its moorings.*"
+    ]
+  }
 }

@@ -41,5 +41,20 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Malice is an edge that never dulls, and you never found its hilt.",
+      "Hope and light make poor shields. You learned that slowly.",
+      "Not a drop of my blood spilled, and plenty of yours. As it should be."
+    ],
+    "solid": [
+      "You wounded me. I'll savour the grudge longer than the victory.",
+      "Good. Now you know how cold a black blade feels."
+    ],
+    "close": [
+      "That was close enough to taste. I hate you for it, and I respect you for it.",
+      "My armour is cracked and my patience gone. Leave while I still feel generous."
+    ]
+  }
 }

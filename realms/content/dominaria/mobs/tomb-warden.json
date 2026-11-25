@@ -42,5 +42,19 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "My dead walk through any swamp and rise from any blow. You never stood a chance.",
+      "Not a bone of mine broken. My servants did all the work, as servants should."
+    ],
+    "solid": [
+      "You put a few of my zombies down. They got back up. They always do.",
+      "The crypts are restless tonight, and you gave them good reason to be."
+    ],
+    "close": [
+      "Every corpse I command is in pieces. You nearly emptied the Vess crypts.",
+      "I came close to joining my own legions. They would not have obeyed me then."
+    ]
+  }
 }

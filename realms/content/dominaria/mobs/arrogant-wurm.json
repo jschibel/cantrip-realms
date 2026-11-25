@@ -41,5 +41,20 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Arrogant Wurm yawns, showing rows of teeth, and does not deign to look at you twice.*",
+      "*The wurm coils up on top of your scattered deck, as if it had been its bed all along.*",
+      "*With a snort of pure disdain, the wurm turns its back on you before your last spell resolves.*"
+    ],
+    "solid": [
+      "*The wurm flicks a few scraps of your spells off its hide and slithers off, chin held high.*",
+      "*Bruised but insufferable, the Arrogant Wurm preens in the sunlight over its victory.*"
+    ],
+    "close": [
+      "*The Arrogant Wurm pretends it is not panting. It is very much panting.*",
+      "*The wurm limps into the brush, glancing back to make sure nobody saw how near a thing that was.*"
+    ]
+  }
 }

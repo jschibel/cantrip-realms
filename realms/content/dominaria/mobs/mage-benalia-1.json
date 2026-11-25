@@ -39,5 +39,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "We kept the faith, and the faith kept us whole.",
+      "Not a wound among us. Prayer is a fine shield, traveller."
+    ],
+    "solid": [
+      "We are bruised but unbowed. The faith asks no more of us.",
+      "You tested our devotion, and it passed."
+    ],
+    "close": [
+      "Blessed be... we very nearly joined the saints just now.",
+      "Our hymns were shaking at the end. Yours was a mighty assault."
+    ]
+  }
 }

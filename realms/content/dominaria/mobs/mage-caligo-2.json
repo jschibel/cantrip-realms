@@ -38,5 +38,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Thrull did good! Thrull did very good! Master will feed Thrull extra slime.",
+      "Little thrull, big spells. Big spells win."
+    ],
+    "solid": [
+      "Ow. Ow. Thrull is hurt but Thrull is winning. Winning is good.",
+      "You cast, thrull counters. Thrull counts that as a victory."
+    ],
+    "close": [
+      "Thrull nearly broke! Masters do not fix broken thrulls...",
+      "Thrull shaking. Thrull very, very glad that is finished."
+    ]
+  }
 }

@@ -41,5 +41,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I remember Argoth before the sky fell. You are no great storm.",
+      "Two lands awake and two more waking. You could not keep pace."
+    ],
+    "solid": [
+      "You wounded an old elf. The young ones will be scandalised.",
+      "Argoth's memory runs deep. Yours will fade, but this lesson won't."
+    ],
+    "close": [
+      "I lived through the end of a continent, and you came close to ending me.",
+      "Even Titania's forest would have trembled at that. Well fought."
+    ]
+  }
 }

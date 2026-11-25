@@ -39,5 +39,20 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Only walls and wings can stop us, and you brought neither.",
+      "We rode through your lines and back before the dust settled.",
+      "The forest roads are ours. You never saw us coming."
+    ],
+    "solid": [
+      "You landed a few blows on our mounts. They will forgive you. Eventually.",
+      "A good chase, outsider. The Llanowar trails favour the swift."
+    ],
+    "close": [
+      "Whoa, steady! Our elk have never run so hard for so little ground.",
+      "You nearly unhorsed us all. The woods will hear of you."
+    ]
+  }
 }

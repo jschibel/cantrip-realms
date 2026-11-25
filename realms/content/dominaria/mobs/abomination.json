@@ -41,5 +41,20 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Abomination gurgles something like a laugh and slithers back into the bog, not a scratch on it.*",
+      "*Its many mouths smack wetly in unison. It did not even need to hurry.*",
+      "*The Abomination wraps a tendril round your last card, sniffs it, and drops it in the muck.*"
+    ],
+    "solid": [
+      "*The Abomination licks its wounds with three different tongues and lurches off, satisfied.*",
+      "*Oozing from a few fresh cuts, the Abomination burbles contentedly over its prize.*"
+    ],
+    "close": [
+      "*The Abomination sags into the mire, every mouth panting, and eyes you warily before it oozes away.*",
+      "*Torn and leaking, the thing shudders, then lets out a wet, relieved gurgle.*"
+    ]
+  }
 }

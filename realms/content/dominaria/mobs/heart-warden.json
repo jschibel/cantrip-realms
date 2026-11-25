@@ -44,5 +44,19 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The heart of the elfhames beats on undisturbed. You never even reached its roots.",
+      "I have guarded this hollow since before your grandmother's grandmother. You changed nothing."
+    ],
+    "solid": [
+      "Bark and bone, you have scarred me. The hollow keeps its secrets yet.",
+      "You fought like a storm through the canopy. Storms pass."
+    ],
+    "close": [
+      "The hollow shook and I nearly fell with it. Few have pressed me so.",
+      "My strength is spent, but the heart of the forest is safe. Barely."
+    ]
+  }
 }

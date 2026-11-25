@@ -39,5 +39,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "As the textbooks predicted: a decisive victory with no losses whatsoever.",
+      "Your opening was lesson three. My answer was lesson four."
+    ],
+    "solid": [
+      "Fascinating! You took some of my life. I'll put that in a footnote.",
+      "A respectable showing. I'd grade it a solid C-plus."
+    ],
+    "close": [
+      "I may need to revise my thesis. You nearly disproved it.",
+      "That was not on the syllabus. I'm going to go and lie down."
+    ]
+  }
 }

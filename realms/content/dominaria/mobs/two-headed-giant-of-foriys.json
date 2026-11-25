@@ -39,5 +39,19 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Left head says easy. Right head says too easy. Both heads agree: not a scratch.",
+      "Two heads, one fight, zero worries. Who's next?"
+    ],
+    "solid": [
+      "Right head got bruised. Left head says it deserved it.",
+      "We blocked twice and won once. Left head counts that as winning twice."
+    ],
+    "close": [
+      "Right head wants a nap. Left head wants a bigger nap. That was close.",
+      "We almost lost both heads at once! Left head is never planning anything ever."
+    ]
+  }
 }

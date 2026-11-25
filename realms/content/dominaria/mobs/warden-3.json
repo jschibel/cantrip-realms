@@ -43,5 +43,19 @@
     ],
     "size": 1.5
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Triskelion's three arms whirl in a neat flourish, every counter still loaded.*",
+      "*Click, click, click: the Triskelion resets each limb with mechanical satisfaction.*"
+    ],
+    "solid": [
+      "*The Triskelion fires its last counter at a passing moth, just to be thorough.*",
+      "*Spent counters smoking, the Triskelion grinds its three arms back into rest position.*"
+    ],
+    "close": [
+      "*The Triskelion's last arm twitches, empty of counters, as its core whines down to a hum.*",
+      "*One arm hangs limp, another sparks. The Triskelion holds its post anyway, trembling.*"
+    ]
+  }
 }

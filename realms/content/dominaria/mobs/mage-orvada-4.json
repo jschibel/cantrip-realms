@@ -42,5 +42,20 @@
     ],
     "size": 1.2
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Omnipotent is not a title. It is a description. Behold its accuracy.",
+      "I drew three cards a turn while you drew breath. It was never close.",
+      "Bow, if you like. Most do."
+    ],
+    "solid": [
+      "You actually hurt me. I shall inscribe your name somewhere minor.",
+      "Even omnipotence has its scratches. I've already forgotten mine."
+    ],
+    "close": [
+      "That was... adequate. More than adequate. I may have to sit down.",
+      "Do not speak of how near that was. Omnipotence has a reputation."
+    ]
+  }
 }

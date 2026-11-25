@@ -37,5 +37,19 @@
     ],
     "size": 1.3
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Durkwood Boars snuffle through your fallen cards, rooting for anything edible.*",
+      "*With a pleased grunt, the lead boar trots off into the Durkwood, tusks clean.*"
+    ],
+    "solid": [
+      "*The boars squeal, shake off a few scrapes, and stampede into the undergrowth.*",
+      "*One boar flops into a mud wallow, wounds and all, grunting happily.*"
+    ],
+    "close": [
+      "*The boars stand panting, flanks bleeding, then bolt for the trees before you can rise.*",
+      "*The battered herd gives a low, uncertain snort and backs away from you slowly.*"
+    ]
+  }
 }

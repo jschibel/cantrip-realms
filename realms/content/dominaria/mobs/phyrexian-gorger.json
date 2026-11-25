@@ -43,5 +43,20 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Phyrexian Gorger tastes the air where you stood. It is already digesting your plans.*",
+      "*Its oily maw unhinges in something like a smile, and it begins to eat your discards.*",
+      "*The Gorger's sinews twitch in contentment. Nothing of it was harmed; nothing of yours was spared.*"
+    ],
+    "solid": [
+      "*The Gorger stitches its torn flesh with its own sinews, humming a wet, mechanical hum.*",
+      "*Glistening oil seeps from its wounds and crawls back inside it, as if remembering the way.*"
+    ],
+    "close": [
+      "*The Gorger shudders, half its plating peeled away, and rasps a hungry, rattling breath at you.*",
+      "*Barely whole, it drags itself back toward the Portal, watching you with far too many eyes.*"
+    ]
+  }
 }

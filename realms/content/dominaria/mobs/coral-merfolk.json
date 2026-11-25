@@ -34,5 +34,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The tide turns where it pleases, and today it pleased me. Not a drop of me spilled.",
+      "You fought like a fish on the sand. Go and dry off, landwalker."
+    ],
+    "solid": [
+      "You splashed me a few times. The reef has known rougher waves.",
+      "A good current in that deck of yours. Mine ran deeper."
+    ],
+    "close": [
+      "Saltwater and stars, I was nearly washed out to sea!",
+      "My gills are still flapping. I'm staying near the reef for a while."
+    ]
+  }
 }

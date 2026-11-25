@@ -42,5 +42,20 @@
     ],
     "size": 1.55
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I fought in the Cabal's pits for sport. You would not have lasted one bout.",
+      "Haste, fire and wings. You barely had time to see me arrive.",
+      "Not a scale out of place. The pit crowds would have howled for a better foe."
+    ],
+    "solid": [
+      "You cut my wing. The pit dogs never managed that. I am almost proud of you.",
+      "Blood on my blades and fire in my throat. A good day."
+    ],
+    "close": [
+      "Ha! You made a dragon sweat. Few pit fighters ever did.",
+      "My scales are cracked and my fire is low. That was a fight worth the roaring."
+    ]
+  }
 }

@@ -41,5 +41,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Pegasus Charger rears, wings spread wide, and thunders off without a mark on it.*",
+      "*The charger stamps once on your fallen cards, snorts, and takes to the sky.*"
+    ],
+    "solid": [
+      "*The Pegasus Charger shakes out a bloodied wing and wheels away on the wind.*",
+      "*Head high despite its scrapes, the charger circles once in triumph.*"
+    ],
+    "close": [
+      "*The Pegasus Charger lands hard, legs splayed, sides heaving.*",
+      "*The charger stares at you, ears flat, and takes off on a shaky flight.*"
+    ]
+  }
 }

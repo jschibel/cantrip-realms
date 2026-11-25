@@ -37,5 +37,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Soaring Drake loops lazily overhead, scales glinting, then swoops away untouched.*",
+      "*A taunting screech rings out as the drake rides an updraft out of sight.*"
+    ],
+    "solid": [
+      "*The drake shakes a nick from its wing and spirals up into the clouds with a happy cry.*",
+      "*The Soaring Drake lands on a crag to lick its wounds, tail lashing in triumph.*"
+    ],
+    "close": [
+      "*The Soaring Drake flutters unsteadily to the ground, panting, before a wobbly takeoff.*",
+      "*Its wing torn, the drake glides away low over the water, clearly relieved.*"
+    ]
+  }
 }

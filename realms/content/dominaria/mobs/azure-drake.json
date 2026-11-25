@@ -37,5 +37,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Azure Drake circles once overhead, unhurried, its scales unmarked by a single blow.*",
+      "*With a lazy flick of its tail the drake sends your last card tumbling away on the sea breeze.*"
+    ],
+    "solid": [
+      "*The Azure Drake shakes a few loose scales from its wing and climbs back into the clouds.*",
+      "*The drake nurses a singed wingtip, then gives a satisfied, rumbling hiss.*"
+    ],
+    "close": [
+      "*The Azure Drake lands hard, wings trembling, and studies you with new respect before it flies.*",
+      "*Breathing raggedly, the drake wobbles into the air, plainly relieved to be leaving in one piece.*"
+    ]
+  }
 }

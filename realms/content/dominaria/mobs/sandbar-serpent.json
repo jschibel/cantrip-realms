@@ -37,5 +37,19 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Sandbar Serpent slides back beneath the shallows, scales gleaming, utterly unhurt.*",
+      "*A lazy coil of the serpent knocks your last creature off the sandbar and into the surf.*"
+    ],
+    "solid": [
+      "*The serpent licks a scratch along its flank and sinks below the waves with a hiss.*",
+      "*Trailing a little blood in the water, the Sandbar Serpent curls up contentedly in the sun.*"
+    ],
+    "close": [
+      "*The serpent flops onto the sand, gasping, and stares at you before slithering into the sea.*",
+      "*Its coils trembling, the Sandbar Serpent lets the tide carry it away.*"
+    ]
+  }
 }

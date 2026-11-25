@@ -32,3 +32,29 @@ describe("a mob's name in a sentence", () => {
     expect(`You defeated ${theMob(mobInfo("phyrexian-praetor"), false)}.`).toBe("You defeated the Phyrexian Praetor.");
   });
 });
+
+// What a mob says when it beats the player (interfaces.md, "Mobs"): a line for each way it won - without losing a point
+// of life, having taken some damage, or with a quarter of its life or less - the same line wherever the duel was, so no
+// line speaks of an offer the world may not make there.
+describe("a mob's lines when it wins", () => {
+  it("has two or three short lines of each kind, none of them about gold or another fight", () => {
+    const wrong: string[] = [];
+    const files = readdirSync(mobs).filter((f) => f.endsWith(".json"));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const mob = JSON.parse(readFileSync(join(mobs, file), "utf8")) as { id: string; lines?: Record<string, unknown> };
+      for (const kind of ["flawless", "solid", "close"]) {
+        const lines = mob.lines?.[kind];
+        if (!Array.isArray(lines) || lines.length < 2 || lines.length > 3) {
+          wrong.push(`${mob.id}: lines.${kind} should be two or three lines`);
+          continue;
+        }
+        for (const line of lines as unknown[]) {
+          if (typeof line !== "string" || line.trim() === "" || line.length > 160) wrong.push(`${mob.id}: lines.${kind} has ${JSON.stringify(line)}, not a line of 1-160 characters`);
+          else if (/gold|pay|coin|again|rematch/i.test(line)) wrong.push(`${mob.id}: lines.${kind} speaks of an offer: ${line}`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+  });
+});

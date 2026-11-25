@@ -41,5 +41,20 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Atlantis does not deign to bleed. Kneel before the tide, little landling.",
+      "My merfolk swam through your defences as if they were open water.",
+      "Every merfolk grows mighty in my presence. You merely grew tired."
+    ],
+    "solid": [
+      "You troubled the waters, I grant you. The depths remain mine.",
+      "A few of my court will need tending. The crown is untouched."
+    ],
+    "close": [
+      "By the drowned kings, you nearly swept away my throne!",
+      "My people are scattered and my crown askew. Leave the shallows, landling."
+    ]
+  }
 }

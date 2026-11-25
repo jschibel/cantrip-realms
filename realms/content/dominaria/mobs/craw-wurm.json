@@ -40,5 +40,19 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Craw Wurm burrows back into the loam with a contented rumble, not a mark on its hide.*",
+      "*The wurm swallows a mouthful of earth, burps, and forgets you were ever there.*"
+    ],
+    "solid": [
+      "*The Craw Wurm shrugs off its wounds and churns slowly back underground.*",
+      "*Scored and dented, the wurm lets out a deep gurgle of satisfaction.*"
+    ],
+    "close": [
+      "*The Craw Wurm collapses in a heap, sides heaving, before it drags itself into its tunnel.*",
+      "*The wurm stares at you a long moment, then sinks into the earth as fast as a wurm can.*"
+    ]
+  }
 }

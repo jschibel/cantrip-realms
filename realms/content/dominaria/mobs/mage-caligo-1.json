@@ -37,5 +37,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The Cabal welcomes all, even the hopeless. Especially the hopeless.",
+      "Praise the Cabal! You barely laid a finger on me."
+    ],
+    "solid": [
+      "Suffering is a sacrament, and you gave me some. How generous.",
+      "You bled me a little. The Patriarch will be pleased I bled for him."
+    ],
+    "close": [
+      "Oh, oh! The Cabal nearly gained a martyr today. Me!",
+      "I preached to a tougher crowd than I expected. Much tougher."
+    ]
+  }
 }

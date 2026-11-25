@@ -41,5 +41,20 @@
     ],
     "size": 1.2
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I named your best card before you drew it. Your whole plan was an open book to me.",
+      "Peace is kept by those who know what is coming. I knew everything.",
+      "Order prevailed without a single wound. As it is written."
+    ],
+    "solid": [
+      "You found the cards I didn't name. A small mercy for you, and a small lesson for me.",
+      "The peace held, though you strained it. Benalia's law endures."
+    ],
+    "close": [
+      "I named the wrong card, and you very nearly made me regret it.",
+      "My vision blurred near the end. Thank the Church I saw just enough."
+    ]
+  }
 }

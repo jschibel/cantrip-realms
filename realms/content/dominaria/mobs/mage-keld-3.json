@@ -42,5 +42,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Discard your hand and draw seven... oh, you've nothing left to draw for. Pity.",
+      "The dragons taught me their spells, and I taught you humility."
+    ],
+    "solid": [
+      "You scorched a scale or two. Even dragons molt.",
+      "Fresh hands, fresh fire, and the field is mine. A good rhythm."
+    ],
+    "close": [
+      "My wings are scorched and my spellbook smouldering. Magnificent duel!",
+      "That was a hair from the end. Even dragons respect a near miss."
+    ]
+  }
 }

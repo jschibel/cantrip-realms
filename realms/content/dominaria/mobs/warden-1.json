@@ -41,5 +41,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Yotian Soldier clicks back to its post, gears ticking evenly. Not a rivet is out of place.*",
+      "*A brass plate on its chest flips over to read DUTY. It turns smartly away.*"
+    ],
+    "solid": [
+      "*The Yotian Soldier oils a dented joint with a whirr and resumes its watch, vigilant as ever.*",
+      "*Clanking a little worse than before, the construct marches back to its station.*"
+    ],
+    "close": [
+      "*The Yotian Soldier's gears stutter and slip. It stands its ground, swaying, steam leaking from its seams.*",
+      "*Barely holding together, the soldier ratchets back into guard position, one bolt at a time.*"
+    ]
+  }
 }

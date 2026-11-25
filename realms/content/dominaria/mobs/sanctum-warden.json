@@ -42,5 +42,19 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The sanctum's doors remain shut, and your sword never scratched my wings.",
+      "Vigilance is not weariness ignored. It is weariness never felt."
+    ],
+    "solid": [
+      "Your blades found me. The sanctum will heal what you have harmed.",
+      "I bear a few new wounds for this holy place, and I bear them gladly."
+    ],
+    "close": [
+      "The sanctum shook, and I nearly fell before its altar. You fight like a saint gone astray.",
+      "My halo is dim and my wings heavy. You came nearer than any intruder before you."
+    ]
+  }
 }

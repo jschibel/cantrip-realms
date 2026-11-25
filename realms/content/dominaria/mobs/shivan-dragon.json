@@ -41,5 +41,19 @@
     ],
     "size": 1.55
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Shivan Dragon pumps its fire twice for show, then flies off without looking back.*",
+      "*A gout of flame scorches the ground beside you. The dragon is unharmed, and plainly amused.*"
+    ],
+    "solid": [
+      "*The Shivan Dragon roars in triumph, smoke curling from a cut along its jaw.*",
+      "*Scorched and scraped, the dragon beats its wings and climbs toward the Shivan peaks.*"
+    ],
+    "close": [
+      "*The Shivan Dragon crouches low, flames guttering in its throat, eyeing you with grudging respect.*",
+      "*Wounded and wheezing smoke, the dragon lifts off heavily and limps into the sky.*"
+    ]
+  }
 }

@@ -41,5 +41,19 @@
     ],
     "size": 1.45
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I struck and stood guard in the same breath. You never found an opening.",
+      "Serra's light is not only gentle. Sometimes it is overwhelming."
+    ],
+    "solid": [
+      "Your blows were true. Mine were truer.",
+      "My wings ache, but the realm is safe. That is enough."
+    ],
+    "close": [
+      "That was the closest I have come to falling since Serra's realm crumbled.",
+      "Bless you, stranger, for a fight that nearly sent me home."
+    ]
+  }
 }

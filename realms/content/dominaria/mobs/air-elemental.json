@@ -42,5 +42,19 @@
     ],
     "size": 1.4
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Air Elemental swirls past you with a whistle, scattering your cards like dry leaves.*",
+      "*A gust lifts your cloak and drops it over your face. The elemental never so much as flickered.*"
+    ],
+    "solid": [
+      "*The Air Elemental howls through a ragged gap in itself, then knits the wind back together.*",
+      "*Gusting unevenly, the elemental tosses your discard pile skyward in triumph.*"
+    ],
+    "close": [
+      "*The Air Elemental is barely a breeze now, sighing round you before it drifts off to gather itself.*",
+      "*A thin, exhausted draft tugs at your sleeve, almost respectfully, and then is gone.*"
+    ]
+  }
 }

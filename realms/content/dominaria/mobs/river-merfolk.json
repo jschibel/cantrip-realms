@@ -41,5 +41,19 @@
     ],
     "size": 1.1
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "The river runs where it will, and today it ran right over you.",
+      "We slipped through the mountain passes and you never even felt the current."
+    ],
+    "solid": [
+      "You dammed us for a while. Rivers always find a way.",
+      "A few stones in the stream. The current carries on."
+    ],
+    "close": [
+      "You nearly dried us out! Someone bring water for my gills.",
+      "That was a flood season's worth of fighting. Whew."
+    ]
+  }
 }

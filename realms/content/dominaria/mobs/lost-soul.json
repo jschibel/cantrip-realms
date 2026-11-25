@@ -41,5 +41,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "I wander the Morass forever, and you could not even slow me down.",
+      "Join us... no? Ah, but you looked so lost already."
+    ],
+    "solid": [
+      "You struck my mist, and it remembered pain... how quaint.",
+      "The marsh keeps what it takes. Today it took a little of you."
+    ],
+    "close": [
+      "You almost set me free... almost... do not do that, I like it here.",
+      "So close to rest... so close... and yet I linger. Thank you, I think."
+    ]
+  }
 }

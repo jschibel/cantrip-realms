@@ -41,5 +41,20 @@
   },
   "boss": true,
   "unlocks": "R",
-  "unique": "garnas-bloodfists"
+  "unique": "garnas-bloodfists",
+  "lines": {
+    "flawless": [
+      "Keld does not bleed for weaklings. Today it did not bleed at all.",
+      "My warriors fell gladly, and every death brought you lower. That is the way of Keld.",
+      "The fires of the Flarg have scorched me worse than your whole deck did."
+    ],
+    "solid": [
+      "You made me bleed. Good! A Keldon remembers every wound with joy.",
+      "You fought with half a heart. I could feel you holding back, and Keld felt it too."
+    ],
+    "close": [
+      "Hah! My fist is broken and my heart is pounding. That was a true Keldon battle!",
+      "I saw the Necropolis open its gates for me. Not today, stranger. Not today."
+    ]
+  }
 }

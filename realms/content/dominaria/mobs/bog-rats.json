@@ -34,5 +34,19 @@
     ],
     "size": 0.9
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Bog Rats chitter and scatter, each one dragging off a scrap of your torn spells.*",
+      "*A hundred tiny eyes gleam at you from the reeds, smug and unbitten.*"
+    ],
+    "solid": [
+      "*A few rats limp, a few rats squeak, and the whole pack squeals in triumph.*",
+      "*The rats regroup with a chorus of indignant squeaks and swarm off into the bog.*"
+    ],
+    "close": [
+      "*Only a handful of bedraggled rats remain, huddled and twitching, eyes wide.*",
+      "*The surviving rats bolt for the reeds before you can count how few of them are left.*"
+    ]
+  }
 }

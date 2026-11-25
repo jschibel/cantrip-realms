@@ -43,5 +43,20 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Every wizard of mine arrived twice, and you couldn't handle even one of them.",
+      "Iteration is the soul of learning. Repeat after me: I lost.",
+      "Spotless. I may use this duel as an example in my lectures."
+    ],
+    "solid": [
+      "You disrupted my experiment. I shall run it twice to be certain.",
+      "A few blots on the record, but the results are conclusive."
+    ],
+    "close": [
+      "Goodness. The faculty would have revoked my tenure if I'd lost that.",
+      "That nearly went the other way, twice over. Iteration has its risks."
+    ]
+  }
 }

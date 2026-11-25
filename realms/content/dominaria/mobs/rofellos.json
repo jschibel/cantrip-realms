@@ -46,5 +46,20 @@
   },
   "boss": true,
   "unlocks": "G",
-  "unique": "rofellos-emissary-torc"
+  "unique": "rofellos-emissary-torc",
+  "lines": {
+    "flawless": [
+      "Every forest answered me, and you could not hold back the green.",
+      "Yavimaya taught me the forests' voice. You never heard what they were saying.",
+      "Not a leaf of me touched. Go, and walk more gently under the trees."
+    ],
+    "solid": [
+      "You wounded me, but every root in Llanowar lent me its strength.",
+      "Multani himself would have admired that fight. Barely."
+    ],
+    "close": [
+      "The forests are quiet now, as if they held their breath. So did I.",
+      "That was too near, stranger. Even my trees tremble at you."
+    ]
+  }
 }

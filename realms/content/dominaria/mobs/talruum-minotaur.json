@@ -37,5 +37,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Talruum charge first and think later. Today, no thinking needed!",
+      "Ha! You were still shuffling when my horns arrived."
+    ],
+    "solid": [
+      "You got a few hits in. Talruum hides are thick for a reason.",
+      "Bloody nose, bloody horns, but the field is mine!"
+    ],
+    "close": [
+      "Hrrnh! One more hit and they'd be carving my horns into drinking cups.",
+      "By the herd, that was close. My legs are still shaking."
+    ]
+  }
 }

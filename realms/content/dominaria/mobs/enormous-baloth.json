@@ -39,5 +39,19 @@
     ],
     "size": 1.65
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Enormous Baloth sits down on your side of the field. That seems to settle things.*",
+      "*The ground shakes as the baloth wanders off, not having noticed it was in a fight.*"
+    ],
+    "solid": [
+      "*The Enormous Baloth bellows, scattering birds from the trees, and stomps off with a limp.*",
+      "*The baloth licks a scrape on its foreleg, then nudges you over with its nose, almost fondly.*"
+    ],
+    "close": [
+      "*The Enormous Baloth slumps onto a boulder, sides heaving like a forge's bellows.*",
+      "*The baloth lets out a long, shuddering groan and stares at you as if seeing you for the first time.*"
+    ]
+  }
 }

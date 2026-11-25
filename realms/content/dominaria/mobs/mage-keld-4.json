@@ -39,5 +39,20 @@
     ],
     "size": 1.2
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Under my moon every land is a mountain, and every mountain is mine.",
+      "Your fancy lands turned to rock, and so did your hopes.",
+      "The red moon rose, and you never saw daylight."
+    ],
+    "solid": [
+      "You found mana where I left none. Clever. Not enough.",
+      "Moonlight has sharp edges. You found a few of them."
+    ],
+    "close": [
+      "The moon nearly set on me. You fought by stubborn starlight.",
+      "I have never been so glad of a mountain under my feet."
+    ]
+  }
 }

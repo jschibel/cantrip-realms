@@ -37,5 +37,19 @@
     ],
     "size": 1.25
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Moor Fiend sinks into the swamp with a bubbling chuckle, not a scratch on its hide.*",
+      "*Something in the bog slurps happily. The Moor Fiend was never really above the water.*"
+    ],
+    "solid": [
+      "*The Moor Fiend drags its wounds into the fen, leaving a slick of black ooze behind.*",
+      "*Mud-caked and bleeding, the fiend gives a low, satisfied croak.*"
+    ],
+    "close": [
+      "*The Moor Fiend crawls into the reeds, heaving and half-drowned in its own swamp.*",
+      "*For a long moment only its eyes show above the water, wide and watchful.*"
+    ]
+  }
 }

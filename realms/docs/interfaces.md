@@ -112,7 +112,12 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   "goldRange": [20, 60],
   "loot": { "pool": "dominaria", "colors": "G", "types": [], "subtypes": ["Elf", "Druid"], "rarities": ["common"] },
   "model": { "mesh": "elf", "palette": ["#2a4524", "#d6ae7e", "#c08a62"], "size": 0.9 },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": ["Mana in the morning, victory by noon. Such is Llanowar!", "..."],
+    "solid": ["You trampled a few of us, but the forest always grows back.", "..."],
+    "close": ["Oh, oh my. We are very glad that is over. Very glad.", "..."]
+  }
 }
 ```
 
@@ -131,6 +136,13 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `region` is the region, by its color (world.json's `regions[].color`), the mob roams or belongs to; absent for a mob of
   none (the generic wardens, the Portal's mobs, the praetor). A world spawn of a region lists mobs of that region and its
   tier.
+- `lines` is what the mob says when it beats the player, two or three lines of each kind: `flawless` when it lost no
+  life, `solid` when it took some damage, `close` when it won on 25% of its life or less. A legend or a speaking people
+  speaks in its own voice; a beast, an elemental or a construct gets a short narrated action in italics instead
+  (`*The wurm settles back into its coils, unbothered.*`). The same line is said wherever the duel was, so none speaks of
+  gold, paying or fighting a second time (the client adds the offer that follows); `realms/web/src/mobs.test.ts` holds
+  each line to 160 characters and those words. The lines are written by hand: `sample-decks.py` keeps them when it
+  rewrites the file.
 - `tools/realms/sample-decks.py` writes the whole roster and its decks (design.md A3, A6), each deck built round its
   creature - the creature, its kin, the cards that support what it does - and by tier: its prize (tier 1 100 gold, 2 300,
   3 800, 4 2,000, a boss 6,000), its gold range, loot of its colors in the rarities its prize can buy, and stats-only gear.

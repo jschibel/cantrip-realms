@@ -39,5 +39,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "We phased in, struck, and phased out. You never laid a hand on us.",
+      "Raiders of the tides take what they like. Today we took your pride."
+    ],
+    "solid": [
+      "You caught us between tides. A few cuts, nothing more.",
+      "The sea takes its toll on us all. Today it took a little from both of us."
+    ],
+    "close": [
+      "We were nearly beached! The others will tease us for weeks.",
+      "Half our raiding party is out of phase and the rest are dizzy. Close one."
+    ]
+  }
 }

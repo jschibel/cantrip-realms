@@ -40,5 +40,19 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Each enchantment drew me another card. You drew nothing but defeat.",
+      "Verdura's charms bloom quickly. You never saw the garden close around you."
+    ],
+    "solid": [
+      "A few petals fell, but the bloom is mine.",
+      "You trampled my wards. Thankfully, I had more."
+    ],
+    "close": [
+      "My charms are spent and my garden in ruins. You fought beautifully.",
+      "One more blow and Verdura would have wept for me."
+    ]
+  }
 }

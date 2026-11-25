@@ -36,5 +36,20 @@
     ],
     "size": 0.9
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Discipline wins the day! You'll want to drill your opening hands, friend.",
+      "Not a single wound. My sergeant will never believe it.",
+      "Stand tall, traveller. Every soldier loses a muster or two."
+    ],
+    "solid": [
+      "Well fought! You found the gaps in my line, but the line held.",
+      "A few bruises for Benalia. Worth every one of them."
+    ],
+    "close": [
+      "Serra's grace, that was close. Remind me never to stand alone in front of you.",
+      "I'd be lost without my band behind me, and you nearly broke it."
+    ]
+  }
 }

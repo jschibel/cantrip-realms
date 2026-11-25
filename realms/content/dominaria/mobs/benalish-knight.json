@@ -39,5 +39,20 @@
     ],
     "size": 1.15
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "A knight of Benalia does not tire, and today he did not even bleed.",
+      "Your attack was honest, if not wise. Rise, and learn.",
+      "I arrived in the nick of time, as always. You never touched me."
+    ],
+    "solid": [
+      "You struck true more than once. Benalia honours a worthy foe.",
+      "My armour wears your marks now, and I'll wear them proudly."
+    ],
+    "close": [
+      "Saints of Benalia! One more blow and they'd have carried me home on my shield.",
+      "I have jousted with champions and never come so near the dust. Well met."
+    ]
+  }
 }

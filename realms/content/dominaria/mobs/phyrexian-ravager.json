@@ -43,5 +43,19 @@
     ],
     "size": 1.35
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "*The Phyrexian Ravager vents a plume of black steam and folds its wings with a click.*",
+      "*Gears grind, valves hiss. The Ravager registers no damage and resumes its patrol.*"
+    ],
+    "solid": [
+      "*The Ravager twitches a dented wing, sparks spitting from one joint, and grinds onward.*",
+      "*Something inside the Ravager pumps faster, sealing its breaches with glistening oil.*"
+    ],
+    "close": [
+      "*The Ravager shudders, wings shredded, its furnace heart guttering. It watches you, recalculating.*",
+      "*Half its pistons seized, the dragon engine lurches back toward the Portal, shrieking.*"
+    ]
+  }
 }

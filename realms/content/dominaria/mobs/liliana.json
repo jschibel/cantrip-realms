@@ -45,5 +45,20 @@
   },
   "boss": true,
   "unlocks": "B",
-  "unique": "vess-veil-signet"
+  "unique": "vess-veil-signet",
+  "lines": {
+    "flawless": [
+      "Did you really think a few spells would trouble me? I've survived demons, darling.",
+      "Discard, sacrifice, despair. You did all three beautifully.",
+      "Not a single wound. I almost feel sorry for you. Almost."
+    ],
+    "solid": [
+      "You managed to draw blood. Don't let it go to your head.",
+      "Annoying. Persistent. A little impressive. Now get off my estate."
+    ],
+    "close": [
+      "Well. You nearly made me sweat, and I loathe sweating.",
+      "Even my demons never brought me this close to ruin. Leave before I remember to be angry."
+    ]
+  }
 }

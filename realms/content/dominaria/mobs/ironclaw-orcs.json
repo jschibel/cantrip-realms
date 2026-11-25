@@ -34,5 +34,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Ha! Orcs win! Orcs always win when the other one is little!",
+      "We didn't even get scratched. Ironclaw scratches YOU."
+    ],
+    "solid": [
+      "Ow, ow. Still winning, though. Winning is the best bit.",
+      "You hit hard. Lucky we hit harder. And first. And more."
+    ],
+    "close": [
+      "Nobody tell the chief we nearly ran. We didn't run. We... strategised.",
+      "Eek, that was close! Ironclaw very brave. Mostly."
+    ]
+  }
 }

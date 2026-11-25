@@ -37,5 +37,19 @@
     ],
     "size": 1.0
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Llanowar trains us young. You should have trained longer.",
+      "Not a leaf out of place. Go back to the road, wanderer."
+    ],
+    "solid": [
+      "You strike hard for an outsider. The forest will remember.",
+      "A few scratches, a few lessons, and the win is mine."
+    ],
+    "close": [
+      "By oak and root, that was a near thing!",
+      "I'll tell the elders I won. I will not be telling them how narrowly."
+    ]
+  }
 }

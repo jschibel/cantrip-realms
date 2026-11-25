@@ -43,5 +43,20 @@
   },
   "boss": true,
   "unlocks": "W",
-  "unique": "lyras-seraph-mail"
+  "unique": "lyras-seraph-mail",
+  "lines": {
+    "flawless": [
+      "My host flies in perfect formation. You never found a gap in it.",
+      "Not a feather singed. Return to Benalia and pray for a stronger hand.",
+      "The dawn is patient, and today it did not even need its patience."
+    ],
+    "solid": [
+      "You wounded me, and every wound was healed by my next strike. Such is the dawn.",
+      "Brave, mortal. Brave enough that I will remember your name."
+    ],
+    "close": [
+      "Serra's light, that was close! I have not been pressed so since the Phyrexian skies.",
+      "My wings are heavy and my host is scattered. You fought nobly."
+    ]
+  }
 }

@@ -41,5 +41,20 @@
   },
   "boss": true,
   "unlocks": "U",
-  "unique": "teferis-temporal-circlet"
+  "unique": "teferis-temporal-circlet",
+  "lines": {
+    "flawless": [
+      "I've had centuries to practise. You've had, what, a few weeks?",
+      "I saw that duel end before it began. Time is generous to those who listen.",
+      "Not a scratch. Don't feel bad; I've beaten planeswalkers who took it much worse."
+    ],
+    "solid": [
+      "You made me work for that. I'll pretend I planned every blow you landed.",
+      "Not bad! Jhoira would say I'm getting slow. Jhoira would be right."
+    ],
+    "close": [
+      "Whoo. I may have to phase out for a little rest after that one.",
+      "That was so close I nearly rewound the clock. I didn't. Probably."
+    ]
+  }
 }

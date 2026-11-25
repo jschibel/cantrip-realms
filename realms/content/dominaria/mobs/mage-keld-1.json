@@ -37,5 +37,19 @@
     ],
     "size": 1.05
   },
-  "boss": false
+  "boss": false,
+  "lines": {
+    "flawless": [
+      "Two brothers, one fire, and you never got near it!",
+      "We burned you, and ourselves a little for fun. You only got burned."
+    ],
+    "solid": [
+      "Our eyebrows are singed but we won! We'll grow new ones.",
+      "You hit hard. We hit hot. Hot wins."
+    ],
+    "close": [
+      "Brother, are you still on fire? Good, so am I. We did it!",
+      "We burned so much of ourselves to win that one. Worth it. Probably."
+    ]
+  }
 }
