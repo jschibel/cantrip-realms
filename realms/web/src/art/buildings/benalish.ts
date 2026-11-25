@@ -83,7 +83,13 @@ export function house(b: MeshBuilder, h: HouseSpec, pal: Palette = BENALISH): vo
   // The roof: tiles on the slopes, a ridge, bargeboards along the gables.
   const overhang = 0.3;
   const roofMat = h.roof === "slate" ? stock.slate() : stock.roof(pal.roof);
-  b.gableRoof(x0 - overhang, z0 - overhang, x1 + overhang, z1 + overhang, top, h.rise, roofMat, plaster, 0.12);
+  // The eaves hang below the walls' top - by 0.12 at most, and only so far that each slope still clears, by a texel, the
+  // outermost of the walls standing to that top: the front's rail, 0.16 in from the eave (else a deep house's shallow
+  // slope cuts under the rail and its top shows through the tiles as a line along the eave).
+  const run = (z1 - z0) / 2 + overhang;
+  const inset = overhang - 0.14;
+  const eaveDrop = Math.max(0, Math.min(0.12, ((h.rise * inset) / run - PX) / (1 - inset / run)));
+  b.gableRoof(x0 - overhang, z0 - overhang, x1 + overhang, z1 + overhang, top, h.rise, roofMat, plaster, eaveDrop);
   const zm = (z0 + z1) / 2;
   b.box(x0 - overhang - 0.04, top + h.rise - 0.1, zm - 0.1, x1 + overhang + 0.04, top + h.rise + 0.1, zm + 0.1, sides(tiled(h.roof === "slate" ? stock.darkTimber(pal.darkTimber) : stock.timber(pal.timber))));
   if (h.chimney !== undefined) {
