@@ -149,6 +149,14 @@ public sealed class RealmApp : WebApplicationFactory<Program>
             .SetProperty(row => row.PlacedAt, Time.GetUtcNow().ToUnixTimeMilliseconds()));
     });
 
+    /// <summary>Sets a character's hearts, as a test arranges a character one loss from death.</summary>
+    public Task SetHearts(Browser browser, int hearts, int? maxHearts = null) => Store(async db =>
+    {
+        await db.Players.Where(row => row.Id == browser.Player).ExecuteUpdateAsync(set => set
+            .SetProperty(row => row.Hearts, hearts)
+            .SetProperty(row => row.MaxHearts, row => maxHearts ?? row.MaxHearts));
+    });
+
     /// <summary>Walks a character to beside a dungeon's entrance and begins a run of it.</summary>
     public async Task<RunView> EnterRun(Browser browser, string dungeon)
     {

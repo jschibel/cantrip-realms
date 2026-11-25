@@ -16,23 +16,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-            modelBuilder.Entity("Cantrip.Realms.Server.Data.AnteRow", b =>
-                {
-                    b.Property<string>("PlayerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(160)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Count")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("PlayerId", "Name");
-
-                    b.ToTable("ante", (string)null);
-                });
-
             modelBuilder.Entity("Cantrip.Realms.Server.Data.AttunedRow", b =>
                 {
                     b.Property<string>("PlayerId")
@@ -110,16 +93,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Ante")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("AnteValue")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("Cap")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Detail")
                         .HasColumnType("TEXT");
 
@@ -129,6 +102,16 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long?>("FinishedAt")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Game")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("GearInstance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Gift")
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
                     b.Property<long>("Gold")
                         .HasColumnType("INTEGER");
 
@@ -136,15 +119,25 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Offer")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("MobLife")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MobLifeEnd")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PlayerId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<long?>("Price")
+                        .HasColumnType("INTEGER");
+
                     b.Property<long>("Seed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Sideboard")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Space")
                         .IsRequired()
@@ -171,7 +164,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
 
                     b.HasIndex("PlayerId", "State");
 
-                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch")
+                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch", "Game")
                         .IsUnique();
 
                     b.ToTable("duels", (string)null);
@@ -242,10 +235,20 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.Property<long>("Gold")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Hearts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(2);
+
                     b.Property<string>("Inn")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxHearts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(2);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -361,6 +364,23 @@ namespace Cantrip.Realms.Server.Data.Migrations.Sqlite
                     b.HasIndex("PlayerId", "State");
 
                     b.ToTable("runs", (string)null);
+                });
+
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.SideboardRow", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PlayerId", "Name");
+
+                    b.ToTable("sideboard", (string)null);
                 });
 
             modelBuilder.Entity("Cantrip.Realms.Server.Data.UnlockRow", b =>

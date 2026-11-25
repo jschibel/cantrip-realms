@@ -13,26 +13,10 @@
     "serran-vestments",
     "sages-circlet"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "UB",
-    "types": [],
-    "subtypes": [
-      "Phyrexian",
-      "Wizard",
-      "Horror"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "phyrexian",
     "palette": [

@@ -66,9 +66,7 @@ public sealed class BossTests
         OutcomeView won = await BeatTheBoss(browser, run, Rofellos);
         Assert.Equal(("won", "G"), (won.Outcome, won.Unlocked));
 
-        // The gift is a rare or mythic of its loot, in the collection already; with an empty ante there is no offer at all.
-        Assert.Equal(0, won.Cap);
-        Assert.Empty(won.Offer);
+        // The gift is a rare or mythic of its loot, in the collection already.
         Assert.NotNull(won.Gift);
         Assert.Contains(won.Gift, RealmApp.Content.GiftsOf(RealmApp.Content.Mobs[Rofellos]));
         Assert.True((await browser.Collection()).GetValueOrDefault(won.Gift!) >= 1);

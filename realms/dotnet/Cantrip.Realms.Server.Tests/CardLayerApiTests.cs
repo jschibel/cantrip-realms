@@ -76,27 +76,25 @@ public sealed class CardLayerApiTests
         await app.Give(browser, "Serra Angel", 2);
         DeckView deck = await browser.Deck();
 
-        // The starter deck as it is, with an Angel anted: legal, and the ante worth the Angel's price - away from any table.
-        DeckCheckView fine = await browser.Ok<DeckCheckView>(HttpMethod.Post, "/api/deck/check", new { deck.Main, Ante = new[] { new CardCount("Serra Angel", 1) } });
+        // The starter deck as it is, with an Angel in the sideboard: legal - away from any table.
+        DeckCheckView fine = await browser.Ok<DeckCheckView>(HttpMethod.Post, "/api/deck/check", new { deck.Main, Sideboard = new[] { new CardCount("Serra Angel", 1) } });
         Assert.Empty(fine.Problems);
-        Assert.Equal(RealmApp.Content.Cards.Price("Serra Angel"), fine.AnteValue);
 
         // What PUT would refuse it for, in the same words.
         DeckCheckView wrong = await browser.Ok<DeckCheckView>(HttpMethod.Post, "/api/deck/check", new
         {
             Main = new[] { new CardCount("Plains", 39), new CardCount("Lightning Bolt", 1) },
-            Ante = new[] { new CardCount("Serra Angel", 3), new CardCount("Plains", 1) },
+            Sideboard = new[] { new CardCount("Serra Angel", 3), new CardCount("Plains", 1) },
         });
         Assert.Contains("Lightning Bolt is outside the color identity W.", wrong.Problems);
         Assert.Contains("You don't own Lightning Bolt.", wrong.Problems);
-        Assert.Contains("You own 2 Serra Angel; the deck and the ante use 3.", wrong.Problems);
-        Assert.Contains("Plains is a basic land, free to every deck: it can't be anted.", wrong.Problems);
+        Assert.Contains("You own 2 Serra Angel; the deck and the sideboard use 3.", wrong.Problems);
 
         // A basic land of another color is outside the identity, the snow-covered ones too, which the legality data misses.
         DeckCheckView snow = await browser.Ok<DeckCheckView>(HttpMethod.Post, "/api/deck/check", new
         {
             Main = new[] { new CardCount("Plains", 38), new CardCount("Snow-Covered Island", 1), new CardCount("Snow-Covered Plains", 1) },
-            Ante = Array.Empty<CardCount>(),
+            Sideboard = Array.Empty<CardCount>(),
         });
         Assert.Equal(["Snow-Covered Island is outside the color identity W."], snow.Problems);
 
@@ -104,7 +102,7 @@ public sealed class CardLayerApiTests
         ApiError refused = await browser.Refused(HttpMethod.Put, "/api/deck", new
         {
             Main = new[] { new CardCount("Plains", 39), new CardCount("Lightning Bolt", 1) },
-            Ante = new[] { new CardCount("Serra Angel", 3), new CardCount("Plains", 1) },
+            Sideboard = new[] { new CardCount("Serra Angel", 3), new CardCount("Plains", 1) },
         }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
         Assert.Equal(wrong.Problems, refused.Problems);
     }
@@ -119,7 +117,7 @@ public sealed class CardLayerApiTests
         await app.Give(browser, "Lightning Bolt", 1);
         DeckView deck = await browser.Deck();
         await browser.ToSpellTable();
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { deck.Main, Ante = new[] { new CardCount("Serra Angel", 1) } });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { deck.Main, Sideboard = new[] { new CardCount("Serra Angel", 1) } });
         await browser.Inside("benalia-white-goods-shop");
 
         VendorView whites = await browser.Ok<VendorView>(HttpMethod.Get, "/api/vendor/benalia-white-goods");

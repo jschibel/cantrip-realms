@@ -11,23 +11,10 @@
     "maxHand": 7
   },
   "gear": [],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Drake",
-      "Bird"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "drake",
     "palette": [

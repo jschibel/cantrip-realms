@@ -148,7 +148,8 @@ public sealed class ContentTests
             Assert.All(mob.Deck.Entries, entry => Assert.True(content.Cards.Catalog.ContainsKey(entry.Card), $"{mob.Id}: {entry.Card}"));
             Assert.All(mob.File.Gear, gear => Assert.True(content.Gear.ContainsKey(gear) && content.Gear[gear].Emblem is null, $"{mob.Id} wears {gear}"));
             Assert.Contains(mob.File.Model.Mesh, RealmContent.MobMeshes);
-            Assert.NotEmpty(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot));
+            Assert.Equal(mob.File.Boss, mob.File.Loot is not null);
+            if (mob.File.Loot is { } loot) Assert.NotEmpty(content.Cards.Filter(loot.Pool ?? mob.Plane, loot));
         }
 
         Assert.All(content.Gear.Values, item => Assert.Equal(item.Slot, RealmContent.GearMeshes.GetValueOrDefault(item.Look.Mesh)));
@@ -220,20 +221,19 @@ public sealed class ContentTests
         List<Mob> bosses = [.. content.Mobs.Values.Where(mob => mob.File.Boss)];
         Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).OfType<string>().Order(StringComparer.Ordinal)));
         Assert.Equal(["phyrexian-praetor"], bosses.Where(boss => boss.File.Unlocks is null).Select(boss => boss.Id));
-        Assert.All(bosses, boss => Assert.Equal(6000, boss.File.Prize));
         Assert.Contains("Lyra Dawnbringer", content.Mobs["lyra-dawnbringer"].Deck.Entries.Select(entry => entry.Card));
         Assert.Contains("Teferi, Hero of Dominaria", content.Mobs["teferi"].Deck.Entries.Select(entry => entry.Card));
         Assert.Contains("Liliana of the Veil", content.Mobs["liliana"].Deck.Entries.Select(entry => entry.Card));
 
-        Dictionary<int, (long Prize, long Low, long High)> tiers = new() { [1] = (100, 20, 60), [2] = (300, 50, 150), [3] = (800, 120, 300), [4] = (2000, 250, 600) };
+        Dictionary<int, (long Low, long High)> tiers = new() { [1] = (20, 60), [2] = (50, 150), [3] = (120, 300), [4] = (250, 600) };
         foreach (Mob mob in content.Mobs.Values.Where(mob => !mob.File.Boss))
         {
-            Assert.Equal(tiers[mob.File.Tier], (mob.File.Prize, mob.File.GoldRange[0], mob.File.GoldRange[1]));
+            Assert.Equal(tiers[mob.File.Tier], (mob.File.GoldRange[0], mob.File.GoldRange[1]));
         }
     }
 
     [Fact]
-    public void No_pool_vendor_stock_loot_offer_or_starter_deck_can_hold_a_relic()
+    public void No_pool_vendor_stock_boss_loot_or_starter_deck_can_hold_a_relic()
     {
         RealmContent content = RealmApp.Content;
         HashSet<string> relics = [.. content.Relics.Select(relic => relic.Card)];
@@ -251,7 +251,7 @@ public sealed class ContentTests
         Assert.DoesNotContain(content.Cards.OffPlane.Keys, relics.Contains);
 
         Assert.All(content.Vendors.Values, vendor => Assert.DoesNotContain(content.Cards.Filter(vendor.Plane, vendor.File.Specialty), relics.Contains));
-        Assert.All(content.Mobs.Values, mob => Assert.DoesNotContain(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot), relics.Contains));
+        Assert.All(content.Mobs.Values.Where(mob => mob.File.Loot is not null), mob => Assert.DoesNotContain(content.Cards.Filter(mob.File.Loot!.Pool ?? mob.Plane, mob.File.Loot), relics.Contains));
         Assert.All(content.Starters.Values.SelectMany(decks => decks.Values), deck => Assert.DoesNotContain(deck.Entries, entry => relics.Contains(entry.Card)));
         Assert.All(content.Mobs.Values, mob => Assert.DoesNotContain(mob.Deck.Entries, entry => relics.Contains(entry.Card)));
 
@@ -273,7 +273,6 @@ public sealed class ContentTests
         Mob praetor = content.Mobs["phyrexian-praetor"];
         Assert.True(praetor.File.Boss);
         Assert.Null(praetor.File.Unlocks);
-        Assert.Equal(6000, praetor.File.Prize);
         Assert.Contains("Sheoldred, the Apocalypse", praetor.Deck.Entries.Select(entry => entry.Card));
         Assert.Equal("WUBRG", CardPool.Letters(praetor.Deck.Entries.SelectMany(entry => content.Cards.Catalog[entry.Card].Identity)));
     }
@@ -500,7 +499,7 @@ public sealed class ContentTests
     {
         RealmContent content = RealmApp.Content;
         List<string> problems = DeckChecks.Problems(content.Cards, [new("Lightning Bolt", 5), new("Black Lotus", 2), new("Plains", 20)], CardPool.Identity("W"));
-        Assert.Contains("Lightning Bolt: 5 copies, more than the 4 a deck may have.", problems);
+        Assert.Contains("Lightning Bolt: 5 copies, more than the 4 a deck and its sideboard may have.", problems);
         Assert.Contains("Lightning Bolt is outside the color identity W.", problems);
         Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", problems);
         Assert.Contains(problems, problem => problem.StartsWith("A deck is at least 40 cards", StringComparison.Ordinal));

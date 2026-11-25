@@ -14,21 +14,10 @@
     "keldon-greaves",
     "leather-cap"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "R",
-    "types": [],
-    "subtypes": [],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "wizard",
     "palette": [

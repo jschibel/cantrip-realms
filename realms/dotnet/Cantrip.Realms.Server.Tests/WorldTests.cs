@@ -105,6 +105,7 @@ public sealed class PlacesTests
         }
 
         Browser other = await app.Character(2);
+        await app.SetHearts(browser, 1);
         await browser.Ok<object>(HttpMethod.Post, "/dev/verdict", new { Outcome = "lost" });
         Assert.Equal("lost", await Fight(browser));
         Assert.Equal("won", await Fight(other));
@@ -226,11 +227,12 @@ public sealed class PlacesTests
     }
 
     [Fact]
-    public async Task An_inn_set_as_home_is_where_a_loss_wakes_the_character()
+    public async Task An_inn_set_as_home_is_where_the_last_heart_lost_wakes_the_character()
     {
         await using var app = new RealmApp();
         app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
         Browser browser = await app.Character(1);
+        await app.SetHearts(browser, 1);
 
         // Only inside an inn; not in a shop or in the street.
         await browser.Refused(HttpMethod.Post, "/api/inn", new { }, HttpStatusCode.Conflict, Codes.NotNear);
@@ -341,11 +343,12 @@ public sealed class DungeonTests
     }
 
     [Fact]
-    public async Task Losing_a_duel_of_a_run_ends_it_and_wakes_the_character_at_their_inn()
+    public async Task Losing_the_last_heart_in_a_run_ends_it_and_wakes_the_character_at_their_inn()
     {
         await using var app = new RealmApp();
         app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
         Browser browser = await app.Character(1);
+        await app.SetHearts(browser, 1);
         RunView run = await app.EnterRun(browser, Caves);
         RunFloor first = run.Floors[0];
         RunEncounter one = first.Encounters[0];
@@ -416,6 +419,7 @@ public sealed class WaystoneTests
 
         // A lost duel against the mage attunes nothing either.
         app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
+        await app.SetHearts(browser, 1);
         Assert.Equal("lost", (await BeatTheMage(app, browser, "benalia-1")).Outcome);
         Assert.Empty((await browser.Me()).Attuned);
 

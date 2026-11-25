@@ -15,25 +15,10 @@
     "elvish-striders",
     "copper-amulet"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "RG",
-    "types": [],
-    "subtypes": [
-      "Elf",
-      "Warrior"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "elf",
     "palette": [

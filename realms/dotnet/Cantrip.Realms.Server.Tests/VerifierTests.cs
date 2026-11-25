@@ -63,7 +63,7 @@ public sealed class VerifierPartsTests
             return new DuelSeat(content.File.Name, [.. content.Deck.Entries.SelectMany(entry => Enumerable.Repeat(entry.Card, entry.Copies))], [], null, [], 20, 7, 7, []);
         }
 
-        return new Duel([Seat("benalish-hero"), Seat("bog-raiders")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Bog Raiders", 1, 100), 0, 0);
+        return new Duel([Seat("benalish-hero"), Seat("bog-raiders")], Duel.RealmMinimumDeckSize, seed, new DuelMob("Bog Raiders", 1));
     }
 }
 
@@ -239,6 +239,35 @@ public sealed class NativeVerifierTests
         Assert.True(verdict.Accepted, verdict.Problem);
         Assert.Equal([Duel.MobSeat], verdict.Winners);
         Assert.False(verdict.PlayerWon);
+
+        // Each seat's life at the end, as the game had it: untouched, the mob's is all it began with.
+        Assert.Equal(duel.Seats[1].StartingLife, verdict.LifeOf(Duel.MobSeat));
+        Assert.Equal(duel.Seats[0].StartingLife, verdict.LifeOf(Duel.PlayerSeat));
+    }
+
+    [Fact]
+    public void A_rematch_is_dealt_with_the_mob_at_its_carried_life_and_the_seat_the_loser_chose_first()
+    {
+        // An encounter's next game (design.md A3): the mob begins at the life it ended the last with, the player having
+        // chosen to draw (the mob plays first, CR 103.1); the log verifies, and says the mob's life at the end as the game had it.
+        Duel sample = VerifierPartsTests.Sample(11);
+        Duel duel = sample with { Seats = [sample.Seats[0], sample.Seats[1] with { StartingLife = 7 }], Game = 2, FirstPlayer = Duel.MobSeat };
+        int? firstActive = null, mobLifeFirst = null;
+        (List<string> log, IReadOnlyList<int> winners) = Play(duel, new TacticalPlay(), RealmBot.Create(duel.Seed), view =>
+        {
+            if (view.Turn >= 1 && firstActive is null)
+            {
+                firstActive = view.ActivePlayer;
+                mobLifeFirst = view.Players.Single(player => player.Seat == Duel.MobSeat).Life;
+            }
+        });
+        Assert.Equal(Duel.MobSeat, firstActive);
+        Assert.Equal(7, mobLifeFirst);
+
+        DuelVerdict verdict = new NativeDuelVerifier().Verify(duel, log);
+        Assert.True(verdict.Accepted, verdict.Problem);
+        Assert.Equal(winners, verdict.Winners);
+        Assert.NotNull(verdict.LifeOf(Duel.MobSeat));
     }
 
     [Fact]

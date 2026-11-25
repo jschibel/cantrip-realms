@@ -11,22 +11,10 @@
     "maxHand": 7
   },
   "gear": [],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Soldier"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "humanoid",
     "palette": [

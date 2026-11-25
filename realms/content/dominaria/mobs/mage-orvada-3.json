@@ -16,24 +16,10 @@
     "tolarian-circlet",
     "silver-band"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Wizard"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "wizard",
     "palette": [

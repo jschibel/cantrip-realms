@@ -13,27 +13,10 @@
     "mantle-of-the-ancients",
     "thran-amulet"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "BR",
-    "types": [],
-    "subtypes": [
-      "Phyrexian",
-      "Horror",
-      "Construct",
-      "Dragon"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "dragon-engine",
     "palette": [

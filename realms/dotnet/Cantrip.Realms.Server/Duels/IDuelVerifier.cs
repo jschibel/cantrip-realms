@@ -1,14 +1,19 @@
 namespace Cantrip.Realms.Server.Duels;
 
 /// <summary>
-/// What checking a duel's log found: whether the log is a whole game of the duel as dealt, and if so who won it, by seat.
+/// What checking a duel's log found: whether the log is a whole game of the duel as dealt, and if so who won it, by seat,
+/// and each seat's life total at its end.
 /// </summary>
 /// <param name="Accepted">Whether every message of the log was taken and the game is over at its end.</param>
 /// <param name="Winners">The seats that won, empty for a draw; empty too for a log not accepted.</param>
 /// <param name="Problem">Why the log was not accepted, in words; null when it was.</param>
-public sealed record DuelVerdict(bool Accepted, IReadOnlyList<int> Winners, string? Problem)
+/// <param name="Life">Each seat's life total when the game ended, by seat; null for a log not accepted.</param>
+public sealed record DuelVerdict(bool Accepted, IReadOnlyList<int> Winners, string? Problem, IReadOnlyDictionary<int, int>? Life = null)
 {
     public static DuelVerdict Rejected(string problem) => new(false, [], problem);
+
+    /// <summary>A seat's life total at the game's end, when the log was a whole game that said it.</summary>
+    public int? LifeOf(int seat) => Accepted && Life is not null && Life.TryGetValue(seat, out int life) ? life : null;
 
     /// <summary>Whether the player, seat 1, won alone.</summary>
     public bool PlayerWon => Accepted && Winners is [Duel.PlayerSeat];

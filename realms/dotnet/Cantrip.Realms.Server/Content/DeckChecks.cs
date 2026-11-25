@@ -5,25 +5,28 @@ namespace Cantrip.Realms.Server.Content;
 
 /// <summary>
 /// The realm's deck rules (design.md A2), over the deck editor's own card rules (<see cref="DeckRules"/>): at least forty
-/// cards and no maximum; no more copies of a card than <see cref="DeckRules.MostCopies"/> allows in Vintage (four, any
-/// number of a basic land), one of a card restricted there, and one of a relic (design.md A3a); every card legal or
-/// restricted in Vintage; and, for a character, every card's color identity within theirs (<see cref="DeckRules.Within"/>).
+/// cards and no maximum; a sideboard of at most fifteen (CR 100.4a); no more copies of a card, the deck's and the
+/// sideboard's together, than <see cref="DeckRules.MostCopies"/> allows in Vintage (four, any number of a basic land), one
+/// of a card restricted there, and one of a relic (design.md A3a); every card legal or restricted in Vintage; and, for a
+/// character, every card's color identity within theirs (<see cref="DeckRules.Within"/>), the sideboard's too.
 /// </summary>
 public static class DeckChecks
 {
-    /// <summary>The most cards an ante holds (design.md A2).</summary>
-    public const int MostAnte = 10;
+    /// <summary>The most cards a sideboard holds (design.md A2; CR 100.4a).</summary>
+    public const int MostSideboard = 15;
 
     private static readonly DeckFormat Vintage = DeckFormat.Find(DeckFormat.VintageKey)!;
 
-    /// <summary>Everything wrong with a main deck, in name order; empty for a deck the realm deals.</summary>
-    /// <param name="identity">The colors the deck's cards are held to; null for none (a mob's deck).</param>
-    public static List<string> Problems(CardPool cards, IReadOnlyList<DeckEntry> main, IReadOnlySet<ColorView>? identity)
+    /// <summary>Everything wrong with a main deck and its sideboard, in name order; empty for a deck the realm deals.</summary>
+    /// <param name="identity">The colors the cards are held to; null for none (a mob's deck).</param>
+    /// <param name="sideboard">The sideboard beside the deck; none for a mob's deck.</param>
+    public static List<string> Problems(CardPool cards, IReadOnlyList<DeckEntry> main, IReadOnlySet<ColorView>? identity, IReadOnlyList<DeckEntry>? sideboard = null)
     {
         ArgumentNullException.ThrowIfNull(cards);
         ArgumentNullException.ThrowIfNull(main);
+        sideboard ??= [];
         List<string> problems = [];
-        if (main.Any(entry => entry.Count <= 0))
+        if (main.Concat(sideboard).Any(entry => entry.Count <= 0))
         {
             problems.Add("Every entry is one copy or more.");
         }
@@ -34,7 +37,13 @@ public static class DeckChecks
             problems.Add($"A deck is at least {Duel.RealmMinimumDeckSize} cards: this one is {total}.");
         }
 
-        foreach (IGrouping<string, DeckEntry> named in main.GroupBy(entry => entry.Card, StringComparer.Ordinal).OrderBy(group => group.Key, StringComparer.Ordinal))
+        int aside = sideboard.Sum(entry => Math.Max(0, entry.Count));
+        if (aside > MostSideboard)
+        {
+            problems.Add($"A sideboard is at most {MostSideboard} cards: this one is {aside}.");
+        }
+
+        foreach (IGrouping<string, DeckEntry> named in main.Concat(sideboard).GroupBy(entry => entry.Card, StringComparer.Ordinal).OrderBy(group => group.Key, StringComparer.Ordinal))
         {
             int copies = named.Sum(entry => Math.Max(0, entry.Count));
             if (!cards.Catalog.TryGetValue(named.Key, out CatalogCard? card))
@@ -57,7 +66,7 @@ public static class DeckChecks
                     ? $"{named.Key} is restricted in Vintage: one copy at most, not {copies}."
                     : most == 1
                         ? $"{named.Key} is a relic: one copy at most, not {copies}."
-                        : $"{named.Key}: {copies} copies, more than the {most} a deck may have.");
+                        : $"{named.Key}: {copies} copies, more than the {most} a deck and its sideboard may have.");
             }
 
             if (identity is not null && !CardPool.Within(card, identity))

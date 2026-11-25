@@ -46,7 +46,7 @@ public sealed class CardPool
 
     public IReadOnlyDictionary<string, CardPrice> Prices { get; }
 
-    /// <summary>The relics' names (design.md A3a): in no pool, never anted or sold, one copy at most in a deck.</summary>
+    /// <summary>The relics' names (design.md A3a): in no pool, never sold, one copy at most in a deck and its sideboard.</summary>
     public IReadOnlySet<string> Relics { get; }
 
     public bool IsRelic(string name) => Relics.Contains(name);

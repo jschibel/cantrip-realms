@@ -14,25 +14,10 @@
     "silver-band",
     "copper-amulet"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "G",
-    "types": [],
-    "subtypes": [
-      "Elf",
-      "Archer"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "elf",
     "palette": [

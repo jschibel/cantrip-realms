@@ -15,25 +15,10 @@
     "padded-jerkin",
     "kjeldoran-helm"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Bird",
-      "Soldier"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "aven",
     "palette": [

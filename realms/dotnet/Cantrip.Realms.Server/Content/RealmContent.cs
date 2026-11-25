@@ -199,8 +199,7 @@ public sealed partial class RealmContent
     public IReadOnlyList<string> GiftsOf(Mob mob)
     {
         ArgumentNullException.ThrowIfNull(mob);
-        if (!mob.File.Boss) return [];
-        CardFilter loot = mob.File.Loot;
+        if (!mob.File.Boss || mob.File.Loot is not { } loot) return [];
         string pool = loot.Pool ?? mob.Plane;
         var rare = new CardFilter { Pool = pool, Colors = loot.Colors, Types = loot.Types, Subtypes = loot.Subtypes, Rarities = GiftRarities };
         IReadOnlyList<string> gifts = Cards.Filter(pool, rare);
@@ -522,7 +521,8 @@ public sealed partial class RealmContent
         }
 
         // A boss's win always gives a rare or mythic card of its loot (design.md A6): its loot must hold one.
-        if (file.Boss && Cards.Planes.Contains(file.Loot.Pool ?? mob.Plane, StringComparer.Ordinal) && GiftsOf(mob).Count == 0)
+        if (file.Boss && file.Loot is null) problems.Add($"{where}: a boss has loot, which its gift is drawn from.");
+        else if (file.Boss && Cards.Planes.Contains(file.Loot!.Pool ?? mob.Plane, StringComparer.Ordinal) && GiftsOf(mob).Count == 0)
         {
             problems.Add($"{where}: its loot holds no rare or mythic card for a boss's gift.");
         }
@@ -532,16 +532,18 @@ public sealed partial class RealmContent
         if (!Cards.Catalog.TryGetValue(file.Creature, out CatalogCard? creature)) problems.Add($"{where}: its creature '{file.Creature}' is no card the engine plays.");
         else if (!creature.Card.CardTypes.Any(type => type.ToString() is "Creature" or "Planeswalker")) problems.Add($"{where}: its creature {file.Creature} is no creature (or planeswalker) card.");
         else if (!mob.Deck.Entries.Any(entry => entry.Card == file.Creature)) problems.Add($"{where}: its deck does not hold {file.Creature}, the creature it is.");
-        if (file.Prize < 0) problems.Add($"{where}: a prize is never less than nothing.");
         if (file.GoldRange is not [long low, long high] || low < 0 || high < low)
         {
             problems.Add($"{where}: its gold range is two amounts, the lower first.");
         }
 
-        string pool = file.Loot.Pool ?? mob.Plane;
-        if (!Cards.Planes.Contains(pool, StringComparer.Ordinal)) problems.Add($"{where}: its loot pool '{pool}' is no plane's.");
-        else if (Cards.Filter(pool, file.Loot).Count == 0) problems.Add($"{where}: its loot has no card in the {pool} pool.");
-        foreach (string rarity in file.Loot.Rarities.Where(rarity => !Rarities.Contains(rarity))) problems.Add($"{where}: loot rarity '{rarity}'.");
+        if (file.Loot is { } loot)
+        {
+            string pool = loot.Pool ?? mob.Plane;
+            if (!Cards.Planes.Contains(pool, StringComparer.Ordinal)) problems.Add($"{where}: its loot pool '{pool}' is no plane's.");
+            else if (Cards.Filter(pool, loot).Count == 0) problems.Add($"{where}: its loot has no card in the {pool} pool.");
+            foreach (string rarity in loot.Rarities.Where(rarity => !Rarities.Contains(rarity))) problems.Add($"{where}: loot rarity '{rarity}'.");
+        }
 
         problems.AddRange(DeckProblems(mob.Deck, mob.Plane, identity: null).Select(problem => $"{where}'s deck: {problem}"));
     }

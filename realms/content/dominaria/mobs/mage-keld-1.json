@@ -14,20 +14,10 @@
     "travelers-boots",
     "leather-cap"
   ],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "R",
-    "types": [],
-    "subtypes": [],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "shaman",
     "palette": [

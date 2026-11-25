@@ -8,9 +8,10 @@ namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
 /// Characters (design.md A1): creating one with its starting kit, reading it, its collection, where it stands
-/// (interfaces.md, "Places") and the inn it wakes at, and the stats its loadout gives it.
+/// (interfaces.md, "Places") - a town filling its hearts (<see cref="Hearts"/>) - and the inn it wakes at, and the stats its
+/// loadout gives it.
 /// </summary>
-public sealed partial class Characters(RealmDb db, RealmContent content, RealmOptions options, RealmDice dice, TimeProvider time)
+public sealed partial class Characters(RealmDb db, RealmContent content, RealmOptions options, RealmDice dice, TimeProvider time, Hearts hearts)
 {
     /// <summary>The setup values every character starts from (design.md A1).</summary>
     public static GearStats BaseStats { get; } = new(20, 7, 7);
@@ -73,6 +74,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             Z = inn.Z,
             PlacedAt = now,
             Inn = inn.Id,
+            Hearts = Economy.Hearts.Starting,
+            MaxHearts = Economy.Hearts.Starting,
             CreatedAt = now,
         });
 
@@ -134,8 +137,9 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         List<GearInstance> gear = await Gear(player).ConfigureAwait(false);
         Dictionary<string, GearInstance?> loadout = await Loadout(player, gear).ConfigureAwait(false);
         List<string> unlocked = await db.Unlocks.Where(unlock => unlock.PlayerId == player).Select(unlock => unlock.Color).ToListAsync().ConfigureAwait(false);
-        List<AnteRow> ante = await db.Ante.AsNoTracking().Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
         List<string> attuned = await db.Attuned.Where(row => row.PlayerId == player).Select(row => row.Tower).ToListAsync().ConfigureAwait(false);
+        DuelRow? defeated = await db.Duels.AsNoTracking().Where(duel => duel.PlayerId == player && duel.State == DuelRow.Defeated)
+            .OrderByDescending(duel => duel.FinishedAt).FirstOrDefaultAsync().ConfigureAwait(false);
         return new CharacterView(
             row.Id,
             row.Name,
@@ -143,7 +147,10 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             row.Palette,
             Identity(row, unlocked),
             row.Gold,
-            ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count),
+            row.Hearts,
+            row.MaxHearts,
+            Economy.Hearts.PriceAfter(row.MaxHearts),
+            defeated is null ? null : Encounters.Defeat(defeated, row.Hearts, row.MaxHearts),
             row.Space,
             row.X,
             row.Z,
@@ -220,9 +227,10 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     /// which no walk of eight-way steps beats), than the walking speed allows in the time since - or through a door: into an
     /// interior from on or beside a door of it, out of one on or beside its exit. A dungeon run is entered and left by its own
     /// calls, and its places are the browser's, so within a live run of theirs any tile is taken; a waystone is travelled by
-    /// its own call.
+    /// its own call. A place in a town - within its walls, or in one of its buildings - fills the character's hearts
+    /// (design.md A3b), the server's knowledge of where they stand being what it has checked here. Their hearts after it.
     /// </summary>
-    public async Task Position(string player, PlaceView request)
+    public async Task<PositionView> Position(string player, PlaceView request)
     {
         ArgumentNullException.ThrowIfNull(request);
         PlayerRow row = await Require(player).ConfigureAwait(false);
@@ -278,6 +286,8 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         row.Z = request.Z;
         row.PlacedAt = now;
         await db.SaveChangesAsync().ConfigureAwait(false);
+        if (hearts.InTown(row.Space, at)) await hearts.Refill(player).ConfigureAwait(false);
+        return new PositionView(await db.Players.AsNoTracking().Where(stored => stored.Id == player).Select(stored => stored.Hearts).SingleAsync().ConfigureAwait(false));
     }
 
     /// <summary>Puts a character somewhere at once: through a waystone, out of a dungeon, back at the inn.</summary>
@@ -290,7 +300,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             .SetProperty(row => row.PlacedAt, Now)).ConfigureAwait(false);
     }
 
-    /// <summary>Sends a character to their inn (a lost duel, design.md A3), outside it in the world.</summary>
+    /// <summary>Sends a character to their inn (their last heart lost, design.md A3b), outside it in the world.</summary>
     public async Task ToInn(string player)
     {
         PlayerRow row = await db.Players.AsNoTracking().SingleAsync(stored => stored.Id == player).ConfigureAwait(false);
@@ -318,7 +328,7 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     /// <summary>The first inn of a town, by world.json's order.</summary>
     public InnEntry? TownInn(string town) => content.World.File.Inns.FirstOrDefault(inn => inn.Town == town);
 
-    /// <summary>The inn a character wakes at: the one they set, or (if it is gone from the world) the start town's.</summary>
+    /// <summary>The inn a character wakes at, their home: the one they set, or (if it is gone from the world) the start town's.</summary>
     public InnEntry InnOf(PlayerRow row)
     {
         ArgumentNullException.ThrowIfNull(row);

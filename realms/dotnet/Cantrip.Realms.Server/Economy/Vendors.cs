@@ -278,7 +278,7 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
 
         Dictionary<string, int> used = new(StringComparer.Ordinal);
         foreach ((string name, int count) in (await db.Deck.AsNoTracking().Where(row => row.PlayerId == player && traded.Contains(row.Name)).Select(row => new { row.Name, row.Count }).ToListAsync().ConfigureAwait(false))
-            .Concat(await db.Ante.AsNoTracking().Where(row => row.PlayerId == player && traded.Contains(row.Name)).Select(row => new { row.Name, row.Count }).ToListAsync().ConfigureAwait(false))
+            .Concat(await db.Sideboard.AsNoTracking().Where(row => row.PlayerId == player && traded.Contains(row.Name)).Select(row => new { row.Name, row.Count }).ToListAsync().ConfigureAwait(false))
             .Select(row => (row.Name, row.Count)))
         {
             used[name] = used.GetValueOrDefault(name) + count;
@@ -351,8 +351,8 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
             int owned = await db.Collection.Where(row => row.PlayerId == player && row.Name == name).Select(row => row.Count).FirstOrDefaultAsync().ConfigureAwait(false);
             if (owned <= 0) throw Refusal.Conflict(Codes.NotOwned, $"You have no {name}.");
             int used = await db.Deck.Where(row => row.PlayerId == player && row.Name == name).SumAsync(row => row.Count).ConfigureAwait(false)
-                + await db.Ante.Where(row => row.PlayerId == player && row.Name == name).SumAsync(row => row.Count).ConfigureAwait(false);
-            if (owned - 1 < used) throw Refusal.Conflict(Codes.InDeck, $"Every {name} you own is in your deck or your ante.");
+                + await db.Sideboard.Where(row => row.PlayerId == player && row.Name == name).SumAsync(row => row.Count).ConfigureAwait(false);
+            if (owned - 1 < used) throw Refusal.Conflict(Codes.InDeck, $"Every {name} you own is in your deck or your sideboard.");
 
             // A shop of Dominaria keeps sixty sold cards; an exotic shop shows six cards in all; a caravan has room for all.
             int sold = await db.VendorStock.Where(item => item.VendorId == vendor.Id && item.Source == VendorStockRow.Sold).SumAsync(item => item.Count).ConfigureAwait(false);

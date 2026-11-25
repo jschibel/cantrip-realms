@@ -12,9 +12,9 @@ namespace Cantrip.Realms;
 /// engine deals from it, and the mob's seat is played from it (<see cref="RealmBot"/>).
 /// </param>
 /// <param name="Mob">Who seat 2 is, as the duel's splash shows it.</param>
-/// <param name="AnteValue">The player's ante as the duel began, in gold: the sum of its cards' list prices.</param>
-/// <param name="Cap">The prize cap: the least of the ante value and the mob's prize (design.md A3).</param>
-public sealed record Duel(IReadOnlyList<DuelSeat> Seats, int MinimumDeckSize, long Seed, DuelMob Mob, long AnteValue, long Cap)
+/// <param name="Game">Which game of its encounter this is: 1, and one more for each time the player fought on (design.md A3).</param>
+/// <param name="FirstPlayer">The seat that takes the first turn, as the loser of the last game chose; null in a first game.</param>
+public sealed record Duel(IReadOnlyList<DuelSeat> Seats, int MinimumDeckSize, long Seed, DuelMob Mob, int Game = 1, int? FirstPlayer = null)
 {
     /// <summary>The player's seat.</summary>
     public const int PlayerSeat = 1;
@@ -45,5 +45,5 @@ public sealed record DuelSeat(
     int MaximumHandSize,
     IReadOnlyList<string> Emblems);
 
-/// <summary>The mob a duel is against: its name, its tier (0 for a boss) and its prize value in gold.</summary>
-public sealed record DuelMob(string Name, int Tier, long Prize);
+/// <summary>The mob a duel is against: its name and its tier (0 for a boss).</summary>
+public sealed record DuelMob(string Name, int Tier);

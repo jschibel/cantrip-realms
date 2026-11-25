@@ -14,23 +14,10 @@
     "silver-band",
     "copper-amulet"
   ],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "G",
-    "types": [],
-    "subtypes": [
-      "Druid",
-      "Elf"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "druid",
     "palette": [

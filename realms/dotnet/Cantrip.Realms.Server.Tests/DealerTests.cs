@@ -42,7 +42,7 @@ public sealed class DealerTests
         Assert.All(content.Vendors.Values.Where(vendor => !vendor.Exotic), vendor => Assert.DoesNotContain(content.Cards.Filter(vendor.Plane, vendor.File.Specialty), content.Cards.IsOffPlane));
         Assert.All(content.Mobs.Values, mob =>
         {
-            Assert.DoesNotContain(content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot), content.Cards.IsOffPlane);
+            if (mob.File.Loot is { } loot) Assert.DoesNotContain(content.Cards.Filter(loot.Pool ?? mob.Plane, loot), content.Cards.IsOffPlane);
             Assert.DoesNotContain(mob.Deck.Entries, entry => content.Cards.IsOffPlane(entry.Card));
         });
         Assert.All(content.Starters.Values.SelectMany(decks => decks.Values), deck => Assert.DoesNotContain(deck.Entries, entry => content.Cards.IsOffPlane(entry.Card)));

@@ -16,25 +16,10 @@
     "marsh-waders",
     "silver-pendant"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "WUB",
-    "types": [],
-    "subtypes": [
-      "Wizard",
-      "Minion"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "warlock",
     "palette": [

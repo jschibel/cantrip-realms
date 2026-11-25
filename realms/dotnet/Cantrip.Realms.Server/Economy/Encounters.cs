@@ -10,13 +10,17 @@ namespace Cantrip.Realms.Server.Economy;
 /// <summary>
 /// Duels against mobs (design.md A3; tech.md B4, "the encounter protocol"). Starting one checks that the mob could be at
 /// that spawn for this player now (<see cref="Spawns"/>, this epoch or the one before), that the character stands near it,
-/// and that the spawn has not been fought this epoch; then commits the seed, the mob, both seats and the prize cap. The
-/// browser plays it; finishing it checks the log (<see cref="IDuelVerifier"/>) and pays out - gold, three cards offered
-/// under the cap, perhaps a gear item, from a boss perhaps a relic (design.md A3a), and from a mage tower's boss its
-/// waystone's attunement (A6); a boss's win also unlocks its color, gives a rare or mythic of its loot outright and drops
-/// its own unique item the first time (A6) - or takes a random ante card, ends the dungeon run it was fought in, and sends the character
-/// to their inn. A duel never finished is lost when the next one starts, or after 24 hours. A dungeon run's encounter is
-/// started the same way, checked against the run (<see cref="Dungeons"/>) rather than a spawn.
+/// and that the spawn has not been fought this epoch; then commits the seed, the mob and both seats. The browser plays it;
+/// finishing it checks the log (<see cref="IDuelVerifier"/>). A win pays out - gold, perhaps a gear item, from a boss perhaps
+/// a relic (design.md A3a), and from a mage tower's boss its waystone's attunement (A6); a boss's win also unlocks its
+/// color, gives a rare or mythic of its loot outright and drops its own unique item the first time (A6). A loss pays
+/// nothing and costs a heart (design.md A3b). With hearts left the mob stands over the player, who answers it
+/// (<see cref="Pay"/> or <see cref="Rematch"/>): a world mob may be paid off, for gold measured by its tier and the life it
+/// has left; a dungeon's is fought again. The next game is the encounter's own: the player at full life with a deck swapped
+/// from their sideboard, the mob at the life it ended the last with. With the last heart lost the character dies: home to
+/// their inn, their hearts full again, and a dungeon run they died in over and its winnings taken back. A game never
+/// finished is lost when the next encounter starts, or after 24 hours. A dungeon run's encounter is started the same way,
+/// checked against the run (<see cref="Dungeons"/>) rather than a spawn.
 /// </summary>
 public sealed class Encounters(
     RealmDb db,
@@ -38,46 +42,64 @@ public sealed class Encounters(
     /// <summary>How long a duel may be left unfinished before it counts as lost.</summary>
     public static TimeSpan Abandoned { get; } = TimeSpan.FromHours(24);
 
-    /// <summary>How many cards a win offers.</summary>
-    public const int Offered = 3;
-
     /// <summary>
     /// The chance, in percent, of a gear drop on a win, by tier (design.md A3), rolled with <see cref="RealmDice.Roll"/>; a
     /// boss always drops one.
     /// </summary>
     public static IReadOnlyDictionary<int, int> GearChance { get; } = new Dictionary<int, int> { [1] = 10, [2] = 15, [3] = 20, [4] = 30 };
 
+    /// <summary>What a mob of each tier asks to be paid off with when it beat the player without losing a point (design.md A3).</summary>
+    public static IReadOnlyDictionary<int, long> BuyoutBase { get; } = new Dictionary<int, long> { [1] = 30, [2] = 120, [3] = 400, [4] = 1_200 };
+
     private static readonly JsonSerializerOptions Json = new();
 
     private long Now => time.GetUtcNow().ToUnixTimeMilliseconds();
+
+    /// <summary>
+    /// A mob's buyout (design.md A3): its tier's base, in the share of its full starting life it ended the game with - never
+    /// more than the whole, however much it gained - rounded, and never less than 1 gold.
+    /// </summary>
+    public static long Buyout(int tier, int lifeAtEnd, int fullLife)
+    {
+        long whole = BuyoutBase.TryGetValue(tier, out long gold) ? gold : BuyoutBase[BuyoutBase.Keys.Max()];
+        double share = fullLife <= 0 ? 1 : Math.Min(1.0, (double)lifeAtEnd / fullLife);
+        return Math.Max(1, (long)Math.Round(whole * share, MidpointRounding.AwayFromZero));
+    }
 
     /// <summary>Starts a duel with a spawn's mob.</summary>
     public async Task<EncounterView> Start(string player, EncounterStart request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        PlayerRow row = await characters.Require(player).ConfigureAwait(false);
+        await characters.Require(player).ConfigureAwait(false);
         await SettleAbandoned(player).ConfigureAwait(false);
 
         DuelRow? open = await db.Duels.FirstOrDefaultAsync(duel => duel.PlayerId == player && duel.State == DuelRow.Open).ConfigureAwait(false);
         if (open is not null)
         {
-            await Lose(open, "Left unfinished when another duel began.").ConfigureAwait(false);
-            throw Refusal.Conflict(Codes.Unfinished, "The duel before this one was never finished, so it counts as lost: you are back at the inn.");
+            await Lose(open, "Left unfinished when another duel began.", null).ConfigureAwait(false);
+            throw Refusal.Conflict(Codes.Unfinished, "The duel before this one was never finished, so it counts as lost.");
         }
 
+        if (await Pending(player).ConfigureAwait(false) is { } defeated)
+        {
+            string who = content.Mobs.TryGetValue(defeated.Mob, out Mob? standing) ? standing.File.Name : defeated.Mob;
+            throw Refusal.Conflict(Codes.Defeated, $"{who} still stands over you: pay it off or fight it again first.");
+        }
+
+        PlayerRow row = await characters.Require(player).ConfigureAwait(false);
         (string space, string spawnId, long free, Mob mob, GearStats? gains) = request.Run is null
             ? await World(player, row, request).ConfigureAwait(false)
             : await InRun(player, row, request).ConfigureAwait(false);
 
         DeckView deck = await decks.View(player).ConfigureAwait(false);
-        List<string> problems = await decks.Problems(player, deck.Main, deck.Ante).ConfigureAwait(false);
+        List<string> problems = await decks.Problems(player, deck.Main, deck.Sideboard).ConfigureAwait(false);
         if (problems.Count > 0) throw Refusal.Unprocessable(Codes.IllegalDeck, "Your deck can't be played as it is: fix it at a spell table.", problems);
 
         CharacterView character = await characters.View(player).ConfigureAwait(false);
         long seed = dice.Seed();
-        long cap = Math.Min(deck.AnteValue, mob.File.Prize);
-        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck), MobSeat(mob, gains));
-        Duel duel = Deal(seat1, seat2, mob, seed, deck.AnteValue, cap);
+        DuelSeat mobSeat = MobSeat(mob, gains);
+        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, deck.Main, deck.Sideboard), mobSeat);
+        Duel duel = Deal(seat1, seat2, mob, seed);
 
         string token = RealmDice.Token();
         db.Duels.Add(new DuelRow
@@ -92,9 +114,8 @@ public sealed class Encounters(
             StartedAt = Now,
             State = DuelRow.Open,
             Spec = JsonSerializer.Serialize(duel, Json),
-            Ante = JsonSerializer.Serialize(deck.Ante, Json),
-            AnteValue = deck.AnteValue,
-            Cap = cap,
+            Sideboard = JsonSerializer.Serialize(deck.Sideboard, Json),
+            MobLife = mobSeat.StartingLife,
         });
 
         try
@@ -173,10 +194,11 @@ public sealed class Encounters(
 
     /// <summary>
     /// A duel against a mob as an encounter deals it: the player's seat and the mob's, the seed, the realm's minimum deck
-    /// size, who seat 2 is (a boss's tier 0), the ante's value and the prize cap. The balance lab deals its games with this
-    /// too (tools/realms/balance.cmd), so they are the server's duels.
+    /// size, who seat 2 is (a boss's tier 0), which game of its encounter it is and, after the first, who the player chose
+    /// to play first. The balance lab deals its games with this too (tools/realms/balance.cmd), so they are the server's
+    /// duels.
     /// </summary>
-    public static Duel Deal(DuelSeat player, DuelSeat mobSeat, Mob mob, long seed, long anteValue, long cap)
+    public static Duel Deal(DuelSeat player, DuelSeat mobSeat, Mob mob, long seed, int game = 1, int? firstPlayer = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(mobSeat);
@@ -185,25 +207,32 @@ public sealed class Encounters(
             [player, mobSeat],
             Duel.RealmMinimumDeckSize,
             seed,
-            new DuelMob(mob.File.Name, mob.File.Boss ? 0 : mob.File.Tier, mob.File.Prize),
-            anteValue,
-            cap);
-    }
-
-    /// <summary>The player's seat: their deck, their stats with their gear's, an emblem per worn item with effects.</summary>
-    public static DuelSeat PlayerSeat(CharacterView character, DeckView deck)
-    {
-        ArgumentNullException.ThrowIfNull(character);
-        ArgumentNullException.ThrowIfNull(deck);
-        List<GearItem> worn = [.. RealmContent.LoadoutSlots.Keys.Select(slot => character.Loadout.GetValueOrDefault(slot)?.Gear).OfType<GearItem>()];
-        return PlayerSeat(character.Name, worn, deck.Main.SelectMany(card => Enumerable.Repeat(card.Name, card.Count)));
+            new DuelMob(mob.File.Name, mob.File.Boss ? 0 : mob.File.Tier),
+            game,
+            firstPlayer);
     }
 
     /// <summary>
-    /// A player's seat from its parts: the deck, the base stats with the worn items' (in loadout order), an emblem per worn
-    /// item with effects.
+    /// The player's seat: their deck and their sideboard (the cards they own outside the game, CR 100.4a), their stats with
+    /// their gear's, an emblem per worn item with effects.
     /// </summary>
-    public static DuelSeat PlayerSeat(string name, IReadOnlyList<GearItem> worn, IEnumerable<string> deck)
+    public static DuelSeat PlayerSeat(CharacterView character, IReadOnlyList<CardCount> main, IReadOnlyList<CardCount> sideboard)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+        ArgumentNullException.ThrowIfNull(main);
+        ArgumentNullException.ThrowIfNull(sideboard);
+        List<GearItem> worn = [.. RealmContent.LoadoutSlots.Keys.Select(slot => character.Loadout.GetValueOrDefault(slot)?.Gear).OfType<GearItem>()];
+        return PlayerSeat(character.Name, worn, Copies(main), Copies(sideboard));
+    }
+
+    /// <summary>Each copy of a list's cards, by name.</summary>
+    private static IEnumerable<string> Copies(IEnumerable<CardCount> cards) => cards.SelectMany(card => Enumerable.Repeat(card.Name, card.Count));
+
+    /// <summary>
+    /// A player's seat from its parts: the deck, the sideboard, the base stats with the worn items' (in loadout order), an
+    /// emblem per worn item with effects.
+    /// </summary>
+    public static DuelSeat PlayerSeat(string name, IReadOnlyList<GearItem> worn, IEnumerable<string> deck, IEnumerable<string>? sideboard = null)
     {
         ArgumentNullException.ThrowIfNull(worn);
         ArgumentNullException.ThrowIfNull(deck);
@@ -211,7 +240,7 @@ public sealed class Encounters(
         return new DuelSeat(
             name,
             [.. deck],
-            [],
+            [.. sideboard ?? []],
             null,
             [],
             stats.Life,
@@ -245,7 +274,7 @@ public sealed class Encounters(
             [.. worn.Select(item => item.Emblem).OfType<string>()]);
     }
 
-    /// <summary>Finishes a duel with the browser's log: checked, then won or lost.</summary>
+    /// <summary>Finishes a game with the browser's log: checked, then won or lost.</summary>
     public async Task<OutcomeView> Finish(string player, EncounterFinish request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -255,31 +284,29 @@ public sealed class Encounters(
 
         if (Now - duel.StartedAt > (long)Abandoned.TotalMilliseconds)
         {
-            (bool ended, string? gone) = await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false);
-            if (!ended) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, [], duel.Detail, gone);
+            return await Lose(duel, "Left unfinished for 24 hours.", null).ConfigureAwait(false)
+                ?? throw Refusal.Conflict(Codes.Finished, "That duel is over.");
         }
 
         Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
         IReadOnlyList<string> log = request.Log ?? [];
         // A development server's test may have set the verdict (POST /dev/verdict); else the log is replayed.
-        DuelVerdict verdict = devVerdicts.For(player) ?? await Task.Run(() => verifier.Verify(spec, log)).ConfigureAwait(false);
+        DuelVerdict verdict = devVerdicts.For(player, spec) ?? await Task.Run(() => verifier.Verify(spec, log)).ConfigureAwait(false);
         if (!verdict.PlayerWon)
         {
             string detail = verdict.Accepted ? (verdict.Winners.Count == 0 ? "A draw." : "The mob won.") : $"The log was not a game of this duel: {verdict.Problem}";
-            (bool ended, string? gone) = await Lose(duel, detail).ConfigureAwait(false);
-            if (!ended) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
-            return new OutcomeView("lost", 0, [], duel.Cap, null, [], detail, gone);
+            return await Lose(duel, detail, verdict.LifeOf(Duel.MobSeat)).ConfigureAwait(false)
+                ?? throw Refusal.Conflict(Codes.Finished, "That duel is over.");
         }
 
         Mob mob = content.Mobs[duel.Mob];
         long gold = dice.Between(mob.File.GoldRange[0], mob.File.GoldRange[1]);
-        List<string> offer = Offer(mob, duel.Cap);
         HashSet<string> gearOwned = mob.File.Boss
             ? [.. await db.GearOwned.Where(row => row.PlayerId == player).Select(row => row.GearId).ToListAsync().ConfigureAwait(false)]
             : [];
         GearItem? drop = mob.File.Boss || (devVerdicts.GearRoll(player) ?? dice.Roll(GearChance.GetValueOrDefault(mob.File.Tier) / 100.0)) ? Drop(mob, gearOwned) : null;
-        string? gift = Gift(mob, offer);
+        string? gift = Gift(mob);
+        int? mobLifeEnd = verdict.LifeOf(Duel.MobSeat);
 
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
         if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Open)
@@ -287,7 +314,8 @@ public sealed class Encounters(
                 .SetProperty(row => row.State, DuelRow.Won)
                 .SetProperty(row => row.FinishedAt, Now)
                 .SetProperty(row => row.Gold, gold)
-                .SetProperty(row => row.Offer, JsonSerializer.Serialize(offer, Json))).ConfigureAwait(false) != 1)
+                .SetProperty(row => row.MobLifeEnd, mobLifeEnd)
+                .SetProperty(row => row.Gift, gift)).ConfigureAwait(false) != 1)
         {
             throw Refusal.Conflict(Codes.Finished, "That duel is over.");
         }
@@ -300,6 +328,7 @@ public sealed class Encounters(
             db.GearOwned.Add(owned);
             await db.SaveChangesAsync().ConfigureAwait(false);
             dropped = new GearInstance(owned.Id, drop);
+            await db.Duels.Where(row => row.Token == duel.Token).ExecuteUpdateAsync(set => set.SetProperty(row => row.GearInstance, owned.Id)).ConfigureAwait(false);
         }
 
         List<string> relics = await DropRelics(player, mob, duel.Token).ConfigureAwait(false);
@@ -320,29 +349,26 @@ public sealed class Encounters(
         }
 
         await transaction.CommitAsync().ConfigureAwait(false);
-        return new OutcomeView("won", gold, [.. offer.Select(card => new OfferedCard(card, content.Cards.Price(card) ?? 0))], duel.Cap, dropped, relics, null, Gift: gift, Unlocked: unlocked);
+        int hearts = await db.Players.Where(row => row.Id == player).Select(row => row.Hearts).SingleAsync().ConfigureAwait(false);
+        return new OutcomeView("won", gold, dropped, relics, null, Gift: gift, Unlocked: unlocked, Hearts: hearts);
     }
 
     /// <summary>
-    /// A boss's gift (design.md A6, "a rare or mythic guaranteed"): one rare or mythic of its loot, given outright -
-    /// whatever the ante, outside the cap, as a relic is - and one the offer does not hold where the loot has another.
-    /// None for any other mob.
+    /// A boss's gift (design.md A6, "a rare or mythic guaranteed"): one rare or mythic of its loot, given outright. None for
+    /// any other mob.
     /// </summary>
-    public string? Gift(Mob mob, IReadOnlyCollection<string> offer)
+    public string? Gift(Mob mob)
     {
         ArgumentNullException.ThrowIfNull(mob);
-        ArgumentNullException.ThrowIfNull(offer);
         IReadOnlyList<string> gifts = content.GiftsOf(mob);
-        List<string> fresh = [.. gifts.Where(card => !offer.Contains(card))];
-        List<string> from = fresh.Count > 0 ? fresh : [.. gifts];
-        return from.Count == 0 ? null : from[dice.Below(from.Count)];
+        return gifts.Count == 0 ? null : gifts[dice.Below(gifts.Count)];
     }
 
     /// <summary>
     /// The relics a win against a boss drops (design.md A3a), inside the win's transaction: each relic whose entry names the
-    /// boss, unless the account's ledger has it already, is rolled at its chance - apart from the offer and outside the cap -
-    /// and one that comes up goes to the collection and the ledger together. The ledger keeps it whatever becomes of the card,
-    /// so it never drops for this account again.
+    /// boss, unless the account's ledger has it already, is rolled at its chance, apart from the gift, and one that comes up
+    /// goes to the collection and the ledger together. The ledger keeps it whatever becomes of the card, so it never drops
+    /// for this account again - unless the win is taken back by dying in the run it was won in.
     /// </summary>
     private async Task<List<string>> DropRelics(string player, Mob mob, string token)
     {
@@ -383,18 +409,6 @@ public sealed class Encounters(
     }
 
     /// <summary>
-    /// The three cards a win offers (design.md A3): drawn from the mob's loot, each within the cap, so any one of them fits.
-    /// With an empty ante the cap is nothing, and nothing is offered.
-    /// </summary>
-    public List<string> Offer(Mob mob, long cap)
-    {
-        ArgumentNullException.ThrowIfNull(mob);
-        if (cap <= 0) return [];
-        List<string> fitting = [.. content.Cards.Filter(mob.File.Loot.Pool ?? mob.Plane, mob.File.Loot).Where(card => content.Cards.Price(card) <= cap)];
-        return dice.Draw(fitting, Offered);
-    }
-
-    /// <summary>
     /// A gear item a win drops: a boss's own unique (its file's <c>unique</c>) while the character owns none of it, and once
     /// they have it a rare or mythic item of the catalogue, never a unique; any other mob's an item of its tier's rarity.
     /// </summary>
@@ -408,42 +422,156 @@ public sealed class Encounters(
         return items.Count == 0 ? null : items[dice.Below(items.Count)];
     }
 
-    /// <summary>Takes the cards picked from a win's offer: any of them, together within the cap.</summary>
-    public async Task<CollectionView> Loot(string player, LootPicks request)
+    /// <summary>The game a player lost with hearts left and has still to answer (pay or fight again), if any.</summary>
+    public async Task<DuelRow?> Pending(string player) =>
+        await db.Duels.AsNoTracking().Where(duel => duel.PlayerId == player && duel.State == DuelRow.Defeated)
+            .OrderByDescending(duel => duel.FinishedAt).FirstOrDefaultAsync().ConfigureAwait(false);
+
+    /// <summary>A game lost with hearts left, as the player answers it: the mob's offer and the deck the game was played with.</summary>
+    public static DefeatView Defeat(DuelRow duel, int hearts, int maxHearts)
+    {
+        ArgumentNullException.ThrowIfNull(duel);
+        Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
+        List<CardCount> main = [.. spec.Seats[0].Deck.GroupBy(card => card, StringComparer.Ordinal)
+            .Select(group => new CardCount(group.Key, group.Count())).OrderBy(card => card.Name, StringComparer.Ordinal)];
+        return new DefeatView(
+            duel.Token,
+            duel.Mob,
+            duel.Game,
+            hearts,
+            maxHearts,
+            duel.MobLifeEnd ?? spec.Seats[1].StartingLife,
+            duel.MobLife,
+            duel.Price,
+            main,
+            SideboardOf(duel));
+    }
+
+    /// <summary>The sideboard a game was played with.</summary>
+    private static List<CardCount> SideboardOf(DuelRow duel) => JsonSerializer.Deserialize<List<CardCount>>(duel.Sideboard, Json) ?? [];
+
+    /// <summary>
+    /// Pays a mob off after a lost game (<c>POST /api/encounter/pay</c>, design.md A3): the encounter is over, the mob dealt
+    /// with until its spawn's next epoch, and nothing won. A dungeon's mob can't be bought off (409 <c>NoBuyout</c>); 409
+    /// <c>CannotAfford</c> without the gold, <c>Finished</c> for a game not awaiting an answer.
+    /// </summary>
+    public async Task<PaidView> Pay(string player, EncounterPay request)
     {
         ArgumentNullException.ThrowIfNull(request);
         await characters.Require(player).ConfigureAwait(false);
         DuelRow duel = await Owned(player, request.Token).ConfigureAwait(false);
-        if (duel.State != DuelRow.Won) throw Refusal.Conflict(Codes.Finished, duel.State == DuelRow.Looted ? "That duel's loot is taken." : "That duel was not won.");
-
-        List<string> offer = JsonSerializer.Deserialize<List<string>>(duel.Offer ?? "[]", Json) ?? [];
-        List<string> picks = [.. request.Picks ?? []];
-        foreach (IGrouping<string, string> picked in picks.GroupBy(pick => pick, StringComparer.Ordinal))
-        {
-            if (picked.Count() > offer.Count(card => card == picked.Key)) throw Refusal.Unprocessable(Codes.NotOffered, $"{picked.Key} was not offered.");
-        }
-
-        long total = picks.Sum(pick => content.Cards.Price(pick) ?? 0);
-        if (total > duel.Cap) throw Refusal.Unprocessable(Codes.OverCap, $"Those are worth {total} gold together; the cap is {duel.Cap}.");
+        if (duel.State != DuelRow.Defeated) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
+        string who = content.Mobs.TryGetValue(duel.Mob, out Mob? mob) ? mob.File.Name : duel.Mob;
+        if (duel.Price is not { } price) throw Refusal.Conflict(Codes.NoBuyout, $"{who} can't be bought off: fight it again.");
 
         await using (var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
-            if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Won)
-                .ExecuteUpdateAsync(set => set.SetProperty(row => row.State, DuelRow.Looted)).ConfigureAwait(false) != 1)
+            if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Defeated)
+                .ExecuteUpdateAsync(set => set.SetProperty(row => row.State, DuelRow.Paid)).ConfigureAwait(false) != 1)
             {
-                throw Refusal.Conflict(Codes.Finished, "That duel's loot is taken.");
+                throw Refusal.Conflict(Codes.Finished, "That duel is over.");
             }
 
-            foreach (string pick in picks)
+            if (await db.Players.Where(row => row.Id == player && row.Gold >= price)
+                .ExecuteUpdateAsync(set => set.SetProperty(row => row.Gold, row => row.Gold - price)).ConfigureAwait(false) != 1)
             {
-                await characters.AddToCollection(player, pick, 1).ConfigureAwait(false);
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                throw Refusal.Conflict(Codes.CannotAfford, $"{who} asks {price} gold.");
             }
 
             await transaction.CommitAsync().ConfigureAwait(false);
         }
 
-        return await characters.Collection(player).ConfigureAwait(false);
+        return new PaidView(await db.Players.Where(row => row.Id == player).Select(row => row.Gold).SingleAsync().ConfigureAwait(false));
+    }
+
+    /// <summary>
+    /// Fights on after a lost game (<c>POST /api/encounter/rematch</c>, design.md A3): the encounter's next game, dealt with
+    /// the deck and sideboard the player swapped from the last game's - a legal deck, the same cards between them but for
+    /// free basic lands - the player at their full starting life and playing first or not as they chose (the loser of the
+    /// last game chooses, CR 103.1), and the mob at exactly the life it ended the last game with, the rest of its seat as it
+    /// was. 422 <c>IllegalDeck</c> for a deck or sideboard that is no such swap; 409 <c>Finished</c> for a game not awaiting
+    /// an answer.
+    /// </summary>
+    public async Task<EncounterView> Rematch(string player, EncounterRematch request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await characters.Require(player).ConfigureAwait(false);
+        DuelRow last = await Owned(player, request.Token).ConfigureAwait(false);
+        if (last.State != DuelRow.Defeated) throw Refusal.Conflict(Codes.Finished, "That duel is over.");
+
+        List<CardCount> main = DecksAndGear.Merge(request.Main);
+        List<CardCount> sideboard = DecksAndGear.Merge(request.Sideboard);
+        Duel before = JsonSerializer.Deserialize<Duel>(last.Spec, Json)!;
+        List<string> problems = await decks.Problems(player, main, sideboard).ConfigureAwait(false);
+        problems.AddRange(SwapProblems(Copies(main).Concat(Copies(sideboard)), before.Seats[0].Deck.Concat(Copies(SideboardOf(last)))));
+        if (problems.Count > 0) throw Refusal.Unprocessable(Codes.IllegalDeck, "That deck can't be played in the next game.", problems);
+
+        CharacterView character = await characters.View(player).ConfigureAwait(false);
+        int carried = last.MobLifeEnd ?? before.Seats[1].StartingLife;
+        Mob mob = content.Mobs[last.Mob];
+        long seed = dice.Seed();
+        (DuelSeat seat1, DuelSeat seat2) = devDuels.Apply(player, PlayerSeat(character, main, sideboard), before.Seats[1]);
+        int game = last.Game + 1;
+        Duel duel = Deal(seat1, seat2 with { StartingLife = carried }, mob, seed, game, request.PlayFirst ? Duel.PlayerSeat : Duel.MobSeat);
+
+        string token = RealmDice.Token();
+        await using (var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false))
+        {
+            if (await db.Duels.Where(row => row.Token == last.Token && row.State == DuelRow.Defeated)
+                .ExecuteUpdateAsync(set => set.SetProperty(row => row.State, DuelRow.Rematched)).ConfigureAwait(false) != 1)
+            {
+                throw Refusal.Conflict(Codes.Finished, "That duel is over.");
+            }
+
+            db.Duels.Add(new DuelRow
+            {
+                Token = token,
+                PlayerId = player,
+                Space = last.Space,
+                Spawn = last.Spawn,
+                Epoch = last.Epoch,
+                Mob = last.Mob,
+                Game = game,
+                Seed = seed,
+                StartedAt = Now,
+                State = DuelRow.Open,
+                Spec = JsonSerializer.Serialize(duel, Json),
+                Sideboard = JsonSerializer.Serialize(sideboard, Json),
+                MobLife = last.MobLife,
+            });
+            await db.SaveChangesAsync().ConfigureAwait(false);
+            await transaction.CommitAsync().ConfigureAwait(false);
+        }
+
+        return new EncounterView(token, seed, duel);
+    }
+
+    /// <summary>
+    /// What makes a deck and sideboard no swap of the last game's (design.md A2): every card but the free basic lands the
+    /// same, copy for copy, between them.
+    /// </summary>
+    private List<string> SwapProblems(IEnumerable<string> now, IEnumerable<string> before)
+    {
+        Dictionary<string, int> had = Count(before);
+        Dictionary<string, int> has = Count(now);
+        List<string> problems = [];
+        foreach (string card in had.Keys.Union(has.Keys).Order(StringComparer.Ordinal))
+        {
+            int then = had.GetValueOrDefault(card);
+            int still = has.GetValueOrDefault(card);
+            if (then != still)
+            {
+                problems.Add(then == 0
+                    ? $"{card} was in neither the deck nor the sideboard: a game after the first swaps only the cards between them."
+                    : $"{card}: {then} between the deck and the sideboard last game, {still} now.");
+            }
+        }
+
+        return problems;
+
+        Dictionary<string, int> Count(IEnumerable<string> cards) =>
+            cards.Where(card => !characters.IsBasic(card)).GroupBy(card => card, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
     }
 
     /// <summary>Counts every duel of a player's left unfinished for 24 hours as lost.</summary>
@@ -452,7 +580,7 @@ public sealed class Encounters(
         long before = Now - (long)Abandoned.TotalMilliseconds;
         foreach (DuelRow duel in await db.Duels.Where(duel => duel.PlayerId == player && duel.State == DuelRow.Open && duel.StartedAt < before).ToListAsync().ConfigureAwait(false))
         {
-            await Lose(duel, "Left unfinished for 24 hours.").ConfigureAwait(false);
+            await Lose(duel, "Left unfinished for 24 hours.", null).ConfigureAwait(false);
         }
     }
 
@@ -467,66 +595,118 @@ public sealed class Encounters(
     }
 
     /// <summary>
-    /// A lost duel (design.md A3): a card of the ante it was fought for, chosen uniformly among its copies, is gone from the
-    /// collection and the ante; and the character wakes at the nearest inn. Gold is kept.
+    /// A lost game (design.md A3, A3b): it pays nothing and costs a heart. With hearts left the game awaits the player's
+    /// answer, and a world mob asks its buyout, measured by the life it ended with (the life it began with, for a game never
+    /// played out); the character stays where they stand. With the last heart the character dies (<see cref="Die"/>).
     /// </summary>
-    /// <returns>Whether this call ended the duel - false if it had ended already - and the ante card lost, if any.</returns>
-    private async Task<(bool Ended, string? Lost)> Lose(DuelRow duel, string detail)
+    /// <returns>How it ended; null if the game had ended already.</returns>
+    private async Task<OutcomeView?> Lose(DuelRow duel, string detail, int? mobLifeEnd)
     {
         string player = duel.PlayerId;
+        Duel spec = JsonSerializer.Deserialize<Duel>(duel.Spec, Json)!;
+        int end = mobLifeEnd ?? spec.Seats[1].StartingLife;
         await using var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false);
         if (await db.Duels.Where(row => row.Token == duel.Token && row.State == DuelRow.Open)
             .ExecuteUpdateAsync(set => set
                 .SetProperty(row => row.State, DuelRow.Lost)
                 .SetProperty(row => row.FinishedAt, Now)
-                .SetProperty(row => row.Detail, detail)).ConfigureAwait(false) != 1)
+                .SetProperty(row => row.Detail, detail)
+                .SetProperty(row => row.MobLifeEnd, end)).ConfigureAwait(false) != 1)
         {
-            return (false, null);
+            return null;
         }
 
         duel.State = DuelRow.Lost;
         duel.Detail = detail;
+        duel.MobLifeEnd = end;
 
-        // The ante as the duel began, each copy a ticket, of the cards the character still has.
-        List<CardCount> ante = JsonSerializer.Deserialize<List<CardCount>>(duel.Ante, Json) ?? [];
-        Dictionary<string, int> owned = await db.Collection.Where(row => row.PlayerId == player)
-            .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
-        List<string> tickets = [.. ante.Where(card => !content.Cards.IsRelic(card.Name))
-            .SelectMany(card => Enumerable.Repeat(card.Name, Math.Min(card.Count, owned.GetValueOrDefault(card.Name))))];
-        string? lost = null;
-        if (tickets.Count > 0)
+        await db.Players.Where(row => row.Id == player && row.Hearts > 0).ExecuteUpdateAsync(set => set.SetProperty(row => row.Hearts, row => row.Hearts - 1)).ConfigureAwait(false);
+        PlayerRow row = await db.Players.AsNoTracking().SingleAsync(stored => stored.Id == player).ConfigureAwait(false);
+        OutcomeView outcome;
+        if (row.Hearts > 0)
         {
-            lost = tickets[dice.Below(tickets.Count)];
-            await characters.AddToCollection(player, lost, -1).ConfigureAwait(false);
-            AnteRow? anted = await db.Ante.SingleOrDefaultAsync(row => row.PlayerId == player && row.Name == lost).ConfigureAwait(false);
-            if (anted is not null)
-            {
-                anted.Count--;
-                if (anted.Count <= 0) db.Ante.Remove(anted);
-            }
-            else if (await db.Deck.SingleOrDefaultAsync(row => row.PlayerId == player && row.Name == lost).ConfigureAwait(false) is { } decked
-                && decked.Count > owned[lost] - 1)
-            {
-                // The ante changed since the duel began and the deck holds the last copies: the deck gives one up.
-                decked.Count--;
-                if (decked.Count <= 0) db.Deck.Remove(decked);
-            }
+            long? price = RealmContent.RunOf(duel.Space) is null && content.Mobs.TryGetValue(duel.Mob, out Mob? mob)
+                ? Buyout(mob.File.Tier, end, duel.MobLife)
+                : null;
+            await db.Duels.Where(stored => stored.Token == duel.Token).ExecuteUpdateAsync(set => set
+                .SetProperty(stored => stored.State, DuelRow.Defeated)
+                .SetProperty(stored => stored.Price, price)).ConfigureAwait(false);
+            duel.State = DuelRow.Defeated;
+            duel.Price = price;
+            outcome = new OutcomeView("lost", 0, null, [], detail, Hearts: row.Hearts, Defeat: Defeat(duel, row.Hearts, row.MaxHearts));
+        }
+        else
+        {
+            RunLoss? forfeit = await Die(player, duel).ConfigureAwait(false);
+            int hearts = await db.Players.Where(stored => stored.Id == player).Select(stored => stored.Hearts).SingleAsync().ConfigureAwait(false);
+            outcome = new OutcomeView("lost", 0, null, [], detail, Hearts: hearts, Died: true, Forfeit: forfeit);
         }
 
-        // Losing any duel of a run ends the run (design.md A6); the character wakes at their inn.
+        await db.SaveChangesAsync().ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
+        return outcome;
+    }
+
+    /// <summary>
+    /// The last heart lost (design.md A3b): the character wakes at home - their inn - with their hearts full. A dungeon run
+    /// they died in ends, and what it won is taken back: the gold of its wins (as much of it as they still have), the gear
+    /// items that dropped (taken off if worn) and the cards it gave - a boss's gift, and a relic, whose ledger entry goes
+    /// with it so that it may drop again - from the collection, and from the sideboard and then the deck where those held
+    /// the copies that are gone. Outside a dungeon nothing else is lost.
+    /// </summary>
+    /// <returns>What the run had won and lost, or null outside a run.</returns>
+    private async Task<RunLoss?> Die(string player, DuelRow duel)
+    {
+        RunLoss? forfeit = null;
         if (RealmContent.RunOf(duel.Space) is { } run)
         {
             await db.Runs.Where(row => row.Id == run && row.State == RunRow.Live).ExecuteUpdateAsync(set => set
                 .SetProperty(row => row.State, RunRow.Ended)
                 .SetProperty(row => row.EndedAt, Now)
-                .SetProperty(row => row.Detail, "A duel of it was lost.")).ConfigureAwait(false);
+                .SetProperty(row => row.Detail, "Its challenger fell in it.")).ConfigureAwait(false);
+            forfeit = await TakeBack(player, duel.Space).ConfigureAwait(false);
         }
 
         await characters.ToInn(player).ConfigureAwait(false);
+        await db.Players.Where(row => row.Id == player).ExecuteUpdateAsync(set => set.SetProperty(row => row.Hearts, row => row.MaxHearts)).ConfigureAwait(false);
+        return forfeit;
+    }
+
+    /// <summary>Takes back what a run's wins gave (<see cref="Die"/>).</summary>
+    private async Task<RunLoss> TakeBack(string player, string space)
+    {
+        List<DuelRow> won = await db.Duels.AsNoTracking()
+            .Where(row => row.PlayerId == player && row.Space == space && (row.State == DuelRow.Won || row.State == DuelRow.Looted))
+            .ToListAsync().ConfigureAwait(false);
+        long gold = won.Sum(row => row.Gold);
+        if (gold > 0)
+        {
+            await db.Players.Where(row => row.Id == player).ExecuteUpdateAsync(set => set
+                .SetProperty(row => row.Gold, row => row.Gold > gold ? row.Gold - gold : 0)).ConfigureAwait(false);
+        }
+
+        List<string> gear = [];
+        foreach (long instance in won.Select(row => row.GearInstance).OfType<long>())
+        {
+            if (await db.GearOwned.SingleOrDefaultAsync(row => row.Id == instance && row.PlayerId == player).ConfigureAwait(false) is not { } owned) continue;
+            await db.Loadout.Where(row => row.PlayerId == player && row.GearInstanceId == instance).ExecuteDeleteAsync().ConfigureAwait(false);
+            db.GearOwned.Remove(owned);
+            gear.Add(content.Gear.TryGetValue(owned.GearId, out GearItem? item) ? item.Name : owned.GearId);
+        }
+
+        List<string> tokens = [.. won.Select(row => row.Token)];
+        List<RelicRow> relics = await db.Relics.Where(row => row.PlayerId == player && tokens.Contains(row.Duel)).ToListAsync().ConfigureAwait(false);
+        db.Relics.RemoveRange(relics);
+        List<string> cards = [.. won.Select(row => row.Gift).OfType<string>().Concat(relics.Select(row => row.Card))];
+        foreach (string card in cards)
+        {
+            await characters.AddToCollection(player, card, -1).ConfigureAwait(false);
+            await db.SaveChangesAsync().ConfigureAwait(false);
+            await decks.FitToCollection(player, card).ConfigureAwait(false);
+        }
 
         await db.SaveChangesAsync().ConfigureAwait(false);
-        await transaction.CommitAsync().ConfigureAwait(false);
-        return (true, lost);
+        return new RunLoss(gold, cards, gear);
     }
 
     private async Task<DuelRow> Owned(string player, string? token) =>

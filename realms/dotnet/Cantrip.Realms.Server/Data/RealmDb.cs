@@ -36,8 +36,17 @@ public sealed class PlayerRow
     /// <summary>When the character was last put somewhere: the walk to the next report starts then.</summary>
     public long PlacedAt { get; set; }
 
-    /// <summary>The inn the character has set as home (world.json's id), where a lost duel wakes them.</summary>
+    /// <summary>The inn the character has set as home (world.json's id), where they wake when their last heart is lost.</summary>
     public string Inn { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The hearts the character has now (design.md A3b): a lost duel takes one, and the last one lost sends them home. A
+    /// town fills them to <see cref="MaxHearts"/>.
+    /// </summary>
+    public int Hearts { get; set; } = Economy.Hearts.Starting;
+
+    /// <summary>How many hearts the character can hold: 2 to start, raised one at a time at a healer to 5.</summary>
+    public int MaxHearts { get; set; } = Economy.Hearts.Starting;
 
     public long CreatedAt { get; set; }
 }
@@ -85,8 +94,11 @@ public sealed class DeckRow
     public int Count { get; set; }
 }
 
-/// <summary>Copies of a card in a character's ante (<c>ante</c>).</summary>
-public sealed class AnteRow
+/// <summary>
+/// Copies of a card in a character's sideboard (<c>sideboard</c>, design.md A2): up to 15 cards beside the deck, swapped in
+/// between the games of a rematch.
+/// </summary>
+public sealed class SideboardRow
 {
     public string PlayerId { get; set; } = string.Empty;
 
@@ -172,7 +184,11 @@ public sealed class VendorVisitRow
     public long Hour { get; set; }
 }
 
-/// <summary>A duel (<c>duels</c>): what was committed as it started, and how it ended.</summary>
+/// <summary>
+/// A game of an encounter (<c>duels</c>): what was committed as it started, and how it ended. An encounter is one game, or
+/// more when the player fights on after a loss (design.md A3): each game a row of its own, the same space, spawn and epoch,
+/// numbered by <see cref="Game"/>.
+/// </summary>
 public sealed class DuelRow
 {
     /// <summary>The duel's token, which the client finishes it with.</summary>
@@ -195,26 +211,41 @@ public sealed class DuelRow
 
     public long StartedAt { get; set; }
 
-    /// <summary><see cref="Open"/>, <see cref="Won"/> (loot not yet taken), <see cref="Looted"/> or <see cref="Lost"/>.</summary>
+    /// <summary>Which game of its encounter this is: 1, then one more for each time the player fought on.</summary>
+    public int Game { get; set; } = 1;
+
+    /// <summary>
+    /// <see cref="Open"/>; <see cref="Won"/> (or <see cref="Looted"/>, a win from before hearts); <see cref="Defeated"/>, lost
+    /// with hearts left and the player's answer pending; then <see cref="Paid"/> or <see cref="Rematched"/>; or
+    /// <see cref="Lost"/>, the last heart lost with it.
+    /// </summary>
     public string State { get; set; } = Open;
 
     /// <summary>The <see cref="Duel"/> as dealt, as JSON.</summary>
     public string Spec { get; set; } = string.Empty;
 
-    /// <summary>The ante as the duel began, as JSON: what a loss takes a card from.</summary>
-    public string Ante { get; set; } = string.Empty;
+    /// <summary>The player's sideboard for this game, as JSON (<c>[{Name, Count}]</c>): what the next game may swap in.</summary>
+    public string Sideboard { get; set; } = "[]";
 
-    public long AnteValue { get; set; }
+    /// <summary>The mob's full starting life for the encounter, its gear's and a run's gains with it: what a buyout is measured against.</summary>
+    public int MobLife { get; set; }
 
-    public long Cap { get; set; }
+    /// <summary>The mob's life when the game ended, from the checked log (its starting life for a game never played out).</summary>
+    public int? MobLifeEnd { get; set; }
+
+    /// <summary>What the mob asks to be paid off after this game, in gold; null for a win or a mob of a dungeon, which takes none.</summary>
+    public long? Price { get; set; }
 
     public long? FinishedAt { get; set; }
 
     /// <summary>The gold a win paid.</summary>
     public long Gold { get; set; }
 
-    /// <summary>The cards a win offered, as JSON.</summary>
-    public string? Offer { get; set; }
+    /// <summary>The gear instance a win dropped, if one did: what dying in the run it was won in takes back.</summary>
+    public long? GearInstance { get; set; }
+
+    /// <summary>The card a boss's win gave outright, if any: what dying in the run it was won in takes back.</summary>
+    public string? Gift { get; set; }
 
     /// <summary>Why it ended as it did, in words: what the verifier found, or that it was left too long.</summary>
     public string? Detail { get; set; }
@@ -222,7 +253,13 @@ public sealed class DuelRow
     public const string Open = "open";
     public const string Won = "won";
     public const string Looted = "looted";
+    public const string Defeated = "defeated";
+    public const string Paid = "paid";
+    public const string Rematched = "rematched";
     public const string Lost = "lost";
+
+    /// <summary>Whether a game in this state was won.</summary>
+    public static bool IsWon(string state) => state is Won or Looted;
 }
 
 /// <summary>When a character last opened a chest (<c>chests</c>); chests refill for each player on their own timer.</summary>
@@ -241,7 +278,7 @@ public sealed class ChestRow
 /// <summary>
 /// A dungeon run (<c>runs</c>, design.md A6): a single-player instance of a dungeon, its seed for the browser's layout, and
 /// every encounter of every floor, fixed as it begins. A character has one live run at most; leaving it or losing a duel
-/// in it ends it.
+/// in it with the last heart ends it.
 /// </summary>
 public sealed class RunRow
 {
@@ -314,7 +351,7 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
 
     public DbSet<DeckRow> Deck => Set<DeckRow>();
 
-    public DbSet<AnteRow> Ante => Set<AnteRow>();
+    public DbSet<SideboardRow> Sideboard => Set<SideboardRow>();
 
     public DbSet<UnlockRow> Unlocks => Set<UnlockRow>();
 
@@ -349,6 +386,8 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             player.Property(row => row.Color).HasMaxLength(1);
             player.Property(row => row.Space).HasMaxLength(80);
             player.Property(row => row.Inn).HasMaxLength(64);
+            player.Property(row => row.Hearts).HasDefaultValue(Economy.Hearts.Starting);
+            player.Property(row => row.MaxHearts).HasDefaultValue(Economy.Hearts.Starting);
         });
 
         modelBuilder.Entity<CollectionRow>(row =>
@@ -382,9 +421,9 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             row.Property(card => card.Name).HasMaxLength(160);
         });
 
-        modelBuilder.Entity<AnteRow>(row =>
+        modelBuilder.Entity<SideboardRow>(row =>
         {
-            row.ToTable("ante");
+            row.ToTable("sideboard");
             row.HasKey(card => new { card.PlayerId, card.Name });
             row.Property(card => card.Name).HasMaxLength(160);
         });
@@ -435,7 +474,8 @@ public abstract class RealmDb(DbContextOptions options) : DbContext(options)
             row.Property(duel => duel.Token).HasMaxLength(64);
             row.Property(duel => duel.State).HasMaxLength(16);
             row.Property(duel => duel.Space).HasMaxLength(80);
-            row.HasIndex(duel => new { duel.PlayerId, duel.Space, duel.Spawn, duel.Epoch }).IsUnique();
+            row.Property(duel => duel.Gift).HasMaxLength(160);
+            row.HasIndex(duel => new { duel.PlayerId, duel.Space, duel.Spawn, duel.Epoch, duel.Game }).IsUnique();
             row.HasIndex(duel => new { duel.PlayerId, duel.State });
         });
 

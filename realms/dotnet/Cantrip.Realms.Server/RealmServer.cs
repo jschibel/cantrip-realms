@@ -25,6 +25,7 @@ public static class RealmServer
         services.AddSingleton<DevVerdicts>();
         services.AddSingleton<DevDuels>();
         options.Database.Register(services);
+        services.AddScoped<Hearts>();
         services.AddScoped<Characters>();
         services.AddScoped<DecksAndGear>();
         services.AddScoped<Vendors>();

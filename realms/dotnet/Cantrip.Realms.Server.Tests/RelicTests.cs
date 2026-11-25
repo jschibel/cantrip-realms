@@ -76,9 +76,8 @@ public sealed class RelicTests
         Assert.Equal("won", won.Outcome);
         Assert.Equal(PraetorsRelics, won.Relics);
 
-        // Apart from the offer and outside the cap: with an empty ante nothing is offered, and the relics drop all the same.
-        Assert.Equal(0, won.Cap);
-        Assert.Empty(won.Offer);
+        // Apart from the gift: they drop beside it, straight to the collection.
+        Assert.NotNull(won.Gift);
         IReadOnlyDictionary<string, int> collection = await browser.Collection();
         Assert.All(PraetorsRelics, relic => Assert.Equal(1, collection.GetValueOrDefault(relic)));
         Assert.Equal(PraetorsRelics.Order(StringComparer.Ordinal), (await Ledger(app, browser)).Order(StringComparer.Ordinal));
@@ -173,21 +172,22 @@ public sealed class RelicTests
     }
 
     [Fact]
-    public async Task A_relic_is_never_anted_and_never_sold()
+    public async Task A_relic_is_one_copy_in_a_deck_and_its_sideboard_and_never_sold()
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1, "W");
-        await app.Give(browser, "Black Lotus", 1);
+        await app.Give(browser, "Black Lotus", 2);
 
+        // One copy in the deck or the sideboard is fine; one in each is two.
         await browser.ToSpellTable();
         DeckView deck = await browser.Deck();
-        ApiError anted = await browser.Refused(
-            HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = new[] { new CardCount("Black Lotus", 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
-        Assert.Contains("Black Lotus is a relic, which is never lost: it can't be anted.", anted.Problems!);
-
-        // In the deck, one copy is fine.
         List<CardCount> main = [.. deck.Main.Where(card => card.Name != "Plains"), new("Plains", deck.Main.Single(card => card.Name == "Plains").Count - 1), new("Black Lotus", 1)];
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Ante = Array.Empty<CardCount>() });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = new[] { new CardCount("Black Lotus", 1) } });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Sideboard = Array.Empty<CardCount>() });
+        ApiError twice = await browser.Refused(
+            HttpMethod.Put, "/api/deck", new { Main = main, Sideboard = new[] { new CardCount("Black Lotus", 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", twice.Problems!);
+        await app.Give(browser, "Black Lotus", -1);
 
         // No vendor buys one: not even the curio dealer, nor one whose trade it would otherwise be.
         await app.Give(browser, "Black Lotus", 1);
@@ -263,9 +263,7 @@ public sealed class PraetorDuelTests
             ],
             Duel.RealmMinimumDeckSize,
             20261123,
-            new DuelMob(praetor.File.Name, 0, praetor.File.Prize),
-            0,
-            0);
+            new DuelMob(praetor.File.Name, 0));
 
         (List<string> log, IReadOnlyList<int> winners) = NativeVerifierTests.Play(duel, new TacticalPlay(), RealmBot.Create(duel.Seed));
         DuelVerdict verdict = new NativeDuelVerifier().Verify(duel, log);

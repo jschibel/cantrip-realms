@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
-/// A character's deck and ante (design.md A2), and their loadout (A1, A4). The deck and the ante change only while the
-/// character stands at a spell table; basic lands of the character's colors are free, unlimited and never owned.
+/// A character's deck and sideboard (design.md A2), and their loadout (A1, A4). The deck and the sideboard change only while
+/// the character stands at a spell table; basic lands of the character's colors are free, unlimited and never owned.
 /// </summary>
 public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters characters)
 {
@@ -22,29 +22,27 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
     {
         await characters.Require(player).ConfigureAwait(false);
         List<DeckRow> main = await db.Deck.Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
-        List<AnteRow> ante = await db.Ante.Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
+        List<SideboardRow> sideboard = await db.Sideboard.Where(row => row.PlayerId == player).ToListAsync().ConfigureAwait(false);
         return View(
             [.. main.Select(row => new CardCount(row.Name, row.Count))],
-            [.. ante.Select(row => new CardCount(row.Name, row.Count))]);
+            [.. sideboard.Select(row => new CardCount(row.Name, row.Count))]);
     }
 
-    private DeckView View(IEnumerable<CardCount> main, IEnumerable<CardCount> ante)
-    {
-        List<CardCount> anteList = [.. ante.Where(card => card.Count > 0).OrderBy(card => card.Name, StringComparer.Ordinal)];
-        return new DeckView([.. main.Where(card => card.Count > 0).OrderBy(card => card.Name, StringComparer.Ordinal)], anteList, AnteValue(anteList));
-    }
+    private static DeckView View(IEnumerable<CardCount> main, IEnumerable<CardCount> sideboard) =>
+        new([.. main.Where(card => card.Count > 0).OrderBy(card => card.Name, StringComparer.Ordinal)],
+            [.. sideboard.Where(card => card.Count > 0).OrderBy(card => card.Name, StringComparer.Ordinal)]);
 
     /// <summary>
     /// Everything a character owns of cards (<c>GET /api/inventory</c>): each card of the collection, by name, with how many,
-    /// its list price (0 for a card with none), how many copies the deck and the ante use, and whether it is a relic; and what
-    /// the collection is worth at list price. Their gear is the <c>Character</c>'s.
+    /// its list price (0 for a card with none), how many copies the deck and the sideboard use, and whether it is a relic;
+    /// and what the collection is worth at list price. Their gear is the <c>Character</c>'s.
     /// </summary>
     public async Task<InventoryView> Inventory(string player)
     {
         await characters.Require(player).ConfigureAwait(false);
         Dictionary<string, int> deck = await db.Deck.AsNoTracking().Where(row => row.PlayerId == player)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
-        Dictionary<string, int> ante = await db.Ante.AsNoTracking().Where(row => row.PlayerId == player)
+        Dictionary<string, int> sideboard = await db.Sideboard.AsNoTracking().Where(row => row.PlayerId == player)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
         List<CollectionRow> owned = await db.Collection.AsNoTracking().Where(row => row.PlayerId == player && row.Count > 0).ToListAsync().ConfigureAwait(false);
         List<InventoryCard> cards = [.. owned.OrderBy(row => row.Name, StringComparer.Ordinal).Select(row => new InventoryCard(
@@ -52,15 +50,12 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
             row.Count,
             content.Cards.Price(row.Name) ?? 0,
             deck.GetValueOrDefault(row.Name),
-            ante.GetValueOrDefault(row.Name),
+            sideboard.GetValueOrDefault(row.Name),
             content.Cards.IsRelic(row.Name)))];
         return new InventoryView(cards, cards.Sum(card => card.Gold * card.Count));
     }
 
-    /// <summary>What an ante is worth: the sum of its cards' list prices (design.md A2).</summary>
-    public long AnteValue(IEnumerable<CardCount> ante) => ante.Sum(card => (content.Cards.Price(card.Name) ?? 0) * card.Count);
-
-    /// <summary>Saves a character's deck and ante, at a spell table, if they are legal.</summary>
+    /// <summary>Saves a character's deck and sideboard, at a spell table, if they are legal.</summary>
     public async Task<DeckView> Save(string player, DeckChange change)
     {
         ArgumentNullException.ThrowIfNull(change);
@@ -68,55 +63,48 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
         if (!characters.AtSpellTable(row) && !await characters.InAntechamber(row).ConfigureAwait(false)) throw Refusal.Conflict(Codes.NotAtTable, "A deck is changed only at a spell table.");
 
         List<CardCount> main = Merge(change.Main);
-        List<CardCount> ante = Merge(change.Ante);
-        List<string> problems = await Problems(player, main, ante).ConfigureAwait(false);
+        List<CardCount> sideboard = Merge(change.Sideboard);
+        List<string> problems = await Problems(player, main, sideboard).ConfigureAwait(false);
         if (problems.Count > 0) throw Refusal.Unprocessable(Codes.IllegalDeck, "The deck can't be played as it is.", problems);
 
         await using (var transaction = await db.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
             await db.Deck.Where(card => card.PlayerId == player).ExecuteDeleteAsync().ConfigureAwait(false);
-            await db.Ante.Where(card => card.PlayerId == player).ExecuteDeleteAsync().ConfigureAwait(false);
+            await db.Sideboard.Where(card => card.PlayerId == player).ExecuteDeleteAsync().ConfigureAwait(false);
             db.Deck.AddRange(main.Select(card => new DeckRow { PlayerId = player, Name = card.Name, Count = card.Count }));
-            db.Ante.AddRange(ante.Select(card => new AnteRow { PlayerId = player, Name = card.Name, Count = card.Count }));
+            db.Sideboard.AddRange(sideboard.Select(card => new SideboardRow { PlayerId = player, Name = card.Name, Count = card.Count }));
             await db.SaveChangesAsync().ConfigureAwait(false);
             await transaction.CommitAsync().ConfigureAwait(false);
         }
 
-        return View(main, ante);
+        return View(main, sideboard);
     }
 
-    /// <summary>What saving a deck and an ante would find wrong with them, wherever the character stands, and what the ante is worth.</summary>
+    /// <summary>What saving a deck and a sideboard would find wrong with them, wherever the character stands.</summary>
     public async Task<DeckCheckView> Check(string player, DeckChange change)
     {
         ArgumentNullException.ThrowIfNull(change);
         await characters.Require(player).ConfigureAwait(false);
-        List<CardCount> main = Merge(change.Main);
-        List<CardCount> ante = Merge(change.Ante);
-        return new DeckCheckView(await Problems(player, main, ante).ConfigureAwait(false), AnteValue(ante.Where(card => card.Count > 0)));
+        return new DeckCheckView(await Problems(player, Merge(change.Main), Merge(change.Sideboard)).ConfigureAwait(false));
     }
 
-    /// <summary>Everything wrong with a deck and an ante for a character, in the order they would fix it.</summary>
-    public async Task<List<string>> Problems(string player, IReadOnlyList<CardCount> main, IReadOnlyList<CardCount> ante)
+    /// <summary>
+    /// Everything wrong with a deck and a sideboard for a character (design.md A2), in the order they would fix it: the
+    /// deck's and the sideboard's cards together within the copy limits and the character's identity, the sideboard at most
+    /// 15 cards, and every copy but a free basic land owned.
+    /// </summary>
+    public async Task<List<string>> Problems(string player, IReadOnlyList<CardCount> main, IReadOnlyList<CardCount> sideboard)
     {
         string identity = await characters.Identity(player).ConfigureAwait(false);
-        List<string> problems = DeckChecks.Problems(content.Cards, [.. main.Select(card => new DeckEntry(card.Name, card.Count))], CardPool.Identity(identity));
-
-        int anted = ante.Sum(card => card.Count);
-        if (ante.Any(card => card.Count <= 0)) problems.Add("Every ante entry is one copy or more.");
-        if (anted > DeckChecks.MostAnte) problems.Add($"An ante is at most {DeckChecks.MostAnte} cards: this one is {anted}.");
-        foreach (CardCount card in ante.Where(card => characters.IsBasic(card.Name)))
-        {
-            problems.Add($"{card.Name} is a basic land, free to every deck: it can't be anted.");
-        }
-
-        foreach (CardCount card in ante.Where(card => content.Cards.IsRelic(card.Name)))
-        {
-            problems.Add($"{card.Name} is a relic, which is never lost: it can't be anted.");
-        }
+        List<string> problems = DeckChecks.Problems(
+            content.Cards,
+            [.. main.Select(card => new DeckEntry(card.Name, card.Count))],
+            CardPool.Identity(identity),
+            [.. sideboard.Select(card => new DeckEntry(card.Name, card.Count))]);
 
         Dictionary<string, int> owned = await db.Collection.Where(row => row.PlayerId == player)
             .ToDictionaryAsync(row => row.Name, row => row.Count, StringComparer.Ordinal).ConfigureAwait(false);
-        foreach (IGrouping<string, CardCount> named in main.Concat(ante).Where(card => !characters.IsBasic(card.Name))
+        foreach (IGrouping<string, CardCount> named in main.Concat(sideboard).Where(card => !characters.IsBasic(card.Name))
             .GroupBy(card => card.Name, StringComparer.Ordinal).OrderBy(group => group.Key, StringComparer.Ordinal))
         {
             int used = named.Sum(card => card.Count);
@@ -125,15 +113,43 @@ public sealed class DecksAndGear(RealmDb db, RealmContent content, Characters ch
             {
                 problems.Add(has == 0
                     ? $"You don't own {named.Key}."
-                    : $"You own {has} {named.Key}; the deck and the ante use {used}.");
+                    : $"You own {has} {named.Key}; the deck and the sideboard use {used}.");
             }
         }
 
         return problems;
     }
 
+    /// <summary>
+    /// Takes copies of a card out of the sideboard, then the deck, until they hold no more than the collection has: after a
+    /// card has left the collection (a dungeon run's winnings taken back, design.md A3b).
+    /// </summary>
+    public async Task FitToCollection(string player, string card)
+    {
+        int owned = await db.Collection.Where(row => row.PlayerId == player && row.Name == card).Select(row => row.Count).FirstOrDefaultAsync().ConfigureAwait(false);
+        SideboardRow? side = await db.Sideboard.SingleOrDefaultAsync(row => row.PlayerId == player && row.Name == card).ConfigureAwait(false);
+        DeckRow? deck = await db.Deck.SingleOrDefaultAsync(row => row.PlayerId == player && row.Name == card).ConfigureAwait(false);
+        int over = (side?.Count ?? 0) + (deck?.Count ?? 0) - owned;
+        if (over <= 0) return;
+        if (side is not null)
+        {
+            int taken = Math.Min(over, side.Count);
+            side.Count -= taken;
+            over -= taken;
+            if (side.Count <= 0) db.Sideboard.Remove(side);
+        }
+
+        if (over > 0 && deck is not null)
+        {
+            deck.Count -= Math.Min(over, deck.Count);
+            if (deck.Count <= 0) db.Deck.Remove(deck);
+        }
+
+        await db.SaveChangesAsync().ConfigureAwait(false);
+    }
+
     /// <summary>A list's entries with one entry per card.</summary>
-    private static List<CardCount> Merge(IReadOnlyList<CardCount>? cards) =>
+    public static List<CardCount> Merge(IReadOnlyList<CardCount>? cards) =>
         [.. (cards ?? []).Where(card => !string.IsNullOrWhiteSpace(card.Name))
             .GroupBy(card => card.Name.Trim(), StringComparer.Ordinal)
             .Select(group => new CardCount(group.Key, group.Sum(card => card.Count)))];

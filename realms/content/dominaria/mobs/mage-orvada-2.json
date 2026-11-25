@@ -14,23 +14,10 @@
     "tolarian-robe",
     "scholars-circlet"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Wizard"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "wizard",
     "palette": [

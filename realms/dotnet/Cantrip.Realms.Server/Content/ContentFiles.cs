@@ -108,12 +108,10 @@ public sealed class MobFile
 
     public IReadOnlyList<string> Gear { get; init; } = [];
 
-    /// <summary>The mob's prize value in gold: the most a duel against it can win in cards (design.md A3).</summary>
-    public long Prize { get; init; }
-
     public IReadOnlyList<long> GoldRange { get; init; } = [];
 
-    public CardFilter Loot { get; init; } = new();
+    /// <summary>A boss's loot: the plane's cards its gift is drawn from (design.md A6); none for any other mob.</summary>
+    public CardFilter? Loot { get; init; }
 
     public Look Model { get; init; } = new();
 

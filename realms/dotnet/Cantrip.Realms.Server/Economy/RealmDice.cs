@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
-/// The realm's randomness: gold and loot rolls, relic drops, the cards vendors rotate in, the ante card a loss takes, a
+/// The realm's randomness: gold and loot rolls, relic drops, the cards vendors rotate in, a
 /// duel's seed - and its tokens, which come from the operating system's generator. One source for the server, safe from
 /// any thread; a test gives a seeded one so a failure repeats, and checks what every roll must satisfy, never a roll's
 /// value. A test that needs a roll to come up one way (a relic's 1 in 50, a gear drop) gives a <see cref="Random"/> whose

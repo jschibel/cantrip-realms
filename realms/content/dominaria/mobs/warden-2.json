@@ -13,25 +13,10 @@
     "chain-hauberk",
     "copper-amulet"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Construct",
-      "Golem",
-      "Thopter"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "golem",
     "palette": [

@@ -14,24 +14,10 @@
     "novice-robe",
     "scholars-circlet"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Merfolk"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "merfolk",
     "palette": [

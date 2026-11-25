@@ -20,8 +20,9 @@ public sealed record GameResult(bool PlayerWon, IReadOnlyList<int> Winners, int 
 
 /// <summary>
 /// The lab's dealing and playing (realms/docs/tech.md C5). A game is a <see cref="Duel"/> the realm server would deal
-/// for that player and mob (<see cref="Encounters.Deal"/>, <see cref="Encounters.PlayerSeat(string, IReadOnlyList{GearItem}, IEnumerable{string})"/>,
-/// <see cref="Encounters.MobSeat(RealmContent, Mob, GearStats?)"/>), with no ante (nothing in it changes the game), played to its end
+/// for that player and mob as an encounter's first game (<see cref="Encounters.Deal"/>,
+/// <see cref="Encounters.PlayerSeat(string, IReadOnlyList{GearItem}, IEnumerable{string}, IEnumerable{string}?)"/>,
+/// <see cref="Encounters.MobSeat(RealmContent, Mob, GearStats?)"/>), with no sideboard, played to its end
 /// on the table the browser plays one on (<see cref="DuelTable"/>): the player's seat by the tactical bot, the mob's by
 /// <see cref="RealmBot"/> on the duel's seed, as in the realm.
 /// </summary>
@@ -114,7 +115,7 @@ public static class Lab
         ArgumentNullException.ThrowIfNull(mob);
         DuelSeat player = Encounters.PlayerSeat(reference.Id, reference.Gear, reference.Deck);
         GearStats? gains = standing ? Dungeons.BossGains(content, mob, reference.Colors[..1], reference.Colors) : null;
-        return Encounters.Deal(player, Encounters.MobSeat(content, mob, gains), mob, seed, 0, 0);
+        return Encounters.Deal(player, Encounters.MobSeat(content, mob, gains), mob, seed);
     }
 
     /// <summary>

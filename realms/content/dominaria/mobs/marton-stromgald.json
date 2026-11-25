@@ -15,26 +15,10 @@
     "travelers-boots",
     "leather-cap"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "R",
-    "types": [],
-    "subtypes": [
-      "Knight",
-      "Barbarian",
-      "Warrior"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "knight",
     "palette": [

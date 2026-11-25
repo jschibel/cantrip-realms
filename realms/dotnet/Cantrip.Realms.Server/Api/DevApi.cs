@@ -18,8 +18,9 @@ namespace Cantrip.Realms.Server;
 /// <c>{StartingLife, StartingHandSize, MaximumHandSize, Deck, Emblems}</c>, any of them, or null to leave the seat as it is - as a
 /// scenario forces a position: the duel is committed so and replayed so, and its result is the engine's. A body of two
 /// nulls deals them as they are again.</item>
-/// <item><c>POST /dev/verdict {Outcome}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>, instead
-/// of replaying their logs on the engine, so a stand-in card layer's win counts; <c>null</c> replays them again.</item>
+/// <item><c>POST /dev/verdict {Outcome, MobLife}</c> judges the signed-in player's duels as it says, <c>won</c> or <c>lost</c>,
+/// instead of replaying their logs on the engine, so a stand-in card layer's win counts - the mob ending each at
+/// <c>MobLife</c>, or at the life it began the game with when that is null; <c>null</c> replays them again.</item>
 /// <item><c>POST /dev/drop {Gear}</c> decides the signed-in player's gear rolls - a win's and a chest's (design.md A3, A5):
 /// <c>true</c> every one comes up, <c>false</c> none does, <c>null</c> the dice decide again. Which item drops is still the
 /// dice's.</item>
@@ -99,7 +100,7 @@ public static class DevApi
                     verdicts.Clear(player);
                     break;
                 case "won" or "lost":
-                    verdicts.Set(player, body.Outcome == "won");
+                    verdicts.Set(player, body.Outcome == "won", body.MobLife);
                     break;
                 default:
                     throw Refusal.BadRequest("A verdict is \"won\", \"lost\" or null.");
@@ -154,8 +155,8 @@ public static class DevApi
     /// <summary><c>POST /dev/cards</c>'s body.</summary>
     public sealed record DevCards(string? Name, int Count);
 
-    /// <summary><c>POST /dev/verdict</c>'s body.</summary>
-    public sealed record DevVerdict(string? Outcome);
+    /// <summary><c>POST /dev/verdict</c>'s body: the outcome, and the mob's life at the end (null: what it began with).</summary>
+    public sealed record DevVerdict(string? Outcome, int? MobLife = null);
 
     /// <summary><c>POST /dev/gear</c>'s body.</summary>
     public sealed record DevGear(string? GearId);
@@ -170,7 +171,7 @@ public static class DevApi
 /// </summary>
 public sealed class DevVerdicts
 {
-    private readonly ConcurrentDictionary<string, bool> _won = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, (bool Won, int? MobLife)> _won = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, bool> _gear = new(StringComparer.Ordinal);
 
     /// <summary>Decides a player's gear rolls: every one comes up, none does, or (null) the dice's again.</summary>
@@ -183,13 +184,24 @@ public sealed class DevVerdicts
     /// <summary>How a player's gear roll comes out when a test decided it; null when the dice decide.</summary>
     public bool? GearRoll(string player) => _gear.TryGetValue(player, out bool comesUp) ? comesUp : null;
 
-    public void Set(string player, bool won) => _won[player] = won;
+    public void Set(string player, bool won, int? mobLife = null) => _won[player] = (won, mobLife);
 
     public void Clear(string player) => _won.TryRemove(player, out _);
 
-    /// <summary>The verdict set for a player's duels: seat 1's win or the mob's; null when none is set.</summary>
-    public DuelVerdict? For(string player) =>
-        _won.TryGetValue(player, out bool won) ? new DuelVerdict(true, [won ? Duel.PlayerSeat : Duel.MobSeat], null) : null;
+    /// <summary>
+    /// The verdict set for a player's duels: seat 1's win or the mob's, the mob ending <paramref name="duel"/> at the life a
+    /// test said or else the life it began with, the player at theirs; null when none is set.
+    /// </summary>
+    public DuelVerdict? For(string player, Duel duel)
+    {
+        ArgumentNullException.ThrowIfNull(duel);
+        if (!_won.TryGetValue(player, out (bool Won, int? MobLife) set)) return null;
+        return new DuelVerdict(true, [set.Won ? Duel.PlayerSeat : Duel.MobSeat], null, new Dictionary<int, int>
+        {
+            [Duel.PlayerSeat] = set.Won ? duel.Seats[0].StartingLife : 0,
+            [Duel.MobSeat] = set.MobLife ?? (set.Won ? 0 : duel.Seats[1].StartingLife),
+        });
+    }
 }
 
 /// <summary>

@@ -47,8 +47,9 @@ public static class Codes
     public const string Unfinished = "Unfinished";
     public const string NoDuel = "NoDuel";
     public const string Finished = "Finished";
-    public const string OverCap = "OverCap";
-    public const string NotOffered = "NotOffered";
+    public const string Defeated = "Defeated";
+    public const string NoBuyout = "NoBuyout";
+    public const string MostHearts = "MostHearts";
     public const string Empty = "Empty";
     public const string NoSuchPlace = "NoSuchPlace";
     public const string NotSignedIn = "NotSignedIn";

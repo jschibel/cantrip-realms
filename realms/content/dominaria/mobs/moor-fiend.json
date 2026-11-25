@@ -13,21 +13,10 @@
   "gear": [
     "marsh-waders"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "B",
-    "types": [],
-    "subtypes": [],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "horror",
     "palette": [

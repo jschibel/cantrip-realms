@@ -11,20 +11,10 @@
     "maxHand": 7
   },
   "gear": [],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "B",
-    "types": [],
-    "subtypes": [],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "imp",
     "palette": [

@@ -14,27 +14,10 @@
     "benalish-plate",
     "silver-pendant"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "G",
-    "types": [],
-    "subtypes": [
-      "Elf",
-      "Treefolk",
-      "Wurm",
-      "Elemental"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "giant",
     "palette": [

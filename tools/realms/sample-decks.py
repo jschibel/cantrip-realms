@@ -36,9 +36,8 @@ Each deck is built round its creature from data: the creature as a 2- to 4-of (m
 `featured` cards; the rest by a plain reading of each card's cost, body and text, along a curve, ties to the name. The
 tier sets the rarities a deck may hold and how many copies its best cards get.
 
-A mob's file follows its tier (design.md A3): its prize (T1 100 gold, T2 300, T3 800, T4 2,000, a boss 6,000), its gold
-range, its loot - its colors' cards of the rarities whose prices fit under its prize - its stats and stats-only gear,
-and its model. A mob file's model (realms/web/src/art/figures: its mesh, chosen for what its creature is, its palette
+A mob's file follows its tier (design.md A3): its gold range, its stats and stats-only gear, and its model; a boss's
+also its loot - its colors' rares and mythics within its loot ceiling (6,000 gold), which its gift is drawn from. A mob file's model (realms/web/src/art/figures: its mesh, chosen for what its creature is, its palette
 and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. A mob's `lines`, what it says when it wins a duel, are written by hand and kept as they are. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
 relics, colors, ids, meshes, gear) and writes nothing if any fails. The same inputs give the same files. They are a
 start: mobs' decks are tuned by hand later (tech.md B7); a mob listed in HAND_TUNED is left alone.
@@ -79,10 +78,11 @@ STARTER_SWAPS = {
     "G": {"Rime Dryad": "Llanowar Elves", "Foxfire": "Bite Down"},
 }
 
-# What each tier is worth and pays (design.md A3); a boss is "boss" here, tier 0 in a duel.
-PRIZE = {1: 100, 2: 300, 3: 800, 4: 2000, "boss": 6000}
+# What each tier pays (design.md A3), and the dearest card a boss's loot holds for its gift; a boss is "boss" here, tier 0
+# in a duel.
+LOOT_CEILING = {"boss": 6000}
 GOLD = {1: [20, 60], 2: [50, 150], 3: [120, 300], 4: [250, 600], "boss": [1500, 1500]}
-# The rarities a mob's deck is built from, and those its loot offers: the ones whose list prices can fit its prize.
+# The rarities a mob's deck is built from, and those a boss's loot gives its gift from.
 DECK_RARITIES = {
     1: ["common"],
     2: ["common", "uncommon"],
@@ -860,11 +860,11 @@ def normalize(mob, cards, legality, models):
 
 
 def loot(mob, pool, prices, legality, cards):
-    """A mob's loot filter (interfaces.md, "Mobs"): its colors' cards of the rarities its prize can buy, and of its
-    creature types too where the pool has a good handful of those within its prize."""
+    """A boss's loot filter (interfaces.md, "Mobs"): its colors' cards of its loot's rarities within its ceiling, and of its
+    creature types too where the pool has a good handful of those."""
     tier = deck_key(mob)
     rarities = LOOT_RARITIES[tier]
-    prize = PRIZE[tier]
+    prize = LOOT_CEILING[tier]
 
     def fits(name, subtypes):
         info = legality.get(name, {})
@@ -876,7 +876,7 @@ def loot(mob, pool, prices, legality, cards):
 
     subtypes = mob["lean"] if sum(1 for n in pool if fits(n, mob["lean"])) >= 8 else []
     if sum(1 for n in pool if fits(n, subtypes)) < 3:
-        sys.exit(f"sample-decks: {mob['id']}'s loot has fewer than three cards within its prize")
+        sys.exit(f"sample-decks: {mob['id']}'s loot has fewer than three cards within its ceiling")
     return {"pool": PLANE, "colors": mob["colors"], "types": [], "subtypes": subtypes, "rarities": rarities}
 
 
@@ -900,9 +900,12 @@ def mob_file(mob, deck_path, pool, prices, legality, cards, gear):
         "deck": deck_path,
         "stats": {"life": life, "hand": hand, "maxHand": max_hand},
         "gear": mob["gear"],
-        "prize": PRIZE[key],
         "goldRange": GOLD[key],
-        "loot": loot(mob, pool, prices, legality, cards),
+    })
+    # Only a boss has loot: its gift is drawn from it (design.md A6); a win against any other pays gold and gear alone.
+    if mob["kind"] == "boss":
+        data["loot"] = loot(mob, pool, prices, legality, cards)
+    data.update({
         "model": mob["model"],
         "boss": mob["kind"] == "boss",
     })

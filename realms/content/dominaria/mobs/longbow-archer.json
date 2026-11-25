@@ -13,24 +13,10 @@
   "gear": [
     "padded-jerkin"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Archer",
-      "Soldier"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "humanoid",
     "palette": [

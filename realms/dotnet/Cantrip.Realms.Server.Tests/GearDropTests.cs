@@ -153,7 +153,7 @@ public sealed class GearDropTests
         await app.Give(browser, "Serra Angel", 2);
         await browser.ToSpellTable();
         DeckView deck = await browser.Deck();
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = new[] { new CardCount("Serra Angel", 1) } });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = new[] { new CardCount("Serra Angel", 1) } });
 
         InventoryView inventory = await browser.Ok<InventoryView>(HttpMethod.Get, "/api/inventory");
         IReadOnlyDictionary<string, int> collection = await browser.Collection();
@@ -165,7 +165,7 @@ public sealed class GearDropTests
             Assert.Equal(deck.Main.Where(main => main.Name == card.Name).Sum(main => main.Count), card.Deck);
         });
         InventoryCard angel = inventory.Cards.Single(card => card.Name == "Serra Angel");
-        Assert.Equal((2, 1, false), (angel.Count, angel.Ante, angel.Relic));
+        Assert.Equal((2, 1, false), (angel.Count, angel.Sideboard, angel.Relic));
         Assert.Equal(inventory.Cards.Sum(card => card.Gold * card.Count), inventory.Value);
 
         // Anyone else's call has no character.

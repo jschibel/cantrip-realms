@@ -11,23 +11,10 @@
     "maxHand": 7
   },
   "gear": [],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Merfolk",
-      "Soldier"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "merfolk",
     "palette": [

@@ -137,7 +137,7 @@ public sealed class DatabaseTests
         await using var app = new RealmApp();
         await app.SignIn(1);
         List<string> tables = await app.Store(db => db.Database.SqlQueryRaw<string>("SELECT name AS \"Value\" FROM sqlite_master WHERE type = 'table'").ToListAsync());
-        foreach (string table in new[] { "players", "collection", "gear_owned", "loadout", "deck", "ante", "unlocks", "vendors", "vendor_stock", "vendor_visits", "duels", "chests", "quests", "runs", "attuned" })
+        foreach (string table in new[] { "players", "collection", "gear_owned", "loadout", "deck", "sideboard", "unlocks", "vendors", "vendor_stock", "vendor_visits", "duels", "chests", "quests", "runs", "attuned" })
         {
             Assert.Contains(table, tables);
         }

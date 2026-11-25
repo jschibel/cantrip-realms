@@ -15,22 +15,10 @@
     "chain-hauberk",
     "silver-pendant"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "UB",
-    "types": [],
-    "subtypes": [],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "warlock",
     "palette": [

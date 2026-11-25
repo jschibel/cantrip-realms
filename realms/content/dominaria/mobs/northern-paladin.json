@@ -14,24 +14,10 @@
     "padded-jerkin",
     "kjeldoran-helm"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Knight"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "knight",
     "palette": [

@@ -1,6 +1,6 @@
 # The realm server
 
-`Cantrip.Realms.Server` is Cantrip Realms' server (`realms/docs/tech.md` B4): characters, collections, decks and antes,
+`Cantrip.Realms.Server` is Cantrip Realms' server (`realms/docs/tech.md` B4): characters and their hearts, collections, decks and sideboards,
 gear, vendors and armorers, encounters checked by replaying them on the native engine, loot, chests, and the presence
 relay. Its API, its presence protocol and its content are `realms/docs/interfaces.md`.
 

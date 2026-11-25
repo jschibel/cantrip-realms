@@ -14,22 +14,10 @@
     "novice-robe",
     "scholars-circlet"
   ],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Wizard"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "wizard",
     "palette": [

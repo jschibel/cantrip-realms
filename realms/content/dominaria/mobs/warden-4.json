@@ -13,27 +13,10 @@
     "benalish-plate",
     "silver-pendant"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Construct",
-      "Golem",
-      "Myr",
-      "Thopter"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "construct",
     "palette": [

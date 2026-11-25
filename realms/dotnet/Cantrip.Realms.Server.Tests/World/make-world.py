@@ -10,7 +10,7 @@ chunks are -1_0 to -1_3) and z from 0 to 127 - open grass but for a wall of rock
 whose footprints are blocked and bare. The Domains' towns (layout.json's ids, names and styles) the vendors keep shops
 in and the traders' caravans visit, each a street between two rows of buildings: an inn (its innkeeper and a spell table
 inside, a dais by the hearth), a shop for each of its vendors (an exotic one's kind exotic-wares), New Benalia and
-Capashen Hold a smithy with an armorer too, a quest board, a spell table in New Benalia's street and a pitch in each
+Capashen Hold a smithy with an armorer and a temple with a healer too, a quest board, a spell table in New Benalia's street and a pitch in each
 traders' town. Spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
 Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage at the top and its waystone
 (layout.json's ids, the roster's bosses, wardens and mages), each with a spell table beside its entrance; a ferry; and
@@ -56,6 +56,8 @@ PLACES = {
 }
 RADII = {"capital": 10, "town": 8, "village": 5}
 SMITHIES = ["new-benalia", "capashen-hold"]
+# The towns with a temple, whose priest is a healer (design.md A3b): the last building of its town, so the rest stand as before.
+TEMPLES = ["new-benalia", "capashen-hold"]
 
 # A town is a street running east and west through its center (z - 1 to z + 1), between two rows of buildings three
 # tiles wide and two deep, their doors on the street; two more rows stand behind them. A slot is where a building's door
@@ -217,6 +219,9 @@ def main():
             door = building(shop, town, style, "shop", next_slot(), (cx, cz), shop, vendor["name"])
             room(shop, vendor["name"], "exotic-wares" if vendor.get("exotic") else "shop", town, style, door,
                  [{"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "x": 3, "z": 1}])
+        if town in TEMPLES:
+            door = building(f"{town}-temple", town, style, "temple", next_slot(), (cx, cz), f"{town}-temple", f"The Temple of {name}")
+            room(f"{town}-temple", f"The Temple of {name}", "temple", town, style, door, [{"id": f"{town}-temple-keeper", "kind": "healer", "name": "Priest", "x": 3, "z": 1}])
         block(cx + 2, cz, f"{town}'s quest board", "cobbles")
         chunk_of(cx + 2, cz)["npcs"].append({"id": f"{town}-board", "kind": "quest-board", "x": cx + 2, "z": cz})
         if town in traded:

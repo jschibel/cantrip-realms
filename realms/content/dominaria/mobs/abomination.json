@@ -14,24 +14,10 @@
     "marsh-waders",
     "urborg-bone-charm"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "B",
-    "types": [],
-    "subtypes": [
-      "Horror"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "horror",
     "palette": [

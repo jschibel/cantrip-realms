@@ -13,23 +13,10 @@
   "gear": [
     "silver-band"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "G",
-    "types": [],
-    "subtypes": [
-      "Elf"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "elk-rider",
     "palette": [

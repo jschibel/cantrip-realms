@@ -13,23 +13,10 @@
   "gear": [
     "travelers-boots"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "R",
-    "types": [],
-    "subtypes": [
-      "Orc"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "orc",
     "palette": [

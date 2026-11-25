@@ -13,25 +13,10 @@
     "padded-jerkin",
     "copper-amulet"
   ],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Construct",
-      "Golem",
-      "Soldier",
-      "Thopter"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "construct",
     "palette": [

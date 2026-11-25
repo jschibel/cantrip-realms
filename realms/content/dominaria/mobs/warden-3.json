@@ -13,27 +13,10 @@
     "chain-hauberk",
     "silver-pendant"
   ],
-  "prize": 800,
   "goldRange": [
     120,
     300
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "U",
-    "types": [],
-    "subtypes": [
-      "Construct",
-      "Golem",
-      "Myr",
-      "Thopter"
-    ],
-    "rarities": [
-      "common",
-      "uncommon",
-      "rare"
-    ]
-  },
   "model": {
     "mesh": "construct",
     "palette": [

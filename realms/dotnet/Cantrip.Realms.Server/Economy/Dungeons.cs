@@ -249,12 +249,21 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             .Cast<Tile?>().FirstOrDefault() ?? entrance;
     }
 
-    /// <summary>Ends a player's live run, if they have one.</summary>
-    private Task End(string player, string detail) =>
-        db.Runs.Where(run => run.PlayerId == player && run.State == RunRow.Live).ExecuteUpdateAsync(set => set
+    /// <summary>
+    /// Ends a player's live run, if they have one. A game of it lost and not yet answered (design.md A3: fought again, a
+    /// dungeon's mob being never paid off) is over with it: lost.
+    /// </summary>
+    private async Task End(string player, string detail)
+    {
+        List<string> spaces = [.. (await db.Runs.Where(run => run.PlayerId == player && run.State == RunRow.Live).Select(run => run.Id).ToListAsync().ConfigureAwait(false))
+            .Select(RealmContent.RunSpace)];
+        await db.Duels.Where(duel => duel.PlayerId == player && spaces.Contains(duel.Space) && duel.State == DuelRow.Defeated)
+            .ExecuteUpdateAsync(set => set.SetProperty(duel => duel.State, DuelRow.Lost)).ConfigureAwait(false);
+        await db.Runs.Where(run => run.PlayerId == player && run.State == RunRow.Live).ExecuteUpdateAsync(set => set
             .SetProperty(run => run.State, RunRow.Ended)
             .SetProperty(run => run.EndedAt, Now)
-            .SetProperty(run => run.Detail, detail));
+            .SetProperty(run => run.Detail, detail)).ConfigureAwait(false);
+    }
 
     private async Task<RunRow> Live(string player, string? id)
     {

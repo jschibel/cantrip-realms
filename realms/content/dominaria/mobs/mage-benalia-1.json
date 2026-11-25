@@ -14,22 +14,10 @@
     "padded-jerkin",
     "kjeldoran-helm"
   ],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Cleric"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "cleric",
     "palette": [

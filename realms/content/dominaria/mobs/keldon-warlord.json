@@ -13,25 +13,10 @@
   "gear": [
     "travelers-boots"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "R",
-    "types": [],
-    "subtypes": [
-      "Barbarian",
-      "Warrior",
-      "Berserker"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "barbarian",
     "palette": [

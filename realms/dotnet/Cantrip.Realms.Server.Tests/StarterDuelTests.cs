@@ -34,9 +34,7 @@ public sealed class StarterDuelTests
             [new DuelSeat("Tester", Cards(starter), [], null, [], 20, 7, 7, []), new DuelSeat(mob.File.Name, Cards(mob.Deck), [], null, [], mob.File.Stats.Life, mob.File.Stats.Hand, mob.File.Stats.MaxHand, [])],
             Duel.RealmMinimumDeckSize,
             seed,
-            new DuelMob(mob.File.Name, mob.File.Tier, mob.File.Prize),
-            0,
-            0);
+            new DuelMob(mob.File.Name, mob.File.Tier));
 
         (List<string> log, IReadOnlyList<int> winners) = NativeVerifierTests.Play(duel, new TacticalPlay(), RealmBot.Create(seed));
         Assert.Single(winners);

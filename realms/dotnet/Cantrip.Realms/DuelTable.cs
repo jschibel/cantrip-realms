@@ -54,8 +54,8 @@ public sealed class DuelTable : IDisposable
     }
 
     /// <summary>
-    /// Deals a duel on an engine host: its seats, its seed, the realm's minimum deck size, and each seat's setup values and
-    /// emblems as its variant (docs/host-protocol.md, <c>NewGame</c>).
+    /// Deals a duel on an engine host: its seats, its seed, the realm's minimum deck size, who plays first when the player
+    /// chose (CR 103.1), and each seat's setup values and emblems as its variant (docs/host-protocol.md, <c>NewGame</c>).
     /// </summary>
     public static IRulesHost Deal(Duel duel, IHostTransport host)
     {
@@ -63,7 +63,7 @@ public sealed class DuelTable : IDisposable
         return new NativeRulesHostFactory(host).Create(
             [.. duel.Seats.Select(Seat)],
             unchecked((ulong)duel.Seed),
-            new RulesGameOptions { MinimumDeckSize = duel.MinimumDeckSize });
+            new RulesGameOptions { MinimumDeckSize = duel.MinimumDeckSize, FirstPlayer = duel.FirstPlayer });
     }
 
     /// <summary>
@@ -103,6 +103,9 @@ public sealed class DuelTable : IDisposable
     /// <summary>Whether seat 1 alone won: the one result the realm counts as a win (interfaces.md, <c>/api/encounter/finish</c>).</summary>
     public bool PlayerWon => IsOver && Winners is [Duel.PlayerSeat];
 
+    /// <summary>A seat's life total now, as the game shows it to everyone: the mob's at the end is what it carries into the next game.</summary>
+    public int Life(int seat) => DuelLife.Of(_session.Rules, seat);
+
     /// <summary>Has the mob's seat answer everything it has been asked; false if it is still being asked after its most answers.</summary>
     public bool Settle()
     {
@@ -115,5 +118,15 @@ public sealed class DuelTable : IDisposable
     {
         _player.Dispose();
         _session.Dispose();
+    }
+}
+
+/// <summary>A seat's life total in a game, as everyone sees it (each seat's view says every player's).</summary>
+public static class DuelLife
+{
+    public static int Of(IRulesHost rules, int seat)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        return rules.View(seat).Players.FirstOrDefault(player => player.Seat == seat)?.Life ?? 0;
     }
 }

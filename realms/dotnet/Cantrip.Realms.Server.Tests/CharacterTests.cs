@@ -47,8 +47,9 @@ public sealed class CharacterTests
         Assert.Equal("Ann", me.Name);
         Assert.Equal("broad", me.Body);
         Assert.Equal("G", me.Identity);
-        Assert.Equal(0, me.AnteValue);
         Assert.Equal(2000, me.Gold);
+        Assert.Equal((Hearts.Starting, Hearts.Starting, Hearts.Prices[3]), (me.Hearts, me.MaxHearts, me.HeartPrice));
+        Assert.Null(me.Defeat);
         Assert.Empty(me.Unlocked);
 
         // In the world outside New Benalia's inn, which is their home; no tower attuned.
@@ -68,7 +69,7 @@ public sealed class CharacterTests
         // The green starter deck, and every card of it but the basics owned, with ten more commons.
         DeckView deck = await browser.Deck();
         Assert.Equal(40, deck.Main.Sum(card => card.Count));
-        Assert.Empty(deck.Ante);
+        Assert.Empty(deck.Sideboard);
         IReadOnlyDictionary<string, int> collection = await browser.Collection();
         Assert.DoesNotContain("Forest", collection.Keys);
         foreach (CardCount card in deck.Main.Where(card => card.Name != "Forest"))

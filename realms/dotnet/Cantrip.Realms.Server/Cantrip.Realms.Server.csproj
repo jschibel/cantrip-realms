@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <!-- The realm server (realms/docs/tech.md B4): the economy's authority - characters, collections, decks and the ante,
+  <!-- The realm server (realms/docs/tech.md B4): the economy's authority - characters, their hearts, collections, decks and sideboards,
        gear, vendors, encounters checked by replaying them on the native engine, loot - and the presence relay. An
        ASP.NET Core minimal API over one EF Core model, on SQLite or PostgreSQL. -->
   <PropertyGroup>

@@ -19,9 +19,10 @@ public sealed record GearInstance(long InstanceId, GearItem Gear);
 
 /// <summary>
 /// A character as its player sees it: <see cref="Id"/> the player id the spawn table hashes, <see cref="Body"/> one of
-/// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order,
-/// <see cref="AnteValue"/> what the ante is worth, for the HUD; where they stand (<see cref="Space"/>, <see cref="X"/>,
-/// <see cref="Z"/>, a tile), the inn they wake at, and the mage towers they have attuned.
+/// <see cref="Economy.Characters.BodyNames"/>, <see cref="Identity"/> the colors' letters in WUBRG order; their hearts
+/// (design.md A3b) - how many they have, how many they hold, what a healer asks for one more (null at the most) - and the
+/// defeat they have still to answer, if any; where they stand (<see cref="Space"/>, <see cref="X"/>, <see cref="Z"/>, a
+/// tile), the inn they wake at, and the mage towers they have attuned.
 /// </summary>
 public sealed record CharacterView(
     string Id,
@@ -30,7 +31,10 @@ public sealed record CharacterView(
     int Palette,
     string Identity,
     long Gold,
-    long AnteValue,
+    int Hearts,
+    int MaxHearts,
+    long? HeartPrice,
+    DefeatView? Defeat,
     string Space,
     int X,
     int Z,
@@ -46,25 +50,25 @@ public sealed record NewCharacter(string? Name, string? Body, int Palette, strin
 
 /// <summary>
 /// A character's collection by card name, and (from <c>GET /api/collection</c>) each owned card's list price in gold, for
-/// the spell table's ante: a card with no price is missing from <c>Prices</c>.
+/// the spell table: a card with no price is missing from <c>Prices</c>.
 /// </summary>
 public sealed record CollectionView(IReadOnlyDictionary<string, int> Cards, IReadOnlyDictionary<string, long>? Prices = null, IReadOnlyList<string>? Relics = null);
 
-/// <summary>A card of the collection as the inventory shows it: how many, its list price, the copies the deck and the ante use, whether it is a relic.</summary>
-public sealed record InventoryCard(string Name, int Count, long Gold, int Deck, int Ante, bool Relic);
+/// <summary>A card of the collection as the inventory shows it: how many, its list price, the copies the deck and the sideboard use, whether it is a relic.</summary>
+public sealed record InventoryCard(string Name, int Count, long Gold, int Deck, int Sideboard, bool Relic);
 
 /// <summary>The collection card by card (<c>GET /api/inventory</c>), and what it is worth at list price.</summary>
 public sealed record InventoryView(IReadOnlyList<InventoryCard> Cards, long Value);
 
 public sealed record CardCount(string Name, int Count);
 
-/// <summary>A deck and its ante, and what the ante is worth.</summary>
-public sealed record DeckView(IReadOnlyList<CardCount> Main, IReadOnlyList<CardCount> Ante, long AnteValue);
+/// <summary>A deck and its sideboard (design.md A2).</summary>
+public sealed record DeckView(IReadOnlyList<CardCount> Main, IReadOnlyList<CardCount> Sideboard);
 
-public sealed record DeckChange(IReadOnlyList<CardCount>? Main, IReadOnlyList<CardCount>? Ante);
+public sealed record DeckChange(IReadOnlyList<CardCount>? Main, IReadOnlyList<CardCount>? Sideboard);
 
-/// <summary>What the realm finds wrong with a deck and an ante, as saving them would (empty for a legal pair), and the ante's worth.</summary>
-public sealed record DeckCheckView(IReadOnlyList<string> Problems, long AnteValue);
+/// <summary>What the realm finds wrong with a deck and a sideboard, as saving them would: empty for a legal pair.</summary>
+public sealed record DeckCheckView(IReadOnlyList<string> Problems);
 
 public sealed record LoadoutChange(IReadOnlyDictionary<string, long?>? Slots);
 
@@ -87,7 +91,7 @@ public sealed record StockView(string Name, long Gold, int Count, DateTimeOffset
 
 /// <summary>
 /// A card of the character's that a vendor deals in: what it pays for one (half the list price, rounded down), how many the
-/// character owns, and how many of those are spare - in neither the deck nor the ante, so that one can be sold.
+/// character owns, and how many of those are spare - in neither the deck nor the sideboard, so that one can be sold.
 /// </summary>
 public sealed record BuyingView(string Name, long Gold, int Owned, int Spare);
 
@@ -113,19 +117,66 @@ public sealed record EncounterView(string Token, long Seed, Duel Duel);
 
 public sealed record EncounterFinish(string? Token, IReadOnlyList<string>? Log);
 
-/// <summary>A card offered after a win, and its list price: what it counts against the cap.</summary>
-public sealed record OfferedCard(string Name, long Gold);
+/// <summary>
+/// How a game ended: <c>won</c> or <c>lost</c>. A win's gold, the gear item it dropped, the relics that dropped (already in
+/// the collection, design.md A3a), and from a boss its <see cref="Gift"/>, a rare or mythic card of its loot already in the
+/// collection, and the color it <see cref="Unlocked"/> now (design.md A6). A loss pays nothing and costs a heart
+/// (design.md A3b): <see cref="Hearts"/> are what the character has after the game; with hearts left, <see cref="Defeat"/>
+/// is the mob's offer - pay it off or fight again - and with none, <see cref="Died"/>: the character is home, and
+/// <see cref="Forfeit"/> is what a dungeon run they died in had won, taken back. <see cref="Detail"/> says why a game
+/// counted as lost without being played out.
+/// </summary>
+public sealed record OutcomeView(
+    string Outcome,
+    long Gold,
+    GearInstance? Gear,
+    IReadOnlyList<string> Relics,
+    string? Detail,
+    string? Gift = null,
+    string? Unlocked = null,
+    int Hearts = 0,
+    DefeatView? Defeat = null,
+    bool Died = false,
+    RunLoss? Forfeit = null);
 
 /// <summary>
-/// How a duel ended: <c>won</c> or <c>lost</c>; the gold a win paid; the cards offered, each with its list price, and the cap
-/// their picks fit under; a gear item that dropped; the relics that dropped, already in the collection (design.md A3a); and,
-/// for a duel counted as lost without being played out, why; and for a loss, the ante card it cost, if the ante held one.
-/// A boss's win also gives <see cref="Gift"/>, a rare or mythic card of its loot already in the collection (outside the
-/// cap), and <see cref="Unlocked"/> names the color it unlocked, when it unlocked one now (design.md A6).
+/// A game lost with hearts left, its answer pending (design.md A3): the game's token, the mob (its id) and which game of
+/// the encounter it was; the character's hearts now; the mob's life at the game's end and its full starting life (gear and
+/// a run's gains included); what it asks to be paid off (null in a dungeon, where it can't be); and the deck and sideboard
+/// the game was played with, which the next game's are swapped from.
 /// </summary>
-public sealed record OutcomeView(string Outcome, long Gold, IReadOnlyList<OfferedCard> Offer, long Cap, GearInstance? Gear, IReadOnlyList<string> Relics, string? Detail, string? Lost = null, string? Gift = null, string? Unlocked = null);
+public sealed record DefeatView(
+    string Token,
+    string Mob,
+    int Game,
+    int Hearts,
+    int MaxHearts,
+    int MobLife,
+    int MobFullLife,
+    long? Price,
+    IReadOnlyList<CardCount> Main,
+    IReadOnlyList<CardCount> Sideboard);
 
-public sealed record LootPicks(string? Token, IReadOnlyList<string>? Picks);
+/// <summary>What a dungeon run had won and dying in it took back: its gold, its cards and its gear items, by name.</summary>
+public sealed record RunLoss(long Gold, IReadOnlyList<string> Cards, IReadOnlyList<string> Gear);
+
+/// <summary>Paying a mob off after a lost game (<c>POST /api/encounter/pay</c>).</summary>
+public sealed record EncounterPay(string? Token);
+
+/// <summary>The character's gold after paying a mob off.</summary>
+public sealed record PaidView(long Gold);
+
+/// <summary>
+/// Fighting on after a lost game (<c>POST /api/encounter/rematch</c>): the game's token, the deck and sideboard swapped
+/// from the last game's, and whether the player, who lost, plays first (CR 103.1).
+/// </summary>
+public sealed record EncounterRematch(string? Token, IReadOnlyList<CardCount>? Main, IReadOnlyList<CardCount>? Sideboard, bool PlayFirst = true);
+
+/// <summary>A character's hearts after buying one at a healer, their gold, and what the next costs (null at the most).</summary>
+public sealed record HeartsView(long Gold, int Hearts, int MaxHearts, long? Price);
+
+/// <summary>What <c>POST /api/position</c> answers: the character's hearts, which a town fills.</summary>
+public sealed record PositionView(int Hearts);
 
 public sealed record ChestOpen(string? Space, string? Chest);
 

@@ -11,23 +11,10 @@
     "maxHand": 7
   },
   "gear": [],
-  "prize": 100,
   "goldRange": [
     20,
     60
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "G",
-    "types": [],
-    "subtypes": [
-      "Elf",
-      "Druid"
-    ],
-    "rarities": [
-      "common"
-    ]
-  },
   "model": {
     "mesh": "elf-druid",
     "palette": [

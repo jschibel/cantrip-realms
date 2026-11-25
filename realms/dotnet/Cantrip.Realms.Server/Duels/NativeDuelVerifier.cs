@@ -19,6 +19,10 @@ namespace Cantrip.Realms.Server.Duels;
 /// its bot seat the same way (interfaces.md says so), so a moment where both seats are asked at once plays out in the same
 /// order on both sides.
 /// </para>
+/// <para>
+/// A game taken says each seat's life total at its end, as the game shows it (<see cref="DuelLife"/>): the mob's is what it
+/// carries into the encounter's next game, and what its buyout is measured by (design.md A3).
+/// </para>
 /// </summary>
 public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDuelVerifier
 {
@@ -67,7 +71,11 @@ public sealed class NativeDuelVerifier(Func<IHostTransport>? host = null) : IDue
 
         if (!Settle(mob)) return DuelVerdict.Rejected("The mob's seat was still being asked after its most answers, after the last message.");
         return session.IsOver
-            ? new DuelVerdict(true, session.WinningSeats, null)
+            ? new DuelVerdict(true, session.WinningSeats, null, new Dictionary<int, int>
+            {
+                [Duel.PlayerSeat] = DuelLife.Of(rules, Duel.PlayerSeat),
+                [Duel.MobSeat] = DuelLife.Of(rules, Duel.MobSeat),
+            })
             : DuelVerdict.Rejected("The game is not over at the end of the log.");
     }
 

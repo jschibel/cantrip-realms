@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Cantrip.Realms.Server.Tests;
 
-/// <summary>Duels against mobs (design.md A3; tech.md B4's encounter protocol), checked by a fake verifier.</summary>
+/// <summary>Duels against mobs (design.md A3; tech.md B4's encounter protocol), checked by a fake verifier. Hearts, buyouts and rematches are <see cref="HeartsTests"/>.</summary>
 public sealed class EncounterTests
 {
     private const string World = RealmContent.WorldSpace;
@@ -25,16 +25,16 @@ public sealed class EncounterTests
         return Spawns.MobOf(browser.Player, World, Spawn, epoch, spawn.Mobs);
     }
 
-    /// <summary>A white character with <paramref name="ante"/> anted, standing at the spawn.</summary>
-    private static async Task<Browser> Ready(RealmApp app, ulong id = 1, params (string Name, int Count)[] ante)
+    /// <summary>A white character with <paramref name="sideboard"/> in their sideboard, standing at the spawn.</summary>
+    private static async Task<Browser> Ready(RealmApp app, ulong id = 1, params (string Name, int Count)[] sideboard)
     {
         Browser browser = await app.Character(id, "W");
-        if (ante.Length > 0)
+        if (sideboard.Length > 0)
         {
-            foreach ((string name, int count) in ante) await app.Give(browser, name, count);
+            foreach ((string name, int count) in sideboard) await app.Give(browser, name, count);
             await browser.ToSpellTable();
             DeckView deck = await browser.Deck();
-            await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = ante.Select(card => new CardCount(card.Name, card.Count)) });
+            await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = sideboard.Select(card => new CardCount(card.Name, card.Count)) });
         }
 
         await browser.Put(World, RealmApp.Content.World.Spawn(Spawn)!.At);
@@ -65,6 +65,7 @@ public sealed class EncounterTests
         DuelSeat player = duel.Seats[0];
         Assert.Equal(me.Name, player.Name);
         Assert.Equal(40, player.Deck.Count);
+        Assert.Equal(["Serra Angel"], player.Sideboard);
         Assert.Equal((me.Stats.Life, me.Stats.Hand, me.Stats.MaxHand), (player.StartingLife, player.StartingHandSize, player.MaximumHandSize));
         Assert.Empty(player.Emblems);
 
@@ -75,10 +76,9 @@ public sealed class EncounterTests
         GearStats stats = content.File.Gear.Select(id => RealmApp.Content.Gear[id].Stats).Aggregate(content.File.Stats, (sum, item) => sum + item);
         Assert.Equal((stats.Life, stats.Hand, stats.MaxHand), (seat.StartingLife, seat.StartingHandSize, seat.MaximumHandSize));
 
-        long ante = RealmApp.Content.Cards.Price("Serra Angel")!.Value;
-        Assert.Equal(ante, duel.AnteValue);
-        Assert.Equal(Math.Min(ante, content.File.Prize), duel.Cap);
-        Assert.Equal(new DuelMob(content.File.Name, content.File.Tier, content.File.Prize), duel.Mob);
+        Assert.Equal(new DuelMob(content.File.Name, content.File.Tier), duel.Mob);
+        Assert.Equal(1, duel.Game);
+        Assert.Null(duel.FirstPlayer);
     }
 
     [Fact]
@@ -163,10 +163,11 @@ public sealed class EncounterTests
     }
 
     [Fact]
-    public async Task A_win_pays_gold_and_offers_three_cards_within_the_cap()
+    public async Task A_win_pays_gold_and_no_cards()
     {
         await using var app = new RealmApp();
         Browser browser = await Ready(app, 1, ("Serra Angel", 2));
+        IReadOnlyDictionary<string, int> before = await browser.Collection();
         string mob = MobNow(app, browser);
         EncounterView encounter = await Begin(browser, mob);
         OutcomeView won = await Finish(browser, encounter.Token);
@@ -174,15 +175,11 @@ public sealed class EncounterTests
         Mob content = RealmApp.Content.Mobs[mob];
         Assert.Equal("won", won.Outcome);
         Assert.InRange(won.Gold, content.File.GoldRange[0], content.File.GoldRange[1]);
-        Assert.Equal(encounter.Duel.Cap, won.Cap);
-        Assert.Equal(Encounters.Offered, won.Offer.Count);
-        Assert.All(won.Offer, card =>
-        {
-            Assert.Equal(RealmApp.Content.Cards.Price(card.Name), card.Gold);
-            Assert.True(card.Gold <= won.Cap, card.Name);
-            Assert.True(RealmApp.Content.Cards.Fits(card.Name, content.File.Loot), card.Name);
-        });
+        Assert.Null(won.Defeat);
+        Assert.Null(won.Gift);
+        Assert.Equal(Hearts.Starting, won.Hearts);
         Assert.Equal(Characters.StartingGold + won.Gold, (await browser.Me()).Gold);
+        Assert.Equal(before, await browser.Collection());
 
         // The verifier was asked about the duel as dealt, with the log sent.
         (Duel checkedDuel, IReadOnlyList<string> log) = Assert.Single(app.Verifier.Checked);
@@ -191,110 +188,30 @@ public sealed class EncounterTests
     }
 
     [Fact]
-    public async Task Loot_is_any_offered_cards_together_within_the_cap()
-    {
-        await using var app = new RealmApp();
-        Browser browser = await Ready(app, 1, ("Serra Angel", 2));
-        EncounterView encounter = await Begin(browser, MobNow(app, browser));
-        OutcomeView won = await Finish(browser, encounter.Token);
-        IReadOnlyDictionary<string, int> before = await browser.Collection();
-
-        // Every offered card fits alone; the dearest pair may not.
-        List<string> byPrice = [.. won.Offer.OrderByDescending(card => card.Gold).Select(card => card.Name)];
-        long all = won.Offer.Sum(card => card.Gold);
-        if (all > won.Cap)
-        {
-            await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = won.Offer.Select(card => card.Name) }, HttpStatusCode.UnprocessableEntity, Codes.OverCap);
-        }
-
-        await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = new[] { "Black Lotus" } }, HttpStatusCode.UnprocessableEntity, Codes.NotOffered);
-
-        List<string> picks = [];
-        long total = 0;
-        foreach (string card in byPrice)
-        {
-            long price = RealmApp.Content.Cards.Price(card)!.Value;
-            if (total + price <= won.Cap)
-            {
-                picks.Add(card);
-                total += price;
-            }
-        }
-
-        Assert.NotEmpty(picks);
-        CollectionView after = await browser.Ok<CollectionView>(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = picks });
-        foreach (string card in picks.Distinct()) Assert.Equal(before.GetValueOrDefault(card) + picks.Count(pick => pick == card), after.Cards[card]);
-
-        await browser.Refused(HttpMethod.Post, "/api/encounter/loot", new { Token = encounter.Token, Picks = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
-    }
-
-    [Fact]
-    public async Task Every_offered_card_fits_the_cap_alone()
-    {
-        await using var app = new RealmApp();
-        using var scope = app.Services.CreateScope();
-        Encounters encounters = scope.ServiceProvider.GetRequiredService<Encounters>();
-        Mob mob = RealmApp.Content.Mobs["llanowar-elves"];
-        List<long> prices = [.. RealmApp.Content.Cards.Filter("dominaria", mob.File.Loot).Select(card => RealmApp.Content.Cards.Price(card)!.Value).Order()];
-
-        // A cap of the cheapest card's price offers only cards of that price; below it, nothing.
-        Assert.All(encounters.Offer(mob, prices[0]), card => Assert.Equal(prices[0], RealmApp.Content.Cards.Price(card)));
-        Assert.NotEmpty(encounters.Offer(mob, prices[0]));
-        Assert.Empty(encounters.Offer(mob, prices[0] - 1));
-        Assert.Empty(encounters.Offer(mob, 0));
-
-        // A cap above every card offers three different ones.
-        List<string> offer = encounters.Offer(mob, prices[^1]);
-        Assert.Equal(Encounters.Offered, offer.Distinct().Count());
-    }
-
-    [Fact]
-    public async Task With_an_empty_ante_a_win_pays_gold_and_no_cards()
-    {
-        await using var app = new RealmApp();
-        Browser browser = await Ready(app);
-        EncounterView encounter = await Begin(browser, MobNow(app, browser));
-        Assert.Equal(0, encounter.Duel.Cap);
-
-        OutcomeView won = await Finish(browser, encounter.Token);
-        Assert.Equal("won", won.Outcome);
-        Assert.True(won.Gold > 0);
-        Assert.Empty(won.Offer);
-        Assert.Equal(0, won.Cap);
-    }
-
-    [Fact]
-    public async Task A_loss_takes_one_ante_card_and_wakes_the_character_at_the_inn()
+    public async Task A_loss_costs_a_heart_and_pays_nothing_and_the_character_stays_where_they_stand()
     {
         await using var app = new RealmApp();
         app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
-        Browser browser = await Ready(app, 1, ("Serra Angel", 2), ("Benalish Hero", 1));
+        Browser browser = await Ready(app, 1, ("Serra Angel", 2));
         IReadOnlyDictionary<string, int> before = await browser.Collection();
-        long gold = (await browser.Me()).Gold;
+        CharacterView was = await browser.Me();
 
         EncounterView encounter = await Begin(browser, MobNow(app, browser));
         OutcomeView lost = await Finish(browser, encounter.Token);
         Assert.Equal("lost", lost.Outcome);
         Assert.Equal(0, lost.Gold);
-        Assert.Empty(lost.Offer);
+        Assert.Null(lost.Gear);
+        Assert.Empty(lost.Relics);
+        Assert.False(lost.Died);
+        Assert.Equal(Hearts.Starting - 1, lost.Hearts);
+        Assert.NotNull(lost.Defeat);
 
-        string gone = await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal(gone, lost.Lost);
         CharacterView me = await browser.Me();
-        Assert.Equal(gold, me.Gold);
-        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
-    }
-
-    /// <summary>Asserts one card of the ante went from the collection and the ante, and says which.</summary>
-    private static async Task<string> AssertOneAnteCardLost(Browser browser, IReadOnlyDictionary<string, int> before, string[] anted)
-    {
-        IReadOnlyDictionary<string, int> after = await browser.Collection();
-        Assert.Equal(before.Values.Sum() - 1, after.Values.Sum());
-        string gone = Assert.Single(before.Keys, card => after.GetValueOrDefault(card) != before[card]);
-        Assert.Contains(gone, anted);
-        DeckView deck = await browser.Deck();
-        Assert.Equal(anted.Length == 0 ? 0 : 2, deck.Ante.Sum(card => card.Count));
-        return gone;
+        Assert.Equal(was.Gold, me.Gold);
+        Assert.Equal(before, await browser.Collection());
+        Assert.Equal(Hearts.Starting - 1, me.Hearts);
+        Assert.Equal((was.Space, was.X, was.Z), (me.Space, me.X, me.Z));
+        Assert.Equivalent(lost.Defeat, me.Defeat);
     }
 
     [Fact]
@@ -309,7 +226,8 @@ public sealed class EncounterTests
         OutcomeView lost = await Finish(browser, encounter.Token);
         Assert.Equal("lost", lost.Outcome);
         Assert.Contains("was refused", lost.Detail, StringComparison.Ordinal);
-        await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
+        Assert.Equal(Hearts.Starting - 1, lost.Hearts);
+        Assert.Equal(before, await browser.Collection());
         await browser.Refused(HttpMethod.Post, "/api/encounter/finish", new { encounter.Token, Log = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
     }
 
@@ -322,9 +240,10 @@ public sealed class EncounterTests
         EncounterView first = await Begin(browser, MobNow(app, browser));
 
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { Spawn = RealmApp.SpawnOf(2).Id, Mob = RealmApp.SpawnOf(2).Mobs[0] }, HttpStatusCode.Conflict, Codes.Unfinished);
-        await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
         CharacterView me = await browser.Me();
-        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
+        Assert.Equal(Hearts.Starting - 1, me.Hearts);
+        Assert.Equal(first.Token, me.Defeat?.Token);
+        Assert.Equal(before, await browser.Collection());
         await browser.Refused(HttpMethod.Post, "/api/encounter/finish", new { first.Token, Log = Array.Empty<string>() }, HttpStatusCode.Conflict, Codes.Finished);
         Assert.Empty(app.Verifier.Checked);
     }
@@ -341,12 +260,14 @@ public sealed class EncounterTests
         Assert.Equal(before.Values.Sum(), (await browser.Collection()).Values.Sum());
         app.Time.Advance(TimeSpan.FromHours(2));
 
-        // Looking at the character settles it.
+        // Looking at the character settles it: a heart lost, and the mob, untouched, asks its whole buyout.
         CharacterView me = await browser.Me();
-        await AssertOneAnteCardLost(browser, before, ["Serra Angel", "Benalish Hero"]);
-        Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
+        Assert.Equal(Hearts.Starting - 1, me.Hearts);
+        Assert.Equal(before, await browser.Collection());
         string state = await app.Store(db => db.Duels.Where(duel => duel.Token == encounter.Token).Select(duel => duel.State).SingleAsync());
-        Assert.Equal(DuelRow.Lost, state);
+        Assert.Equal(DuelRow.Defeated, state);
+        Assert.Equal(me.Defeat!.MobFullLife, me.Defeat.MobLife);
+        Assert.Equal(Encounters.BuyoutBase[1], me.Defeat.Price);
     }
 
     [Fact]

@@ -13,27 +13,10 @@
     "mantle-of-the-ancients",
     "silver-pendant"
   ],
-  "prize": 2000,
   "goldRange": [
     250,
     600
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "BG",
-    "types": [],
-    "subtypes": [
-      "Phyrexian",
-      "Beast",
-      "Horror",
-      "Wurm"
-    ],
-    "rarities": [
-      "uncommon",
-      "rare",
-      "mythic"
-    ]
-  },
   "model": {
     "mesh": "wurm",
     "palette": [

@@ -94,17 +94,20 @@ public static class RealmApi
         api.MapPost("/encounter/finish", async (HttpContext context, Encounters encounters, EncounterFinish body) =>
             Results.Ok(await encounters.Finish(Player(context), body).ConfigureAwait(false)));
 
-        api.MapPost("/encounter/loot", async (HttpContext context, Encounters encounters, LootPicks body) =>
-            Results.Ok(await encounters.Loot(Player(context), body).ConfigureAwait(false)));
+        api.MapPost("/encounter/pay", async (HttpContext context, Encounters encounters, EncounterPay body) =>
+            Results.Ok(await encounters.Pay(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/encounter/rematch", async (HttpContext context, Encounters encounters, EncounterRematch body) =>
+            Results.Ok(await encounters.Rematch(Player(context), body).ConfigureAwait(false)));
+
+        api.MapPost("/hearts/buy", async (HttpContext context, Hearts hearts) =>
+            Results.Ok(await hearts.Buy(Player(context)).ConfigureAwait(false)));
 
         api.MapPost("/chest/open", async (HttpContext context, Chests chests, ChestOpen body) =>
             Results.Ok(await chests.Open(Player(context), body).ConfigureAwait(false)));
 
         api.MapPost("/position", async (HttpContext context, Characters characters, PlaceView body) =>
-        {
-            await characters.Position(Player(context), body).ConfigureAwait(false);
-            return Results.Ok(new { });
-        });
+            Results.Ok(await characters.Position(Player(context), body).ConfigureAwait(false)));
 
         api.MapPost("/inn", async (HttpContext context, Characters characters) =>
             Results.Ok(await characters.SetInn(Player(context)).ConfigureAwait(false)));

@@ -37,33 +37,32 @@ public sealed class DeckTests
         await using var app = new RealmApp();
         Browser browser = await app.Character(1, "W");
         DeckView deck = await browser.Deck();
-        await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
+        await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
 
         // Next to the inn's table, it does; and in the world, next to the table in New Benalia's square, too.
         await browser.ToSpellTable();
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = Array.Empty<CardCount>() });
         Tile table = RealmApp.Content.World.SpellTables.First(tile => RealmApp.Content.TownAt(tile)?.Id == "new-benalia");
         await browser.Put(RealmContent.WorldSpace, RealmApp.Beside(RealmContent.WorldSpace, table));
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() });
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = Array.Empty<CardCount>() });
         await browser.Put(RealmContent.WorldSpace, RealmApp.Away(table, 2));
-        await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Ante = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
+        await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = deck.Main, Sideboard = Array.Empty<CardCount>() }, HttpStatusCode.Conflict, Codes.NotAtTable);
     }
 
     [Fact]
-    public async Task An_ante_is_cards_owned_beside_the_deck_and_worth_their_prices()
+    public async Task A_sideboard_is_cards_owned_beside_the_deck()
     {
         await using var app = new RealmApp();
         Browser browser = await AtTable(app, ("Benalish Hero", 2), ("Serra Angel", 1));
         List<CardCount> main = Starter(await browser.Deck());
 
-        DeckView saved = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Ante = new[] { new CardCount("Benalish Hero", 2), new CardCount("Serra Angel", 1) } });
-        long expected = (2 * RealmApp.Content.Cards.Price("Benalish Hero")!.Value) + RealmApp.Content.Cards.Price("Serra Angel")!.Value;
-        Assert.Equal(expected, saved.AnteValue);
-        Assert.Equal(expected, (await browser.Deck()).AnteValue);
+        DeckView saved = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Sideboard = new[] { new CardCount("Benalish Hero", 2), new CardCount("Serra Angel", 1) } });
+        Assert.Equal([new CardCount("Benalish Hero", 2), new CardCount("Serra Angel", 1)], saved.Sideboard);
+        Assert.Equal(saved.Sideboard, (await browser.Deck()).Sideboard);
     }
 
     [Fact]
-    public async Task A_copy_is_in_the_deck_or_the_ante_never_both()
+    public async Task A_copy_is_in_the_deck_or_the_sideboard_never_both()
     {
         await using var app = new RealmApp();
         Browser browser = await AtTable(app);
@@ -72,55 +71,46 @@ public sealed class DeckTests
         // A card the deck holds every owned copy of.
         IReadOnlyDictionary<string, int> owned = await browser.Collection();
         CardCount all = main.First(card => card.Name != "Plains" && owned[card.Name] == card.Count);
-        ApiError refused = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = main, Ante = new[] { new CardCount(all.Name, 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
-        Assert.Contains($"You own {all.Count} {all.Name}; the deck and the ante use {all.Count + 1}.", refused.Problems!);
+        ApiError refused = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = main, Sideboard = new[] { new CardCount(all.Name, 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Contains($"You own {all.Count} {all.Name}; the deck and the sideboard use {all.Count + 1}.", refused.Problems!);
     }
 
     [Fact]
-    public async Task Basic_lands_of_the_identity_are_free_and_unlimited_and_never_anted()
+    public async Task Basic_lands_of_the_identity_are_free_and_unlimited_in_the_deck_and_the_sideboard()
     {
         await using var app = new RealmApp();
         Browser browser = await AtTable(app);
 
-        // Forty Plains, owned by nobody; Wastes too, whatever the identity.
-        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 36), new CardCount("Wastes", 4) }, Ante = Array.Empty<CardCount>() });
+        // Forty Plains, owned by nobody; Wastes too, whatever the identity; and Plains in the sideboard.
+        await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 36), new CardCount("Wastes", 4) }, Sideboard = new[] { new CardCount("Plains", 3) } });
 
-        ApiError island = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 36), new CardCount("Island", 4) }, Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        ApiError island = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 36), new CardCount("Island", 4) }, Sideboard = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
         Assert.Contains("Island is outside the color identity W.", island.Problems!);
-
-        ApiError anted = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 40) }, Ante = new[] { new CardCount("Plains", 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
-        Assert.Contains("Plains is a basic land, free to every deck: it can't be anted.", anted.Problems!);
     }
 
     [Fact]
-    public async Task A_card_outside_the_identity_may_be_anted_but_never_dealt()
+    public async Task The_sideboard_is_held_to_the_identity_and_shares_the_decks_copy_limits()
     {
-        // The identity holds the deck alone, as Commander's does: the ante is cards owned, whatever their colors.
+        // The identity holds the sideboard as it holds the deck; and four copies of a card are the most the deck and its
+        // sideboard hold between them (CR 100.4a).
         await using var app = new RealmApp();
-        Browser browser = await AtTable(app, ("Goblin King", 1), ("Benalish Hero", 3));
+        Browser browser = await AtTable(app, ("Goblin King", 1), ("Benalish Hero", 5));
         List<CardCount> main = Starter(await browser.Deck());
-        DeckView anted = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = main, Ante = new[] { new CardCount("Goblin King", 1) } });
-        Assert.Equal([new CardCount("Goblin King", 1)], anted.Ante);
-        Assert.Equal(RealmApp.Content.Cards.Price("Goblin King"), anted.AnteValue);
+        ApiError outside = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = main, Sideboard = new[] { new CardCount("Goblin King", 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Equal(["Goblin King is outside the color identity W."], outside.Problems);
 
-        ApiError dealt = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = main.Append(new CardCount("Goblin King", 1)), Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
-        Assert.Equal(["Goblin King is outside the color identity W."], dealt.Problems);
-
-        // Four copies of a card are the most a deck holds: owning five, the fifth may be anted beside them.
-        int owned = (await browser.Collection())["Benalish Hero"];
-        if (owned < 5) await app.Give(browser, "Benalish Hero", 5 - owned);
         int inStarter = main.SingleOrDefault(card => card.Name == "Benalish Hero")?.Count ?? 0;
         List<CardCount> others = [.. main.Where(card => card.Name != "Benalish Hero")];
-        ApiError five = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 5)), Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
-        Assert.Equal(["Benalish Hero: 5 copies, more than the 4 a deck may have."], five.Problems);
-        DeckView saved = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 4)), Ante = new[] { new CardCount("Benalish Hero", 1) } });
+        ApiError five = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 4)), Sideboard = new[] { new CardCount("Benalish Hero", 1) } }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        Assert.Equal(["Benalish Hero: 5 copies, more than the 4 a deck and its sideboard may have."], five.Problems);
+        DeckView saved = await browser.Ok<DeckView>(HttpMethod.Put, "/api/deck", new { Main = others.Append(new CardCount("Benalish Hero", 3)), Sideboard = new[] { new CardCount("Benalish Hero", 1) } });
 
-        // The realm keeps what was saved, ante and all, until it is changed at a table again.
+        // The realm keeps what was saved, sideboard and all, until it is changed at a table again.
         DeckView kept = await browser.Deck();
         Assert.Equal(saved.Main, kept.Main);
-        Assert.Equal(saved.Ante, kept.Ante);
-        Assert.Equal(40 + 4 - inStarter, saved.Main.Sum(card => card.Count));
-        Assert.Equal([new CardCount("Benalish Hero", 1)], saved.Ante);
+        Assert.Equal(saved.Sideboard, kept.Sideboard);
+        Assert.Equal(40 + 3 - inStarter, saved.Main.Sum(card => card.Count));
+        Assert.Equal([new CardCount("Benalish Hero", 1)], saved.Sideboard);
     }
 
     [Fact]
@@ -134,19 +124,19 @@ public sealed class DeckTests
             new
             {
                 Main = new[] { new CardCount("Plains", 30), new CardCount("Benalish Hero", 5), new CardCount("Black Lotus", 2), new CardCount("Lightning Bolt", 1), new CardCount("Llanowar Elves", 1) },
-                Ante = new[] { new CardCount("Serra Angel", 11) },
+                Sideboard = new[] { new CardCount("Serra Angel", 4), new CardCount("Plains", 12) },
             },
             HttpStatusCode.UnprocessableEntity,
             Codes.IllegalDeck);
 
-        Assert.Contains("Benalish Hero: 5 copies, more than the 4 a deck may have.", refused.Problems!);
+        Assert.Contains("Benalish Hero: 5 copies, more than the 4 a deck and its sideboard may have.", refused.Problems!);
         Assert.Contains("Black Lotus is restricted in Vintage: one copy at most, not 2.", refused.Problems!);
         Assert.Contains("Lightning Bolt is outside the color identity W.", refused.Problems!);
         Assert.Contains("You don't own Llanowar Elves.", refused.Problems!);
-        Assert.Contains("An ante is at most 10 cards: this one is 11.", refused.Problems!);
+        Assert.Contains("A sideboard is at most 15 cards: this one is 16.", refused.Problems!);
 
         // Under forty.
-        ApiError small = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 39) }, Ante = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
+        ApiError small = await browser.Refused(HttpMethod.Put, "/api/deck", new { Main = new[] { new CardCount("Plains", 39) }, Sideboard = Array.Empty<CardCount>() }, HttpStatusCode.UnprocessableEntity, Codes.IllegalDeck);
         Assert.Contains("A deck is at least 40 cards: this one is 39.", small.Problems!);
     }
 

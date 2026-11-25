@@ -21,23 +21,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Cantrip.Realms.Server.Data.AnteRow", b =>
-                {
-                    b.Property<string>("PlayerId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<int>("Count")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PlayerId", "Name");
-
-                    b.ToTable("ante", (string)null);
-                });
-
             modelBuilder.Entity("Cantrip.Realms.Server.Data.AttunedRow", b =>
                 {
                     b.Property<string>("PlayerId")
@@ -115,16 +98,6 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("Ante")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("AnteValue")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Cap")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Detail")
                         .HasColumnType("text");
 
@@ -134,6 +107,16 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long?>("FinishedAt")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Game")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("GearInstance")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Gift")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
                     b.Property<long>("Gold")
                         .HasColumnType("bigint");
 
@@ -141,15 +124,25 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Offer")
-                        .HasColumnType("text");
+                    b.Property<int>("MobLife")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MobLifeEnd")
+                        .HasColumnType("integer");
 
                     b.Property<string>("PlayerId")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long?>("Price")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("Seed")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("Sideboard")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Space")
                         .IsRequired()
@@ -176,7 +169,7 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
 
                     b.HasIndex("PlayerId", "State");
 
-                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch")
+                    b.HasIndex("PlayerId", "Space", "Spawn", "Epoch", "Game")
                         .IsUnique();
 
                     b.ToTable("duels", (string)null);
@@ -249,10 +242,20 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.Property<long>("Gold")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Hearts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
+
                     b.Property<string>("Inn")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<int>("MaxHearts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -368,6 +371,23 @@ namespace Cantrip.Realms.Server.Data.Migrations.Postgres
                     b.HasIndex("PlayerId", "State");
 
                     b.ToTable("runs", (string)null);
+                });
+
+            modelBuilder.Entity("Cantrip.Realms.Server.Data.SideboardRow", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PlayerId", "Name");
+
+                    b.ToTable("sideboard", (string)null);
                 });
 
             modelBuilder.Entity("Cantrip.Realms.Server.Data.UnlockRow", b =>

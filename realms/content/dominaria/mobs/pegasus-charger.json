@@ -13,25 +13,10 @@
   "gear": [
     "padded-jerkin"
   ],
-  "prize": 300,
   "goldRange": [
     50,
     150
   ],
-  "loot": {
-    "pool": "dominaria",
-    "colors": "W",
-    "types": [],
-    "subtypes": [
-      "Pegasus",
-      "Bird",
-      "Griffin"
-    ],
-    "rarities": [
-      "common",
-      "uncommon"
-    ]
-  },
   "model": {
     "mesh": "pegasus",
     "palette": [
