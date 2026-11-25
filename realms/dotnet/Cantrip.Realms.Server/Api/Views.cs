@@ -140,14 +140,17 @@ public sealed record OutcomeView(
     RunLoss? Forfeit = null);
 
 /// <summary>
-/// A game lost with hearts left, its answer pending (design.md A3): the game's token, the mob (its id) and which game of
-/// the encounter it was; the character's hearts now; the mob's life at the game's end and its full starting life (gear and
+/// A game lost with hearts left, its answer pending (design.md A3): the game's token, the mob (its id), where it was met
+/// (the world spawn's id, or a run's encounter, <c>&lt;floor&gt;:&lt;index&gt;</c>) and in which epoch of the spawn, and which
+/// game of the encounter it was; the character's hearts now; the mob's life at the game's end and its full starting life (gear and
 /// a run's gains included); what it asks to be paid off (null in a dungeon, where it can't be); and the deck and sideboard
 /// the game was played with, which the next game's are swapped from.
 /// </summary>
 public sealed record DefeatView(
     string Token,
     string Mob,
+    string Spawn,
+    long Epoch,
     int Game,
     int Hearts,
     int MaxHearts,

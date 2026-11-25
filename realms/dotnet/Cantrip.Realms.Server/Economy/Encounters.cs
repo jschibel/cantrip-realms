@@ -437,6 +437,8 @@ public sealed class Encounters(
         return new DefeatView(
             duel.Token,
             duel.Mob,
+            duel.Spawn,
+            duel.Epoch,
             duel.Game,
             hearts,
             maxHearts,

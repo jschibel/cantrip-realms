@@ -2,8 +2,8 @@
 // `layoutRoom` (art/rooms/layout.ts) from its kind, its town's style, its building's footprint and a seed of its id - its
 // floor, its furniture, its fires' and windows' light, and the people who keep it - with the town's own people laid over
 // the recipe's keepers: the vendor behind the shop's counter (by the vendor's id), the innkeeper behind the bar, the
-// armorer at the forge, the priest, the librarian, the guild's master; the spell tables named for their town; a resident
-// at home. The file holds what the recipe chose.
+// armorer at the forge, the priest or the shrine's keeper - a healer, who sells hearts (design.md A3b) -, the librarian, the
+// guild's master; the spell tables named for their town; a resident at home. The file holds what the recipe chose.
 
 import { layoutRoom, type RoomKind } from "../../src/art/rooms/layout";
 import { fnv1a32 } from "../../src/random";
@@ -33,6 +33,9 @@ function keeperOf(spec: InteriorSpec): Partial<NpcData> {
       return spec.armorer
         ? { id: `${spec.town}-armorer`, kind: "armorer", name: "Armorer", ...folk }
         : { id: `${spec.id}-smith`, kind: "townsfolk", name: "Smith", text: ["Nothing for sale here. Try the town's armorer."], ...folk };
+    case "temple":
+      // A temple's priest or a shrine's keeper heals: they sell hearts.
+      return { id: `${spec.id}-keeper`, kind: "healer", name: spec.resident?.name ?? "Priest", text: spec.resident?.text ?? [], ...folk };
     default:
       return spec.resident ? { id: `${spec.id}-${spec.kind === "guildhall" ? "master" : "keeper"}`, name: spec.resident.name, text: spec.resident.text, ...folk } : folk;
   }

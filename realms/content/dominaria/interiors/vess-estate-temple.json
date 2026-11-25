@@ -41,7 +41,7 @@
     {"id":"guild-banner","x":9.9875,"z":0,"y":2.6,"tint":"room-morass"}
   ],
   "npcs": [
-    {"id":"vess-estate-temple-keeper","x":5,"z":3,"kind":"townsfolk","name":"Priest","behaviour":{"rest":[0,1],"watch":5},"text":["Rest a while. The wells of Dominaria remember the faithful."],"figure":"townsfolk-caligo","seed":617}
+    {"id":"vess-estate-temple-keeper","x":5,"z":3,"kind":"healer","name":"Priest","behaviour":{"rest":[0,1],"watch":5},"text":["Rest a while. The wells of Dominaria remember the faithful."],"figure":"townsfolk-caligo","seed":617}
   ],
   "lights": [
     {"kind":"spot","at":[5,3.8,-0.5],"to":[5,0,4.5],"color":[0.75,0.8,1],"intensity":30,"reach":12,"angle":0.4,"penumbra":0.3,"decay":1.2},

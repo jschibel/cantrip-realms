@@ -38,6 +38,8 @@ export const NPC_KINDS = [
   "spell-table",
   "vendor",
   "armorer",
+  /** A temple's priest or a shrine's keeper, who sells hearts (design.md A3b). */
+  "healer",
   "quest-board",
   "arena",
   "townsfolk",
