@@ -140,9 +140,10 @@ button.primary:hover { filter: brightness(1.08); }
 .boss-beaten .buttons { justify-content: center; }
 
 /* Hearts (design.md A3b): a row of them, filled for those the character has, empty for the rest they hold. */
-.hearts { display: inline-flex; gap: 2px; vertical-align: middle; }
-.heart { color: var(--danger); font-size: 15px; line-height: 1; }
-.heart.empty { color: var(--fg-soft); opacity: 0.6; }
+.hearts { display: inline-flex; gap: 3px; vertical-align: middle; align-items: center; }
+.heart { width: 15px; height: 14px; }
+.heart.full path { fill: var(--danger); stroke: #ff9a90; stroke-width: 0.8; }
+.heart.empty path { fill: none; stroke: var(--fg-soft); stroke-width: 1.4; opacity: 0.7; }
 .hearts.flash .heart.full { animation: heart-beat 0.9s ease-out 2; }
 @keyframes heart-beat {
   0%, 100% { transform: scale(1); }
@@ -157,13 +158,13 @@ button.primary:hover { filter: brightness(1.08); }
 .defeat h2 { margin: 4px 0 0; }
 .defeat .line { font-size: 16px; color: var(--fg); margin: 14px 0 10px; }
 .defeat .line em { color: var(--fg-soft); }
-.defeat .hearts .heart, .death .hearts .heart { font-size: 20px; }
+.defeat .hearts .heart, .death .hearts .heart { width: 22px; height: 20px; }
 .defeat .buttons button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* The last heart lost: the world goes dark round the word. */
 .dialog.death { background: #000000c8; }
 .death .panel-card { text-align: center; min-width: 400px; border-color: var(--danger); }
-.death h2 { font-size: 30px; color: var(--danger); margin: 4px 0 12px; }
+.death .panel-card h2 { font-size: 30px; color: var(--danger); margin: 4px 0 12px; }
 .death .buttons { justify-content: center; }
 
 #hud-side {

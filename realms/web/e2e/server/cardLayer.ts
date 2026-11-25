@@ -44,10 +44,14 @@ export interface CardLayerState {
       readonly won: boolean;
       readonly ended: boolean;
       readonly end: string;
+      readonly game: number;
+      readonly mobLife: number;
+      readonly playerLife: number;
     };
+    /** The spell table, or a rematch's sideboarding: the deck's count and the sideboard's. */
+    readonly table?: { readonly sideboarding: boolean; readonly sideboard: string; readonly main: number; readonly side: number };
     /** The duel's gear strip: each seat's gear emblems in the game, and whether the panel of their cards is open. */
     readonly duelGear?: { readonly line: string; readonly open: boolean; readonly emblems: readonly string[]; readonly mobEmblems: readonly string[] };
-    readonly loot?: { readonly cap: number; readonly taken: number; readonly picked: readonly string[] };
   };
 }
 

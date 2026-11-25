@@ -29,7 +29,7 @@ test("a player signs in, makes a character, walks, visits a vendor and starts an
   const capital = world().towns.find((t) => t.kind === "capital")!;
   expect(capital.id).toBe("new-benalia");
   const inn = world().inns.find((i) => i.town === capital.id)!;
-  expect(made).toMatchObject({ Id: "dev-1", Name: "Ann", Body: "stocky", Identity: "G", Space: "world", X: inn.x, Z: inn.z, AnteValue: 0 });
+  expect(made).toMatchObject({ Id: "dev-1", Name: "Ann", Body: "stocky", Identity: "G", Space: "world", X: inn.x, Z: inn.z, Hearts: 2, MaxHearts: 2, Defeat: null });
   expect(Object.values(made.Loadout).filter((worn) => worn !== null)).toHaveLength(3);
   expect(await realm<string>(page, "character.name")).toBe("Ann");
   expect(await realm<string[]>(page, "character.identity")).toEqual(["G"]);

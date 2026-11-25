@@ -41,7 +41,7 @@ async function beatTheBoss(page: Page): Promise<void> {
     await until(
       page,
       async () => {
-        if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:take");
+        if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:close");
         return (await realm<string>(page, "screen")) === "boss";
       },
       "the boss's moment",

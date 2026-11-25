@@ -1211,7 +1211,7 @@ export class Overworld {
       this.run = null;
       for (const m2 of [...this.mobs]) if (m2.run) this.removeMob(m2);
     }
-    const home = this.worldData.inns.find((i) => i.id === this.data.Inn);
+    const home = this.worldData.inns.find((i) => i.id === this.data.Inn) ?? this.worldData.inns.find((i) => i.x === this.data.X && i.z === this.data.Z);
     const town = this.worldData.towns.find((t) => t.id === home?.town)?.name ?? "your home town";
     const { showDeath } = await import("./screens/death");
     this.screen = "death";
@@ -1261,7 +1261,7 @@ export class Overworld {
   private async healer(npc: NpcData): Promise<void> {
     const c = this.data;
     const price = c.HeartPrice;
-    const lines = [...(npc.text ?? []), price === null ? `You hold ${c.MaxHearts} hearts, as many as anyone may.` : `Your heart holds ${c.MaxHearts}. A blessing that holds one more costs ${gold(price)} gold.`];
+    const lines = [...(npc.text ?? []), price === null ? `You hold ${c.MaxHearts} hearts, as many as anyone may.` : `You hold ${c.MaxHearts} hearts. A blessing for one more costs ${gold(price)} gold.`];
     const buttons: { caption: string; value: string | null; primary?: boolean }[] = price === null ? [] : [{ caption: `Buy a heart (${gold(price)} gold)`, value: "buy", primary: c.Gold >= price }];
     buttons.push({ caption: "Leave", value: null, primary: price === null || c.Gold < price });
     const choice = await this.dialog(npc.name ?? "The healer", lines, buttons);

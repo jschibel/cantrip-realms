@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { entity, openNear, realm, until, waitReady, world } from "../realm";
+import { entity, openNear, realm, until, waitReady } from "../realm";
 import { CARDS, cardState, clickCardControl } from "./cardLayer";
 import { SERVER, signIn } from "./server";
 
@@ -8,7 +8,7 @@ import { SERVER, signIn } from "./server";
 // layer - the web client's ?realm page, on an origin of its own - and a duel started in the world is dealt and played on
 // the rules engine in that page, the mob's seat answered there. The player concedes with real clicks; the overworld
 // hands the duel's log to /api/encounter/finish, which replays it on the native engine and takes it: a whole game the mob
-// won ("The mob won."), so a loss, not a rejected log; and the character wakes at the inn.
+// won ("The mob won."), so a loss, not a rejected log; it costs a heart, and the mob stands over the player.
 
 const query = (extra = "") =>
   `/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never${extra}`;
@@ -54,11 +54,9 @@ test("a duel started in the world is played in the real card layer, and its log 
   const outcome = (await finish.json()) as { Outcome: string; Detail: string | null };
   expect(outcome).toMatchObject({ Outcome: "lost", Detail: "The mob won." });
 
-  // Back in the world, waking outside the start town's inn.
+  // Back in the world, a heart lost, where the duel was: the mob stands over the player, its offer to answer.
   await expect.poll(() => realm<string | null>(page, "layer.open")).toBe(null);
-  await until(page, async () => /You lost the duel, and wake at the inn/.test((await realm<string>(page, "message")) ?? ""), "woken at the inn", 60);
-  const me = (await (await page.request.get(new URL("api/me", SERVER).toString())).json()) as { Space: string; X: number; Z: number };
-  const capital = world().towns.find((t) => t.kind === "capital")!;
-  const inn = world().inns.find((i) => i.town === capital.id)!;
-  expect(me).toMatchObject({ Space: "world", X: inn.x, Z: inn.z });
+  await expect.poll(() => page.locator("[data-test='defeat']").count(), { timeout: 60_000 }).toBe(1);
+  const me = (await (await page.request.get(new URL("api/me", SERVER).toString())).json()) as { Space: string; Hearts: number; Defeat: { Token: string } | null };
+  expect(me).toMatchObject({ Space: "world", Hearts: 1, Defeat: { Token: sent.Token } });
 });

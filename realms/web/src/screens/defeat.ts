@@ -1,4 +1,4 @@
-import { gold } from "../hud";
+import { gold, heartsHtml } from "../hud";
 import { isNarrated } from "../hearts";
 
 // A duel lost with hearts left (design.md A3): the mob that won stands over the player - its portrait, its name, what it
@@ -28,19 +28,9 @@ export const defeatOpen = (): boolean => open !== null;
 
 /** A row of hearts: `have` filled, the rest of `hold` empty. */
 export function heartRow(have: number, hold: number, test: string): HTMLElement {
-  const row = document.createElement("span");
-  row.className = "hearts";
-  row.dataset.test = test;
-  row.dataset.hearts = String(have);
-  row.dataset.max = String(hold);
-  row.title = `${have} of ${hold} hearts`;
-  for (let i = 0; i < hold; i++) {
-    const heart = document.createElement("span");
-    heart.className = i < have ? "heart full" : "heart empty";
-    heart.textContent = i < have ? "♥" : "♡";
-    row.appendChild(heart);
-  }
-  return row;
+  const holder = document.createElement("span");
+  holder.innerHTML = heartsHtml(have, hold, test);
+  return holder.firstElementChild as HTMLElement;
 }
 
 export function showDefeat(d: DefeatPanel): Promise<DefeatAnswer> {

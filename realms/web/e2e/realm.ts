@@ -203,8 +203,8 @@ export async function clickEntity(page: Page, match: (e: Entity) => boolean, wha
 }
 
 /**
- * Wins the duel the stand-in card layer has open, and takes the loot offered; and any duel that follows at once (another
- * mob that reached the player while the loot was open), until the world goes on.
+ * Wins the duel the stand-in card layer has open, and closes the gear found; and any duel that follows at once (another
+ * mob that reached the player while the gear was shown), until the world goes on.
  */
 export async function winDuel(page: Page): Promise<void> {
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 20);
@@ -214,7 +214,7 @@ export async function winDuel(page: Page): Promise<void> {
     async () => {
       const open = await realm<string | null>(page, "layer.open");
       if (open === "loot" || open === "duel") {
-        await clickControl(page, open === "loot" ? "layer:take" : "layer:win");
+        await clickControl(page, open === "loot" ? "layer:close" : "layer:win");
         return false;
       }
       // A boss's moment (the color it unlocks) is left open for the test to see.

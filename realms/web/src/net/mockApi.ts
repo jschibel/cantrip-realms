@@ -287,6 +287,7 @@ export class MockApi implements RealmApi {
       // As the server says it: the colors unlocked since, never the starting one.
       Unlocked: colors.slice(1),
       Attuned: [...this.attuned],
+      Inn: inn.id,
     };
     const own = CARDS.filter((c) => colors.includes(c.Color as ManaColor) || c.Color === "C");
     this.cards = Object.fromEntries(own.map((c) => [c.Name, 4]));

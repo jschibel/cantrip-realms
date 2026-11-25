@@ -864,13 +864,13 @@ def loot(mob, pool, prices, legality, cards):
     creature types too where the pool has a good handful of those."""
     tier = deck_key(mob)
     rarities = LOOT_RARITIES[tier]
-    prize = LOOT_CEILING[tier]
+    ceiling = LOOT_CEILING[tier]
 
     def fits(name, subtypes):
         info = legality.get(name, {})
         if not within(info.get("identity", "?"), mob["colors"], True):
             return False
-        if prices[name]["rarity"] not in rarities or prices[name]["gold"] > prize:
+        if prices[name]["rarity"] not in rarities or prices[name]["gold"] > ceiling:
             return False
         return not subtypes or (name in cards and any(t in subtypes for t in subtypes_of(cards[name])))
 

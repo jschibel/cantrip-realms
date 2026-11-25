@@ -8,8 +8,8 @@ import { type Me, SERVER, api, besideEntrance, character, place, query, verdict 
 // Dungeon runs and their bosses against the real realm server (playwright.config.ts here): a run resumed after a reload
 // on the floor it reached; Rofellos beaten - green unlocked, the deck taking green at the antechamber's spell table, his
 // hall empty for the week; and his duel in the real card layer, whose log the server replays - won from a forced position
-// (he begins at 0 life, POST /dev/duel), green unlocked with its moment; and lost by conceding, the run over and the
-// character at the inn. A test starts beside the dungeon (POST /dev/place) and has the server count the stand-in's wins
+// (he begins at 0 life, POST /dev/duel), green unlocked with its moment; and lost by conceding, a heart gone and the boss
+// fought again (never bought off), then the last heart lost: the run over and the character at the inn. A test starts beside the dungeon (POST /dev/place) and has the server count the stand-in's wins
 // (POST /dev/verdict) on the floors it only walks through.
 
 async function besideDungeon(page: Page, id: string, extra = "&mobs=0"): Promise<void> {
@@ -73,7 +73,7 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
   await waitSpace(page, /^run:/, 60);
 
   // Green is outside a white character's identity, at the antechamber's spell table as anywhere.
-  const green = { Main: [{ Name: "Forest", Count: 40 }], Ante: [] };
+  const green = { Main: [{ Name: "Forest", Count: 40 }], Sideboard: [] };
   const refused = await page.request.put(new URL("api/deck", SERVER).toString(), { data: green });
   expect(refused.status()).toBe(422);
   expect(((await refused.json()) as { Problems: string[] }).Problems).toContain("Forest is outside the color identity W.");
@@ -95,7 +95,7 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
     await until(
       page,
       async () => {
-        if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:take");
+        if ((await realm<string | null>(page, "layer.open")) === "loot") await clickControl(page, "layer:close");
         return (await realm<string>(page, "screen")) === "boss";
       },
       "his moment",
@@ -182,7 +182,7 @@ test("Rofellos beaten in the real card layer from a forced position: the server 
   for (let tries = 0; tries < 60 && (await realm<string>(page, "screen")) !== "boss"; tries++) {
     if ((await realm<string | null>(page, "layer.open")) === "loot") {
       const state = await cardState(page);
-      const go = state?.controls.filter((c) => /^(Take|Leave them|Done)/.test(c.label)).sort((a, b) => b.y - a.y)[0];
+      const go = state?.controls.filter((c) => /^Done/.test(c.label)).sort((a, b) => b.y - a.y)[0];
       if (go) await page.mouse.click(go.x, go.y);
     }
     await page.waitForTimeout(500);
@@ -195,29 +195,49 @@ test("Rofellos beaten in the real card layer from a forced position: the server 
   await forceDuel(page.request, { Player: null, Mob: null });
 });
 
-test("a boss duel lost in the real card layer: the server replays it, the run is over and the character wakes at the inn", async ({ page }) => {
-  test.setTimeout(600_000);
+test("a boss duel lost in the real card layer: a heart gone, fought again, then the last heart: the run over and home", async ({ page }) => {
+  test.setTimeout(900_000);
   await toRofellosForReal(page, 33, "Hale");
-  // The encounter's splash first, then the duel dealt.
+  const concede = async (game: number) => {
+    // The encounter's splash first (the game's), then the duel dealt.
+    await expect.poll(async () => (await cardState(page))?.realm?.facts ?? "", { timeout: 60_000 }).toContain(`game ${game}`);
+    await clickCardControl(page, "Fight");
+    await expect
+      .poll(async () => {
+        const state = await cardState(page);
+        return state?.ready === true && state.prompt.length > 0 && state.realm?.duel?.mob === "Rofellos, Llanowar Emissary" && state.realm.duel.game === game;
+      }, { timeout: 120_000, message: `game ${game} dealt in the card layer` })
+      .toBe(true);
+    const finished = page.waitForResponse((response) => response.url().endsWith("/api/encounter/finish"), { timeout: 60_000 });
+    await clickCardControl(page, "Concede");
+    await expect.poll(async () => (await cardState(page))?.controls.some((c) => c.label === "Play on") ?? false).toBe(true);
+    await clickCardControl(page, "Concede");
+    return (await (await finished).json()) as { Outcome: string; Detail: string | null; Died: boolean; Defeat: { Price: number | null; MobLife: number } | null };
+  };
+
+  // The first game conceded: a heart gone, and Rofellos, a dungeon's boss, can't be bought off.
+  const first = await concede(1);
+  expect(first).toMatchObject({ Outcome: "lost", Detail: "The mob won.", Died: false });
+  expect(first.Defeat!.Price).toBeNull();
+  await expect.poll(() => page.locator("[data-test='defeat']").count(), { timeout: 60_000 }).toBe(1);
+  expect(await page.locator("[data-test='defeat:pay']").count()).toBe(0);
+  await clickControl(page, "defeat:fight");
+
+  // Sideboarded as it was, playing first; the second game's Rofellos at the life the first left him.
+  await expect.poll(async () => (await cardState(page))?.realm?.table?.sideboarding ?? false, { timeout: 120_000 }).toBe(true);
   await clickCardControl(page, "Fight");
-  await expect
-    .poll(async () => {
-      const state = await cardState(page);
-      return state?.ready === true && state.prompt.length > 0 && state.realm?.duel?.mob === "Rofellos, Llanowar Emissary";
-    }, { timeout: 120_000, message: "the boss duel dealt in the card layer" })
-    .toBe(true);
+  await clickCardControl(page, "Play first");
+  const second = await concede(2);
+  expect(second).toMatchObject({ Outcome: "lost", Died: true });
 
-  const finished = page.waitForResponse((response) => response.url().endsWith("/api/encounter/finish"), { timeout: 60_000 });
-  await clickCardControl(page, "Concede");
-  await expect.poll(async () => (await cardState(page))?.controls.some((c) => c.label === "Play on") ?? false).toBe(true);
-  await clickCardControl(page, "Concede");
-  const outcome = (await (await finished).json()) as { Outcome: string; Detail: string | null };
-  expect(outcome).toMatchObject({ Outcome: "lost", Detail: "The mob won." });
-
-  await until(page, async () => /Your run of The Hollow under the Elfhames is over/.test((await realm<string>(page, "message")) ?? ""), "woken at the inn, the run over", 60);
+  // The last heart: death, the run over, home.
+  await expect.poll(() => page.locator("[data-test='death']").count(), { timeout: 60_000 }).toBe(1);
+  await expect(page.locator("[data-test='death']")).toContainText("Your run of The Hollow under the Elfhames is over");
+  await clickControl(page, "death:rise");
+  await until(page, async () => /You wake at the inn in New Benalia, your hearts restored/.test((await realm<string>(page, "message")) ?? ""), "woken at home", 60);
   const me = await api<Me>(page.request, "me");
   const capital = world().towns.find((t) => t.kind === "capital")!;
   const inn = world().inns.find((i) => i.town === capital.id)!;
-  expect(me).toMatchObject({ Space: "world", X: inn.x, Z: inn.z });
+  expect(me).toMatchObject({ Space: "world", X: inn.x, Z: inn.z, Hearts: 2 });
   expect((await page.request.get(new URL("api/dungeon/run", SERVER).toString())).status()).toBe(404);
 });

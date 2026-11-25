@@ -32,7 +32,7 @@ interface CardState {
     readonly screen: string;
     readonly status: string;
     readonly gear: readonly Spot[];
-    readonly inventory?: { readonly tab: string; readonly sort: string; readonly cards: readonly { name: string; count: number; gold: number; deck: number; ante: number }[] };
+    readonly inventory?: { readonly tab: string; readonly sort: string; readonly cards: readonly { name: string; count: number; gold: number; deck: number; sideboard: number }[] };
     readonly duel?: { readonly mob: string };
     readonly duelGear?: { readonly line: string; readonly open: boolean; readonly emblems: readonly string[]; readonly life: number; readonly cards: readonly { seat: string; name: string }[] };
   };
@@ -209,14 +209,14 @@ test("the inventory shows every card with its count, price and use, searched and
   test.setTimeout(300_000);
   await character(page.request, 43, "Hoarder", "G");
   await open(page);
-  const inventory = await api<{ Cards: readonly { Name: string; Count: number; Gold: number; Deck: number; Ante: number }[]; Value: number }>(page.request, "inventory");
+  const inventory = await api<{ Cards: readonly { Name: string; Count: number; Gold: number; Deck: number; Sideboard: number }[]; Value: number }>(page.request, "inventory");
 
   await page.click("[data-test='hud:inventory']");
   const shown = await cardUntil(page, (s) => s.realm?.screen === "inventory" && (s.realm.inventory?.cards.length ?? 0) > 0, "the inventory", 90_000);
   expect(shown.realm!.inventory!.cards.map((c) => c.name)).toEqual(inventory.Cards.map((c) => c.Name));
   for (const card of shown.realm!.inventory!.cards) {
     const server = inventory.Cards.find((c) => c.Name === card.name)!;
-    expect([card.count, card.gold, card.deck, card.ante]).toEqual([server.Count, server.Gold, server.Deck, server.Ante]);
+    expect([card.count, card.gold, card.deck, card.sideboard]).toEqual([server.Count, server.Gold, server.Deck, server.Sideboard]);
   }
   await page.screenshot({ path: `${SHOTS}/inventory.png` });
 

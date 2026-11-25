@@ -24,15 +24,14 @@ export async function forceDuel(request: APIRequestContext, duel: { Player?: For
 
 interface Deck {
   readonly Main: readonly { Name: string; Count: number }[];
-  readonly Ante: readonly { Name: string; Count: number }[];
-  readonly AnteValue: number;
+  readonly Sideboard: readonly { Name: string; Count: number }[];
 }
 
 /**
- * Puts `count` cards of the collection that are not in the deck into the ante, through the API at New Benalia's
- * guildhall's spell table (a deck is saved only at one), where the test puts the character: the ante's cards.
+ * Puts `count` cards of the collection that are not in the deck into the sideboard, through the API at New Benalia's
+ * guildhall's spell table (a deck is saved only at one), where the test puts the character: the sideboard's cards.
  */
-export async function setAnte(request: APIRequestContext, count = 2): Promise<{ names: string[]; value: number }> {
+export async function setSideboard(request: APIRequestContext, count = 2): Promise<string[]> {
   const hall = interior("new-benalia-guildhall");
   const table = hall.npcs.find((n) => n.kind === "spell-table")!;
   let placed = false;
@@ -49,9 +48,9 @@ export async function setAnte(request: APIRequestContext, count = 2): Promise<{ 
   const inDeck = new Set(deck.Main.map((c) => c.Name));
   const names = Object.entries(collection.Cards).filter(([name, n]) => n > 0 && !inDeck.has(name)).map(([name]) => name).sort().slice(0, count);
   expect(names.length, "cards of the collection outside the deck").toBe(count);
-  const saved = await request.put(new URL("api/deck", SERVER).toString(), { data: { Main: deck.Main, Ante: names.map((Name) => ({ Name, Count: 1 })) } });
+  const saved = await request.put(new URL("api/deck", SERVER).toString(), { data: { Main: deck.Main, Sideboard: names.map((Name) => ({ Name, Count: 1 })) } });
   expect(saved.ok(), await saved.text()).toBe(true);
-  return { names, value: ((await saved.json()) as Deck).AnteValue };
+  return names;
 }
 
 /** The answers a duel's opening asks of the player, which a forced position decides nothing by: keep, and go first. */

@@ -5,7 +5,7 @@ import { clickClear, entity, openNear, realm, waitReady } from "../realm";
 // The spell table and a card vendor in the real card layer against the real realm server (playwright.config.ts here): the
 // overworld frames the web client's ?realm page, and every edit, save, purchase and sale is a real mouse click (or drag)
 // at the place the card layer publishes on cantripTest. The server is the judge of a deck: the editor shows what it
-// says, Save keeps only what it takes, and the duel that follows deals exactly the deck it kept, with its ante.
+// says, Save keeps only what it takes, and the duel that follows deals exactly the deck it kept, with its sideboard.
 
 const SERVER = process.env.REALMS_E2E_SERVER!;
 const CARDS = process.env.REALMS_E2E_CARDS!;
@@ -53,13 +53,12 @@ interface CardLayerState {
     readonly facts: string;
     readonly status: string;
     readonly table?: {
-      readonly ante: string;
-      readonly anteValue: number;
+      readonly sideboard: string;
       readonly curve: string;
       readonly colors: string;
       readonly notes: Record<string, string>;
-      /** What each card of the ante column says under its name: its price, or that a relic can't be anted. */
-      readonly anteNotes: readonly { readonly name: string; readonly note: string; readonly relic: boolean }[];
+      /** What each card of the sideboard column says under its name: its price; and whether it is a relic. */
+      readonly sideNotes: readonly { readonly name: string; readonly note: string | null; readonly relic: boolean }[];
     };
     readonly duel?: { readonly mob: string; readonly over: boolean };
   };
@@ -72,8 +71,7 @@ interface CardCount {
 
 interface Deck {
   readonly Main: readonly CardCount[];
-  readonly Ante: readonly CardCount[];
-  readonly AnteValue: number;
+  readonly Sideboard: readonly CardCount[];
 }
 
 interface Collection {
@@ -150,7 +148,7 @@ async function card(page: Page, row: string, name: string): Promise<Card> {
 }
 
 /**
- * Double-clicks a card of a row: the deck editor's "to or from the ante" (and a search result's "into the deck"). A card
+ * Double-clicks a card of a row: the deck editor's "to or from the sideboard" (and a search result's "into the deck"). A card
  * of the deck's columns is clicked on its top edge, the part of it no card below it in the column covers.
  */
 async function doubleClick(page: Page, row: string, name: string): Promise<void> {
@@ -194,7 +192,7 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   await openAndClick(page, "spell-table");
   const opened = await judged(page, (s) => s.realm?.screen === "spell-table" && s.realm.table !== undefined);
   expect(opened.deckEditor!.problems).toEqual([]);
-  expect(opened.realm!.table!.ante).toMatch(/^Ante: none/);
+  expect(opened.realm!.table!.sideboard).toBe("Sideboard: 0 of 15 cards");
 
   // Copies: the search counts what is left, and stops at what is owned; the realm refuses a fifth copy in a deck.
   await search(page, "Benalish Hero");
@@ -207,7 +205,7 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   await doubleClick(page, "search", "Benalish Hero");
   state = await judged(page, (s) => s.deckEditor!.problems.length > 0, "the copies refused");
   expect(copies(state.deckEditor!.main, "Benalish Hero")).toBe(5);
-  expect(state.deckEditor!.problems).toContain("Benalish Hero: 5 copies, more than the 4 a deck may have.");
+  expect(state.deckEditor!.problems).toContain("Benalish Hero: 5 copies, more than the 4 a deck and its sideboard may have.");
   expect(state.deckEditor!.status).toMatch(/^Not legal in the realm/);
 
   // Save is refused by the server, which says why; the deck it keeps is still the starter.
@@ -217,28 +215,31 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   await cardsUntil(page, (s) => /Benalish Hero: 5 copies/.test(s.deckEditor!.status), "the refusal shown");
   expect(await api<Deck>(page.request, "deck")).toEqual(starter);
 
-  // The fifth goes to the ante with a double-click: legal again, and the ante's worth is the server's.
+  // The fifth to the sideboard with a double-click is still five between them (CR 100.4a): refused still.
   await doubleClick(page, "pool", "Benalish Hero");
-  state = await judged(page, (s) => s.deckEditor!.side.length === 1 && s.deckEditor!.problems.length === 0, "a Benalish Hero anted");
+  state = await judged(page, (s) => s.deckEditor!.side.length === 1, "a Benalish Hero in the sideboard");
   expect(state.deckEditor!.side).toEqual(["1 Benalish Hero"]);
-  expect(state.realm!.table!.anteValue).toBe(prices["Benalish Hero"]);
+  expect(state.deckEditor!.problems).toEqual(["Benalish Hero: 5 copies, more than the 4 a deck and its sideboard may have."]);
+  expect(state.realm!.table!.sideboard).toBe("Sideboard: 1 of 15 cards");
 
-  // Color identity: a red card is shown for the ante only; dragged into the deck it is refused, and double-clicked out of
-  // the deck it goes to the ante, where it may be.
+  // A card of the deck dragged back onto the search leaves it: four between them, legal.
+  const out = await card(page, "pool", "Benalish Hero");
+  const back = await card(page, "search", "Benalish Hero");
+  await page.mouse.move(out.x, out.y - out.h / 2 + 6);
+  await page.mouse.down();
+  await page.mouse.move((out.x + back.x) / 2, (out.y + back.y) / 2, { steps: 8 });
+  await page.mouse.move(back.x, back.y, { steps: 8 });
+  await page.mouse.up();
+  state = await judged(page, (s) => copies(s.deckEditor!.main, "Benalish Hero") === 3 && s.deckEditor!.problems.length === 0, "a Benalish Hero taken out");
+
+  // Color identity: a red card is shown, dimmed, outside the colors; neither the deck nor the sideboard takes it.
   await search(page, "Goblin King");
   state = await cardsUntil(page, (s) => s.realm!.table!.notes["Goblin King"] !== undefined, "the Goblin King in the search");
-  expect(state.realm!.table!.notes["Goblin King"]).toMatch(/^1 of 1 left · ante only/);
-  const king = await card(page, "search", "Goblin King");
-  const hero = await card(page, "pool", "Benalish Hero");
-  await page.mouse.move(king.x, king.y);
-  await page.mouse.down();
-  await page.mouse.move((king.x + hero.x) / 2, (king.y + hero.y) / 2, { steps: 8 });
-  await page.mouse.move(hero.x, hero.y - hero.h / 2 + 6, { steps: 8 });
-  await page.mouse.up();
-  state = await judged(page, (s) => copies(s.deckEditor!.main, "Goblin King") === 1 && s.deckEditor!.problems.length > 0, "the Goblin King in the deck, refused");
-  expect(state.deckEditor!.problems).toEqual(["Goblin King is outside the color identity W."]);
-  await doubleClick(page, "pool", "Goblin King");
-  state = await judged(page, (s) => copies(s.deckEditor!.side, "Goblin King") === 1 && s.deckEditor!.problems.length === 0, "the Goblin King anted");
+  expect(state.realm!.table!.notes["Goblin King"]).toBe("1 of 1 left · outside your colors");
+  await doubleClick(page, "search", "Goblin King");
+  await page.waitForTimeout(500);
+  state = await judged(page);
+  expect(copies(state.deckEditor!.main, "Goblin King") + copies(state.deckEditor!.side, "Goblin King")).toBe(0);
 
   // Forty cards at least: the free Plains taken out one at a time below it are refused, and one put back is legal.
   const total = (s: CardLayerState) => s.deckEditor!.main.reduce((sum, line) => sum + Number(line.split(" ")[0]), 0);
@@ -247,27 +248,24 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   expect(state.deckEditor!.problems).toEqual(["A deck is at least 40 cards: this one is 39."]);
   await clickControl(page, "Add Plains");
   state = await judged(page, (s) => total(s) === 40 && s.deckEditor!.problems.length === 0, "40 cards, legal");
-  const anteValue = prices["Benalish Hero"]! + prices["Goblin King"]!;
-  expect(state.realm!.table!.anteValue).toBe(anteValue);
-  expect(state.realm!.table!.ante).toMatch(/^Ante: 2 of 10 cards, worth /);
 
-  // Saved: the server keeps the deck and the ante as the table shows them.
+  // Saved: the server keeps the deck and the sideboard as the table shows them.
   await clickControl(page, "Save");
   state = await cardsUntil(page, (s) => s.deckEditor!.unsaved === false && /^Saved/.test(s.deckEditor!.status), "saved");
   const saved = await api<Deck>(page.request, "deck");
   const shown = (list: readonly string[]) => [...list].sort();
   expect(shown(saved.Main.map((c) => `${c.Count} ${c.Name}`))).toEqual(shown(state.deckEditor!.main));
-  expect(saved.Main.find((c) => c.Name === "Benalish Hero")?.Count).toBe(4);
-  expect(saved.Ante).toEqual([{ Name: "Benalish Hero", Count: 1 }, { Name: "Goblin King", Count: 1 }]);
-  expect(saved.AnteValue).toBe(anteValue);
+  expect(saved.Main.find((c) => c.Name === "Benalish Hero")?.Count).toBe(3);
+  expect(saved.Sideboard).toEqual([{ Name: "Benalish Hero", Count: 1 }]);
+  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-sideboard.png` });
 
-  // Done: back in the inn, with the ante's worth on the HUD.
+  // Done: back in the inn, the HUD's hearts beside the gold.
   await clickControl(page, "Done");
   await expect.poll(() => realm<string | null>(page, "layer.open")).toBe(null);
-  await expect.poll(() => page.locator("[data-test='hud:ante']").textContent()).toBe(anteValue.toLocaleString("en-US"));
+  await expect.poll(() => page.locator("[data-test='hud:hearts']").getAttribute("data-hearts")).toBe("2");
 
   // The duel that follows deals that deck: by a spawn of the wilds, the mob clicked, the encounter the server starts
-  // holds the saved deck card for card, the ante's worth and the prize cap; and the card layer deals it.
+  // holds the saved deck card for card and its sideboard outside the game; and the card layer deals it.
   const spawn = spawnNear("new-benalia");
   const start = openNear(spawn, 6);
   await call(page.request, "POST", "dev/place", { Space: "world", X: start.x, Z: start.z });
@@ -277,16 +275,15 @@ test("the spell table builds a deck from the collection, refuses what the realm 
   const started = page.waitForResponse((r) => r.url().endsWith("/api/encounter/start"), { timeout: 60_000 });
   await entity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob", 30);
   const mob = await clickClear(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
-  const encounter = (await (await started).json()) as { Duel: { AnteValue: number; Cap: number; Mob: { Prize: number }; Seats: { Deck: string[] }[] } };
+  const encounter = (await (await started).json()) as { Duel: { Game: number; Seats: { Deck: string[]; Sideboard: string[] }[] } };
   const dealt = [...encounter.Duel.Seats[0]!.Deck].sort();
   const deck = saved.Main.flatMap((c) => Array<string>(c.Count).fill(c.Name)).sort();
   expect(dealt).toEqual(deck);
-  expect(encounter.Duel.AnteValue).toBe(anteValue);
-  expect(encounter.Duel.Cap).toBe(Math.min(anteValue, encounter.Duel.Mob.Prize));
-  // The encounter's splash says the same ante and cap; Fight deals the duel.
-  const gold = (n: number) => `${n.toLocaleString("en-US")} gold`;
-  const splash = await cardsUntil(page, (s) => s.realm?.screen === "duel" && /prize cap/.test(s.realm.facts), "the encounter's splash", 60_000);
-  expect(splash.realm!.facts).toContain(`ante ${gold(anteValue)}  ·  prize cap ${gold(encounter.Duel.Cap)}`);
+  expect(encounter.Duel.Seats[0]!.Sideboard).toEqual(["Benalish Hero"]);
+  expect(encounter.Duel.Game).toBe(1);
+  // The encounter's splash says the game and the hearts; Fight deals the duel.
+  const splash = await cardsUntil(page, (s) => s.realm?.screen === "duel" && /hearts/.test(s.realm.facts), "the encounter's splash", 60_000);
+  expect(splash.realm!.facts).toContain("game 1  ·  hearts 2 of 2");
   await clickControl(page, "Fight");
   await cardsUntil(page, (s) => s.ready && s.realm?.duel?.mob === mob.name && s.prompt.length > 0, "the duel dealt in the card layer", 120_000);
 });
@@ -327,7 +324,7 @@ test("a vendor sells at list price and buys at half from its purse, and the spel
   expect(sold.Stock.some((s) => s.Name === cheapest.Name && s.Gold === cheapest.Gold)).toBe(true);
   expect((await api<Collection>(page.request, "collection")).Cards[cheapest.Name]).toBeUndefined();
 
-  // Bought again, and the screen closed: at the spell table the card is there, a goblin of red for the ante only.
+  // Bought again, and the screen closed: at the spell table the card is there, a goblin of red outside the colors.
   await page.mouse.click(...xy(await card(page, "stock", cheapest.Name)));
   await clickControl(page, "Buy");
   await cardsUntil(page, (s) => s.realm!.status.startsWith(`You bought ${cheapest.Name}`), "bought again");
@@ -341,46 +338,46 @@ test("a vendor sells at list price and buys at half from its purse, and the spel
   expect(note).toMatch(/^1 of 1 left/);
 });
 
-test("the ante column says each card's price, and a relic is marked at the table as never anted before it is saved", async ({ page }) => {
+test("the sideboard column says each card's price, and a relic is one copy between the deck and the sideboard", async ({ page }) => {
   test.setTimeout(300_000);
   // A white character owning three Benalish Heroes and a Black Lotus (a relic, design.md A3a), at New Benalia inn's table,
-  // one Hero anted already.
+  // one Hero in the sideboard already.
   await character(page.request, id(53), "Keeper", { "Benalish Hero": 3, "Black Lotus": 1 }, "new-benalia-inn", { x: 2, z: 5 });
   const collection = await api<Collection>(page.request, "collection");
   expect(collection.Relics).toEqual(["Black Lotus"]);
   const starter = await api<Deck>(page.request, "deck");
-  const put = await page.request.put(new URL("api/deck", SERVER).toString(), { data: { Main: starter.Main, Ante: [{ Name: "Benalish Hero", Count: 1 }] } });
+  const put = await page.request.put(new URL("api/deck", SERVER).toString(), { data: { Main: starter.Main, Sideboard: [{ Name: "Benalish Hero", Count: 1 }] } });
   expect(put.ok(), await put.text()).toBe(true);
-  const gold = (name: string) => `${collection.Prices[name]!.toLocaleString("en-US")} g`;
+  const gold = (name: string) => (collection.Prices[name] === undefined ? null : `${collection.Prices[name]!.toLocaleString("en-US")} g`);
 
   await openAndClick(page, "spell-table");
-  let state = await judged(page, (s) => (s.realm?.table?.anteNotes.length ?? 0) === 1, "the ante column");
-  expect(state.realm!.table!.anteNotes).toEqual([{ name: "Benalish Hero", note: gold("Benalish Hero"), relic: false }]);
+  let state = await judged(page, (s) => (s.realm?.table?.sideNotes.length ?? 0) === 1, "the sideboard column");
+  expect(state.realm!.table!.sideNotes).toEqual([{ name: "Benalish Hero", note: gold("Benalish Hero"), relic: false }]);
 
-  // The relic in the search says it is never anted.
+  // The relic in the search says it is one, of which a deck holds one copy.
   await search(page, "Black Lotus");
   state = await cardsUntil(page, (s) => s.realm!.table!.notes["Black Lotus"] !== undefined, "the Black Lotus in the search");
-  expect(state.realm!.table!.notes["Black Lotus"]).toBe("Relic, never anted · 1 of 1 left");
+  expect(state.realm!.table!.notes["Black Lotus"]).toBe("Relic, one copy · 1 of 1 left");
 
-  // Into the deck, then double-clicked over to the ante: marked there before any save, and the realm's check says why.
+  // Into the deck, then double-clicked over to the sideboard: legal there too, its one copy.
   await doubleClick(page, "search", "Black Lotus");
   await cardsUntil(page, (s) => copies(s.deckEditor!.main, "Black Lotus") === 1, "the Black Lotus in the deck");
   await doubleClick(page, "pool", "Black Lotus");
-  state = await judged(page, (s) => s.realm!.table!.anteNotes.some((n) => n.relic) && s.deckEditor!.problems.length > 0, "the relic anted, marked and refused");
-  expect(state.realm!.table!.anteNotes).toEqual([
+  state = await judged(page, (s) => s.realm!.table!.sideNotes.some((n) => n.relic), "the relic in the sideboard");
+  expect(state.realm!.table!.sideNotes).toEqual([
     { name: "Benalish Hero", note: gold("Benalish Hero"), relic: false },
-    { name: "Black Lotus", note: "Relic: can't be anted", relic: true },
+    { name: "Black Lotus", note: gold("Black Lotus"), relic: true },
   ]);
-  expect(state.deckEditor!.problems).toEqual(["Black Lotus is a relic, which is never lost: it can't be anted."]);
+  expect(state.deckEditor!.problems).toEqual([]);
   if (process.env.REALMS_SHOTS) {
     // A picture for a person to look at (never what the test judges by): the card's flight into the column ended first.
     await page.waitForTimeout(1500);
-    await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-relic-ante.png` });
+    await page.screenshot({ path: `${process.env.REALMS_SHOTS}/spell-table-relic-sideboard.png` });
   }
 
-  // Back to the deck (the ante column's last card), the ante is legal again.
+  // Back to the deck (the sideboard column's last card).
   await doubleClick(page, "sideboard", "Black Lotus");
-  await judged(page, (s) => s.deckEditor!.problems.length === 0 && !s.realm!.table!.anteNotes.some((n) => n.relic), "the relic back in the deck");
+  await judged(page, (s) => s.deckEditor!.problems.length === 0 && !s.realm!.table!.sideNotes.some((n) => n.relic), "the relic back in the deck");
 });
 
 const xy = (box: Box): [number, number] => [box.x, box.y];

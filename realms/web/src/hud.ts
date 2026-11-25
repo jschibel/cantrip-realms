@@ -26,9 +26,13 @@ export const TIER_COLORS: readonly string[] = ["#979cab", "#1fbf62", "#ffc94a", 
 
 export const gold = (n: number): string => n.toLocaleString("en-US");
 
-/** A row of hearts as the HUD shows it: `have` filled, the rest of `hold` empty (screens/defeat.ts's heartRow, as markup). */
-export const heartsHtml = (have: number, hold: number): string =>
-  `<span class="hearts" title="${have} of ${hold} hearts: a lost duel costs one, a town fills them" data-test="hud:hearts" data-hearts="${have}" data-max="${hold}">${Array.from({ length: hold }, (_, i) => (i < have ? '<span class="heart full">♥</span>' : '<span class="heart empty">♡</span>')).join("")}</span>`;
+/** A heart, drawn: filled for one the character has, an outline for one they hold but have lost. */
+export const heartSvg = (full: boolean): string =>
+  `<svg class="heart ${full ? "full" : "empty"}" viewBox="0 0 16 15" aria-hidden="true"><path d="M8 14 1.6 7.6A3.9 3.9 0 0 1 8 2.9a3.9 3.9 0 0 1 6.4 4.7Z"/></svg>`;
+
+/** A row of hearts as the HUD shows it: `have` filled, the rest of `hold` empty. */
+export const heartsHtml = (have: number, hold: number, test = "hud:hearts"): string =>
+  `<span class="hearts" title="${have} of ${hold} hearts: a lost duel costs one, a town fills them" data-test="${test}" data-hearts="${have}" data-max="${hold}">${Array.from({ length: hold }, (_, i) => heartSvg(i < have)).join("")}</span>`;
 
 /** Someone or something on a map, at a tile. */
 export interface MinimapDot {

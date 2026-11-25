@@ -85,7 +85,7 @@ test("game: a goblin of the large world chases the player down and a duel opens 
   await page.screenshot({ path: join(out, "game-duel.png") });
   const win = (await realm<{ name: string; x: number; y: number }[]>(page, "controls")).find((c) => c.name === "layer:win")!;
   await page.mouse.click(win.x, win.y);
-  // The loot pick may follow: take nothing.
+  // The gear found may follow: close it.
   for (let i = 0; i < 20 && (await realm<string>(page, "screen")) !== "world"; i++) {
     const c = (await realm<{ name: string; x: number; y: number }[]>(page, "controls")).find((b) => b.name.startsWith("layer:"));
     if (c) await page.mouse.click(c.x, c.y);

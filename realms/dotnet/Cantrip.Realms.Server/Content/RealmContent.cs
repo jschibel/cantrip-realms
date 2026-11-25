@@ -193,7 +193,7 @@ public sealed partial class RealmContent
     public static IReadOnlyList<string> GiftRarities { get; } = ["rare", "mythic"];
 
     /// <summary>
-    /// The cards a boss's win may give outright, outside the prize cap (design.md A6): the rares and mythics of its loot - of
+    /// The cards a boss's win may give outright (design.md A6): the rares and mythics of its loot - of
     /// its loot's subtypes where it has any such, else of its loot's colors and types alone. None for any other mob.
     /// </summary>
     public IReadOnlyList<string> GiftsOf(Mob mob)

@@ -41,8 +41,12 @@ export async function character(request: APIRequestContext, id: number, name: st
 /** Puts the signed-in character on a tile of the world (or an interior) at once: a test's start, test-only (POST /dev/place). */
 export const place = (request: APIRequestContext, at: Tile, space = "world") => post(request, "dev/place", { Space: space, X: at.x, Z: at.z });
 
-/** Has the server judge the signed-in player's duels as said, a stand-in win counting (POST /dev/verdict); null replays them. */
-export const verdict = (request: APIRequestContext, outcome: "won" | "lost" | null) => post(request, "dev/verdict", { Outcome: outcome });
+/**
+ * Has the server judge the signed-in player's duels as said, a stand-in win counting (POST /dev/verdict) - the mob ending
+ * at `mobLife`, or at the life it began with; null replays them.
+ */
+export const verdict = (request: APIRequestContext, outcome: "won" | "lost" | null, mobLife: number | null = null) =>
+  post(request, "dev/verdict", { Outcome: outcome, MobLife: mobLife });
 
 /** The server's order of the eight steps (Tile.Steps): south, east, west, north, then the diagonals. */
 const STEPS = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
@@ -61,7 +65,10 @@ export interface Me {
   readonly Space: string;
   readonly X: number;
   readonly Z: number;
-  readonly AnteValue: number;
+  readonly Gold: number;
+  readonly Hearts: number;
+  readonly MaxHearts: number;
+  readonly Defeat: { readonly Token: string; readonly Price: number | null; readonly MobLife: number; readonly MobFullLife: number } | null;
   readonly Attuned: readonly string[];
   readonly Loadout: Record<string, { readonly InstanceId: number } | null>;
 }
