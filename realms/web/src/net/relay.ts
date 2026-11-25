@@ -27,6 +27,13 @@ const LATENCY = 60;
 export const CATCH_UP = 24;
 /** How long after catching up a refusal means the way was refused too, milliseconds. */
 const CAUGHT_UP = 1000;
+/**
+ * How far into a step the server must be for a new walk to start on the tile it leads to (`startIndex`): never so little
+ * that a server a little behind the reckoning here (a walk that took longer to reach it than the one before) is more than
+ * a step from it, and less than any walk told MOVE_GAP after the last gets into a step - a diagonal one, at the slowest
+ * pace a walk is told.
+ */
+const ONWARD = 0.25;
 
 export interface Move {
   readonly From: readonly [number, number];
@@ -67,16 +74,38 @@ export class WalkRelay {
 
   /** Where the server has the player at a moment: the index of the last tile of the walk told its speed has reached. */
   private reached(at: number): number {
+    return this.progress(at).i;
+  }
+
+  /**
+   * Where the server has the player at a moment: the index of the last tile of the walk told its speed has reached, and
+   * how far on it is into the step from there to the next (0 to 1; 0 at the walk's end).
+   */
+  private progress(at: number): { readonly i: number; readonly into: number } {
     const told = this.told;
-    if (!told || told.speed <= 0) return told ? told.tiles.length - 1 : 0;
+    if (!told || told.speed <= 0) return { i: told ? told.tiles.length - 1 : 0, into: 0 };
     let walked = (Math.max(0, at - told.at) / 1000) * told.speed;
     let i = 0;
     while (i + 1 < told.tiles.length) {
-      walked -= stepLength(told.tiles[i]!, told.tiles[i + 1]!);
-      if (walked < 0) break;
+      const step = stepLength(told.tiles[i]!, told.tiles[i + 1]!);
+      if (walked < step) return { i, into: walked / step };
+      walked -= step;
       i++;
     }
-    return i;
+    return { i, into: 0 };
+  }
+
+  /**
+   * The tile of the walk told a new walk starts on: the one the server has the player on, or the next once the server is
+   * a quarter of the way (ONWARD) into the step there. The server's clock for a walk starts when it takes it, so a walk begun again on
+   * the tile the server was leaving throws away the part of the step walked; a held walk is told again a tile at a time,
+   * sooner than a step is walked on a slant, and the server fell further behind with each one - minutes behind, until a
+   * refusal stood the figure back there. The next tile is a step from the one the server has them on, so the server takes
+   * the walk from it (PresenceHub: a walk starts on or beside where it has the player).
+   */
+  private startIndex(at: number): number {
+    const { i, into } = this.progress(at);
+    return into >= ONWARD && i + 1 < this.told!.tiles.length ? i + 1 : i;
   }
 
   /** Where the server has the player now, or null before any walk is told. */
@@ -142,7 +171,7 @@ export class WalkRelay {
     // What the server has the player still to walk, from where it has them now; the latest tile passed that is on it is
     // where the walk turns off it.
     const told = this.told.tiles;
-    const i = this.reached(this.now() - LATENCY);
+    const i = this.startIndex(this.now() - LATENCY);
     const rest = told.slice(i);
     let joined = false;
     for (let p = mine.length - ahead.length - 1; p >= 0 && !joined; p--) {

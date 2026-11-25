@@ -172,6 +172,34 @@ describe("the walks told to the relay", () => {
     expect(server.where(1e12)).toEqual({ x: 8, z: 0 });
   });
 
+  it("keep the server up with a long held walk, at every heading: no part of a step it has walked is lost", () => {
+    // A held walk is told a tile at a time, each walk from the tile the server has the player on. Told again before the
+    // server has walked a whole step (a tile every sixth of a second on a slant), a walk that began that tile again
+    // would throw away the part of the step walked: the server fell further behind with every walk, half a minute's
+    // walk leaving it a hundred tiles back - where a refusal (an obstacle run into) stood the figure.
+    for (const [degrees, latency] of [0, 20, 27, 45, 63, 90, 135, 200].flatMap((d) => [[d, 40], [d, 150]] as const)) {
+      const { relay, server, tick } = rig(latency);
+      const a = (degrees * Math.PI) / 180;
+      const x0 = 0.5;
+      const z0 = 0.5;
+      relay.stand({ x: 0, z: 0 }, 4.2);
+      tick(200);
+      let worst = 0;
+      for (let f = 0; f < 60 * 30; f++) {
+        const t = (f / 60) * 4.2;
+        const here = { x: Math.floor(x0 + Math.cos(a) * t), z: Math.floor(z0 + Math.sin(a) * t) };
+        relay.on(here);
+        relay.walk([], 4.62, open);
+        tick(1000 / 60);
+        const s = server.where(1000 + 200 + (f + 1) * (1000 / 60));
+        // The server hears of the walk `latency` after it is told: behind the player by that much walking, and no more.
+        worst = Math.max(worst, Math.max(Math.abs(s.x - here.x), Math.abs(s.z - here.z)));
+      }
+      expect(server.refused, `${degrees} degrees, ${latency} ms`).toEqual([]);
+      expect(worst, `${degrees} degrees, ${latency} ms`).toBeLessThanOrEqual(2);
+    }
+  });
+
   it("never tells a way to catch up along longer than CATCH_UP", () => {
     const relay = new WalkRelay(() => {}, () => 5000);
     relay.stand({ x: 0, z: 0 }, 4.2);
