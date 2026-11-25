@@ -39,7 +39,7 @@ tier sets the rarities a deck may hold and how many copies its best cards get.
 A mob's file follows its tier (design.md A3): its prize (T1 100 gold, T2 300, T3 800, T4 2,000, a boss 6,000), its gold
 range, its loot - its colors' cards of the rarities whose prices fit under its prize - its stats and stats-only gear,
 and its model. A mob file's model (realms/web/src/art/figures: its mesh, chosen for what its creature is, its palette
-and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
+and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. A mob's `lines`, what it says when it wins a duel, are written by hand and kept as they are. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
 relics, colors, ids, meshes, gear) and writes nothing if any fails. The same inputs give the same files. They are a
 start: mobs' decks are tuned by hand later (tech.md B7); a mob listed in HAND_TUNED is left alone.
 """
@@ -383,6 +383,10 @@ MOBS = [
 # Mobs whose files and decks were tuned by hand: not overwritten.
 HAND_TUNED = set()
 
+# The fields of a mob file written by hand, not by this script, kept as they are when it rewrites the file: what the
+# mob says when it wins a duel (`lines`, realms/docs/interfaces.md).
+HAND_WRITTEN = ("lines",)
+
 RARITY_BONUS = {"common": 0, "uncommon": 0.5, "rare": 1.5, "mythic": 2.5}
 
 # Cards no deck here plays, whatever they score: a combo piece that exiles its own side's permanents, a creature that
@@ -509,6 +513,12 @@ CURVE_BIG = {1: 0.12, 2: 0.22, 3: 0.16, 4: 0.14, 5: 0.16, 6: 0.2}
 def load(path):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def hand_written(path):
+    """The HAND_WRITTEN fields of the mob file at path, if there is one, to be written back as they are."""
+    old = load(path) if os.path.exists(path) else {}
+    return {key: old[key] for key in HAND_WRITTEN if key in old}
 
 
 def cards_by_name():
@@ -1033,8 +1043,10 @@ def main():
         }[mob["kind"]]
         write(os.path.join(ROOT, *deck_path.split("/")),
               f"# {mob['name']} ({mob['id']}, {mob['creature']}), {kind}: written by tools/realms/sample-decks.py; tune it by hand.\n\n", deck)
-        with open(os.path.join(mob_folder, f"{mob['id']}.json"), "w", encoding="utf-8", newline="\n") as f:
-            json.dump(mob_file(mob, deck_path, pool, prices, legality, cards, gear), f, indent=2, ensure_ascii=False)
+        mob_path = os.path.join(mob_folder, f"{mob['id']}.json")
+        data = {**mob_file(mob, deck_path, pool, prices, legality, cards, gear), **hand_written(mob_path)}
+        with open(mob_path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
             f.write("\n")
 
     # Mobs no longer on the roster go, with their decks.
