@@ -52,9 +52,9 @@ test("a duel won in the real card layer: splash, the game, victory, the server's
   const before = await api<Me>(page.request, "me");
 
   const mob = await engage(page);
-  // The splash: three cards of the mob's deck, what is at stake - the game, and the player's hearts.
+  // The splash: no cards of the mob's deck, and what is at stake - the game, and the player's hearts.
   const splash = (await cardState(page))!;
-  expect(splash.cards.filter((c) => c.visible && c.name.length > 0).length).toBe(3);
+  expect(splash.cards.filter((c) => c.visible && c.name.length > 0)).toHaveLength(0);
   expect(splash.realm!.facts).toContain("game 1  ·  hearts 2 of 2");
   await page.screenshot({ path: info.outputPath("1-splash.png") });
 

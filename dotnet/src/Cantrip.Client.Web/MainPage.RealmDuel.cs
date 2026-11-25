@@ -148,13 +148,9 @@ public sealed partial class MainPage
         return _engineLoad;
     }
 
-    private const float SplashWidth = 200f;
-    private CardBoardElement? _splashBoard;
-    private List<string> _splashCards = [];
-
     /// <summary>
-    /// The encounter's splash (design.md A3): who the mob is - its tier, its life and hand, its gear's traits - three cards
-    /// of its deck, and what the duel is for - the gold it carries, and the heart a loss costs, with the player's hearts. A
+    /// The encounter's splash (design.md A3): who the mob is - its tier, its life and hand, its gear's traits - and what the
+    /// duel is for - the gold it carries, and the heart a loss costs, with the player's hearts. A
     /// game after the first says which it is and that the mob begins it at the life it kept. The duel is dealt when the
     /// player goes on (Fight).
     /// </summary>
@@ -162,7 +158,6 @@ public sealed partial class MainPage
     {
         DuelSeat mob = duel.Seats[1];
         DuelSeat me = duel.Seats[0];
-        _splashCards = [.. SplashCards(mob)];
 
         var body = new StackPanel { Spacing = 10, MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left };
         body.Children.Add(new TextBlock
@@ -173,9 +168,6 @@ public sealed partial class MainPage
         });
         string traits = mob.Emblems.Count == 0 ? "No gear of note." : $"Wears {string.Join(", ", mob.Emblems.Select(GearName))}.";
         body.Children.Add(new TextBlock { Text = traits, FontSize = 13, Foreground = Theme.Brush(Theme.FgSoft), TextWrapping = TextWrapping.Wrap });
-        body.Children.Add(RealmHeading("From its deck"));
-        _splashBoard = RealmBoard("splash", SplashWidth, _ => { });
-        body.Children.Add(_splashBoard);
         body.Children.Add(RealmHeading("At stake"));
         string gold = GoldRange(command.Args) is { } range ? $"It carries {Gold(range.Low)} to {Gold(range.High)}" : "It carries some gold";
         (int have, int hold) = Hearts(command.Args);
@@ -218,22 +210,7 @@ public sealed partial class MainPage
             fight.Caption = "Dealing...";
             _ = DealDuelAsync(command, duel, engine);
         });
-        LayOutSplash();
     }
-
-    /// <summary>Three cards of a mob's deck to show: its own card first, then its most numerous others; no basic land.</summary>
-    private static IEnumerable<string> SplashCards(DuelSeat mob) =>
-        mob.Deck
-            .Select((name, i) => (Name: name, Place: i))
-            .GroupBy(card => card.Name, StringComparer.Ordinal)
-            .Where(group => !BasicLands.Contains(group.Key))
-            .OrderBy(group => group.Key == mob.Name ? 0 : 1)
-            .ThenByDescending(group => group.Count())
-            .ThenBy(group => group.First().Place)
-            .Take(3)
-            .Select(group => group.Key);
-
-    private static readonly HashSet<string> BasicLands = new(StringComparer.Ordinal) { "Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes" };
 
     /// <summary>The player's hearts, as the overworld sent them (<c>hearts: {have, hold}</c>); two of two when it did not.</summary>
     private static (int Have, int Hold) Hearts(JsonElement args) =>
@@ -253,18 +230,6 @@ public sealed partial class MainPage
         && range[0].TryGetInt64(out long low) && range[1].TryGetInt64(out long high)
             ? (low, high)
             : null;
-
-    private void LayOutSplash()
-    {
-        if (_splashBoard is null || _realmOpen?.Screen != "duel" || _duel is not null)
-        {
-            return;
-        }
-
-        List<CardBoardElement.BoardCell> cells = [.. _splashCards.Select((name, i) =>
-            new CardBoardElement.BoardCell(RealmFace(name, RealmHandleBase + i), 0, 0, Tapped: false, Dimmed: false, Selected: false, Clickable: false, Annotation: null))];
-        LayRealmRow(_splashBoard, SplashWidth, _realmContent.ActualWidth, cells);
-    }
 
     /// <summary>Deals the duel once the engine is in, and opens the table over the splash.</summary>
     private async Task DealDuelAsync(RealmCommand command, Duel duel, Task engine)
@@ -303,7 +268,6 @@ public sealed partial class MainPage
         _duelDealt = duel;
         _duelEnded = false;
         _duelConceded = false;
-        _splashBoard = null;
         _realmContent.Child = null;
         _realmBoards.Clear();
         ClearTable();

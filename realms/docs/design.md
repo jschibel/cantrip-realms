@@ -66,8 +66,8 @@ The owner's decisions:
 ### A3. Duels and rewards
 - **Starting a duel:**
   - A wandering mob that reaches your tile, or one you click, starts a duel.
-  - The splash shows the mob's name, its tier, its stats and gear traits, three cards from its deck, its gold range and
-    your hearts. Then the table opens.
+  - The splash shows the mob's name, its tier, its stats and gear traits, its gold range and your
+    hearts. Then the table opens.
   - The mob's seat is played by the tactical bot in your tab.
   - A duel is a game, and an encounter is one game or more (fighting again, below). Who plays first in an encounter's
     first game is decided at random, as CR 103.1 says; in a game after it the loser of the last chooses.
