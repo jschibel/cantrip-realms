@@ -73,6 +73,7 @@
     {"id":"11_23:3","x":361,"z":760,"mobs":["benalish-hero","davenant-archer","mesa-pegasus"],"radius":6,"respawnSeconds":600,"tier":1}
   ],
   "chests": [
+    {"id":"11_23:h1","x":372,"z":757,"heart":true,"respawnSeconds":604800},
     {"id":"11_23:c1","x":373,"z":765,"gold":[50,150],"respawnSeconds":86400}
   ],
   "entrances": [],

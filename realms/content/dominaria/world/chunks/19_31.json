@@ -216,7 +216,9 @@
     {"id":"19_31:1","x":612,"z":996,"mobs":["birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3},
     {"id":"19_31:2","x":629,"z":1007,"mobs":["arrogant-wurm","birds-of-paradise","elvish-archers"],"radius":6,"respawnSeconds":600,"tier":3}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"19_31:h1","x":631,"z":994,"heart":true,"respawnSeconds":604800}
+  ],
   "entrances": [],
   "waymarkers": [
     {"x":613,"z":992,"tier":3}

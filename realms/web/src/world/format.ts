@@ -46,17 +46,19 @@ export const NPC_KINDS = [
   "guard",
   "waystone",
   "ferryman",
+  /** A dungeon run's shrine (design.md A6), on a floor the run names: prayed at, it gives back a heart once in the run. */
+  "heart-shrine",
   /** Only there to be seen: walks its rounds, is never spoken to (the sample crypt's skeleton and ghoul). */
   "ambient",
 ] as const;
 export type NpcKind = (typeof NPC_KINDS)[number];
 
 /**
- * The kinds that are things, not people: a spell table, a quest board, the arena's gate, a waystone. Each stands on a
- * blocked tile of its own (`stand` its middle) with a prop of its id drawing it there; it has no figure, and is used by a
- * click on its tile from beside it.
+ * The kinds that are things, not people: a spell table, a quest board, the arena's gate, a waystone, a dungeon's shrine.
+ * Each stands on a blocked tile of its own (`stand` its middle) with a prop drawing it there; it has no figure, and is
+ * used by a click on its tile from beside it.
  */
-export const OBJECT_KINDS: ReadonlySet<NpcKind> = new Set<NpcKind>(["spell-table", "quest-board", "arena", "waystone"]);
+export const OBJECT_KINDS: ReadonlySet<NpcKind> = new Set<NpcKind>(["spell-table", "quest-board", "arena", "waystone", "heart-shrine"]);
 
 /** What an interior is: the room recipe (art/rooms) that lays it out. */
 export const INTERIOR_KINDS = ["shop", "inn", "guildhall", "temple", "smithy", "library", "house", "tower", "exotic-wares", "crypt"] as const;
@@ -198,13 +200,31 @@ export interface SpawnData {
   readonly tier: number;
 }
 
+/**
+ * A find of a place, a character's own again on its own timer (design.md A5, A3b): a treasure chest on a blocked tile of
+ * its own, its `gold` the least and the most it holds (`"<cx>_<cz>:c<n>"`); or, `heart`, a heartbloom of the wilds on an
+ * open tile, which gives back a heart and holds no gold (`"<cx>_<cz>:h<n>"`).
+ */
 export interface ChestData {
   readonly id: string;
   readonly x: number;
   readonly z: number;
-  readonly gold: readonly [number, number];
+  readonly gold?: readonly [number, number];
+  readonly heart?: boolean;
   readonly respawnSeconds: number;
 }
+
+/** Whether a find is a heartbloom (design.md A3b), not a treasure chest. */
+export const isHeartbloom = (c: ChestData): boolean => c.heart === true;
+
+/**
+ * Heartblooms (design.md A3b): the most the world grows ("a handful"), how far apart they grow at the least (Chebyshev,
+ * tiles), and how long one takes to grow back for the character who picked it - a week, the server's
+ * `Chests.HeartbloomRegrowth`.
+ */
+export const HEARTBLOOMS_MOST = 12;
+export const HEARTBLOOM_APART = 150;
+export const HEARTBLOOM_REGROWTH = 7 * 86_400;
 
 /** Walking onto an entrance starts a run of its dungeon. */
 export interface EntranceData {

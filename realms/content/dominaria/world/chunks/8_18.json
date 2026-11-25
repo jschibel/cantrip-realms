@@ -75,7 +75,9 @@
     {"id":"8_18:1","x":272,"z":578,"mobs":["keldon-warlord","pegasus-charger","talruum-minotaur"],"radius":6,"respawnSeconds":600,"tier":2},
     {"id":"8_18:2","x":269,"z":595,"mobs":["cradle-guard","keldon-warlord","moor-fiend"],"radius":6,"respawnSeconds":600,"tier":2}
   ],
-  "chests": [],
+  "chests": [
+    {"id":"8_18:h1","x":280,"z":581,"heart":true,"respawnSeconds":604800}
+  ],
   "entrances": [],
   "waymarkers": [
     {"x":273,"z":592,"tier":3}

@@ -12,7 +12,24 @@ import { PALETTES } from "../art/paint/palette";
 import { PROPS, tilesOf } from "../art/props";
 import { ROOMS } from "../art/rooms";
 import { SURFACES } from "../art/surfaces";
-import { type ChunkData, type DungeonData, type InteriorData, LEDGE, RAMP, type WorldData, chunkKey, frontStep, isBlocked, parseChunkKey, tierAt, townAt } from "./format";
+import {
+  type ChunkData,
+  type DungeonData,
+  HEARTBLOOMS_MOST,
+  HEARTBLOOM_APART,
+  HEARTBLOOM_REGROWTH,
+  type InteriorData,
+  LEDGE,
+  RAMP,
+  type WorldData,
+  chunkKey,
+  frontStep,
+  isBlocked,
+  isHeartbloom,
+  parseChunkKey,
+  tierAt,
+  townAt,
+} from "./format";
 import { type KnownArt, type UnknownKind, checkChunk, checkInterior, checkWorld, lintRealm } from "./lint";
 import { gridOfChunks } from "./load";
 
@@ -87,6 +104,43 @@ describe("Dominaria's files", () => {
     expect(undocumented, "ids neither the art has nor ids.ts documents").toEqual([]);
     // What the art has yet to make, for the record.
     console.log(`placeholders still named: ${[...unknown].map(([k, ids]) => `${k}s ${[...ids].sort().join(" ")}`).join("; ")}`);
+  });
+
+  it("grow a handful of heartblooms, two in each tier's wilds, each alone in a clearing far from the rest", () => {
+    const blooms = all("chests").filter(isHeartbloom);
+    expect(blooms.length).toBe(8);
+    expect(blooms.length).toBeLessThanOrEqual(HEARTBLOOMS_MOST);
+    for (let tier = 1; tier <= 4; tier++) expect(blooms.filter((b) => tierAt(world, b.x, b.z) === tier).length, `tier ${tier}'s heartblooms`).toBe(2);
+    const tileOf = (x: number, z: number) => chunkFiles.get(chunkKey(Math.floor(x / 32), Math.floor(z / 32)))!.tiles[(z % 32) * 32 + (x % 32)]!;
+    for (const b of blooms) {
+      expect(b.id, "a heartbloom's id").toMatch(/^\d+_\d+:h\d+$/);
+      expect([b.gold, b.respawnSeconds]).toEqual([undefined, HEARTBLOOM_REGROWTH]);
+      expect(townAt(world.towns, b.x, b.z), `${b.id} in a town`).toBeNull();
+      // Open, and open all round: walked onto from any side.
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) expect(isBlocked(tileOf(b.x + dx, b.z + dz)), `${b.id}: ${b.x + dx},${b.z + dz}`).toBe(false);
+      for (const o of blooms) if (o !== b) expect(Math.max(Math.abs(o.x - b.x), Math.abs(o.z - b.z))).toBeGreaterThanOrEqual(HEARTBLOOM_APART);
+    }
+
+    // What the lint holds them to: gold or a heart, never both; in the wilds, a week to grow back, far apart.
+    const [first, second] = blooms;
+    const home = chunkFiles.get(chunkKey(Math.floor(first!.x / 32), Math.floor(first!.z / 32)))!;
+    const goldBloom = { ...home, chests: home.chests.map((c) => (c === first ? { ...c, gold: [1, 2] as const } : c)) };
+    expect(checkChunk(goldBloom, home.cx, home.cz).join()).toMatch(/heartbloom \(heart: true\) with none/);
+    // Two moved, each into the chunk of its new tile: one beside another bloom, growing back in a minute; one at the
+    // capital's inn door, in a town.
+    const inn = world.inns.find((i) => i.town === world.towns.find((t) => t.kind === "capital")!.id)!;
+    const near = { ...first!, x: second!.x + 3, z: second!.z, respawnSeconds: 60 };
+    const inTown = { ...blooms[2]!, x: inn.x, z: inn.z };
+    const moved = chunks.map((c) => {
+      const kept = c.chests.filter((x) => x !== first && x !== blooms[2]);
+      const added = [near, inTown].filter((b) => chunkKey(Math.floor(b.x / 32), Math.floor(b.z / 32)) === chunkKey(c.cx, c.cz));
+      return kept.length === c.chests.length && added.length === 0 ? c : { ...c, chests: [...kept, ...added] };
+    });
+    // (Without the art's registries, which the lint above checks: the realm's own rules alone, quickly.)
+    const problems = lintRealm(world, moved, [...interiors.values()], [...dungeons.values()]).join("\n");
+    expect(problems).toContain(`heartbloom ${near.id} at ${near.x},${near.z} grows within ${HEARTBLOOM_APART} tiles of ${second!.id}`);
+    expect(problems).toContain(`heartbloom ${near.id} at ${near.x},${near.z} grows back in 60 seconds, not a week`);
+    expect(problems).toContain(`heartbloom ${inTown.id} at ${inn.x},${inn.z} grows in a town`);
   });
 
   it("is walked across chunk edges as one ground", () => {

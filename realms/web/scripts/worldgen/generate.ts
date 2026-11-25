@@ -19,6 +19,7 @@ import {
   type TileData,
   type WorldData,
   chunkKey,
+  isHeartbloom,
 } from "../../src/world/format";
 import { S, SURFACES } from "./ids";
 import { Land, Use, terraces } from "./land";
@@ -133,7 +134,8 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     ...docks.values(),
   ];
   const placed = populate(land, zones, roster, seed, keepAway);
-  log(`populate: ${placed.spawns.length} spawns, ${placed.chests.length} chests, ${placed.waymarkers.length} waymarkers`);
+  const blooms = placed.chests.filter(isHeartbloom).length;
+  log(`populate: ${placed.spawns.length} spawns, ${placed.chests.length - blooms} chests, ${blooms} heartblooms, ${placed.waymarkers.length} waymarkers`);
 
   // --- The files ------------------------------------------------------------------------------------------------------
 
@@ -238,7 +240,8 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
       dungeons: dungeons.length,
       towers: dungeons.filter((d) => d.waystone).length,
       spawns: placed.spawns.length,
-      chests: placed.chests.length,
+      chests: placed.chests.length - blooms,
+      heartblooms: blooms,
       waymarkers: placed.waymarkers.length,
       props: props.length,
       roadTiles: roads.laid.reduce((n, r) => n + r.tiles.length, 0),

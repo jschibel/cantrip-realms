@@ -108,6 +108,7 @@
     {"id":"19_4:3","x":616,"z":158,"mobs":["enormous-baloth","marhault-elsdragon","torsten-founder-of-benalia"],"radius":6,"respawnSeconds":600,"tier":4}
   ],
   "chests": [
+    {"id":"19_4:h1","x":631,"z":137,"heart":true,"respawnSeconds":604800},
     {"id":"19_4:c1","x":639,"z":142,"gold":[300,500],"respawnSeconds":86400},
     {"id":"19_4:c2","x":611,"z":159,"gold":[300,500],"respawnSeconds":86400}
   ],
