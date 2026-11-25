@@ -8,6 +8,7 @@ import { SURFACES, type SurfaceLook } from "../art/surfaces";
 import {
   CHUNK,
   type ChunkData,
+  type PropData,
   NO_SURFACE,
   type Rect,
   type TileData,
@@ -119,6 +120,14 @@ export const worldBuildingOf = (bd: ChunkData["buildings"][number], tileAt: Tile
 export const worldPropOf = (p: ChunkData["props"][number], tileAt: TileAt): Built =>
   STANDS_AT_ITS_OWN_HEIGHT.has(p.id) ? propOf(p) : lifted(propOf(p), floorAt(tileAt, p.x, p.z));
 
+/**
+ * The props a chunk draws: its own, and a standing stone for each of its waymarkers, in its tier's color on the closed
+ * tile it stands on (the chunk lists them with no prop: drawn here, or the tile would close unseen).
+ */
+export function chunkProps(c: Pick<ChunkData, "props" | "waymarkers">): PropData[] {
+  return [...c.props, ...c.waymarkers.map((w): PropData => ({ id: "waymarker", x: w.x + 0.5, z: w.z + 0.5, seed: w.x * 31 + w.z, args: { tier: w.tier } }))];
+}
+
 /** How long a step of building recipes runs before it gives the frame back, ms. */
 const STEP_MS = 2.5;
 
@@ -166,7 +175,7 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
     const t = tileAt(Math.floor(x), Math.floor(z));
     return !!t && isBlocked(t);
   };
-  for (const p of c.props) {
+  for (const p of chunkProps(c)) {
     pieces.push(worldPropOf(p, tileAt));
     solid.push(closed(p.x, p.z));
     if (performance.now() - since > STEP_MS) {

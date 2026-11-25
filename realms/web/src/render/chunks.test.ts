@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Model } from "../art/paint/builder";
 import type { BuildingData, PropData, TileData } from "../world/format";
-import { worldBuildingOf, worldPropOf } from "./chunks";
+import { chunkProps, worldBuildingOf, worldPropOf } from "./chunks";
 import type { TileAt } from "./terrain";
 
 // What stands in the world stands on the floor under it (chunks.ts `worldPropOf`, `worldBuildingOf`): a recipe draws from
@@ -38,5 +38,11 @@ describe("the world's props and buildings", () => {
   it("leave a bridge at the deck height its args give", () => {
     const bridge: PropData = { id: "bridge", x: 1, z: 1, args: { to: [4, 3], y: 1 } };
     expect(lowest(worldPropOf(bridge, terrace(12)).model)).toBeCloseTo(lowest(worldPropOf(bridge, terrace(0)).model), 6);
+  });
+
+  it("draw a chunk's waymarkers, each a standing stone of its tier on its tile, beside its own props", () => {
+    const own: PropData = { id: "bush", x: 4.5, z: 5.5 };
+    const props = chunkProps({ props: [own], waymarkers: [{ x: 10, z: 12, tier: 3 }] });
+    expect(props).toEqual([own, { id: "waymarker", x: 10.5, z: 12.5, seed: 10 * 31 + 12, args: { tier: 3 } }]);
   });
 });
