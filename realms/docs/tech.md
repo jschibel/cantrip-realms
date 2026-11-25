@@ -42,9 +42,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Storage:** **PostgreSQL** through EF Core migrations. SQLite is used for local development and tests through the same EF model.
   - Why not the existing JSON store: buying and selling has to change a player's gold and collection, a vendor's purse and its stock in one atomic transaction, and `EventStore`'s file-at-a-time writes can't do that. This is a server store, not an engine system.
   - Why Postgres: a managed database gives backups and point-in-time restore, and it lets more than one server instance run later.
-  - Tables: players (their hearts with them, design.md A3b), collection, gear_owned, loadout, deck, sideboard, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels (one row a game of an encounter), chests, quests, runs, attuned.
+  - Tables: players (their hearts with them, design.md A3b), collection, gear_owned, loadout, deck, sideboard, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels (one row a game of an encounter), chests (when a character last took each find: a treasure chest, a heartbloom, a run's shrine), quests, runs, attuned.
   - The `Hearts` migration dropped the ante (its table, and the duels' ante, value and cap) and gave every character 2 of 2 hearts.
-- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and sideboard save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, hearts bought at a healer, quests.
+- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and sideboard save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, hearts bought at a healer, hearts found (a heartbloom picked, a run's shrine prayed at: whether each is there and was taken is the server's), quests.
 - **The encounter protocol** (single-player, but it can't be cheated):
   1. **Start:** `POST /encounter/start {map, spawnId}`. The server checks that the spawn exists in that map's **deterministic spawn table** (seeded by player, map and spawn epoch; the client and server share golden test vectors) and that your last reported position is close. It then **commits** the seed, the mob, a snapshot of your deck, sideboard and loadout, and the mob's full starting life, and returns a duel token.
   2. **Play:** the browser plays the duel in WASM.
@@ -173,7 +173,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   next game dealt with the mob at the life it kept and conceded, and death and home), each a position forced through
   `POST /dev/duel` (a seat beginning at 0 life, the mob at a life it keeps), never a seed; hearts with the stand-in
   (`hearts.spec.ts`: a buyout paid and the answer coming back after a reload, a town filling the hearts, a dungeon's mob
-  fought again, a temple's healer); an offline duel and a rematch sideboarded in the real card layer
+  fought again, a temple's healer, a heartbloom picked and drawn picked again after a reload, a run's shrine made to
+  stand by `POST /dev/drop {Shrine}` blessing once, each with a heart missing arranged by `POST /dev/hearts`); an offline duel and a rematch sideboarded in the real card layer
   (`offline-duel.spec.ts`, forced through `realmTest.forceDuel`); and builds a deck and a sideboard at a spell table in the
   real card layer (the server's refusals shown, the saved deck the one the next duel deals) and buys and sells at a card
   vendor there (`spell-table.spec.ts`). A test starts its character where it needs to be and has the server
@@ -606,6 +607,7 @@ Footprint: `WxD` tiles about the anchor (unturned; `rect` offsets where not cent
 | plant | `reeds` | 0.8x0.8 | swamp, morass, coast, plains |  |  |
 | plant | `lily-pads` | 1x1 | swamp, plains, verdura |  |  |
 | plant | `wildflowers` | 1x1 | plains, farmland, verdura, town |  |  |
+| plant | `heartbloom` | 0.6x0.6 | any |  |  |
 | plant | `bush` | 0.8x0.8 **B** | plains, town, forest |  |  |
 | plant | `mushroom` | 1x1 **B** | morass, forest, llanowar |  |  |
 | plant | `flower-bed` | 1x1 | town, plains |  |  |
@@ -768,8 +770,9 @@ layoutRoom({
 `generateDungeonFloor({theme, seed, floor, floors, run})` returns a `DungeonFloor` (`types.ts`):
 - `w` by `d` tiles from (0, 0), in version 2's tile format (`tiles`, row by row);
 - `cells`, the plan the walls are drawn from: rows of `#` wall, `.` floor, `~` water, `=` lava, ` ` void;
-- `props`, `lights` (at most 16), and the spell-table `npcs` on floor 0;
-- `arrive`, `up`, `down`, `wayOut` and `spots` (`{index, mob, role, x, z}`), all in tiles.
+- `props`, `lights` (at most 16), the spell-table `npcs` on floor 0, and the run's shrine's (`heart-shrine`) on the
+  floor whose `run.Shrine` says it holds one;
+- `arrive`, `up`, `down`, `wayOut`, `shrine` and `spots` (`{index, mob, role, x, z}`), all in tiles.
 
 `realms/web/src/dungeon/` is the module (the hex generator is retired); `dungeon/index.ts` exports
 `generateDungeonFloor`, `THEME_DEFS`, `assembleFloor`, `gridOfFloor`, `AssembledFloor`, `MAX_LIGHTS`, `wardenIndex`,
@@ -780,6 +783,8 @@ the run's contract:
 - Every floor tile is reached from the arrival without crossing a stair or the way out. Those are walkable, but walked
   onto only to be taken.
 - The warden's index is `Encounters.length` and the boss's is one more.
+- A shrine (`dungeon-shrine`, its heart `dungeon-shrine-heart` drawn by the page, lit or spent) stands on a blocked tile
+  in a room on the way, against a wall where it can, with open floor before it to pray from, cutting no way off.
 
 `assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room,
 with the renderer's own `groundOf`, `underOf` and `propOf` (render/chunks.ts):
@@ -851,8 +856,8 @@ is gone.
   seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
   the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
   where the old map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 842 spawns, 239 chests,
-  119 waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB.
+- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 851 spawns, 237 chests,
+  8 heartblooms, 120 waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB.
 - **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
   0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.
   Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
@@ -1055,6 +1060,7 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   |---|---|
   | Pricing | the price formula |
   | Hearts | the start, the migration, a town's refill, a heart given back, buying to five, death |
+  | Hearts found | a heartbloom picked from beside it, a week to grow back for its picker alone, left standing with the hearts full; a run's shrine in one run in eight, on its floor alone, once a run; Dominaria's heartblooms |
   | Losing | a heart and no reward; the buyout's measure, its payment and its refusal in a dungeon; the rematch's carried life and swapped deck; death taking back a run's winnings |
   | Vendors | buy and sell atomicity; a purse too small; a full stock; trickle and rotation on a fake `TimeProvider` |
   | Encounters | spawn-table validation against the golden vectors; a tampered log rejected; a mob answer that doesn't match rejected |

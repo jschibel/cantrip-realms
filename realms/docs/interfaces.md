@@ -173,8 +173,9 @@ same files and ids (`realms/dotnet/Cantrip.Realms.Server.Tests/World/make-world.
 The server reads these files in version 2 of the world data, on square tiles ("Version 2 of the world data", below;
 Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
 (the doors into interiors), its `npcs` (vendors, armorers, innkeepers, spell tables: a spell table is a `spell-table`
-NPC), `spawns`, `chests` and `entrances`; of an interior its `w`, `d`, `area`, `tiles`, `npcs`, `entry`, `exit`, `town`
-and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of world.json its `size`, `origin`, `chunk`,
+NPC), `spawns`, `chests` (treasure chests and heartblooms) and `entrances`; of an interior its `w`, `d`, `area`,
+`tiles`, `npcs`, `entry`, `exit`, `town` and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's: a
+heartbloom grows only in the world); of world.json its `size`, `origin`, `chunk`,
 `tile`, `towns`, `inns`, `dungeons`, `pitches` and `ferries`.
 
 - **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains), in square tiles `[x, z]`
@@ -227,8 +228,13 @@ and its own `chests` (`{id, x, z, gold, respawnSeconds}`, as a chunk's); of worl
     drawn there;
   - `spawns` are `[{id, x, z, mobs, radius, respawnSeconds, tier}]` on open tiles, with ids unique across the world
     (`"<cx>_<cz>:<n>"`: the chunk the spawn stands in, and a number);
-  - `chests` are `[{id, x, z, gold: [low, high], respawnSeconds}]`, each on a blocked tile of its own with open ground
-    round it, ids unique across the world (`"<cx>_<cz>:c<n>"`);
+  - `chests` are the world's finds, each a character's own on its own timer, ids unique across the world: treasure
+    chests, `{id, x, z, gold: [low, high], respawnSeconds}` (`"<cx>_<cz>:c<n>"`), each on a blocked tile of its own with
+    open ground round it; and heartblooms (design.md A3b), `{id, x, z, heart: true, respawnSeconds: 604800}`
+    (`"<cx>_<cz>:h<n>"`), no gold, each on an open tile of the wilds (no town's, a tier's zone) walked onto, level and
+    open all round with nothing standing on it, at least 150 tiles from the next (`HEARTBLOOM_APART`, Chebyshev); the
+    world grows at most 12 (`HEARTBLOOMS_MOST`), Dominaria 8, two in each tier's wilds. The generator places them last,
+    rolling no dice, so the rest of the world is as it was without them; the lint holds every rule here;
   - `entrances` are `[{x, z, dungeon}]`: the open tile before the dungeon's structure (a prop of its theme over a
     blocked footprint), walked onto to start a run, with an open step out of it;
   - `waymarkers` are `[{x, z, tier}]`: where the tier rises, in the harder side's tier, on a blocked tile beside a road
@@ -541,6 +547,7 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null, Tier: tier or null, BossStats: {Life, Hand, MaxHand} or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null, Tier}`: the run (dealt by the character's standing to a color dungeon's color, Dungeons), its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `GET /api/dungeon/run` | | the character's live run, as `/api/dungeon/enter` gives it with `Dungeon`, `Floor` (the floor reached) and `Beaten` (the encounters won, `<floor>:<index>`): what a reload resumes; 404 `NotThere` with none |
 | `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
+| `POST /api/dungeon/shrine` | `{Run}` | `{Hearts}`: a prayer at the run's shrine (design.md A3b, A6), on the floor that holds it, where the character stands (the server holds them to the floor, the layout being the browser's): one heart given back, once in the run; 409 `NotThere` for a floor with no shrine or a run over, `Empty` once it has blessed, `FullHearts` with the hearts full (the blessing kept for later), `NotNear` out of the run; 404 `NotThere` for no run of theirs |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside one of its `waystone` NPCs' tiles, or its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
 | `POST /api/inn` | `{}` | `{Inn}`: the inn the character stands in (an interior of kind `inn` of a town) is their home now, world.json's inn of that town nearest its door; 409 `NotNear` anywhere else |
@@ -548,16 +555,17 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/encounter/pay` | `{Token}` | `{Gold}`: the lost game's mob paid off (its `Defeat.Price`), the encounter over; 409 `NoBuyout` (a dungeon's mob), `CannotAfford`, `Finished` (no answer owed); 404 `NoDuel` |
 | `POST /api/encounter/rematch` | `{Token, Main, Sideboard, PlayFirst}` | `{Token, Seed, Duel}`: the encounter's next game; 422 `IllegalDeck` with `Problems`; 409 `Finished`; 404 `NoDuel` |
 | `POST /api/hearts/buy` | `{}` | `{Gold, Hearts, MaxHearts, Price}`: one more heart's capacity, filled, from a healer the character stands with (inside an interior with a `healer` NPC); `Price` the next one's, null at 5; 409 `NotNear`, `MostHearts`, `CannotAfford` |
-| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear}`: the character's gold, and what the chest held, standing on or beside it (Places, "Proximity") in its space: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common); 409 `NotNear`, `Empty`; 404 `NoSuchPlace` |
+| `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear, Hearts, Heart}`: a find taken standing on or beside it (Places, "Proximity") in its space - the character's gold and hearts after, and what it held. A treasure chest: `Found` gold, and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common). A heartbloom (`Heart` true; design.md A3b): one heart given back, `Found` 0, and the bloom gone for that character for its `respawnSeconds` (a week); 409 `FullHearts` with the hearts full (and the bloom left standing). 409 `NotNear`, `Empty` (taken, and not back yet); 404 `NoSuchPlace` |
 | `POST /api/position` | `{Space, X, Z}` | `{Hearts}`: where the character is (Places, above), and their hearts after it - a town fills them; 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, Hearts, MaxHearts, HeartPrice, Defeat, Space, X, Z, Inn,
   Stats: {Life, Hand, MaxHand}, Loadout: {slot: GearInstance or null}, Gear: [GearInstance], Unlocked: [color], Attuned:
-  [tower]}`. `Space`, `X`, `Z` are their place (Places, above; a live run's space names the run to resume); `Inn` their
+  [tower], Picked: [{Chest, Until}]}`. `Space`, `X`, `Z` are their place (Places, above; a live run's space names the run to resume); `Inn` their
   home inn's id; `Attuned` the mage towers whose waystones they have attuned, by dungeon id. `Id` is the player id
   (`discord-<id>`, `dev-<id>`) the spawn algorithm hashes. `Hearts` and `MaxHearts` are the hearts they have and hold
   (design.md A3b: 2 of 2 to start, 5 at most), `HeartPrice` what a healer asks for one more (null at 5), and `Defeat` a
-  lost game still to answer (below), which a reload comes back to, or null. `Body` is one of
+  lost game still to answer (below), which a reload comes back to, or null. `Picked` are the heartblooms of the world
+  they picked that have not grown back, in id order, each with when it does (UTC): the overworld draws them picked. `Body` is one of
   `lithe`, `broad`, `tall`, `stocky` (as `POST /api/character` takes it); `Palette` 0-5, the skin and hair palette
   (`realms/web/src/character.ts`). `Identity` is the starting color and the unlocked ones, as one string of letters in WUBRG
   order (`"WU"`). The
@@ -577,6 +585,12 @@ player with no character is 404 `NoCharacter`.
   its town (an interior of the town with an `armorer` NPC), else 409 `NotNear`; `/api/armorer/{town}` takes a town's id.
   A vendor sells at list price, the copy that would leave its shelf soonest first, and buys at half the list price
   rounded down.
+- A run's shrine (design.md A6): as a run begins, one run in eight (`Dungeons.ShrineChance`) holds one, on a floor drawn
+  at random, which says so (`Floors[n].Shrine`, true; the browser's layout stands it in a room on the way, a
+  `heart-shrine` NPC on a blocked tile of its own, prayed at from beside it). The run says whether it has blessed
+  (`ShrineUsed`, in `/api/dungeon/enter`'s and `/api/dungeon/run`'s reply); `/api/dungeon/shrine` is the prayer. A
+  shrine's blessing and a heartbloom's picking are kept where a chest's opening is (the `chests` table: who, what, when;
+  a shrine's under the run's space, so it is once a run).
 - A dungeon encounter is the run's: the server checks that the run is the character's (404 `NotThere`) and live (409
   `NotThere`), that they stand in it (409 `NotNear`), that `Floor` is the one they stand on (0 the first; 409
   `NotThere`), that `Index` is an encounter of that floor (404 `NotThere`) not yet fought (409 `TooSoon`), and that `Mob`
@@ -656,8 +670,10 @@ player with no character is 404 `NoCharacter`.
   the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), `POST /dev/verdict
   {Outcome, MobLife}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of
   replaying their logs, so the card layer's stand-in counts as a win, the mob ending each at `MobLife` (null: the life it
-  began the game with); `POST /dev/drop {Gear}` (`true`, `false`, or null for the
-  dice again) decides whether the player's gear rolls, a win's and a chest's, come up; `POST /dev/duel {Player, Mob}`
+  began the game with); `POST /dev/drop {Gear, Shrine}` (each `true`, `false`, or null
+  for the dice again) decides whether the player's gear rolls, a win's and a chest's, come up, and whether a run they
+  begin holds a shrine; `POST /dev/hearts {Hearts, MaxHearts}` sets the character's hearts (and capacity, if given; 422
+  `NoSuchHearts` for none a character can have), as a test arranges a heart missing; `POST /dev/duel {Player, Mob}`
   deals the player's next duels with a seat's setup changed - each `{StartingLife, StartingHandSize, MaximumHandSize,
   Deck, Emblems}`, any of them, or null to leave that seat; two nulls deal them as they are again - as a scenario forces a
   position (a mob beginning at 0 life loses as it would first receive priority, CR 704.5a): the duel is committed, played

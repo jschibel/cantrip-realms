@@ -133,8 +133,18 @@ owner may extend.
 - **Losing a game** costs one (A3).
 - **Refilling:** entering a **safe town** - within a town's walls, or a building of one - fills them to the capacity. The
   server sees it from where you report standing, which it checks, never on the client's word. Waking at home after
-  dying fills them too. A heart found in the world (rare) or at a dungeon's shrine (rarer still) will give one back, up
-  to the capacity: the server has the one method for it; the pickups and shrines come later.
+  dying fills them too.
+- **Hearts found:** two finds give one back, up to the capacity, out where no town is near. Neither is used up by a
+  character whose hearts are full - it keeps until they need it - and the server alone says whether each is there and
+  whether it was taken.
+  - **Heartblooms** grow in the wilds between the towns: a low clump of dark leaves and, on its stem, a bloom shaped like
+    a heart that glows rose-red in the grass. They are rare - eight across Dominaria, two in each tier's wilds, each
+    alone in a clearing at least 150 tiles from the next - so the far ones are worth the walk. Walking onto one, or
+    clicking it, picks it: a heart back. Picked, it is a stem among the leaves for that character for **a week**, as a
+    beaten boss rests; every other character's is still in bloom.
+  - **A shrine of Serra** stands in one dungeon run in eight, on one of its floors drawn at random: a stepped altar
+    and a stele carved with an angel's wings, a heart of light hanging over it. Praying at it gives back a heart **once
+    in the run**; its heart then goes cold. The next run of the dungeon is new, and may hold one again or not.
 - **More hearts:** the capacity is raised one heart at a time, to **5**, at a **healer**: the priest of each town's temple
   and the keeper of each village's shrine - every town of the Domains has one. The heart bought is filled at once. The
   price rises with each (A5):
@@ -287,6 +297,8 @@ owner may extend.
     first floor. Dying wakes you at your inn with your hearts full, and what the run won (gold, cards, gear) is lost
     (A3b).
   - The entrance has a spell table, outside in the world and inside on the first floor (the antechamber).
+  - Now and then a run holds a shrine of Serra on one of its floors (one run in eight), which gives back a heart once in
+    the run (A3b).
   - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
     traits. Ally and enemy are by the character's starting color (W U B R G: the two beside it are allies, the two across
     from it enemies); a color the character holds, started with or unlocked, is their own, and its dungeon is as written.
