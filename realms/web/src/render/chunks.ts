@@ -160,8 +160,15 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
       since = performance.now();
     }
   }
+  // Whether each piece stands in the way: on a closed tile, so it is drawn at every zoom (`sortScenery`).
+  const solid: boolean[] = pieces.map(() => false);
+  const closed = (x: number, z: number) => {
+    const t = tileAt(Math.floor(x), Math.floor(z));
+    return !!t && isBlocked(t);
+  };
   for (const p of c.props) {
     pieces.push(worldPropOf(p, tileAt));
+    solid.push(closed(p.x, p.z));
     if (performance.now() - since > STEP_MS) {
       yield "props";
       since = performance.now();
@@ -172,7 +179,7 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
   section.addMoving(pieces, true);
   yield "flames";
   // Trees and hedgerows: near, and their far stand-ins merged apart for the furthest zoom.
-  for (const g of sortScenery(pieces.map((p) => p.model), `chunk:${c.cx}_${c.cz}`, pieces.map((p) => p.far), pieces.map((p) => p.footprints))) {
+  for (const g of sortScenery(pieces.map((p) => p.model), `chunk:${c.cx}_${c.cz}`, pieces.map((p) => p.far), pieces.map((p) => p.footprints), solid)) {
     section.addMerged(g);
     yield `merge ${g.label} (${g.models.length})`;
   }

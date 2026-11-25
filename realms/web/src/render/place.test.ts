@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MeshBuilder, sides } from "../art/paint/builder";
 import { flat } from "../art/paint/materials";
 import type { Built } from "../art/recipe";
-import { Place } from "./place";
+import { Place, sortScenery } from "./place";
 
 // A place's moving parts (place.ts): cut-aways for the camera, flames in steps, a fire's light in
 // step with them - all set by the clock and the camera's turn, nothing by the wall clock.
@@ -46,5 +46,14 @@ describe("a place", () => {
       expect(frames.map((f) => f.visible)).toEqual([0, 1, 2].map((i) => i === k));
       expect(light.intensity).toBeCloseTo(8 + [0, 1.6, 0.7][(k + 1) % 3]!, 9);
     }
+  });
+
+  it("leaves small props out at the furthest zoom, but never one standing in the way", () => {
+    // A bush-sized cube on open ground is small (left out far); the same on a closed tile is drawn at every zoom.
+    const groups = sortScenery([cube(0), cube(3)], "chunk", [], [], [false, true]);
+    expect(groups.map((g) => [g.kind, g.models.length])).toEqual([
+      ["rest", 1],
+      ["small", 1],
+    ]);
   });
 });

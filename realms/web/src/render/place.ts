@@ -33,7 +33,7 @@ interface LiveCutaway {
   readonly when: Cutaway["when"];
 }
 
-/** Small props: what the furthest zoom leaves out, a prop no bigger than this (world units) each way. */
+/** Small props: what the furthest zoom leaves out, a prop no bigger than this (world units) each way that is not in the way. */
 const DETAIL_SIZE = 1.05;
 const DETAIL_HEIGHT = 1.35;
 /** Tall enough to stand between the camera and the player: what the occluder fade fades (render/occlude.ts). */
@@ -205,13 +205,16 @@ const CELL = 16;
  * Sorts scenery models into what is tall enough to hide the player, small props, and the rest, each kind one group -
  * or, where a kind is heavy (a forest's trees), one group a cell of 16 by 16 tiles, so what is off screen is culled
  * in smaller pieces and no one merge is a long frame's work. A model with a far stand-in (`fars[i]`, as `Built.far`)
- * goes to a "near" group of its kind and its stand-in to a "far" one - unless it is small, left out far anyway.
+ * goes to a "near" group of its kind and its stand-in to a "far" one - unless it is small, left out far anyway. A small
+ * model standing in the way (`solid[i]`: on a closed tile - a bush, a stump) is no small prop but the rest, so
+ * no tile the player cannot walk onto ever looks empty at the furthest zoom.
  */
 export function sortScenery(
   models: readonly Model[],
   name: string,
   fars: readonly (Model | undefined)[] = [],
   footprints: readonly (readonly Rect[] | undefined)[] = [],
+  solid: readonly boolean[] = [],
 ): SceneryGroup[] {
   type Entry = { model: Model; feet: readonly Rect[] | undefined; at: THREE.Vector3; tris: number };
   type Lod = "" | "near" | "far";
@@ -220,19 +223,20 @@ export function sortScenery(
     near: { tall: [], small: [], rest: [] },
     far: { tall: [], small: [], rest: [] },
   };
-  const sort = (m: Model, lod: Lod, feet: readonly Rect[] | undefined): SceneryGroup["kind"] | null => {
+  const sort = (m: Model, lod: Lod, feet: readonly Rect[] | undefined, inTheWay: boolean): SceneryGroup["kind"] | null => {
     const box = boxOf(m);
     if (!box) return null;
     const size = box.getSize(new THREE.Vector3());
-    const kind = size.y > TALL ? "tall" : size.x <= DETAIL_SIZE && size.z <= DETAIL_SIZE && size.y <= DETAIL_HEIGHT ? "small" : "rest";
+    // Small, unless it stands in the way: what closes a tile is seen at every zoom, never an obstacle nobody can see.
+    const kind = size.y > TALL ? "tall" : !inTheWay && size.x <= DETAIL_SIZE && size.z <= DETAIL_SIZE && size.y <= DETAIL_HEIGHT ? "small" : "rest";
     // Small: left out at the furthest zoom, so it needs no stand-in.
     kinds[kind === "small" && lod === "near" ? "" : lod][kind].push({ model: m, feet, at: box.getCenter(new THREE.Vector3()), tris: m.parts.reduce((n, p) => n + p.indices.length / 3, 0) });
     return kind;
   };
   models.forEach((m, i) => {
     const far = fars[i];
-    const kind = sort(m, far ? "near" : "", footprints[i]);
-    if (far && kind && kind !== "small") sort(far, "far", footprints[i]);
+    const kind = sort(m, far ? "near" : "", footprints[i], solid[i] ?? false);
+    if (far && kind && kind !== "small") sort(far, "far", footprints[i], solid[i] ?? false);
   });
   const out: SceneryGroup[] = [];
   for (const lod of ["", "near", "far"] as const) {
