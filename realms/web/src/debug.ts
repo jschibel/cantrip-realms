@@ -6,7 +6,8 @@ import { CHUNK } from "./world/format";
 // how high its floor stands. Each frame it also watches the player's figure for a jump: a move in one frame further
 // than a walk could take it (`JUMP`), or a sudden rise or drop (`DROP`). Each jump is listed (the last few, newest
 // first, with the place and both positions) and logged to the console, so a teleport seen in play can be reported by
-// its coordinates. A deliberate jump - through a door, a waystone, back to the inn after a lost duel - stands a new
+// its coordinates, and so is every walk the server refused (why, the tile it had the player on, and what the page did).
+// A deliberate jump - through a door, a waystone, back to the inn after a lost duel - stands a new
 // figure in the place (Stage.arrive) behind the iris, and is none. A click on the overlay copies what it shows.
 
 /** A move in one frame further than this (world units, a tile being one) is a jump: a walk covers about 0.06. */
@@ -97,6 +98,9 @@ export function bindDebug(game: Overworld): void {
     );
     lines.push(jumps.length ? "jumps (newest first):" : "jumps   none seen");
     for (const j of jumps) lines.push(`  ${j.at} ${j.place}: ${describe(j)}`);
+    const refused = game.refusedWalks;
+    lines.push(refused.length ? "walks refused (newest first):" : "refused none");
+    for (const r of refused) lines.push(`  ${r.at} ${r.reason} server ${r.server ? `${r.server.x},${r.server.z}` : "-"}, figure ${r.here.x},${r.here.z}: ${r.did}`);
     lines.push("F3 hides this; click to copy");
     const text = lines.join("\n");
     if (panel.textContent !== text) panel.textContent = text;

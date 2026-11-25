@@ -156,6 +156,18 @@ export class Overworld {
   private pending: { readonly at: Tile; readonly then: () => void } | null = null;
   /** What the relay has refused of this page, its reasons (for tests: a walk told right is never refused). */
   readonly refusals: string[] = [];
+  /**
+   * The server's refusals of a walk, newest first (the last few): why, where it had the player and where the figure
+   * stood, and what the page did about it - the debug overlay's (debug.ts), so a correction seen in play says its cause.
+   */
+  readonly refusedWalks: { readonly at: string; readonly reason: string; readonly server: Tile | null; readonly here: Tile; readonly did: string }[] = [];
+
+  private refusedLog(reason: string, server: Tile | null, did: string): void {
+    const entry = { at: new Date().toLocaleTimeString(), reason, server, here: { ...this.player.tile }, did };
+    this.refusedWalks.unshift(entry);
+    this.refusedWalks.length = Math.min(this.refusedWalks.length, 6);
+    console.warn(`[realm] walk refused in ${this.spot.id}: ${reason} - the server has the player at ${server ? `${server.x},${server.z}` : "-"}, the figure at ${entry.here.x},${entry.here.z}; ${did}`);
+  }
   /** The walks the relay is told (net/relay.ts). */
   private readonly relay = new WalkRelay((move) => this.presence?.send({ Type: "Move", ...move }));
   private lastReport = 0;
@@ -1529,13 +1541,21 @@ export class Overworld {
         // plain sight): the server is told the way from there to where the figure stands, and catches up (net/relay.ts
         // `catchUp`). Only where there is no such way, or catching up was refused too, is the figure stood there.
         this.refusals.push(message.Reason);
-        if (message.At.length !== 2) break;
+        if (message.At.length !== 2) {
+          this.refusedLog(message.Reason, null, "no tile");
+          break;
+        }
         const at = { x: message.At[0]!, z: message.At[1]! };
         const grid = this.spot.grid;
         const here = this.player.tile;
         const way = grid.walkable(at.x, at.z) && grid.walkable(here.x, here.z) ? grid.path(at, here) : null;
-        if (way && this.relay.catchUp(way, here)) break;
-        if (grid.walkable(at.x, at.z)) this.player.place(at);
+        if (way && this.relay.catchUp(way, here)) {
+          this.refusedLog(message.Reason, at, `caught up, ${way.length - 1} steps`);
+          break;
+        }
+        const placed = grid.walkable(at.x, at.z);
+        if (placed) this.player.place(at);
+        this.refusedLog(message.Reason, at, placed ? "stood there" : "not stood there (not open here)");
         this.relay.placed(at);
         break;
       }
