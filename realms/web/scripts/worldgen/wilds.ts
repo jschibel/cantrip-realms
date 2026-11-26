@@ -24,12 +24,29 @@ import type { Terrain } from "./terrain";
 // --- Dungeons ------------------------------------------------------------------------------------------------------------
 
 /**
- * Each dungeon theme's way in on the travel map: its entrance prop, the footprint it is drawn over (across its front and
- * deep: the art's TRAVEL_ENTRANCES, odd widths so the door is on a tile's middle), and its scale. The art fits an
- * entrance to its footprint and reads no `scale`; the one number per theme is kept here should it ever be wanted.
+ * Each dungeon theme's footprint on the travel map, across its front and deep (odd widths, so the door is on a tile's
+ * middle): as large as the 5-by-5 square the sketch keeps lets it be. The art draws an entrance to fit its footprint,
+ * at the most of its full size it fits (and half at the least: `entrance`, art/props/wilds.ts), so at the art's own
+ * `TRAVEL_ENTRANCES` (3 by 2) most drew at half size and the root hollow and the cave read as a stump and a rock; at
+ * these each draws at three quarters of its size or more - bigger than the player's figure, its shape plain.
+ */
+const MAP_FOOTPRINTS: Readonly<Record<Theme, readonly [number, number]>> = {
+  caves: [5, 3],
+  castle: [5, 3],
+  tower: [3, 3],
+  crypt: [3, 3],
+  hollow: [5, 3],
+  foundry: [5, 3],
+  portal: [5, 2],
+};
+
+/**
+ * Each dungeon theme's way in on the travel map: its entrance prop, the footprint it is drawn over (MAP_FOOTPRINTS; the
+ * art's TRAVEL_ENTRANCES where a theme has none), and its scale. The art fits an entrance to its footprint and reads no
+ * `scale`; the one number per theme is kept here should it ever be wanted.
  */
 export const ENTRANCE_ON_MAP: Readonly<Record<Theme, { readonly prop: string; readonly size: readonly [number, number]; readonly scale?: number }>> = Object.fromEntries(
-  (Object.keys(ENTRANCES) as Theme[]).map((theme) => [theme, { prop: ENTRANCES[theme], size: TRAVEL_ENTRANCES[ENTRANCES[theme]] ?? [3, 2] }]),
+  (Object.keys(ENTRANCES) as Theme[]).map((theme) => [theme, { prop: ENTRANCES[theme], size: MAP_FOOTPRINTS[theme] ?? TRAVEL_ENTRANCES[ENTRANCES[theme]] ?? [3, 2] }]),
 ) as Record<Theme, { prop: string; size: readonly [number, number]; scale?: number }>;
 
 export interface Site {

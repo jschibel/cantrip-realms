@@ -1091,7 +1091,8 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   `village` - walled by its form) over its blocked footprint at its site, the ring round it open and level; its ways on
   each side a road arrives (never a side the sea lies on), their `outside` the open tile beside the footprint, `to` where
   the road leads (over a ferry, the town beyond it); each dungeon's entrance prop by theme over its footprint
-  (`ENTRANCE_ON_MAP`, wilds.ts: the art's `TRAVEL_ENTRANCES`, 3 by 2 tiles, the castle's 5 by 2), facing south toward the
+  (`ENTRANCE_ON_MAP`, wilds.ts: 5 by 3 tiles, the tower's and the crypt's 3 by 3, the Portal's 5 by 2 - as big as the
+  5-by-5 square allows, so each draws at three quarters of its size or more), facing south toward the
   camera (turned east or west a gate is seen edge on, a pillar), the entrance tile before its front, the spell table
   and a tower's waystone two tiles either side, in the 5-by-5 square the sketch keeps; the `landmark`s (the lighthouse's light in its chunk's `lights`);
   the ferries (a dock on each shore nearest the sketch's place, the lane straight over the sea where it can be, the
