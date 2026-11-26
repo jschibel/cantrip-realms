@@ -1,4 +1,5 @@
 import { mkdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "@playwright/test";
@@ -70,6 +71,8 @@ export default defineConfig({
         REALMS_DATABASE: `sqlite:${process.env.REALMS_E2E_DATABASE}`,
         REALMS_CLIENT: `http://localhost:${web}/`,
         REALMS_CARDS: `http://localhost:${cards}/`,
+        // Playtest reports, outside the repository (reports.spec.ts reads them there).
+        REALMS_REPORTS: join(tmpdir(), "cantrip-realms-e2e-server-reports"),
       },
     },
   ],

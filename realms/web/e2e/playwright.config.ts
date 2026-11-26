@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defineConfig } from "@playwright/test";
 
 // The overworld end to end (tech.md, B10): the offline overworld (?offline: the in-memory API, presence between tabs,
@@ -26,8 +28,9 @@ export default defineConfig({
   webServer: {
     command: `npx vite --port ${port} --strictPort`,
     cwd: "..",
-    // The stand-in card layer, which these suites drive; the real one is the suite against the server's.
-    env: { REALM_CARD_LAYER: "stub" },
+    // The stand-in card layer, which these suites drive; the real one is the suite against the server's. Playtest reports
+    // filed offline are written outside the repository (reports.spec.ts reads them there).
+    env: { REALM_CARD_LAYER: "stub", REALMS_REPORTS: join(tmpdir(), "cantrip-realms-e2e-reports") },
     url: `http://localhost:${port}/`,
     reuseExistingServer: false,
     timeout: 60_000,

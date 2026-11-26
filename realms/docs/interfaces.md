@@ -628,6 +628,7 @@ player with no character is 404 `NoCharacter`.
 | `POST /api/hearts/buy` | `{}` | `{Gold, Hearts, MaxHearts, Price}`: one more heart's capacity, filled, from a healer the character stands with (inside an interior with a `healer` NPC); `Price` the next one's, null at 5; 409 `NotNear`, `MostHearts`, `CannotAfford` |
 | `GET /api/finds` | | `[{Id, Kind, X, Z, Until}]`: the finds of the wilds standing now (below), each `chest` or `heartbloom`, its tile, and when it goes if nobody takes it (UTC) |
 | `POST /api/chest/open` | `{Space, Chest}` | `{Gold, Found, Gear, Hearts, Heart}`: a find of the wilds (`Chest` its `Id`; `Space` `world`) taken standing on or beside it (Places, "Proximity") - the character's gold and hearts after, and what it held; it is gone for everyone. A treasure chest: `Found` gold of its zone's tier (below), and `Gear` a gear item now theirs (`GearInstance`, or null: one chest in ten, uncommon in a chest whose gold starts at 300 or more, else common). A heartbloom (`Heart` true; design.md A3b): one heart given back, `Found` 0; 409 `FullHearts` with the hearts full (and the bloom left standing). 409 `NotNear`, `Empty` (taken by someone, crumbled, or never one); 404 `NoSuchPlace` for a space other than the world |
+| `POST /api/reports` | `{Kind, Severity, Area, Title, Description, Screenshot, Place, Screen, Build, Summary, Context, Console, Network, Cards, Trace}` | `{Id, Folder}`: a playtest report (F8 in the game; `realms/reports/README.md`), written as a folder of the reports directory (`REALMS_REPORTS`) named `Id` - `report.md`, the screenshot, `context.json` (`Context` beside the server's side: the character as stored, where presence has them, their last duels) and the logs (with the server's own of the last 15 minutes). `Kind` is `bug`, `feedback` or `idea`; `Severity` `blocker`, `major`, `minor` or `trivial`; `Screenshot` a PNG data URL or null. A player with no character reports too. 400 `BadRequest` for anything else, no title, or a screenshot that is no PNG; 409 `TooSoon` within 3 seconds of their last |
 | `POST /api/position` | `{Space, X, Z}` | `{Hearts}`: where the character is (Places, above), and their hearts after it - a town fills them; 422 `NoSuchPlace` off the space or on a tile nobody stands on, 409 `NoWay` for a space reached without a door, entrance or waystone, `Locked` for a dungeon whose `requires` the identity lacks |
 
 - `Character`: `{Id, Name, Body, Palette, Identity, Gold, Hearts, MaxHearts, HeartPrice, Defeat, Space, X, Z, Inn,
@@ -815,6 +816,11 @@ far (the server takes it as a loss, the game not being over).
   `{realm: 1, op: "portrait", id, slots: {slot: {mesh, palette}}}` and the overworld answers `{realm: 1, op: "portrait",
   id, args: {image}}`, `image` a PNG data URL of the player's figure (`portrait.ts`), or null; the card layer shows the
   answer to the last it asked.
+- Playtest reports (F8; `realms/web/src/reports`) are `Realm.js`'s alone, never the client's: framed, it keeps the
+  page's console and passes F8 up as `{realm: 1, op: "report"}` (its page has the keys while a screen is open), and
+  answers `{realm: 1, op: "snapshot", id, args: {picture}}` with `{realm: 1, op: "snapshot", id, image, log}` - its
+  canvases as one PNG data URL the size of its window (null when not asked for, or unreadable), and its console lately.
+  Its WebGL contexts keep their drawing buffer there, so the picture reads whenever it is asked for.
 - In a `duel`, each seat's worn gear is shown on a strip under the duel's bar: the emblems in its command zone, read
   from the game, and its setup values; a panel shows each as its card.
 

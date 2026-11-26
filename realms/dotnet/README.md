@@ -77,6 +77,7 @@ Every setting is an environment variable (`RealmOptions`):
 | `REALMS_START_TOWN` | the town new characters start in (and wake in until they set an inn), at its first inn | `new-benalia` |
 | `REALMS_PLACES` | where each plane's world, interiors and dungeons are read from instead of `realms/content` (a folder of `<plane>/world`, `<plane>/interiors`, `<plane>/dungeons`) | `realms/content` |
 | `REALMS_WALKING_SPEED` | the fastest walk, tiles a second (a diagonal step the square root of 2): presence's walks and reported places | `5` |
+| `REALMS_REPORTS` | where playtest reports (F8 in the game) are written, a folder each (`realms/reports/README.md`); relative to `REALMS_ROOT` | `realms/reports` of the repository |
 | `REALMS_INSTANCE_SIZE` | players in one layer of an area of the world (within two chunks), or one instance of an interior | `40` |
 | `CANTRIP_NATIVE_HOST` | the native engine host (cantrip-rs's setting) | `target/cards`, `release` or `debug` |
 

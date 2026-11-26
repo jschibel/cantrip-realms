@@ -1,6 +1,7 @@
 using Cantrip.Art;
 using Cantrip.Realms.Server;
 using Cantrip.Realms.Server.Content;
+using Cantrip.Realms.Server.Reports;
 
 // The realm server (realms/docs/tech.md B4): configured by environment variables (RealmOptions), it readies its store and
 // content, then serves /api, /realm/ws, sign-in and /healthz. realms/dotnet/README.md says how to run it.
@@ -12,6 +13,29 @@ if (args is ["catalog", string catalogFile])
     RealmOptions settings = RealmOptions.From(new ConfigurationBuilder().AddEnvironmentVariables().Build());
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(catalogFile))!);
     await File.WriteAllBytesAsync(catalogFile, RealmApi.Catalog(RealmContent.Load(settings.Root, places: settings.Places))).ConfigureAwait(false);
+    return;
+}
+
+// `report <file> [player]` files a playtest report from a file holding what POST /api/reports takes, into the reports
+// folder (REALMS_REPORTS), and prints its id and folder as JSON: what offline play's dev server does with a report, there
+// being no realm server to send it to (realms/web/vite.config.ts).
+if (args is ["report", string reportFile, .. string[] reportRest])
+{
+    RealmOptions settings = RealmOptions.From(new ConfigurationBuilder().AddEnvironmentVariables().Build());
+    ReportFiling filing = System.Text.Json.JsonSerializer.Deserialize<ReportFiling>(await File.ReadAllTextAsync(reportFile).ConfigureAwait(false))
+        ?? throw new InvalidOperationException("The report file is empty.");
+    string? player = reportRest is [string named, ..] ? named : null;
+    try
+    {
+        ReportFiled filed = PlayReports.Write(settings.Reports, filing, new ReportServerSide(player, null, null, []), DateTimeOffset.UtcNow);
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(filed));
+    }
+    catch (Refusal refusal)
+    {
+        await Console.Error.WriteLineAsync(refusal.Message).ConfigureAwait(false);
+        Environment.ExitCode = 1;
+    }
+
     return;
 }
 

@@ -1,0 +1,5 @@
+# Playtest reports (F8 in the game) are local to the machine the realm server runs on: screenshots and players' own
+# words. Only this file and the README that explains them are kept.
+*
+!.gitignore
+!README.md

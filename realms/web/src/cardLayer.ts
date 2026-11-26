@@ -30,7 +30,22 @@ export interface CardScreens {
    * since only it draws figures. Unset, or null back, and the card layer shows the doll without its figure.
    */
   portrait?: (slots: PortraitSlots) => string | null;
+  /** The frame the layer shows in, when it is a page of its own (the stand-in is the overworld's own elements). */
+  readonly frame?: HTMLIFrameElement;
+  /** Called when the player asks for a playtest report from inside the layer (F8 there: its keys are its own). */
+  onReport?: () => void;
+  /**
+   * The layer's picture of itself as it shows now (a PNG data URL; null when it is not open or its canvas could not be
+   * read) and its console lately, for a playtest report (reports/index.ts); null from a layer that cannot say.
+   */
+  snapshot?(): Promise<LayerSnapshot | null>;
   open(screen: Screen, args?: Record<string, unknown>): Promise<Closed>;
+}
+
+/** What the card layer says of itself for a playtest report. */
+export interface LayerSnapshot {
+  readonly image: string | null;
+  readonly log: string;
 }
 
 interface Waiting {
@@ -51,6 +66,11 @@ export class CardLayer implements CardScreens {
   onChange: () => void = () => {};
 
   portrait?: (slots: PortraitSlots) => string | null;
+
+  onReport?: () => void;
+
+  /** The snapshots asked for and not yet answered, by id. */
+  private readonly snapshots = new Map<number, (snapshot: LayerSnapshot | null) => void>();
 
   /**
    * `url` is the card layer's page; `server` the realm server, which the card layer calls for what happens inside a screen;
@@ -98,6 +118,24 @@ export class CardLayer implements CardScreens {
     });
   }
 
+  /** Asks the layer for its picture and its console, giving up after `wait` ms (a layer still booting, or gone). */
+  snapshot(wait = 2000): Promise<LayerSnapshot | null> {
+    if (!this.ready) return Promise.resolve(null);
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      const timer = window.setTimeout(() => {
+        this.snapshots.delete(id);
+        resolve(null);
+      }, wait);
+      this.snapshots.set(id, (snapshot) => {
+        window.clearTimeout(timer);
+        this.snapshots.delete(id);
+        resolve(snapshot);
+      });
+      this.post({ op: "snapshot", id, args: { picture: this.frame.dataset.open === "true" } });
+    });
+  }
+
   private whenReady(): Promise<void> {
     return this.ready ? Promise.resolve() : new Promise((resolve) => this.readyWaiters.push(resolve));
   }
@@ -110,7 +148,7 @@ export class CardLayer implements CardScreens {
     if (e.origin !== this.origin || e.source !== this.frame.contentWindow) {
       return;
     }
-    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string; result?: Record<string, unknown>; slots?: PortraitSlots };
+    const message = e.data as { realm?: number; op?: string; id?: number; screen?: Screen; outcome?: string; result?: Record<string, unknown>; slots?: PortraitSlots; image?: string | null; log?: string };
     if (message?.realm !== 1) {
       return;
     }
@@ -124,6 +162,15 @@ export class CardLayer implements CardScreens {
         // The gear screen asks for the figure wearing what it shows worn; the answer goes back under the same id.
         const image = this.portrait?.(message.slots ?? {}) ?? null;
         this.post({ op: "portrait", id: message.id, args: { image } });
+        return;
+      }
+      case "report":
+        // F8 pressed inside the layer, whose keys the world never hears.
+        this.onReport?.();
+        return;
+      case "snapshot": {
+        const answer = message.id === undefined ? undefined : this.snapshots.get(message.id);
+        answer?.({ image: typeof message.image === "string" ? message.image : null, log: typeof message.log === "string" ? message.log : "" });
         return;
       }
       case "closed": {
@@ -186,6 +233,22 @@ export class OfflineCardLayer implements CardScreens {
 
   get openScreen(): Screen | null {
     return this.real.openScreen ?? this.stub.openScreen;
+  }
+
+  get frame(): HTMLIFrameElement {
+    return this.real.frame;
+  }
+
+  get onReport(): (() => void) | undefined {
+    return this.real.onReport;
+  }
+
+  set onReport(listener: (() => void) | undefined) {
+    this.real.onReport = listener;
+  }
+
+  snapshot(): Promise<LayerSnapshot | null> {
+    return this.real.snapshot();
   }
 
   open(screen: Screen, args: Record<string, unknown> = {}): Promise<Closed> {

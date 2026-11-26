@@ -44,7 +44,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   - Why Postgres: a managed database gives backups and point-in-time restore, and it lets more than one server instance run later.
   - Tables: players (their hearts with them, design.md A3b), collection, gear_owned, loadout, deck, sideboard, unlocks, relics (each relic an account ever received, design.md A3a), vendors, vendor_stock, vendor_visits, duels (one row a game of an encounter), chests (when a character last took each find: a treasure chest, a heartbloom, a run's shrine), quests, runs, attuned.
   - The `Hearts` migration dropped the ante (its table, and the duels' ante, value and cap) and gave every character 2 of 2 hearts.
-- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and sideboard save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, hearts bought at a healer, hearts found (a heartbloom picked, a run's shrine prayed at: whether each is there and was taken is the server's), quests.
+- **Authority:** the server owns everything of value, and the client only asks. The endpoints are a JSON API: character, collection, deck and sideboard save (only accepted while you stand at a spell table), loadout, vendor buy and sell, armorer, hearts bought at a healer, hearts found (a heartbloom picked, a run's shrine prayed at: whether each is there and was taken is the server's), quests. Beside them, playtest reports (`POST /api/reports`, `Reports/PlayReports`): written as folders of `realms/reports` with what the server knows added - the character as stored, where presence has them, their last duels, and the server's own log lately (`Reports/RecentLog`, a logger provider keeping the last 400 lines).
 - **The encounter protocol** (single-player, but it can't be cheated):
   1. **Start:** `POST /encounter/start {map, spawnId}`. The server checks that the spawn exists in that map's **deterministic spawn table** (seeded by player, map and spawn epoch; the client and server share golden test vectors) and that your last reported position is close. It then **commits** the seed, the mob, a snapshot of your deck, sideboard and loadout, and the mob's full starting life, and returns a duel token.
   2. **Play:** the browser plays the duel in WASM.
@@ -122,6 +122,16 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also
   logged to the console (a door, a waystone or a lost duel stands a new figure behind the iris: no jump). A click
   copies it, so a teleport or an invisible obstruction seen in play is reported by its coordinates.
+- **Playtest reports** (F8 anywhere, a card screen's page passing its F8 up; `src/reports`, `screens/report.ts`): the
+  moment is taken first - the world's frame drawn afresh and read, the card layer's own picture of itself over it when a
+  screen is open (Realm.js), the state (`reports/context.ts`: place, character, camera, the card layer's last requests,
+  mobs and players near, the HUD's words, the debug overlay's lines, the presence trace) and the page's console and API
+  calls since it loaded (`reports/logs.ts`) - then a box over everything asks the kind (bug, feedback, idea), severity,
+  area, a title and details, the world standing still behind it. Sent through `POST /api/reports` (offline, the dev
+  server's `/__realm/report`, which runs the server's own writer: `cantrip-realms-server report <file>`), it becomes a
+  folder of `realms/reports` (`REALMS_REPORTS`) that a later agent's session triages (`realms/reports/README.md`,
+  `tools/realms/reports.py`, the `realm-reports` skill). `e2e/reports.spec.ts` files one offline and reads its folder;
+  `e2e/server/reports.spec.ts` files one from inside a duel in the real card layer, its picture the duel's.
 - **The world:** one map of the Domains streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and
   dungeons"), of two scales (interfaces.md, "Two scales"): a travel map, where each town is an icon, and each town's
   grounds at walking scale in a pocket of its own; chunks exist only over the two, and the streamer never asks for

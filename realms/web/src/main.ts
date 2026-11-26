@@ -13,6 +13,8 @@ import { LocalPresence, type Presence, SocketPresence } from "./net/presence";
 import { HEADING_NAMES, type Zoom } from "./render/camera";
 import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
+import { bindReports } from "./reports";
+import { captureConsole } from "./reports/logs";
 import { publishTestHooks } from "./testHooks";
 import { type WorldSource, fetchSource, globSource, loadWorld } from "./world/load";
 import type { WorldData } from "./world/format";
@@ -44,6 +46,9 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 // Colors are given as the palette's own sRGB values and lit as they are; the bands snap the result, so no color
 // management is wanted between them.
 THREE.ColorManagement.enabled = false;
+
+// The console is kept for playtest reports (F8; reports/logs.ts) from before the page boots.
+captureConsole();
 
 const query = new URLSearchParams(window.location.search);
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
@@ -87,6 +92,8 @@ async function boot(): Promise<void> {
   let game: Overworld | null = null;
   let input: WalkInput | null = null;
   if (query.has("test")) publishTestHooks(() => game, layer, () => input);
+  // F8 files a playtest report from here on, the character's making included.
+  bindReports(api, layer, () => game);
 
   const source = await worldSource();
   const world = await loadWorld(source);

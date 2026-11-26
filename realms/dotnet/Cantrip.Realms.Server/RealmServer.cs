@@ -5,6 +5,7 @@ using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Duels;
 using Cantrip.Realms.Server.Economy;
 using Cantrip.Realms.Server.Presence;
+using Cantrip.Realms.Server.Reports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cantrip.Realms.Server;
@@ -25,6 +26,10 @@ public static class RealmServer
         services.AddSingleton(provider => new Finds(provider.GetRequiredService<RealmContent>(), options, provider.GetRequiredService<TimeProvider>(), provider.GetRequiredService<PresenceHub>()));
         services.AddSingleton<DevVerdicts>();
         services.AddSingleton<DevDuels>();
+        // The server's log lately, kept for playtest reports beside wherever else the log goes.
+        services.AddSingleton<RecentLog>();
+        services.AddSingleton<ILoggerProvider>(provider => provider.GetRequiredService<RecentLog>());
+        services.AddSingleton<PlayReports>();
         options.Database.Register(services);
         services.AddScoped<Hearts>();
         services.AddScoped<Characters>();

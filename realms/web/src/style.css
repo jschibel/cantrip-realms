@@ -453,3 +453,40 @@ body.nohud #hud, body.nohud #notice { display: none; }
   cursor: copy;
   user-select: text;
 }
+
+/* The playtest report box (F8; src/screens/report.ts): over everything, the card layer included. */
+#screens > .report { z-index: 40; }
+.report .report-card { width: min(820px, calc(100% - 32px)); max-width: none; max-height: calc(100% - 32px); overflow: auto; }
+.report-body { display: flex; gap: 20px; flex-wrap: wrap; }
+.report-fields { flex: 1 1 380px; display: flex; flex-direction: column; gap: 10px; }
+.report-side { flex: 0 1 260px; display: flex; flex-direction: column; gap: 8px; }
+.report .field select,
+.report .field textarea {
+  font: 15px "MPlantin", serif;
+  color: var(--fg);
+  background: var(--control-fill);
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+.report .field textarea { resize: vertical; min-height: 90px; }
+.report .field input:focus,
+.report .field select:focus,
+.report .field textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.report .choices button { padding: 4px 12px; }
+.report-shot {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: var(--window);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.report-shot.none { display: flex; align-items: center; justify-content: center; color: var(--fg-muted); font-size: 13px; }
+.report .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--fg-soft); cursor: pointer; }
+.report .check input { accent-color: var(--accent); }
+.report .buttons { align-items: center; }
+.report .problem { color: var(--danger); min-height: 1.2em; margin: 10px 0 0; }
+.report .problem.busy { color: var(--fg-soft); }
+.report .buttons .hint { margin-left: auto; }

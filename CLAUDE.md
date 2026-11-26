@@ -21,6 +21,10 @@ section is cantrip-rs's own guidance and holds here unchanged, except where this
   and `crates/cantrip-cards/tests/realm_gear_*` (realms/docs/gear.md).
 - **Gear is held to the engine's bar.** Equipment is engine content: every rule above about no rules deviations,
   scenarios and coverage applies to it exactly as to a card.
+- **Playtest reports.** Players press F8 anywhere in the game to file a bug report or feedback, with a screenshot, the
+  game's state and its logs; each lands in `realms/reports/<id>/` (gitignored, local to the server's machine;
+  `realms/reports/README.md`). `python tools/realms/reports.py list` shows the open ones; the `realm-reports` skill
+  triages and investigates them.
 - **Commits** go to this fork's `origin` and are pushed as soon as they are made; the "Commits go to GitHub" section
   below describes cantrip-rs.
 

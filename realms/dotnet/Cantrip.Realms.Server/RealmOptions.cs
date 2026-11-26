@@ -35,6 +35,8 @@ namespace Cantrip.Realms.Server;
 /// REALMS_HEARTBLOOMS             the most heartblooms the world's wilds grow at once; 8
 /// REALMS_HEARTBLOOM_EVERY        about how often, seconds, a new one grows while there are fewer; 1800
 /// REALMS_HEARTBLOOM_LASTS        how long, seconds, a heartbloom nobody picks stands before it wilts; 10800
+/// REALMS_REPORTS                 where playtest reports are written (Reports/PlayReports, realms/reports/README.md);
+///                                realms/reports of REALMS_ROOT by default
 /// CANTRIP_NATIVE_HOST            the native engine host that checks duels (cantrip-rs's own setting)
 /// </code>
 /// ASP.NET Core's own (<c>ASPNETCORE_URLS</c>, <c>ASPNETCORE_ENVIRONMENT</c>) work as they always do.
@@ -92,6 +94,18 @@ public sealed class RealmOptions
     /// <summary>Where the art's sizes are kept once made (REALMS_ART_CACHE).</summary>
     public string ArtCache { get; init; } = Path.Combine(Path.GetTempPath(), "cantrip-realms-art");
 
+    /// <summary>
+    /// Where playtest reports are written, a folder each (REALMS_REPORTS; Reports/PlayReports): by default
+    /// <c>realms/reports</c> of the repository, where an agent's session finds them (realms/reports/README.md).
+    /// </summary>
+    public string Reports
+    {
+        get => _reports ?? Path.Combine(Root, "realms", "reports");
+        init => _reports = value;
+    }
+
+    private readonly string? _reports;
+
     /// <summary>Reads the options from configuration, whose environment variables are <c>REALMS_*</c>.</summary>
     public static RealmOptions From(IConfiguration configuration)
     {
@@ -100,11 +114,13 @@ public sealed class RealmOptions
         int Count(string name, int otherwise) => Setting(name) is { } value ? int.Parse(value, System.Globalization.CultureInfo.InvariantCulture) : otherwise;
         TimeSpan Seconds(string name, TimeSpan otherwise) => Setting(name) is { } value ? TimeSpan.FromSeconds(double.Parse(value, System.Globalization.CultureInfo.InvariantCulture)) : otherwise;
         var finds = new FindOptions();
+        string root = Setting("ROOT") ?? FindRoot() ?? throw new InvalidOperationException("No REALMS_ROOT, and no repository above the server to read the content from.");
 
         return new RealmOptions
         {
             Database = RealmDatabase.Parse(Setting("DATABASE") ?? (configuration["DATABASE_URL"] is { Length: > 0 } url ? url : "sqlite:realms.db")),
-            Root = Setting("ROOT") ?? FindRoot() ?? throw new InvalidOperationException("No REALMS_ROOT, and no repository above the server to read the content from."),
+            Root = root,
+            Reports = Path.GetFullPath(Setting("REPORTS") ?? Path.Combine(root, "realms", "reports"), root),
             Site = Setting("SITE") is { } site ? new Uri(site) : null,
             DiscordClientId = Setting("DISCORD_CLIENT_ID"),
             DiscordClientSecret = Setting("DISCORD_CLIENT_SECRET"),

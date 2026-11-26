@@ -3,6 +3,7 @@ using Cantrip.Realms.Server.Auth;
 using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Economy;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cantrip.Realms.Server;
 
@@ -137,6 +138,22 @@ public static class RealmApi
 
         api.MapPost("/waystone", async (HttpContext context, Dungeons dungeons, WaystoneTravel body) =>
             Results.Ok(await dungeons.Travel(Player(context), body).ConfigureAwait(false)));
+
+        // A playtest report (F8 anywhere in the game): written to the reports folder with what the server knows beside what
+        // the page sent - the character as stored, where presence has them, the server's log lately (Reports/PlayReports).
+        // A player with no character yet files one too.
+        api.MapPost("/reports", async (HttpContext context, Reports.PlayReports reports, Data.RealmDb db, Presence.PresenceHub hub, Reports.ReportFiling body) =>
+        {
+            string player = Player(context);
+            Data.PlayerRow? row = await db.Players.AsNoTracking().SingleOrDefaultAsync(row => row.Id == player).ConfigureAwait(false);
+            var state = new
+            {
+                Character = row,
+                Presence = hub.WhereIs(player).Select(where => new { where.Member, where.Space, where.At.X, where.At.Z }),
+                Duels = await db.Duels.AsNoTracking().Where(duel => duel.PlayerId == player).OrderByDescending(duel => duel.StartedAt).Take(3).ToListAsync().ConfigureAwait(false),
+            };
+            return Results.Ok(reports.File(player, row?.Name, state, body));
+        });
     }
 
     /// <summary>Every card the engine plays as printed, with the realm's legality and identity: <c>/api/catalog</c>'s body.</summary>

@@ -3,6 +3,7 @@
 // playing and testing the overworld with no server (?offline).
 
 import type { BodyName as Body, ManaColor, Slot } from "../art/figures";
+import { noteCall } from "../reports/logs";
 
 export type GearSlot = "head" | "neck" | "body" | "hands" | "feet" | "ring" | "relic";
 export type Rarity = "common" | "uncommon" | "rare" | "mythic";
@@ -345,6 +346,40 @@ export interface RealmApi {
    * passed before it), so a teleport seen in play can be read beside what the server did. Nothing elsewhere.
    */
   report?(text: string): Promise<void>;
+  /**
+   * Files a playtest report (F8 anywhere in the game; reports/index.ts): the realm server writes it to its reports folder
+   * (`POST /api/reports`); offline, the dev server does (vite.config.ts). Its id is its folder's name.
+   */
+  fileReport(body: ReportFiling): Promise<ReportFiled>;
+}
+
+/** A playtest report as the server takes it (`POST /api/reports`; realms/reports/README.md). */
+export interface ReportFiling {
+  readonly Kind: "bug" | "feedback" | "idea";
+  readonly Severity: "blocker" | "major" | "minor" | "trivial";
+  /** The part of the game it is about, a slug. */
+  readonly Area: string;
+  readonly Title: string;
+  readonly Description: string;
+  /** The screen as a PNG data URL, or null when left out. */
+  readonly Screenshot: string | null;
+  readonly Place: string;
+  readonly Screen: string;
+  readonly Build: string;
+  /** The state in a few lines, for the report's page. */
+  readonly Summary: readonly string[];
+  /** Everything the page knew (context.json). */
+  readonly Context: unknown;
+  readonly Console: string;
+  readonly Network: string;
+  readonly Cards: string;
+  readonly Trace: string;
+}
+
+/** Where a report was written: its id, which is its folder's name, and the folder. */
+export interface ReportFiled {
+  readonly Id: string;
+  readonly Folder: string;
 }
 
 /** The realm server over HTTP: same-origin `/api`, or the server `base` names, on the signed-in cookie. */
@@ -354,18 +389,27 @@ export class HttpApi implements RealmApi {
   constructor(private readonly base: string) {}
 
   private async call<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const response = await fetch(new URL(`api/${path}`, this.base), {
-      method,
-      credentials: "include",
-      headers: body === undefined ? {} : { "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    const began = performance.now();
+    let response: Response;
+    try {
+      response = await fetch(new URL(`api/${path}`, this.base), {
+        method,
+        credentials: "include",
+        headers: body === undefined ? {} : { "Content-Type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch (e) {
+      noteCall(method, path, "failed", performance.now() - began, String(e));
+      throw e;
+    }
     const text = await response.text();
     const json: unknown = text.length > 0 ? JSON.parse(text) : {};
     if (!response.ok) {
       const error = json as { Error?: string; Detail?: string };
+      noteCall(method, path, response.status, performance.now() - began, error.Error);
       throw new ApiError(response.status, error.Error ?? `Http${response.status}`, error.Detail ?? response.statusText);
     }
+    noteCall(method, path, response.status, performance.now() - began);
     return json as T;
   }
 
@@ -413,6 +457,7 @@ export class HttpApi implements RealmApi {
   };
   waystone = (body: { Tower: string }) => this.call<{ Place: Place }>("POST", "waystone", body);
   travelers = () => this.call<{ Travelers: readonly Traveler[] }>("GET", "travelers");
+  fileReport = (body: ReportFiling) => this.call<ReportFiled>("POST", "reports", body);
   report = async (text: string): Promise<void> => {
     // Only a development server has it (404 elsewhere): whatever comes back is let be.
     await fetch(new URL("dev/log", this.base), { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Text: text }) }).catch(() => undefined);

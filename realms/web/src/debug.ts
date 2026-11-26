@@ -16,7 +16,6 @@ const STORE = "realms.debug";
 const f2 = (n: number) => n.toFixed(2);
 
 export function bindDebug(game: Overworld): void {
-  const stage = game.stage;
   const panel = document.createElement("pre");
   panel.id = "debug-overlay";
   panel.dataset.test = "debug";
@@ -44,34 +43,42 @@ export function bindDebug(game: Overworld): void {
   const draw = () => {
     requestAnimationFrame(draw);
     if (!shown) return;
-    const spot = stage.current;
-    const grid = spot.grid;
-    const player = stage.player;
-    const p = player.position;
-    const t = player.tile;
-    const floor = (x: number, z: number) => (spot.floorAt ? spot.floorAt(x, z) : grid.heightAt(Math.floor(x), Math.floor(z)));
-    const lines = [
-      `place   ${spot.id}${spot.streamer ? `   chunk ${Math.floor(t.x / CHUNK)},${Math.floor(t.z / CHUNK)}` : ""}`,
-      `player  ${f2(p.x)}, ${f2(p.z)}   tile ${t.x},${t.z}   ${grid.walkable(t.x, t.z) ? "open" : "CLOSED"}`,
-      `        height ${f2(player.figure.root.position.y)}   floor ${f2(floor(p.x, p.z))}${player.hopping ? "   HOPPING" : ""}`,
-    ];
-    const under = pointer ? stage.floorTileAt(pointer.x, pointer.y) : null;
-    const side = under && Math.max(Math.abs(under.x - t.x), Math.abs(under.z - t.z)) === 1;
-    const step = !under || !side ? "" : !grid.canStep(t, under) ? "   no step" : grid.passes(t.x, t.z, under.x, under.z) ? "   a step" : "   a hop";
-    lines.push(
-      under
-        ? `cursor  tile ${under.x},${under.z}   ${grid.walkable(under.x, under.z) ? "open" : "CLOSED"}   floor ${f2(floor(under.x + 0.5, under.z + 0.5))}${step}`
-        : "cursor  -",
-    );
-    const jumps = game.jumps;
-    lines.push(jumps.length ? "jumps (newest first):" : "jumps   none seen");
-    for (const j of jumps) lines.push(`  ${j.at} ${j.place}: ${describeJump(j)}`);
-    const refused = game.refusedWalks;
-    lines.push(refused.length ? "walks refused (newest first):" : "refused none");
-    for (const r of refused) lines.push(`  ${r.at} ${r.reason} server ${r.server ? pointText(r.server) : "-"}, figure ${pointText(r.here)}: ${r.did}`);
-    lines.push("F3 hides this; click to copy");
-    const text = lines.join("\n");
+    const text = [...debugLines(game, pointer), "F3 hides this; click to copy"].join("\n");
     if (panel.textContent !== text) panel.textContent = text;
   };
   requestAnimationFrame(draw);
+}
+
+/**
+ * What the overlay shows, a line each: the place and chunk, the player's position, tile and floor, the tile under
+ * `pointer` (page pixels), and the jumps and refused walks seen. A playtest report carries it too (reports/context.ts).
+ */
+export function debugLines(game: Overworld, pointer: { readonly x: number; readonly y: number } | null): string[] {
+  const stage = game.stage;
+  const spot = stage.current;
+  const grid = spot.grid;
+  const player = stage.player;
+  const p = player.position;
+  const t = player.tile;
+  const floor = (x: number, z: number) => (spot.floorAt ? spot.floorAt(x, z) : grid.heightAt(Math.floor(x), Math.floor(z)));
+  const lines = [
+    `place   ${spot.id}${spot.streamer ? `   chunk ${Math.floor(t.x / CHUNK)},${Math.floor(t.z / CHUNK)}` : ""}`,
+    `player  ${f2(p.x)}, ${f2(p.z)}   tile ${t.x},${t.z}   ${grid.walkable(t.x, t.z) ? "open" : "CLOSED"}`,
+    `        height ${f2(player.figure.root.position.y)}   floor ${f2(floor(p.x, p.z))}${player.hopping ? "   HOPPING" : ""}`,
+  ];
+  const under = pointer ? stage.floorTileAt(pointer.x, pointer.y) : null;
+  const side = under && Math.max(Math.abs(under.x - t.x), Math.abs(under.z - t.z)) === 1;
+  const step = !under || !side ? "" : !grid.canStep(t, under) ? "   no step" : grid.passes(t.x, t.z, under.x, under.z) ? "   a step" : "   a hop";
+  lines.push(
+    under
+      ? `cursor  tile ${under.x},${under.z}   ${grid.walkable(under.x, under.z) ? "open" : "CLOSED"}   floor ${f2(floor(under.x + 0.5, under.z + 0.5))}${step}`
+      : "cursor  -",
+  );
+  const jumps = game.jumps;
+  lines.push(jumps.length ? "jumps (newest first):" : "jumps   none seen");
+  for (const j of jumps) lines.push(`  ${j.at} ${j.place}: ${describeJump(j)}`);
+  const refused = game.refusedWalks;
+  lines.push(refused.length ? "walks refused (newest first):" : "refused none");
+  for (const r of refused) lines.push(`  ${r.at} ${r.reason} server ${r.server ? pointText(r.server) : "-"}, figure ${pointText(r.here)}: ${r.did}`);
+  return lines;
 }

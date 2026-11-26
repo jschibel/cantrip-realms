@@ -58,6 +58,8 @@ import {
   type HeartsBought,
   type Place,
   type RealmApi,
+  type ReportFiled,
+  type ReportFiling,
   type Rematch,
   type Run,
   type RunFloor,
@@ -665,6 +667,19 @@ export class MockApi implements RealmApi {
     this.inn = room.town;
     this.update({ Inn: room.id });
     return { Inn: room.id };
+  }
+
+  /**
+   * A playtest report, with no realm server to take it: the dev server writes it as the server would, with the server's own
+   * writer (vite.config.ts, `/__realm/report`). A built page served elsewhere has nowhere to send it.
+   */
+  async fileReport(body: ReportFiling): Promise<ReportFiled> {
+    this.log("fileReport", { Kind: body.Kind, Title: body.Title });
+    const player = this.character ? `offline-${this.character.Name}` : "offline";
+    const response = await fetch(`/__realm/report?player=${encodeURIComponent(player)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const text = await response.text();
+    if (!response.ok) throw new ApiError(response.status, "NotSaved", text || "The dev server could not save the report.");
+    return JSON.parse(text) as ReportFiled;
   }
 
   /** The traders' schedule, the server's own (travelersAt), on the stand-in clock. */
