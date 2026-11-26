@@ -132,7 +132,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   const most = (g: number, t: number) => Math.min(t + 2 * grow, g - 2 * (APRON + 10));
   // A grown town (planner.ts: an elfhame, a clan hold, a village, the stilts) grows from its centre over more of its
   // grounds than a town of rows fills: what it does not build on is its woods and yards.
-  const grownBox = PLANNERS[formOf(town)] !== ROWS ? (town.kind === "village" ? 10 : 12) : 0;
+  const grownBox = PLANNERS[formOf(town)] !== ROWS ? (town.kind === "village" ? (formOf(town) === "clan" ? 16 : 10) : 12) : 0;
   const TW = most(GW0, TOWN_SIZE[town.kind][0] + grownBox);
   const TD = most(GD0, TOWN_SIZE[town.kind][1] + grownBox);
   const land = new Land(GW, GD);

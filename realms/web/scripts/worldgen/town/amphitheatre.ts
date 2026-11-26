@@ -61,7 +61,7 @@ interface Recipe {
 
 const RECIPES: Readonly<Record<Form, Recipe>> = {
   elfhame: { centre: { town: [16, 8], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } } },
-  clan: { centre: { town: [15, 7], village: [11, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 } },
+  clan: { centre: { town: [15, 7], village: [10, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 } },
   village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 } },
   stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } } },
 };
@@ -398,27 +398,35 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   // along them to it.
   let oval: Uint8Array | null = null;
   if (R.outline === "oval") {
-    let ex = rx + 3;
-    let ez = rz + 3;
-    const ocz = cz - Math.round((headWant.depth + 2) / 2);
+    // About the middle of what stands (its lots, the yard), circumscribing it with room for what grows, within the
+    // ground it may grow over.
+    let bx0 = Infinity;
+    let bz0 = Infinity;
+    let bx1 = -Infinity;
+    let bz1 = -Infinity;
     for (let i = 0; i < g.size; i++) {
-      if (!lotAt[i] && !net.paved[i] && !centreTiles[i]) continue;
-      const dx = Math.abs(g.x(i) + 0.5 - (cx + 0.5)) + 2.5;
-      const dz = Math.abs(g.z(i) + 0.5 - (ocz + 0.5)) + 2.5;
-      // Both radii grown in proportion until the tile is inside.
-      const k = Math.sqrt((dx / ex) ** 2 + (dz / ez) ** 2);
-      if (k > 1) {
-        ex *= k;
-        ez *= k;
-      }
+      if (!lotAt[i] && !centreTiles[i]) continue;
+      bx0 = Math.min(bx0, g.x(i));
+      bx1 = Math.max(bx1, g.x(i) + 1);
+      bz0 = Math.min(bz0, g.z(i));
+      bz1 = Math.max(bz1, g.z(i) + 1);
     }
-    const room = village ? 1.5 : 1.3;
+    const room = village ? 2 : 1.8;
+    const half = (box.x1 - box.x0) / 2 - 1.5;
+    const halfZ = (box.z1 - box.z0) / 2 - 1.5;
+    // An oval a little bigger than the ground it may grow over is shaved straight only where it meets that ground's edge.
+    const ox = Math.max(Math.min(half * 1.12, ((bx1 - bx0) / 2) * room), half * 0.95);
+    const oz = Math.max(Math.min(halfZ * 1.12, ((bz1 - bz0) / 2) * room), halfZ * 0.95);
+    const ocx = (box.x0 + box.x1) / 2;
+    const ocz = (box.z0 + box.z1) / 2;
     oval = new Uint8Array(g.size);
     for (let i = 0; i < g.size; i++) {
       const x = g.x(i);
       const z = g.z(i);
-      if (inEllipse(cx + 0.5, ocz + 0.5, ex * room, ez * room, x, z) && !nearSea[i] && x > box.x0 && z > box.z0 && x < box.x1 - 1 && z < box.z1 - 1) oval[i] = 1;
+      if (inEllipse(ocx, ocz, ox, oz, x, z) && !nearSea[i] && x > box.x0 && z > box.z0 && x < box.x1 - 1 && z < box.z1 - 1) oval[i] = 1;
     }
+    // What already stands is inside it.
+    for (let i = 0; i < g.size; i++) if (lotAt[i] || centreTiles[i] || net.paved[i]) oval[i] = 1;
   }
   const gates: Gate[] = [];
   const gateNodes: XZ[] = [];
@@ -602,7 +610,9 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     if (built[i] && (!oval || oval[i])) mask[i] = 1;
     if (nearSea[i] || x <= box.x0 || z <= box.z0 || x >= box.x1 - 1 || z >= box.z1 - 1) mask[i] = 0;
   }
+  if (process.env.TOWN_DEBUG === "mask") console.log(`built ${built.reduce((s, v) => s + v, 0)}, mask before holes ${mask.reduce((s, v) => s + (v ? 1 : 0), 0)}`);
   fillHoles(g, mask, box);
+  if (process.env.TOWN_DEBUG === "mask") console.log(`mask after holes ${mask.reduce((s, v) => s + (v ? 1 : 0), 0)}, box ${JSON.stringify(box)}`);
   // The ring round it: where the gates' roads cross it, its passages.
   ring(g, mask);
   const ringOpen = new Uint8Array(g.size);

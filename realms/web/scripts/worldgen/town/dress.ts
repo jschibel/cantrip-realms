@@ -259,7 +259,9 @@ function square(ctx: Ctx): void {
   const cx = (sq.x0 + sq.x1) / 2;
   const form = formOf(town);
   const used = new Set<number>();
-  const clear = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Kept && land.open(land.idx(x, z)) && !used.has(land.idx(x, z));
+  // In a grown town ways come into the centre from every side: nothing stands where one meets it.
+  const grownWay = (x: number, z: number) => isOrganic(plan) && land.n8(land.idx(x, z)).some((j) => land.use[j] === Use.Street);
+  const clear = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Kept && land.open(land.idx(x, z)) && !used.has(land.idx(x, z)) && !grownWay(x, z);
   // Nothing within a tile of a door, a gate's way, the arteries' lines through the square.
   const doorNear = (x: number, z: number) => {
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (land.inside(x + dx, z + dz) && land.use[land.idx(x + dx, z + dz)] === Use.Door) return true;
