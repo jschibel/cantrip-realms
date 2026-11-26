@@ -99,11 +99,34 @@ export function levelGrounds(ctx: Ctx): void {
     }
   }
   const quarter = STEP / 4;
+  const base = new Int16Array(land.size);
   for (let i = 0; i < land.size; i++) {
     if (!ramp[i]) continue;
+    base[i] = land.height[i]!;
     const low = land.n4(i, near).some((n) => ramp[n] && land.height[n]! > land.height[i]!);
     land.height[i] = low ? land.height[i]! + quarter : land.height[i]! - quarter;
     land.flags[i] = (land.flags[i]! & ~BLOCKED) | RAMP;
+  }
+  // A ramp climbs: along one axis, lower ground on one side and higher on the other. One that does not (the end of a
+  // ramp beside another way's own) is level ground again, its edge a hop; until none is left.
+  const W = land.width;
+  for (let pass = 0; pass < 8; pass++) {
+    let undone = 0;
+    for (let i = 0; i < land.size; i++) {
+      if (!ramp[i]) continue;
+      const x = i % W;
+      const h = land.height[i]!;
+      const across = (a: number, b: number) => (land.height[a]! < h && land.height[b]! > h) || (land.height[a]! > h && land.height[b]! < h);
+      if ((x > 0 && x < W - 1 && across(i - 1, i + 1)) || (i >= W && i + W < land.size && across(i - W, i + W))) continue;
+      // It and the ramp it was laid with, a level from it.
+      for (const j of [i, ...land.n4(i, []).filter((n) => ramp[n] && Math.abs(base[n]! - base[i]!) === STEP)]) {
+        ramp[j] = 0;
+        land.height[j] = base[j]!;
+        land.flags[j] = land.flags[j]! & ~RAMP;
+      }
+      undone++;
+    }
+    if (undone === 0) break;
   }
   land.levelled = true;
   void S;

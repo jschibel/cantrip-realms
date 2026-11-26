@@ -118,6 +118,9 @@ export function planTown(input: PlanInput): RowPlan {
   const ZA = inner.z0 + northQuayDepth;
   const ZB = inner.z1 - southDepth;
   const through = input.river === "through";
+  // A river through the town runs below the square's row, its quay the square's south street; on a later try (a town too
+  // small for a river among its rows), below its last row, between it and the gardens.
+  const riverAfter = (a: number, n: number) => (input.deep ? n - 1 : a);
   const span = ZB - ZA - (through ? RIVER_WIDTH : 0);
 
   // --- The rows, and the square's row and place: what minimises the walk to every gate ---------------------------------
@@ -159,7 +162,7 @@ export function planTown(input: PlanInput): RowPlan {
       const zs: number[] = [];
       for (let k = 0; k < n; k++) {
         zs.push(z);
-        z += depths[k]! + W + (through && k === a ? RIVER_WIDTH : 0);
+        z += depths[k]! + W + (through && k === riverAfter(a, n) ? RIVER_WIDTH : 0);
       }
       const sqTop = zs[a]! - W;
       const sqBottom = zs[a]! + depths[a]! + W;
@@ -197,6 +200,7 @@ export function planTown(input: PlanInput): RowPlan {
   }
   if (!best) throw new Error(`${input.id}: no place for its square`);
   const { n, a, depths, qx } = best;
+  const riverK = through ? riverAfter(a, n) : -1;
 
   // --- Bands and streets ----------------------------------------------------------------------------------------------
   const bands: Band[] = [];
@@ -209,7 +213,7 @@ export function planTown(input: PlanInput): RowPlan {
       z += depths[k]!;
       streetZ.push(z);
       z += W;
-      if (through && k === a) {
+      if (through && k === riverAfter(a, n)) {
         river = { k: -1, z0: z, z1: z + RIVER_WIDTH };
         z += RIVER_WIDTH;
       }
@@ -240,7 +244,10 @@ export function planTown(input: PlanInput): RowPlan {
       const taken = usedX.get(side) ?? [];
       // A south gate on the square's middle column; a north gate at the square's corner (its north row unbroken); a
       // second gate on a side at the other corner, or further out.
-      const options = side === "south" ? [qx + Math.floor((sqW - aw) / 2), qx - aw, square.x1, qx - aw - 14, square.x1 + 14] : [square.x1, qx - aw, qx + Math.floor((sqW - aw) / 2), square.x1 + 14, qx - aw - 14];
+      // The main gate in the north (no road from the south): its artery down the square's middle, the way the town is
+      // arrived at, its landmarks either side of it.
+      const middle = qx + Math.floor((sqW - aw) / 2);
+      const options = side === "south" ? [middle, qx - aw, square.x1, qx - aw - 14, square.x1 + 14] : main ? [middle, square.x1, qx - aw, square.x1 + 14, qx - aw - 14] : [square.x1, qx - aw, middle, square.x1 + 14, qx - aw - 14];
       const x = options.find((o) => o >= LX0 + westLane + 2 && o + aw <= LX1 - eastLane - 2 && taken.every((t) => Math.abs(t - o) >= aw + 6));
       if (x === undefined) throw new Error(`${input.id}: no room for a ${side} gate`);
       taken.push(x);
@@ -384,10 +391,10 @@ export function planTown(input: PlanInput): RowPlan {
     // Where the way is taken in this row: by the lanes (none in the north row, whose lots run to the walls), the
     // arteries, the square and the landmarks.
     const taken: [number, number][] = [];
-    const top = k === 0 ? b.z0 : streetZ[k - 1]! + W + (river && k === a + 1 ? RIVER_WIDTH : 0);
+    const top = k === 0 ? b.z0 : streetZ[k - 1]! + W + (river && k === riverK + 1 ? RIVER_WIDTH : 0);
     if (k > 0) {
-      connectors.push({ x: ex0(k), w: westLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
-      connectors.push({ x: ex1(k) - eastLane, w: eastLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      connectors.push({ x: ex0(k), w: westLane, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      connectors.push({ x: ex1(k) - eastLane, w: eastLane, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
       taken.push([ex0(k), ex0(k) + westLane], [ex1(k) - eastLane, ex1(k)]);
       bandConnectors[k]!.push(ex0(k), ex1(k) - eastLane);
     }
@@ -435,7 +442,7 @@ export function planTown(input: PlanInput): RowPlan {
           bestX = x;
         }
       }
-      connectors.push({ x: bestX, w: lw, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "connector" });
+      connectors.push({ x: bestX, w: lw, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "connector" });
       bandConnectors[k]!.push(bestX);
       split(x0, bestX);
       split(bestX + lw, x1);
@@ -462,7 +469,7 @@ export function planTown(input: PlanInput): RowPlan {
       });
     }
     const main = k === a || k === a - 1 || gates.some((g) => (g.side === "east" || g.side === "west") && g.inner[1] === mid(streetZ[k]!));
-    streets.push({ k, z: streetZ[k]!, w: W, runs, main, ...(river && k === a ? { quay: true } : {}) });
+    streets.push({ k, z: streetZ[k]!, w: W, runs, main, ...(river && k === riverK ? { quay: true } : {}) });
   }
 
   // --- Blocks -------------------------------------------------------------------------------------------------------------

@@ -24,9 +24,6 @@ import { type BuiltTown, type TownSetting, buildTown, groundsSize } from "./town
 import { type MobFile, type Site, connect, farmland, placeDungeon, placePeaks, populate, resolveMobs, scatter } from "./wilds";
 import { makeZones, walkingDistances } from "./zones";
 
-/** Whether the towns are built leniently (a broken rule a note, not an error): never, once every town keeps its rules. */
-const LENIENT_TOWNS = true;
-
 /** A vendor file (interfaces.md, "Vendors"): a shop's in its `town`, an exotic wares shop's `exotic`; a traveling trader has no town. */
 export interface Vendor {
   readonly id: string;
@@ -244,7 +241,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     const g = pockets.get(plan.id)!;
     const spec = { plan, index, color: colorOf(geo.towns[plan.id]!.region), vendors: sold, exotic: exotic[0] ?? null, origin: [g[0], g[1]] as const };
     // Strict: a town that breaks a rule of its own throws, naming it (town/check.ts).
-    const built: BuiltTown = buildTown(land, { ...spec, setting }, seed, { lenient: LENIENT_TOWNS });
+    const built: BuiltTown = buildTown(land, { ...spec, setting }, seed);
     notes.push(...built.report.notes.map((n) => `${plan.id} (setting ${JSON.stringify(setting)}): ${n}`));
     if (built.data.grounds.join() !== g.join()) throw new Error(`${plan.id}: its grounds ${built.data.grounds.join(",")} are not its pocket ${g.join(",")}`);
     const data: TownData = {

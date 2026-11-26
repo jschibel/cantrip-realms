@@ -588,7 +588,8 @@ function water(ctx: Ctx): void {
         const i = land.idx(x, z);
         land.flags[i] = 0;
         land.use[i] = Use.Dock;
-        if (!land.isWater(i)) land.surface[i] = S.planks;
+        // Its deck is what is walked: planks, over the water too (no open tile of the sea is walked).
+        land.surface[i] = S.planks;
         land.decor.delete(i);
       }
       land.fixtures.push({ id: "pier", x: x0, z: z0, args: { to: [x1, z1], y: 0.3 } });

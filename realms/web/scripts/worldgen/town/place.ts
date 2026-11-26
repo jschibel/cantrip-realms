@@ -121,6 +121,8 @@ export interface PlaceContext {
   /** The walk along the streets from the main gate, and from the square, to a street tile (Infinity off the streets). */
   readonly walkMain: (x: number, z: number) => number;
   readonly walkSquare: (x: number, z: number) => number;
+  /** The walk from the main gate to the square's nearest tile. */
+  readonly mainToSquare: number;
   /** Other gates' junctions, and the water's edge (the quay), for the artisans. */
   readonly sideGates: readonly XZ[];
 }
@@ -284,7 +286,8 @@ export class Placer {
         break;
       case "inn":
         if (sq > 30) return null;
-        s += this.c.walkMain(door[0], door[1]) * 1.4 + sq * 0.8 + (onSquare ? -4 : 0);
+        // By the way in: no further from the main gate than a little past the square (check.ts holds it to that).
+        s += this.c.walkMain(door[0], door[1]) * 1.4 + Math.max(0, this.c.walkMain(door[0], door[1]) - this.c.mainToSquare - 12) * 20 + sq * 0.8 + (onSquare ? -4 : 0);
         break;
       case "shop":
       case "exotic":
@@ -347,8 +350,13 @@ export class Placer {
       }
       return missing;
     }
+    const fails = new Map<number, number>();
+    const hardest = () => {
+      const k = [...fails].sort((p, q) => q[1] - p[1] || p[0] - q[0])[0]?.[0] ?? i;
+      return `${order[k]!.id} (${this.why(order[k]!)})`;
+    };
     while (i < order.length) {
-      if (--budget < 0) throw new Error(`${this.c.town.id}: no room for ${order[i]!.id}`);
+      if (--budget < 0) throw new Error(`${this.c.town.id}: no room for ${hardest()}`);
       const need = order[i]!;
       const skip = tried.get(i) ?? 0;
       const found = this.firstFitting(need, skip);
@@ -359,8 +367,9 @@ export class Placer {
         continue;
       }
       // None: back up a step, and try the one before at its next spot.
+      fails.set(i, (fails.get(i) ?? 0) + 1);
       tried.delete(i);
-      if (i === 0) throw new Error(`${this.c.town.id}: no room for ${need.id} (${this.why(need)})`);
+      if (i === 0) throw new Error(`${this.c.town.id}: no room for ${hardest()}`);
       i--;
       this.undo(stack.pop()!);
     }

@@ -87,8 +87,8 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
   validate(spec);
   // The town's shape as designed first; where its places will not all fit or a rule breaks, the same town drawn fuller
   // (its rows pulled in less), then with rows as deep as its great buildings need - a fixed sequence, the same every
-  // time, never a search over seeds.
-  const attempts: { scale: number; deep: boolean }[] = [
+  // time, never a search over seeds - and last with a bigger built area, as far as its grounds allow.
+  const attempts: { scale: number; deep: boolean; grow?: number }[] = [
     { scale: 1, deep: false },
     { scale: 0.6, deep: false },
     { scale: 0.3, deep: false },
@@ -96,11 +96,13 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
     { scale: 1, deep: true },
     { scale: 0.3, deep: true },
     { scale: 0, deep: true },
+    { scale: 0, deep: true, grow: 6 },
+    { scale: 0, deep: true, grow: 12 },
   ];
   const errors: string[] = [];
   for (let k = 0; ; k++) {
     try {
-      return buildOnce(target, spec, seed, options, attempts[k]!.scale, attempts[k]!.deep);
+      return buildOnce(target, spec, seed, options, attempts[k]!.scale, attempts[k]!.deep, attempts[k]!.grow ?? 0);
     } catch (e) {
       if (options.lenient) throw e;
       errors.push((e as Error).message);
@@ -120,11 +122,15 @@ function validate(spec: TownSpec): void {
   if (!(s.relief >= 0 && s.relief <= 1)) throw new Error(`${id}: relief ${s.relief}, not 0 to 1`);
 }
 
-function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, scale: number, deep: boolean): BuiltTown {
+function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, scale: number, deep: boolean, grow: number): BuiltTown {
   const town = spec.plan;
   const F = formSpec(town);
   const [GW, GD] = groundsSize(town);
-  const [TW, TD] = TOWN_SIZE[town.kind];
+  // The box it grows in: its kind's, or bigger by `grow` each way, leaving the walked country and the apron room.
+  const [GW0, GD0] = groundsSize(town);
+  const most = (g: number, t: number) => Math.min(t + 2 * grow, g - 2 * (APRON + 10));
+  const TW = most(GW0, TOWN_SIZE[town.kind][0]);
+  const TD = most(GD0, TOWN_SIZE[town.kind][1]);
   const land = new Land(GW, GD);
   const tag = `${seed}:town:${town.id}`;
   const random = (part: string) => randomFor(seed, `town:${town.id}:${part}`);
@@ -180,6 +186,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
 
   if (scale < 1) ctx.notes.push(`its shape drawn at ${scale} of its pull, to find room for its places`);
   if (deep) ctx.notes.push("its rows as deep as its great buildings, to find room for its places");
+  if (grow > 0) ctx.notes.push(`its built area ${TW} by ${TD}, to find room for its places`);
   // --- The ground: the country, the sea and the river, then the town over it ----------------------------------------
   country(ctx, fields, "ground");
   planner.paint(ctx);
@@ -219,6 +226,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     mustSee: (x, z) => land.inside(x, z) && ctx.mustSee[land.idx(x, z)] === 1,
     walkMain: at(fromMain),
     walkSquare: at(fromSquare),
+    mainToSquare: Math.min(...squareTiles.map((i) => fromMain[i]!)),
     main: main.inner,
     sideGates: [...plan.gates.filter((g) => g !== main).map((g) => g.inner), ...(plan.river ? [[(plan.box.x0 + plan.box.x1) / 2, plan.river.z0] as XZ] : [])],
   });
@@ -226,7 +234,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   // Footpaths through the yards where a walk between the places (or from a gate) is the long way round; kept clear of
   // what the rest of the rows build.
   const points = [
-    ...plan.gates.map((g) => ({ at: g.inner, gate: true })),
+    ...plan.gates.map((g) => ({ at: [Math.floor((g.passage.x0 + g.passage.x1 - 1) / 2), Math.floor((g.passage.z0 + g.passage.z1 - 1) / 2)] as XZ, gate: true })),
     ...placer.placed.flatMap((p) => [...(p.need?.place ? [{ at: p.f.door, gate: false }] : []), ...(p.spot ? [{ at: p.spot, gate: false }] : [])]),
   ];
   const cut = passages(ctx, placer.placed, points);

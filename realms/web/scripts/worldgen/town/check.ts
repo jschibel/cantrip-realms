@@ -20,7 +20,7 @@ import { PROPS } from "../../../src/art/props/registry";
 import type { BuildingData, PropData, TownData, XZ } from "../../../src/world/format";
 import { BLOCKED, OBJECT_KINDS, RAMP } from "../../../src/world/format";
 import { TOWN_LIMITS, lintTown } from "../../../src/world/lint";
-import { streetTiles } from "../../../src/world/streets";
+import { inSquare, streetTiles } from "../../../src/world/streets";
 import { Use } from "../land";
 import { formOf } from "./forms";
 import type { Ctx } from "./index";
@@ -213,14 +213,30 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
 
   // The square: a room with three walls, open to the south.
   const sq = plan.square;
+  // Each column's north edge of the square (a round one's ellipse): a front there - a building facing south whose front
+  // stands on it, or no more than a path's width north of it where the square is round (a glade's, a green's), or the
+  // wall of a landmark's ground (a keep's, a manor's) - is its north side.
+  const square = data.plan!.squares[0]!;
+  const topOf = (x: number) => {
+    for (let z = sq.z0; z < sq.z1; z++) if (inSquare(square, x, z)) return z;
+    return null;
+  };
   let north = 0;
-  for (let x = sq.x0; x < sq.x1; x++) if (townBuildings.some((b) => b.rot === 0 && b.z + b.d === sq.z0 && x >= b.x && x < b.x + b.w)) north++;
+  let columns = 0;
+  for (let x = sq.x0; x < sq.x1; x++) {
+    const top = topOf(x);
+    if (top === null) continue;
+    columns++;
+    const reach = square.round ? 3 : 0;
+    const fronted = townBuildings.some((b) => b.rot === 0 && b.z + b.d <= top && b.z + b.d >= top - reach && x >= b.x && x < b.x + b.w) || plan.sites.some((s) => !s.id.endsWith("-temple") && s.box.z1 === top && x >= s.box.x0 && x < s.box.x1);
+    if (fronted) north++;
+  }
   const sideFilled = (x0: number, x1: number) => {
     let n = 0;
     for (let z = sq.z0; z < sq.z1; z++) if (townBuildings.some((b) => b.x < x1 && b.x + b.w > x0 && z >= b.z && z < b.z + b.d)) n++;
     return n / (sq.z1 - sq.z0);
   };
-  const northShare = north / (sq.x1 - sq.x0);
+  const northShare = north / Math.max(1, columns);
   if (northShare < 0.4) problems.push(`the square's north side is ${Math.round(northShare * 100)}% fronts`);
   const west = sideFilled(sq.x0 - 8, sq.x0);
   const east = sideFilled(sq.x1, sq.x1 + 8);
@@ -327,7 +343,10 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   const toSquare = Math.min(...squareTiles.map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
   // The inn by the main arrival: no further than a block past where the square begins, or than the square's far side
   // (the inn fronting the square across from the way in, seen as one comes in).
-  const farSide = Math.min(...squareTiles.filter(([, z]) => z === sq.z0).map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
+  // The square's far side from the way in: its north edge for a gate in the south, its south edge for one in the north,
+  // the edge across from an east or west gate.
+  const far = mainGate.side === "south" ? ([, z]: XZ) => z === sq.z0 : mainGate.side === "north" ? ([, z]: XZ) => z === sq.z1 - 1 : mainGate.side === "east" ? ([x]: XZ) => x === sq.x0 : ([x]: XZ) => x === sq.x1 - 1;
+  const farSide = Math.min(...squareTiles.filter(far).map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
   if (innPlace && toInn > Math.max(toSquare + 20, farSide + 8)) problems.push(`the inn is ${Math.round(toInn)} tiles from the main gate, the square ${Math.round(toSquare)}`);
 
   // Terraces: a hop at most between open neighbours; nothing walled in a pocket.
