@@ -371,18 +371,27 @@ owner may extend.
   quays where there is water. Each region's towns are built in its own style: Benalish stone and banners, a Benalish
   village's thatch, Tolarian domes, the Morass's dark stilt-houses, the Vess manor's black stone, Keldon longhouses
   behind a palisade, Llanowar's tree-houses round a clearing.
-  - **Every town is built for the camera.** The camera looks north and never sees a north face, so a town is rows:
-    each row's buildings face south onto the street before them, their doors and signs seen whole, and behind them
-    lie their gardens, deep enough that nothing tall hides the street beyond. The south side of every street is low -
-    hedges, garden walls, orchards - so a street and the fronts across it are seen together. Tall things stand at the
-    north: the cathedral or great hall commands the square from its north side, the keep or the manor stands at the
-    north wall. The square is a room: fronts on its north, the rows' ends on its east and west, and its south side open
-    toward the main gate, so whoever arrives sees the square and the town's best fronts first.
-  - **Every town is easy to cross.** Main streets run from each gate straight to the square; the shops, the inn, the
-    temple, the guild and the rest stand on the square or a block off it, the inn nearest the main gate; short
-    north-south connectors join the east-west streets so every walk loops, never an alley to nowhere. Every building
-    has its door on a street and a reason to be there; open space - the square, gardens, orchards, a churchyard, a quay
-    - lies between.
+  - **Every town is built for the camera.** The camera looks north and never sees a north face, so every building that
+    matters faces south, its door and sign seen whole, and behind it lies ground deep enough that nothing tall hides a
+    street, a square or a door beyond. Tall things stand at the north of the open space they command: the cathedral,
+    the great hall, the Grove of Gaea, the shrine at the head of the square, the green, the glade or the yard; the keep
+    or the manor at the north wall. The centre is a room open to the south, toward the way in, so whoever arrives sees
+    it and the town's best fronts first.
+  - **Each form is its own kind of place**, recognizable from above. Benalia's capital and cities, the Academy and the
+    Vess estate are rows: streets east to west, each row's fronts along the north side of its street, gardens behind,
+    the square a room in the rows. The others grow round their centre in arcs open to the south, an amphitheatre: an
+    **elfhame** is a glade among great trees with tree-houses round its north, east and west and winding dirt paths
+    between them, no wall; a **clan hold** is the great hall at the head of its yard, longhouses in a horseshoe round
+    it, inside an oval palisade; a **village** is houses gathered loosely round a green with its well, lanes wandering
+    off between gardens; the **stilts** of the Morass are houses on stilts round a platform of planks, every way a
+    boardwalk over the bog, a lantern at every junction. Their paths bend with the ground and fronts step forward and
+    back.
+  - **Every town is easy to cross.** Main ways run from each gate to the centre; the shops, the inn, the temple, the
+    guild and the rest stand on it or near it, the inn by the main gate's way in; every walk loops, never an alley to
+    nowhere, and where the way round between two places or neighbours would be long, a footpath runs through the yards.
+    Every building has its door on a way and a reason to be there; open space - the square, gardens, orchards, a
+    churchyard, a quay - lies between. A town is laid out wherever the travel map puts it: on any roads in, any shore, a
+    river through or past it, flat or on a hill.
   - **The map shows the way.** In a town the minimap is the town's: its streets, buildings, gates and places - the inn,
     the shops, the guild, the temple, the smithy, the quest board - and the whole map names each place and where each
     gate's road leads.
