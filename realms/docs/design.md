@@ -354,8 +354,8 @@ owner may extend.
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius and give chase when you come within 8 tiles, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** stand each in grounds of their own at walking scale: the town within its walls (New Benalia 108 by 88 tiles,
-  the home towns 72 by 60, the villages 44 by 30), the country round it that is walked - fields, a farm, a wood's edge,
+- **Towns** stand each in grounds of their own at walking scale: the town within its walls (New Benalia within some 108 by 100 tiles,
+  the home towns 72 by 72, the villages 44 by 40, each the shape it grew to, its wall traced round it), the country round it that is walked - fields, a farm, a wood's edge,
   the shore - closed by hedgerow, wood or water but where its roads leave, and scenery beyond. Each is shaped by where it
   stands (a harbour and quay on the sea, a river through it under bridges, terraces climbing toward the north on a
   hill) and by its roads, which become its gates. Building types: houses and tenements, shops, an inn, a temple (a

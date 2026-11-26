@@ -116,6 +116,8 @@ export interface Plan {
   /** The interior: inside the walls. */
   readonly inner: Box;
   readonly bands: readonly Band[];
+  /** How far each row reaches, x0..x1 (x1 excluded): the town's shape. */
+  readonly ext: readonly (readonly [number, number])[];
   readonly streets: readonly Street[];
   readonly connectors: readonly Connector[];
   readonly square: Box & { readonly a: number };
@@ -144,6 +146,9 @@ export interface PlanInput {
   /** The land's height, in levels (fractional), at a tile. */
   readonly height: (x: number, z: number) => number;
   readonly sites: readonly SiteRequest[];
+  /** The town's shape: its rows' profile, how far an end may be pulled in, the noise that pulls it, a scale (1 as
+   * designed; less where the town must find more room). */
+  readonly shape: { readonly profile: "oval" | "lozenge" | "blob" | "flat"; readonly most: number; readonly scale: number; readonly noise: (u: number, v: number) => number };
   /**
    * What the row fronting the square from the north must hold: its great buildings' depth, and their depth and the
    * ground they hide behind them.
@@ -346,6 +351,54 @@ export function planTown(input: PlanInput): Plan {
   });
   if (!gates.some((g) => g.main) && gates[0]) gates[0] = { ...gates[0], main: true };
 
+  // --- How far each row reaches: grown out from the square, not the box ------------------------------------------------
+  // Each row runs as far east and west as the town's shape and the land let it: the form's profile (an oval for a clan,
+  // a lozenge for a city, a loose blob for a village or an elfhame) with each end of each row pulled in by its own noise,
+  // never so far that the square, an artery or a block's worth beside them is lost. The wall then traces what is built.
+  const ext: [number, number][] = [];
+  {
+    const half = (LX1 - LX0) / 2;
+    const grain = input.shape.noise;
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n;
+      const u = Math.abs(2 * t - 1);
+      const base = input.shape.profile === "oval" ? half * (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 0.85 : input.shape.profile === "lozenge" ? half * 0.3 * u ** 1.5 : input.shape.profile === "blob" ? 2 : 0;
+      // A side on the sea runs straight along its quay.
+      const pull = (side: number) => ((side === 0 && sea.has("west")) || (side === 1 && sea.has("east")) || (k === n - 1 && sea.has("south")) ? 0 : pulled(side));
+      const pulled = (side: number) => Math.round(Math.max(0, Math.min(input.shape.most, (base + grain(k * 3.1, side * 5.3) * input.shape.most) * input.shape.scale)));
+      ext.push([LX0 + pull(0), LX1 - pull(1)]);
+    }
+    // What a row must keep: the square (a lane against it, or a block's length beside it), every artery crossing it with a
+    // block's length beside it, and a north row no wider than the row after it (whose lanes its street ends on).
+    const keep = (k: number, x0: number, x1: number) => {
+      const [e0, e1] = ext[k]!;
+      let w = Math.min(e0, x0 - westLane - F.block[0]);
+      if (x0 - westLane - e0 >= 0 && x0 - westLane - e0 < F.block[0]) w = x0 - westLane;
+      let e = Math.max(e1, x1 + eastLane + F.block[0]);
+      if (e1 - eastLane - x1 >= 0 && e1 - eastLane - x1 < F.block[0]) e = x1 + eastLane;
+      ext[k] = [Math.max(LX0, w), Math.min(LX1, e)];
+    };
+    keep(a, square.x0, square.x1);
+    for (const r of arteries) for (let k = 0; k < n; k++) if (r.z0 < bands[k]!.z1 + W && r.z1 > bands[k]!.z0) keep(k, r.x, r.x + aw);
+    if (n > 1) ext[0] = [Math.max(ext[0]![0], ext[1]![0]), Math.min(ext[0]![1], ext[1]![1])];
+  }
+  const ex0 = (k: number) => ext[Math.max(0, Math.min(n - 1, k))]![0];
+  const ex1 = (k: number) => ext[Math.max(0, Math.min(n - 1, k))]![1];
+  /** A street's reach: the wider of the rows either side of it. */
+  const streetSpan = (k: number): [number, number] => (k < n - 1 ? [Math.min(ex0(k), ex0(k + 1)), Math.max(ex1(k), ex1(k + 1))] : [ex0(k), ex1(k)]);
+  // An east or west gate opens where its street ends.
+  for (let i = 0; i < gates.length; i++) {
+    const g = gates[i]!;
+    if (g.side !== "east" && g.side !== "west") continue;
+    const k = streetZ.findIndex((z) => mid(z) === g.inner[1]);
+    const [s0, s1] = streetSpan(k);
+    const mz = g.inner[1];
+    gates[i] =
+      g.side === "west"
+        ? { ...g, passage: { x0: s0 - 1, z0: mz + glo, x1: s0, z1: mz + glo + gw }, node: [s0 - 4, mz], inner: [s0 + Math.floor((westLane - 1) / 2), mz] }
+        : { ...g, passage: { x0: s1, z0: mz + glo, x1: s1 + 1, z1: mz + glo + gw }, node: [s1 + 3, mz], inner: [s1 - eastLane + Math.floor((eastLane - 1) / 2), mz] };
+  }
+
   // --- Landmarks' ground, across rows -----------------------------------------------------------------------------------
   const sites: Site[] = [];
   const blockedX = (x0: number, x1: number, z0: number, z1: number) =>
@@ -360,13 +413,17 @@ export function planTown(input: PlanInput): Plan {
     const z1 = bands[k1]!.z1;
     let found: Box | null = null;
     let bestCost = Infinity;
-    const lo = LX0 + (k0 === 0 ? 0 : westLane + lw);
-    const hi = LX1 - (k0 === 0 ? 0 : eastLane + lw);
+    let lo = -Infinity;
+    let hi = Infinity;
+    for (let k = k0; k <= k1; k++) {
+      lo = Math.max(lo, ex0(k) + (k === 0 ? 0 : westLane + lw));
+      hi = Math.min(hi, ex1(k) - (k === 0 ? 0 : eastLane + lw));
+    }
     /** What already takes the way in a row: its lanes, the arteries, the square, the landmarks placed. */
     const takenIn = (k: number): [number, number][] => {
       const out: [number, number][] = [];
-      if (k > 0) out.push([LX0, LX0 + westLane], [LX1 - eastLane, LX1]);
-      else out.push([LX0 - 1, LX0], [LX1, LX1 + 1]);
+      if (k > 0) out.push([ex0(k), ex0(k) + westLane], [ex1(k) - eastLane, ex1(k)]);
+      else out.push([ex0(k) - 1, ex0(k)], [ex1(k), ex1(k) + 1]);
       for (const r of arteries) if (r.z0 < bands[k]!.z1 && r.z1 > bands[k]!.z0) out.push([r.x, r.x + aw]);
       for (const s of sites) if (k >= s.k0 && k <= s.k1) out.push([s.box.x0, s.box.x1]);
       if (k === a) out.push([square.x0, square.x1]);
@@ -375,7 +432,7 @@ export function planTown(input: PlanInput): Plan {
     for (let x = lo; x + req.w <= hi; x++) {
       if (blockedX(x, x + req.w, z0, z1)) continue;
       // Room for a connector each side where the rows below the first need one.
-      if (k1 > k0 && (x - lw < LX0 + westLane || x + req.w + lw > LX1 - eastLane)) continue;
+      if (k1 > k0 && [...Array(k1 - k0 + 1).keys()].some((d) => x - lw < ex0(k0 + d) + westLane || x + req.w + lw > ex1(k0 + d) - eastLane)) continue;
       const centre = x + req.w / 2;
       const axis = req.where === "north" ? Math.abs(centre - (square.x0 + square.x1) / 2) * 0.3 : Math.abs(centre - (square.x0 + square.x1) / 2) + (centre > square.x0 && centre < square.x1 ? 0 : 30);
       // No sliver of a block either side: the ground left between it and what stands beside it is none, a connector's,
@@ -411,10 +468,10 @@ export function planTown(input: PlanInput): Plan {
     const taken: [number, number][] = [];
     const top = k === 0 ? b.z0 : streetZ[k - 1]! + W + (river && k === a + 1 ? RIVER_WIDTH : 0);
     if (k > 0) {
-      connectors.push({ x: LX0, w: westLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
-      connectors.push({ x: LX1 - eastLane, w: eastLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
-      taken.push([LX0, LX0 + westLane], [LX1 - eastLane, LX1]);
-      bandConnectors[k]!.push(LX0, LX1 - eastLane);
+      connectors.push({ x: ex0(k), w: westLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      connectors.push({ x: ex1(k) - eastLane, w: eastLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      taken.push([ex0(k), ex0(k) + westLane], [ex1(k) - eastLane, ex1(k)]);
+      bandConnectors[k]!.push(ex0(k), ex1(k) - eastLane);
     }
     for (const r of arteries) if (r.z0 < b.z1 && r.z1 > b.z0) {
       taken.push([r.x, r.x + aw]);
@@ -446,7 +503,10 @@ export function planTown(input: PlanInput): Plan {
       if (hi2 < lo2) return;
       let bestX = -1;
       let bestScore = Infinity;
+      // In line with a connector of the row above only where nothing else can be.
+      const any = [...Array(hi2 - lo2 + 1).keys()].some((d) => above.every((c) => Math.abs(c - (lo2 + d)) >= 7));
       for (let x = lo2; x <= hi2; x++) {
+        if (any && above.some((c) => Math.abs(c - x) < 7)) continue;
         // Near the middle, but never in line with a connector of the row above: the rows meet the ways down at T
         // junctions, a brick bond rather than a grid.
         const middle = Math.abs(x + lw / 2 - (x0 + x1) / 2) * 0.6;
@@ -462,18 +522,18 @@ export function planTown(input: PlanInput): Plan {
       split(x0, bestX);
       split(bestX + lw, x1);
     };
-    let at = LX0;
+    let at = ex0(k);
     for (const [t0, t1] of taken) {
       if (t0 > at) split(at, t0);
       at = Math.max(at, t1);
     }
-    if (at < LX1) split(at, LX1);
+    if (at < ex1(k)) split(at, ex1(k));
   }
 
   // --- Streets: each row's, cut where a landmark spans the rows either side ---------------------------------------------
   const streets: Street[] = [];
   for (let k = 0; k < n; k++) {
-    let runs: [number, number][] = [[LX0, LX1]];
+    let runs: [number, number][] = [streetSpan(k)];
     for (const s of sites) {
       if (k < s.k0 || k >= s.k1) continue;
       runs = runs.flatMap(([x0, x1]) => {
@@ -496,14 +556,14 @@ export function planTown(input: PlanInput): Plan {
     if (k === a) cuts.push([square.x0, square.x1, "lane"]);
     const siteCuts = sites.filter((s) => k >= s.k0 && k <= s.k1).map((s) => [s.box.x0, s.box.x1] as const);
     const all = [...cuts.map(([p, q, kind]) => ({ p, q, what: kind === "lane" && k === a && p === square.x0 ? ("square" as const) : kind === "lane" ? ("lane" as const) : ("street" as const) })), ...siteCuts.map(([p, q]) => ({ p, q, what: "site" as const }))].sort((u, v) => u.p - v.p);
-    let at = LX0;
+    let at = ex0(k);
     let west: Block["west"] = "wall";
     for (const c of all) {
       if (c.p > at) blocks.push({ k, x0: at, x1: c.p, z0, z1: b.z1, west, east: c.what });
       at = Math.max(at, c.q);
       west = c.what;
     }
-    if (at < LX1) blocks.push({ k, x0: at, x1: LX1, z0, z1: b.z1, west, east: "wall" });
+    if (at < ex1(k)) blocks.push({ k, x0: at, x1: ex1(k), z0, z1: b.z1, west, east: "wall" });
   }
 
   // --- Levels: each row at the land's height under it, a level at most from the next, the square's rows one ----------
@@ -531,7 +591,7 @@ export function planTown(input: PlanInput): Plan {
       if (levels[k]! < levels[k - 1]! - 1) levels[k] = levels[k - 1]! - 1;
     }
   }
-  return { box, inner, bands, streets, connectors, square, gates, sites, blocks, south, northQuay, river, levels, sea };
+  return { box, inner, bands, ext, streets, connectors, square, gates, sites, blocks, south, northQuay, river, levels, sea };
 }
 
 // --- The plan as the world keeps it ---------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import { S } from "../ids";
 import { Use, fbm, noise, texel } from "../land";
 import { makeBuilding } from "./buildings";
 import type { Ctx } from "./index";
-import { type Fields, apron, countryOf, roadPath, treeProp } from "./site";
+import { COUNTRY, type Fields, apron, countryOf, roadPath, treeProp } from "./site";
 import { smoothLevels } from "./terrain";
 import type { Side } from "./types";
 import { propHides } from "./view";
@@ -67,6 +67,9 @@ export function poisson(x0: number, z0: number, x1: number, z1: number, r: numbe
   }
   return pts.filter(([x, z]) => ok(Math.floor(x), Math.floor(z)));
 }
+
+/** The apron of scenery at the grounds' edge, seen and never walked (index.ts, APRON). */
+const APRON_DEPTH = 26;
 
 const SIDE_STEP: Record<Side, XZ> = { north: [0, -1], south: [0, 1], west: [-1, 0], east: [1, 0] };
 
@@ -129,12 +132,16 @@ function roads(ctx: Ctx, f: Fields): void {
   const { land, plan } = ctx;
   const C = countryOf(f.setting.biome);
   const box = plan.box;
-  const inBox = (x: number, z: number) => x >= box.x0 && x < box.x1 && z >= box.z0 && z < box.z1;
-  smoothLevels(ctx, (i) => inBox(land.xOf(i), land.zOf(i)) || land.surface[i] === S.sea);
+  const inBox = (x: number, z: number) => land.inside(x, z) && ctx.inTown[land.idx(x, z)] !== 0;
+  smoothLevels(ctx, (i) => ctx.inTown[i] !== 0 || land.surface[i] === S.sea);
+  walkedGround(ctx, f);
   const random = ctx.random("roads");
-  const W = f.walked;
-  const inWalked = (x: number, z: number) => x >= W.x0 && x < W.x1 && z >= W.z0 && z < W.z1;
-  const onRing = (x: number, z: number) => !inWalked(x, z) && x >= W.x0 - 1 && x <= W.x1 && z >= W.z0 - 1 && z <= W.z1;
+  const inWalked = (x: number, z: number) => land.inside(x, z) && ctx.walked[land.idx(x, z)] === 1;
+  const onRing = (x: number, z: number) => {
+    if (!land.inside(x, z) || inWalked(x, z)) return false;
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (inWalked(x + dx, z + dz)) return true;
+    return false;
+  };
   const roadSurface = ctx.town.kind === "capital" || ctx.town.style === "benalish" ? S.road : C.track === S.planks ? S.planks : S.dirt;
   const roadTiles = new Set<number>();
   const flank = new Set<number>();
@@ -312,8 +319,9 @@ function scenery(ctx: Ctx, f: Fields): void {
   const random = ctx.random("scenery");
   const box = plan.box;
   const W = f.walked;
-  const inWalked = (x: number, z: number) => x >= W.x0 && x < W.x1 && z >= W.z0 && z < W.z1;
-  const nearBox = (x: number, z: number, m: number) => x >= box.x0 - m && x < box.x1 + m && z >= box.z0 - m && z < box.z1 + m;
+  const inWalked = (x: number, z: number) => land.inside(x, z) && ctx.walked[land.idx(x, z)] === 1;
+  const toTown = land.distances(townTiles(ctx));
+  const nearBox = (x: number, z: number, m: number) => land.inside(x, z) && toTown[land.idx(x, z)]! <= m;
   const I = (x: number, z: number) => land.idx(x, z);
   const free = (x: number, z: number) => land.inside(x, z) && land.use[I(x, z)] === Use.Wild && land.open(I(x, z)) && !land.isWater(I(x, z));
   const nearRoad = (x: number, z: number, m: number) => {
@@ -325,7 +333,7 @@ function scenery(ctx: Ctx, f: Fields): void {
   let farms = 0;
   const style = ctx.town.style === "benalish" ? "village" : ctx.town.style;
   if (!["urborg", "llanowar"].includes(ctx.town.style)) {
-    const spots = poisson(W.x0 + 4, W.z0 + 4, W.x1 - 4, W.z1 - 4, 14, random, (x, z) => free(x, z) && !nearBox(x, z, 5) && nearRoad(x, z, 3) && !nearRoad(x, z, 1));
+    const spots = poisson(W.x0 + 4, W.z0 + 4, W.x1 - 4, W.z1 - 4, 14, random, (x, z) => free(x, z) && inWalked(x, z) && !nearBox(x, z, 5) && nearRoad(x, z, 3) && !nearRoad(x, z, 1));
     for (const [px, pz] of spots) {
       if (farms >= (ctx.town.kind === "village" ? 1 : 2)) break;
       // Facing south onto a road below it.
@@ -349,7 +357,7 @@ function scenery(ctx: Ctx, f: Fields): void {
   }
   // The graveyard, outside the walls by a road (towns that have walls).
   if (ctx.F.enclosure === "wall" || ctx.F.enclosure === "palisade") {
-    const spots = poisson(W.x0 + 3, W.z0 + 3, W.x1 - 3, W.z1 - 3, 10, random, (x, z) => free(x, z) && !nearBox(x, z, 4) && nearRoad(x, z, 6) && !nearRoad(x, z, 2));
+    const spots = poisson(W.x0 + 3, W.z0 + 3, W.x1 - 3, W.z1 - 3, 10, random, (x, z) => free(x, z) && inWalked(x, z) && !nearBox(x, z, 4) && nearRoad(x, z, 6) && !nearRoad(x, z, 2));
     for (const [px, pz] of spots) {
       const w = 9;
       const d = 6;
@@ -441,4 +449,32 @@ export function place(ctx: Ctx, p: PropData): void {
     }
   }
   ctx.land.fixtures.push(p);
+}
+
+/** The town's tiles: within its outline and on its ring. */
+function townTiles(ctx: Ctx): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < ctx.land.size; i++) if (ctx.inTown[i] !== 0) out.push(i);
+  return out;
+}
+
+/**
+ * The walked country: the ground within some 12 to 19 tiles of the town (by a noise, so its edge wanders - a wood's edge
+ * here, a hedged field there), to the water on a sea side, never into the apron's 26 tiles at the grounds' edge.
+ */
+function walkedGround(ctx: Ctx, f: Fields): void {
+  const { land, plan } = ctx;
+  const near = land.distances(townTiles(ctx));
+  const wob = fbm(`:walked-edge`, 10, 2);
+  const box = plan.box;
+  const m = APRON_DEPTH;
+  for (let i = 0; i < land.size; i++) {
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    const seaward = (plan.sea.has("west") && x < box.x0) || (plan.sea.has("east") && x >= box.x1) || (plan.sea.has("north") && z < box.z0) || (plan.sea.has("south") && z >= box.z1);
+    const reach = seaward ? 60 : COUNTRY - 2 + wob(x, z) * 7;
+    const inGrounds = seaward ? x >= 2 && z >= 2 && x < land.width - 2 && z < land.depth - 2 : x >= m && z >= m && x < land.width - m && z < land.depth - m;
+    ctx.walked[i] = near[i]! <= reach && inGrounds ? 1 : 0;
+  }
+  void f;
 }

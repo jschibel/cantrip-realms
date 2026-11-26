@@ -26,26 +26,28 @@ export interface FormSpec {
   /** How yards are kept: hedged gardens (closed), open ground (walked), or bog under stilts. */
   readonly yards: "hedged" | "open" | "bog";
   readonly guards: boolean;
+  /** The town's shape: its rows' profile and how far a row's end may be pulled in (plan.ts). */
+  readonly shape: readonly ["oval" | "lozenge" | "blob" | "flat", number];
   /** Whether a northern shore gets a quay behind the north row (a town's), or the gardens run down to the water. */
   readonly northQuay?: boolean;
 }
 
 /** Tiles inside the walls (or the edge), x by z, by kind. */
 export const TOWN_SIZE: Readonly<Record<TownLayout["kind"], readonly [number, number]>> = {
-  capital: [108, 88],
-  town: [72, 60],
-  village: [44, 30],
+  capital: [108, 100],
+  town: [72, 72],
+  village: [44, 40],
 };
 
 const FORMS: Record<Form, FormSpec> = {
-  capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 34], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true },
-  city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
-  village: { enclosure: "hedge", street: 3, lane: 3, row: [7, 10, 14], block: [10, 26], square: [12, 9], round: false, southBand: 2, yards: "hedged", guards: false },
-  elfhame: { enclosure: "none", street: 3, lane: 3, row: [13, 16, 19], row0: 10, block: [12, 32], square: [20, 10], round: true, southBand: 4, yards: "open", guards: false },
-  stilts: { enclosure: "none", street: 3, lane: 3, row: [8, 10, 13], block: [10, 26], square: [12, 7], round: false, southBand: 3, yards: "bog", guards: false },
-  clan: { enclosure: "palisade", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
-  campus: { enclosure: "none", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 4, yards: "open", guards: false },
-  estate: { enclosure: "wall", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [18, 9], round: false, southBand: 3, yards: "hedged", guards: true },
+  capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 34], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true, shape: ["lozenge", 14] },
+  city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["lozenge", 10] },
+  village: { enclosure: "hedge", street: 3, lane: 3, row: [7, 10, 14], block: [10, 26], square: [12, 9], round: false, southBand: 2, yards: "hedged", guards: false, shape: ["blob", 7] },
+  elfhame: { enclosure: "none", street: 3, lane: 3, row: [13, 16, 19], row0: 10, block: [12, 32], square: [20, 10], round: true, southBand: 4, yards: "open", guards: false, shape: ["oval", 12] },
+  stilts: { enclosure: "none", street: 3, lane: 3, row: [8, 10, 13], block: [10, 26], square: [12, 7], round: false, southBand: 3, yards: "bog", guards: false, shape: ["blob", 8] },
+  clan: { enclosure: "palisade", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["oval", 12] },
+  campus: { enclosure: "none", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 4, yards: "open", guards: false, shape: ["blob", 8] },
+  estate: { enclosure: "wall", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [18, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["lozenge", 10] },
 };
 
 /** A small town's measures: a village's rows and square, whatever its form. */

@@ -1,4 +1,4 @@
-﻿// The towns of layout.json at walking scale, each in a pocket of its own, before the travel map exists
+// The towns of layout.json at walking scale, each in a pocket of its own, before the travel map exists
 // (`npx vite-node scripts/worldgen/town-preview.ts [town-id ...]`): every town built by the new generator (town/) on a
 // setting made up from the canon (TOWN_SETTINGS below: what the travel map will say of where each stands), checked
 // (town/check.ts throws on a rule broken), drawn from above into e2e/screenshots/world2/town-<id>.png, and written as a

@@ -421,40 +421,133 @@ function yards(ctx: Ctx): void {
     }
     return;
   }
-  // Hedged gardens: closed, a hedge (or fence, or wall) along every edge that meets a way, beds and bushes and a
-  // fruit tree or two inside, out of the camera's way.
-  const edge = lots.filter(nearWay);
-  const fence = town.style === "keldon" ? "palisade" : town.style === "urborg" ? "railings" : town.style === "tolarian" ? "railings" : formOf(town) === "village" ? "hedge" : random() < 0.5 ? "hedge" : "stone-wall";
-  for (const [ax, az, bx, bz] of runs(edge, land.width)) {
-    const p: PropData = { id: fence, x: ax + 0.5, z: az + 0.5, args: { to: [bx + 0.5, bz + 0.5], ...(fence === "palisade" ? { h: 1.4 } : fence === "hedge" ? { h: 0.9 } : {}) } };
-    land.fixtures.push(p);
-  }
+  hedgedYards(ctx, lots, nearWay, random);
+}
+
+/** What a yard behind a row is for. */
+type YardUse = "garden" | "kitchen" | "orchard" | "paddock" | "timber" | "green" | "churchyard" | "drying";
+
+/**
+ * The yards behind the rows, each piece of them something: a kitchen garden in beds, an orchard in rows, a paddock with
+ * its hay, a timber yard, a bleaching green with its lines of washing posts, a flower garden, a churchyard by a temple,
+ * or now and then a small green open to the street with a bench and a well, walked through. Each piece is the yards of a
+ * block (the yard tiles joined edge to edge); its use is weighted by where it lies - kitchen gardens and drying greens
+ * by the houses, timber and paddocks toward the edges and gates, orchards inside the south wall. The street side of a
+ * closed yard is fenced by what suits its use: a hedge, a wattle fence, a post-and-rail, a garden wall, a palisade.
+ */
+function hedgedYards(ctx: Ctx, lots: number[], nearWay: (i: number) => boolean, random: () => number): void {
+  const { land, plan, town } = ctx;
+  const I = (x: number, z: number) => land.idx(x, z);
+  const lotSet = new Set(lots);
+  const seen = new Set<number>();
+  const pieces: number[][] = [];
   for (const i of lots) {
-    land.use[i] = Use.Yard;
-    land.flags[i] = BLOCKED;
-    ctx.mustSee[i] = 0;
+    if (seen.has(i)) continue;
+    const piece = [i];
+    seen.add(i);
+    for (let h = 0; h < piece.length; h++) for (const j of land.n4(piece[h]!)) if (lotSet.has(j) && !seen.has(j)) {
+      seen.add(j);
+      piece.push(j);
+    }
+    pieces.push(piece);
   }
-  for (const i of edge) land.flags[i] = BLOCKED | BARE;
-  const inner = lots.filter((i) => !edge.includes(i));
-  const innerSet = new Set(inner);
-  const south = plan.south;
-  for (const [px, pz] of poisson(plan.box.x0, plan.box.z0, plan.box.x1, plan.box.z1, 1.8, random, (x, z) => innerSet.has(I(x, z)))) {
-    const x = Math.floor(px);
-    const z = Math.floor(pz);
-    const i = I(x, z);
-    const orchard = z >= south.z0;
-    const churchyard = plan.sites.some((s) => s.id.endsWith("-temple") && x >= s.box.x0 && x < s.box.x1 && z >= s.box.z0 && z < s.box.z1);
-    const roll = random();
-    const id = churchyard
-      ? roll < 0.45 ? "gravestone" : roll < 0.55 ? "cypress" : roll < 0.65 ? "flower-bed" : ""
-      : orchard
-        ? roll < 0.55 ? "fruit-tree" : roll < 0.7 ? "hay-bale" : ""
-        : roll < 0.16 ? "fruit-tree" : roll < 0.4 ? "bush" : roll < 0.62 ? "flower-bed" : roll < 0.7 ? "wood-pile" : roll < 0.74 ? (town.style === "keldon" ? "woodpile" : "barrel") : "";
-    if (!id) continue;
-    const p: PropData = { id, x: texel(x + 0.5), z: texel(z + 0.5), seed: Math.floor(random() * 16), ...(id === "fruit-tree" ? { scale: 0.7 } : id === "cypress" ? { scale: 0.7 } : id === "gravestone" ? { turn: texel((random() - 0.5) * 0.3) } : id === "bush" && random() < 0.4 ? { args: { flowering: true } } : {}) };
-    if ((id === "fruit-tree" || id === "bush" || id === "cypress") && !inSight(ctx, p)) continue;
-    land.put(i, p, true);
-    land.flags[i] = BLOCKED | (id === "flower-bed" ? 0 : BARE);
+  const keldon = town.style === "keldon";
+  const usesMade = new Map<YardUse, number>();
+  for (const piece of pieces) {
+    const xs = piece.map((i) => land.xOf(i));
+    const zs = piece.map((i) => land.zOf(i));
+    const cx = xs.reduce((a, b) => a + b, 0) / piece.length;
+    const cz = zs.reduce((a, b) => a + b, 0) / piece.length;
+    const churchyard = plan.sites.some((s) => s.id.endsWith("-temple") && cx >= s.box.x0 && cx < s.box.x1 && cz >= s.box.z0 && cz < s.box.z1);
+    const south = cz >= plan.south.z0;
+    const edgeOfTown = Math.min(cx - plan.box.x0, plan.box.x1 - cx) < 14;
+    let use: YardUse;
+    if (churchyard) use = "churchyard";
+    else if (south) use = random() < 0.7 ? "orchard" : "kitchen";
+    else {
+      const options: [YardUse, number][] = [
+        ["garden", 3],
+        ["kitchen", 3],
+        ["orchard", 2],
+        ["drying", 1.5],
+        ["timber", edgeOfTown ? 2 : 0.6],
+        ["paddock", edgeOfTown ? 2 : 0.4],
+        ["green", piece.length >= 24 && (usesMade.get("green") ?? 0) < 2 + Math.floor(pieces.length / 12) ? 1.6 : 0],
+      ];
+      const total = options.reduce((s, [, w]) => s + w, 0);
+      let roll = random() * total;
+      use = options.find(([, w]) => (roll -= w) < 0)?.[0] ?? "garden";
+    }
+    usesMade.set(use, (usesMade.get(use) ?? 0) + 1);
+    const edge = piece.filter(nearWay);
+    const edgeSet = new Set(edge);
+    if (use === "green") {
+      // Open to the street: grass walked over, a bench, a well, a tree that hides no street.
+      for (const i of piece) {
+        land.use[i] = Use.Kept;
+        land.flags[i] = 0;
+        land.surface[i] = S.grass;
+      }
+      const inner = piece.filter((i) => !edgeSet.has(i) && land.n8(i).every((j) => land.use[j] !== Use.Door));
+      const well = inner[Math.floor(inner.length / 2)];
+      if (well !== undefined) stand(ctx, { id: "well", x: land.xOf(well) + 0.5, z: land.zOf(well) + 0.5 });
+      const bench = inner.find((i) => i !== well && land.open(i) && land.n8(i).every((j) => land.open(j) || j === well));
+      if (bench !== undefined) stand(ctx, { id: "bench", x: land.xOf(bench) + 0.5, z: land.zOf(bench) + 0.5, args: { width: 1.2 } });
+      continue;
+    }
+    const fence = keldon ? "palisade" : use === "paddock" || use === "timber" ? "fence" : use === "kitchen" ? "wattle-fence" : use === "churchyard" ? "stone-wall" : town.style === "urborg" || town.style === "tolarian" ? "railings" : random() < 0.6 ? "hedge" : "stone-wall";
+    for (const [ax, az, bx, bz] of runs(edge, land.width)) land.fixtures.push({ id: fence, x: ax + 0.5, z: az + 0.5, args: { to: [bx + 0.5, bz + 0.5], ...(fence === "palisade" ? { h: 1.4 } : fence === "hedge" ? { h: 0.9 } : {}) } });
+    const surface = use === "kitchen" ? S.furrows : use === "paddock" ? S.straw : use === "timber" ? S.dirt : use === "drying" ? S.meadow : land.surface[piece[0]!]!;
+    for (const i of piece) {
+      land.use[i] = Use.Yard;
+      land.flags[i] = edgeSet.has(i) ? BLOCKED | BARE : BLOCKED;
+      ctx.mustSee[i] = 0;
+      if (!edgeSet.has(i)) land.surface[i] = surface;
+    }
+    // What stands in it.
+    for (const i of piece) {
+      if (edgeSet.has(i)) continue;
+      const x = land.xOf(i);
+      const z = land.zOf(i);
+      const r = random();
+      let id = "";
+      switch (use) {
+        case "orchard":
+          id = (x % 3 === 0 && z % 3 === 1) ? "fruit-tree" : "";
+          break;
+        case "kitchen":
+          id = z % 2 === 0 ? (r < 0.5 ? "flower-bed" : "") : r < 0.06 ? "barrel" : "";
+          if (z % 2 === 1) land.surface[i] = S.grass;
+          break;
+        case "paddock":
+          id = r < 0.06 ? "hay-bale" : r < 0.08 ? "trough" : "";
+          break;
+        case "timber":
+          id = r < 0.12 ? (keldon ? "woodpile" : "wood-pile") : r < 0.17 ? "log" : r < 0.2 ? "crate-stack" : "";
+          break;
+        case "drying":
+          id = x % 4 === 0 && z % 2 === 0 ? "fence-run" : "";
+          break;
+        case "churchyard":
+          id = r < 0.4 ? "gravestone" : r < 0.48 ? "cypress" : "";
+          break;
+        default:
+          id = r < 0.12 ? "fruit-tree" : r < 0.34 ? "bush" : r < 0.55 ? "flower-bed" : r < 0.6 ? "wood-pile" : "";
+      }
+      if (!id) continue;
+      const p: PropData =
+        id === "fence-run"
+          ? { id, x: x + 0.15, z: z + 0.5, args: { to: [x + 0.85, z + 0.5] } }
+          : { id, x: texel(x + 0.5), z: texel(z + 0.5), seed: Math.floor(random() * 16), ...(id === "fruit-tree" || id === "cypress" ? { scale: 0.7 } : id === "gravestone" ? { turn: texel((random() - 0.5) * 0.3) } : id === "bush" && random() < 0.4 ? { args: { flowering: true } } : {}) };
+      if ((id === "fruit-tree" || id === "bush" || id === "cypress") && !inSight(ctx, p)) continue;
+      if (id === "fence-run" || id === "log" || id === "trough" || id === "crate-stack") {
+        if (!tilesOf(p).tiles.every(([tx, tz]) => lotSet.has(I(tx, tz)) && !edgeSet.has(I(tx, tz)))) continue;
+        land.fixtures.push(p);
+        continue;
+      }
+      land.put(i, p, true);
+      land.flags[i] = BLOCKED | (id === "flower-bed" ? 0 : BARE);
+    }
   }
 }
 
@@ -468,25 +561,32 @@ function walls(ctx: Ctx): void {
   const ring: number[] = [];
   for (let i = 0; i < land.size; i++) if (land.use[i] === Use.Wall && land.xOf(i) >= box.x0 && land.xOf(i) < box.x1 && land.zOf(i) >= box.z0 && land.zOf(i) < box.z1) ring.push(i);
   const random = ctx.random("walls");
-  const faceOf = (ax: number, az: number, bx: number, bz: number) => (az === bz ? (az === box.z0 ? "n" : "s") : ax === box.x0 ? "w" : "e");
+  const town1 = (x: number, z: number) => land.inside(x, z) && ctx.inTown[land.idx(x, z)] === 1;
+  // A run's outer face: away from the town beside it.
+  const faceOf = (ax: number, az: number, bx: number, bz: number) => (az === bz ? (town1(ax, az + 1) || town1(bx, bz + 1) ? "n" : "s") : town1(ax + 1, az) || town1(bx + 1, bz) ? "w" : "e");
   for (const [ax, az, bx, bz] of runs(ring, land.width, 16)) {
     if (F.enclosure === "hedge") land.fixtures.push({ id: "hedgerow", x: ax + 0.5, z: az + 0.5, seed: Math.floor(random() * 16), args: { to: [bx + 0.5, bz + 0.5] } });
     else land.fixtures.push({ id: "wall-run", x: ax + 0.5, z: az + 0.5, args: { to: [bx + 0.5, bz + 0.5], face: faceOf(ax, az, bx, bz), style, kind: F.enclosure, size: town.kind } });
   }
   if (F.enclosure === "hedge") return;
   // Towers at the corners (on the land side), and a gatehouse in each gate with a tower either side.
-  const corner = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Wall;
-  for (const [x, z, ox, oz] of [
-    [box.x0, box.z0, box.x0, box.z0],
-    [box.x1 - 1, box.z0, box.x1, box.z0],
-    [box.x0, box.z1 - 1, box.x0, box.z1],
-    [box.x1 - 1, box.z1 - 1, box.x1, box.z1],
-  ] as const) if (corner(x, z)) stand(ctx, { id: "wall-tower", x: ox, z: oz, args: { style, kind: F.enclosure, size: town.kind } }, Use.Wall);
+  // Towers at the outline's outer corners (on the land side of the ring), and a gatehouse in each gate.
+  const wall = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Wall;
+  const nearGate = (x: number, z: number) => plan.gates.some((g) => x >= g.passage.x0 - 4 && x < g.passage.x1 + 4 && z >= g.passage.z0 - 4 && z < g.passage.z1 + 4);
+  for (const i of ring) {
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    for (const [dx, dz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const) {
+      if (!town1(x + dx, z + dz) || !wall(x + dx, z) || !wall(x, z + dz) || town1(x - dx, z) || town1(x, z - dz) || town1(x + dx, z - dz) || town1(x - dx, z + dz)) continue;
+      if (nearGate(x, z)) continue;
+      stand(ctx, { id: "wall-tower", x: dx > 0 ? x : x + 1, z: dz > 0 ? z : z + 1, args: { style, kind: F.enclosure, size: town.kind } }, Use.Wall);
+    }
+  }
   for (const gate of plan.gates) {
     const p = gate.passage;
     const rot = gate.side === "south" ? 0 : gate.side === "west" ? 1 : gate.side === "north" ? 2 : 3;
-    const x = gate.side === "west" ? box.x0 : gate.side === "east" ? box.x1 : (p.x0 + p.x1) / 2;
-    const z = gate.side === "north" ? box.z0 : gate.side === "south" ? box.z1 : (p.z0 + p.z1) / 2;
+    const x = gate.side === "west" ? p.x0 : gate.side === "east" ? p.x1 : (p.x0 + p.x1) / 2;
+    const z = gate.side === "north" ? p.z0 : gate.side === "south" ? p.z1 : (p.z0 + p.z1) / 2;
     const gh: PropData = { id: "gatehouse", x, z, rot, args: { width: gate.width, style, kind: F.enclosure, size: town.kind } };
     stand(ctx, gh, Use.Wall);
     for (const [tx, tz] of tilesOf(gh).tiles) ctx.mustSee[land.idx(tx, tz)] = 0;

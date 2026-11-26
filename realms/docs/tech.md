@@ -1008,17 +1008,27 @@ and the map beside the reference; `--crop x0,z0,x1,z1` a close-up with a tile gr
   addition, mirrored here (format.ts and the lint accept flags 0-7).
 - **Towns** stand each in a pocket of grounds at walking scale, laid out whole by the town generator
   (`scripts/worldgen/town/`: `buildTown(land, spec, seed)` into the pocket at `spec.origin`, `groundsSize(plan)`): the
-  town within its outline, the country round it that is walked (16 tiles out on every side, to the water on the sea's),
+  town within its outline, the country round it that is walked (some 14 to 21 tiles out from what is built, its edge wandering by a noise; to
+  the water on the sea's),
   and an apron of scenery 26 tiles deep past that, closed and only seen - whole chunks, 128 tiles square round a village,
-  160 round a home town, 192 round the capital. Within its walls the capital is 108 by 88 tiles, the home towns 72 by
-  60, the villages 44 by 30. Its streets are kept in world.json (`towns[].plan`, interfaces.md "Town plans") for the maps
+  160 round a home town, 192 round the capital. A town is laid out within a box of 108 by 100 tiles (the capital), 72 by 72 (a home town) or 44 by 40 (a village),
+  but takes only the shape it grows to: each row reaches as far east and west as the form's profile (a lozenge for
+  Benalia's towns and the estate, an oval for a clan and an elfhame, a loose blob for a village, the stilts and the
+  campus) and a noise of its own let it, never so far that the square, an artery or a block's worth beside them is lost;
+  a street south of a longer row keeps a strip of garden below it. Where the places will not all fit the shape is drawn
+  again pulled in less (0.6, 0.3, then none of its pull) - a fixed sequence, never a search over seeds. The wall,
+  palisade or hedge stands on the ring round what is built, traced (TownPlan.outline its corners), with towers at its
+  outer corners and gatehouses where the arteries and the gates' streets cross it. Its streets are kept in world.json (`towns[].plan`, interfaces.md "Town plans") for the maps
   and the lint. A town is laid out for the camera, which looks north from 45 degrees up and never sees a north face:
   - **rows facing south**: the town is rows between east-west streets, the stages (3 tiles wide, 4 in the capital).
     Each row's buildings stand along the north side of the street before them, fronts and doors south onto it, their
     gardens behind them as deep as what the buildings hide: each building's model is measured from the art at each
     heading (`town/view.ts`: a point `y` high hides the ground `y` further along the camera's line, thin things such as
     chimneys and spires aside), so no building hides a street, a square or a door. The south side of every street is
-    gardens behind hedges, garden walls, fences or palisades - low. North-south connectors (3 wide) split each row into
+    gardens - low - and every piece of garden has a use, by where it lies: a kitchen garden in beds, an orchard in rows, a
+    paddock with its hay, a timber yard, a drying green, a flower garden, a churchyard by the temple, or a small green open
+    to the street with a bench and a well; fenced on its street side by what suits it (a hedge, a wattle fence, a
+    post-and-rail, a garden wall, a palisade). North-south connectors (3 wide) split each row into
     blocks of 11 to 34 tiles, split at a jittered point near the middle and staggered from the row above's, and lanes run
     inside the east and west walls: every block is bounded by streets, every walk loops. The north row is shallow
     (nothing north of it but the wall); gardens and orchards fill the strip inside the south wall;
