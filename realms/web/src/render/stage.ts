@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { Figure, FigureSpec } from "../art/figures/rig";
-import type { Rect } from "../world/format";
+import { type Rect, inRect } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
 import { Actor, centre } from "./actor";
 import { CameraRig, type Framing, type Heading } from "./camera";
@@ -24,6 +24,11 @@ export interface StageDoor {
   readonly at: THREE.Vector3;
   /** What kind of way it is (a door, a dungeon's entrance, a stair): the page's to say. */
   readonly kind?: string;
+  /**
+   * Tiles that are its doorway beside the one past `tile` (a town's icon on the travel map: the whole footprint, which
+   * several ways share): pointed at, the nearest such door to the player is the one meant.
+   */
+  readonly area?: Rect;
 }
 
 /** A place as the stage holds it: what is drawn, where one walks, its ways out and the figures living there. */
@@ -41,6 +46,8 @@ export interface Spot extends Framing {
   readonly floorAt?: (x: number, z: number) => number;
   /** The world streams its chunks round the view. */
   readonly streamer?: ChunkStreamer;
+  /** Told where the player is about to stand, before the camera is placed there (a world of two scales frames by it). */
+  arriving?(tile: Tile): void;
 }
 
 /** Where a door leads: the place, the tile one comes out on, and the way one faces there. */
@@ -134,7 +141,12 @@ export class Stage {
     this.manual = !!o.manual;
     this.playerSpec = o.player;
     this.playerRandom = o.random ?? Math.random;
+    o.spot.arriving?.(o.start ?? o.spot.start);
     this.rig = new CameraRig(canvas, o.heading, o.zoom, o.spot);
+    if (o.spot.contained) {
+      this.rig.fit(o.spot);
+      this.renderer.setView(this.viewFor(o.spot));
+    }
     this.player = this.makePlayer(o.start ?? o.spot.start, o.spot);
     this.player.speed = o.playerSpeed ?? 4.2;
     o.spot.place.addFigure(this.player.figure.root);
@@ -217,10 +229,23 @@ export class Stage {
 
   // --- Walking and doors ------------------------------------------------------------------------------------------------
 
-  /** The door whose tile, or the doorway past it, is this tile. */
+  /**
+   * The door whose tile, or the doorway past it, is this tile; else, of the doors whose `area` holds it, the nearest the
+   * player.
+   */
   doorAt(tile: Tile | null): StageDoor | undefined {
     if (!tile) return undefined;
-    return this.current.doors.find((d) => (d.tile.x === tile.x && d.tile.z === tile.z) || (d.tile.x + d.step[0] === tile.x && d.tile.z + d.step[1] === tile.z));
+    const doors = this.current.doors;
+    const own = doors.find((d) => (d.tile.x === tile.x && d.tile.z === tile.z) || (d.tile.x + d.step[0] === tile.x && d.tile.z + d.step[1] === tile.z));
+    if (own) return own;
+    return this.doorsOver(tile)[0];
+  }
+
+  /** The doors whose `area` holds a tile, nearest the player first. */
+  private doorsOver(tile: Tile): StageDoor[] {
+    const me = this.player.position;
+    const d = (door: StageDoor) => Math.hypot(door.tile.x + 0.5 - me.x, door.tile.z + 0.5 - me.z);
+    return this.current.doors.filter((door) => door.area && inRect(door.area, tile.x, tile.z)).sort((a, b) => d(a) - d(b));
   }
 
   /**
@@ -235,9 +260,17 @@ export class Stage {
     }
     const door = this.doorAt(tile);
     if (door) {
-      this.pendingDoor = door;
-      if (this.player.tile.x === door.tile.x && this.player.tile.z === door.tile.z && !this.player.moving) this.startDoor(door);
-      else if (!this.player.goTo(door.tile)) this.pendingDoor = null;
+      // A doorway several doors share (an icon's): the nearest the player can walk to.
+      const choices = door.area && inRect(door.area, tile.x, tile.z) ? this.doorsOver(tile) : [door];
+      for (const d of choices) {
+        this.pendingDoor = d;
+        if (this.player.tile.x === d.tile.x && this.player.tile.z === d.tile.z && !this.player.moving) {
+          this.startDoor(d);
+          return true;
+        }
+        if (this.player.goTo(d.tile)) return true;
+      }
+      this.pendingDoor = null;
       return true;
     }
     this.pendingDoor = null;
@@ -304,6 +337,9 @@ export class Stage {
   arrive(arrival: Arrival, fromDoor = true): void {
     this.current.place.removeFigure(this.player.figure.root);
     this.current = arrival.spot;
+    arrival.spot.arriving?.(arrival.tile);
+    // A place the view keeps within: the zoom held to what it holds.
+    this.rig.fit(arrival.spot);
     const next = this.makePlayer(arrival.tile, arrival.spot);
     next.speed = this.player.speed;
     this.player = next;
@@ -435,7 +471,11 @@ export class Stage {
     }
     const here = this.current;
     here.place.update(this.time, this.renderer.view.yaw, this.viewFor(here).yaw, this.focus);
-    if (!this.transition) this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
+    if (!this.transition) {
+      this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
+      // A place the view keeps within holds the focus there at once (a zoom out, a turn): it never eases past the edge.
+      if (here.contained) this.focus.copy(rig.clampFocus(this.focus, here));
+    }
     this.renderer.focus.copy(this.focus);
     // Every figure leans for the camera as it is this frame, so the lean turns with the camera and never lags it.
     const { pitch, yaw } = this.renderer.view;
@@ -463,7 +503,10 @@ export class Stage {
     const s = here.streamer;
     if (!s) return;
     const w = this.wanted;
-    if (!w || Math.hypot(w.x - this.focus.x, w.z - this.focus.z) > 2 || Math.abs(w.reach - reach) > 1) {
+    // Going through a door, what is kept is left as it is: the other side (a far place of the same world, a town's grounds)
+    // is read and built behind the closing iris by the door's own ask (`Spots.through`), never dropped for the place left.
+    const going = this.transition && this.transition.phase !== "out";
+    if (!going && (!w || Math.hypot(w.x - this.focus.x, w.z - this.focus.z) > 2 || Math.abs(w.reach - reach) > 1)) {
       this.wanted = { x: this.focus.x, z: this.focus.z, reach };
       s.want(this.focus.x, this.focus.z, this.streamReach());
     }

@@ -138,8 +138,9 @@ owner may extend.
   character whose hearts are full - it keeps until they need it - and the server alone says whether each is there and
   whether it was taken.
   - **Heartblooms** grow in the wilds between the towns: a low clump of dark leaves and, on its stem, a bloom shaped like
-    a heart that glows rose-red in the grass. They come and go: never more than eight across Dominaria at once, each in
-    a clearing at least 150 tiles from the next, a new one now and then (about every half hour while there are fewer),
+    a heart that glows rose-red in the grass. They come and go on the travel map, never in a town's grounds: never more
+    than three across Dominaria at once, each in a clearing at least 85 tiles from the next (a third of the map's length
+    across), a new one now and then (about every half hour while there are fewer),
     wilting after a few hours if nobody picks it - so one seen is worth the walk. Walking onto one, or clicking it,
     picks it: a heart back. It is everyone's: picked, it is gone for all.
   - **A shrine of Serra** stands in one dungeon run in eight, on one of its floors drawn at random: a stepped altar
@@ -213,20 +214,32 @@ owner may extend.
     grows a plane per trader).
   - Exotic dealers buy and sell only off-plane cards, at list price and half back as any vendor does, so what players
     sell them circulates. Dominaria's own vendors, loot and starter decks never hold an off-plane card.
-- **Other gold sources:** treasure chests in the wilds (50–500 g, richer the higher the zone's tier) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear). Chests are not fixtures: they appear at random on open ground, a couple to a zone at most, a new one about every ten minutes in a zone with fewer, and crumble after half an hour unopened. Each is everyone's - the first to open it has it.
+- **Other gold sources:** treasure chests in the wilds (50–500 g, richer the higher the zone's tier) and the quest board's bounties ("defeat 5 Caligo bog-wraiths" for gold or gear). Chests are not fixtures: they appear at random on open ground of the travel map, one to a zone at most, a new one about every ten minutes in a zone with none, and crumble after half an hour unopened. Each is everyone's - the first to open it has it.
 - **Gold sinks beside cards and gear:** a world mob's buyout after a lost game (A3: 30 to 1,200 g at its fullest by
   tier), and hearts at a temple's or shrine's healer (A3b: 1,000, 3,000 and 8,000 g for the 3rd, 4th and 5th). A third
   heart is about 25 tier 1 wins' gold, or two or three of tier 4; the fifth a boss's purse five times over.
 
 ### A6. The world — Dominaria
-- **One connected world.** Dominaria is one continuous isometric map, walked by clicking in real time, the Fallout way:
-  no separate travel screen and no local maps to load between. It is big (1024 by 1216 square tiles, walked eight
-  ways) and streamed in chunks as you walk. Roads join the towns, wilderness lies between them, and the regions' terrain shades into each other.
-- **The scale.** A tile is the art's: a house is five to eight tiles across, a street two to five wide. The world is
-  sized for walking at 4.2 tiles a second: four to five minutes north to south in a straight line; from New Benalia's
-  walls 40 seconds by road to Capashen Hold or the elfhames, a minute to the Vess estate, two to Keld with the ferry;
-  35 seconds across New Benalia; a ferry crossing 10 to 30 seconds. The Domains keep their shape: Aerona about 600
-  tiles across, Icehaven 250, Walassa 160, the small isles 80 to 140. Waystones and ferries make the far places near.
+- **One world, two scales.** Dominaria is one isometric world, walked by clicking in real time, the Fallout way, and
+  streamed in chunks as you walk, with no loading screen anywhere. It is seen at two scales. **The travel map** is the
+  Domains themselves, JRPG-overworld style: the player's figure walks it at its usual size and speed, mountains are
+  miniature peaks, forests clumps of miniature trees, and each town an icon - a miniature of the town. Roads join the
+  icons, wilderness lies between them, and the regions' terrain shades into each other. **A town** is at walking scale,
+  as its streets, interiors and dungeons always were: its grounds hold the town within its walls, the country round it
+  that is walked (fields, farms, a wood's edge, the shore) and scenery past that which is only seen, and the camera never
+  looks past them. Walking into a town's icon from the road beside it - a click on the icon walks there and in - closes
+  the iris and opens it on that road coming into the town; walking a road out to the edge of its country closes it and
+  opens it beside the icon on that side, on the travel map. A dungeon's or a mage tower's entrance stands on the travel
+  map.
+- **The scale.** A tile is the art's: a house is five to eight tiles across, a street two to five wide. The travel map is
+  512 by 768 square tiles, walked eight ways at 4.2 tiles a second: about three minutes north to south in a straight
+  line, a minute or so between neighbouring towns by road, a ferry crossing 10 to 30 seconds. A town's grounds are as
+  big as it needs: New Benalia about 140 tiles across within its walls, 35 seconds across, home towns about 100,
+  villages about 40. The Domains keep their shape, compressed (see Geography below). Waystones and ferries make the far
+  places near.
+- **Wanderers are few, and only on the travel map:** about one spawn point to 3,500 tiles of land, none within 6 tiles of
+  a main road in the gentlest country nor within 10 of a town's icon. A town's grounds are safe: no wanderer is ever
+  there, and the hearts fill anywhere in them (A3b).
 - **Difficulty grows with distance.** The five home towns and New Benalia are the starting areas. Around them and along
   their roads the wilds are tier 1; they grow harder the farther you go, to tier 4 in the far wilds, the borders between
   enemy regions and the edges of the world. A wanderer's tier is its place's: the world generator gives each spawn point
@@ -260,7 +273,8 @@ owner may extend.
   A dungeon's content (its theme, its floors, its mobs by tier and its boss) is data. The layout is the generator's,
   from a seed the server hands out for the run (B4).
 - **Geography: the Domains.** The world is the Domains of Dominaria as the 2018 *Dominaria* set and its supplements
-  show them: the continent of **Aerona**, **Icehaven** to its north, and the islands around them. Places beyond the
+  show them (the map of Aerona of 2018, the classic map naming every region), compressed onto the travel map, north at
+  the top: the continent of **Aerona**, **Icehaven** to its north, and the islands around them. Places beyond the
   Domains (Tolaria's old island, Urborg in the Burning Isles, Shiv, Yavimaya and New Argive in Terisiare) are not in it.
   Where the sources are silent the layout is ours, kept true to what they do say.
 
@@ -273,20 +287,26 @@ owner may extend.
   | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | Garna, Bloodfist of Keld |
   | U | Orvada | the Tolarian Academy on Walassa | Orvada's isles, Walassa and Denawa, off Aerona's coast | the academy's tower (tower) | Teferi |
 
-  - **Aerona** is split north from south by the **Hurloon Mountains**, home of the minotaurs, across the neck between
-    them. North Aerona holds the Whispering and Wild Woods, the Smoke, Bade and K'Cur Mountains, the desert of Surr,
-    Hammerheim, Wrenna and Muronia, and Cape Tempest. South of the Hurloons lie Benalia in the north-west (the Caligo
-    Morass at its tip, Avenant of the archers on the isles off it), the Kb'Briann Highlands and the Durkwood, Llanowar
-    in the middle with its rivers Fors, Moen and Selendine, the **Ironclaw Mountains** of the orcs down the east coast,
-    the Tonga Mountains and Erg Mirab, Sursi of the pegasi in the east (the Cathedral of Serra), and the tail south:
-    Kush, the Green Lands and Barbar.
-  - **Icehaven**, across the Rip to the north, holds Keld in its south-west and **Parma** of the ice giants in its frozen
-    north-east. A **desolate waste** in Surr, by the Rip, divides Keld from the rest of the Domains; the **Phyrexian
-    Portal** stands in it.
-  - **Islands:** **Verdura**, lush druid woodland, at the south-west tip; **Foriys** of the two-headed giants south-east
-    of the tail; **Shanodin's island** to the east, with the forest of Shanodin, the small nation of Oneah and the dark
-    realm of Amjad at its south end; **Orvada's isles**, Walassa and Denawa, at the far east; and **Stahaan**, the
-    xenophobic minotaurs' isle, north of Orvada.
+  - **Icehaven** across the north: **Keld** in its south-west (Keld's town, the Skyshroud forest within it), **Parma**
+    of the ice giants in its north-east, glaciers along its north. **The Rip** is the strait between it and Aerona.
+  - **North Aerona:** the Whispering Woods and the Wild Woods in its west, Oyster Bay and the Ice Rime Hills on the west
+    coast, the Smoke Mountains north, the Bade Mountains in the middle, the K'Cur Mountains east toward Cape Tempest and
+    Coralhelm; the desert of Surr in the north-east, the Badlands, Wrenna and Muronia in the south-east, Hammerheim on
+    the east coast. The **desolate waste** is Surr's, by the Rip, and the **Phyrexian Portal** stands in it.
+  - **The Hurloon Mountains** of the minotaurs run across the neck that joins North and South Aerona, the **Red Iron
+    Mountains** at their west end, and the **Ironclaw Mountains** of the orcs run south-east from them down the east
+    coast.
+  - **South Aerona:** **Benalia** in the north-west - New Benalia the capital near the west coast, Capashen Hold south of
+    it on the coast, the **Caligo Morass** and the Vess estate at the north-west tip, and **Avenant**'s isles off it in
+    the Sea of Avenant; the **Kb'Briann Highlands** and the **Durkwood** south of Benalia; **Llanowar**, the great forest,
+    in the middle (its elfhames, the rivers Fors, Moen and Selendine, Lake Ardkanor, and the Fors Basin south of it); the
+    **Tonga Mountains** and the desert **Erg Mirab** to the south-east; **Sursi** of the pegasi in the east, with the
+    Cathedral of Serra; **Vernalea** on the east coast; then the southern tail - **Kush**, Estark and Tantium, the Green
+    Lands, Barbar, and **Verdura** at its south-west tip.
+  - **Islands:** **Foriys** of the two-headed giants, an isle south-east of the tail; the long isle of **Oneah** and
+    Shanodin to the east, the dark realm of **Amjad** at its south end; **Walassa and Denawa**, Orvada's isles with the
+    Tolarian Academy, at the far east; and **Stahaan**, the xenophobic minotaurs' isle, north of Orvada in the
+    north-east sea.
   - **One connected world:** the islands are reached as the land is walked. Causeways and fords join the near ones, and
     ferries at harbor docks cross to the far ones. A ferry crossing is seamless, as a door is: you board, the crossing
     eases by, and you step off on the other shore.

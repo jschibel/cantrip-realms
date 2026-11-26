@@ -290,6 +290,7 @@ export interface TownData {
   readonly id: string;
   readonly name: string;
   readonly kind: "capital" | "town" | "village";
+  /** Its middle and its walls (`radius` tiles from it): in its grounds, where it has them (`inTown`, `townAt`). */
   readonly center: XZ;
   /** Its walls stand this many tiles from its centre. */
   readonly radius: number;
@@ -299,7 +300,46 @@ export interface TownData {
   readonly home?: Region;
   /** Its street plan, for the maps and the lint (streets.ts). */
   readonly plan?: TownPlan;
+  /**
+   * A world of two scales (`WorldData.travel`): on the travel map, the middle tile of its icon - a `town-icon` prop over
+   * a blocked square footprint, `ICON_SIZE` of its kind across (`siteRect`).
+   */
+  readonly site?: XZ;
+  /** Its grounds at walking scale: the rectangle of tiles drawn for it, in a pocket of its own. The camera keeps within it. */
+  readonly grounds?: Rect;
+  /** The ways between its grounds and the travel map. */
+  readonly ways?: readonly TownWay[];
 }
+
+/** A side of a town's icon, and of its grounds: the way a way leaves it. */
+export type Side = "north" | "east" | "south" | "west";
+export const SIDES: readonly Side[] = ["north", "east", "south", "west"];
+
+/**
+ * A way between a town's grounds and the travel map (interfaces.md, "Two scales"): pushing from `outside` into the icon
+ * enters the grounds at `inside`; walking onto an `exit` tile leaves them, onto `outside`.
+ */
+export interface TownWay {
+  readonly side: Side;
+  /** Travel map: the open tile beside the icon on that side. Pushing from it into the icon enters; leaving this way stands the player here. */
+  readonly outside: XZ;
+  /** Grounds: where one arrives, on the road a few tiles in from the exit. */
+  readonly inside: XZ;
+  /** Grounds: the open tiles across the road at the edge of the walked ground; walking onto one leaves to `outside`. */
+  readonly exit: readonly XZ[];
+  /** Where the road leads (a town's or a dungeon's id), for the maps' "To New Benalia". */
+  readonly to?: string;
+}
+
+/** A name the whole map writes over the land and the sea. */
+export interface MapLabel {
+  readonly name: string;
+  readonly x: number;
+  readonly z: number;
+  /** `land` (Aerona), `region` (Benalia), `feature` (the Hurloon Mountains), `sea`. */
+  readonly kind: "land" | "region" | "feature" | "sea";
+}
+export const LABEL_KINDS: readonly MapLabel["kind"][] = ["land", "region", "feature", "sea"];
 
 /**
  * A town's street plan (interfaces.md, "Town plans"): its outline, its streets as a graph - junctions and ends (`nodes`)
@@ -427,6 +467,14 @@ export interface WorldData {
   readonly pitches: readonly PitchData[];
   readonly zones: Zones;
   readonly overview: Overview;
+  /**
+   * The travel map (interfaces.md, "Two scales"): the rectangle of tiles that is the Domains at travel scale, its towns
+   * icons whose grounds lie in pockets of their own past it. Absent (the fixtures, a world of one scale): every tile is
+   * the travel map's, and towns stand on it at walking scale.
+   */
+  readonly travel?: Rect;
+  /** Names the whole map writes over the land and the sea. */
+  readonly labels?: readonly MapLabel[];
 }
 
 export interface DungeonData {
@@ -544,4 +592,113 @@ export function frontStep(rot: number): XZ {
     [1, 0],
   ];
   return steps[((rot % 4) + 4) % 4]!;
+}
+
+// --- Two scales (interfaces.md, "Two scales") ----------------------------------------------------------------------
+//
+// A world with `travel` holds two kinds of ground: the travel map, where each town is an icon on a blocked square, and
+// each town's grounds at walking scale, a rectangle of its own (a pocket) past the travel map, never touching it nor
+// another. A town's ways join the two: pushing into the icon from a way's `outside` enters the grounds at its `inside`;
+// walking onto one of its `exit` tiles leaves to its `outside`. Chunks exist only over the travel map and the grounds
+// (`groundChunks`): a chunk with no file is no ground, and is never asked for. A world without `travel` is one scale, as
+// before: every tile the travel map's, and every chunk of its `size` one there may be.
+
+/** Tiles across a town's icon on the travel map, by its kind (the `town-icon` prop's `size`). */
+export const ICON_SIZE: Readonly<Record<TownData["kind"], number>> = { capital: 7, town: 5, village: 3 };
+
+/** The step out of an icon (or a town's grounds) on a side: north is -z. */
+export function sideStep(side: Side): XZ {
+  return side === "north" ? [0, -1] : side === "south" ? [0, 1] : side === "east" ? [1, 0] : [-1, 0];
+}
+
+/** A town's icon's footprint on the travel map: the square `ICON_SIZE` of its kind across round its `site`; null with none. */
+export function siteRect(town: Pick<TownData, "site" | "kind">): Rect | null {
+  if (!town.site) return null;
+  const half = Math.floor((ICON_SIZE[town.kind] ?? 3) / 2);
+  return [town.site[0] - half, town.site[1] - half, town.site[0] + half + 1, town.site[1] + half + 1];
+}
+
+/** The travel map's rectangle: `travel`, or the whole world's in a world of one scale. */
+export const travelRect = (w: Pick<WorldData, "travel" | "size" | "origin">): Rect => w.travel ?? worldRect(w as WorldData);
+
+/** Whether a tile is the travel map's (every tile is, in a world of one scale). */
+export const inTravel = (w: Pick<WorldData, "travel">, x: number, z: number): boolean => !w.travel || inRect(w.travel, x, z);
+
+/** The town whose grounds hold a tile, if any. */
+export const groundsAt = (w: Pick<WorldData, "towns">, x: number, z: number): TownData | null =>
+  w.towns.find((t) => t.grounds && inRect(t.grounds, x, z)) ?? null;
+
+/** The town whose icon stands on a tile of the travel map, if any. */
+export function siteAt(w: Pick<WorldData, "towns">, x: number, z: number): TownData | null {
+  for (const t of w.towns) {
+    const r = siteRect(t);
+    if (r && inRect(r, x, z)) return t;
+  }
+  return null;
+}
+
+/** A town's way, and which end of it a tile is: its `outside` on the travel map, or one of its `exit` tiles in the grounds. */
+export interface WayEnd {
+  readonly town: TownData;
+  readonly way: TownWay;
+  readonly end: "outside" | "exit";
+}
+
+/** The way whose `outside` or one of whose `exit` tiles a tile is, if any. */
+export function wayAt(w: Pick<WorldData, "towns">, x: number, z: number): WayEnd | null {
+  for (const town of w.towns) {
+    for (const way of town.ways ?? []) {
+      if (way.outside[0] === x && way.outside[1] === z) return { town, way, end: "outside" };
+      if (way.exit.some(([ex, ez]) => ex === x && ez === z)) return { town, way, end: "exit" };
+    }
+  }
+  return null;
+}
+
+/** Where a tile is: the travel map, a town's grounds, or neither (no ground: between the pockets, past the world). */
+export type Scale = { readonly scale: "travel" } | { readonly scale: "grounds"; readonly town: TownData } | null;
+
+export function scaleAt(w: Pick<WorldData, "travel" | "towns" | "size" | "origin">, x: number, z: number): Scale {
+  const town = groundsAt(w, x, z);
+  if (town) return { scale: "grounds", town };
+  return inRect(travelRect(w), x, z) ? { scale: "travel" } : null;
+}
+
+/**
+ * The rectangle the camera keeps to round a tile: a town's grounds in them, the travel map on it; in a world of one
+ * scale, its `bounds` (`viewBounds`).
+ */
+export function framingAt(w: WorldData, x: number, z: number): Rect {
+  if (!w.travel) return viewBounds(w);
+  return groundsAt(w, x, z)?.grounds ?? w.travel;
+}
+
+/** The rectangles of ground of a world of two scales - the travel map, then each town's grounds; null for one scale. */
+export function groundRects(w: Pick<WorldData, "travel" | "towns">): Rect[] | null {
+  if (!w.travel) return null;
+  return [w.travel, ...w.towns.flatMap((t) => (t.grounds ? [t.grounds] : []))];
+}
+
+const chunkSets = new WeakMap<object, ReadonlySet<string> | null>();
+
+/**
+ * The chunks a world has files for, by key: in a world of two scales every chunk over the travel map or a town's grounds
+ * and no other (the loader never asks for another, the streamer never reads one, the lint holds the files to it); null
+ * in a world of one scale, whose every chunk within `size` may have one.
+ */
+export function groundChunks(w: Pick<WorldData, "travel" | "towns">): ReadonlySet<string> | null {
+  const known = chunkSets.get(w);
+  if (known !== undefined) return known;
+  const rects = groundRects(w);
+  const set = rects ? new Set(rects.flatMap((r) => chunksOver(r).map(({ cx, cz }) => chunkKey(cx, cz)))) : null;
+  chunkSets.set(w, set);
+  return set;
+}
+
+/** Whether a chunk may hold ground: within the world's tiles, and in a world of two scales over the travel map or a grounds. */
+export function hasGround(w: WorldData, cx: number, cz: number): boolean {
+  const r = worldRect(w);
+  if (!(cx * CHUNK < r[2] && (cx + 1) * CHUNK > r[0] && cz * CHUNK < r[3] && (cz + 1) * CHUNK > r[1])) return false;
+  const set = groundChunks(w);
+  return !set || set.has(chunkKey(cx, cz));
 }

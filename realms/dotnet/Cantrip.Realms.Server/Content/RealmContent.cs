@@ -557,6 +557,7 @@ public sealed partial class RealmContent
     private void CheckPlaces(List<string> problems)
     {
         RealmWorld world = World;
+        CheckScales(world, problems);
         foreach (IGrouping<string, TownEntry> twice in world.File.Towns.GroupBy(town => town.Id, StringComparer.Ordinal).Where(group => group.Count() > 1)) problems.Add($"world.json: two towns '{twice.Key}'.");
         foreach (TownEntry town in world.File.Towns)
         {
@@ -695,6 +696,142 @@ public sealed partial class RealmContent
         {
             problems.Add($"mob {mob.Id} is met nowhere: no spawn of the world and no dungeon holds it.");
         }
+    }
+
+    /// <summary>The fewest whole chunks with no ground between two pockets of a world of two scales, and between one and the travel map.</summary>
+    public const int PocketGap = 2;
+
+    /// <summary>
+    /// A world of two scales (interfaces.md, "Two scales"; the overworld's lint, <c>realms/web/src/world/lint.ts</c>, holds
+    /// the files to the same): the travel map within the world; a chunk file over ground alone, and one for every chunk of
+    /// ground; each town's grounds within the world, <see cref="PocketGap"/> chunks or more from the travel map and every
+    /// other town's, holding its centre, its inns and its pitches; its icon on the travel map on blocked tiles; each way's
+    /// outside an open travel-map tile beside the icon on its side, its inside and exit open tiles of the grounds; a town
+    /// with no grounds standing on the travel map with no icon nor ways; and the spawns, the entrances and the dungeons on
+    /// the travel map. A world of one scale names no site, grounds nor ways. Problems, never a crash.
+    /// </summary>
+    internal static void CheckScales(RealmWorld world, List<string> problems)
+    {
+        WorldFile file = world.File;
+        if (file.Travel is null)
+        {
+            foreach (TownEntry town in file.Towns.Where(town => town.Site is not null || town.Grounds is not null || town.Ways.Count > 0))
+            {
+                problems.Add($"world.json: town {town.Id} has a site, grounds or ways, but the world no travel map.");
+            }
+
+            return;
+        }
+
+        static bool IsRect(IReadOnlyList<int>? r) => r is [int x0, int z0, int x1, int z1] && x1 > x0 && z1 > z0;
+        if (!IsRect(file.Travel))
+        {
+            problems.Add("world.json: its travel map is [x0, z0, x1, z1], a rectangle of tiles.");
+            return;
+        }
+
+        bool Within(IReadOnlyList<int> r) => r[0] >= world.X0 && r[1] >= world.Z0 && r[2] <= world.X0 + world.Width && r[3] <= world.Z0 + world.Height;
+        if (!Within(file.Travel)) problems.Add("world.json: the travel map reaches past the world.");
+        int ChunkOf(int tile) => tile >= 0 ? tile / world.Chunk : -((-tile + world.Chunk - 1) / world.Chunk);
+        IEnumerable<(int, int)> ChunksOver(IReadOnlyList<int> r) =>
+            from cz in Enumerable.Range(ChunkOf(r[1]), ChunkOf(r[3] - 1) - ChunkOf(r[1]) + 1)
+            from cx in Enumerable.Range(ChunkOf(r[0]), ChunkOf(r[2] - 1) - ChunkOf(r[0]) + 1)
+            select (cx, cz);
+        int Gap(IReadOnlyList<int> a, IReadOnlyList<int> b)
+        {
+            int Along(int lo0, int hi0, int lo1, int hi1)
+            {
+                (int c0, int c1, int d0, int d1) = (ChunkOf(lo0), ChunkOf(hi0 - 1), ChunkOf(lo1), ChunkOf(hi1 - 1));
+                return c1 < d0 ? d0 - c1 - 1 : d1 < c0 ? c0 - d1 - 1 : -1;
+            }
+
+            return Math.Max(Math.Max(Along(a[0], a[2], b[0], b[2]), Along(a[1], a[3], b[1], b[3])), -1);
+        }
+
+        foreach ((int cx, int cz) in world.Chunks.Where(chunk => !world.HasGround(chunk.Cx, chunk.Cz)).Order())
+        {
+            problems.Add($"chunks/{cx}_{cz}.json: a chunk over no ground (neither the travel map nor a town's grounds).");
+        }
+
+        HashSet<(int, int)> read = [.. world.Chunks];
+        IEnumerable<IReadOnlyList<int>> grounds = file.Towns.Select(town => town.Grounds).Where(IsRect).Select(r => r!);
+        foreach ((int cx, int cz) in new[] { file.Travel }.Concat(grounds).SelectMany(ChunksOver).Distinct().Where(chunk => !read.Contains(chunk)))
+        {
+            problems.Add($"the world: no chunk {cx}_{cz} for its ground (chunks/{cx}_{cz}.json).");
+        }
+
+        bool OnTravel(Tile at) => world.InTravel(at) && world.GroundsAt(at) is null;
+        List<(string Id, IReadOnlyList<int> Grounds)> pockets = [];
+        foreach (TownEntry town in file.Towns)
+        {
+            string where = $"world.json: town {town.Id}";
+            if (town.Grounds is null)
+            {
+                if (!OnTravel(town.At)) problems.Add($"{where}: with no grounds, it stands on the travel map, but its centre {town.At} is not on it.");
+                if (town.Site is not null || town.Ways.Count > 0) problems.Add($"{where}: a site or ways, but no grounds.");
+                continue;
+            }
+
+            if (!IsRect(town.Grounds))
+            {
+                problems.Add($"{where}: its grounds are [x0, z0, x1, z1], a rectangle of tiles.");
+                continue;
+            }
+
+            if (!Within(town.Grounds)) problems.Add($"{where}: its grounds reach past the world.");
+            if (Gap(town.Grounds, file.Travel) < PocketGap) problems.Add($"{where}: its grounds lie within {PocketGap} chunks of the travel map.");
+            foreach ((string other, IReadOnlyList<int> r) in pockets.Where(pocket => Gap(town.Grounds, pocket.Grounds) < PocketGap))
+            {
+                problems.Add($"{where}: its grounds lie within {PocketGap} chunks of {other}'s.");
+            }
+
+            pockets.Add((town.Id, town.Grounds));
+            if (!town.InGrounds(town.At)) problems.Add($"{where}: its centre {town.At} is not in its grounds.");
+            foreach (InnEntry inn in file.Inns.Where(inn => inn.Town == town.Id && !town.InGrounds(inn.At))) problems.Add($"{where}: its inn {inn.Id} at {inn.At} is not in its grounds.");
+            foreach (PitchEntry pitch in file.Pitches.Where(pitch => pitch.Town == town.Id && !town.InGrounds(pitch.At))) problems.Add($"{where}: its pitch at {pitch.At} is not in its grounds.");
+            if (town.Site is not [int sx, int sz])
+            {
+                problems.Add($"{where}: no site [x, z], its icon on the travel map.");
+                continue;
+            }
+
+            int half = town.IconSize / 2;
+            for (int z = sz - half; z <= sz + half; z++)
+            {
+                for (int x = sx - half; x <= sx + half; x++)
+                {
+                    var under = new Tile(x, z);
+                    if (!OnTravel(under)) problems.Add($"{where}: its icon's tile {under} is not on the travel map.");
+                    else if (world.Walkable(under)) problems.Add($"{where}: its icon's tile {under} is open (an icon stands on a blocked square).");
+                }
+            }
+
+            if (town.Ways.Count == 0) problems.Add($"{where}: no way between its grounds and the travel map.");
+            foreach (TownWay way in town.Ways)
+            {
+                string of = $"{where}: its {way.Side} way";
+                Tile outside = way.OutsideAt;
+                bool beside = way.Side switch
+                {
+                    "north" => outside.Z == sz - half - 1 && Math.Abs(outside.X - sx) <= half,
+                    "south" => outside.Z == sz + half + 1 && Math.Abs(outside.X - sx) <= half,
+                    "west" => outside.X == sx - half - 1 && Math.Abs(outside.Z - sz) <= half,
+                    "east" => outside.X == sx + half + 1 && Math.Abs(outside.Z - sz) <= half,
+                    _ => false,
+                };
+                if (way.Side is not ("north" or "east" or "south" or "west")) problems.Add($"{of}: its side '{way.Side}' is none of north, east, south, west.");
+                else if (!beside) problems.Add($"{of}: its outside {outside} is not beside the icon on its {way.Side}.");
+                if (!OnTravel(outside) || !world.Walkable(outside)) problems.Add($"{of}: its outside {outside} is not an open tile of the travel map.");
+                if (!town.InGrounds(way.InsideAt) || !world.Walkable(way.InsideAt)) problems.Add($"{of}: its inside {way.InsideAt} is not an open tile of its grounds.");
+                if (way.Exit.Count == 0) problems.Add($"{of}: no exit.");
+                foreach (Tile exit in way.ExitAt.Where(exit => !town.InGrounds(exit) || !world.Walkable(exit))) problems.Add($"{of}: its exit {exit} is not an open tile of its grounds.");
+                if (way.To is { } to && !file.Towns.Any(other => other.Id == to) && !file.Dungeons.Any(dungeon => dungeon.Id == to)) problems.Add($"{of}: it leads to '{to}', no town or dungeon.");
+            }
+        }
+
+        foreach (MapSpawn spawn in world.Spawns.Where(spawn => !OnTravel(spawn.At))) problems.Add($"the world: spawn {spawn.Id} at {spawn.At} is not on the travel map.");
+        foreach (Tile entrance in world.Entrances.Keys.Where(entrance => !OnTravel(entrance))) problems.Add($"the world: the entrance at {entrance} is not on the travel map.");
+        foreach (DungeonPlace dungeon in file.Dungeons.Where(dungeon => !OnTravel(dungeon.At))) problems.Add($"world.json: dungeon {dungeon.Id} at {dungeon.At} is not on the travel map.");
     }
 
     /// <summary>

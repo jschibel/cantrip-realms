@@ -34,6 +34,14 @@ import {
   PLACE_KINDS,
   HOP,
   LEDGE,
+  LABEL_KINDS,
+  SIDES,
+  siteRect,
+  groundChunks,
+  groundRects,
+  groundsAt,
+  inTravel,
+  ICON_SIZE,
 } from "./format";
 import { type Ground, canStep } from "./grid";
 import { inSquare, streetTiles, wayPoints } from "./streets";
@@ -151,8 +159,112 @@ export function checkWorld(data: unknown): Problems {
   world.inns.forEach((n, i) => {
     if (!isInt(n.x) || !isInt(n.z) || !isStr(n.interior)) out.push(`${w}: inns[${i}] should have x, z and its interior`);
   });
+  if (out.length === 0) out.push(...checkScales(world));
   return out;
 }
+
+const isTile = (v: unknown): v is [number, number] => isXZ(v) && v.every(isInt);
+const at2 = (p: XZ) => `${p[0]},${p[1]}`;
+const touching = (a: Rect, b: Rect) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+/** How many whole chunks lie between two rectangles of tiles, along the axis they are furthest apart on (0: they share or touch a chunk). */
+function chunksBetween(a: Rect, b: Rect): number {
+  const gap = (lo0: number, hi0: number, lo1: number, hi1: number) => {
+    const [c0, c1] = [Math.floor(lo0 / CHUNK), Math.floor((hi0 - 1) / CHUNK)];
+    const [d0, d1] = [Math.floor(lo1 / CHUNK), Math.floor((hi1 - 1) / CHUNK)];
+    return c1 < d0 ? d0 - c1 - 1 : d1 < c0 ? c0 - d1 - 1 : -1;
+  };
+  return Math.max(gap(a[0], a[2], b[0], b[2]), gap(a[1], a[3], b[1], b[3]), 0);
+}
+
+/**
+ * world.json's two scales (format.ts `WorldData.travel`, `TownData.site`, `grounds`, `ways`): each field well formed;
+ * the travel map within the world; each town's grounds within the world, apart from the travel map and from every other
+ * town's by at least `POCKET_GAP` empty chunks, and holding its centre, its plan, its inns and its pitch; its icon on the
+ * travel map; each way's `outside` on the travel map beside the icon on its side, and its `inside` and `exit` in the
+ * grounds; and the dungeons, the ferries, the zones and the overview on the travel map alone. A world without `travel`
+ * names no `site`, `grounds` nor `ways`; a town of a world with one that has no grounds stands on the travel map, at
+ * walking scale, with no icon nor ways (the generator gives every town grounds; a test's world need not).
+ */
+function checkScales(world: WorldData): Problems {
+  const out: Problems = [];
+  const w = "world.json";
+  const data = world as unknown as Record<string, unknown>;
+  may(out, w, data, "travel", isRect, "[x0, z0, x1, z1], whole tiles");
+  may(out, w, data, "labels", (v) => Array.isArray(v) && v.every((l) => isObject(l) && isStr(l.name) && isNum(l.x) && isNum(l.z) && (LABEL_KINDS as readonly unknown[]).includes(l.kind)), "a list of {name, x, z, kind: land|region|feature|sea}");
+  world.towns.forEach((t, i) => {
+    const where = `${w}: towns[${i}] (${t.id})`;
+    const o = t as unknown as Record<string, unknown>;
+    may(out, where, o, "site", isTile, "[x, z], a tile");
+    may(out, where, o, "grounds", isRect, "[x0, z0, x1, z1], whole tiles");
+    may(out, where, o, "ways", (v) => Array.isArray(v) && v.every((g) => isObject(g) && (SIDES as readonly unknown[]).includes(g.side) && isTile(g.outside) && isTile(g.inside) && Array.isArray(g.exit) && g.exit.length > 0 && g.exit.every(isTile) && (g.to === undefined || isStr(g.to))), "a list of {side, outside: [x, z], inside: [x, z], exit: [[x, z], ...], to?}");
+  });
+  if (out.length > 0) return out;
+  const rect = worldRect(world);
+  const within = (r: Rect) => r[0] >= rect[0] && r[1] >= rect[1] && r[2] <= rect[2] && r[3] <= rect[3];
+  const travel = world.travel;
+  if (!travel) {
+    for (const t of world.towns) if (t.site || t.grounds || t.ways) out.push(`${w}: town ${t.id} has a site, grounds or ways, but the world no travel map`);
+    return out;
+  }
+  if (!within(travel)) out.push(`${w}: the travel map reaches past the world`);
+  const [ox, oz] = world.origin ?? [0, 0];
+  if (!inRect(travel, ox, oz)) out.push(`${w}: the travel map should start at the world's origin, where the zones and the overview do`);
+  const z = world.zones;
+  if (ox + z.cols * z.cell > travel[2] + z.cell || oz + z.rows * z.cell > travel[3] + z.cell) out.push(`${w}: the zones reach past the travel map`);
+  const ov = world.overview;
+  if (ov.rows.length * ov.cell > travel[3] - oz + ov.cell || ov.rows.some((row) => row.length * ov.cell > travel[2] - ox + ov.cell)) out.push(`${w}: the overview reaches past the travel map`);
+  const onTravel = (p: XZ) => inRect(travel, p[0], p[1]);
+  for (const d of world.dungeons) if (!onTravel([d.x, d.z])) out.push(`${w}: dungeon ${d.id} at ${d.x},${d.z} is not on the travel map`);
+  for (const f of world.ferries) if (![f.from, f.to, ...f.lane].every(onTravel)) out.push(`${w}: ferry ${f.id} is not all on the travel map`);
+  const pockets: { id: string; r: Rect }[] = [];
+  for (const t of world.towns) {
+    const where = `${w}: town ${t.id}`;
+    const g = t.grounds;
+    if (!g) {
+      // A town with no grounds stands on the travel map at walking scale (a test's world), with no icon nor ways.
+      if (!onTravel(t.center)) out.push(`${where}: with no grounds, it stands on the travel map, but its centre ${at2(t.center)} is not on it`);
+      if (t.site || t.ways) out.push(`${where}: a site or ways, but no grounds`);
+      continue;
+    }
+    if (!within(g)) out.push(`${where}: its grounds reach past the world`);
+    if (touching(g, travel) || chunksBetween(g, travel) < POCKET_GAP) out.push(`${where}: its grounds lie within ${POCKET_GAP} chunks of the travel map`);
+    for (const p of pockets) if (touching(g, p.r) || chunksBetween(g, p.r) < POCKET_GAP) out.push(`${where}: its grounds lie within ${POCKET_GAP} chunks of ${p.id}'s`);
+    pockets.push({ id: t.id, r: g });
+    const inG = (p: XZ) => inRect(g, p[0], p[1]);
+    if (!inG(t.center)) out.push(`${where}: its centre ${at2(t.center)} is not in its grounds`);
+    if (t.plan && ![...t.plan.outline, ...t.plan.nodes, ...t.plan.places.map((p): XZ => [p.x, p.z])].every(inG)) out.push(`${where}: its plan reaches past its grounds`);
+    for (const inn of world.inns) if (inn.town === t.id && !inG([inn.x, inn.z])) out.push(`${where}: its inn ${inn.id} at ${inn.x},${inn.z} is not in its grounds`);
+    for (const p of world.pitches) if (p.town === t.id && !inG([p.x, p.z])) out.push(`${where}: its pitch at ${p.x},${p.z} is not in its grounds`);
+    const site = siteRect(t);
+    if (!site) out.push(`${where}: no site, its icon on the travel map`);
+    else if (!(site[0] >= travel[0] && site[1] >= travel[1] && site[2] <= travel[2] && site[3] <= travel[3])) out.push(`${where}: its icon at ${at2(t.site!)} is not on the travel map`);
+    const ways = t.ways ?? [];
+    if (ways.length === 0) out.push(`${where}: no way between its grounds and the travel map`);
+    for (const way of ways) {
+      const ww = `${where}: its ${way.side} way`;
+      if (site) {
+        const [x, zz] = way.outside;
+        const beside =
+          way.side === "north" ? zz === site[1] - 1 && x >= site[0] && x < site[2]
+          : way.side === "south" ? zz === site[3] && x >= site[0] && x < site[2]
+          : way.side === "west" ? x === site[0] - 1 && zz >= site[1] && zz < site[3]
+          : x === site[2] && zz >= site[1] && zz < site[3];
+        if (!beside) out.push(`${ww}: its outside ${at2(way.outside)} is not beside the icon on its ${way.side}`);
+      }
+      if (!onTravel(way.outside)) out.push(`${ww}: its outside ${at2(way.outside)} is not on the travel map`);
+      if (!inG(way.inside)) out.push(`${ww}: its inside ${at2(way.inside)} is not in its grounds`);
+      for (const e of way.exit) if (!inG(e)) out.push(`${ww}: its exit ${at2(e)} is not in its grounds`);
+      if (way.to !== undefined && !world.towns.some((o) => o.id === way.to) && !world.dungeons.some((d) => d.id === way.to)) out.push(`${ww}: it leads to ${way.to}, no town or dungeon`);
+    }
+  }
+  return out;
+}
+
+/** How near a town's icon on the travel map no spawn stands, tiles (Chebyshev, from the icon's footprint). */
+export const SPAWN_FROM_ICON = 10;
+
+/** The fewest whole chunks with no ground between two pockets of a world of two scales, and between one and the travel map. */
+export const POCKET_GAP = 2;
 
 /** A chunk file: chunk (cx, cz)'s tiles and what stands on them, all inside it. */
 export function checkChunk(data: unknown, cx: number, cz: number): Problems {
@@ -295,15 +407,24 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
     return !!t && inRect(rect, x, z) && !isBlocked(t);
   };
 
-  // Every tile of the world is in a chunk; past its edge, nothing is walked.
-  for (let z = rect[1]; z < rect[3]; z += CHUNK) for (let x = rect[0]; x < rect[2]; x += CHUNK) {
-    if (!byKey.has(chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK)))) out.push(`no chunk ${chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK))} for the world's tiles`);
+  // Every tile of the world is in a chunk (in a world of two scales, every tile of its ground, and no chunk over no
+  // ground: format.ts `groundChunks`); past its edge, or its ground, nothing is walked.
+  const ground = groundChunks(world);
+  const rects = groundRects(world);
+  if (ground) {
+    for (const key of [...ground].sort()) if (!byKey.has(key)) out.push(`no chunk ${key} for the world's ground`);
+    for (const key of byKey.keys()) if (!ground.has(key)) out.push(`chunk ${key}: a file over no ground (neither the travel map nor a town's grounds)`);
+  } else {
+    for (let z = rect[1]; z < rect[3]; z += CHUNK) for (let x = rect[0]; x < rect[2]; x += CHUNK) {
+      if (!byKey.has(chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK)))) out.push(`no chunk ${chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK))} for the world's tiles`);
+    }
   }
   for (const c of chunks) {
     c.tiles.forEach((t, i) => {
       const x = c.cx * CHUNK + (i % CHUNK);
       const z = c.cz * CHUNK + Math.floor(i / CHUNK);
       if (!inRect(rect, x, z) && !isBlocked(t)) out.push(`chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z} is past the world's edge and open`);
+      else if (rects && !rects.some((r) => inRect(r, x, z)) && !isBlocked(t)) out.push(`chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z} is on no ground (the travel map's nor a grounds') and open`);
       if (known && t[1] !== NO_SURFACE && !known.surfaces.has(t[1])) unknown("surface", t[1], `chunk ${chunkKey(c.cx, c.cz)}: tile ${x},${z}`, `has no surface "${t[1]}"`);
     });
   }
@@ -378,6 +499,42 @@ export function lintWorld(world: WorldData, chunks: readonly ChunkData[], interi
     for (const n of r.npcs) npcCheck(where, n, isOpen);
     for (const p of r.props) propCheck(where, p);
   }
+  if (world.travel) out.push(...scaleTiles(world, chunks, tileAt, open));
+  return out;
+}
+
+/**
+ * The two scales on the tiles (a world with `travel`): each town's icon stands on blocked tiles; each way's `outside` is
+ * open, and its `inside` and `exit` open tiles of its grounds; and the spawns, waymarkers and dungeon entrances of the
+ * chunks stand on the travel map, none in a grounds.
+ */
+function scaleTiles(world: WorldData, chunks: readonly ChunkData[], tileAt: (x: number, z: number) => TileData | null, open: (x: number, z: number) => boolean): Problems {
+  const out: Problems = [];
+  for (const t of world.towns) {
+    const where = `town ${t.id}`;
+    const site = siteRect(t);
+    if (site) {
+      for (let z = site[1]; z < site[3]; z++) for (let x = site[0]; x < site[2]; x++) {
+        const tile = tileAt(x, z);
+        if (tile && !isBlocked(tile)) {
+          out.push(`${where}: its icon's tile ${x},${z} is open (an icon stands on a blocked square)`);
+          z = site[3];
+          break;
+        }
+      }
+    }
+    for (const way of t.ways ?? []) {
+      if (!open(way.outside[0], way.outside[1])) out.push(`${where}: its ${way.side} way's outside ${way.outside.join(",")} is not an open tile`);
+      if (!open(way.inside[0], way.inside[1])) out.push(`${where}: its ${way.side} way's inside ${way.inside.join(",")} is not an open tile`);
+      for (const e of way.exit) if (!open(e[0], e[1])) out.push(`${where}: its ${way.side} way's exit ${e.join(",")} is not an open tile`);
+    }
+  }
+  for (const c of chunks) {
+    const where = `chunk ${chunkKey(c.cx, c.cz)}`;
+    for (const [kind, list] of [["spawn", c.spawns], ["waymarker", c.waymarkers], ["entrance", c.entrances]] as const) {
+      for (const e of list) if (!inTravel(world, e.x, e.z) || groundsAt(world, e.x, e.z)) out.push(`${where}: a ${kind} at ${e.x},${e.z} is not on the travel map`);
+    }
+  }
   return out;
 }
 
@@ -447,6 +604,18 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   let tail = 0;
   queue[tail++] = index(first.x, first.z);
   reached[index(first.x, first.z)] = 1;
+  // A town's ways are walked as doors are (a world of two scales): from a way's outside into its grounds at its inside,
+  // and from each of its exit tiles out onto its outside.
+  const ways = new Map<number, number[]>();
+  const link = (from: XZ, to: XZ) => {
+    if (!open(from[0], from[1]) || !open(to[0], to[1])) return;
+    const k = index(from[0], from[1]);
+    ways.set(k, [...(ways.get(k) ?? []), index(to[0], to[1])]);
+  };
+  for (const t of world.towns) for (const way of t.ways ?? []) {
+    link(way.outside, way.inside);
+    for (const e of way.exit) link(e, way.outside);
+  }
   for (let head = 0; head < tail; head++) {
     const k = queue[head]!;
     const x = (k % W) + rect[0];
@@ -459,6 +628,11 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
         reached[n] = 1;
         queue[tail++] = n;
       }
+    }
+    for (const n of ways.get(k) ?? []) {
+      if (reached[n]) continue;
+      reached[n] = 1;
+      queue[tail++] = n;
     }
   }
   const walked = (x: number, z: number) => inRect(rect, x, z) && reached[index(x, z)] === 1;
@@ -526,7 +700,12 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   }
   // Spawns and tiers: each of its zone's tier, harder the farther from the starting areas.
   const starts = world.towns.filter((t) => t.start);
-  const fromStart = (x: number, z: number) => Math.min(...starts.map((t) => Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) - t.radius));
+  // A town of a world of two scales is its icon on the travel map, where the spawns are.
+  const fromStart = (x: number, z: number) =>
+    Math.min(...starts.map((t) => {
+      const [cx, cz] = t.site ?? t.center;
+      return Math.max(Math.abs(x - cx), Math.abs(z - cz)) - (t.site ? Math.floor(ICON_SIZE[t.kind] / 2) : t.radius);
+    }));
   const byTier = Array.from({ length: MAX_TIER + 1 }, () => [] as number[]);
   for (const s of all("spawns")) {
     const where = `spawn ${s.id}`;
@@ -534,6 +713,10 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     if (s.tier < 1 || s.tier > MAX_TIER) out.push(`${where}: tier ${s.tier} is not 1 to ${MAX_TIER}`);
     if (s.tier !== tierAt(world, s.x, s.z)) out.push(`${where}: tier ${s.tier}, but its zone's is ${tierAt(world, s.x, s.z)}`);
     if (townAt(world.towns, s.x, s.z)) out.push(`${where} stands in a town`);
+    for (const t of world.towns) {
+      const site = siteRect(t);
+      if (site && Math.max(site[0] - s.x, s.x - (site[2] - 1), site[1] - s.z, s.z - (site[3] - 1)) < SPAWN_FROM_ICON) out.push(`${where} stands within ${SPAWN_FROM_ICON} tiles of ${t.id}'s icon`);
+    }
     if (s.mobs.length === 0) out.push(`${where} has no mobs`);
     for (const m of s.mobs) {
       const tier = options.tiers?.get(m);

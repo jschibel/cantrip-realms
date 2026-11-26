@@ -3,7 +3,7 @@ import { figureSpec } from "../art/figures";
 import { namedPalette } from "../art/paint/palette";
 import { seeded } from "../art/paint/pixmap";
 import type { ChunkData, InteriorData, NpcData, Rect, WorldData, XZ } from "../world/format";
-import { OBJECT_KINDS, frontStep, viewBounds } from "../world/format";
+import { CHUNK, OBJECT_KINDS, TEXELS_PER_TILE, framingAt, frontStep } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
 import { type WorldSource, gridOfInterior, loadInterior } from "../world/load";
 import { Actor, behaviourOf } from "./actor";
@@ -28,16 +28,32 @@ export function npcActor(n: NpcData, grid: Grid, floor: ((x: number, z: number) 
   return a;
 }
 
-/** The world out of doors, its chunks streamed round the player and its people standing in them as they are built. */
+/** A chunk's highest floor, world units (each chunk's reckoned once). */
+const highestOf = new WeakMap<ChunkData, number>();
+function highest(c: ChunkData): number {
+  let top = highestOf.get(c);
+  if (top === undefined) {
+    top = 0;
+    for (const t of c.tiles) if (t[1] !== "" && t[0] > top) top = t[0];
+    top /= TEXELS_PER_TILE;
+    highestOf.set(c, top);
+  }
+  return top;
+}
+
+/**
+ * The world out of doors, its chunks streamed round the player and its people standing in them as they are built. In a
+ * world of two scales the camera keeps to the ground the player is on - a town's grounds, or the travel map - and never
+ * shows past it (`contained`); `here` says which, as the player arrives (`arriving`).
+ */
 export class StreamedWorld implements Spot {
   readonly inside = false;
   readonly turns = true;
   readonly place: Place;
   readonly streamer: ChunkStreamer;
-  readonly bounds: Rect;
+  /** Where the player stands, as far as the framing goes: the tile they last arrived on. */
+  here: Tile;
   private readonly people = new Map<string, Actor[]>();
-
-
 
   constructor(
     readonly world: WorldData,
@@ -48,7 +64,7 @@ export class StreamedWorld implements Spot {
     /** Makes the figures of a chunk's NPCs (none: the page stands its own). */
     private readonly peopleOf: ((chunk: ChunkData, grid: Grid, floor: (x: number, z: number) => number) => Actor[]) | null = (c, g, f) => c.npcs.filter((n) => !OBJECT_KINDS.has(n.kind)).map((n) => npcActor(n, g, f)),
   ) {
-    this.bounds = viewBounds(world);
+    this.here = start;
     this.place = openAir(world, start.x, start.z, 40);
     this.streamer = new ChunkStreamer(world, source, this.place);
     this.streamer.onBuilt = (key, chunk) => {
@@ -65,6 +81,31 @@ export class StreamedWorld implements Spot {
 
   get grid(): Grid {
     return this.streamer.grid;
+  }
+
+  /** The ground the camera keeps to: the world's `bounds`, or in a world of two scales the grounds or the travel map the player is on. */
+  get bounds(): Rect {
+    return framingAt(this.world, this.here.x, this.here.z);
+  }
+
+  /** A world of two scales keeps the whole view within its ground at every heading. */
+  get contained(): boolean {
+    return !!this.world.travel;
+  }
+
+  /** The highest floor of the chunks read within the bounds, world units (`Framing.rise`). */
+  get rise(): number {
+    const [x0, z0, x1, z1] = this.bounds;
+    let top = 0;
+    for (const c of this.streamer.data.values()) {
+      if (!c || (c.cx + 1) * CHUNK <= x0 || c.cx * CHUNK >= x1 || (c.cz + 1) * CHUNK <= z0 || c.cz * CHUNK >= z1) continue;
+      top = Math.max(top, highest(c));
+    }
+    return top;
+  }
+
+  arriving(tile: Tile): void {
+    this.here = tile;
   }
 
   get actors(): Actor[] {

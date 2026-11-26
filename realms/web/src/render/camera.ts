@@ -32,6 +32,26 @@ export interface Framing {
   readonly turns: boolean;
   /** The camera keeps its focus inside this rectangle of the ground (x0, z0, x1, z1). */
   readonly bounds: Rect;
+  /**
+   * Out of doors, whether the whole view keeps within `bounds` at every heading (a world of two scales: a town's grounds,
+   * the travel map), the void past them never seen: the focus held so the view's ground stays inside, and a zoom step out
+   * it would not fit at refused (a turn to a corner steps the zoom in as far as it needs). Otherwise the bounds hold the
+   * focus looking north only, and a turned view follows freely.
+   */
+  readonly contained?: boolean;
+  /**
+   * The highest floor within the bounds, world units: a contained view is kept within them for ground as high as this
+   * too (raised ground is seen further up and across the screen, so a high bank at the edge would show what lies past it).
+   */
+  readonly rise?: number;
+}
+
+/** How far a view's ground reaches from its focus, world units, each way: west (-x), east (+x), north (-z), south (+z). */
+export interface Reach {
+  readonly west: number;
+  readonly east: number;
+  readonly north: number;
+  readonly south: number;
 }
 
 /** How stiff a turn is: it settles in about 0.45 s. */
@@ -110,17 +130,78 @@ export class CameraRig {
     this.heading = next as Heading;
     this.turning = true;
     this.renderer.snap = false;
+    // A place the view keeps within, seen from a corner, may need a step closer.
+    const was = this.zoom;
+    if (this.fit(f) && this.zoom !== was) this.zoomEase = { from: this.renderer.view.scale, t: 0 };
     return true;
   }
 
-  /** Steps the zoom out (+1) or in (-1); false (and nothing done) inside, or past the last step. */
-  zoomBy(step: -1 | 1, f: Framing): boolean {
+  /** Whether a zoom step out (+1) or in (-1) would be taken here. */
+  canZoom(step: -1 | 1, f: Framing): boolean {
     const next = this.zoom + step;
     if (f.inside || next < 0 || next > this.maxZoom()) return false;
-    this.zoom = next as Zoom;
+    return step < 0 || !f.contained || this.fits(f, this.heading, next as Zoom);
+  }
+
+  /** Steps the zoom out (+1) or in (-1); false (and nothing done) inside, past the last step, or out past what a contained place's bounds hold. */
+  zoomBy(step: -1 | 1, f: Framing): boolean {
+    if (!this.canZoom(step, f)) return false;
+    this.zoom = (this.zoom + step) as Zoom;
     this.zoomEase = { from: this.renderer.view.scale, t: 0 };
     this.renderer.snap = false;
     return true;
+  }
+
+  /**
+   * Holds the zoom to what a contained place's bounds hold at the heading: steps in (at once) while the view would show
+   * past them. Whether the zoom is one that fits (or the closest, if none does).
+   */
+  fit(f: Framing): boolean {
+    if (f.inside || !f.contained) return true;
+    while (this.zoom > 0 && !this.fits(f, this.heading, this.zoom)) this.zoom = (this.zoom - 1) as Zoom;
+    return this.fits(f, this.heading, this.zoom);
+  }
+
+  /** Whether the view at a heading and a zoom step keeps within a place's bounds somewhere (it is no bigger than they are). */
+  fits(f: Framing, heading: Heading, zoom: Zoom): boolean {
+    const [x0, z0, x1, z1] = f.bounds;
+    const r = this.footprint((f.turns ? heading : 0) * (Math.PI / 4), Math.max(1, this.outsideScale() - zoom), f.rise ?? 0);
+    return x1 - x0 >= r.west + r.east && z1 - z0 >= r.north + r.south;
+  }
+
+  /**
+   * How far the view's ground reaches from its focus each way, world units, at a turn and a scale, for ground from the
+   * floor's zero up to `rise` high: the corners of the screen's rectangle laid on the floor at each height (the target is
+   * the window in scene pixels, an even number each way): a turned view's ground is a rectangle turned with it, and raised
+   * ground is seen further up the screen.
+   */
+  footprint(yaw: number, scale: number, rise = 0): Reach {
+    const box = this.renderer.area?.();
+    const even = (n: number) => Math.max(2, Math.ceil(n / 2) * 2);
+    const halfA = (even((box?.width ?? window.innerWidth) / scale) * THREE_QUARTER.wppX) / 2;
+    const halfB = (even((box?.height ?? window.innerHeight) / scale) * THREE_QUARTER.wppY) / 2;
+    const { right, up } = cameraAxes(yaw, THREE_QUARTER.pitch);
+    const det = right.x * up.z - right.z * up.x;
+    let west = 0;
+    let east = 0;
+    let north = 0;
+    let south = 0;
+    for (const h of rise > 0 ? [0, rise] : [0]) {
+      for (const sa of [-halfA, halfA]) {
+        for (const sb of [-halfB, halfB]) {
+          // The ground point h high that the screen's corner shows: across and up by the corner less what h raises it.
+          const a = sa - h * right.y;
+          const b = sb - h * up.y;
+          const dx = (a * up.z - b * right.z) / det;
+          const dz = (right.x * b - up.x * a) / det;
+          west = Math.max(west, -dx);
+          east = Math.max(east, dx);
+          north = Math.max(north, -dz);
+          south = Math.max(south, dz);
+        }
+      }
+    }
+    return { west, east, north, south };
   }
 
   /** Stops a turn or a zoom where it is (a doorway's easing takes over from wherever the camera is). */
@@ -181,6 +262,11 @@ export class CameraRig {
     const halfX = (r.width * THREE_QUARTER.wppX) / 2;
     const halfZ = (r.height * THREE_QUARTER.wppY) / Math.sin(THREE_QUARTER.pitch) / 2;
     const clamp = (value: number, lo: number, hi: number) => (hi - lo < 0 ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, value)));
+    // Kept within at every turn: the view's ground, as the camera stands now, inside the bounds.
+    if (f.contained && !f.inside) {
+      const r = this.footprint(v.yaw, v.scale, f.rise ?? 0);
+      return new THREE.Vector3(clamp(p.x, x0 + r.west, x1 - r.east), 0, clamp(p.z, z0 + r.north, z1 - r.south));
+    }
     const held = new THREE.Vector3(clamp(p.x, x0 + halfX, x1 - halfX), 0, clamp(p.z, z0 + halfZ, z1 - halfZ));
     const free = Math.min(1, Math.abs(v.yaw) / (Math.PI / 4));
     // A room seen from a corner, or turning toward one, is held as the camera sees it at this turn.
@@ -215,6 +301,15 @@ export class CameraRig {
 /** The screen's axes across and up, in the world, for a camera at a turn and pitch. */
 function screenAxes(yaw: number, pitch: number): { right: THREE.Vector3; up: THREE.Vector3 } {
   const turn = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, yaw, 0));
+  return { right: new THREE.Vector3(1, 0, 0).applyQuaternion(turn), up: new THREE.Vector3(0, 1, 0).applyQuaternion(turn) };
+}
+
+/**
+ * The screen's axes across and up, in the world, as the renderer turns its camera (render/renderer.ts: yaw about the
+ * world's up, then the pitch, Euler order YXZ). (`screenAxes` above, which rooms are framed by, turns in the order XYZ.)
+ */
+function cameraAxes(yaw: number, pitch: number): { right: THREE.Vector3; up: THREE.Vector3 } {
+  const turn = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, yaw, 0, "YXZ"));
   return { right: new THREE.Vector3(1, 0, 0).applyQuaternion(turn), up: new THREE.Vector3(0, 1, 0).applyQuaternion(turn) };
 }
 

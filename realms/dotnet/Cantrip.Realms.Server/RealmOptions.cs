@@ -154,13 +154,13 @@ public sealed class RealmOptions
 /// </summary>
 public sealed record FindOptions
 {
-    public int ChestsPerZone { get; init; } = 2;
+    public int ChestsPerZone { get; init; } = 1;
 
     public TimeSpan ChestEvery { get; init; } = TimeSpan.FromMinutes(10);
 
     public TimeSpan ChestLasts { get; init; } = TimeSpan.FromMinutes(30);
 
-    public int Heartblooms { get; init; } = 8;
+    public int Heartblooms { get; init; } = 3;
 
     public TimeSpan HeartbloomEvery { get; init; } = TimeSpan.FromMinutes(30);
 
