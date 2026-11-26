@@ -17,7 +17,7 @@
 import { BUILDINGS } from "../../../src/art/buildings";
 import { PALETTES } from "../../../src/art/paint/palette";
 import { PROPS } from "../../../src/art/props/registry";
-import type { BuildingData, PropData, TownData, XZ } from "../../../src/world/format";
+import type { BuildingData, PropData, TownData, TownPlace, XZ } from "../../../src/world/format";
 import { BLOCKED, OBJECT_KINDS, RAMP } from "../../../src/world/format";
 import { TOWN_LIMITS, lintTown } from "../../../src/world/lint";
 import { inSquare, streetTiles } from "../../../src/world/streets";
@@ -398,10 +398,12 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   for (const g of gateNodes) gateToSquare = Math.max(gateToSquare, near(g));
   const limit = town.kind === "capital" ? 48 : town.kind === "town" ? 36 : 22;
   let squareToPlace = 0;
+  // The capital's smithy stands at the head of its smiths' yard by a gate, the artisans' quarter: a walk of its own.
+  const byGate = (p: TownPlace) => p.kind === "smithy" && town.kind === "capital";
   for (const p of data.plan!.places) {
     const d = near([p.x, p.z]);
-    if (p.kind !== "arena") squareToPlace = Math.max(squareToPlace, d);
-    if (d > limit && p.kind !== "arena") problems.push(`${p.name} is ${Math.round(d)} tiles' walk from the square (${limit} at the most)`);
+    if (p.kind !== "arena" && !byGate(p)) squareToPlace = Math.max(squareToPlace, d);
+    if (d > (byGate(p) ? 130 : limit) && p.kind !== "arena") problems.push(`${p.name} is ${Math.round(d)} tiles' walk from the square (${limit} at the most)`);
   }
   // Places close by (under `apart`, which lintTown leaves): no walk between them longer than the way round a block.
   {
@@ -542,6 +544,60 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
       if (ground > 0) problems.push(`${ground} tiles of its ways on solid ground, not boardwalk`);
     }
     if (form === "village" && !(centre.round && land.surface[I(centre.x + Math.floor(centre.w / 2), centre.z + Math.floor(centre.d / 2))] === S.grass)) problems.push("no green");
+    if (form === "capital") {
+      // Its quay: where its river runs through it, a street along the bank for a good stretch.
+      let bank = 0;
+      let water = 0;
+      for (const i of ctx.river) {
+        if (!ctx.inTown[i] || land.use[i] === Use.Street) continue;
+        water++;
+        const x = land.xOf(i);
+        const z = land.zOf(i);
+        if (inside(x, z - 1) && land.use[I(x, z - 1)] === Use.Street && !ctx.river.has(I(x, z - 1))) bank++;
+      }
+      if (water > 0 && bank < 20) problems.push(`no quay along its river (${bank} tiles of street on its bank)`);
+      // The Seven Houses: each manor in its walled plot - the lot walled round but at its gate, the gate open onto the way.
+      for (const b of ctx.buildings.filter((bb) => bb.id.startsWith(`${town.id}-manor-`))) {
+        const plot = ctx.walledPlots.find((p) => b.x >= p.box.x0 && b.x + b.w <= p.box.x1 && b.z >= p.box.z0 && b.z + b.d <= p.box.z1);
+        if (!plot) {
+          problems.push(`${b.id} has no walled garden`);
+          continue;
+        }
+        const { x0, z0, x1, z1 } = plot.box;
+        const inHouse = (x: number, z: number) => x >= b.x && x < b.x + b.w && z >= b.z && z < b.z + b.d;
+        let gaps = 0;
+        for (let z = z0; z < z1; z++) for (let x = x0; x < x1; x++) {
+          const rim = x === x0 || x === x1 - 1 || z === z0 || z === z1 - 1;
+          if (!rim || inHouse(x, z) || (x === plot.gate[0] && z === plot.gate[1])) continue;
+          if (open(x, z)) gaps++;
+        }
+        if (gaps > 0) problems.push(`${b.id}'s garden wall has ${gaps} gaps besides its gate`);
+        if (!open(plot.gate[0], plot.gate[1]) || !isStreet(plot.gate[0], plot.gate[1] + 1)) problems.push(`${b.id}'s garden gate is not open onto a way`);
+      }
+    }
+    if (plan.designed) {
+      // A designed wall: a tower at every bend of it (away from its gates).
+      const wallAt = (x: number, z: number) => inside(x, z) && land.use[I(x, z)] === Use.Wall;
+      const towerTiles = new Set<number>();
+      for (const p of ctx.props) if (p.id === "wall-tower") for (const [x, z] of tilesOf(p).tiles) if (inside(x, z)) towerTiles.add(I(x, z));
+      let bare = 0;
+      let first: XZ | null = null;
+      for (let i = 0; i < land.size; i++) {
+        if (land.use[i] !== Use.Wall || towerTiles.has(i) || ctx.inTown[i] !== 2) continue;
+        const x = land.xOf(i);
+        const z = land.zOf(i);
+        const h = (wallAt(x - 1, z) ? 1 : 0) + (wallAt(x + 1, z) ? 1 : 0);
+        const v = (wallAt(x, z - 1) ? 1 : 0) + (wallAt(x, z + 1) ? 1 : 0);
+        if (h !== 1 || v !== 1) continue;
+        if (plan.gates.some((g) => x >= g.passage.x0 - 4 && x < g.passage.x1 + 4 && z >= g.passage.z0 - 4 && z < g.passage.z1 + 4)) continue;
+        let near = false;
+        for (let dz = -1; dz <= 1 && !near; dz++) for (let dx = -1; dx <= 1 && !near; dx++) if (towerTiles.has(I(x + dx, z + dz))) near = true;
+        if (near) continue;
+        bare++;
+        first ??= [x, z];
+      }
+      if (bare > 0) problems.push(`${bare} bends of its wall with no tower (one at ${first!.join(",")})`);
+    }
     // Neighbours: from every door to the nearest other, no long way round.
     const doorsAll = ctx.buildings.filter((b) => b.door && inBox(b.door[0], b.door[1])).map((b) => b.door!);
     for (const d of doorsAll) {

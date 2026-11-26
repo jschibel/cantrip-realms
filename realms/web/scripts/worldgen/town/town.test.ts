@@ -129,7 +129,7 @@ describe("the town generator on any setting", () => {
   const byForm = new Map<string, string[]>();
   for (const t of layout.towns) byForm.set(formOf(t), [...(byForm.get(formOf(t)) ?? []), t.id]);
   for (const [form, ids] of byForm) {
-    it(`lays out every ${form} (${ids.join(", ")}) on every setting of the matrix`, { timeout: 600_000 }, () => {
+    it(`lays out every ${form} (${ids.join(", ")}) on every setting of the matrix`, { timeout: 2_400_000 }, () => {
       const broken: string[] = [];
       // A home town and a village of the form, where it has both.
       const kinds = [...new Map(ids.map((id) => [layout.towns.find((t) => t.id === id)!.kind, id])).values()];

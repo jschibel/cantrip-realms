@@ -10,7 +10,7 @@ import { S } from "../ids";
 import { Use, fbm, noise, texel } from "../land";
 import { makeBuilding } from "./buildings";
 import type { Ctx } from "./index";
-import { COUNTRY, type Fields, apron, countryOf, roadPath, treeProp } from "./site";
+import { type Fields, apron, countryOf, roadPath, treeProp } from "./site";
 import { smoothLevels } from "./terrain";
 import type { Side } from "./types";
 import { propHides } from "./view";
@@ -472,9 +472,8 @@ function walkedGround(ctx: Ctx, f: Fields): void {
     const x = land.xOf(i);
     const z = land.zOf(i);
     const seaward = (plan.sea.has("west") && x < box.x0) || (plan.sea.has("east") && x >= box.x1) || (plan.sea.has("north") && z < box.z0) || (plan.sea.has("south") && z >= box.z1);
-    const reach = seaward ? 60 : COUNTRY - 2 + wob(x, z) * 7;
+    const reach = seaward ? 60 : f.country - 2 + wob(x, z) * 7;
     const inGrounds = seaward ? x >= 2 && z >= 2 && x < land.width - 2 && z < land.depth - 2 : x >= m && z >= m && x < land.width - m && z < land.depth - m;
     ctx.walked[i] = near[i]! <= reach && inGrounds ? 1 : 0;
   }
-  void f;
 }
