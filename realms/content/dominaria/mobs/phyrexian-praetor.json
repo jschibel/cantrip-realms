@@ -39,6 +39,7 @@
   },
   "boss": true,
   "unique": "praetors-oil-reliquary",
+  "hops": true,
   "lines": {
     "flawless": [
       "Every card you drew cost you life, and you drew so very eagerly.",

@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "Thrull did good! Thrull did very good! Master will feed Thrull extra slime.",

@@ -28,6 +28,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The light of the north cleanses all darkness. Yours burned away without a struggle.",

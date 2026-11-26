@@ -29,6 +29,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "When I charge, every blade beside me grows sharper. Yours never had a chance.",

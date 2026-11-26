@@ -27,6 +27,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Moor Fiend sinks into the swamp with a bubbling chuckle, not a scratch on its hide.*",

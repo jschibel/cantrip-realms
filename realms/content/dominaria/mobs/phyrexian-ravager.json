@@ -27,6 +27,7 @@
     "size": 1.35
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Phyrexian Ravager vents a plume of black steam and folds its wings with a click.*",

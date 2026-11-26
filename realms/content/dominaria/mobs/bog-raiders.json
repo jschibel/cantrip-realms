@@ -25,6 +25,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Bog Raiders shamble back into the swamp, groaning in what might be contentment.*",

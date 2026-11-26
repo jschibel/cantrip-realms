@@ -28,6 +28,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Every island you saw was a gust in my sails. You never found the shore.",

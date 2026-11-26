@@ -28,6 +28,7 @@
     "size": 1.5
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "Little one hit like snowflake. Frost Giant not even cold.",

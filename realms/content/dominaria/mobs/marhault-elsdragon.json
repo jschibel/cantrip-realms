@@ -29,6 +29,7 @@
     "size": 1.55
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The more who stand before me, the harder I strike. You stood alone, and fell alone.",

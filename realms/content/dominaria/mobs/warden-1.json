@@ -27,6 +27,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Yotian Soldier clicks back to its post, gears ticking evenly. Not a rivet is out of place.*",

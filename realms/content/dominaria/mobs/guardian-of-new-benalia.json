@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "New Benalia stands, and so do I, without a scratch.",

@@ -27,6 +27,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Negator's chained limbs rattle in rhythm. Not a link of it was broken.*",

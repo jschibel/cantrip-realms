@@ -25,6 +25,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Hah! You fight like a Kjeldoran in summer: all armour and no fire.",

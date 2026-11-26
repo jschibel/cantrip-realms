@@ -27,6 +27,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Pegasus Charger rears, wings spread wide, and thunders off without a mark on it.*",

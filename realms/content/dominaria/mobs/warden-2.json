@@ -27,6 +27,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Obsianus Golem's obsidian surface reflects your face back at you. It is unmarked.*",

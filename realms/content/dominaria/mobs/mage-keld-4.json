@@ -28,6 +28,7 @@
     "size": 1.2
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Under my moon every land is a mountain, and every mountain is mine.",

@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I have walked through the heart of the Flarg, and you were barely a campfire.",

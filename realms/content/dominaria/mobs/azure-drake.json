@@ -27,6 +27,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Azure Drake circles once overhead, unhurried, its scales unmarked by a single blow.*",

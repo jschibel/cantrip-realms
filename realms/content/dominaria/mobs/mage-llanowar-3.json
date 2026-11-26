@@ -29,6 +29,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Each enchantment drew me another card. You drew nothing but defeat.",

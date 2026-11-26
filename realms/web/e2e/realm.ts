@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, expect } from "@playwright/test";
-import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey, chunkTile, isBlocked, noLedge } from "../src/world/format";
+import { CHUNK, type ChunkData, type DungeonData, type InteriorData, type WorldData, chunkKey, chunkTile, isBlocked, isHop, noLedge } from "../src/world/format";
 
 // The realm's page as the tests drive it, on the manual clock: everything is read from globalThis.realmTest
 // (src/testHooks.ts), every action is a real mouse click at the place it publishes, and time moves only when a test
@@ -271,9 +271,16 @@ export function noLedgeWorld(a: Tile, b: Tile): boolean {
   return !ca || !cb || noLedge(chunkTile(ca, a.x, a.z), chunkTile(cb, b.x, b.z));
 }
 
+/** A hop between two side-by-side world tiles (format.ts HOP): a ledge a player hops straight across. */
+export function hopWorld(a: Tile, b: Tile): boolean {
+  const ca = chunkAt(a);
+  const cb = chunkAt(b);
+  return !!ca && !!cb && isHop(chunkTile(ca, a.x, a.z), chunkTile(cb, b.x, b.z));
+}
+
 /**
- * An open tile about `steps` from `target` (Chebyshev), reached from it over open tiles (eight ways, no cut corner, no
- * ledge stepped over).
+ * An open tile about `steps` from `target` (Chebyshev), reached from it over open tiles as a player walks (eight ways, no
+ * cut corner, no ledge stepped over but a hop straight across).
  */
 export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean = openWorld): Tile {
   const key = (t: Tile) => `${t.x},${t.z}`;
@@ -290,7 +297,7 @@ export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean
           const a = { x: t.x + dx, z: t.z };
           const b = { x: t.x, z: t.z + dz };
           if (!dx || !dz) {
-            if (!noLedgeWorld(t, n)) continue;
+            if (!noLedgeWorld(t, n) && !hopWorld(t, n)) continue;
           } else if (!(open(a) && open(b) && noLedgeWorld(t, a) && noLedgeWorld(a, n) && noLedgeWorld(t, b) && noLedgeWorld(b, n))) continue;
           seen.add(key(n));
           next.push(n);

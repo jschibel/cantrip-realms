@@ -29,6 +29,7 @@
     "size": 1.65
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I founded a nation on ground harder than you. Rest easy; few would have done better.",

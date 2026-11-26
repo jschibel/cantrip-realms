@@ -27,6 +27,7 @@
     "size": 1.35
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Sandbar Serpent slides back beneath the shallows, scales gleaming, utterly unhurt.*",

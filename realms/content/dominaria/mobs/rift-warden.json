@@ -28,6 +28,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "You could not touch me. Nothing can. I am only a rumour that bites.",

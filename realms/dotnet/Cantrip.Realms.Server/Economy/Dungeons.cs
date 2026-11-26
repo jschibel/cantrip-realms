@@ -300,7 +300,7 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         Tile entrance = dungeon.File.At;
         RealmWorld world = content.World;
         return Tile.Steps.Select(entrance.Plus)
-            .Where(tile => world.CanStep(entrance, tile) && !world.Entrances.ContainsKey(tile) && !world.Doors.ContainsKey(tile))
+            .Where(tile => world.CanStep(entrance, tile, hops: false) && !world.Entrances.ContainsKey(tile) && !world.Doors.ContainsKey(tile))
             .Cast<Tile?>().FirstOrDefault() ?? entrance;
     }
 

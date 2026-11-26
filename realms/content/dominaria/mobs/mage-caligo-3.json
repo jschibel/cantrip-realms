@@ -29,6 +29,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I named your fate before you drew it. Nebuchadnezzar does not guess.",

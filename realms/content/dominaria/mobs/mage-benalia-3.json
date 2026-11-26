@@ -29,6 +29,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Neither Urza's way nor Mishra's, but a third one, and it never came near harm.",

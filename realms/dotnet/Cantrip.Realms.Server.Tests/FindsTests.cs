@@ -87,7 +87,7 @@ public sealed class FindsTests
         foreach (Find find in seen.Values)
         {
             Assert.True(world.Walkable(find.At) && !world.IsWorked(find.At), $"{find.Id} at {find.At}: not open ground of the wilds");
-            Assert.All(Tile.Steps, step => Assert.True(world.CanStep(find.At, find.At.Plus(step)), $"{find.Id} at {find.At}: not open all round"));
+            Assert.All(Tile.Steps, step => Assert.True(world.CanStep(find.At, find.At.Plus(step), hops: false), $"{find.Id} at {find.At}: not level all round"));
             Assert.Null(content.TownAt(find.At));
             int zone = world.ZoneOf(find.At);
             Assert.True(zone >= 0, $"{find.Id} at {find.At}: in no zone");

@@ -27,6 +27,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Bog Wraith drifts through your defences as if they were swamp mist, untouched.*",

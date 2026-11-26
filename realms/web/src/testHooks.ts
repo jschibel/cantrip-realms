@@ -287,18 +287,19 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     },
     /**
      * Moves the manual clock on as `advance` does, noting each frame where the player's figure is drawn (`x`, `y`, `z`), where
-     * the camera looks (`fx`, `fz`), the way the figure faces and whether it walks: the walk frame by frame, for the walking
-     * suite to look for jumps and jitter in.
+     * the camera looks (`fx`, `fz`), the way the figure faces, whether it walks and whether it is across a hop's edge (mid-hop,
+     * the one time its body stands across a ledge): the walk frame by frame, for the walking suite to look for jumps and
+     * jitter in.
      */
     async track(seconds: number) {
       const o = live();
-      const out: { x: number; y: number; z: number; fx: number; fz: number; facing: number; moving: boolean }[] = [];
+      const out: { x: number; y: number; z: number; fx: number; fz: number; facing: number; moving: boolean; hopping: boolean }[] = [];
       if (!o || !o.options.manual) return out;
       for (let t = 0; t < seconds - 1e-6; t += 1 / 60) {
         o.tick(1 / 60);
         const s = o.stage;
         const p = s.player.figure.root.position;
-        out.push({ x: p.x, y: p.y, z: p.z, fx: s.focus.x, fz: s.focus.z, facing: s.player.figure.facing, moving: s.player.moving });
+        out.push({ x: p.x, y: p.y, z: p.z, fx: s.focus.x, fz: s.focus.z, facing: s.player.figure.facing, moving: s.player.moving, hopping: s.player.hopping });
         await yieldFrame();
       }
       return out;

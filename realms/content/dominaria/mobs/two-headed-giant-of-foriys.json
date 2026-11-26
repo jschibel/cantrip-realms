@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "Left head says easy. Right head says too easy. Both heads agree: not a scratch.",

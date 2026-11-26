@@ -25,6 +25,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Durkwood Boars snuffle through your fallen cards, rooting for anything edible.*",

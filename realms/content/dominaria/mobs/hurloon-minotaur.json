@@ -25,6 +25,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The Hurloon horn has sounded, and you did not land a single blow.",

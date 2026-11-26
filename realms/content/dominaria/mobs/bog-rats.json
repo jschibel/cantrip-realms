@@ -25,6 +25,7 @@
     "size": 0.9
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Bog Rats chitter and scatter, each one dragging off a scrap of your torn spells.*",

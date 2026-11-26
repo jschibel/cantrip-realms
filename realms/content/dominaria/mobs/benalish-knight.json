@@ -27,6 +27,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "A knight of Benalia does not tire, and today he did not even bleed.",

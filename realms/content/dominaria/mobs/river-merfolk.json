@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The river runs where it will, and today it ran right over you.",

@@ -27,6 +27,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Phyrexian Gorger tastes the air where you stood. It is already digesting your plans.*",

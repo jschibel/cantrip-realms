@@ -28,6 +28,7 @@
     "size": 1.65
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Enormous Baloth sits down on your side of the field. That seems to settle things.*",

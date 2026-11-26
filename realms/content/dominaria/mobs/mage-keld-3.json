@@ -28,6 +28,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Discard your hand and draw seven... oh, you've nothing left to draw for. Pity.",

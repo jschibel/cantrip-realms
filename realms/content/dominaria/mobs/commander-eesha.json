@@ -29,6 +29,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Your creatures never laid a talon on me. They never do.",

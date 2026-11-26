@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Atlantis does not deign to bleed. Kneel before the tide, little landling.",

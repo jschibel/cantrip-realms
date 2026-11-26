@@ -1,4 +1,4 @@
-import { type BuildingData, CHUNK, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile } from "../src/world/format";
+import { type BuildingData, CHUNK, HOP, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile } from "../src/world/format";
 import { type Tile, chebyshev, chunk, chunkAt, interior, openNear, openWorld, world } from "./realm";
 
 // Where the tests find what they need in the generated world: read from its files, never guessed, so a regenerated
@@ -200,9 +200,9 @@ export function terraceFoot(near = "new-benalia"): { x: number; z0: number; z1: 
 }
 
 /**
- * The brink of a straight ledge near a town (world/grid.ts canStep): an open tile with open ground a whole level below
- * it to the west, and the same for two tiles north and south of it, with open ground on its level east of all five for a
- * few tiles - walked up to and along, never over.
+ * The brink of a straight ledge a level high near a town (world/grid.ts canStep, a hop): an open tile with open ground
+ * one level (HOP) below it to the west, and the same for two tiles north and south of it, with open ground on its level
+ * east of all five for a few tiles - hopped straight across, walked along.
  */
 export function ledgeBrink(town = "new-benalia"): { at: Tile; below: Tile } {
   const t = world().towns.find((x) => x.id === town)!;
@@ -224,7 +224,7 @@ export function ledgeBrink(town = "new-benalia"): { at: Tile; below: Tile } {
         const here = tile(x, z);
         if (!here || !level(x, z, here[0])) continue;
         const west = tile(x - 1, z);
-        if (!west || !level(x - 1, z, west[0]) || here[0] - west[0] < 12) continue;
+        if (!west || !level(x - 1, z, west[0]) || here[0] - west[0] !== HOP) continue;
         // A straight ledge: the same drop to the west all along five rows, open ground on top east of it.
         let room = true;
         for (let k = -2; k <= 2 && room; k++) {

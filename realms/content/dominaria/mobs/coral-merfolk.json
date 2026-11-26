@@ -25,6 +25,7 @@
     "size": 1.0
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The tide turns where it pleases, and today it pleased me. Not a drop of me spilled.",

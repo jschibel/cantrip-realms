@@ -96,10 +96,17 @@ export const RAMP = 4;
 /**
  * The most a step from one tile to a side-by-side one climbs or drops, texels (a quarter of a tile), unless both are
  * ramps (a ramp's tiles go up its slope whatever their heights). A higher bank - a terrace's edge, a road's embankment -
- * is a ledge: the tiles both sides of it are open and walked up to its brink, but nobody steps over it
- * (world/grid.ts `canStep`).
+ * is a ledge: the tiles both sides of it are open and walked up to its brink, but nobody walks over it; one no higher
+ * than `HOP` is hopped (world/grid.ts `canStep`).
  */
 export const LEDGE = 4;
+/**
+ * The highest ledge hopped, texels (a terrace's one level): between two side-by-side open tiles whose floors differ by
+ * more than `LEDGE` and no more than this (not both ramps), the edge is a hop - crossed straight across, never on a
+ * diagonal step, by whoever hops (players always do; a mob as its file says). A higher bank is a cliff nobody crosses
+ * (world/grid.ts `canStep`).
+ */
+export const HOP = 12;
 /** The surface of no ground at all. */
 export const NO_SURFACE = "";
 
@@ -525,6 +532,8 @@ export const isBlocked = (t: TileData): boolean => (t[2] & BLOCKED) !== 0 || t[1
 export const isBare = (t: TileData): boolean => (t[2] & BARE) !== 0;
 /** Whether the edge between two side-by-side tiles is no ledge (`LEDGE`): their floors that near, or both ramps. */
 export const noLedge = (a: TileData, b: TileData): boolean => (a[2] & b[2] & RAMP) !== 0 || Math.abs(a[0] - b[0]) <= LEDGE;
+/** Whether the edge between two side-by-side tiles is a hop (`HOP`): a ledge no higher than one level. */
+export const isHop = (a: TileData, b: TileData): boolean => !noLedge(a, b) && Math.abs(a[0] - b[0]) <= HOP;
 
 /** The step out of a building's door, by its turn: rot 0 faces south. Into the building is the opposite. */
 export function frontStep(rot: number): XZ {

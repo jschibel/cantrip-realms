@@ -45,6 +45,7 @@
   "boss": true,
   "unlocks": "B",
   "unique": "vess-veil-signet",
+  "hops": true,
   "lines": {
     "flawless": [
       "Did you really think a few spells would trouble me? I've survived demons, darling.",

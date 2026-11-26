@@ -33,6 +33,24 @@ describe("a mob's name in a sentence", () => {
   });
 });
 
+// Whether a mob hops a ledge a level high (world/format.ts HOP) is judged creature by creature and written in its file
+// by hand (tools/realms/sample-decks.py keeps it): every file says so.
+describe("a mob's hops", () => {
+  it("is in every mob file, and the client walks by it: a zombie goes round, an elf and a pegasus hop", () => {
+    const wrong: string[] = [];
+    for (const file of readdirSync(mobs).filter((f) => f.endsWith(".json"))) {
+      const mob = JSON.parse(readFileSync(join(mobs, file), "utf8")) as { id: string; hops?: unknown };
+      if (typeof mob.hops !== "boolean") wrong.push(`${mob.id}: hops should be true or false`);
+    }
+    expect(wrong).toEqual([]);
+    expect(mobInfo("tomb-warden").hops).toBe(false);
+    expect(mobInfo("craw-wurm").hops).toBe(false);
+    expect(mobInfo("llanowar-elves").hops).toBe(true);
+    expect(mobInfo("mesa-pegasus").hops).toBe(true);
+    expect(mobInfo("some-zombie").hops).toBe(false);
+  });
+});
+
 // What a mob says when it beats the player (interfaces.md, "Mobs"): a line for each way it won - without losing a point
 // of life, having taken some damage, or with a quarter of its life or less - the same line wherever the duel was, so no
 // line speaks of an offer the world may not make there.

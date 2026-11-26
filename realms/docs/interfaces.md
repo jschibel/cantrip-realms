@@ -111,6 +111,7 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   "goldRange": [20, 60],
   "model": { "mesh": "elf", "palette": ["#2a4524", "#d6ae7e", "#c08a62"], "size": 0.9 },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": ["Mana in the morning, victory by noon. Such is Llanowar!", "..."],
     "solid": ["You trampled a few of us, but the forest always grows back.", "..."],
@@ -131,6 +132,12 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
 - `named` (optional, `true`) marks a proper name: a legend the mob is named for, by the card's whole name or the start of
   it ("Teferi"). The world says it bare ("Rofellos, Llanowar Emissary attacks!"), any other mob with its article ("The
   Llanowar Elves attacks!", "the Phyrexian Praetor"); `realms/web/src/mobs.test.ts` holds it to the card's type line.
+- `hops` says whether the mob hops a ledge a level high as a player does (Places, "Walking"), judged creature by
+  creature: most that walk on legs and everything that flies do (`true`); zombies, oozes and slitherers, wurms and
+  serpents, treefolk, giants and beasts too heavy to jump, constructs and an artillery crew do not (`false`), and go
+  round by the ramps - or give up a chase at the brink. Only the browser walks mobs, so the server reads past it; it is
+  written by hand, and `sample-decks.py` keeps it when it rewrites the file. `realms/web/src/mobs.test.ts` holds every
+  file to having it.
 - `region` is the region, by its color (world.json's `regions[].color`), the mob roams or belongs to; absent for a mob of
   none (the generic wardens, the Portal's mobs, the praetor). A world spawn of a region lists mobs of that region and its
   tier.
@@ -365,13 +372,17 @@ its interiors and its dungeons in version 2 of the world data (above):
   and kept, and changes nothing about walking; heights and the ramp flag (4) make ledges (below). The camera's `bounds`
   change nothing.
 - **Walking.** A walk is steps to any of the eight tiles round, over no ledge - two side-by-side tiles whose floors are
-  more than 4 texels apart (a quarter of a tile), unless both are ramps - and a diagonal step only where both tiles it
-  passes between are open and no ledge runs round the corner: it never cuts the corner of a blocked tile, nor steps up
-  or down a terrace's bank anywhere but its ramps (`realms/web/src/world/grid.ts`'s `canStep`, exactly). It
-  starts on an open tile (the overworld's A* does not check the tile it starts from; nobody stands on a closed one).
-  Golden vectors of paths and walks are `realms/content/walk-vectors.json` (`tools/realms/walk-vectors.ts`), which the
-  TypeScript and C# tests both check. A walk's length is counted along it, 1 tile a straight step and the square root
-  of 2 a diagonal one, walked at a speed in tiles a second.
+  more than 4 texels apart (a quarter of a tile, `LEDGE`), unless both are ramps - but a hop: a ledge no higher than 12
+  texels (a terrace's one level, `HOP`), crossed straight across, never on a diagonal step. A player always hops; a mob
+  as its file says (`hops`, Mobs above), and the server, which walks no mob, holds a player's walk to the hopping rule.
+  Higher than 12 texels is a cliff nobody crosses. A diagonal step is taken only where both tiles it passes between are
+  open and no ledge (nor hop) runs round the corner: it never cuts the corner of a blocked tile, nor steps up or down a
+  bank on a slant (`realms/web/src/world/grid.ts`'s `canStep`, exactly; `RealmSpace.CanStep`). It starts on an open
+  tile (the overworld's A* does not check the tile it starts from; nobody stands on a closed one). Golden vectors of
+  paths and walks are `realms/content/walk-vectors.json` (`tools/realms/walk-vectors.ts`), a player's and (marked
+  `"hops": false`) one's who does not hop, which the TypeScript and C# tests both check. A walk's length is counted along
+  it, 1 tile a straight step and the square root of 2 a diagonal one, walked at a speed in tiles a second; a hop is part
+  of a walk like any step, at the same speed (the overworld's figure arcs over it as it crosses, at walking pace).
 - **Proximity.** "Within N tiles" of a tile is the Chebyshev distance - the most of the two axes' differences - at most
   N; "beside" a tile is within 1 (on it or one of the eight round it). Every check by distance is this one: a spawn's
   reach, standing at a door, an exit, an entrance, a waystone, a chest or a spell table, being in a town (its `radius`
@@ -777,9 +788,10 @@ integer), a time Unix milliseconds on the server's clock. A frame whose key a cl
 - The server refuses a `Move` that starts on a tile nobody stands on, or more than 1.5 tiles (in a straight line) from
   where the player is (as far along their last walk as its speed has taken them); one of whose lines leaves the space
   (off the world's chunks or the interior's tiles) or crosses tiles that are not each a step of the grid's from the one
-  before - a tile nobody stands on, a ledge, or (through a tile's corner, a diagonal step) the corner of a blocked tile or
-  a ledge (Places, "Walking"; `RealmSpace.CanWalk`, and `legClear` of `realms/web/src/render/motion.ts`, the same rule;
-  the overworld's body, which never overlaps a blocked tile nor stands across a ledge, walks only such lines); that is
+  before - a tile nobody stands on, a cliff, or (through a tile's corner, a diagonal step) the corner of a blocked tile or
+  a ledge; a ledge a level high is hopped straight across (Places, "Walking"; `RealmSpace.CanWalk`, and `legClear` of
+  `realms/web/src/render/motion.ts`, the same rule; the overworld's body, which never overlaps a blocked tile nor stands
+  across a ledge but mid-hop, walks only such lines); that is
   walked faster than walking allows (`REALMS_WALKING_SPEED`, 5 tiles a second; the overworld walks the player at 4.2),
   has more than 256 points or is longer than 256 tiles, or comes more than 10 to a second; a refusal sends `Refused`
   with the player's true `At`, and they stay there. The overworld tells a click's walk from where its figure is through

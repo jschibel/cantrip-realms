@@ -27,6 +27,7 @@
     "size": 1.5
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Triskelion's three arms whirl in a neat flourish, every counter still loaded.*",

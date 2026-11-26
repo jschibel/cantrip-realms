@@ -27,6 +27,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "Boom! Boom! And none of it hit me for once!",

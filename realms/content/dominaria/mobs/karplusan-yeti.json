@@ -28,6 +28,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Karplusan Yeti beats its chest and hurls a snowball after you for good measure.*",

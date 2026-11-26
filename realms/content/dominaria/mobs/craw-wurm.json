@@ -27,6 +27,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Craw Wurm burrows back into the loam with a contented rumble, not a mark on its hide.*",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Grid } from "../world/grid";
-import { BODY, canStep, clear, fits, legClear, slide, smooth } from "./motion";
+import { BODY, HOP_STEEP, canStep, clear, fits, hopHeight, hopToward, hopUnder, legClear, slide, smooth } from "./motion";
 
 function grid(rows: string[]): Grid {
   const g = new Grid(rows[0]!.length, rows.length);
@@ -193,11 +193,11 @@ describe("the body at a ledge", () => {
     expect(slide(g, 0.5, 2.5, 5, 0)).toEqual({ x: 5.5, z: 2.5 });
   });
 
-  it("finds a straight line over a ledge no line of sight, and a click's walk goes by the ramp, each leg clear", () => {
+  it("finds a straight line over a ledge no line of sight; for one who does not hop, a click's walk goes by the ramp, each leg clear", () => {
     const t = terrace();
-    const g = t.ground;
+    const g = t.still;
     expect(clear(g, { x: 1.5, z: 0.5 }, { x: 5.5, z: 0.5 })).toBe(false);
-    const route = t.path({ x: 1, z: 0 }, { x: 5, z: 0 })!;
+    const route = t.path({ x: 1, z: 0 }, { x: 5, z: 0 }, false)!;
     expect(route.some((s) => s.x === 2 && s.z === 2)).toBe(true);
     let at = { x: 1.5, z: 0.5 };
     for (const p of smooth(g, at, route)) {
@@ -207,5 +207,84 @@ describe("the body at a ledge", () => {
     expect(at).toEqual({ x: 5.5, z: 0.5 });
     expect(canStep(g, { x: 2, z: 0 }, { x: 3, z: 0 })).toBe(false);
     expect(canStep(g, { x: 2, z: 2 }, { x: 3, z: 2 })).toBe(true);
+  });
+
+  it("a click's walk hops it: to the brink, straight over from flush to flush, and on, each other leg clear", () => {
+    const t = terrace();
+    const g = t.ground;
+    const route = t.path({ x: 1, z: 0 }, { x: 5, z: 0 })!;
+    expect(route.map((s) => s.x)).toEqual([1, 2, 3, 4, 5]);
+    const legs = smooth(g, { x: 1.5, z: 0.7 }, route);
+    expect(legs).toEqual([{ x: 3 - BODY, z: 0.5 }, { x: 3 + BODY, z: 0.5 }, { x: 5.5, z: 0.5 }]);
+    let at = { x: 1.5, z: 0.7 };
+    for (const p of legs) {
+      // The hop's leg is the one the body crosses the edge on; every leg is a walk the server takes.
+      if (p.x !== 3 + BODY) expect(clear(g, at, p), `${at.x},${at.z} to ${p.x},${p.z}`).toBe(true);
+      expect(legClear(g, at, p)).toBe(true);
+      at = p;
+    }
+    // Down again, west, from the top: the same, the other way.
+    const back = smooth(g, { x: 5.5, z: 0.5 }, t.path({ x: 5, z: 0 }, { x: 0, z: 0 })!);
+    expect(back).toEqual([{ x: 3 + BODY, z: 0.5 }, { x: 3 - BODY, z: 0.5 }, { x: 0.5, z: 0.5 }]);
+    // Over two ledges in turn.
+    for (let z = 0; z < 5; z++) for (let x = 6; x < 8; x++) t.setHeight(x, z, 24 / 16);
+    const twice = smooth(t.ground, { x: 1.5, z: 0.5 }, t.path({ x: 1, z: 0 }, { x: 7, z: 0 })!);
+    expect(twice).toEqual([{ x: 3 - BODY, z: 0.5 }, { x: 3 + BODY, z: 0.5 }, { x: 6 - BODY, z: 0.5 }, { x: 6 + BODY, z: 0.5 }, { x: 7.5, z: 0.5 }]);
+  });
+
+  it("a held walk pushed into the ledge at what is past it hops it whole; along it, short of it, or off a cliff, it does not", () => {
+    const t = terrace();
+    const g = t.ground;
+    // Flush below the bank, pushed east at the top: the hop from there straight across to flush on the top.
+    expect(hopToward(g, 3 - BODY, 0.6, { x: 6, z: 1.5 })).toEqual({ from: { x: 3 - BODY, z: 0.6 }, to: { x: 3 + BODY, z: 0.6 } });
+    // From the top, pushed west off it: down.
+    expect(hopToward(g, 3 + BODY, 4.5, { x: 0, z: 4.5 })).toEqual({ from: { x: 3 + BODY, z: 4.5 }, to: { x: 3 - BODY, z: 4.5 } });
+    // Across two rows of the ledge, both hops: taken.
+    expect(hopToward(g, 3 - BODY, 1, { x: 5, z: 1 })).not.toBeNull();
+    // Pushed mostly along it, not into it; a cursor short of the edge; not flush with it: none.
+    expect(hopToward(g, 3 - BODY, 0.5, { x: 3.2, z: 4.5 })).toBeNull();
+    expect(hopToward(g, 3 - BODY, 0.5, { x: 2.9, z: 0.5 })).toBeNull();
+    expect(hopToward(g, 2.5, 0.5, { x: 6, z: 0.5 })).toBeNull();
+    // Into the ramp's row, which is walked, not hopped.
+    expect(hopToward(g, 3 - BODY, 2.5, { x: 6, z: 2.5 })).toBeNull();
+    // One who does not hop, none.
+    expect(hopToward(t.still, 3 - BODY, 0.5, { x: 6, z: 0.5 })).toBeNull();
+    // A cliff two levels high: none, and no step.
+    for (let x = 3; x < 8; x++) t.setHeight(x, 0, 24 / 16);
+    expect(hopToward(g, 3 - BODY, 0.5, { x: 6, z: 0.5 })).toBeNull();
+    expect(canStep(g, { x: 2, z: 0 }, { x: 3, z: 0 })).toBe(false);
+    // A landing the body would not fit on (a closed tile beside it on the top): none.
+    t.setWalkable(3, 4, false);
+    expect(hopToward(g, 3 - BODY, 3.9, { x: 6, z: 3.9 })).toBeNull();
+  });
+
+  it("draws the body across a hop's edge on an arc: from one floor to the other, over the higher, never a jump", () => {
+    const t = terrace();
+    const g = t.ground;
+    const floor = (x: number, z: number) => t.heightAt(Math.floor(x), Math.floor(z));
+    expect(hopUnder(g, 3 - BODY, 0.5)).toBeNull();
+    expect(hopUnder(g, 3 + BODY, 0.5)).toBeNull();
+    expect(hopUnder(t.still, 3, 0.5)).toBeNull();
+    // Not across the ramp's row, nor a level step.
+    expect(hopUnder(g, 3, 2.5)).toBeNull();
+    let last = 0;
+    let top = 0;
+    const n = 40;
+    const piece = (2 * BODY) / n;
+    for (let i = 0; i <= n; i++) {
+      const x = 3 - BODY + i * piece;
+      const span = hopUnder(g, x, 0.5);
+      const y = span ? hopHeight(span, floor) : floor(x, 0.5);
+      if (i > 0) expect(Math.abs(y - last)).toBeLessThanOrEqual(HOP_STEEP * piece + 1e-9);
+      top = Math.max(top, y);
+      last = y;
+    }
+    expect(last).toBeCloseTo(12 / 16, 9);
+    expect(top).toBeGreaterThan(12 / 16 + 0.05);
+    expect(hopHeight({ from: { x: 2.7, z: 0.5 }, to: { x: 3.3, z: 0.5 }, s: 0 }, floor)).toBe(0);
+    expect(hopHeight({ from: { x: 2.7, z: 0.5 }, to: { x: 3.3, z: 0.5 }, s: 1 }, floor)).toBe(12 / 16);
+    // A walker at a slant across it (another player's point to point) is on the arc by how far across it is.
+    const slant = hopUnder(g, 3, 1.1)!;
+    expect(slant.s).toBeCloseTo(0.5, 9);
   });
 });

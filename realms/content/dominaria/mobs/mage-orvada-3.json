@@ -30,6 +30,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Every wizard of mine arrived twice, and you couldn't handle even one of them.",

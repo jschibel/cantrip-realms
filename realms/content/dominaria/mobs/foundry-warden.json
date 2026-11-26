@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Gears turning, cannons humming, and you never even dented the boiler. Lovely.",

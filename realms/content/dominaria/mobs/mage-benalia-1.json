@@ -28,6 +28,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "We kept the faith, and the faith kept us whole.",

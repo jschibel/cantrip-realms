@@ -7,7 +7,8 @@ import type { Grid, Tile } from "./world/grid";
 // What walks the world besides the townsfolk (render/spots.ts stands those): the mobs of the spawn points and the
 // other players in the same place, each an Actor on the place's grid (render/actor.ts: squares, eight ways, never a cut
 // corner). Mobs think for themselves - wander near their spawn, chase the player within six tiles a little slower than
-// they walk, and engage once beside them; other players walk the paths the relay sends.
+// they walk, and engage once beside them; other players walk the paths the relay sends. A mob hops a ledge a level high
+// as its file says (MobInfo `hops`); one that does not goes round by the ramps, or gives up the chase at the brink.
 
 /** Tiles a second: at most 5, the fastest walk the server takes. */
 export const PLAYER_SPEED = 4.2;
@@ -37,6 +38,7 @@ export class Mob {
   static make(info: MobInfo, spawn: SpawnData, epoch: number, grid: Grid, floor: ((x: number, z: number) => number) | null, run?: Mob["run"]): Mob {
     const actor = new Actor(mobFigure(info.model, info.id, info.creature), { x: spawn.x, z: spawn.z }, grid, {}, info.name);
     actor.floor = floor;
+    actor.hops = info.hops;
     actor.place({ x: spawn.x, z: spawn.z });
     actor.speed = WANDER_SPEED;
     return new Mob(actor, info, spawn, epoch, run);
@@ -55,9 +57,10 @@ export class Mob {
     this.rest -= seconds;
     const me = this.actor.tile;
     const near = chebyshev(me, player.tile);
-    // Beside is a step away: never across a ledge (world/grid.ts canStep), the one above the other's bank.
+    // Beside is a step away for it (world/grid.ts canStep): never across a cliff, nor a ledge it does not hop.
     const grid = this.actor.grid;
-    if (near <= 1 && (near === 0 || grid.canStep(me, player.tile)) && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
+    const hops = this.actor.hops;
+    if (near <= 1 && (near === 0 || grid.canStep(me, player.tile, hops)) && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
     if (near <= CHASE_RANGE && this.rest <= 0) {
       // Chasing: toward the free tile beside the player nearest it, re-aimed a few times a second.
       this.actor.speed = CHASE_SPEED;
@@ -67,7 +70,7 @@ export class Mob {
         const p = player.tile;
         const beside: Tile[] = [];
         for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) beside.push({ x: p.x + dx, z: p.z + dz });
-        const stand = beside.filter((t) => (free(t) || (t.x === me.x && t.z === me.z)) && grid.canStep(t, p)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
+        const stand = beside.filter((t) => (free(t) || (t.x === me.x && t.z === me.z)) && grid.canStep(t, p, hops)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
         if (stand) this.actor.retarget(stand);
       }
       return false;

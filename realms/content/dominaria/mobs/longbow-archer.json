@@ -27,6 +27,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Nothing in the sky or on the ground gets past my bow.",

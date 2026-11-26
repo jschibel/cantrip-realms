@@ -25,6 +25,7 @@
     "size": 1.0
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Ha! Orcs win! Orcs always win when the other one is little!",

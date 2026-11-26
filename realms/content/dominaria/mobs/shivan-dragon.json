@@ -28,6 +28,7 @@
     "size": 1.55
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Shivan Dragon pumps its fire twice for show, then flies off without looking back.*",

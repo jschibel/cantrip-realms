@@ -41,6 +41,7 @@
   "boss": true,
   "unlocks": "R",
   "unique": "garnas-bloodfists",
+  "hops": true,
   "lines": {
     "flawless": [
       "Keld does not bleed for weaklings. Today it did not bleed at all.",

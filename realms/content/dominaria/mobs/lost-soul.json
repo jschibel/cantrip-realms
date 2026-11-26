@@ -27,6 +27,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I wander the Morass forever, and you could not even slow me down.",

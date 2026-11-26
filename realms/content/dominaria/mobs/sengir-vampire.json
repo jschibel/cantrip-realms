@@ -28,6 +28,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Every creature you lost made me stronger. You were most generous, dear guest.",

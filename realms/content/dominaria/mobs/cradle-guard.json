@@ -27,6 +27,7 @@
     "size": 1.15
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Cradle Guard settles its roots deeper, leaves rustling like quiet laughter.*",

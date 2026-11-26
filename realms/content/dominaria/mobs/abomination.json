@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Abomination gurgles something like a laugh and slithers back into the bog, not a scratch on it.*",

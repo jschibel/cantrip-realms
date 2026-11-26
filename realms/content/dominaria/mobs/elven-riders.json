@@ -27,6 +27,7 @@
     "size": 1.35
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Only walls and wings can stop us, and you brought neither.",

@@ -28,6 +28,7 @@
     "size": 1.75
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Tombstalker drifts back over the graves on silent wings, wholly unmarked.*",

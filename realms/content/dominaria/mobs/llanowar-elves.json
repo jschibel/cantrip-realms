@@ -25,6 +25,7 @@
     "size": 0.9
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Mana in the morning, victory by noon. Such is Llanowar!",

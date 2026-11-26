@@ -28,6 +28,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The woods grew around you as you fought. You simply did not notice.",

@@ -29,6 +29,7 @@
     "size": 1.55
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I fought in the Cabal's pits for sport. You would not have lasted one bout.",

@@ -28,6 +28,7 @@
     "size": 1.5
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I feast on artifacts and on hope. Today you served me both.",

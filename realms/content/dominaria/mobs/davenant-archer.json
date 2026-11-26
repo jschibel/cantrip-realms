@@ -25,6 +25,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Every arrow found its mark. Not one of yours found me.",

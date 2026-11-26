@@ -32,6 +32,7 @@ import {
   type TownData,
   type XZ,
   PLACE_KINDS,
+  HOP,
   LEDGE,
 } from "./format";
 import { type Ground, canStep } from "./grid";
@@ -427,7 +428,11 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     const b = index(bx, bz);
     return (ramps[a]! & ramps[b]!) === 1 || Math.abs(floors[a]! - floors[b]!) <= LEDGE;
   };
-  const ground: Ground = { open, pass };
+  /** A ledge a level high at most between two side-by-side tiles, hopped (format.ts HOP). */
+  const hop = (ax: number, az: number, bx: number, bz: number) =>
+    inRect(rect, ax, az) && inRect(rect, bx, bz) && !pass(ax, az, bx, bz) && Math.abs(floors[index(ax, az)]! - floors[index(bx, bz)]!) <= HOP;
+  // Walked as a player walks it, hopping.
+  const ground: Ground = { open, pass, hop };
   const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
     chunks.flatMap((c) => [...c[k]] as ChunkData[K][number][]);
   const npcs = all("npcs");
@@ -577,13 +582,14 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
 
   // Nothing closed unseen.
   const { propTiles, liquid } = options.known ?? {};
-  if (propTiles && liquid) out.push(...unseenClosed(world, chunks, propTiles, liquid, walked, pass));
+  if (propTiles && liquid) out.push(...unseenClosed(world, chunks, propTiles, liquid, walked, (ax, az, bx, bz) => pass(ax, az, bx, bz) || hop(ax, az, bx, bz)));
   return out;
 }
 
 /**
- * Nothing closed unseen: every closed tile a walker comes up against - one beside an open tile walked to, not under it
- * by more than a step (where its bank is seen) - has what closes it drawn there: no ground, a liquid (water, lava), a
+ * Nothing closed unseen: every closed tile a walker comes up against - one beside an open tile walked to, no cliff
+ * between them (a ledge a level high is hopped, so a tile atop one is come up against) - has what closes it drawn
+ * there: no ground, a liquid (water, lava), a
  * building's footprint, a prop that blocks over it, a thing used from beside it (a spell table, a quest board, the
  * arena's gate, a waystone), a chest or a waymarker; or it is a ferry's lane, open water to its passengers alone. An
  * open tile a prop that blocks stands on is none of the lint's: what is drawn there may be walked past.
@@ -616,7 +622,7 @@ function unseenClosed(
       const x = c.cx * CHUNK + (k % CHUNK);
       const z = c.cz * CHUNK + Math.floor(k / CHUNK);
       if (seen.has(key(x, z))) return;
-      // Come up against: from a tile walked to beside it, no ledge between them (a bank seen from below closes it).
+      // Come up against: from a tile walked to beside it, no ledge between them or a hop (a cliff seen from below closes it).
       const against = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => walked(x + dx!, z + dz!) && pass(x, z, x + dx!, z + dz!));
       if (!against) return;
       const what = t[1];

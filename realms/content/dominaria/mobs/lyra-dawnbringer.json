@@ -43,6 +43,7 @@
   "boss": true,
   "unlocks": "W",
   "unique": "lyras-seraph-mail",
+  "hops": true,
   "lines": {
     "flawless": [
       "My host flies in perfect formation. You never found a gap in it.",

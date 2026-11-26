@@ -25,6 +25,7 @@
     "size": 0.9
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Discipline wins the day! You'll want to drill your opening hands, friend.",

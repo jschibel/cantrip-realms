@@ -28,6 +28,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "The heart of the elfhames beats on undisturbed. You never even reached its roots.",

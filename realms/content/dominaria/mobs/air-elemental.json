@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Air Elemental swirls past you with a whistle, scattering your cards like dry leaves.*",

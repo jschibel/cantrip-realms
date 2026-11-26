@@ -38,7 +38,7 @@ tier sets the rarities a deck may hold and how many copies its best cards get.
 
 A mob's file follows its tier (design.md A3): its gold range, its stats and stats-only gear, and its model; a boss's
 also its loot - its colors' rares and mythics within its loot ceiling (6,000 gold), which its gift is drawn from. A mob file's model (realms/web/src/art/figures: its mesh, chosen for what its creature is, its palette
-and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. A mob's `lines`, what it says when it wins a duel, are written by hand and kept as they are. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
+and size) is always kept as it is; one is chosen, by the creature's types, only for a mob with no file yet. A mob's `hops`, whether it hops a ledge a level high, and its `lines`, what it says when it wins a duel, are written by hand and kept as they are. The script checks every deck and file it writes (forty cards, copies, restrictions, pool, legality,
 relics, colors, ids, meshes, gear) and writes nothing if any fails. The same inputs give the same files. They are a
 start: mobs' decks are tuned by hand later (tech.md B7); a mob listed in HAND_TUNED is left alone.
 """
@@ -383,9 +383,10 @@ MOBS = [
 # Mobs whose files and decks were tuned by hand: not overwritten.
 HAND_TUNED = set()
 
-# The fields of a mob file written by hand, not by this script, kept as they are when it rewrites the file: what the
-# mob says when it wins a duel (`lines`, realms/docs/interfaces.md).
-HAND_WRITTEN = ("lines",)
+# The fields of a mob file written by hand, not by this script, kept as they are when it rewrites the file: whether the
+# mob hops a ledge a level high (`hops`), judged creature by creature, and what it says when it wins a duel (`lines`,
+# realms/docs/interfaces.md).
+HAND_WRITTEN = ("hops", "lines")
 
 RARITY_BONUS = {"common": 0, "uncommon": 0.5, "rare": 1.5, "mythic": 2.5}
 

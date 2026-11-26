@@ -28,6 +28,7 @@
     "size": 1.55
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Ssso many cards I let you draw, and ssstill you had nothing.",

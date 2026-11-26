@@ -27,6 +27,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "We phased in, struck, and phased out. You never laid a hand on us.",

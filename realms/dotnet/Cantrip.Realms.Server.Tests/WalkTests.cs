@@ -5,10 +5,11 @@ using Xunit;
 namespace Cantrip.Realms.Server.Tests;
 
 /// <summary>
-/// Walking on squares (interfaces.md, "Places"), over no ledge: the golden vectors of <c>realms/content/walk-vectors.json</c>
-/// (<c>tools/realms/walk-vectors.ts</c>), which the overworld's tests check too
+/// Walking on squares (interfaces.md, "Places"), over no ledge but a hop: the golden vectors of
+/// <c>realms/content/walk-vectors.json</c> (<c>tools/realms/walk-vectors.ts</c>), which the overworld's tests check too
 /// (<c>realms/web/src/world/walk-vectors.test.ts</c>). The server takes every path the overworld's A* finds, refuses every
-/// walk that is none, and reaches what the A* reaches.
+/// walk that is none, and reaches what the A* reaches - for a player, who hops, and (cases marked <c>"hops": false</c>)
+/// for one who does not.
 /// </summary>
 public sealed class WalkTests
 {
@@ -64,7 +65,12 @@ public sealed class WalkTests
         Assert.Contains(walks, walk => !walk.GetProperty("ok").GetBoolean());
         Assert.Contains(Vectors.RootElement.GetProperty("grids").EnumerateArray(), grid => grid.GetProperty("x0").GetInt32() < 0 && grid.GetProperty("z0").GetInt32() < 0);
         Assert.Contains(Vectors.RootElement.GetProperty("grids").EnumerateArray(), grid => grid.TryGetProperty("heights", out _) && grid.TryGetProperty("ramps", out _));
+        Assert.Contains(walks, walk => !Hops(walk) && !walk.GetProperty("ok").GetBoolean());
+        Assert.Contains(walks, walk => Hops(walk) && walk.GetProperty("ok").GetBoolean());
     }
+
+    /// <summary>Whether a case is a player's, who hops (the default), or one's who does not (<c>"hops": false</c>).</summary>
+    private static bool Hops(JsonElement entry) => !entry.TryGetProperty("hops", out JsonElement hops) || hops.GetBoolean();
 
     [Theory]
     [MemberData(nameof(Grids))]
@@ -76,29 +82,30 @@ public sealed class WalkTests
         {
             Tile from = TileOf(path.GetProperty("from"));
             Tile to = TileOf(path.GetProperty("to"));
+            bool hops = Hops(path);
             if (path.GetProperty("path").ValueKind == JsonValueKind.Null)
             {
                 // No way there, nor for the server's rule.
-                Assert.False(Reaches(space, from, to), $"{name}: {from} to {to}");
+                Assert.False(Reaches(space, from, to, hops), $"{name}: {from} to {to}");
                 continue;
             }
 
             List<Tile> tiles = [.. path.GetProperty("path").EnumerateArray().Select(TileOf)];
             Assert.Equal((from, to), (tiles[0], tiles[^1]));
-            Assert.True(space.Walkable(from) && space.IsWalk(from, tiles.Skip(1)), $"{name}: the path from {from} to {to}");
-            Assert.True(Reaches(space, from, to));
+            Assert.True(space.Walkable(from) && space.IsWalk(from, tiles.Skip(1), hops), $"{name}: the path from {from} to {to}");
+            Assert.True(Reaches(space, from, to, hops));
         }
 
         foreach (JsonElement walk in grid.GetProperty("walks").EnumerateArray())
         {
             List<Tile> tiles = [.. walk.GetProperty("walk").EnumerateArray().Select(TileOf)];
-            bool ok = space.Walkable(tiles[0]) && space.IsWalk(tiles[0], tiles.Skip(1));
+            bool ok = space.Walkable(tiles[0]) && space.IsWalk(tiles[0], tiles.Skip(1), Hops(walk));
             Assert.True(ok == walk.GetProperty("ok").GetBoolean(), $"{name}: {walk.GetProperty("walk").GetRawText()}");
         }
     }
 
     /// <summary>Whether the server's steps lead from one tile to another, by a search of its own.</summary>
-    private static bool Reaches(RealmSpace space, Tile from, Tile to)
+    private static bool Reaches(RealmSpace space, Tile from, Tile to, bool hops)
     {
         if (!space.Walkable(from) || !space.Walkable(to)) return false;
         HashSet<Tile> seen = [from];
@@ -106,10 +113,23 @@ public sealed class WalkTests
         while (open.TryDequeue(out Tile at))
         {
             if (at == to) return true;
-            foreach (Tile next in Tile.Steps.Select(at.Plus).Where(next => space.CanStep(at, next) && seen.Add(next))) open.Enqueue(next);
+            foreach (Tile next in Tile.Steps.Select(at.Plus).Where(next => space.CanStep(at, next, hops) && seen.Add(next))) open.Enqueue(next);
         }
 
         return false;
+    }
+
+    [Fact]
+    public void A_walk_told_hops_a_ledge_straight_across_but_never_on_a_slant_through_its_corner_nor_up_a_cliff()
+    {
+        RealmInterior space = SpaceOf(Grid("hops and a cliff"));
+        // From flush below the bank to flush on top, as the overworld's body hops it; and a slant over it.
+        Assert.True(space.CanWalk(new Point(-0.3, 3.5), new Point(0.3, 3.5)));
+        Assert.True(space.CanWalk(new Point(-1.5, 3.2), new Point(0.5, 3.8)));
+        // Through the corner of the ledge: a diagonal step, which never hops.
+        Assert.False(space.CanWalk(new Point(-0.5, 3.5), new Point(0.5, 4.5)));
+        // Up the cliff, two levels.
+        Assert.False(space.CanWalk(new Point(1.7, 3.5), new Point(2.3, 3.5)));
     }
 
     [Fact]

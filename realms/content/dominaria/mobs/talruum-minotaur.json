@@ -27,6 +27,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Talruum charge first and think later. Today, no thinking needed!",

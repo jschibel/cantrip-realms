@@ -30,6 +30,7 @@
     "size": 1.2
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Every move you made, I had schemed three moves ahead of it. Ten, really.",

@@ -217,8 +217,8 @@ describe("Dominaria's files", () => {
     for (let i = 0; i < W * H; i++) {
       if (!open(i)) continue;
       const next = [i % W < W - 1 ? i + 1 : -1, i + W < W * H ? i + W : -1];
-      // Side by side, open ground is level (a step of LEDGE at most) or a ledge a whole level high, walked up to and never
-      // over (world/grid.ts canStep): nothing between, which would be neither a step nor a bank one sees.
+      // Side by side, open ground is level (a step of LEDGE at most) or a ledge a whole level high, walked up to and hopped
+      // (world/grid.ts canStep, HOP): nothing between, which would be neither a step nor a bank one sees.
       for (const j of next) {
         if (j < 0 || !open(j) || ramp(i) || ramp(j)) continue;
         const rise = Math.abs(height[i]! - height[j]!);

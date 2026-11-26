@@ -28,6 +28,7 @@
     "size": 1.35
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The sanctum's doors remain shut, and your sword never scratched my wings.",

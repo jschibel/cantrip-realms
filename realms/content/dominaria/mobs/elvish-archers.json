@@ -28,6 +28,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "First arrow, last arrow, only arrow. You never got a shot off.",

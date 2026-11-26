@@ -1,11 +1,12 @@
-import { LEDGE, TEXELS_PER_TILE } from "./format";
+import { HOP, LEDGE, TEXELS_PER_TILE } from "./format";
 
 // Square tiles: the world is a grid (classic 16-bit RPGs are tile-based), and the player walks it by A* in eight
 // directions - never cutting a corner past a blocked tile, so a diagonal step is only taken where both of the tiles it
-// passes between are open - and never over a ledge: a step between side-by-side tiles climbs or drops at most LEDGE
-// (world/format.ts), unless both are ramps, so a terrace's edge is walked up to and along but left only by its ramps.
-// `canStep` is the one rule of a step, for the A* here, the player's body (render/motion.ts), the relay, the lint and
-// the world generator alike; the realm server holds a walk to the same rule (RealmSpace.CanStep).
+// passes between are open - and never over a ledge but by a hop: a step between side-by-side tiles climbs or drops at
+// most LEDGE (world/format.ts), unless both are ramps; a ledge no higher than HOP (a terrace's one level) is hopped
+// straight across by those who hop (players always; a mob as its file says), never on a diagonal step; a higher bank is
+// a cliff nobody crosses. `canStep` is the one rule of a step, for the A* here, the player's body (render/motion.ts), the
+// relay, the lint and the world generator alike; the realm server holds a walk to the same rule (RealmSpace.CanStep).
 
 export interface Tile {
   readonly x: number;
@@ -15,13 +16,19 @@ export interface Tile {
 /** Whether a tile is open. */
 export type Open = (x: number, z: number) => boolean;
 
-/** Whether the edge between two side-by-side open tiles is no ledge: it may be stepped (or stood) across. */
+/** Whether something holds of the edge between two side-by-side tiles. */
 export type Pass = (ax: number, az: number, bx: number, bz: number) => boolean;
 
 /** The tiles walked and the edges between them: what a walk, a body and a path are held to. */
 export interface Ground {
   readonly open: Open;
+  /** Whether the edge between two side-by-side open tiles is no ledge: it may be walked (or stood) across. */
   readonly pass: Pass;
+  /**
+   * Whether the edge between two side-by-side open tiles that does not `pass` is a hop (format.ts HOP), crossed by a
+   * hop straight across it. Absent, for those who do not hop: no ledge is crossed.
+   */
+  readonly hop?: Pass;
 }
 
 const across: Pass = () => true;
@@ -30,14 +37,15 @@ const across: Pass = () => true;
 export const flatGround = (open: Open): Ground => ({ open, pass: across });
 
 /**
- * Whether a tile is a step of the eight ways from another: open, its edge with the one before no ledge, and - for a
- * diagonal - both tiles it passes between open and all four edges round the corner no ledge (never cutting a corner).
+ * Whether a tile is a step of the eight ways from another: open, and its edge with the one before no ledge or (straight
+ * across, on the ground of one who hops) a hop; a diagonal only where both tiles it passes between are open and all
+ * four edges round the corner are no ledge - never cutting a corner, nor hopping on a diagonal.
  */
 export function canStep(g: Ground, ax: number, az: number, bx: number, bz: number): boolean {
   const dx = bx - ax;
   const dz = bz - az;
   if (Math.max(Math.abs(dx), Math.abs(dz)) !== 1 || !g.open(bx, bz)) return false;
-  if (dx === 0 || dz === 0) return g.pass(ax, az, bx, bz);
+  if (dx === 0 || dz === 0) return g.pass(ax, az, bx, bz) || (g.hop !== undefined && g.hop(ax, az, bx, bz));
   return (
     g.open(bx, az) &&
     g.open(ax, bz) &&
@@ -48,8 +56,12 @@ export function canStep(g: Ground, ax: number, az: number, bx: number, bz: numbe
   );
 }
 
-/** A floor `LEDGE` above another, world units. */
+/** What a hop costs the A*, in steps: a little more than a plain step, so a ramp or level ground about as short is taken instead. */
+export const HOP_COST = 2;
+
+/** A floor `LEDGE` above another, and `HOP`, world units. */
 const LEDGE_UNITS = LEDGE / TEXELS_PER_TILE;
+const HOP_UNITS = HOP / TEXELS_PER_TILE;
 
 export class Grid {
   private readonly open: Uint8Array;
@@ -57,8 +69,19 @@ export class Grid {
   private readonly floor: Float32Array;
   /** Which tiles are ramps (format.ts RAMP): their steps go up the slope whatever the heights. */
   private readonly ramps: Uint8Array;
-  /** The grid as `canStep` and the body take it. */
-  readonly ground: Ground = { open: (x, z) => this.walkable(x, z), pass: (ax, az, bx, bz) => this.passes(ax, az, bx, bz) };
+  /** The grid as `canStep` and the body take it, for one who hops (a player): its hops crossed. */
+  readonly ground: Ground = {
+    open: (x, z) => this.walkable(x, z),
+    pass: (ax, az, bx, bz) => this.passes(ax, az, bx, bz),
+    hop: (ax, az, bx, bz) => this.hops(ax, az, bx, bz),
+  };
+  /** The grid for one who does not hop: no ledge crossed. */
+  readonly still: Ground = { open: this.ground.open, pass: this.ground.pass };
+
+  /** The grid as one who hops, or does not, walks it. */
+  groundFor(hops: boolean): Ground {
+    return hops ? this.ground : this.still;
+  }
 
   /**
    * A grid `width` by `height` tiles whose first tile is (x0, z0) in the world: tiles are always named by their world
@@ -115,9 +138,18 @@ export class Grid {
     return (this.ramps[a]! & this.ramps[b]!) === 1 || Math.abs(this.floor[a]! - this.floor[b]!) <= LEDGE_UNITS + 1e-6;
   }
 
-  /** Whether one tile is a step of the grid's from another (`canStep`). */
-  canStep(from: Tile, to: Tile): boolean {
-    return canStep(this.ground, from.x, from.z, to.x, to.z);
+  /**
+   * Whether the edge between two side-by-side tiles is a hop (format.ts HOP): a ledge, its floors no more than a level
+   * apart. (Whether both tiles are open is `canStep`'s to ask.)
+   */
+  hops(ax: number, az: number, bx: number, bz: number): boolean {
+    if (!this.inside(ax, az) || !this.inside(bx, bz) || this.passes(ax, az, bx, bz)) return false;
+    return Math.abs(this.floor[this.index(ax, az)]! - this.floor[this.index(bx, bz)]!) <= HOP_UNITS + 1e-6;
+  }
+
+  /** Whether one tile is a step of the grid's from another (`canStep`), for one who hops (the default) or does not. */
+  canStep(from: Tile, to: Tile, hops = true): boolean {
+    return canStep(this.groundFor(hops), from.x, from.z, to.x, to.z);
   }
 
   setWalkable(x: number, z: number, open: boolean): void {
@@ -129,8 +161,11 @@ export class Grid {
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) this.setWalkable(x, z, false);
   }
 
-  /** The tiles from one to the other, both included, or null if there is no way. */
-  path(fromWorld: Tile, toWorld: Tile): Tile[] | null {
+  /**
+   * The tiles from one to the other, both included, or null if there is no way: for one who hops (the default), a hop a
+   * step of HOP_COST; for one who does not, round by the ramps.
+   */
+  path(fromWorld: Tile, toWorld: Tile, hops = true): Tile[] | null {
     if (!this.walkable(toWorld.x, toWorld.z)) return null;
     if (fromWorld.x === toWorld.x && fromWorld.z === toWorld.z) return [fromWorld];
     // The search runs in the grid's own coordinates, from 0.
@@ -182,6 +217,7 @@ export class Grid {
     g[start] = 0;
     push(heuristic(from.x, from.z), start);
     const goal = key(to.x, to.z);
+    const ground = this.groundFor(hops);
     while (heap.length > 0) {
       const [, k] = pop();
       if (closed[k]) continue;
@@ -194,9 +230,10 @@ export class Grid {
           if (dx === 0 && dz === 0) continue;
           const nx = x + dx;
           const nz = z + dz;
-          if (!canStep(this.ground, x + x0, z + z0, nx + x0, nz + z0)) continue;
+          if (!canStep(ground, x + x0, z + z0, nx + x0, nz + z0)) continue;
           const nk = key(nx, nz);
-          const cost = g[k]! + (dx !== 0 && dz !== 0 ? Math.SQRT2 : 1);
+          const step = dx !== 0 && dz !== 0 ? Math.SQRT2 : hops && !this.passes(x + x0, z + z0, nx + x0, nz + z0) ? HOP_COST : 1;
+          const cost = g[k]! + step;
           if (cost < g[nk]!) {
             g[nk] = cost;
             came[nk] = k;

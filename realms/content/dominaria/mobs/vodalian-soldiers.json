@@ -25,6 +25,7 @@
     "size": 1.0
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Vodalian discipline holds the line, above the waves or below them.",

@@ -27,6 +27,7 @@
     "size": 1.75
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Cityscape Leveler grinds over your side of the field, flattening it into neat rubble.*",

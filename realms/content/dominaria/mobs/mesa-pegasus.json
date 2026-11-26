@@ -25,6 +25,7 @@
     "size": 1.0
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Mesa Pegasus tosses its mane and trots a neat circle, clean as fresh snow.*",

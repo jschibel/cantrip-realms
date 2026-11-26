@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Figure, type FigureSpec } from "../art/figures/rig";
 import type { Behaviour as BehaviourData } from "../world/format";
 import type { Grid, Tile } from "../world/grid";
-import { type Ground, type Point, slide, smooth } from "./motion";
+import { type Ground, type Hop, type Point, hopHeight, hopToward, hopUnder, slide, smooth } from "./motion";
 import { blobShadow } from "./shadow";
 
 // A figure walking a place's grid: along a path of tiles at a steady pace, turning to face where it goes, stepping up
@@ -14,6 +14,10 @@ import { blobShadow } from "./shadow";
 // (`smooth`), and a held button steers it straight at a point (`steer`), sliding along what is in the way - a closed tile,
 // or the brink of a ledge (world/grid.ts). Either way it goes on from where it stands, so it never jumps; the relay is told
 // where it is and the points `ahead` (net/relay.ts), and another player's walk is walked as those points (`walkPoints`).
+// A ledge a level high is hopped by those who hop (`hops`: players, most mobs): a held walk pushed into it takes the hop
+// whole, from a stand flush on one side to one flush on the other, at walking pace, and a hop under way is finished
+// before anything else is done; a click's path goes over it as a leg of its own. Whoever is across a hop's edge, however
+// it got there, is drawn on the hop's arc (render/motion.ts `hopUnder`).
 
 export const centre = (t: Tile, y = 0) => new THREE.Vector3(t.x + 0.5, y, t.z + 0.5);
 
@@ -57,6 +61,12 @@ export class Actor {
   smooth = false;
   /** The point a held button steers toward, or null. */
   private steerTo: Point | null = null;
+  /** Whether it hops a ledge a level high (format.ts HOP): a player always; a mob as its file says. */
+  hops = true;
+  /** The hop under way, finished before anything else: a held walk's, or one it was across when its walk changed. */
+  private hop: Hop | null = null;
+  /** The way it last moved, for finishing a hop it is across the way it was going. */
+  private heading: Point = { x: 0, z: 0 };
   /** How fast the steered body went last frame, tiles a second. */
   private steered = 0;
 
@@ -95,7 +105,12 @@ export class Actor {
   }
 
   get moving(): boolean {
-    return this.path.length > 0 || (this.steerTo !== null && this.steered > 0.1);
+    return this.hop !== null || this.path.length > 0 || (this.steerTo !== null && this.steered > 0.1);
+  }
+
+  /** Whether it is across a hop's edge now: mid-hop, the one time a body stands across a ledge. */
+  get hopping(): boolean {
+    return this.hop !== null || hopUnder(this.grid.ground, this.position.x, this.position.z) !== null;
   }
 
   /** Whether a held button is steering it (`steer`). */
@@ -103,8 +118,26 @@ export class Actor {
     return this.steerTo !== null;
   }
 
-  /** The grid walked now (the streamer remakes it): its open tiles and its ledges. */
-  private readonly ground: Ground = { open: (x, z) => this.grid.walkable(x, z), pass: (ax, az, bx, bz) => this.grid.passes(ax, az, bx, bz) };
+  /** The grid walked now (the streamer remakes it): its open tiles, its ledges, and its hops for one who hops. */
+  private get ground(): Ground {
+    return this.grid.groundFor(this.hops);
+  }
+
+  /**
+   * Where it will stand once any hop under way is done: across a hop's edge with none under way (a walk changed mid-hop),
+   * the hop is taken up to be finished the way it was going.
+   */
+  private settle(): Point {
+    if (!this.hop) {
+      const h = hopUnder(this.grid.ground, this.position.x, this.position.z);
+      if (h) {
+        const forward = (h.to.x - h.from.x) * this.heading.x + (h.to.z - h.from.z) * this.heading.z;
+        const on = forward > 0 || (forward === 0 && h.s >= 0.5);
+        this.hop = on ? { from: h.from, to: h.to } : { from: h.to, to: h.from };
+      }
+    }
+    return this.hop ? this.hop.to : { x: this.position.x, z: this.position.z };
+  }
 
   /** Sets the walk to points, dropping any steering. */
   private follow(points: THREE.Vector3[]): void {
@@ -118,13 +151,14 @@ export class Actor {
    * pulled straight; the others step from tile middle to tile middle.
    */
   goTo(to: Tile): boolean {
-    const route = this.grid.path(this.tile, to);
+    const here = this.settle();
+    const route = this.grid.path({ x: Math.floor(here.x), z: Math.floor(here.z) }, to, this.hops);
     if (!route) return false;
     if (!this.smooth) {
       this.follow(route.slice(1).map((t) => centre(t)));
       return true;
     }
-    const points = smooth(this.ground, { x: this.position.x, z: this.position.z }, route);
+    const points = smooth(this.ground, here, route);
     this.follow(points.map((p) => new THREE.Vector3(p.x, 0, p.z)));
     return true;
   }
@@ -135,10 +169,16 @@ export class Actor {
    */
   steer(point: Point | null): void {
     if (!point) {
-      if (this.steerTo) this.follow([]);
+      if (this.steerTo) {
+        this.settle();
+        this.follow([]);
+      }
       return;
     }
-    if (!this.steerTo) this.follow([]);
+    if (!this.steerTo) {
+      this.settle();
+      this.follow([]);
+    }
     this.steerTo = { x: point.x, z: point.z };
   }
 
@@ -155,7 +195,7 @@ export class Actor {
   retarget(to: Tile): boolean {
     const next = this.path[0];
     if (!next || this.smooth) return this.goTo(to);
-    const route = this.grid.path({ x: Math.floor(next.x), z: Math.floor(next.z) }, to);
+    const route = this.grid.path({ x: Math.floor(next.x), z: Math.floor(next.z) }, to, this.hops);
     if (!route) return false;
     this.path = [next, ...route.slice(1).map((t) => centre(t))];
     return true;
@@ -179,6 +219,7 @@ export class Actor {
   /** Stands it at a point at once (a relayed position, a correction): no walk, on the floor there. */
   placeAt(at: Point): void {
     this.follow([]);
+    this.hop = null;
     this.position.set(at.x, this.floor ? this.floor(at.x, at.z) : this.grid.heightAt(Math.floor(at.x), Math.floor(at.z)), at.z);
     this.figure.root.position.copy(this.position);
   }
@@ -188,14 +229,17 @@ export class Actor {
     this.follow(points.map((p) => new THREE.Vector3(p.x, this.position.y, p.z)));
   }
 
-  /** The points the walk under way has still to go through, in turn (none standing or steered). */
+  /** The points the walk under way has still to go through, in turn (none standing or steered): a hop under way's landing first. */
   get ahead(): Point[] {
-    return this.path.map((p) => ({ x: p.x, z: p.z }));
+    const points = this.path.map((p) => ({ x: p.x, z: p.z }));
+    return this.hop && points.length > 0 ? [this.hop.to, ...points] : points;
   }
 
   update(dt: number, player?: Actor): void {
     let speed = 0;
-    if (this.steerTo) {
+    if (this.hop) {
+      speed = this.hopStep(dt);
+    } else if (this.steerTo) {
       speed = this.steerStep(dt);
     } else if (this.path.length > 0) {
       const next = this.path[0]!;
@@ -209,7 +253,10 @@ export class Actor {
       } else {
         this.position.addScaledVector(to, step / d);
       }
-      if (d > 1e-4) this.figure.face(to.x, to.z);
+      if (d > 1e-4) {
+        this.figure.face(to.x, to.z);
+        this.heading = { x: to.x, z: to.z };
+      }
       speed = this.speed;
       this.moved += step;
       this.stepFloor(dt);
@@ -222,20 +269,57 @@ export class Actor {
     this.figure.update(dt, speed);
   }
 
-  /** The floor's height under it. */
-  private floorHere(): number {
-    return this.floor ? this.floor(this.position.x, this.position.z) : this.grid.heightAt(Math.floor(this.position.x), Math.floor(this.position.z));
+  /** The floor's height at a point. */
+  private floorAt(x: number, z: number): number {
+    return this.floor ? this.floor(x, z) : this.grid.heightAt(Math.floor(x), Math.floor(z));
   }
 
-  /** Up and down steps as the floor under it rises and falls. */
+  /** How high it stands where it is: on the floor, or across a hop's edge on the hop's arc. */
+  private floorHere(): number {
+    const span = hopUnder(this.grid.ground, this.position.x, this.position.z);
+    return span ? hopHeight(span, (x, z) => this.floorAt(x, z)) : this.floorAt(this.position.x, this.position.z);
+  }
+
+  /** Up and down steps as the floor under it rises and falls, eased in; across a hop's edge, on the arc itself. */
   private stepFloor(dt: number): void {
-    this.position.y += (this.floorHere() - this.position.y) * Math.min(1, dt * 14);
+    const span = hopUnder(this.grid.ground, this.position.x, this.position.z);
+    if (span) this.position.y = hopHeight(span, (x, z) => this.floorAt(x, z));
+    else this.position.y += (this.floorAt(this.position.x, this.position.z) - this.position.y) * Math.min(1, dt * 14);
   }
 
   /** Stands it on the floor where it is at once (the floor read in after it was put there). */
   standOnFloor(): void {
     this.position.y = this.floorHere();
     this.figure.root.position.copy(this.position);
+  }
+
+  /**
+   * A frame of a hop under way: straight on to where it lands at its walking pace (never slower than walking there),
+   * facing that way; the hop over once there. Returns its speed.
+   */
+  private hopStep(dt: number): number {
+    const hop = this.hop!;
+    const p = this.position;
+    const dx = hop.to.x - p.x;
+    const dz = hop.to.z - p.z;
+    const d = Math.hypot(dx, dz);
+    const step = this.speed * dt;
+    if (d <= step) {
+      p.x = hop.to.x;
+      p.z = hop.to.z;
+      this.hop = null;
+    } else {
+      p.x += (dx / d) * step;
+      p.z += (dz / d) * step;
+    }
+    if (d > 1e-6) {
+      this.figure.face(dx, dz);
+      this.heading = { x: dx, z: dz };
+    }
+    this.moved += Math.min(d, step);
+    this.steered = this.speed;
+    this.stepFloor(dt);
+    return this.speed;
   }
 
   /**
@@ -259,8 +343,12 @@ export class Actor {
       p.z = at.z;
       this.steered = moved / dt;
       this.moved += moved;
+      if (moved > 1e-6) this.heading = { x: mx, z: mz };
       if (this.steered > 0.5) this.figure.face(mx, mz);
       else if (d > 0.3) this.figure.face(dx, dz);
+      // Flush with the brink of a hop, pushed into it at what is past it: the hop is taken, from the next frame.
+      this.hop = hopToward(this.ground, p.x, p.z, to);
+      if (this.hop && this.steered <= 0.5) this.figure.face(this.hop.to.x - p.x, this.hop.to.z - p.z);
     } else this.steered = 0;
     this.stepFloor(dt);
     return this.steered;

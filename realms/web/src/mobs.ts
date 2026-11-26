@@ -24,6 +24,11 @@ export interface MobInfo {
   readonly unlocks?: ManaColor;
   /** A boss's own unique gear item, by id. */
   readonly unique?: string;
+  /**
+   * Whether it hops a ledge a level high (its file's `hops`; world/format.ts HOP), as a player does - most that walk on
+   * legs, and whatever flies - or, as a zombie, an ooze, a wurm or a giant too heavy to, goes round by the ramps.
+   */
+  readonly hops: boolean;
   /** Whether this came from a mob file, rather than being guessed from the id. */
   readonly known: boolean;
 }
@@ -47,35 +52,36 @@ interface MobFile {
   readonly lines?: MobLines;
   readonly unlocks?: ManaColor;
   readonly unique?: string;
+  readonly hops?: boolean;
 }
 
 const files = import.meta.glob<MobFile>("../../content/*/mobs/*.json", { eager: true, import: "default" });
 const byId = new Map(Object.values(files).map((m) => [m.id, m]));
 
-/** Which base model a mob id reads as, by the words in it, for mobs with no file yet. */
-const GUESSES: readonly [RegExp, string, readonly string[], number?][] = [
-  [/seraph|angel/, "angel", ["#f2efe6", "#f1b44c", "#93c8dc"]],
-  [/drake|dragon/, "drake", ["#c8432c", "#f1b44c", "#2e1f17"], 1.3],
-  [/wurm|beast|ancient/, "wurm", ["#4f7a34", "#d6ae7e", "#2a4524"], 1.2],
-  [/elf|elves|elvish|forager/, "elf", ["#3e9a4a", "#8f6340", "#c08a62"]],
-  [/goblin/, "goblin", ["#6b963e", "#c8432c", "#4a3122"]],
-  [/ghoul|zombie/, "ghoul", ["#8c909c", "#2a2a2d", "#5d6646"]],
-  [/phyrexian|horror|plaguelord/, "phyrexian", ["#b3b5bc", "#7a1f24", "#2a2b36"]],
-  [/automaton|construct|sentinel|warden|golem/, "construct", ["#8c909c", "#9c6a1e", "#62a4c2"]],
-  [/wraith|spirit|elemental|drifter/, "spirit", ["#93c8dc", "#f4ecc2", "#5b8fd6"]],
+/** Which base model a mob id reads as, by the words in it, for mobs with no file yet, and whether such a one hops. */
+const GUESSES: readonly [RegExp, string, readonly string[], number | undefined, boolean][] = [
+  [/seraph|angel/, "angel", ["#f2efe6", "#f1b44c", "#93c8dc"], undefined, true],
+  [/drake|dragon/, "drake", ["#c8432c", "#f1b44c", "#2e1f17"], 1.3, true],
+  [/wurm|beast|ancient/, "wurm", ["#4f7a34", "#d6ae7e", "#2a4524"], 1.2, false],
+  [/elf|elves|elvish|forager/, "elf", ["#3e9a4a", "#8f6340", "#c08a62"], undefined, true],
+  [/goblin/, "goblin", ["#6b963e", "#c8432c", "#4a3122"], undefined, true],
+  [/ghoul|zombie/, "ghoul", ["#8c909c", "#2a2a2d", "#5d6646"], undefined, false],
+  [/phyrexian|horror|plaguelord/, "phyrexian", ["#b3b5bc", "#7a1f24", "#2a2b36"], undefined, true],
+  [/automaton|construct|sentinel|warden|golem/, "construct", ["#8c909c", "#9c6a1e", "#62a4c2"], undefined, false],
+  [/wraith|spirit|elemental|drifter/, "spirit", ["#93c8dc", "#f4ecc2", "#5b8fd6"], undefined, true],
 ];
 
 function guess(id: string): MobInfo {
   const name = id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const found = GUESSES.find(([pattern]) => pattern.test(id));
-  const [mesh, palette, size] = found ? [found[1], found[2], found[3]] : ["humanoid", ["#8c909c", "#7a1f24", "#4a3122"] as const, undefined];
-  return { id, name, named: false, creature: name, tier: 1, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, known: false };
+  const [mesh, palette, size, hops] = found ? [found[1], found[2], found[3], found[4]] : ["humanoid", ["#8c909c", "#7a1f24", "#4a3122"] as const, undefined, true];
+  return { id, name, named: false, creature: name, tier: 1, goldRange: [20, 60], model: { mesh, palette, size }, boss: false, hops, known: false };
 }
 
 export function mobInfo(id: string): MobInfo {
   const file = byId.get(id);
   if (!file) return guess(id);
-  return { ...file, named: file.named ?? false, creature: file.creature ?? file.name, boss: file.boss ?? false, known: true };
+  return { ...file, named: file.named ?? false, creature: file.creature ?? file.name, boss: file.boss ?? false, hops: file.hops ?? true, known: true };
 }
 
 /**

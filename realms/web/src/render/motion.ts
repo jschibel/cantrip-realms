@@ -1,4 +1,5 @@
 import { type Ground, type Open, type Pass, type Tile, canStep as stepOver, flatGround } from "../world/grid";
+import { HOP, TEXELS_PER_TILE } from "../world/format";
 
 // The player's body on the grid, between tile centres: a square of BODY tiles either way of its middle that never
 // overlaps a closed tile, nor stands across a ledge (a bank higher than a step between two open tiles: world/grid.ts).
@@ -10,6 +11,13 @@ import { type Ground, type Open, type Pass, type Tile, canStep as stepOver, flat
 // middle goes from one tile to a diagonal one overlaps all four tiles at the corner, so it never cuts the corner of a
 // closed tile or a ledge - so every line its middle walks crosses tiles each a step of the grid's from the one before
 // (`legClear`), which is the rule the server checks the walks the relay tells it by (net/relay.ts).
+//
+// A ledge a level high (a hop, format.ts HOP) is crossed in one hop, never stood across: from a stand flush with its
+// brink on one side, straight across, to a stand flush with it on the other (`Hop`), at walking pace - a held walk
+// pushed into it takes it (`hopToward`), a click's walk goes to the brink and over (`smooth`). While the body is across
+// it, the figure's height is an arc from the one floor to the other (`hopUnder`, `hopHeight`), wherever it is along the
+// crossing - so another player's figure walking the points the relay sends, or a mob walking tile to tile, arcs over
+// the edge alike.
 //
 // What is walked is a `Ground` (world/grid.ts): the open tiles and the edges between them. A plain test of open tiles
 // stands for ground with no ledges.
@@ -31,7 +39,14 @@ const PIECE = 0.25;
 const groundOf = (g: Ground | Open): Ground => (typeof g === "function" ? flatGround(g) : g);
 
 /** The ground with its axes swapped: (a, b) is (z, x). */
-const swap = (g: Ground): Ground => ({ open: (a, b) => g.open(b, a), pass: (a1, b1, a2, b2) => g.pass(b1, a1, b2, a2) });
+const swap = (g: Ground): Ground => {
+  const hop = g.hop;
+  return {
+    open: (a, b) => g.open(b, a),
+    pass: (a1, b1, a2, b2) => g.pass(b1, a1, b2, a2),
+    ...(hop ? { hop: (a1: number, b1: number, a2: number, b2: number) => hop(b1, a1, b2, a2) } : {}),
+  };
+};
 
 interface Axis {
   /** Where the body's middle ends along the axis. */
@@ -189,35 +204,168 @@ export const middle = (t: Tile): Point => ({ x: t.x + 0.5, z: t.z + 0.5 });
 /**
  * The grid's path from the tile the body stands on, pulled straight: the points to walk to from where it stands, each
  * the furthest middle of a tile of the path it can walk to in a line from the one before, the last the goal's middle.
- * A body standing off its tile's middle where the path's first step is not clear goes to the middle first.
+ * A body standing off its tile's middle where the path's first step is not clear goes to the middle first. Where the
+ * path hops a ledge (its step straight across an edge that does not pass), the walk goes to the brink - the stand flush
+ * with it in the middle of the tile's row - and over it to the stand flush on the other side (`hopOf`), and is pulled
+ * straight afresh from there.
  */
 export function smooth(ground: Ground | Open, from: Point, route: readonly Tile[]): Point[] {
   const g = groundOf(ground);
-  const points = route.slice(1).map(middle);
-  const out: Point[] = [];
-  let at = from;
-  let i = 0;
-  if (points.length === 0) {
+  if (route.length < 2) {
     const goal = route[0] ? middle(route[0]) : from;
     return Math.hypot(goal.x - from.x, goal.z - from.z) > 0.05 ? [goal] : [];
   }
-  if (!clear(g, at, points[0]!)) {
-    at = middle(route[0]!);
-    out.push(at);
+  const out: Point[] = [];
+  const add = (p: Point) => {
+    const last = out.at(-1) ?? from;
+    if (Math.hypot(p.x - last.x, p.z - last.z) > 1e-9) out.push(p);
+  };
+  let at = from;
+  let start = 0;
+  for (;;) {
+    // The run of the path walked before its next hop, if any: from route[start] to route[k].
+    let k = start;
+    const hops = (a: Tile, b: Tile) => (a.x === b.x || a.z === b.z) && !g.pass(a.x, a.z, b.x, b.z);
+    while (k + 1 < route.length && !hops(route[k]!, route[k + 1]!)) k++;
+    const hop = k + 1 < route.length ? hopOf(route[k]!, route[k + 1]!) : null;
+    const points = route.slice(start + 1, k + 1).map(middle);
+    if (hop) {
+      if (points.length > 0) points[points.length - 1] = hop.from;
+      else points.push(hop.from);
+    }
+    if (points.length > 0 && !clear(g, at, points[0]!)) {
+      at = middle(route[start]!);
+      add(at);
+    }
+    let i = 0;
+    while (i < points.length) {
+      let j = points.length - 1;
+      while (j > i && !clear(g, at, points[j]!)) j--;
+      at = points[j]!;
+      add(at);
+      i = j + 1;
+    }
+    if (!hop) return out;
+    add(hop.to);
+    at = hop.to;
+    start = k + 1;
   }
-  while (i < points.length) {
-    let j = points.length - 1;
-    while (j > i && !clear(g, at, points[j]!)) j--;
-    at = points[j]!;
-    out.push(at);
-    i = j + 1;
+}
+
+/** A hop: straight across a ledge from a stand flush with its brink on one side to a stand flush with it on the other. */
+export interface Hop {
+  readonly from: Point;
+  readonly to: Point;
+}
+
+/** A body's hop from one tile to a side-by-side one across the edge between them, in the middle of the tiles' row. */
+export function hopOf(a: Tile, b: Tile, r = BODY): Hop {
+  if (a.z === b.z) {
+    const edge = Math.max(a.x, b.x);
+    const dir = Math.sign(b.x - a.x);
+    return { from: { x: edge - dir * r, z: a.z + 0.5 }, to: { x: edge + dir * r, z: a.z + 0.5 } };
   }
-  return out;
+  const edge = Math.max(a.z, b.z);
+  const dir = Math.sign(b.z - a.z);
+  return { from: { x: a.x + 0.5, z: edge - dir * r }, to: { x: a.x + 0.5, z: edge + dir * r } };
+}
+
+/** How much of a push must go straight into a hop's edge for a held walk to take it: within 60 degrees of straight across. */
+const HOP_PUSH = 0.5;
+
+/**
+ * The hop a held walk steered at `target` takes from where the body stands, or null: the body flush with the brink of
+ * the line of tiles it is pushed into most (`HOP_PUSH`), the target past that edge, each edge of it the body spans
+ * either no ledge or a hop and one at least a hop, and the body fitting flush on the other side. A ground with no
+ * hops (one who does not hop) has none.
+ */
+export function hopToward(ground: Ground, x: number, z: number, target: Point, r = BODY): Hop | null {
+  if (!ground.hop) return null;
+  const dx = target.x - x;
+  const dz = target.z - z;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-9) return null;
+  const xFirst = Math.abs(dx) >= Math.abs(dz);
+  const d = xFirst ? dx : dz;
+  if (Math.abs(d) < len * HOP_PUSH) return null;
+  // In the ground's terms along the push (a) and across it (b).
+  const g = xFirst ? ground : swap(ground);
+  const a = xFirst ? x : z;
+  const b = xFirst ? z : x;
+  const edge = Math.round(a + Math.sign(d) * r);
+  if (Math.abs(a + Math.sign(d) * r - edge) > 1e-6 || (d > 0 ? (xFirst ? target.x : target.z) <= edge : (xFirst ? target.x : target.z) >= edge)) return null;
+  const from = d > 0 ? edge - 1 : edge;
+  const line = d > 0 ? edge : edge - 1;
+  const lo = Math.floor(b - r + E);
+  const hi = Math.floor(b + r - E);
+  let hops = 0;
+  for (let row = lo; row <= hi; row++) {
+    if (!g.open(line, row)) return null;
+    if (g.pass(from, row, line, row)) continue;
+    if (!g.hop!(from, row, line, row)) return null;
+    hops++;
+  }
+  if (hops === 0) return null;
+  const land = edge + Math.sign(d) * r;
+  const to = xFirst ? { x: land, z } : { x, z: land };
+  if (!fits(ground, to.x, to.z, r)) return null;
+  return { from: { x, z }, to };
+}
+
+/** Where a body is across a hop's edge: the stands flush either side of it, and how far across it is, 0 to 1. */
+export interface HopSpan extends Hop {
+  readonly s: number;
 }
 
 /**
- * Whether one tile is a step of the grid's from another: one of the eight round it, over no ledge, never cutting a
- * closed corner or a ledge's (world/grid.ts `canStep`).
+ * Whether a body (its middle at x, z) stands across a hop's edge, and where along the crossing: the edge it spans
+ * between two open tiles of its middle's row (or another row it spans) that does not pass and is a hop. Null
+ * otherwise, or on ground with no hops.
+ */
+export function hopUnder(ground: Ground, x: number, z: number, r = BODY): HopSpan | null {
+  const hop = ground.hop;
+  if (!hop) return null;
+  const x0 = Math.floor(x - r + E);
+  const x1 = Math.floor(x + r - E);
+  const z0 = Math.floor(z - r + E);
+  const z1 = Math.floor(z + r - E);
+  const across = (ax: number, az: number, bx: number, bz: number) => ground.open(ax, az) && ground.open(bx, bz) && !ground.pass(ax, az, bx, bz) && hop(ax, az, bx, bz);
+  const rows = (lo: number, hi: number, mid: number) => [mid, ...Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).filter((v) => v !== mid)];
+  if (x1 === x0 + 1) {
+    for (const row of rows(z0, z1, Math.floor(z))) {
+      if (across(x0, row, x1, row)) return { from: { x: x1 - r, z }, to: { x: x1 + r, z }, s: (x - (x1 - r)) / (2 * r) };
+    }
+  }
+  if (z1 === z0 + 1) {
+    for (const col of rows(x0, x1, Math.floor(x))) {
+      if (across(col, z0, col, z1)) return { from: { x, z: z1 - r }, to: { x, z: z1 + r }, s: (z - (z1 - r)) / (2 * r) };
+    }
+  }
+  return null;
+}
+
+/** How high a hop's arc rises over the straight line between its floors at its middle, world units. */
+export const HOP_LIFT = 0.35;
+/**
+ * The most a figure's height changes along a hop for a tile its middle moves, world units: the steepest the arc goes (a
+ * level's rise eased in, and the lift) over the crossing's length - what a jump watch allows a hopping figure.
+ */
+export const HOP_STEEP = (1.5 * (HOP / TEXELS_PER_TILE) + 4 * HOP_LIFT) / (2 * BODY);
+
+/**
+ * A figure's height across a hop's edge: from the floor at the stand on one side to the floor at the stand on the
+ * other, eased, over an arc HOP_LIFT high - up and over, or off and down. `floor` is the floor's height at a point.
+ */
+export function hopHeight(span: HopSpan, floor: (x: number, z: number) => number): number {
+  const s = Math.min(1, Math.max(0, span.s));
+  const a = floor(span.from.x, span.from.z);
+  const b = floor(span.to.x, span.to.z);
+  return a + (b - a) * s * s * (3 - 2 * s) + 4 * HOP_LIFT * s * (1 - s);
+}
+
+/**
+ * Whether one tile is a step of the grid's from another: one of the eight round it, over no ledge but a hop straight
+ * across (on a hopper's ground), never cutting a closed corner or a ledge's (world/grid.ts `canStep`).
  */
 export function canStep(ground: Ground | Open, a: Tile, b: Tile): boolean {
   return stepOver(groundOf(ground), a.x, a.z, b.x, b.z);

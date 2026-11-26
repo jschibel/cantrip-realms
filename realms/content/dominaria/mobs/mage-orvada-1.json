@@ -28,6 +28,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "As the textbooks predicted: a decisive victory with no losses whatsoever.",

@@ -29,6 +29,7 @@
     "size": 1.2
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Omnipotent is not a title. It is a description. Behold its accuracy.",

@@ -25,6 +25,7 @@
     "size": 1.1
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Soaring Drake loops lazily overhead, scales glinting, then swoops away untouched.*",

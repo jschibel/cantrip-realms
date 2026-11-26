@@ -28,6 +28,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Two brothers, one fire, and you never got near it!",

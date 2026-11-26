@@ -75,14 +75,24 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   only; the wheel, +/- or the HUD's buttons); rooms and dungeons stay at the closest step. Where something tall stands
   between the camera and the player, what of it stands in front of them fades (the occluder fade), never over its own
   footprint.
-- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile and never stepping over a
+- **Movement:** square tiles, eight-way walking, never cutting a corner past a blocked tile and never walking over a
   ledge (`world/grid.ts` `canStep`): a bank higher than a quarter of a tile (`LEDGE`, 4 texels) between two tiles not
-  both ramps - a terrace's edge, a road's embankment - is walked up to and along, both its tiles open, but left only by
-  a ramp. The player walks between tile middles as a body 0.6 tiles square that never overlaps a closed tile nor stands
-  across a ledge (`render/motion.ts`), so it stops flush at the brink of a terrace as at a wall.
+  both ramps - a terrace's edge, a road's embankment - is walked up to and along, both its tiles open. One no higher
+  than a terrace's level (`HOP`, 12 texels) is **hopped**, automatically, straight across it and never on a diagonal
+  step (nor does a diagonal step cut past one): players always hop, a mob as its file says (`hops`); higher is a cliff
+  nobody crosses, left only by a ramp or a pass. The player walks between tile middles as a body 0.6 tiles square that
+  never overlaps a closed tile nor stands across a ledge but mid-hop (`render/motion.ts`), so it stops flush at the
+  brink of a cliff as at a wall, and slides along a ledge's brink walked along. A hop goes from a stand flush with the
+  brink on one side straight across to a stand flush on the other, at walking pace (the server times walks by its
+  clock), the figure on a short arc - up and over, or off and down - while it crosses (`hopUnder`, `hopHeight`: by where
+  the body is, so another player's figure walking the relay's points and a mob walking tile to tile arc alike). The A*
+  counts a hop as two steps (`HOP_COST`), so a ramp or level ground about as short is taken instead.
   A click walks the grid's A* path pulled straight: from where the player stands to the furthest corner of the path in
-  plain sight, and on from there. A held button finds no path: every frame it steers the player straight at the
-  cursor's point on the ground, sliding along whatever is in the way and stopping only where nothing is left to go.
+  plain sight, and on from there; a hop on the path is a leg of its own, from the brink to the far side, and the path is
+  pulled straight afresh after it. A held button finds no path: every frame it steers the player straight at the
+  cursor's point on the ground, sliding along whatever is in the way and stopping only where nothing is left to go; held
+  against a ledge's brink, pushed into it (within 60 degrees of straight across) at a point past it, it takes the hop
+  whole (`hopToward`), and a hop under way is always finished, even let go.
   Letting go stops the player where it stands. Doors and gates are entered by a click, by holding still on them, or by
   a held walk that pushes into the doorway from the door's tile (the cursor in the doorway, the walk heading within 55
   degrees of the way the door goes: `render/pointer.ts`), never by sweeping past. The tile the game uses (encounters,
@@ -160,7 +170,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   the Playwright suite (`e2e/`) against the offline overworld with real clicks (`walking.spec.ts` follows the player
   beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back; `sweep.spec.ts` walks
   and steers the player about towns and the country round them, every frame checked for a jump and the body for a
-  closed tile or a ledge under it, and walks a ledge's brink; SWEEP_TOWNS, SWEEP_WALKS sweep more, and
+  closed tile or a ledge under it but mid-hop (and mid-hop no longer than a hop takes), and walks a ledge's brink and
+  hops it, held and clicked; `hop.spec.ts` hops a terrace of the large world with the real mouse at each heading, held
+  down and clicked up, frame by frame and pictured; SWEEP_TOWNS, SWEEP_WALKS sweep more, and
   `e2e/server/sweep.spec.ts`, with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too);
   `tour.spec.ts` takes the pictures of the
   Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
@@ -311,6 +323,7 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
 
 - format.ts: the version-2 types below, and `chunkOf`, `chunkKey`, `parseChunkKey`, `worldRect`, `viewBounds`,
   `chunksOver`, `chunkTile`, `interiorArea`, `interiorTile`, `heightOf`, `isBlocked`, `isBare`, `LEDGE`, `noLedge`,
+  `HOP`, `isHop`,
   `frontStep`; and (phase
   2, World) `areaAt`, `tierAt` (a tile's tier zone and tier), `inTown`, `townAt` (a town is the square of tiles within
   its `radius` of its `center` along x and z).
@@ -324,15 +337,16 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   art/registries.test.ts builds `known` from the registries and lints the sample with it. `known.onUnknown(kind, id,
   where)`, given, takes an id the art does not have instead of its being a problem (while the art is built beside the
   world). The realm, `lintRealm(world, chunks, interiors, dungeons, {known, tiers})`: `lintWorld` and the
-  whole world as the game plays it - walked whole from the first inn (`canStep`: eight ways, no corner cut, no ledge
-  stepped over), everything stood on
+  whole world as the game plays it - walked whole from the first inn as a player walks (`canStep`: eight ways, no
+  corner cut, no ledge stepped over but a hop straight across), everything stood on
   open and reached, the rest reached beside, interiors in the towns their doors stand in, entrances and dungeons where
   world.json says with spell tables and waystones beside them and an open step out, spawns of their zone's tier and their
   mobs', tiers growing with distance, waymarkers at rises, ferry lanes walks from dock to dock with ferrymen, pitches open
   in their towns, spell tables spell-table NPCs, each town's streets (`lintTown`, below), and - given `known.propTiles`
   and `known.liquid` - nothing closed unseen: every closed tile a walker comes up against on its own level (not seen as a
   bank from below) has what closes it drawn there (no ground, a liquid, a building, a prop that blocks over it, a thing
-  used from beside it, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground. (The renderer
+  used from beside it, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground (a closed tile a
+  hop above a walked one is come up against, as a player would hop onto it). (The renderer
   keeps a small prop on a closed tile at every zoom, `sortScenery`'s `solid`, so none is left out far either.)
   src/world/dominaria.test.ts runs it on Dominaria. `lintTown(town, open, buildings, limits?)` holds a town to its street
   plan: its nodes, ways, gates and places well formed; every way's ends, every door of the town and every key place
@@ -344,9 +358,11 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   (a straight run, four-connected), `pathTiles`, `brushOf`, `wayPoints`, `wayMiddle`, `wayTiles` (a way's middle line
   widened by its square brush), `inSquare`, `squareTiles`, `streetTiles`, `inPolygon`.
 - grid.ts: `canStep(ground, ax, az, bx, bz)`, the one rule of a step (eight ways, never cutting a blocked corner, never
-  over a ledge) over a `Ground` (`open` tiles and the edges that `pass`), which the A*, the body, the relay, the lint and
-  the generator all walk by and the server's `RealmSpace.CanStep` copies; and `Grid`, the square A*, with `setWalkable`,
-  `setHeight`, `setRamp`, `raise`, `block`, `heightAt`, `walkable`, `passes`, `canStep`, `ground`, `path`.
+  over a ledge but a hop straight across, for one who hops) over a `Ground` (`open` tiles, the edges that `pass`, and -
+  for one who hops - the edges that are a `hop`), which the A*, the body, the relay, the lint and the generator all walk
+  by and the server's `RealmSpace.CanStep` copies; `HOP_COST`; and `Grid`, the square A*, with `setWalkable`,
+  `setHeight`, `setRamp`, `raise`, `block`, `heightAt`, `walkable`, `passes`, `hops`, `canStep(from, to, hops = true)`,
+  `ground` (a hopper's), `still` (one's who does not hop), `groundFor(hops)`, `path(from, to, hops = true)`.
 
 #### The renderer at world scale
 
@@ -374,7 +390,8 @@ What the renderer does with the interfaces above at the scale of the whole world
   a ramp neighbour, so a run of ramps is one even slope. `floorAt(x, z)` is the surface anywhere; figures and grass stand
   on it. Terrain ground is outlined where a terrace's edge stands in front of lower ground (normal-pass kind 0.875). For
   the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
-  terrace's bank is a ledge the grid walks up to but never over (`LEDGE`), left by its ramps. Rooms are still drawn level.
+  terrace's bank of one level is a ledge the grid walks up to and hops (`HOP`), two levels or more a cliff left by its
+  ramps alone. Rooms are still drawn level.
 - **The occluder fade** (`render/occlude.ts`), the one way of seeing past scenery out of doors: tall scenery (anything
   over 1.6 high: buildings, trees, walls) is merged with each thing's id, foot and footprints (`Built.footprints`; by
   default the rectangle its lowest parts stand on) on its vertices. Each frame five rays from the player's figure
@@ -871,9 +888,11 @@ is gone.
   Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
   are a ramp (flag `RAMP`, 4: the lower at a quarter of the way up, the upper at three quarters, so the pair is one even
   slope); across the open country a straight two-tile ramp is cut where a bank runs straight, about one every 16 tiles of
-  bank. Every other bank is a ledge (`LEDGE`): the tiles both sides stay open, walked up to the brink and along it, but
-  never stepped over, so a level is left only by a ramp (`Land.levelled` from here on: the generator's steps are the
-  grid's); `connect` grades any way it cuts, with ramps. A bridge's deck and a ford's stones are at their banks' level.
+  bank. Every other bank is a ledge (`LEDGE`): the tiles both sides stay open, walked up to the brink and along it, and
+  - a level high - hopped by the players and most mobs (world/grid.ts `canStep`, `HOP`); a mob that does not hop leaves
+  a level only by a ramp. The generator still walks as one who does not hop (`Land.levelled` from here on: its steps
+  are the grid's with no hop, so what it joins is joined for every walker); `connect` grades any way it cuts, with
+  ramps. A bridge's deck and a ford's stones are at their banks' level.
   Water tiles (sea, shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles
   side by side are level (a bridge's 4 texels at most), a ramp's, or a whole level apart across a ledge, and every ramp
   climbs. Scenery a town or a field puts down blocks its tile as the art catalogue says the prop does (a flower bed is

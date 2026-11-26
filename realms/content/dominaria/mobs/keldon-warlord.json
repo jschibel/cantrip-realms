@@ -27,6 +27,7 @@
     "size": 1.25
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "My strength is my army's strength, and my army never broke a sweat.",

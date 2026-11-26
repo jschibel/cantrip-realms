@@ -28,6 +28,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I traded my halo for this. Watching you lose was worth the price.",

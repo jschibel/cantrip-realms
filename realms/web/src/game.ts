@@ -17,7 +17,7 @@ import { MockApi } from "./net/mockApi";
 import type { Presence, ServerMessage } from "./net/presence";
 import { WalkRelay } from "./net/relay";
 import { Actor } from "./render/actor";
-import { type Point, middle } from "./render/motion";
+import { HOP_STEEP, type Point, middle } from "./render/motion";
 import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera";
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
@@ -123,7 +123,10 @@ const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z
 
 /** A move of the figure in one frame further than this (world units, a tile being one) is a jump: a walk covers about 0.07. */
 const JUMP = 0.6;
-/** A change of the figure's height in one frame larger than this is a jump: a step eases in. */
+/**
+ * A change of the figure's height in one frame larger than this is a jump: a step eases in. A hop's arc rises and falls
+ * with the ground the figure covers, so while hopping it may change by HOP_STEEP more for every tile it moved.
+ */
 const DROP = 0.3;
 /** How often the finds standing in the world are asked of the server while in it, seconds (`askFinds`). */
 const FIND_POLL = 10;
@@ -220,11 +223,11 @@ export class Overworld {
 
   /** The figure's jumps seen, newest first (the last few): the debug overlay's (debug.ts). */
   readonly jumps: Jump[] = [];
-  private watched: { readonly figure: object; readonly place: string; readonly x: number; readonly y: number; readonly z: number } | null = null;
+  private watched: { readonly figure: object; readonly place: string; readonly x: number; readonly y: number; readonly z: number; readonly hopping: boolean } | null = null;
 
   /**
    * Each frame, the player's figure watched for a jump: a move in one frame further than a walk could take it (JUMP), or
-   * a sudden rise or drop (DROP). A deliberate one - through a door, a waystone, back to the inn - stands a new figure in
+   * a sudden rise or drop (DROP; a hop's arc no steeper than it goes, HOP_STEEP). A deliberate one - through a door, a waystone, back to the inn - stands a new figure in
    * the place (Stage.arrive) and is none. Each is logged with the trace before it, to the console and (a development
    * server's) the server's log, so a teleport seen in play says its cause.
    */
@@ -233,9 +236,10 @@ export class Overworld {
     const p = stage.player.figure.root.position;
     const place = stage.current.id;
     const last = this.watched;
+    const hopping = stage.player.hopping;
     if (last && last.figure === stage.player && last.place === place && !stage.transition) {
       const flat = Math.hypot(p.x - last.x, p.z - last.z);
-      if (flat > JUMP || Math.abs(p.y - last.y) > DROP) {
+      if (flat > JUMP || Math.abs(p.y - last.y) > DROP + (hopping || last.hopping ? HOP_STEEP * flat : 0)) {
         const jump: Jump = { at: new Date().toLocaleTimeString(), place, from: [last.x, last.y, last.z], to: [p.x, p.y, p.z] };
         this.jumps.unshift(jump);
         this.jumps.length = Math.min(this.jumps.length, 6);
@@ -244,7 +248,7 @@ export class Overworld {
         void this.api.report?.(text);
       }
     }
-    this.watched = { figure: stage.player, place, x: p.x, y: p.y, z: p.z };
+    this.watched = { figure: stage.player, place, x: p.x, y: p.y, z: p.z, hopping };
   }
 
   /** The walks the relay is told (net/relay.ts). */

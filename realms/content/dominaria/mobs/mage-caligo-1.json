@@ -28,6 +28,7 @@
     "size": 1.05
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "The Cabal welcomes all, even the hopeless. Especially the hopeless.",

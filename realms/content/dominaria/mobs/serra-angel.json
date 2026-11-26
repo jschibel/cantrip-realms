@@ -28,6 +28,7 @@
     "size": 1.45
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I struck and stood guard in the same breath. You never found an opening.",

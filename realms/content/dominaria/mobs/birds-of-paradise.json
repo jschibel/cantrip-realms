@@ -28,6 +28,7 @@
     "size": 1.0
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "*The Birds of Paradise preen their rainbow feathers, utterly untroubled by the whole affair.*",

@@ -201,7 +201,8 @@ public sealed class Finds(RealmContent content, RealmOptions options, TimeProvid
             (int col, int row) = cells[_random.Next(cells.Count)];
             var at = new Tile(World.X0 + (col * zones.Cell) + _random.Next(zones.Cell), World.Z0 + (row * zones.Cell) + _random.Next(zones.Cell));
             if (!World.Walkable(at) || World.IsWorked(at) || _kept.Contains(at) || content.TownAt(at) is not null) continue;
-            if (!Tile.Steps.All(step => World.CanStep(at, at.Plus(step)))) continue;
+            // Level all round: every tile round a step with no hop (realms/web/src/world/finds.ts, noLedge).
+            if (!Tile.Steps.All(step => World.CanStep(at, at.Plus(step), hops: false))) continue;
             if (_live.Values.Any(find => find.At.DistanceTo(at) < (kind == FindKind.Heartbloom && find.Kind == FindKind.Heartbloom ? HeartbloomApart : Apart))) continue;
             if (players.Any(player => player.Tile.DistanceTo(at) < AwayFromPlayers)) continue;
             return at;

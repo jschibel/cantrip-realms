@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Arrogant Wurm yawns, showing rows of teeth, and does not deign to look at you twice.*",

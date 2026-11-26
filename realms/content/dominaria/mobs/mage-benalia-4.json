@@ -28,6 +28,7 @@
     "size": 1.2
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I named your best card before you drew it. Your whole plan was an open book to me.",

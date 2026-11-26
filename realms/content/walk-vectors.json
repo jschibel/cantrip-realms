@@ -1,5 +1,5 @@
 {
-  "comment": "Golden vectors of walking on squares (realms/docs/interfaces.md, 'Places'), written by tools/realms/walk-vectors.ts. Each grid's rows are tiles, '.' open and '#' blocked, its first tile at (x0, z0); 'heights', where given, are the tiles' floors in texels row by row (0 elsewhere), and 'ramps' marks ramp tiles 'r'. 'paths' are what the overworld's A* (realms/web/src/world/grid.ts) finds from one tile to another, both ends included (null: no way); 'walks' are tiles, the first the one walked from, and whether each is a walk: every tile open, every step to one of the eight tiles round and over no ledge (floors more than 4 texels apart, unless both are ramps), a diagonal step only where both tiles it passes between are open and no ledge runs round the corner. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
+  "comment": "Golden vectors of walking on squares (realms/docs/interfaces.md, 'Places'), written by tools/realms/walk-vectors.ts. Each grid's rows are tiles, '.' open and '#' blocked, its first tile at (x0, z0); 'heights', where given, are the tiles' floors in texels row by row (0 elsewhere), and 'ramps' marks ramp tiles 'r'. 'paths' are what the overworld's A* (realms/web/src/world/grid.ts) finds from one tile to another, both ends included (null: no way); 'walks' are tiles, the first the one walked from, and whether each is a walk: every tile open, every step to one of the eight tiles round and over no ledge (floors more than 4 texels apart, unless both are ramps) or, straight across, a hop (floors more than 4 and at most 12 texels apart, not both ramps), a diagonal step only where both tiles it passes between are open and no ledge runs round the corner. A case marked 'hops': false is of one who does not hop, for whom a hop is no step; the rest are a player's, who hops. The TypeScript (realms/web) and C# (realms/dotnet) tests both check every case.",
   "grids": [
     {
       "name": "open ground", "x0": 0, "z0": 0,
@@ -123,14 +123,16 @@
       "heights": [[0,0,0,12,12,12], [0,0,0,12,12,12], [0,0,3,9,12,12], [0,0,0,12,12,12], [0,0,4,12,12,12]],
       "ramps": ["......","......","..rr..","......","......"],
       "paths": [
-        {"from":[0,0],"to":[5,0],"path":[[0,0],[1,1],[2,2],[3,2],[4,1],[5,0]]},
-        {"from":[5,4],"to":[0,4],"path":[[5,4],[4,3],[3,2],[2,2],[1,3],[0,4]]},
-        {"from":[2,0],"to":[3,0],"path":[[2,0],[2,1],[2,2],[3,2],[3,1],[3,0]]},
-        {"from":[2,4],"to":[2,0],"path":[[2,4],[2,3],[2,2],[2,1],[2,0]]}
+        {"from":[0,0],"to":[5,0],"path":[[0,0],[1,0],[2,0],[3,0],[4,0],[5,0]]},
+        {"from":[5,4],"to":[0,4],"path":[[5,4],[4,4],[3,4],[2,4],[1,4],[0,4]]},
+        {"from":[2,0],"to":[3,0],"path":[[2,0],[3,0]]},
+        {"from":[2,4],"to":[2,0],"path":[[2,4],[2,3],[2,2],[2,1],[2,0]]},
+        {"from":[0,0],"to":[5,0],"hops":false,"path":[[0,0],[1,1],[2,2],[3,2],[4,1],[5,0]]},
+        {"from":[2,0],"to":[3,0],"hops":false,"path":[[2,0],[2,1],[2,2],[3,2],[3,1],[3,0]]}
       ],
       "walks": [
-        {"walk":[[2,0],[3,0]],"ok":false},
-        {"walk":[[3,1],[2,1]],"ok":false},
+        {"walk":[[2,0],[3,0]],"ok":true},
+        {"walk":[[3,1],[2,1]],"ok":true},
         {"walk":[[1,2],[2,2],[3,2],[4,2]],"ok":true},
         {"walk":[[4,3],[3,2],[2,2],[1,1]],"ok":true},
         {"walk":[[2,1],[3,2]],"ok":false},
@@ -139,8 +141,43 @@
         {"walk":[[3,2],[3,1]],"ok":true},
         {"walk":[[2,2],[3,1]],"ok":false},
         {"walk":[[1,4],[2,4]],"ok":true},
-        {"walk":[[2,4],[3,4]],"ok":false},
-        {"walk":[[1,3],[2,4]],"ok":true}
+        {"walk":[[2,4],[3,4]],"ok":true},
+        {"walk":[[1,3],[2,4]],"ok":true},
+        {"walk":[[2,0],[3,0]],"hops":false,"ok":false},
+        {"walk":[[3,1],[2,1]],"hops":false,"ok":false},
+        {"walk":[[1,2],[2,2],[3,2],[4,2]],"hops":false,"ok":true},
+        {"walk":[[2,4],[3,4]],"hops":false,"ok":false}
+      ]
+    },
+    {
+      "name": "hops and a cliff", "x0": -2, "z0": 3,
+      "rows": ["......","......","......","......"],
+      "heights": [[0,0,12,12,36,36], [0,0,12,12,36,36], [0,0,12,12,24,36], [0,0,0,12,24,24]],
+      "paths": [
+        {"from":[-2,3],"to":[3,3],"path":[[-2,3],[-1,4],[0,4],[1,5],[2,5],[2,4],[3,3]]},
+        {"from":[3,3],"to":[-2,6],"path":[[3,3],[2,4],[2,5],[1,5],[0,5],[-1,5],[-2,6]]},
+        {"from":[-1,3],"to":[1,3],"path":[[-1,3],[0,3],[1,3]]},
+        {"from":[-2,6],"to":[2,6],"path":[[-2,6],[-1,6],[0,6],[1,6],[2,6]]},
+        {"from":[-2,3],"to":[3,3],"hops":false,"path":null},
+        {"from":[-2,3],"to":[-1,6],"hops":false,"path":[[-2,3],[-2,4],[-1,5],[-1,6]]}
+      ],
+      "walks": [
+        {"walk":[[-1,3],[0,3]],"ok":true},
+        {"walk":[[0,4],[-1,4]],"ok":true},
+        {"walk":[[-1,3],[0,4]],"ok":false},
+        {"walk":[[0,4],[-1,3]],"ok":false},
+        {"walk":[[0,5],[-1,6]],"ok":false},
+        {"walk":[[1,3],[2,3]],"ok":false},
+        {"walk":[[2,3],[1,3]],"ok":false},
+        {"walk":[[1,5],[2,5]],"ok":true},
+        {"walk":[[2,5],[3,5],[3,4]],"ok":true},
+        {"walk":[[-1,4],[0,4],[1,4],[1,5],[2,5],[3,5],[3,4],[3,3]],"ok":true},
+        {"walk":[[2,6],[3,6],[3,5]],"ok":true},
+        {"walk":[[1,6],[2,5]],"ok":false},
+        {"walk":[[-1,3],[0,3]],"hops":false,"ok":false},
+        {"walk":[[0,4],[-1,4]],"hops":false,"ok":false},
+        {"walk":[[-2,3],[-1,4],[-1,5]],"hops":false,"ok":true},
+        {"walk":[[0,6],[1,6]],"hops":false,"ok":false}
       ]
     }
   ]

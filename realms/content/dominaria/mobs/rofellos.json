@@ -46,6 +46,7 @@
   "boss": true,
   "unlocks": "G",
   "unique": "rofellos-emissary-torc",
+  "hops": true,
   "lines": {
     "flawless": [
       "Every forest answered me, and you could not hold back the green.",

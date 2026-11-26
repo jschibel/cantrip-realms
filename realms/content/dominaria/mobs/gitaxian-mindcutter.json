@@ -27,6 +27,7 @@
     "size": 1.3
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "I was the finest mind of Tolaria. Now I am finer. You never had a thought I did not cut first.",

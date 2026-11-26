@@ -36,9 +36,17 @@ public abstract class RealmSpace
 
     /// <summary>
     /// The most a step between side-by-side tiles climbs or drops, texels (a quarter of a tile), unless both are ramps
-    /// (<c>LEDGE</c> of <c>realms/web/src/world/format.ts</c>): a higher bank is a ledge, walked up to but never over.
+    /// (<c>LEDGE</c> of <c>realms/web/src/world/format.ts</c>): a higher bank is a ledge, walked up to but never over -
+    /// but for a hop (<see cref="Hop"/>).
     /// </summary>
     public const int Ledge = 4;
+
+    /// <summary>
+    /// The highest ledge hopped, texels (a terrace's one level; <c>HOP</c> of <c>realms/web/src/world/format.ts</c>):
+    /// between side-by-side tiles whose floors differ by more than <see cref="Ledge"/> and no more than this, not both
+    /// ramps, a walk hops straight across - a player always does. A higher bank is a cliff nobody crosses.
+    /// </summary>
+    public const int Hop = 12;
 
     /// <summary>Whether a tile's floor is a ramp (flag 4): a slope between two levels, stepped up whatever the heights.</summary>
     public abstract bool IsRamp(Tile at);
@@ -46,16 +54,20 @@ public abstract class RealmSpace
     /// <summary>Whether the edge between two side-by-side tiles is no ledge: their floors within <see cref="Ledge"/>, or both ramps.</summary>
     public bool Passes(Tile a, Tile b) => (IsRamp(a) && IsRamp(b)) || Math.Abs(HeightAt(a) - HeightAt(b)) <= Ledge;
 
+    /// <summary>Whether the edge between two side-by-side tiles is a hop: a ledge (it does not <see cref="Passes"/>) no higher than <see cref="Hop"/>.</summary>
+    public bool Hops(Tile a, Tile b) => !Passes(a, b) && Math.Abs(HeightAt(a) - HeightAt(b)) <= Hop;
+
     /// <summary>
     /// Whether one step of a walk is taken (the rule of <c>realms/web/src/world/grid.ts</c>, <c>canStep</c>, exactly): to
-    /// one of the eight tiles round, which is walkable, over no ledge (<see cref="Passes"/>); and diagonally only where
-    /// both tiles it passes between are walkable too and all four edges round the corner are no ledge - a walk never cuts
-    /// the corner of a blocked tile, nor of a ledge.
+    /// one of the eight tiles round, which is walkable, over no ledge (<see cref="Passes"/>) or - straight across, for one
+    /// who <paramref name="hops"/>, as a player always does - a hop (<see cref="Hops"/>); and diagonally only where both
+    /// tiles it passes between are walkable too and all four edges round the corner are no ledge - a walk never cuts the
+    /// corner of a blocked tile, nor of a ledge, and never hops on a diagonal.
     /// </summary>
-    public bool CanStep(Tile from, Tile to)
+    public bool CanStep(Tile from, Tile to, bool hops = true)
     {
         if (from.DistanceTo(to) != 1 || !Walkable(to)) return false;
-        if (!from.IsDiagonalTo(to)) return Passes(from, to);
+        if (!from.IsDiagonalTo(to)) return Passes(from, to) || (hops && Hops(from, to));
         var across = new Tile(to.X, from.Z);
         var along = new Tile(from.X, to.Z);
         return Walkable(across) && Walkable(along) && Passes(from, across) && Passes(across, to) && Passes(from, along) && Passes(along, to);
@@ -65,8 +77,9 @@ public abstract class RealmSpace
     /// Whether a straight line walked from one point to another keeps the grid's rule (the rule of
     /// <c>realms/web/src/render/motion.ts</c>, <c>legClear</c>, exactly): the tiles it crosses, in turn, are each a step
     /// (<see cref="CanStep"/>) from the one before - through a tile's corner, the diagonal step, which never cuts the corner
-    /// of a blocked tile or a ledge. The overworld's body, which never overlaps a blocked tile nor stands across a ledge,
-    /// walks only such lines. The caller bounds the line's length (it is walked tile by tile).
+    /// of a blocked tile or a ledge, and hops a ledge only straight across. The overworld's body, which never overlaps a
+    /// blocked tile nor stands across a ledge but mid-hop, walks only such lines; a player always hops. The caller bounds
+    /// the line's length (it is walked tile by tile).
     /// </summary>
     public bool CanWalk(Point from, Point to)
     {
@@ -115,14 +128,17 @@ public abstract class RealmSpace
     /// <summary>How near, in the line's own measure, two crossings are one through a corner (a line from tile middle to middle on the diagonal goes exactly through it).</summary>
     private const double Corner = 1e-9;
 
-    /// <summary>Whether a walk is one: from a tile, each tile of the path a step (<see cref="CanStep"/>) from the one before.</summary>
-    public bool IsWalk(Tile from, IEnumerable<Tile> path)
+    /// <summary>
+    /// Whether a walk is one: from a tile, each tile of the path a step (<see cref="CanStep"/>) from the one before, for
+    /// one who <paramref name="hops"/> (a player) or does not.
+    /// </summary>
+    public bool IsWalk(Tile from, IEnumerable<Tile> path, bool hops = true)
     {
         ArgumentNullException.ThrowIfNull(path);
         Tile previous = from;
         foreach (Tile next in path)
         {
-            if (!CanStep(previous, next)) return false;
+            if (!CanStep(previous, next, hops)) return false;
             previous = next;
         }
 

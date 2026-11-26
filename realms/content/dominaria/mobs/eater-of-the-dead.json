@@ -28,6 +28,7 @@
     "size": 1.4
   },
   "boss": false,
+  "hops": false,
   "lines": {
     "flawless": [
       "*The Eater of the Dead picks through your graveyard with long fingers, choosing a snack.*",

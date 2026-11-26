@@ -28,6 +28,7 @@
     "size": 1.55
   },
   "boss": false,
+  "hops": true,
   "lines": {
     "flawless": [
       "Five storms in a bottle could not have moved me, and you were far less than one.",
