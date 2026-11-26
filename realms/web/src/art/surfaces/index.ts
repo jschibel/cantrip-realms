@@ -4,7 +4,7 @@ import { material } from "../paint/materials";
 import { type Palette, type Ramp, withDefaults } from "../paint/palette";
 import type { Pixmap } from "../paint/pixmap";
 import * as T from "../paint/textures";
-import { bankOf, defineBiomes } from "./biomes";
+import { bankOf, brinkOf, defineBiomes } from "./biomes";
 
 // The ground, by surface id: what a tile's `surface` names (world/format.ts, TileData). Each is a tiling picture 64
 // texels square (four tiles), painted from its palette, and how it meets its neighbours: where two surfaces meet, the
@@ -37,6 +37,8 @@ export interface SurfaceLook {
    * grass, dark rock in the mountains, peat in the Morass, ice under snow. Tiled, its top row the ground's edge.
    */
   readonly cliff?: Material;
+  /** The stone that shows through the worn rim of its terraces' brinks (render/ground.ts): its bank's (biomes.ts). */
+  readonly brink?: number;
 }
 
 export interface SurfaceEntry {
@@ -67,7 +69,8 @@ export const SURFACES = {
     const look = e.look(withDefaults(e.palette, palette));
     // Every surface's bank, as biomes.ts gives it, where the surface does not name its own.
     const cliff = look.cliff ?? bankOf(id);
-    return cliff ? { ...look, cliff } : look;
+    const brink = look.brink ?? brinkOf(id);
+    return { ...look, ...(cliff ? { cliff } : {}), ...(brink !== undefined ? { brink } : {}) };
   },
 };
 
@@ -105,4 +108,4 @@ defineSurface("crypt-floor", "a crypt's cold flags, bones and grime", {}, () => 
 // --- The world's biomes, roads and waters (biomes.ts) ----------------------------------------------------------------------
 
 defineBiomes(defineSurface);
-export { BANKS, PRIORITY, SURFACE_GROUPS, bankOf } from "./biomes";
+export { BANKS, PRIORITY, SURFACE_GROUPS, bankOf, brinkOf } from "./biomes";

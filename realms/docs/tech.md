@@ -234,7 +234,8 @@ The world calls the renderer with a scene of chunks, figures, doors and lights:
   player's is `smooth` (its walks pulled straight, motion.ts). `behaviourOf(npc.behaviour)` turns the data's behaviour
   into its own.
 - Underneath: `buildGround` (ground.ts: the ground shader over a block of tiles, texels counted from an `anchor` - the
-  world's origin - so blocks join without a seam), `grassField` (grass.ts: tufts per tile, visited row by row),
+  world's origin - so blocks join without a seam; given a block's `relief`, terrain.ts `reliefMap`, it draws the
+  terraces' edges on it), `grassField` (grass.ts: tufts per tile, visited row by row, none where `bareAt` says),
   `lit`/`glow`/`bandShader`/`textureOf` (lighting.ts: the bands), `normalMaterialFor` (edges.ts: the normal pass),
   `sunlight`, `addLight`, `stepFlicker` (lights.ts), `blobShadow` (shadow.ts).
 
@@ -372,7 +373,21 @@ What the renderer does with the interfaces above at the scale of the whole world
   `bank-rock`); a **ramp** tile (flag `RAMP` = 4, the one format addition: `world/format.ts` and the lint accept it)
   slopes along the axis its neighbours differ most on, from the level on one side to the level on the other, half-way to
   a ramp neighbour, so a run of ramps is one even slope. `floorAt(x, z)` is the surface anywhere; figures and grass stand
-  on it. Terrain ground is outlined where a terrace's edge stands in front of lower ground (normal-pass kind 0.875). For
+  on it. **Edges read from every heading** - a bank's face is hidden where the high ground is nearer the camera and
+  seen edge on where the bank runs along the view, so the cues are on the ground's top, which always shows: the chunk's
+  relief (`reliefMap`: each tile's corner heights, over the ground map's tiles and their border, so edges join across
+  chunks) goes to the ground's shader (`render/ground.ts` `EDGES_GLSL`), which finds every texel's drop to each side and
+  corner neighbour wherever along the edge it falls - so a ramp, level with the ground at its ends, breaks both cues -
+  and paints, counted from the world's anchor so it holds still: along a brink a ragged rim 1.5-4 texels deep (6 over
+  a cliff), worn toward its bank's stone (`brink`, art/surfaces/biomes.ts `brinkOf`: paler on grass and sand, packed
+  and bluer on snow) with stones of it through, and a lit lip one texel in from the brink (two over a cliff of two levels
+  or more); along a foot a shade of the cool shadow's color in two bands, about 5 texels out from a one-level bank and
+  8-11 from a cliff; and higher ground a touch lighter and warmer (at level L its color times about 1 + 0.2 L/(L+4),
+  more in red than in blue), so two levels never meet in one color. Standing grass keeps off a brink's rim and a bank's foot (`nearBank`). Terrain
+  ground is outlined where it stands in front of lower ground (normal-pass kind 0.875) - the brink of a drop away from
+  the camera or along the view, just past the lip - and two pixels deep over a cliff (a depth gap of 1.75, between one
+  level's 1.06 and two levels' 2.12 at the 45 degree pitch). `e2e/edges.spec.ts` holds it on the large world's mesas
+  (snow, sand, rock and tundra: a two-level cliff, a bank, an inner corner, a ramp) at every heading. For
   the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
   terrace's bank is a ledge the grid walks up to but never over (`LEDGE`), left by its ramps. Rooms are still drawn level.
 - **The occluder fade** (`render/occlude.ts`), the one way of seeing past scenery out of doors: tall scenery (anything
@@ -421,7 +436,8 @@ What the renderer does with the interfaces above at the scale of the whole world
   each. No integrated GPU was at hand: the forest's triangle count is the number to watch on one (cheaper trees, or a
   far-zoom tree, would be the Art library's lever).
 - **Fixtures:** `fixtures/large-world/source.ts` is an 8 by 8 chunk synthetic world as a `WorldSource` (a dense town
-  with shops and rooms, a forest, terraced hills with ramps, a lake, fields, roads, townsfolk, lamps, spawns), for the
+  with shops and rooms, a forest, terraced hills with ramps, four mesas of snow, sand, rock and tundra
+  (`fixtures/large-world/mesas.ts`), a lake, fields, roads, townsfolk, lamps, spawns), for the
   renderer's tests and benchmark: the game page's `?world=large`.
 - **The game page** (`index.html`, `src/main.ts`, `game.ts`, `entities.ts`, `input.ts`, `testHooks.ts`) runs on the
   stage over the generated Domains (`world/realm.ts`), or `?world=slice` / `?world=large` for tests. Positions are
@@ -514,7 +530,8 @@ from the registries; `src/art/library.test.ts` builds every id from its own exam
   `model` is merged, and switch the group.
 - **Banks:** every surface's look carries `cliff` (earth under grass with a fringe of turf, loam under the forest, peat
   in the Morass, granite in the mountains with a fringe of tundra, ice under snow, sand, basalt, masonry under paving,
-  Phyrexian metal), a 32-square picture whose top row is the ground's edge.
+  Phyrexian metal), a 32-square picture whose top row is the ground's edge, and `brink`, a light tone of the bank's
+  ramp, the stone that shows through the worn rim of the surface's brinks (render/ground.ts).
 - **Footprints:** every building (all styles) returns `footprints`, its rectangle - a gatehouse's two, either side of
   its passage (`styled(building, draw, through)`) - for the occluder fade. Nothing is cut away for the player.
 - **Flames** (`frames`) come from props (torches, fire bowls, campfires, the foundry's chimney) and from buildings (the

@@ -85,12 +85,13 @@ void main() {
   vec2 offsets[4] = vec2[4](vec2(px.x, 0.0), vec2(-px.x, 0.0), vec2(0.0, px.y), vec2(0.0, -px.y));
   float outline = 0.0;
   float highlight = 0.0;
-  // Terrain (kind 0.875) is outlined where it stands in front of markedly farther ground - a terrace's edge - and has
-  // no highlights; flat ground and decals (0.5) neither.
+  // Terrain (kind 0.875) is outlined where it stands in front of markedly farther ground - a terrace's brink, whichever
+  // way it runs: away from the camera, across the view or along it - and has no highlights; flat ground and decals
+  // (0.5) neither. A brink over a drop of two levels or more (a cliff) is outlined two pixels deep.
   if (kind > 0.85 && kind < 0.9) {
     for (int i = 0; i < 4; i++) {
       float gap = edgeDepthAt(vUv + offsets[i], under) - d;
-      if (gap > 0.32) outline = 1.0;
+      if (gap > 0.32 || edgeDepthAt(vUv + 2.0 * offsets[i], under) - d > 1.75) outline = 1.0;
     }
   }
   if (kind > 0.9) {
