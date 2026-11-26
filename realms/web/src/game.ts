@@ -759,7 +759,10 @@ export class Overworld {
 
   /** On every step: the area and its tier, and now and then where the player is. */
   private stepped(t: Tile, arriving = false): void {
-    if (this.inWorld) {
+    if (this.inWorld && this.stage.transition && !arriving) {
+      // Stepping into a doorway as the iris closes (a dungeon's entrance, whose doorway may lie past a tier's border): no
+      // area is crossed into on the way out of the place.
+    } else if (this.inWorld) {
       // Within a town's walls, or anywhere in its grounds (a world of two scales), the town's.
       const town = townAt(this.worldData.towns, t.x, t.z) ?? groundsAt(this.worldData, t.x, t.z);
       const z = this.worldData.zones;

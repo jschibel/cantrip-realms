@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { type Entity, type Tile, clickEntity, entities, entity, realm, until, walkTo, winDuel } from "./realm";
+import { type Entity, type Tile, advance, clickEntity, entities, entity, realm, until, walkTo, winDuel } from "./realm";
 
 // Dungeon runs, as the suites play them: walking a floor, beating a floor's mob with the stand-in duel, going in.
 
@@ -24,6 +24,38 @@ export async function walkInside(page: Page, goal: Tile, near = 1): Promise<void
   // Each way, and the doorway past it (a step north: a click there goes through too).
   const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).flatMap((t) => [`${t.x},${t.z}`, `${t.x},${t.z - 1}`]));
   await walkTo(page, goal, near, (t) => stops.has(`${t.x},${t.z}`));
+}
+
+/**
+ * Engages a floor's mob of a role and leaves its duel open, unanswered, for the test to play as it means to (lose it,
+ * say): toward it a few steps at a time, then a click on it - whichever comes first, its own coming for the player or the
+ * click, the duel that opens is left as it is, never won on the way (walkInside wins any duel it meets). The duel's mob.
+ */
+export async function engageInside(page: Page, role: string): Promise<{ id: string; spawn: string }> {
+  const open = () => realm<string | null>(page, "layer.open");
+  for (let tries = 0; tries < 30 && (await open()) === null; tries++) {
+    const mob = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`, 30);
+    if ((await open()) !== null) break;
+    const me = (await entity(page, (e) => e.kind === "player", "the player")).tile;
+    if (Math.max(Math.abs(me.x - mob.tile.x), Math.abs(me.z - mob.tile.z)) <= 2) {
+      await clickEntity(page, (e) => e.kind === "mob" && e.spawn === mob.spawn, `the ${role}`).catch(() => null);
+      await until(page, async () => (await open()) !== null, "the duel", 20);
+      break;
+    }
+    const r = await run(page);
+    const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).flatMap((t) => [`${t.x},${t.z}`, `${t.x},${t.z - 1}`]));
+    const path = ((await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [mob.tile.x, mob.tile.z] as const)) ?? []) as Tile[];
+    let k = Math.min(6, Math.max(1, path.length - 3));
+    while (k > 1 && stops.has(`${path[k]?.x},${path[k]?.z}`)) k--;
+    const step = path[k];
+    if (!step) break;
+    await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [step.x, step.z] as const);
+    await advance(page, 0.2);
+    await until(page, async () => (await open()) !== null || !(await entity(page, (e) => e.kind === "player", "the player")).moving, "the step taken", 20);
+  }
+  await until(page, async () => (await open()) === "duel", "the duel", 30);
+  const duel = (await realm<{ screen: string; args: { mob: { id: string; spawn: string } } }[]>(page, "layer.requests")).filter((x) => x.screen === "duel").at(-1)!;
+  return duel.args.mob;
 }
 
 /** Beats a floor's mob of a role (walking near it first; another that comes for you is beaten on the way). */
