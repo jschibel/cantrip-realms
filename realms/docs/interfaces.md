@@ -310,8 +310,9 @@ A town in world.json carries its street plan, `plan` (`TownPlan` in format.ts; t
 Every street tile of the town is a tile of a way or a square, and every door into the town's buildings opens onto one.
 The lint (`lintTown`) holds a town to its plan: every way's ends, every door and every place walked to from every gate
 over the open street tiles alone; no street running on more than a lot's depth (8 tiles) past its last junction to end
-at no door; and no walk along the streets between two of its key places at least 12 tiles apart (gate to gate aside)
-longer than twice the straight line between them.
+at no door; and no walk along the streets between two of its key places at least 16 tiles apart (gate to gate aside;
+more than a row of gardens and a street, which two places on neighbouring streets are however they are walked) longer
+than twice the straight line between them.
 
 #### Two scales
 

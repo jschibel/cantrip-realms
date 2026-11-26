@@ -822,9 +822,10 @@ function unseenClosed(
  * What a town's street plan must hold (format.ts, `TownPlan`): `spur`, the most tiles a street may run on past its last
  * junction to end at no door (a lot's depth); `detour`, the most a walk along the streets between two of its key places
  * (its gates, doors and what is used from beside it) may be over the straight line between them, for those at least
- * `apart` tiles apart.
+ * `apart` tiles apart. A town's rows face south onto their streets with their gardens behind them, so two places on
+ * neighbouring streets are a row's depth apart however they are walked: `apart` is more than a row's depth and a street.
  */
-export const TOWN_LIMITS = { spur: 8, detour: 2, apart: 12 } as const;
+export const TOWN_LIMITS = { spur: 8, detour: 2, apart: 16 } as const;
 
 /**
  * A town's street plan against its tiles: its nodes, ways, gates and places well formed; every street's ends, every
