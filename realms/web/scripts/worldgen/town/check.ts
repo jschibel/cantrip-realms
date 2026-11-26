@@ -125,7 +125,7 @@ export function fillPockets(ctx: Ctx, from: number): number {
     const z = land.zOf(i);
     // The town's ways and open ground are walked to or the checks say; anything else nobody reaches is overgrown.
     const u = land.use[i];
-    if (u === Use.Road || u === Use.Dock || u === Use.Street || u === Use.Kept || u === Use.Door) continue;
+    if (u === Use.Road || u === Use.Dock || u === Use.Street || u === Use.Door || (u === Use.Kept && ctx.mustSee[i] === 1)) continue;
     void plan;
     land.put(i, { id: land.isWater(i) ? "reeds" : "undergrowth", x: x + 0.5, z: z + 0.5, seed: i % 16 }, true);
     land.flags[i] = BLOCKED | 2;

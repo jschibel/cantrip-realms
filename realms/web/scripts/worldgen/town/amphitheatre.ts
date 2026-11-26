@@ -203,7 +203,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     want(n.id, n.role as Role, n.id);
   }
   const head = wants[0]!;
-  const rank: Record<string, number> = { inn: 0, shop: 1, exotic: 1, guildhall: 2, library: 2, tower: 2, temple: 2, arena: 3, smithy: 4, home: 5, manor: 6 };
+  const rank: Record<string, number> = { inn: 0, shop: 1, exotic: 1, guildhall: 2, library: 2, tower: 2, temple: 2, arena: 2.5, smithy: 4, home: 5, manor: 6 };
   for (const n of [...input.needs].filter((n) => n.id !== head.id).sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9))) want(n.id, n.role);
   const extra = village ? R.extra.village : R.extra.town;
   for (let k = 0; k < extra; k++) want(`${town.id}-lot-${k + 1}`, k % 3 === 2 ? "warehouse" : "house", undefined, true);
@@ -395,8 +395,11 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         }
         if (!done && r === 1 && ringBase === 0) throw new Error(`${town.id}: no room at the head of ${c.square.name ?? "its centre"}`);
       }
-      let east = these[0] ? these[0].x1 + GAP : ax + 1;
-      let west = these[0] ? these[0].x0 - GAP : ax - 1;
+      // Behind the first ring's head nothing stands but its own grounds (the temple's close, the hall's yard): the arcs
+      // behind it start beside it, so no place hides behind another the long way round.
+      const firstHead = r > 1 ? mine[0]?.find((l) => l.want === headW) : undefined;
+      let east = these[0] ? these[0].x1 + GAP : firstHead ? firstHead.x1 + GAP : ax + 1;
+      let west = these[0] ? these[0].x0 - GAP : firstHead ? firstHead.x0 - GAP : ax - 1;
       let eastDone = false;
       let westDone = false;
       let lastEast = these[0] ? these[0].z1 : -Infinity;
@@ -756,7 +759,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         else {
           const i = I(x, z);
           // In the open ground about the green, never on a way or the green's own square tiles where the ways come in.
-          if (!(open[i] || centreTiles[i] === 1) || net.paved[i] || lotAt[i]) ok = false;
+          if (!open[i] || centreTiles[i] || net.paved[i] || lotAt[i]) ok = false;
           for (const [dx, dz] of N8) if (g.inside(x + dx, z + dz) && net.paved[I(x + dx, z + dz)]) ok = false;
           tiles.push(i);
         }

@@ -378,13 +378,17 @@ owner may extend.
     the great hall, the Grove of Gaea, the shrine at the head of the square, the green, the glade or the yard; the keep
     or the manor at the north wall. The centre is a room open to the south, toward the way in, so whoever arrives sees
     it and the town's best fronts first.
-  - **Each form is its own kind of place**, recognizable from above. Benalia's capital and cities, the Academy and the
-    Vess estate are rows: streets east to west, each row's fronts along the north side of its street, gardens behind,
-    the square a room in the rows. The others grow round their centre in arcs open to the south, an amphitheatre: an
+  - **Each form is its own kind of place**, recognizable from above. Every town grows round its centre in arcs open to
+    the south, an amphitheatre, each form its own way. **New Benalia** is a walled city of quarters: its market square
+    with the cathedral at its head in its close, the citadel in its own wall on the highest ground behind, a lesser
+    square, the Seven Houses' manors in walled gardens, streets bending in from the gates. **Capashen Hold** climbs its
+    rise in terraces to the keep. The **Academy** has no street grid and no wall: quads of different sizes with the
+    mage's tower to one side of the great one, the library and the guild heading lesser ones, lawns between. The **Vess
+    estate** is the manor in its walled grounds at the head of a village green, the village round it. An
     **elfhame** is a glade among great trees with tree-houses round its north, east and west and winding dirt paths
     between them, no wall; a **clan hold** is the great hall at the head of its yard, longhouses in a horseshoe round
     it, inside an oval palisade; a **village** is houses gathered loosely round a green with its well, lanes wandering
-    off between gardens; the **stilts** of the Morass are houses on stilts round a platform of planks, every way a
+    off between gardens; the **stilts** of the Morass are houses on stilts round platforms of planks, every way a
     boardwalk over the bog, a lantern at every junction. Their paths bend with the ground and fronts step forward and
     back.
   - **Every town is easy to cross.** Main ways run from each gate to the centre; the shops, the inn, the temple, the

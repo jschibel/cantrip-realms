@@ -9,6 +9,7 @@
 import type { StreetWay, XZ } from "../../../src/world/format";
 import { TOWN_LIMITS } from "../../../src/world/lint";
 import { pathTiles } from "../../../src/world/streets";
+import { S } from "../ids";
 import { Use } from "../land";
 import { groundsOf } from "./forms";
 import type { Ctx } from "./index";
@@ -113,7 +114,7 @@ export function passages(ctx: Ctx, placed: readonly Placed[], points: readonly {
   let shadowOK = false;
   // Yards, and (where a grown town has no wall) the open country within its ground.
   const box = ctx.plan.box;
-  const yard = (i: number) => (land.use[i] === Use.Lot || (land.use[i] === Use.Wild && ctx.F.enclosure === "none" && land.xOf(i) > box.x0 && land.zOf(i) > box.z0 && land.xOf(i) < box.x1 - 1 && land.zOf(i) < box.z1 - 1)) && land.open(i) && !land.isWater(i);
+  const yard = (i: number) => (land.use[i] === Use.Lot || (land.use[i] === Use.Wild && ctx.F.enclosure === "none" && land.xOf(i) > box.x0 && land.zOf(i) > box.z0 && land.xOf(i) < box.x1 - 1 && land.zOf(i) < box.z1 - 1)) && land.open(i) && (!land.isWater(i) || land.surface[i] === S.bog);
   const way = (i: number) => ctx.mustSee[i] === 1 && land.open(i);
   const free = (x: number, z: number) => {
     if (!land.inside(x, z)) return false;
