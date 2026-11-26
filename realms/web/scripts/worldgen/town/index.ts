@@ -341,7 +341,6 @@ function place(target: Land, land: Land, ctx: Ctx, data: BuiltTown["data"], orig
   };
   for (const [i, p] of land.decor) target.decor.set(target.idx(ox + land.xOf(i), oz + land.zOf(i)), shiftProp(p));
   for (const p of land.fixtures) target.fixtures.push(shiftProp(p));
-  if (land.levelled) target.levelled = true;
   const sxz = (p: XZ): XZ => [p[0] + ox, p[1] + oz];
   const buildings = ctx.buildings.map((b) => ({ ...b, x: b.x + ox, z: b.z + oz, ...(b.door ? { door: sxz(b.door) } : {}) }));
   const interiors = ctx.interiors.map((r) => ({ ...r, exit: sxz(r.exit) as [number, number] }));

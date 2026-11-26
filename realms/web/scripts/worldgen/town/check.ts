@@ -224,6 +224,8 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   const east = sideFilled(sq.x1, sq.x1 + 8);
   if (west < 0.25 || east < 0.25) notes.push(`the square's sides are ${Math.round(west * 100)}% and ${Math.round(east * 100)}% built`);
   for (const b of townBuildings) if (b.x < sq.x1 && b.x + b.w > sq.x0 && b.z >= sq.z1 && b.z < sq.z1 + 3) problems.push(`${b.id} closes the square's south side`);
+  const PIECES = new Set(["statue", "fountain", "well", "crystal", "giant-tree", "fire-bowl"]);
+  if (!land.fixtures.some((p) => PIECES.has(p.id) && p.x >= sq.x0 && p.x < sq.x1 && p.z >= sq.z0 && p.z < sq.z1 + 1)) problems.push(`its square has no ${town.centrepiece}`);
 
   // Walks: from the gates to the square, from the square to every key place; the inn nearest the main gate.
   const walk = (from: readonly XZ[]): Map<number, number> => {

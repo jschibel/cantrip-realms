@@ -280,8 +280,8 @@ function square(ctx: Ctx): void {
     return true;
   };
   // On the square's axis where the way through it allows, else beside the way.
-  placing: for (const dx of [0, -4, 4, -6, 6]) {
-    for (let z = Math.floor((sq.z0 + sq.z1) / 2) - 1; z < sq.z1 - 2; z++) {
+  placing: for (const dx of [0, -4, 4, -6, 6, -2, 2, -3, 3, -5, 5]) {
+    for (let z = Math.floor((sq.z0 + sq.z1) / 2) - 2; z < sq.z1 - 1; z++) {
       const p = { ...piece, x: Math.floor(cx) + dx + (piece.id === "fountain" || piece.id === "giant-tree" ? 0 : 0.5), z: z + 0.5 };
       const tiles = tilesOf(p).tiles;
       if (!tiles.every(([x, zz]) => clear(x, zz) && !doorNear(x, zz) && !artery(x))) continue;
