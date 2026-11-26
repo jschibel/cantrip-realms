@@ -1318,7 +1318,12 @@ Offline (`/offline`) the same server serves the art alone on the server's port (
 duels show the art too. In the card layer's own screens (the spell table, the inventory, the sideboard) a card's note
 (copies left, price, relic) is a band under its name across the top of the art, not a veil over the picture. A world
 client not signed in is sent to `<server>/signin`, which a server with the development sign-in alone answers with its
-form.
+form. `/lan` plays it from other machines on the network: the three servers listen on every interface instead of loopback,
+the page and the server are given this machine's network address instead of `localhost` (the one its route to the
+internet leaves from, so not a WSL, Hyper-V or VirtualBox adapter's; `/host ADDR` names another), and Windows Firewall
+gets a rule of its own, `Cantrip Realms LAN <ports>`, letting the three ports in from the local subnet on a private or
+domain network (added once, behind an administrator's prompt). Another machine opens `http://ADDR:5301/dev/signin` and
+signs in as a number of its own; the development sign-in lets anyone on the network sign in as any player.
 
 ### B6. The two layers on one page
 - **Two runtimes:** the page shows the three.js world at once and boots the Uno client (about 12 MB compressed) and the engine `.wasm` in the background, in a hidden full-screen layer.

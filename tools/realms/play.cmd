@@ -6,7 +6,7 @@ rem packages - then starts the realm server with the development sign-in on a SQ
 rem (realms\web\.play), serves the card layer, starts the overworld and opens the browser signed in. Every duel is a real
 rem game of Magic on the rules engine in the page, against the mob's deck played by the bot. Ctrl+C stops it all.
 rem
-rem   play.cmd [/offline] [/fresh] [/nobuild] [/player N] [/name NAME] [/port P] [/noopen]
+rem   play.cmd [/offline] [/fresh] [/nobuild] [/player N] [/name NAME] [/port P] [/lan] [/host ADDR] [/noopen]
 rem
 rem   /offline    no server: the in-memory API; duels and loot still in the real card layer, nothing kept
 rem   /fresh      a new store: every character made before is gone
@@ -14,6 +14,10 @@ rem   /nobuild    start what was built last, building nothing
 rem   /player N   the development sign-in's player number (1 by default): each number is its own character
 rem   /name NAME  that player's name
 rem   /port P     the overworld's port, 5300 by default; the realm server is on P+1, the card layer on P+2
+rem   /lan        playable from other machines on the network: everything listens on every interface, the page is given
+rem               this machine's network address, and a firewall rule lets the three ports in from the local subnet (an
+rem               administrator's prompt, the first time); another machine opens http://ADDR:5301/dev/signin
+rem   /host ADDR  /lan, with this address (or name) for this machine instead of the one found
 rem   /noopen     leave the browser alone
 rem
 rem Card art is served when a content folder with illustrations is found: CANTRIP_ART, else this repository's content\
@@ -34,6 +38,8 @@ if /i "%~1"=="/noopen" set PASS=!PASS! --no-open& shift & goto args
 if /i "%~1"=="/player" set PASS=!PASS! --player "%~2"& shift & shift & goto args
 if /i "%~1"=="/name" set PASS=!PASS! --name "%~2"& shift & shift & goto args
 if /i "%~1"=="/port" set PASS=!PASS! --port "%~2"& shift & shift & goto args
+if /i "%~1"=="/lan" set PASS=!PASS! --lan& shift & goto args
+if /i "%~1"=="/host" set PASS=!PASS! --host "%~2"& shift & shift & goto args
 echo Unknown option %1 & exit /b 2
 :parsed
 

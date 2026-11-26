@@ -5,13 +5,16 @@
 // (appended to): its warnings, and who connects to the presence relay and where it enters them, with the page's report of
 // any jump of the player's figure (game.ts `watchJumps`).
 //
-//   node realms/web/scripts/play.mjs [--offline] [--fresh] [--player N] [--name NAME] [--port P] [--no-open]
+//   node realms/web/scripts/play.mjs [--offline] [--fresh] [--player N] [--name NAME] [--port P] [--lan] [--host ADDR] [--no-open]
 //
 // --offline    no server: the in-memory API, the real card layer for duels and loot (nothing is kept)
 // --fresh      a new store: every character made before is gone
 // --player N   who to sign in as (the development sign-in: each number its own player; 1 by default)
 // --name NAME  that player's name as signed in
 // --port P     the overworld's port (5300 by default); the server is on P+1, the card layer on P+2
+// --lan        playable from other machines on the network: every server listens on every interface, the page is given
+//              this machine's network address, and (Windows) a firewall rule lets the three ports in from the local subnet
+// --host ADDR  --lan, with this address (or name) for this machine instead of the one found
 // --no-open    leave the browser alone
 //
 // Card art is served when a content folder with illustrations is found (CANTRIP_ART, else this repository's content/
@@ -19,8 +22,10 @@
 // (/art/{size}/{slug}.webp, made once and kept in .play/art) - never the full-size illustrations, which the page would
 // decode whole for every face: by the realm server, and offline by the same server serving art alone (`art`). Without,
 // the cards are drawn with no picture.
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { createSocket } from "node:dgram";
 import { createWriteStream, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { networkInterfaces } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cardLayerBuilt, cardLayerRoot, serveCardLayer } from "./cardLayer.mjs";
@@ -40,11 +45,52 @@ const port = Number(option("port", process.env.REALMS_PLAY_PORT ?? "5300"));
 const ports = { world: port, server: port + 1, cards: port + 2 };
 const player = Number(option("player", "1"));
 const name = option("name", "Wanderer");
+// On the network (--lan, or --host naming the address): every server listens on every interface, and the addresses the
+// page is given are this machine's on the network, so a browser on another machine reaches all three.
+const lan = flag("lan") || option("host", null) !== null;
+const host = lan ? (option("host", null) ?? (await lanAddress())) : "localhost";
 const urls = {
-  world: `http://localhost:${ports.world}/`,
-  server: `http://localhost:${ports.server}/`,
-  cards: `http://localhost:${ports.cards}/`,
+  world: `http://${host}:${ports.world}/`,
+  server: `http://${host}:${ports.server}/`,
+  cards: `http://${host}:${ports.cards}/`,
 };
+
+/**
+ * This machine's address on the network: the one the system would send from toward the internet (a UDP socket's connect
+ * sends nothing, it only picks the route), past the virtual adapters' (WSL, Hyper-V, VirtualBox); else the first private one.
+ */
+async function lanAddress() {
+  const routed = await new Promise((done) => {
+    const socket = createSocket("udp4");
+    socket.on("error", () => done(null));
+    socket.connect(53, "1.1.1.1", () => {
+      const { address } = socket.address();
+      socket.close();
+      done(address);
+    });
+  });
+  if (routed && routed !== "0.0.0.0") return routed;
+  const all = Object.values(networkInterfaces()).flat().filter((a) => a && a.family === "IPv4" && !a.internal);
+  const found = all.find((a) => /^(192\.168|10)\./.test(a.address)) ?? all[0];
+  if (!found) throw new Error("No network address found: name one with --host.");
+  return found.address;
+}
+
+/**
+ * Windows Firewall lets the three ports in from the local network: a rule of their own, added once (an administrator's
+ * prompt) and found after. Declined, the command is shown to run by hand.
+ */
+function openFirewall() {
+  if (process.platform !== "win32") return;
+  const rule = `Cantrip Realms LAN ${ports.world}-${ports.cards}`;
+  if (spawnSync("netsh", ["advfirewall", "firewall", "show", "rule", `name=${rule}`], { stdio: "ignore" }).status === 0) return;
+  const add = `advfirewall firewall add rule name="${rule}" dir=in action=allow protocol=TCP localport=${ports.world}-${ports.cards} remoteip=localsubnet profile=private,domain`;
+  console.log(`  Letting ports ${ports.world}-${ports.cards} in from the local network (Windows Firewall asks for an administrator).`);
+  spawnSync("powershell", ["-NoProfile", "-Command", `Start-Process netsh -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '${add.replaceAll("'", "''")}'`], { stdio: "ignore" });
+  if (spawnSync("netsh", ["advfirewall", "firewall", "show", "rule", `name=${rule}`], { stdio: "ignore" }).status !== 0) {
+    console.warn(`  The firewall rule was not added: another machine cannot connect until it is. In an administrator's prompt:\n    netsh ${add}`);
+  }
+}
 
 const children = [];
 let stopping = false;
@@ -123,6 +169,9 @@ if (!cardLayerBuilt()) {
 
 const art = artFolder();
 const env = { ...process.env };
+// Where the realm server listens: loopback alone, or every interface on the network.
+const serverListens = `http://${lan ? "0.0.0.0" : "localhost"}:${ports.server}`;
+if (lan) openFirewall();
 
 const data = join(web, ".play");
 const serverDll = join(repo, "realms", "dotnet", "Cantrip.Realms.Server", "bin", "Debug", "net10.0", "cantrip-realms-server.dll");
@@ -138,14 +187,14 @@ if (!offline || art) {
 
 if (offline && art) {
   // No realm server offline, but the card layer's art is still the sized renditions: the server serving art alone.
-  run("art", "dotnet", [serverDll, "art", "--urls", urls.server], {
+  run("art", "dotnet", [serverDll, "art", "--urls", serverListens], {
     cwd: dirname(serverDll),
     env: { ...env, Logging__LogLevel__Default: "Warning", "Logging__LogLevel__Microsoft.Hosting.Lifetime": "Information", REALMS_ROOT: repo, ...artEnv },
   });
 }
 
 if (!offline) {
-  run("server", "dotnet", [serverDll, "--urls", urls.server], {
+  run("server", "dotnet", [serverDll, "--urls", serverListens], {
     cwd: dirname(serverDll),
     env: {
       ...env,
@@ -168,7 +217,7 @@ if (!offline) {
 
 await serveCardLayer(ports.cards, { quiet: true });
 
-run("world", process.execPath, [join(web, "node_modules", "vite", "bin", "vite.js"), "--port", String(ports.world), "--strictPort"], {
+run("world", process.execPath, [join(web, "node_modules", "vite", "bin", "vite.js"), "--port", String(ports.world), "--strictPort", ...(lan ? ["--host", "0.0.0.0"] : [])], {
   cwd: web,
   env: {
     ...env,
@@ -191,6 +240,10 @@ console.log("");
 console.log(`  Cantrip Realms is up${offline ? " (offline: nothing is kept)" : ""}.`);
 console.log(`  The world:      ${urls.world}`);
 if (!offline) console.log(`  The server:     ${urls.server} (signed in as player ${player}; another number is another player: ${urls.server}dev/signin)`);
+if (lan) {
+  console.log(`  On the network: another machine opens ${offline ? `${urls.world}?offline` : `${urls.server}dev/signin`}${offline ? "" : " and signs in as another number"}`);
+  if (!offline) console.log("                  (the development sign-in: anyone on this network can sign in as any player)");
+}
 console.log(`  The card layer: ${urls.cards}`);
 console.log(`  Card art:       ${art ? `${art}, sized, at ${urls.server}art/{size}/{slug}.webp` : "none found (set CANTRIP_ART to a content folder with <dataset>/images)"}`);
 console.log(`  Opening ${start}  -  Ctrl+C stops it all.`);
