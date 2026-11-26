@@ -1079,13 +1079,21 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   mere or a great range's band - then smoothed by string pulling (straight between two of its points wherever the line
   costs no more) and drawn four-connected. Main roads two tiles wide (`road`), the rest one (`dirt`; `planks` over mud,
   `scree` in the rocks). A **signpost** stands beside each fork, its text the places its roads lead to.
+- **Sightlines** (`sightlines.ts`): the camera looks north 45 degrees down, turning 45 degrees either side, so a thing
+  h tiles high hides about h tiles of ground behind it to the north, north-west or north-east. South of every tile that
+  must be seen - roads, the places' grounds (icons and their ways, entrances, their spell tables and waystones,
+  landmarks, the rings round them), docks, signposts, the passes - `clearance` holds how high anything may stand: its
+  distance along those three lines, less what its ground stands above the seen tile's. Peaks step down toward such
+  places (lower, then smaller, then none: the band's bare rock), groves keep a tile and a half clear (1.75 high) and
+  Llanowar's giants (2.5) further. worldgen.test.ts checks it by the art's heights: no peak hides a road, an entrance or
+  a town's icon at the front heading.
 - **Places** (`places.ts`): each town's `town-icon` (size by its kind, style by its style - a Benalish village's
   `village` - walled by its form) over its blocked footprint at its site, the ring round it open and level; its ways on
   each side a road arrives (never a side the sea lies on), their `outside` the open tile beside the footprint, `to` where
   the road leads (over a ferry, the town beyond it); each dungeon's entrance prop by theme over its footprint
-  (`ENTRANCE_ON_MAP`, wilds.ts: the art's `TRAVEL_ENTRANCES`, 3 by 2 tiles, the castle's 5 by 2), facing where its road
-  comes from but never north, the entrance tile before its front, the spell table and a tower's waystone two tiles
-  either side, in the 5-by-5 square the sketch keeps; the `landmark`s (the lighthouse's light in its chunk's `lights`);
+  (`ENTRANCE_ON_MAP`, wilds.ts: the art's `TRAVEL_ENTRANCES`, 3 by 2 tiles, the castle's 5 by 2), facing south toward the
+  camera (turned east or west a gate is seen edge on, a pillar), the entrance tile before its front, the spell table
+  and a tower's waystone two tiles either side, in the 5-by-5 square the sketch keeps; the `landmark`s (the lighthouse's light in its chunk's `lights`);
   the ferries (a dock on each shore nearest the sketch's place, the lane straight over the sea where it can be, the
   ferryman beside each dock). Each town's `TownSetting` for its grounds comes from the land round its icon: the biome
   there, the sea within 12 tiles on the sides the sketch names (checked: a side the land does not bear out is a note),

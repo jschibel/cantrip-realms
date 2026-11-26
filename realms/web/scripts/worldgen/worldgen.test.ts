@@ -309,6 +309,36 @@ describe("Dominaria as one run makes it", () => {
     expect(lone, "ramps that climb nowhere").toBeLessThan(ramps * 0.05);
   });
 
+  it("lets no peak hide a road, an entrance or a town's icon from the camera at the front heading", () => {
+    // The camera looks north 45 degrees down: a summit h above a tile's ground hides h tiles of ground north of it. A peak
+    // w square stands its height at its middle, falling to nothing at its square's edge; its foot is sunk half a tile.
+    const seen = new Set<number>();
+    for (const r of world.roads) for (const [x, z] of r.tiles) seen.add(land.idx(x, z));
+    for (const c of chunks) for (const e of c.entrances) seen.add(land.idx(e.x, e.z));
+    for (const t of world.towns) {
+      const r = siteRect(t)!;
+      for (let z = r[1]; z < r[3]; z++) for (let x = r[0]; x < r[2]; x++) seen.add(land.idx(x, z));
+      for (const w of t.ways!) seen.add(land.idx(w.outside[0], w.outside[1]));
+    }
+    const hidden: string[] = [];
+    for (const p of chunks.flatMap((c) => c.props).filter((q) => q.id === "peak")) {
+      const w = p.args!.w as number;
+      const h = (p.args!.h as number) - 0.5;
+      const half = (w - 1) / 2;
+      const cx = Math.floor(p.x);
+      const cz = Math.floor(p.z);
+      for (let dx = -half; dx <= half; dx++) {
+        const t = land.idx(cx + dx, cz);
+        const high = h * (1 - Math.abs(dx) / (half + 0.5)) + land.height[t]! / 16;
+        for (let d = 1; d <= 16; d++) {
+          const s = land.idx(cx + dx, cz - d);
+          if (seen.has(s) && high - land.height[s]! / 16 > d - 0.5 + 0.05) hidden.push(`peak at ${cx},${cz} (w ${w}, h ${p.args!.h}) hides ${cx + dx},${cz - d}`);
+        }
+      }
+    }
+    expect(hidden.slice(0, 10)).toEqual([]);
+  });
+
   it("spawns sparsely: about one a 3,500 tiles of land, none by a town's icon, none by a main road in tier 1 country", () => {
     const spawns = chunks.flatMap((c) => c.spawns);
     const expected = result.stats.landTiles! / LAND_PER_SPAWN;

@@ -19,6 +19,7 @@ import { type Icon, SIDE_LIST, layFerries, placeIcons, placeLandmarks, settingOf
 import { packPockets } from "./pockets";
 import { Roads } from "./roads";
 import { buildInterior } from "./rooms";
+import { clearance } from "./sightlines";
 import { shapeTravel } from "./terrain";
 // The town generator (town/index.ts, the contract's interface): each town's grounds at walking scale.
 import { type BuiltTown, type TownSetting, buildTown, groundsSize } from "./town";
@@ -80,13 +81,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   };
   const sites = new Map<string, Site>();
   for (const plan of layout.dungeons) {
-    const at = geo.dungeons[plan.id]!.at;
-    // Facing the place its road comes from, or the nearest town.
-    const road = geo.roads.find((r) => r.from === plan.id || r.to === plan.id);
-    const toward = road
-      ? placeOf(road.from === plan.id ? road.to : road.from)
-      : Object.values(geo.towns).map((t) => t.at).sort((p, q) => Math.hypot(p[0] - at[0], p[1] - at[1]) - Math.hypot(q[0] - at[0], q[1] - at[1]))[0]!;
-    sites.set(plan.id, placeDungeon(land, plan, at, toward, outdoor, props));
+    sites.set(plan.id, placeDungeon(land, plan, geo.dungeons[plan.id]!.at, outdoor, props));
   }
   const { ferries, docks } = layFerries(land, terrain, geo, outdoor, props);
   log("places");
@@ -174,8 +169,6 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     return true;
   };
   const farms = farmland(land, terrain, geo, seed, layout.towns.map((t) => ({ id: t.id, at: geo.towns[t.id]!.at, kind: t.kind })));
-  const peaks = placePeaks(land, terrain, geo, seed, free);
-  const wood = scatter(land, terrain, geo, seed, free);
   const names = new Map<string, string>([...layout.towns.map((t) => [t.id, t.name] as const), ...layout.dungeons.map((d) => [d.id, d.name] as const), ...geo.ferries.flatMap((f) => [[`ferry:${f.id}:from`, f.name], [`ferry:${f.id}:to`, f.name]] as const)]);
   let signposts = 0;
   for (const j of roads.junctions()) {
@@ -189,6 +182,19 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     props.push({ id: "signpost", x: (spot % LW) + 0.5, z: Math.floor(spot / LW) + 0.5, args: { text: to.join(" / ") } });
     signposts++;
   }
+  // What must be seen from the camera: the roads, the places' ground (icons and their ways, entrances, their spell tables
+  // and waystones, landmarks, the rings round them), the docks, the signposts, and each pass (sightlines.ts).
+  const seen: number[] = [];
+  for (let z = 0; z < travel[3]; z++) for (let x = 0; x < travel[2]; x++) {
+    const i = z * LW + x;
+    const u = land.use[i]!;
+    if (terrain.mass[i]! < 0) continue;
+    if (u === Use.Road || u === Use.Door || u === Use.Dock || u === Use.Kept || u === Use.Building) seen.push(i);
+  }
+  for (const p of geo.passes) for (const i of land.disc(p.at[0], p.at[1], 3)) seen.push(i);
+  let clear = new Float32Array(0);
+  const peaks = placePeaks(land, terrain, geo, seed, free, () => (clear = clearance(land, seen, mine)));
+  const wood = scatter(land, terrain, geo, seed, free, clear);
   log(`wilds: ${peaks.length} peaks, ${wood.groves} groves, ${wood.things} small things, ${farms} tiles of fields, ${signposts} signposts`);
 
   // --- Tiers and what lives there --------------------------------------------------------------------------------------------

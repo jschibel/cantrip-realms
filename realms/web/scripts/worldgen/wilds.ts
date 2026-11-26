@@ -18,6 +18,7 @@ import { GEO_BIOMES } from "./geography";
 import { S } from "./ids";
 import { LEVEL, type Land, Use, between, hopPieces, hopSteps, randomFor, shuffle, texel } from "./land";
 import type { DungeonLayout } from "./layout";
+import { peakRoom } from "./sightlines";
 import type { Terrain } from "./terrain";
 
 // --- Dungeons ------------------------------------------------------------------------------------------------------------
@@ -50,14 +51,14 @@ function footprintBefore(door: XZ, rot: number, wide: number, deep: number): { x
 
 /**
  * Stands a dungeon's way in on its site, within the 5-by-5 square of level ground the sketch keeps there: its entrance
- * prop over its blocked footprint, facing `toward` (where its road comes from) but never north, away from the camera;
+ * prop over its blocked footprint, facing south toward the camera (a gate turned east or west is seen edge on);
  * the entrance tile before it; the spell table two tiles to one side along its front, and a mage tower's waystone two
  * to the other; the square round it kept clear.
  */
-export function placeDungeon(land: Land, plan: DungeonLayout, at: XZ, toward: XZ, npcs: NpcData[], props: PropData[]): Site {
-  const dx = toward[0] - at[0];
-  const dz = toward[1] - at[1];
-  const rot = Math.abs(dx) > Math.abs(dz) * 1.5 ? (dx >= 0 ? 3 : 1) : 0;
+export function placeDungeon(land: Land, plan: DungeonLayout, at: XZ, npcs: NpcData[], props: PropData[]): Site {
+  // Facing south, toward the camera: turned east or west, a gate's front is seen edge on and reads as a pillar. (Its
+  // road comes to the entrance tile before it from wherever it comes.)
+  const rot = 0;
   const door: XZ = rot === 0 ? [at[0], at[1] + 1] : rot === 1 ? [at[0] - 1, at[1]] : [at[0] + 1, at[1]];
   const level = land.height[land.idx(at[0], at[1])]!;
   for (const i of land.rect(at[0] - 3, at[1] - 3, at[0] + 3, at[1] + 3)) {
@@ -98,14 +99,52 @@ export function placeDungeon(land: Land, plan: DungeonLayout, at: XZ, toward: XZ
  * its range's height; its kind the range's. A single-tile peak only now and then on a range's rim. What no peak covers
  * is closed ground that reads as mountain: two levels at least above any walked tile beside it (a cliff: never come up
  * against, so nothing need be drawn on it), scree at the rim, a boulder here and there. The hills (ranges of height 1)
- * get a scatter of low single peaks along their crests, each alone (walked round). Returns the peaks.
+ * get a scatter of low single peaks along their crests, each alone (walked round). Every peak keeps to the sightlines
+ * (`sight`, sightlines.ts: made once the band's ground is raised): near what must be seen to its north it steps down -
+ * lower, then smaller, then none, the band's bare rock left there - so a road along a range's north side, a pass seen
+ * from the south and an entrance at a range's foot stay in view at every heading. Returns the peaks.
  */
-export function placePeaks(land: Land, terrain: Terrain, geo: Geography, seed: number, free: (i: number) => boolean): PropData[] {
+export function placePeaks(land: Land, terrain: Terrain, geo: Geography, seed: number, free: (i: number) => boolean, sight: () => Float32Array): PropData[] {
   const random = randomFor(seed, "peaks");
   const out: PropData[] = [];
   const W = land.width;
   const bandTiles: number[] = [];
   for (let z = 0; z < terrain.H; z++) for (let x = 0; x < terrain.W; x++) if (terrain.band[z * W + x]) bandTiles.push(z * W + x);
+  // The band's ground: its rim two levels above the walked ground beside it (a cliff, never come up against), rising
+  // inward from there a level a tile at the most - no wall of rock higher than it need be at the band's edge, and no
+  // hollow behind it.
+  const near: number[] = [];
+  const foot = new Float32Array(land.size).fill(-Infinity);
+  const queue: number[] = [];
+  const settled = new Uint8Array(land.size);
+  for (const i of bandTiles) {
+    for (const n of land.n4(i, near)) if (land.open(n)) foot[i] = Math.max(foot[i]!, land.height[n]!);
+    if (foot[i]! === -Infinity) continue;
+    land.height[i] = foot[i]! + 2 * LEVEL;
+    settled[i] = 1;
+    queue.push(i);
+  }
+  for (let head = 0; head < queue.length; head++) {
+    const i = queue[head]!;
+    for (const n of land.n4(i, near)) {
+      if (!terrain.band[n] || settled[n]) continue;
+      land.height[n] = Math.max(land.height[i]! - LEVEL, Math.min(land.height[n]!, land.height[i]! + LEVEL));
+      settled[n] = 1;
+      queue.push(n);
+    }
+  }
+  // How tall anything may stand where, so nothing hides what must be seen (sightlines.ts), on the ground as it now is.
+  const clear = sight();
+  // The band's own ground where even it would hide what must be seen (its rim just south of a road or an entrance): let
+  // down to a level over its foot, a boulder on it to close it (come up against, it must be drawn), the band behind it
+  // let down to match.
+  for (const i of queue) {
+    if (clear[i]! >= 0) continue;
+    const floor = foot[i]! > -Infinity ? foot[i]! + LEVEL : -Infinity;
+    const want = land.height[i]! + Math.floor(clear[i]! * 16 / LEVEL) * LEVEL;
+    land.height[i] = Math.max(floor, want);
+    if (foot[i]! > -Infinity && land.height[i]! <= foot[i]! + LEVEL) land.decor.set(i, { id: "boulder", x: texel((i % W) + 0.5), z: texel(Math.floor(i / W) + 0.5), seed: between(random, 0, 15), scale: 0.8 });
+  }
   const jitter = new Float32Array(land.size);
   for (const i of bandTiles) jitter[i] = random();
   bandTiles.sort((a, b) => terrain.crest[b]! + jitter[b]! * 0.35 - (terrain.crest[a]! + jitter[a]! * 0.35) || a - b);
@@ -126,15 +165,22 @@ export function placePeaks(land: Land, terrain: Terrain, geo: Geography, seed: n
     }
     return x >= 3 && z >= 3;
   };
-  const peak = (i: number, w: number) => {
+  /** The least height a peak of each width is drawn at: lower than that, a smaller peak or none. */
+  const LEAST: Record<number, number> = { 5: 3.2, 3: 2.0, 1: 1.0 };
+  /** Stands a peak if the sightlines let it stand tall enough: its height stepped down to what they allow. */
+  const peak = (i: number, w: number): boolean => {
     const m = geo.mountains[terrain.band[i]! - 1]!;
     const tall = m.height === 3 ? 1.15 : 0.95;
-    // Tallest on the crest line, lower toward the feet.
-    const h = Math.min(12, Math.round((0.9 * w + 1) * tall * (0.62 + 0.55 * terrain.crest[i]! + 0.15 * random()) * 10) / 10);
+    // Tallest on the crest line, lower toward the feet; never taller than the sightlines allow (its foot is sunk half a
+    // tile into its ground).
+    const want = Math.min(12, (0.9 * w + 1) * tall * (0.62 + 0.55 * terrain.crest[i]! + 0.15 * random()));
+    const h = Math.floor(Math.min(want, peakRoom(land, clear, i, w) + 0.5) * 10) / 10;
+    if (h < LEAST[w]!) return false;
     out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w, h, kind: m.kind } });
     centre[i] = w;
     const half = (w - 1) / 2;
     for (let dz = -half; dz <= half; dz++) for (let dx = -half; dx <= half; dx++) covered[i + dz * W + dx] = 1;
+    return true;
   };
   // The big peaks first, from the crest out (a staggered blue noise along it), then the middling ones between them.
   for (const w of [5, 3]) {
@@ -149,29 +195,21 @@ export function placePeaks(land: Land, terrain: Terrain, geo: Geography, seed: n
   }
   // An outlier now and then on a range's rim, alone.
   for (const i of bandTiles) if (!covered[i] && terrain.crest[i]! < 0.35 && random() < 0.03 && roomFor(i, 1)) peak(i, 1);
-  // What no peak covers is closed by ground that reads as mountain: two levels at least above any walked ground beside
-  // it (a cliff, never come up against), bare rock and scree, a boulder here and there.
-  const near: number[] = [];
+  // What no peak covers is ground that reads as mountain: bare rock and scree, a boulder here and there.
   for (const i of bandTiles) {
-    let foot = -Infinity;
-    for (const n of land.n4(i, near)) if (land.open(n)) foot = Math.max(foot, land.height[n]!);
-    if (foot > -Infinity) land.height[i] = Math.max(land.height[i]!, foot + 2 * LEVEL);
     if (covered[i]) continue;
     const kind = geo.mountains[terrain.band[i]! - 1]!.kind;
-    if (foot > -Infinity && (kind === "rock" || kind === "redrock" || kind === "sandstone")) land.surface[i] = S.scree;
-    if (random() < 0.07) land.decor.set(i, { id: "boulder", x: texel((i % W) + 0.5), z: texel(Math.floor(i / W) + 0.5), seed: between(random, 0, 15), scale: 0.8 });
+    if (foot[i]! > -Infinity && (kind === "rock" || kind === "redrock" || kind === "sandstone")) land.surface[i] = S.scree;
+    if (random() < 0.07 && clear[i]! >= 0.8) land.decor.set(i, { id: "boulder", x: texel((i % W) + 0.5), z: texel(Math.floor(i / W) + 0.5), seed: between(random, 0, 15), scale: 0.8 });
   }
-  // No hollow behind a raised rim: the band's ground a level below its highest neighbour's at the most.
-  for (let pass = 0; pass < 4; pass++) {
-    for (const i of bandTiles) for (const n of land.n4(i, near)) if (terrain.band[n] && land.height[n]! - LEVEL > land.height[i]!) land.height[i] = land.height[n]! - LEVEL;
-  }
-  // The hills: a low peak here and there along their crests, alone.
+  // The hills: a low peak here and there along their crests, alone, where it hides nothing.
   const taken = new Uint8Array(land.size);
   const order = shuffle(Array.from({ length: land.size }, (_, i) => i).filter((i) => terrain.hill[i]), random);
-  for (const i of poissonTiles(W, land.depth, order, () => 4.5, (i) => (free(i) ? 0.45 : 0), taken, random)) {
+  for (const i of poissonTiles(W, land.depth, order, () => 4.5, (i) => (free(i) && clear[i]! + 0.5 >= 1.3 ? 0.45 : 0), taken, random)) {
     const m = geo.mountains[terrain.hill[i]! - 1]!;
     land.block(i);
-    out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w: 1, h: Math.round((1.3 + random() * 0.8) * 10) / 10, kind: m.kind } });
+    const h = Math.floor(Math.min(1.3 + random() * 0.8, clear[i]! + 0.5) * 10) / 10;
+    out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w: 1, h, kind: m.kind } });
   }
   return out;
 }
@@ -231,6 +269,10 @@ const SCATTER: Readonly<Record<GeoBiome, { readonly trees: number; readonly thin
   jungle: { trees: 0.05, things: ["giant-fern", "fern", "bush"], share: 0.03 },
 };
 
+/** How high a grove stands, tiles (the art's: about 1.3 to 1.75), and one of Llanowar's giants (elfwood, 2.4). */
+export const GROVE_HEIGHT = 1.75;
+export const ELFWOOD_HEIGHT = 2.5;
+
 /** The scale small things stand at on the travel map: miniatures beside its peaks and groves. */
 const SMALL = 0.6;
 
@@ -240,7 +282,7 @@ const SMALL = 0.6;
  * then rocks, bushes, reeds and the like, a sparser blue noise. `free` says where a thing that blocks may stand (a
  * tile alone: open wild land with nothing blocked or walked-on round it). Returns how many groves and things it placed.
  */
-export function scatter(land: Land, terrain: Terrain, geo: Geography, seed: number, free: (i: number) => boolean): { groves: number; things: number } {
+export function scatter(land: Land, terrain: Terrain, geo: Geography, seed: number, free: (i: number) => boolean, clear: Float32Array): { groves: number; things: number } {
   const random = randomFor(seed, "scatter");
   const W = land.width;
   const copse = fractal(`${seed}:copses`, 22, 3);
@@ -259,7 +301,8 @@ export function scatter(land: Land, terrain: Terrain, geo: Geography, seed: numb
     return copse(i % W, Math.floor(i / W)) > 0.32 ? 1.6 : 3.5;
   };
   const chance = (i: number) => {
-    if (!free(i)) return 0;
+    // A grove stands about a tile and a half high: none where that would hide what must be seen (sightlines.ts).
+    if (!free(i) || clear[i]! < GROVE_HEIGHT) return 0;
     const d = deep(i);
     if (d > 0) return Math.min(0.9, 0.35 + d * 0.09);
     if (terrain.swamp[i]! > 0) return Math.min(0.5, 0.12 + terrain.swamp[i]! * 0.04);
@@ -274,7 +317,9 @@ export function scatter(land: Land, terrain: Terrain, geo: Geography, seed: numb
     const own = REGION_GROVES[region.id];
     let kinds = own && (b === "forest" || b === "jungle" || b === "swamp" || b === "tundra" || region.id === "waste" || region.id === "smoke-mountains") ? own : BIOME_GROVES[b];
     if (kinds.includes("palm") && terrain.inland[i]! > 10) kinds = kinds.filter((k) => k !== "palm").length > 0 ? kinds.filter((k) => k !== "palm") : kinds;
-    const kind = kinds[Math.floor(random() * kinds.length)]!;
+    const picked = kinds[Math.floor(random() * kinds.length)]!;
+    // Llanowar's giants stand taller: kept back from what must be seen, a broadleaf in their stead.
+    const kind = picked === "elfwood" && clear[i]! < ELFWOOD_HEIGHT ? "broadleaf" : picked;
     const x = i % W;
     const z = Math.floor(i / W);
     land.put(i, { id: "grove", x: texel(x + 0.5 + (random() - 0.5) * 0.2), z: texel(z + 0.5 + (random() - 0.5) * 0.2), seed: between(random, 0, 63), args: { kind } });
