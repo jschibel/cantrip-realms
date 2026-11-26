@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import type { PropData, XZ } from "../../world/format";
 import { type Built, Registry } from "../recipe";
 import { MeshBuilder } from "../paint/builder";
@@ -51,6 +52,24 @@ export function needs(spec: Readonly<Record<string, "number" | "boolean" | "stri
       if (!ok) out.push(`prop ${p.id} at ${p.x},${p.z}: args.${key} should be a ${kind}`);
     }
     return out;
+  };
+}
+
+/**
+ * A drawing in world units at the prop's own size made to honour its `scale` too, about its anchor (x, z) - as the
+ * catalogue's `tilesOf` scales a centred footprint, so what it draws and the ground it closes stay one size.
+ */
+export function scaledAbout<T>(draw: (b: MeshBuilder, p: PropData, palette: Palette) => T): (b: MeshBuilder, p: PropData, palette: Palette) => T {
+  return (b, p, palette) => {
+    const s = p.scale ?? 1;
+    if (s === 1) return draw(b, p, palette);
+    const saved = b.matrix;
+    b.matrix = saved.clone().multiply(new THREE.Matrix4().makeTranslation(p.x, 0, p.z).multiply(new THREE.Matrix4().makeScale(s, s, s)).multiply(new THREE.Matrix4().makeTranslation(-p.x, 0, -p.z)));
+    try {
+      return draw(b, p, palette);
+    } finally {
+      b.matrix = saved;
+    }
   };
 }
 

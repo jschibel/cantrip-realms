@@ -605,6 +605,9 @@ from the registries; `src/art/library.test.ts` builds every id from its own exam
 | coast | `sand` (4), `wet-sand` (3.8), `shingle` (3.8), `sea` (-1; hole), `shallows` (-1; hole), `ford` (4.6) |
 | fire | `ash` (6.5), `basalt` (3.6), `lava` (-1; hole) |
 | waste | `waste` (4.1), `cracked-earth` (4.1), `salt-flat` (3.4) |
+| desert | `dunes` (4.3), `badlands` (3.9) |
+| upland | `highland` (5.35; tufts 2) |
+| jungle | `jungle-floor` (4.9) |
 | phyrexian | `phyrexian-ground` (7), `plating` (0), `oil` (-1; hole) |
 | roads | `dirt` (3), `road` (3.08), `cart-track` (3.05), `cobbles` (1), `setts` (1.05), `flagstones` (0), `marble-paving` (0), `mud-track` (3), `boardwalk` (1), `boardwalk-ns` (1), `planks` (1) |
 | waters | `stream` (-1; hole), `river` (-1; hole), `lake` (-1; hole), `sea` (-1; hole), `shallows` (-1; hole), `bog` (-1; hole), `lava` (-1; hole), `oil` (-1; hole), `ford` (4.6) |
@@ -682,6 +685,10 @@ Footprint: `WxD` tiles about the anchor (unturned; `rect` offsets where not cent
 | plant | `bush` | 0.8x0.8 **B** | plains, town, forest |  |  |
 | plant | `mushroom` | 1x1 **B** | morass, forest, llanowar |  |  |
 | plant | `flower-bed` | 1x1 | town, plains |  |  |
+| miniature | `peak` | args.w square (1, 3, 5) **B** | mountain, keld, tundra, waste, volcanic |  |  |
+| miniature | `grove` | 1x1 **B** | forest, llanowar, swamp, morass, tundra, keld, coast, verdura, waste, plains |  | 90-130 / 28-78 |
+| miniature | `town-icon` | args.size square (3, 5, 7) **B** | any |  |  |
+| miniature | `landmark` | 3x3 **B** | any | lighthouse: LANDMARK_LIGHTS |  |
 | rock | `rock` | 1x1 **B** | any |  |  |
 | rock | `rock-pile` | 1x1 | any |  |  |
 | rock | `mossy-rock` | 1.2x1.2 **B** | forest, llanowar, swamp, verdura |  |  |
@@ -698,7 +705,7 @@ Footprint: `WxD` tiles about the anchor (unturned; `rect` offsets where not cent
 | ruin | `statue` | 1.2x1.2 **B** | town, plains, waste |  |  |
 | ruin | `gravestone` | 0.8x0.4 **B** | town, swamp, morass |  |  |
 | ruin | `ruined-tower` | 5x5 **B** | plains, waste |  |  |
-| sign | `signpost` | 0.3x0.3 **B** | road, any |  |  |
+| sign | `signpost` (args.text: a name board) | 0.3x0.3 **B** | road, any |  |  |
 | sign | `waymarker` | 0.8x0.8 **B** | any |  |  |
 | sign | `tier-banner` | 0.3x0.3 **B** | road, any |  |  |
 | sign | `banner-pole` | 0.3x0.3 **B** | town, road, any |  |  |
@@ -740,6 +747,48 @@ Footprint: `WxD` tiles about the anchor (unturned; `rect` offsets where not cent
 | water | `bridge` | area | any |  |  |
 | water | `ferry-post` | 0.6x0.6 **B** | coast, swamp |  |  |
 | water | `pier` | area | coast, swamp, town |  |  |
+
+###### The travel map's miniatures (`art/props/travel.ts`, `travelTowns.ts`, `travelLandmarks.ts`)
+
+The land outside the towns is a map of the Domains at travel scale, walked by the figure at its usual size (1.6 tiles
+tall): its mountains, woods, towns and wonders are miniatures, each over a square of tiles all blocked, `x, z` the
+square's middle, drawn in the game's look and seen right at the three headings and three zoom steps (the gallery's
+`travel-*` boards). `scale` scales any of them, its square with it (the catalogue's `scaleOf`).
+
+- **`peak`**: `args.w` 1, 3 or 5 tiles across; `args.h` its height (0.9 w + 1: 1.9, 3.7, 5.5); `args.kind` `rock`,
+  `snow` (snow above one line, 2.3 up or 0.6 of a lower peak, so a range's line is level), `ice` (blue-grey stone,
+  glaciers above 1.5, snow on top), `ash` (dark cinder, a glowing crater from w 3), `sandstone` and `redrock` (banded, in
+  rings at their band lines); `seed` its shape: single, twin summits, a shoulder, a spur along its ridge, jagged, or (the
+  banded stones) a mesa. A broad foot sunk half a tile (it meets lower ground), slopes steepening to the summit, a ridge
+  along a seeded direction: overlapped at their squares' edges, peaks read as one range. 77-270 triangles (the banded
+  stones 130-570). Tall: an occluder, its square its footprint.
+- **`grove`**: one tile; `args.kind` `broadleaf`, `pine`, `snowpine`, `swamp` (drooping olive crowns, moss, dark
+  water), `dead` (bleached snags), `palm`, `jungle`, `elfwood` (one of Llanowar's giants, 2.3-2.5 high, platforms round
+  its trunk, a lesser tree beside it: an occluder); `seed` its three to five trees, whose crowns reach past the tile so
+  groves side by side are one canopy. 1.3-1.75 high; 90-130 triangles, a far stand-in of 28-78. On a closed tile it is
+  never left out at the far zoom (`sortScenery`'s `solid`). Its palette's `leaves` recolors the crowns.
+- **`town-icon`**: `args.size` `capital` (7x7), `town` (5x5), `village` (3x3); `args.style` `benalish` (a white keep,
+  red-roofed turrets, blue banners; a village, a chapel), `tolarian` (the Academy's copper dome on a marble drum, a
+  slender tower), `urborg` (a village: stilt houses over dark water on boardwalks; larger, the Vess manor), `argive` (the
+  Vess manor: black stone, slate, spires, dead trees on a dark lawn), `keldon` (turf-roofed longhouses, a great hall with
+  horned gables and a fire, a palisade), `llanowar` (giant trees with platforms, leaf-roofed huts, a living hedge),
+  `village` (thatch, a well, a windmill); `args.walled` a wall round it, a gatehouse in the middle of each side; its
+  streets cross at its middle and run out on all four sides, walled or not; `seed` its houses. 1.1-3.2 high, 76-1450
+  triangles.
+- **`landmark`**: 3x3; `args.kind` `cathedral` (the Cathedral of Serra: white stone, gold roofs, twin spired towers, a
+  rose window, 3.3 high), `great-oak` (the Oak of the Oath, its crown over the whole square, a ring of stones),
+  `floating-towers` (three islands of rock hanging 0.85-1.75 up, towers on them, their shadows on the ground below),
+  `ruin`, `obelisk` (runes glowing), `arena` (tiers round a floor of sand, gates north and south), `lighthouse` (its
+  lantern lit; its light is `LANDMARK_LIGHTS.lighthouse`, added to the chunk's lights as a lit prop's catalogue `light`
+  is); turned by `rot`, its front south. 48-940 triangles.
+- **`signpost`**: the road sign, one tile; `args.text` a name board under its arrows.
+- **Dungeon entrances** keep their ids and draw to the footprint `args.w` by `args.d` they are given (at least half their
+  full size; they do not read `scale`). On the travel map: `TRAVEL_ENTRANCES` (art/props/wilds.ts), 3x2 each (`castle-gate`
+  5x2), odd widths so the door stays on a tile's middle: a cave mouth 1.7 high, a keep 3.4, a mage tower 4, a crypt 2.3, a
+  root hollow 1.4, a foundry 3.2, the Portal 3.
+- The existing props the travel map reuses stand at the figure's scale as they are: `stepping-stone`, `boulder`
+  (`args.r`), `bush` (`args.r`), `ferry-post`, `ferry` and `waymarker` also honour `scale` about their anchor (the
+  registry's `scaledAbout`), as `tilesOf` scales their footprints; `bridge` is an area, its args' rectangle at any scale.
 
 ###### Building styles
 

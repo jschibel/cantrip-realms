@@ -1110,3 +1110,144 @@ export function shallowsBed(seed = 143): Pixmap {
   }
   return p;
 }
+
+// --- The travel map's open country: desert, badlands, uplands, jungle ----------------------------------------------------
+
+/**
+ * Dunes: desert sand in long swells, each lit on its windward slope and shaded in its lee, ripples curving across them
+ * and wind-blown streaks; no shells, no pebbles (that is the beach's sand).
+ */
+export function dunes(r: Ramp = R.DUNE, seed = 144): Pixmap {
+  const p = new Pixmap(SIZE, SIZE);
+  // The swells: a long wave across x (whole periods across the picture, so it tiles), bent by noise.
+  const swell = (x: number, y: number) => {
+    const bend = (valueNoise(x, y, 32, SIZE, seed) - 0.5) * 14 + Math.sin((2 * Math.PI * x) / SIZE) * 5;
+    return (((y + bend) / 32) % 1 + 1) % 1;
+  };
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const s = swell(x, y);
+      // Windward (rising toward the crest) lit, the lee beyond the crest in shade.
+      let c = s < 0.5 ? r[4]! : s < 0.62 ? r[5]! : s < 0.7 ? r[3]! : s < 0.88 ? r[3]! : r[4]!;
+      if (s >= 0.6 && s < 0.64) c = r[6]!;
+      if (s >= 0.66 && s < 0.74 && hash2(x, y, seed) < 0.5) c = r[2]!;
+      // Ripples: thin curving lines a few texels apart on the slopes.
+      const ripple = (y + Math.round(Math.sin((2 * Math.PI * x) / 32 + y / 9) * 2 + valueNoise(x, 0, 16, SIZE, seed + 2) * 3)) % 4;
+      if (ripple === 0 && s < 0.58) c = r[3]!;
+      if (hash2(x, y, seed + 1) < 0.02) c = r[s < 0.6 ? 5 : 2]!;
+      p.set(x, y, c);
+    }
+  }
+  return p;
+}
+
+/**
+ * Badlands: dry red earth cracked into broad plates, dark gullies wandering through it, red stones and a dry, grey-gold
+ * tuft or two.
+ */
+export function badlands(r: Ramp = R.BADLANDS, seed = 145): Pixmap {
+  const points = jitteredPoints(SIZE, SIZE, 14, 12, 0.85, seed);
+  const map = voronoi(SIZE, SIZE, points, 0.7);
+  const cell = cellAt(map, SIZE, SIZE);
+  const random = seeded(seed + 1);
+  const shades = points.map(() => {
+    const b = 3 + Math.floor(random() * 3);
+    return { base: at(r, b), light: at(r, b + 1), lighter: at(r, b + 1), dark: at(r, b - 1), speckle: 0.07, speckleColor: at(r, b - 1) };
+  });
+  const p = new Pixmap(SIZE, SIZE);
+  paintCells(p, cell, (i) => shades[i]!, r[1]!, seed);
+  // Dust drifts: soft patches a step paler over the plates.
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (cell(x, y) >= 0 && fbm(x, y, 16, SIZE, seed + 5) > 0.68) p.set(x, y, at(r, 5));
+  // Gullies: dark meanders with a lit lip on their far side.
+  for (let k = 0; k < 3; k++) {
+    let x = Math.floor(random() * SIZE);
+    let y = Math.floor(random() * SIZE);
+    for (let i = 0; i < 26; i++) {
+      p.set(x, y, r[0]!);
+      p.set(x, y + 1, r[2]!);
+      p.set(x, y - 1, r[5]!);
+      x += 1;
+      if (random() < 0.4) y += random() < 0.5 ? 1 : -1;
+    }
+  }
+  for (let k = 0; k < 14; k++) pebble(p, Math.floor(random() * SIZE), Math.floor(random() * SIZE), R.REDROCK[4]!, R.REDROCK[6]!, r[0]!, random() < 0.5);
+  for (let k = 0; k < 5; k++) tuft(p, Math.floor(random() * SIZE), Math.floor(random() * SIZE), R.PLAINS[2]!, R.PLAINS[4]!, R.PLAINS[6]!);
+  return p;
+}
+
+/**
+ * Highland: rough upland grass in olive and tawny patches, clumps of heather in violet, and grey stones breaking
+ * through the turf.
+ */
+export function highland(r: Ramp = R.HIGHLAND, heather: Ramp = R.HEATHER, seed = 146): Pixmap {
+  const p = new Pixmap(SIZE, SIZE);
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const n = fbm(x, y * 1.3, 16, SIZE, seed);
+      let c = n < 0.34 ? r[2]! : n < 0.58 ? r[3]! : n < 0.76 ? r[4]! : r[5]!;
+      if (hash2(x, y, seed) < 0.07) c = r[1]!;
+      // Heather: clumps where a second noise runs high, dark at their roots and lit on top.
+      const h = fbm(x, y, 8, SIZE, seed + 3);
+      if (h > 0.68) c = h > 0.74 ? (hash2(x, y, seed + 4) < 0.4 ? heather[5]! : heather[4]!) : hash2(x, y, seed + 5) < 0.5 ? heather[2]! : heather[3]!;
+      p.set(x, y, c);
+    }
+  }
+  tufts(p, r, seed, 0.5, 1, 6);
+  const random = seeded(seed + 6);
+  // Stones breaking through: small grey lumps, lit on top, a shadow under.
+  for (let k = 0; k < 7; k++) {
+    const x = Math.floor(random() * SIZE);
+    const y = Math.floor(random() * SIZE);
+    const g = R.GRANITE;
+    p.set(x, y, g[5]!);
+    p.set(x + 1, y, g[4]!);
+    p.set(x + 2, y, g[4]!);
+    p.set(x, y + 1, g[3]!);
+    p.set(x + 1, y + 1, g[3]!);
+    p.set(x + 2, y + 1, g[2]!);
+    p.set(x + 1, y + 2, r[0]!);
+  }
+  return p;
+}
+
+/**
+ * The jungle's floor: black-brown loam under broad fallen leaves, fern fronds and roots, a red flower here and there.
+ */
+export function jungleFloor(soil: Ramp = R.JUNGLE_SOIL, leaf: Ramp = R.LUSH, seed = 147): Pixmap {
+  const p = new Pixmap(SIZE, SIZE);
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const n = fbm(x, y, 16, SIZE, seed);
+      let c = n < 0.4 ? soil[2]! : n < 0.66 ? soil[3]! : soil[4]!;
+      if (hash2(x, y, seed) < 0.06) c = soil[1]!;
+      // Low green growth over half of it.
+      const g = fbm(x, y, 16, SIZE, seed + 9);
+      if (g > 0.55) c = g > 0.68 ? leaf[3]! : leaf[2]!;
+      p.set(x, y, c);
+    }
+  }
+  const random = seeded(seed + 1);
+  // Broad leaves: lozenges six texels long, a lit edge and a midrib.
+  for (let k = 0; k < 22; k++) {
+    const x = Math.floor(random() * SIZE);
+    const y = Math.floor(random() * SIZE);
+    const t = 2 + Math.floor(random() * 3);
+    for (let i = 0; i < 6; i++) {
+      const half = i === 0 || i === 5 ? 0 : i === 1 || i === 4 ? 1 : 2;
+      for (let j = -half; j <= half; j++) p.set(x + i, y + j, j < 0 ? at(leaf, t + 2) : j === 0 ? at(leaf, t - 1) : at(leaf, t));
+    }
+  }
+  // Roots: dark walks with a lit edge above.
+  for (let k = 0; k < 3; k++) {
+    let x = Math.floor(random() * SIZE);
+    let y = Math.floor(random() * SIZE);
+    for (let i = 0; i < 12; i++) {
+      p.set(x, y, soil[0]!);
+      p.set(x, y - 1, soil[5]!);
+      x += 1;
+      if (random() < 0.35) y += random() < 0.5 ? 1 : -1;
+    }
+  }
+  flowers(p, 5, seed, [[0xe85a48, 0xf8d04c], [0xfcb0c8, 0xf8d04c]], soil[1]!);
+  return p;
+}

@@ -35,6 +35,11 @@ export type Footprint = (
       readonly blocks: boolean;
       /** Scaled by `args.size` over the rectangle's width too (a statue filling its square). */
       readonly sizeArg?: boolean;
+      /**
+       * Scaled by what its args say, over `scale` too (the travel map's miniatures: a peak's `args.w`, a town icon's
+       * `args.size`): the rectangle is the footprint at a factor of 1.
+       */
+      readonly scaleOf?: (p: PropData) => number;
     }
   | {
       /** A line from (x, z) to `args.to`, `width` wide (a fence, a wall). */
@@ -58,7 +63,10 @@ export type Footprint = (
 
 export interface PropInfo {
   readonly id: string;
-  /** What kind of thing: tree, plant, rock, mountain, fence, ruin, light, sign, goods, travel, water, phyrexian, entrance, street. */
+  /**
+   * What kind of thing: tree, plant, rock, mountain, fence, ruin, light, sign, goods, travel, water, phyrexian, entrance,
+   * street; and `miniature`, the travel map's (art/props/travel.ts: peaks, groves, town icons, landmarks).
+   */
   readonly category: string;
   /** Where it belongs: biome or region names (plains, farmland, forest, llanowar, verdura, swamp, morass, tundra, keld, mountain, coast, volcanic, waste, phyrexian, town, road), or "any". */
   readonly biomes: readonly string[];
@@ -133,7 +141,7 @@ export function tilesOf(p: PropData): { readonly tiles: readonly XZ[]; readonly 
     addRect(p.x, p.z, p.x + w, p.z + d);
   } else if ("rect" in fp) {
     const [a0, , a1] = fp.rect;
-    const size = fp.sizeArg && typeof p.args?.size === "number" ? (p.args.size as number) / (a1 - a0) : 1;
+    const size = fp.scaleOf ? fp.scaleOf(p) : fp.sizeArg && typeof p.args?.size === "number" ? (p.args.size as number) / (a1 - a0) : 1;
     const s = (p.scale ?? 1) * size;
     const t = turnOf(p);
     const c = Math.cos(t);

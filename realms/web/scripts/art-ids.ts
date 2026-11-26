@@ -48,7 +48,10 @@ for (const cat of cats) {
   for (const p of [...PROP_CATALOGUE.values()].filter((q) => q.category === cat)) {
     const f = p.footprint;
     let fp: string;
-    if ("rect" in f) {
+    if ("rect" in f && f.scaleOf) {
+      // A square sized by its args (the travel map's miniatures): its example's size.
+      fp = `args square (${f.scaleOf(example(p.id))})`;
+    } else if ("rect" in f) {
       const [x0, z0, x1, z1] = f.rect;
       const centred = Math.abs(x0 + x1) < 1e-9 && Math.abs(z0 + z1) < 1e-9;
       fp = centred ? `${+(x1 - x0).toFixed(2)}x${+(z1 - z0).toFixed(2)}` : `rect [${f.rect.join(", ")}]`;

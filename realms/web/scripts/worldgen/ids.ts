@@ -34,6 +34,11 @@ export const SURFACES = [
   "road",
   "planks",
   "phyrexian-ground",
+  // The travel map's (appended: indices are data).
+  "dunes",
+  "badlands",
+  "highland",
+  "jungle-floor",
 ] as const;
 export type Surface = (typeof SURFACES)[number];
 

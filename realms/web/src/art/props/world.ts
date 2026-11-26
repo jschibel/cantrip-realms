@@ -11,7 +11,7 @@ import type { Built } from "../recipe";
 import { along, centred, describe, over, prop } from "./catalogue";
 import * as D from "./draw";
 import { bark, cloth, cutout, glowing, limb, lump, rock, snowCover, wood } from "./kit";
-import { PROPS, needs, num, point, str, turnOf } from "./registry";
+import { PROPS, needs, num, point, scaledAbout, str, turnOf } from "./registry";
 
 // The props the world generator names (realms/web/scripts/worldgen/ids.ts) that the library had under other names or
 // not at all: a town's walls, towers and gates in its region's style, the giant fungi, ice and crystal, the spell table,
@@ -258,9 +258,9 @@ prop(
 
 prop(
   "ferry-post",
-  "a ferry's mooring post at x, z: a thick weathered post, rope coiled round it, a bell on a bracket to call the ferryman",
+  "a ferry's mooring post at x, z: a thick weathered post, rope coiled round it, a bell on a bracket to call the ferryman; scale (1)",
   { category: "water", biomes: ["coast", "swamp"], footprint: centred(0.6, 0.6) },
-  (b, p) => {
+  scaledAbout((b, p) => {
     const post = bark(R.WEATHERED, "furrowed");
     b.cylinder(p.x, p.z, 0, 1.6, 0.18, 7, { mat: post }, fitted(material("post-top", () => new Pixmap(4, 4, R.WEATHERED[4]!))));
     const rope = material("rope-coil", () => {
@@ -272,7 +272,7 @@ prop(
     limb(b, [p.x, 1.45, p.z], [p.x + 0.5, 1.6, p.z], 0.04, 0.04, flat(C.IRON[2]!), 4);
     b.cylinder(p.x + 0.45, p.z, 1.2, 1.5, 0.12, 8, { mat: flat(C.GOLD[3]!, { smooth: true }) }, undefined, -0.25);
     b.box(p.x + 0.44, 1.5, p.z - 0.01, p.x + 0.46, 1.6, p.z + 0.01, sides(D.iron()));
-  },
+  }),
 );
 
 PROPS.define(

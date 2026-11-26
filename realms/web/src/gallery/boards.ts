@@ -1,5 +1,5 @@
 import { BUILDINGS, SHOWCASE } from "../art/buildings";
-import { PROP_CATALOGUE, PROPS, tilesOf } from "../art/props";
+import { PROP_CATALOGUE, PROPS, TRAVEL_ENTRANCES, tilesOf } from "../art/props";
 import { SURFACES, SURFACE_GROUPS } from "../art/surfaces";
 import { hash2 } from "../art/paint/pixmap";
 import { fbm } from "../art/paint/procedural";
@@ -39,6 +39,8 @@ export interface Board {
   readonly banks?: readonly { readonly surface: string; readonly x0: number; readonly x1: number; readonly z: number }[];
   /** The places worth a picture each (a style's rows of buildings), for the screenshots; the focus by default. */
   readonly views?: readonly (readonly [number, number])[];
+  /** Figures standing on it for scale (a figure id, where, which way it faces). */
+  readonly figures?: readonly { readonly id: string; readonly x: number; readonly z: number; readonly face?: readonly [number, number] }[];
 }
 
 const WIDTH = 26;
@@ -112,12 +114,15 @@ const surfaceBoards: Board[] = [
   surfaceBoard("surfaces-waste", "The waste and Phyrexia", [...SURFACE_GROUPS.waste!, ...SURFACE_GROUPS.phyrexian!], "ash"),
   surfaceBoard("surfaces-roads", "Roads", SURFACE_GROUPS.roads!, "grass"),
   surfaceBoard("surfaces-waters", "Waters (each a hole, its liquid below the banks)", SURFACE_GROUPS.waters!.filter((s) => s !== "ford"), "grass"),
+  surfaceBoard("surfaces-travel", "The travel map's open country: desert, badlands, highland, jungle", [...SURFACE_GROUPS.desert!, ...SURFACE_GROUPS.upland!, ...SURFACE_GROUPS.jungle!], "plains"),
   bands("meet-coast", "Where biomes meet: the coast", ["sea", "wet-sand", "sand", "shingle", "plains", "meadow", "grass"]),
   bands("meet-cold", "Where biomes meet: the cold north", ["ice", "snow", "tundra", "scree", "bedrock", "needles", "grass"], 18, (x, z) => (z === 9 || z === 10 ? "snow-track" : undefined)),
   bands("meet-swamp", "Where biomes meet: the Morass", ["bog", "mire", "swamp-mud", "marsh", "forest-floor", "leaf-litter", "grass"], 18, (x, z) => (z === 8 || z === 9 ? (x < 10 ? "boardwalk" : "mud-track") : undefined)),
   bands("meet-fire", "Where biomes meet: the waste and the Portal", ["lava", "basalt", "ash", "waste", "salt-flat", "phyrexian-ground", "plating"], 18, (x, z) => (x > 21 && x < 26 && z > 4 && z < 8 ? "oil" : undefined)),
   bands("meet-farm", "Where biomes meet: Benalia's farms", ["river", "meadow", "pasture", "wheat", "furrows", "crop-rows", "stubble"], 18, (x, z) => (x > 2 && (z === 6 || z === 7) ? "cart-track" : undefined)),
   bands("meet-forest", "Where biomes meet: into Llanowar", ["grass", "moss", "forest-floor", "leaf-litter", "elf-moss", "needles", "ford"], 18, (x, z) => (z === 11 ? "dirt" : undefined)),
+  bands("meet-desert", "Where biomes meet: the desert, the badlands and the uplands", ["sand", "dunes", "badlands", "cracked-earth", "scree", "highland", "plains"], 18, (x, z) => (z === 9 ? "road" : undefined)),
+  bands("meet-jungle", "Where biomes meet: the coast into the jungle", ["wet-sand", "sand", "grass", "jungle-floor", "marsh", "mud", "highland"], 18, (x, z) => (z === 9 ? "dirt" : undefined)),
 ];
 
 // --- Props ---------------------------------------------------------------------------------------------------------------
@@ -242,13 +247,277 @@ const STYLE_GROUND: Readonly<Record<string, readonly [string, string]>> = {
   phyrexian: ["phyrexian-ground", "plating"],
 };
 
+// --- The travel map ---------------------------------------------------------------------------------------------------------
+
+const HERO = (x: number, z: number) => ({ id: "hero", x, z });
+
+/** Every kind of peak at every width, then ranges of them overlapping as the generator lays them, a figure for scale. */
+function travelPeaks(): Board {
+  const kinds = ["rock", "snow", "ice", "ash", "sandstone", "redrock"] as const;
+  const props: PropData[] = [];
+  const labels: Label[] = [];
+  // A row per width: each kind once.
+  let z = 4;
+  for (const w of [1, 3, 5]) {
+    kinds.forEach((kind, i) => {
+      const x = 3.5 + i * 7;
+      props.push({ id: "peak", x, z: z + 0.5, seed: i + w * 7, args: { w, kind } });
+      labels.push({ text: `${kind} w${w}`, x, z: z + 0.5 + w / 2 + 0.9 });
+    });
+    z += w + 4;
+  }
+  // Ranges: peaks of mixed widths and seeds, their squares overlapping at the edges, a pass between two of them.
+  const range = (kind: string, z0: number, seed: number) => {
+    const run: [number, number, number][] = [[2.5, 0, 3], [5.5, 1, 5], [9.5, -1, 3], [12.5, 0, 3], [15.5, 1, 1], [21.5, 0, 5], [25.5, -1, 3], [28.5, 1, 3], [31.5, 0, 1], [37.5, 0, 5]];
+    run.forEach(([x, dz, w], i) => props.push({ id: "peak", x, z: z0 + dz + 0.5, seed: seed + i * 3, args: { w, kind } }));
+    labels.push({ text: `${kind} range`, x: 20, z: z0 + 4.5 });
+  };
+  range("snow", z + 3, 11);
+  range("rock", z + 12, 23);
+  range("redrock", z + 21, 37);
+  const d = z + 27;
+  return {
+    id: "travel-peaks",
+    title: "The travel map: peaks of every kind and width, and ranges of them",
+    w: 42,
+    d,
+    ground: (x, zz) => (zz >= z + 19 ? "badlands" : zz >= z ? "scree" : "tundra"),
+    bare: () => false,
+    props,
+    buildings: [],
+    labels,
+    figures: [HERO(4.5, 7.5), HERO(21, z + 6.5)],
+    views: [[21, 8], [21, z - 6], [21, z + 4], [21, z + 13], [21, z + 22]],
+  };
+}
+
+/** Every kind of grove, each a wood of them (to see them as one canopy) and one alone, a figure beside each. */
+function travelGroves(): Board {
+  const kinds = ["broadleaf", "pine", "snowpine", "swamp", "dead", "palm", "jungle", "elfwood"] as const;
+  const floor: Record<string, string> = { broadleaf: "forest-floor", pine: "needles", snowpine: "snow", swamp: "mud", dead: "ash", palm: "sand", jungle: "jungle-floor", elfwood: "elf-moss" };
+  const props: PropData[] = [];
+  const labels: Label[] = [];
+  const figures: { id: string; x: number; z: number }[] = [];
+  const cells: [number, number, number, number, string][] = [];
+  kinds.forEach((kind, i) => {
+    const col = i % 4;
+    const row = Math.floor(i / 4);
+    const x0 = 1 + col * 10;
+    const z0 = 2 + row * 10;
+    // A wood: tiles of a ragged blob, each a grove.
+    for (let dz = 0; dz < 5; dz++) {
+      for (let dx = 0; dx < 5; dx++) {
+        const edge = (dx === 0 || dx === 4) && (dz === 0 || dz === 4);
+        if (edge || hash2(dx + i * 7, dz, 3) < 0.12) continue;
+        props.push({ id: "grove", x: x0 + dx + 0.5, z: z0 + dz + 0.5, seed: i * 31 + dz * 5 + dx, args: { kind } });
+      }
+    }
+    props.push({ id: "grove", x: x0 + 7.5, z: z0 + 2.5, seed: i + 3, args: { kind } });
+    figures.push({ id: "hero", x: x0 + 6.5, z: z0 + 3.6 });
+    labels.push({ text: kind, x: x0 + 4, z: z0 + 6.4 });
+    cells.push([x0 - 1, z0 - 1, x0 + 9, z0 + 6, floor[kind]!]);
+  });
+  return {
+    id: "travel-groves",
+    title: "The travel map: groves of every kind, a wood of each and one alone",
+    w: 41,
+    d: 23,
+    ground: (x, z) => cells.find(([a, b, c, d]) => x >= a && x < c && z >= b && z < d)?.[4] ?? "grass",
+    bare: (x, z) => props.some((p) => Math.floor(p.x) === x && Math.floor(p.z) === z),
+    props,
+    buildings: [],
+    labels,
+    figures,
+    views: [[20, 5], [20, 15]],
+  };
+}
+
+/** Every style's town icon: a row each, capital walled, town walled, town open and village. */
+function travelTowns(): Board {
+  const styles = ["benalish", "tolarian", "urborg", "keldon", "llanowar", "argive", "village"] as const;
+  const props: PropData[] = [];
+  const labels: Label[] = [];
+  const figures: { id: string; x: number; z: number }[] = [];
+  const views: [number, number][] = [];
+  const roads: [number, number, number, number][] = [];
+  const ground: Record<string, string> = { benalish: "grass", tolarian: "meadow", urborg: "mud", keldon: "tundra", llanowar: "moss", argive: "grass", village: "pasture" };
+  const rows: [number, number, string][] = [];
+  let z = 1;
+  for (const style of styles) {
+    const sizes: [string, boolean, number][] = [["capital", true, 7], ["town", true, 5], ["town", false, 5], ["village", false, 3]];
+    let x = 1;
+    for (const [size, walled, n] of sizes) {
+      const cx = x + n / 2;
+      const cz = z + 3.5;
+      props.push({ id: "town-icon", x: cx, z: cz, seed: x + z, args: { size, style, walled } });
+      labels.push({ text: `${style} ${size}${walled ? " walled" : ""}`, x: cx, z: cz + n / 2 + 0.6 });
+      // Its roads out, on all four sides, a tile long.
+      roads.push([Math.floor(cx) - 0, z + 3.5 - n / 2 - 1, Math.floor(cx) + 1, z + 3.5 + n / 2 + 1]);
+      roads.push([x - 1, Math.floor(cz), x + n + 1, Math.floor(cz) + 1]);
+      x += n + 3;
+    }
+    figures.push({ id: "hero", x: 8.5 + 0.5, z: z + 3.5 + 0.5 });
+    rows.push([z, z + 9, ground[style]!]);
+    views.push([16, z + 3.5]);
+    z += 9;
+  }
+  return {
+    id: "travel-towns",
+    title: "The travel map: town icons of every style, capital, town (walled and open) and village",
+    w: 33,
+    d: z + 1,
+    ground: (xx, zz) => (roads.some(([a, b, c, d]) => xx >= a && xx < c && zz >= b && zz < d) ? "road" : rows.find(([a, b]) => zz >= a && zz < b)?.[2] ?? "grass"),
+    bare: () => true,
+    props,
+    buildings: [],
+    labels,
+    figures,
+    views,
+  };
+}
+
+/** Every landmark, a figure beside each. */
+function travelLandmarks(): Board {
+  const kinds = ["cathedral", "great-oak", "floating-towers", "ruin", "obelisk", "arena", "lighthouse"] as const;
+  const props: PropData[] = [];
+  const labels: Label[] = [];
+  const figures: { id: string; x: number; z: number }[] = [];
+  kinds.forEach((kind, i) => {
+    const x = 3.5 + (i % 4) * 7;
+    const z = 4.5 + Math.floor(i / 4) * 8;
+    props.push({ id: "landmark", x, z, seed: i + 1, args: { kind } });
+    labels.push({ text: kind, x, z: z + 2.3 });
+    figures.push({ id: "hero", x: x + 2.5, z: z + 1 });
+  });
+  // The dungeons' entrances at travel scale: each over the footprint the generator should give it there (TRAVEL_ENTRANCES).
+  Object.entries(TRAVEL_ENTRANCES).forEach(([id, [w, d]], i) => {
+    const x = 1 + i * 4;
+    const z = 20;
+    props.push({ id, x, z, rot: 0, seed: i, args: { w, d, ...(id === "phyrexian-portal" ? { open: true } : {}) } });
+    labels.push({ text: `${id} ${w}x${d}`, x: x + w / 2, z: z + d + 0.6 });
+    figures.push({ id: "hero", x: x + w / 2, z: z + d + 0.5 });
+  });
+  return {
+    id: "travel-landmarks",
+    title: "The travel map: its wonders, and the dungeons' entrances at travel scale",
+    w: 29,
+    d: 25,
+    ground: (x, z) => (x >= 20 && z >= 9 ? "sand" : "meadow"),
+    bare: () => true,
+    props,
+    buildings: [],
+    labels,
+    figures,
+    lights: [{ kind: "point", color: [1.0, 0.82, 0.5], intensity: 1.6, reach: 7, at: [24.5, 2.85, 12.5] }],
+    views: [[14, 5], [14, 13], [14, 21]],
+  };
+}
+
+/**
+ * A stretch of travel map laid by hand, 24 tiles square, as the generator would lay one: a snowy range across the north
+ * with a pass, the road down through it to a crossroads and a signpost, east to a walled town and west over a river by a
+ * bridge to a mage tower, a wood along the river, a figure on the road.
+ */
+function travelScene(): Board {
+  const props: PropData[] = [];
+  const W = 24;
+  const D = 24;
+  const blocked = new Set<string>();
+  const block = (x0: number, z0: number, x1: number, z1: number) => {
+    for (let z = Math.floor(z0); z < Math.ceil(z1); z++) for (let x = Math.floor(x0); x < Math.ceil(x1); x++) blocked.add(`${x},${z}`);
+  };
+  // The range, west and east of the pass at x 11-13.
+  const peaks: [number, number, number, string][] = [
+    [2.5, 2.5, 5, "snow"],
+    [6.5, 1.5, 3, "snow"],
+    [8.5, 4.5, 3, "snow"],
+    [4.5, 6.5, 1, "rock"],
+    [0.5, 6.5, 3, "rock"],
+    [16.5, 3.5, 3, "snow"],
+    [19.5, 1.5, 5, "snow"],
+    [22.5, 4.5, 3, "snow"],
+    [17.5, 6.5, 1, "rock"],
+    [23.5, 7.5, 1, "rock"],
+  ];
+  peaks.forEach(([x, z, w, kind], i) => {
+    props.push({ id: "peak", x, z, seed: 40 + i * 3, args: { w, kind } });
+    block(x - w / 2, z - w / 2, x + w / 2, z + w / 2);
+  });
+  // The river, from the range's foot down the west, and the road.
+  const river = (x: number, z: number) => z >= 8 && x >= 6 + Math.round(Math.sin(z / 3) * 0.7) && x <= 7 + Math.round(Math.sin(z / 3) * 0.7);
+  const road = (x: number, z: number) => (x === 12 && z < 14) || (z === 14 && x >= 2 && x <= 19) || (x === 19 && z >= 14 && z < 16);
+  // The town, east of the crossroads; the tower west of the river.
+  props.push({ id: "town-icon", x: 19.5, z: 18.5, seed: 5, args: { size: "town", style: "benalish", walled: true } });
+  block(17, 16, 22, 21);
+  props.push({ id: "mage-tower", x: 1, z: 15, rot: 0, seed: 2, args: { w: 2, d: 2 } });
+  block(1, 15, 3, 17);
+  props.push({ id: "bridge", x: 5, z: 13.6, args: { to: [9, 15.4], y: 0.12 } });
+  props.push({ id: "signpost", x: 13.5, z: 13.5, args: { arrows: 3, text: "Benalia" } });
+  block(13, 13, 14, 14);
+  props.push({ id: "waymarker", x: 13.5, z: 8.5, seed: 3, args: { tier: 2 } });
+  block(13, 8, 14, 9);
+  // A wood: broadleaf groves along the river's east bank and south, pines up under the range.
+  const wood = (x: number, z: number) => {
+    if (blocked.has(`${x},${z}`) || river(x, z) || road(x, z)) return false;
+    if (z >= 8 && z <= 12 && x >= 8 && x <= 10 && hash2(x, z, 4) < 0.7) return "pine";
+    if (z >= 16 && x >= 7 && x <= 14 && hash2(x, z, 5) < 0.75 - (x - 7) * 0.06) return "broadleaf";
+    if (z >= 17 && x <= 4 && hash2(x, z, 6) < 0.6) return "broadleaf";
+    if (z >= 7 && z <= 9 && (x <= 3 || (x >= 15 && x <= 21)) && hash2(x, z, 7) < 0.5) return "pine";
+    return false;
+  };
+  for (let z = 0; z < D; z++) {
+    for (let x = 0; x < W; x++) {
+      const kind = wood(x, z);
+      if (!kind) continue;
+      props.push({ id: "grove", x: x + 0.5, z: z + 0.5, seed: x * 7 + z * 13, args: { kind } });
+      blocked.add(`${x},${z}`);
+    }
+  }
+  // Boulders and bushes by the road.
+  for (const [id, x, z] of [
+    ["boulder", 10.5, 11.5],
+    ["bush", 15.5, 12.5],
+    ["boulder", 16.5, 15.5],
+    ["bush", 4.5, 12.5],
+  ] as const) {
+    props.push({ id, x, z, seed: Math.round(x + z) });
+    blocked.add(`${Math.floor(x)},${Math.floor(z)}`);
+  }
+  const ground = (x: number, z: number): string => {
+    if (river(x, z)) return "river";
+    if (road(x, z) || (x === 12 && z <= 8)) return "road";
+    if (blocked.has(`${x},${z}`) && z <= 8) return z <= 5 ? "rock" : "scree";
+    if (z <= 7) return hash2(x, z, 9) < 0.3 ? "scree" : "highland";
+    if (z <= 9) return "highland";
+    if (wood(x, z) || (blocked.has(`${x},${z}`) && z >= 10 && z <= 22 && x <= 15)) return "forest-floor";
+    return hash2(x >> 1, z >> 1, 3) < 0.25 ? "meadow" : "grass";
+  };
+  return {
+    id: "travel-scene",
+    title: "The travel map: a stretch of it laid by hand - a range and its pass, a wood, a river and its bridge, a town, a tower",
+    w: W,
+    d: D,
+    ground,
+    bare: (x, z) => blocked.has(`${x},${z}`),
+    props,
+    buildings: [],
+    labels: [],
+    figures: [HERO(12.5, 11.5)],
+    focus: [12, 12],
+    views: [[12, 12], [12, 6], [12, 17]],
+  };
+}
+
+/** The travel map's boards. */
+const travelBoards = (): Board[] => [travelPeaks(), travelGroves(), travelTowns(), travelLandmarks(), travelScene()];
+
 // --- All of them -------------------------------------------------------------------------------------------------------
 
 let cache: Board[] | null = null;
 
 /** Every board: the surfaces, where biomes meet, the props by kind, and each building style. */
 export function boards(): Board[] {
-  if (!cache) cache = [...surfaceBoards, ...propBoards(), ...BUILDINGS.ids().filter((s) => SHOWCASE[s]).map(styleBoard)];
+  if (!cache) cache = [...surfaceBoards, ...propBoards(), ...BUILDINGS.ids().filter((s) => SHOWCASE[s]).map(styleBoard), ...travelBoards()];
   return cache;
 }
 

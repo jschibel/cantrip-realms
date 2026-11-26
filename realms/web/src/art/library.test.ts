@@ -6,7 +6,7 @@ import { MeshBuilder, type Model, sides } from "./paint/builder";
 import * as C from "./paint/colors";
 import { flat } from "./paint/materials";
 import { PALETTES } from "./paint/palette";
-import { PROP_CATALOGUE, PROPS, tilesOf } from "./props";
+import { GROVE_KINDS, LANDMARK_KINDS, PEAK_KINDS, PROP_CATALOGUE, PROPS, TOWN_SIZES, TOWN_STYLES, TRAVEL_ENTRANCES, tilesOf } from "./props";
 import { SURFACE_GROUPS, SURFACES } from "./surfaces";
 
 // The art library (surfaces, props, buildings): every id builds from its own example without problems - geometry with
@@ -98,6 +98,97 @@ describe("the props", () => {
     const plain = PROPS.build("oak", example("oak")).model.parts.map((x) => x.material.name);
     const elf = PROPS.build("oak", example("oak"), PALETTES.get("elfhame")).model.parts.map((x) => x.material.name);
     expect(elf).not.toEqual(plain);
+  });
+});
+
+describe("the travel map's miniatures", () => {
+  const top = (m: Model) => Math.max(...m.parts.flatMap((p) => p.positions.filter((_, i) => i % 3 === 1)));
+  const at = (id: string, args: Record<string, unknown>, seed = 1): PropData => ({ id, x: 20.5, z: 30.5, seed, args });
+
+  it("stand on the squares their args say, all blocked", () => {
+    for (const [w, n] of [
+      [1, 1],
+      [3, 9],
+      [5, 25],
+    ] as const) {
+      const t = tilesOf(at("peak", { w, kind: "rock" }));
+      expect(t.tiles, `peak w${w}`).toHaveLength(n);
+      expect(t.blocks).toBe(true);
+    }
+    for (const [size, n] of [
+      ["village", 9],
+      ["town", 25],
+      ["capital", 49],
+    ] as const) expect(tilesOf(at("town-icon", { size, style: "benalish" })).tiles, size).toHaveLength(n);
+    expect(tilesOf(at("landmark", { kind: "arena" })).tiles).toHaveLength(9);
+    expect(tilesOf(at("grove", { kind: "pine" })).tiles).toEqual([[20, 30]]);
+    expect(tilesOf(at("signpost", { text: "Keld" })).tiles).toEqual([[20, 30]]);
+    // Scaled, the square scales with it.
+    expect(tilesOf({ ...at("peak", { w: 3 }), scale: 5 / 3 }).tiles).toHaveLength(25);
+  });
+
+  it("name what is wrong with their args", () => {
+    expect(PROPS.problems("peak", at("peak", { w: 2 }))).toHaveLength(1);
+    expect(PROPS.problems("peak", at("peak", { w: 3, kind: "lava", h: -1 }))).toHaveLength(2);
+    expect(PROPS.problems("grove", at("grove", { kind: "oak" }))).toHaveLength(1);
+    expect(PROPS.problems("town-icon", at("town-icon", { size: "city", style: "benalish" }))).toHaveLength(1);
+    expect(PROPS.problems("town-icon", at("town-icon", { size: "town" }))).toHaveLength(1);
+    expect(PROPS.problems("town-icon", at("town-icon", { size: "town", style: "keldon", walled: "yes" }))).toHaveLength(1);
+    expect(PROPS.problems("landmark", at("landmark", {}))).toHaveLength(1);
+    expect(PROPS.problems("signpost", at("signpost", { text: 3 }))).toHaveLength(1);
+  });
+
+  it("build every kind, a peak as tall as asked, a grove in at most 150 triangles (its far stand-in fewer)", () => {
+    for (const kind of PEAK_KINDS) {
+      for (const w of [1, 3, 5]) {
+        for (const seed of [0, 1, 2, 3, 4]) {
+          const m = PROPS.build("peak", at("peak", { w, kind }, seed)).model;
+          expect(finite(m)).toBe(true);
+          expect(top(m), `${kind} w${w} s${seed}`).toBeGreaterThan((0.9 * w + 1) * 0.7);
+          expect(top(m)).toBeLessThanOrEqual(0.9 * w + 1 + 1e-6);
+        }
+      }
+    }
+    for (const kind of GROVE_KINDS) {
+      for (const seed of [0, 1, 2, 3]) {
+        const b = PROPS.build("grove", at("grove", { kind }, seed));
+        expect(triangles(b.model), `${kind} s${seed}`).toBeLessThanOrEqual(150);
+        expect(triangles(b.far!), kind).toBeLessThan(triangles(b.model));
+        expect(top(b.model), kind).toBeGreaterThan(kind === "elfwood" ? 2.1 : 1.05);
+        expect(top(b.model), kind).toBeLessThan(kind === "elfwood" ? 2.7 : 1.9);
+      }
+    }
+    for (const style of TOWN_STYLES)
+      for (const size of Object.keys(TOWN_SIZES))
+        for (const walled of [true, false]) expect(finite(PROPS.build("town-icon", at("town-icon", { size, style, walled })).model)).toBe(true);
+    for (const kind of LANDMARK_KINDS) expect(triangles(PROPS.build("landmark", at("landmark", { kind })).model), kind).toBeGreaterThan(20);
+  });
+
+  it("draw the props the travel map reuses at their scale, as their footprints are scaled", () => {
+    const width = (m: Model) => {
+      const xs = m.parts.flatMap((p) => p.positions.filter((_, i) => i % 3 === 0));
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    for (const id of ["boulder", "bush", "stepping-stone", "ferry-post", "ferry", "waymarker"]) {
+      const p: PropData = { id, x: 10.5, z: 10.5, seed: 1 };
+      expect(width(PROPS.build(id, { ...p, scale: 2 }).model) / width(PROPS.build(id, p).model), id).toBeCloseTo(2, 6);
+    }
+  });
+
+  it("keep every entrance's flame and door with it at travel scale", () => {
+    for (const [id, [w, d]] of Object.entries(TRAVEL_ENTRANCES)) {
+      const p: PropData = { id, x: 10, z: 20, args: { w, d } };
+      expect(tilesOf(p).tiles, id).toHaveLength(w * d);
+      const door = PROPS.build(id, p).doorway!;
+      expect(door[0], id).toBeCloseTo(10 + w / 2, 6);
+      expect(Math.abs(door[2] - (20 + d)), id).toBeLessThan(0.1);
+    }
+    const foundry = PROPS.build("foundry-gate", { id: "foundry-gate", x: 10, z: 20, args: { w: 3, d: 2 } });
+    const flame = foundry.frames![0]!.models[0]!.parts[0]!.positions;
+    const ys = flame.filter((_, i) => i % 3 === 1);
+    // Over its chimney, which stands at about two thirds the height it does at full size.
+    expect(Math.min(...ys)).toBeLessThan(4.75 * 0.75);
+    expect(Math.min(...flame.filter((_, i) => i % 3 === 0))).toBeGreaterThan(10);
   });
 });
 

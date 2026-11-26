@@ -10,7 +10,7 @@ import * as T from "../paint/textures";
 import { along, centred, describe, over, prop } from "./catalogue";
 import * as D from "./draw";
 import { PX, atScaled, bannerMaterial, bark, cloth, cutout, disc, flames, foliage, frustum, glowing, limb, lump, planks, ringsMaterial, rock, wood } from "./kit";
-import { bool, needs, num, point, str, turnOf } from "./registry";
+import { bool, needs, num, point, scaledAbout, str, turnOf } from "./registry";
 
 // The country's and the road's made things: fences, walls and hedges; ruins and statues; torches, fire bowls, campfires
 // and lanterns; signposts, waymarkers by tier, banners, quest boards and waystones; wells, carts and wagons, hay, wood,
@@ -129,6 +129,29 @@ function arrowPicture(): Pixmap {
       if (tip > 0 && Math.abs(y - 3.5) > 4 - tip * 0.7) continue;
       let c = y === 0 ? w[6]! : y === 7 ? w[2]! : w[4]!;
       if (y >= 2 && y <= 5 && x > 2 && x < 17 && hash2(x, y, 3) < 0.45) c = w[1]!;
+      p.set(x, y, c);
+    }
+  }
+  return p;
+}
+
+/**
+ * A name board under a signpost's arrows, `n` letters' worth of lettering wide (4 texels each and a margin): a plank
+ * framed dark, a scrawl of letters whose shapes follow the name's own (so two names read differently).
+ */
+function nameBoardPicture(text: string): Pixmap {
+  const n = Math.max(3, Math.min(12, text.length));
+  const width = n * 4 + 4;
+  const p = new Pixmap(width, 9);
+  const w = C.WOOD;
+  for (let y = 0; y < 9; y++) {
+    for (let x = 0; x < width; x++) {
+      let c = y === 0 || x === 0 || x === width - 1 ? w[2]! : y === 8 ? w[1]! : y === 1 ? w[6]! : w[5]!;
+      if (y >= 3 && y <= 6 && x >= 2 && x < width - 2) {
+        const i = Math.floor((x - 2) / 4);
+        const ch = text.charCodeAt(Math.floor((i * text.length) / n)) || 32;
+        if ((x - 2) % 4 !== 3 && ch !== 32 && hash2(ch, (x - 2) % 4, y) < 0.5) c = w[0]!;
+      }
       p.set(x, y, c);
     }
   }
@@ -495,8 +518,8 @@ function embersPicture(): Pixmap {
 
 prop(
   "signpost",
-  "a signpost at x, z with args.arrows boards (1-3, default 2) pointing different ways",
-  { category: "sign", biomes: ["road", "any"], footprint: centred(0.3, 0.3), sample: { args: { arrows: 3 } } },
+  "a signpost at x, z (its tile blocked) with args.arrows boards (1-3, default 2) pointing different ways; args.text a name (a town's, a road's) on a board under them, its lettering as long as the name (the maps say it)",
+  { category: "sign", biomes: ["road", "any"], footprint: centred(0.3, 0.3), sample: { args: { arrows: 3, text: "New Benalia" } } },
   (b, p) => {
     const t = tiled(wood(C.WOOD));
     b.box(p.x - 0.07, 0, p.z - 0.07, p.x + 0.07, 2.1, p.z + 0.07, sides(t));
@@ -505,13 +528,24 @@ prop(
     const n = Math.max(1, Math.min(3, num(p, "arrows", 2)));
     const angles = [0.2, Math.PI - 0.35, -0.9];
     for (let i = 0; i < n; i++) b.at(p.x, 0, p.z, angles[i]!, () => b.box(0.08, 1.85 - i * 0.32, -0.03, 1.5, 2.05 - i * 0.32, 0.03, { south: arrow, north: arrow, top: t, east: t }));
+    const text = str<string>(p, "text");
+    if (text) {
+      // The name board, facing south across the post below the arrows, at the world's sixteen texels a tile.
+      const picture = nameBoardPicture(text);
+      const board = fitted(material(`signpost-name:${picture.width}:${text}`, () => nameBoardPicture(text)));
+      const half = picture.width / 32;
+      const y = 1.85 - n * 0.32 - 0.2;
+      b.box(p.x - half, y - 0.5625, p.z + 0.07, p.x + half, y, p.z + 0.12, { south: board, north: t, top: t, east: t, west: t });
+    }
   },
+  {},
+  (p) => (p.args?.text !== undefined && typeof p.args.text !== "string" ? [`prop signpost at ${p.x},${p.z}: args.text should be a string`] : []),
 );
 prop(
   "waymarker",
-  "a waymarker at x, z where the tier changes: a standing stone banded in the tier's color (args.tier 1-4), its number in white pips",
+  "a waymarker at x, z where the tier changes: a standing stone banded in the tier's color (args.tier 1-4), its number in white pips; scale (1)",
   { category: "sign", biomes: ["any"], footprint: centred(0.8, 0.8), sample: { args: { tier: 3 } } },
-  (b, p) => {
+  scaledAbout((b, p) => {
     const tier = Math.max(1, Math.min(4, Math.round(num(p, "tier", 1))));
     const r = R.TIER[tier]!;
     lump(b, p.x, p.z, 0, [[0.36, 0], [0.38, 0.6], [0.32, 1.5], [0.16, 1.85]], 6, rock(R.GRANITE, R.LICHEN), p.seed ?? tier, 0.1, { squash: 0.7 });
@@ -523,7 +557,7 @@ prop(
     b.cylinder(p.x, p.z, 0.95, 1.2, 0.39, 8, { mat: band }, undefined, 0, 1, 2);
     const pip = glowing(0xfff8e8);
     for (let k = 0; k < tier; k++) b.box(p.x - 0.05, 0.45 + k * 0.12, p.z + 0.25, p.x + 0.05, 0.53 + k * 0.12, p.z + 0.3, sides(fitted(pip)));
-  },
+  }),
 );
 prop(
   "tier-banner",
@@ -997,9 +1031,9 @@ prop(
 );
 prop(
   "ferry",
-  "a ferry raft at x, z (y its deck, 0.2 by default) along its turn (rot): a flat deck with rails and its rope post; 2.5 by 4",
+  "a ferry raft at x, z (y its deck, 0.2 by default) along its turn (rot): a flat deck with rails and its rope post; 2.5 by 4; scale (1)",
   { category: "water", biomes: ["coast", "swamp", "town"], footprint: centred(2.5, 4, true) },
-  (b, p) =>
+  scaledAbout((b, p) =>
     b.at(p.x, 0, p.z, turned(p), () => {
       const y = p.y ?? 0.2;
       const t = tiled(wood(R.WEATHERED));
@@ -1011,6 +1045,7 @@ prop(
       b.cylinder(0.9, -1.6, y, y + 1.2, 0.08, 6, { mat: wood(C.DARKWOOD) });
       b.cylinder(0.9, -1.6, y + 0.9, y + 1.0, 0.11, 6, { mat: material("rope", () => ropePicture()) });
     }),
+  ),
 );
 prop(
   "sailboat",
