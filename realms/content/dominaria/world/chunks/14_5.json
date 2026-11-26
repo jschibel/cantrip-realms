@@ -2,7 +2,7 @@
   "cx": 14,
   "cz": 5,
   "tiles": [
-    [0,"highland",0],[0,"highland",3],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"rock",0],[0,"highland",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [0,"highland",0],[0,"highland",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"highland",0],[0,"rock",0],[0,"highland",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"grass",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"highland",0],[0,"highland",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"grass",0],[0,"grass",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"highland",0],[0,"highland",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"rock",0],[0,"rock",0],[0,"rock",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -35,9 +35,7 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
-  "props": [
-    {"id":"grove","x":449.5,"z":160.5,"seed":1,"args":{"kind":"pine"}}
-  ],
+  "props": [],
   "buildings": [],
   "npcs": [],
   "spawns": [],

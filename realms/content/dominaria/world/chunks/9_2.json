@@ -3,7 +3,7 @@
   "cz": 2,
   "tiles": [
     [0,"shallows",1],[0,"shallows",1],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
-    [0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",3],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
+    [0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"ice",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",1],[0,"ice",1],[0,"ice",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",1],[0,"ice",1],[0,"ice",1],[0,"ice",1],[0,"ice",1],[0,"tundra",1],[0,"ice",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"tundra",0],[0,"ice",0],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"shallows",1],[0,"shallows",1],[0,"ice",1],[0,"ice",1],[0,"ice",1],[0,"tundra",1],[0,"tundra",1],[0,"tundra",1],[0,"tundra",1],[0,"ice",1],[0,"ice",1],[0,"shallows",1],[0,"shallows",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
@@ -35,13 +35,11 @@
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],
     [0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1],[0,"sea",1]
   ],
-  "props": [
-    {"id":"grove","x":294.5,"z":65.4375,"seed":1,"args":{"kind":"snowpine"}}
-  ],
+  "props": [],
   "buildings": [],
   "npcs": [],
   "spawns": [
-    {"id":"9_2:1","x":290,"z":66,"mobs":["marhault-elsdragon","shivan-dragon","sibilant-spirit"],"radius":4,"respawnSeconds":600,"tier":4}
+    {"id":"9_2:1","x":290,"z":69,"mobs":["enormous-baloth","karplusan-yeti","mahamoti-djinn"],"radius":4,"respawnSeconds":600,"tier":4}
   ],
   "entrances": [],
   "waymarkers": []
