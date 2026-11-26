@@ -120,6 +120,16 @@ export function bankOf(id: string): Material | undefined {
   return material(`bank-${name}`, () => G.bank(look.ramp, look.kind, look.fringe), {});
 }
 
+/**
+ * The stone of a surface's bank where it shows through the worn rim of a terrace's brink (render/ground.ts): a light
+ * tone of the bank's own ramp.
+ */
+export function brinkOf(id: string): number | undefined {
+  const name = BANKS[id];
+  const look = name ? BANK_LOOKS[name] : undefined;
+  return look ? look.ramp[Math.min(4, look.ramp.length - 1)] : undefined;
+}
+
 type Define = (id: string, about: string, palette: Palette, look: (palette: Palette) => SurfaceLook) => void;
 
 const ramp = (p: Palette, k: string): Ramp => p[k]!;

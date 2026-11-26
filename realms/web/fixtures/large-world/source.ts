@@ -2,6 +2,9 @@ import type { BuildingData, ChunkData, InteriorData, LightData, NpcData, PropDat
 import { BARE, BLOCKED, CHUNK, RAMP, chunkKey } from "../../src/world/format";
 import type { WorldSource } from "../../src/world/load";
 import shopTemplate from "../slice-world/interiors/shop.json";
+import { MESAS, mesaAt, mesaLevel } from "./mesas";
+
+export { MESAS, mesaAt, mesaLevel };
 
 // A large synthetic world for the renderer's tests and its benchmark (render/, the game page ?world=large): 8 by 8 chunks
 // (256 tiles square) of mixed country made by code from a seed, the same every time - a dense walled-less town of
@@ -108,6 +111,23 @@ function make(): Made {
     if (t[1] === "grass" && t[2] === 0 && t[0] > 0) {
       props.push({ id: "boulder", x: x + 0.5, z: z + 0.5, y: t[0] / 16, seed: i, args: { r: 0.4 + h32(i, 3, 9) * 0.3 } });
       set(x, z, [t[0], t[1], BLOCKED | BARE]);
+    }
+  }
+
+  // Four mesas east of the town, between the hills and the fields, each on a pad of its own surface (snow, sand, rock,
+  // tundra), for the terrain's edges (render/ground.ts, e2e/edges.spec.ts): a west half two levels up (a cliff on its
+  // west, north and south), an east half one level up (a bank), a notch out of its north-east corner (an inner
+  // corner), and a three-wide ramp from the east half up onto the west.
+  for (const [i, surface] of MESAS.entries()) {
+    const px = 184 + (i % 2) * 35;
+    const pz = 134 + Math.floor(i / 2) * 26;
+    for (let z = pz; z < pz + 24; z++) for (let x = px; x < px + 32; x++) set(x, z, [0, surface, 0]);
+    const at = mesaAt(i);
+    for (let j = 0; j < 14; j++) for (let k = 0; k < 16; k++) set(at.x + k, at.z + j, [mesaLevel(k, j) * 12, surface, 0]);
+    // The ramp: west up from the bank's top onto the cliff's, as the hills' (a quarter and three quarters of the way).
+    for (let j = 6; j <= 8; j++) {
+      set(at.x + 6, at.z + j, [12 + 3, surface, RAMP]);
+      set(at.x + 5, at.z + j, [24 - 3, surface, RAMP]);
     }
   }
 

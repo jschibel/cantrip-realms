@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { bandShader, lit, textureOf } from "./lighting";
 import { Pixmap } from "../art/paint/pixmap";
+import { NO_RELIEF } from "./terrain";
 
 // The ground of a scene on square tiles: one mesh over every tile, and a shader that paints each texel from its tile's
 // surface - grass, cobbles, flagstones, boards - read from a small map of the tiles. Where two surfaces meet, the one
@@ -15,6 +16,11 @@ export interface GroundSurface {
   readonly priority: number;
   /** A hole: nothing is drawn there, so what lies below shows (a stream's water); its neighbours grow over its edge. */
   readonly hole?: boolean;
+  /**
+   * The stone that shows through the worn rim of its terraces' brinks (0xRRGGBB): its bank's own (art/surfaces
+   * `brink`). Without one the rim is its own picture worn paler.
+   */
+  readonly brink?: number;
 }
 
 const ATLAS_TILE = 64;
@@ -52,6 +58,127 @@ export function groundMap(
   return { data, width, height, noneRank };
 }
 
+/**
+ * The terraces' edges, painted on the ground's top (so they read whichever way an edge runs and whichever way the camera
+ * looks, its face seen or hidden). Along each brink - where a tile's edge stands above its neighbour's, wherever along the
+ * edge it does - a rim a few texels deep, ragged, worn paler with stones of its bank showing through, its outermost
+ * texel a lit lip; along each foot - where the neighbour stands above - a shade of the cool shadow's color in two bands,
+ * wider the higher the bank. An edge of two levels or more has a deeper rim, a thicker lip and a wider, darker shade
+ * than a one-level bank. Inner and outer corners follow the corner tiles. Higher ground is a touch lighter and warmer,
+ * so two levels never meet in one color. Every texel is counted from the world's anchor, so it all holds still as the
+ * camera moves and joins across chunks.
+ */
+const EDGES_GLSL = /* glsl */ `
+uniform sampler2D reliefMap;
+uniform sampler2D brinkMap;
+uniform float brinkCount;
+uniform float hasRelief;
+
+// A tile's corner heights in texels (north-west, north-east, south-east, south-west), counted from the anchor.
+vec4 cornersAt(vec2 anchored) {
+  vec2 tile = anchored + mapShift;
+  if (tile.x < 0.0 || tile.y < 0.0 || tile.x >= mapSize.x || tile.y >= mapSize.y) return vec4(${NO_RELIEF.toFixed(1)});
+  return texture2D(reliefMap, (tile + 0.5) / mapSize);
+}
+// How far my edge stands above a neighbour's facing edge at a point along it, texels (0 where it has no ground).
+float dropTo(float mine, float theirs) { return theirs < ${(NO_RELIEF / 2).toFixed(1)} ? 0.0 : mine - theirs; }
+
+vec3 terrainEdges(vec2 texel, vec3 color, float surface) {
+  vec2 tile = floor(texel / 16.0);
+  vec4 me = cornersAt(tile);
+  if (me.x < ${(NO_RELIEF / 2).toFixed(1)}) return color;
+  vec2 p = texel - tile * 16.0 + 0.5;
+  vec2 t = p / 16.0;
+  vec4 n = cornersAt(tile + vec2(0.0, -1.0));
+  vec4 s = cornersAt(tile + vec2(0.0, 1.0));
+  vec4 w = cornersAt(tile + vec2(-1.0, 0.0));
+  vec4 e = cornersAt(tile + vec2(1.0, 0.0));
+  vec4 nw = cornersAt(tile + vec2(-1.0, -1.0));
+  vec4 ne = cornersAt(tile + vec2(1.0, -1.0));
+  vec4 se = cornersAt(tile + vec2(1.0, 1.0));
+  vec4 sw = cornersAt(tile + vec2(-1.0, 1.0));
+  // Each edge and corner: the drop there, how far this texel is from it, and the world texel along it (for its ragged line).
+  float drop[8];
+  float dist[8];
+  float along[8];
+  drop[0] = dropTo(mix(me.x, me.y, t.x), mix(n.w, n.z, t.x)); dist[0] = p.y; along[0] = texel.x;
+  drop[1] = dropTo(mix(me.w, me.z, t.x), mix(s.x, s.y, t.x)); dist[1] = 16.0 - p.y; along[1] = texel.x + 57.0;
+  drop[2] = dropTo(mix(me.x, me.w, t.y), mix(w.y, w.z, t.y)); dist[2] = p.x; along[2] = texel.y + 131.0;
+  drop[3] = dropTo(mix(me.y, me.z, t.y), mix(e.x, e.w, t.y)); dist[3] = 16.0 - p.x; along[3] = texel.y + 199.0;
+  drop[4] = dropTo(me.x, nw.z); dist[4] = length(p); along[4] = texel.x + texel.y;
+  drop[5] = dropTo(me.y, ne.w); dist[5] = length(p - vec2(16.0, 0.0)); along[5] = texel.x - texel.y;
+  drop[6] = dropTo(me.z, se.x); dist[6] = length(p - vec2(16.0)); along[6] = texel.x + texel.y + 77.0;
+  drop[7] = dropTo(me.w, sw.y); dist[7] = length(p - vec2(0.0, 16.0)); along[7] = texel.x - texel.y + 77.0;
+
+  float rim = 0.0;
+  float lip = 0.0;
+  float lipWidth = 1.0;
+  float brink = 99.0;
+  float tallRim = 0.0;
+  float shade = 0.0;
+  for (int i = 0; i < 8; i++) {
+    float d = drop[i];
+    float ragged = gNoise(along[i] / 5.0) * 2.2 + gNoise(along[i] / 1.7 + 31.0) * 0.8 + gHash(texel + float(i) * 17.0) * 0.6;
+    if (d > 0.0) {
+      // A brink: banks of a texel or two (a road's kerb) barely; a level's bank fully; two levels deeper.
+      float at = smoothstep(1.5, 6.0, d);
+      float tall = clamp((d - 12.0) / 12.0, 0.0, 1.0);
+      if (dist[i] < at * (1.5 + 2.5 * tall + ragged)) {
+        rim = max(rim, at);
+        tallRim = max(tallRim, tall * at);
+      }
+      if (at > 0.3 && dist[i] < brink) {
+        brink = dist[i];
+        lip = at;
+        lipWidth = 1.0 + tall;
+      }
+    } else if (d < 0.0) {
+      // A foot: the shade reaches further the higher the bank (a level: about 5 texels; three: about 11).
+      float at = smoothstep(1.5, 6.0, -d);
+      float reach = at * (2.0 + min(-d, 48.0) / 4.0) + ragged * 0.6;
+      if (dist[i] < reach) shade = max(shade, dist[i] < reach * 0.45 ? 2.0 : 1.0);
+    }
+  }
+
+  // Higher ground a touch lighter and warmer: a level's step always shows, the steps easing off up a mountain.
+  float h = mix(mix(me.x, me.y, t.x), mix(me.w, me.z, t.x), t.y);
+  float level = max(h, 0.0) / 12.0;
+  float k = level / (level + 4.0);
+  color *= vec3(1.0 + 0.22 * k, 1.0 + 0.18 * k, 1.0 + 0.08 * k);
+
+  if (rim > 0.0) {
+    // Worn: toward the bank's stone and a little paler (a light surface, snow, a little darker: packed), with stones of
+    // the bank through it.
+    vec4 stone = texture2D(brinkMap, vec2((surface + 0.5) / brinkCount, 0.5));
+    float luma = dot(color, vec3(0.299, 0.587, 0.114));
+    vec3 toward = stone.a > 0.5 ? stone.rgb : vec3(luma);
+    vec3 worn = mix(color, toward, 0.4) * (luma > 0.62 ? 0.92 : 1.12) + (luma > 0.62 ? 0.0 : 0.02);
+    color = mix(color, worn, rim);
+    vec2 cell = floor(texel / 2.0);
+    if (gHash(cell * 1.7 + 3.1) < 0.1 + 0.12 * tallRim) {
+      vec3 rock = stone.a > 0.5 ? mix(stone.rgb, worn, 0.35) : worn * 1.12;
+      vec2 in2 = texel - cell * 2.0;
+      color = mix(color, (in2.x > 0.5 && in2.y > 0.5) ? rock * 0.7 : rock, rim);
+    }
+  }
+  // The lip: lit, the texels in from the nearest brink's own (which the outline pass darkens where lower ground shows
+  // past it), two of them over a cliff.
+  if (brink >= 1.0 && brink < 1.0 + lipWidth) color = mix(color, min(vec3(1.0), color * 1.28 + 0.05), lip * (gHash(texel * 0.37 + 9.0) < 0.2 ? 0.55 : 1.0));
+  if (shade > 1.5) color *= vec3(0.66, 0.64, 0.78);
+  else if (shade > 0.5) color *= vec3(0.82, 0.8, 0.9);
+  return color;
+}
+`;
+
+/** Each surface's brink stone, one texel a surface: its color, alpha 255 where it has one (else 0). */
+export function brinkMap(surfaces: readonly Pick<GroundSurface, "brink">[]): Uint8Array {
+  const data = new Uint8Array(Math.max(1, surfaces.length) * 4);
+  surfaces.forEach((s, i) => {
+    if (s.brink !== undefined) data.set([(s.brink >> 16) & 255, (s.brink >> 8) & 255, s.brink & 255, 255], i * 4);
+  });
+  return data;
+}
+
 /** The surfaces' pictures in a grid, `ATLAS_COLUMNS` a row: surface `i` at column `i % columns`, row `i / columns`. */
 export function groundAtlas(surfaces: readonly Pick<GroundSurface, "picture">[]): { readonly atlas: Pixmap; readonly columns: number; readonly rows: number } {
   const columns = Math.max(1, Math.min(ATLAS_COLUMNS, surfaces.length));
@@ -77,6 +204,12 @@ export function buildGround(
    * chunk's map holds a border of its neighbours' tiles, so its edges grow over theirs as they would in one piece.
    */
   shape?: THREE.BufferGeometry,
+  /**
+   * The relief under the map (render/terrain.ts `reliefMap`, a tile of it for each of the map's): where it is given, the
+   * terraces' edges are drawn on the ground - a worn rim along each brink, a shade along each foot, and higher ground a
+   * touch lighter. Without it (rooms, dungeons: drawn level) the ground is flat.
+   */
+  relief?: Float32Array,
 ): THREE.Mesh {
   const { data, width, height, noneRank } = groundMap(tiles, surfaces);
   const map = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
@@ -86,12 +219,26 @@ export function buildGround(
   const { atlas, columns, rows } = groundAtlas(surfaces);
   const atlasTexture = textureOf(atlas, false);
 
+  if (relief && relief.length !== width * height * 4) throw new Error(`a block's relief has ${relief.length / 4} tiles; its map ${width * height}`);
+  const reliefTexture = relief ? new THREE.DataTexture(relief, width, height, THREE.RGBAFormat, THREE.FloatType) : new THREE.DataTexture(new Float32Array(4), 1, 1, THREE.RGBAFormat, THREE.FloatType);
+  reliefTexture.magFilter = reliefTexture.minFilter = THREE.NearestFilter;
+  reliefTexture.needsUpdate = true;
+  const brinks = new THREE.DataTexture(brinkMap(surfaces), Math.max(1, surfaces.length), 1, THREE.RGBAFormat);
+  brinks.magFilter = brinks.minFilter = THREE.NearestFilter;
+  brinks.needsUpdate = true;
+
   const material = lit(null, { flat: true });
   material.userData.flat = true;
+  /** Whether the terraces' edges are drawn (1 where there is relief): a test sets it to 0 to compare (e2e/edges.spec.ts). */
+  material.userData.edges = { value: relief ? 1 : 0 };
 
   material.onBeforeCompile = (shader) => {
     shader.uniforms.groundMap = { value: map };
     shader.uniforms.groundAtlas = { value: atlasTexture };
+    shader.uniforms.reliefMap = { value: reliefTexture };
+    shader.uniforms.brinkMap = { value: brinks };
+    shader.uniforms.brinkCount = { value: Math.max(1, surfaces.length) };
+    shader.uniforms.hasRelief = material.userData.edges;
     shader.uniforms.mapSize = { value: new THREE.Vector2(width, height) };
     shader.uniforms.mapOrigin = { value: new THREE.Vector2(anchor.x, anchor.z) };
     shader.uniforms.mapShift = { value: new THREE.Vector2(anchor.x - origin.x, anchor.z - origin.z) };
@@ -152,6 +299,7 @@ vec3 groundId(vec2 texel) {
   }
   return best;
 }
+${EDGES_GLSL}
 `,
       )
       .replace(
@@ -167,6 +315,7 @@ vec3 groundId(vec2 texel) {
   // A one-texel shadow under the edge of whatever grows over this surface from the north.
   vec3 sliceNorth = groundId(sliceTexel - vec2(0.0, 1.0));
   if (sliceNorth.y > slice.y) sliceColor.rgb *= vec3(0.62, 0.6, 0.72);
+  if (hasRelief > 0.5) sliceColor.rgb = terrainEdges(sliceTexel, sliceColor.rgb, slice.x);
   diffuseColor *= sliceColor;
 `,
       );

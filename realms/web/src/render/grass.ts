@@ -93,6 +93,8 @@ export function grassField(
   heightAt: (x: number, z: number) => number = () => 0,
   /** The ramp a tile's tufts are painted in (x and z as `tufts` has them); none, the slice's green. */
   rampAt: (x: number, z: number) => Ramp | undefined = () => undefined,
+  /** Where no tuft stands, by its point in the world: a terrace's worn brink and the foot below it (render/terrain.ts). */
+  bareAt: (x: number, z: number) => boolean = () => false,
 ): GrassField {
   const random = seeded(seed);
   const ramps: Ramp[] = [C.GRASS];
@@ -107,7 +109,9 @@ export function grassField(
       const n = Math.floor(perTile * (0.5 + random()));
       for (let k = 0; k < n; k++) {
         const variant = random() < 0.85 ? Math.floor(random() * 2) : 2 + Math.floor(random() * 2);
-        spots.push({ x: origin.x + x + random(), y: heightAt(origin.x + x, origin.z + z), z: origin.z + z + random(), variant: tone === 0 ? variant : variant % FLOWERED, tone, scale: 0.85 + random() * 0.3 });
+        const spot = { x: origin.x + x + random(), y: heightAt(origin.x + x, origin.z + z), z: origin.z + z + random(), variant: tone === 0 ? variant : variant % FLOWERED, tone, scale: 0.85 + random() * 0.3 };
+        // Drawn from the generator either way, so the tufts that stand stand where they did.
+        if (!bareAt(spot.x, spot.z)) spots.push(spot);
       }
     }
   }

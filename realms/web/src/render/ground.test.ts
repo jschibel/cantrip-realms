@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Pixmap } from "../art/paint/pixmap";
 import { SURFACES } from "../art/surfaces";
-import { buildGround, groundAtlas, groundMap } from "./ground";
+import { brinkMap, buildGround, groundAtlas, groundMap } from "./ground";
 
 // The ground's tile map (ground.ts): every tile carries its surface, its priority's rank and its hole flag, so a block
 // may use any number of surfaces and every hole among them is a gap - a river running into the sea, lava beside oil.
@@ -51,5 +51,19 @@ describe("the ground's tile map", () => {
     const p = new Pixmap(64, 64);
     const { columns, rows } = groundAtlas([{ picture: p }, { picture: p }, { picture: p }]);
     expect([columns, rows]).toEqual([3, 1]);
+  });
+
+  it("gives each surface its brink's stone, and none where it has no bank", () => {
+    const looks = ["grass", "snow", "rock", "floorboards"].map((id) => SURFACES.look(id));
+    expect(looks[0]!.brink).toBeDefined();
+    expect(looks[3]!.brink).toBeUndefined();
+    const data = brinkMap(looks);
+    const color = (i: number) => [...data.subarray(i * 4, i * 4 + 4)];
+    expect(color(0)).toEqual([(looks[0]!.brink! >> 16) & 255, (looks[0]!.brink! >> 8) & 255, looks[0]!.brink! & 255, 255]);
+    expect(color(1)[3]).toBe(255);
+    expect(color(3)).toEqual([0, 0, 0, 0]);
+    // A block with relief takes it tile for tile; a mismatched one is refused.
+    expect(() => buildGround([[0, 1]], looks, { x: 0, z: 0 }, 0, { x: 0, z: 0 }, undefined, new Float32Array(8))).not.toThrow();
+    expect(() => buildGround([[0, 1]], looks, { x: 0, z: 0 }, 0, { x: 0, z: 0 }, undefined, new Float32Array(4))).toThrow();
   });
 });

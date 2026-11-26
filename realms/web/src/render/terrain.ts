@@ -61,6 +61,56 @@ export function floorAt(tileAt: TileAt, x: number, z: number): number {
   return (nw * (1 - fx) + ne * fx) * (1 - fz) + (sw * (1 - fx) + se * fx) * fz;
 }
 
+/**
+ * Whether a point is within `brink` of a terrace's brink (its tile's edge standing above the neighbour's by more than a
+ * kerb's two texels, wherever along the edge) or within `foot` of a bank's foot: where the ground's edges are drawn
+ * (render/ground.ts), so no standing grass hides them.
+ */
+export function nearBank(tileAt: TileAt, x: number, z: number, brink = 0.4, foot = 0.2): boolean {
+  const tx = Math.floor(x);
+  const tz = Math.floor(z);
+  const fx = x - tx;
+  const fz = z - tz;
+  const reach = Math.max(brink, foot);
+  const step = 2 / TEXELS_PER_TILE;
+  const eps = 1e-3;
+  // Each side: its way out, how far the point is from it, and the point on it.
+  const sides: readonly (readonly [number, number, number, number, number])[] = [
+    [0, -1, fz, x, tz],
+    [0, 1, 1 - fz, x, tz + 1],
+    [-1, 0, fx, tx, z],
+    [1, 0, 1 - fx, tx + 1, z],
+  ];
+  for (const [dx, dz, d, ex, ez] of sides) {
+    if (d >= reach || !hasGround(tileAt(tx + dx, tz + dz))) continue;
+    const drop = floorAt(tileAt, ex - dx * eps, ez - dz * eps) - floorAt(tileAt, ex + dx * eps, ez + dz * eps);
+    if ((drop > step && d < brink) || (drop < -step && d < foot)) return true;
+  }
+  return false;
+}
+
+/** What `reliefMap` holds for a tile with no ground: no edge is drawn against it. */
+export const NO_RELIEF = -65536;
+
+/**
+ * The relief of a block of tiles for the ground's shader (render/ground.ts): each tile's four corner heights in texels
+ * (`cornersOf` times 16: north-west, north-east, south-east, south-west), `NO_RELIEF` where there is no ground, a row of
+ * `cols` tiles from (x0, z0) at a time. The shader reads it to find where a tile's edge drops to a lower neighbour (its
+ * brink) or rises to a higher one (its foot), wherever the drop is along the edge - so a ramp, level with the ground at
+ * its ends, has neither there.
+ */
+export function reliefMap(tileAt: TileAt, x0: number, z0: number, cols: number, rows: number): Float32Array {
+  const out = new Float32Array(cols * rows * 4).fill(NO_RELIEF);
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      if (!hasGround(tileAt(x0 + i, z0 + j))) continue;
+      const c = cornersOf(tileAt, x0 + i, z0 + j);
+      out.set(c.map((h) => h * TEXELS_PER_TILE), (j * cols + i) * 4);
+    }
+  }
+  return out;
+}
+
 /** The rock of a bank, unless the surface on top names its own (`cliff`). */
 const defaultBank = (): Material => material("bank-rock", () => T.rock(19));
 

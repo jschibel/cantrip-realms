@@ -27,7 +27,7 @@ import { type WorldSource, loadChunk } from "../world/load";
 import { grassField } from "./grass";
 import { buildGround } from "./ground";
 import { type Place, type Section, sortScenery } from "./place";
-import { type TileAt, banksOf, floorAt, floorGeometry } from "./terrain";
+import { type TileAt, banksOf, floorAt, floorGeometry, nearBank, reliefMap } from "./terrain";
 
 // The world at scale: its chunks built as the player comes near and dropped as they go (render/place.ts sections), a
 // chunk's work spread over frames so none of them hitches. A chunk is built only once the chunks round it are read, so
@@ -145,7 +145,9 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
   // The ground: the chunk's tiles and a border of its neighbours', so its edges grow over theirs as they would whole.
   const { ids, looks } = groundOf(CHUNK + 2, CHUNK + 2, (i, j) => tileAt(x0 - 1 + i, z0 - 1 + j));
   const shape = floorGeometry(tileAt, x0, z0, CHUNK, CHUNK);
-  const ground = buildGround(ids, looks.map((l) => ({ picture: l.picture, priority: l.priority, hole: l.hole })), { x: x0 - 1, z: z0 - 1 }, 0, { x: rect[0], z: rect[1] }, shape);
+  // Its relief over the same tiles, so the terraces' brinks and feet are drawn on it (and meet the neighbours' alike).
+  const relief = reliefMap(tileAt, x0 - 1, z0 - 1, CHUNK + 2, CHUNK + 2);
+  const ground = buildGround(ids, looks.map((l) => ({ picture: l.picture, priority: l.priority, hole: l.hole, brink: l.brink })), { x: x0 - 1, z: z0 - 1 }, 0, { x: rect[0], z: rect[1] }, shape, relief);
   // Terrain: outlined where a terrace's edge stands in front of the ground below it (render/renderer.ts).
   (ground.material as THREE.Material).userData.terrain = true;
   section.addGround(ground);
@@ -208,6 +210,8 @@ export function* buildChunk(world: WorldData, c: ChunkData, tileAt: TileAt, sect
       seedOf(c.cx, c.cz),
       (x, z) => floorAt(tileAt, x + 0.5, z + 0.5),
       (i, j) => lookOf(tileAt(x0 + i, z0 + j)?.[1] ?? NO_SURFACE)?.tuftRamp,
+      // None on a terrace's worn brink or at its bank's foot, so the edges drawn there show.
+      (x, z) => nearBank(tileAt, x, z),
     ),
   );
   place.settle(section);
