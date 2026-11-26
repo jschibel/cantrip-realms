@@ -114,7 +114,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   end), the tile stood on and then the other side's are told the server, and the other side is read and built round
   where the player will stand while it is shut (`ChunkStreamer.settle` keeping what is built: the place left is still
   seen) - no loading screen; it opens on the way's `inside`, facing into the town, or its `outside`, facing away from
-  the icon, where standing still goes nowhere. The streamer then drops what was left.
+  the icon, where standing still goes nowhere (a figure arriving steps out of the doorway onto its tile only where the
+  doorway is ground one stands on: out of an icon it stands on the outside from the first frame, so the page never tells
+  the server a tile of the icon). The streamer then drops what was left.
 - **The debug overlay** (F3, or `?debug`; `src/debug.ts`): the place, chunk, the player's exact position, tile and
   floor height, the tile under the pointer (open or closed, its floor), and every jump of the player's figure - a move
   in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also
