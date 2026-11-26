@@ -4,34 +4,38 @@
   "kind": "shop",
   "town": "capashen-hold",
   "style": "benalish",
-  "w": 9,
+  "w": 10,
   "d": 7,
-  "area": [0,0,9,8],
+  "area": [0,0,10,8],
   "tiles": [
-    [0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],
-    [0,"hearthstone",0],[0,"hearthstone",0],[0,"hearthstone",0],[0,"hearthstone",0],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",1],
-    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],
-    [0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
-    [0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
-    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
-    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
-    [0,"",1],[0,"",1],[0,"",1],[0,"floorboards",1],[0,"floorboards",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
+    [0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],
+    [0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",1],
+    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",1],
+    [0,"floorboards",0],[0,"floorboards",1],[0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
+    [0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
+    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
+    [0,"floorboards",1],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],[0,"floorboards",0],
+    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"floorboards",1],[0,"floorboards",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
   ],
   "props": [
-    {"id":"shop-counter","x":5.25,"z":1,"args":{"to":[8.75,3]}},
+    {"id":"shop-counter","x":5.25,"z":1,"args":{"to":[9.75,3]}},
     {"id":"scales","x":6.25,"z":2.6,"y":1.0625},
     {"id":"coins","x":7.25,"z":2.55,"y":1.0625},
     {"id":"ledger","x":8,"z":2.35,"y":1.0625},
-    {"id":"candle","x":8.5,"z":2.6,"y":1.0625},
+    {"id":"candle","x":9.5,"z":2.6,"y":1.0625},
     {"id":"blade-rack","x":5.5,"z":0,"y":1.25},
     {"id":"shield","x":5.2,"z":0,"y":0.3},
-    {"id":"bookshelf","x":6,"z":0,"seed":11,"args":{"goods":true}},
+    {"id":"bookshelf","x":6,"z":0,"seed":10,"args":{"goods":true}},
     {"id":"blade-rack","x":7.5,"z":0,"y":1.25},
     {"id":"shield","x":7.2,"z":0,"y":0.3},
-    {"id":"bookshelf","x":8,"z":0,"seed":10,"args":{"goods":true}},
-    {"id":"hearth","x":2,"z":0},
-    {"id":"candle","x":0.75,"z":0.3,"y":1.875},
-    {"id":"pot","x":2.75,"z":0.3,"y":1.875,"args":{"r":0.12}},
+    {"id":"bookshelf","x":8,"z":0,"seed":4,"args":{"goods":true}},
+    {"id":"blade-rack","x":9.5,"z":0,"y":1.25},
+    {"id":"shield","x":9.2,"z":0,"y":0.3},
+    {"id":"back-window","x":2,"z":0,"y":1.125},
+    {"id":"blade-rack","x":0.5,"z":0,"y":1.25},
+    {"id":"shield","x":1.1,"z":0,"y":1.8},
+    {"id":"blade-rack","x":2.5,"z":0,"y":1.25},
+    {"id":"shield","x":3.1,"z":0,"y":1.8},
     {"id":"blade-rack","x":4.5,"z":0,"y":1.25},
     {"id":"shield","x":5.1,"z":0,"y":1.8},
     {"id":"weapon-rack","x":2,"z":3.5,"tint":"room-benalish"},
@@ -41,13 +45,13 @@
     {"id":"crate","x":1.1,"z":6.5,"turn":0.15,"args":{"size":0.5,"goods":"apples"}}
   ],
   "npcs": [
-    {"id":"benalia-soldiers","x":7,"z":1,"kind":"vendor","name":"The Soldiers' Quarter","stand":[7.5,0,1.6],"behaviour":{"rest":[0,1],"watch":5},"vendor":"benalia-soldiers","figure":"shopkeeper","seed":744}
+    {"id":"benalia-soldiers","x":8,"z":1,"kind":"vendor","name":"The Soldiers' Quarter","stand":[8.5,0,1.6],"behaviour":{"rest":[0,1],"watch":5},"vendor":"benalia-soldiers","figure":"shopkeeper","seed":744}
   ],
   "lights": [
-    {"kind":"point","at":[8.5,1.6,2.7],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[2,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":0}}
+    {"kind":"point","at":[9.5,1.6,2.7],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
+    {"kind":"spot","at":[2.5,4,-1.6],"to":[2.5,0,3.6],"color":[1,0.94,0.78],"intensity":40,"reach":14,"angle":0.36,"penumbra":0.05,"decay":1.2}
   ],
-  "entry": [4,6],
-  "exit": [664,353],
+  "entry": [5,6],
+  "exit": [668,334],
   "params": {"specialty":"weapons"}
 }
