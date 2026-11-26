@@ -674,7 +674,9 @@ export class WorldMapView {
     for (const m of towns) names.push({ id: `town:${m.id}`, text: m.name, kind: "town", x: m.x + 0.5, z: m.z + 0.5, mark: m });
     const labels = this.source.labels();
     for (const kind of ["land", "sea", "region", "feature"] as const) for (const l of labels) if (l.kind === kind) names.push({ id: `label:${l.name}`, text: l.name, kind, x: l.x, z: l.z });
-    if (k >= 2) for (const m of marks) if (m.kind === "landmark") names.push({ id: `landmark:${m.id}`, text: m.name, kind: "landmark", x: m.x + 0.5, z: m.z + 0.5, mark: m });
+    // The wonders' names closer in - but for one the land's names already write (Hammerheim).
+    const written = new Set(labels.map((l) => l.name.replace(/^The /, "").toLowerCase()));
+    if (k >= 2) for (const m of marks) if (m.kind === "landmark" && !written.has(m.name.replace(/^The /, "").toLowerCase())) names.push({ id: `landmark:${m.id}`, text: m.name, kind: "landmark", x: m.x + 0.5, z: m.z + 0.5, mark: m });
     // The tiers' numbers: the wide zones from afar, every zone closer in.
     const least = k < 1.4 ? 10 : k < 2.5 ? 6 : k < 5 ? 3 : 1;
     for (const b of this.art.badges) if (b.cells >= least) names.push({ id: `tier:${b.x},${b.z}`, text: String(b.tier), kind: "tier", x: b.x, z: b.z, badge: b });

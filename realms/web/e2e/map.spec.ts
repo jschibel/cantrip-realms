@@ -122,6 +122,20 @@ for (const size of [
   });
 }
 
+test("in a town's grounds the whole map opens on the town's, and turns to the world's with the player at the town's icon", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await openRealm(page, { at: "capashen-hold", extra: "&mobs=0" });
+  await until(page, async () => (await realm<{ town: string | null }>(page, "map")).town === "capashen-hold", "the town's map");
+  await page.keyboard.press("m");
+  await until(page, async () => (await realm<string>(page, "map.view")) === "town" && (await realm<boolean>(page, "map.open")), "the town's whole map");
+  await page.locator("[data-test='map:switch']").click();
+  await until(page, async () => (await realm<Whole | null>(page, "map.whole"))?.ready === true, "the world's whole map drawn");
+  expect(await realm<string>(page, "map.view")).toBe("world");
+  if (shots) await page.screenshot({ path: join(shots, "map-world-from-town.png") });
+  await page.keyboard.press("Escape");
+  await until(page, async () => (await realm<boolean>(page, "map.open")) === false, "the map closed");
+});
+
 test("the minimap on the travel map: the land round the player, the marks near, a coast, a pass and a forest", async ({ page }) => {
   test.setTimeout(120_000);
   for (const [name, at] of [
