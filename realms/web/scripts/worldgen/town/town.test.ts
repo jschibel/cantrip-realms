@@ -72,6 +72,25 @@ describe("the town generator", () => {
     }
   });
 
+  it("never lays two towns of one form to the same plan", () => {
+    // Each town's buildings about its centre: no two of one form share half of them.
+    const sig = (t: (typeof built.towns)[number]) => {
+      const sq = t.data.plan!.squares[0]!;
+      return new Set(t.buildings.map((b) => `${b.x - sq.x},${b.z - sq.z},${b.w},${b.d}`));
+    };
+    for (let a = 0; a < built.towns.length; a++) {
+      for (let b = a + 1; b < built.towns.length; b++) {
+        const p = layout.towns.find((t) => t.id === built.towns[a]!.data.id)!;
+        const q = layout.towns.find((t) => t.id === built.towns[b]!.data.id)!;
+        if (formOf(p) !== formOf(q)) continue;
+        const sa = sig(built.towns[a]!);
+        const sb = sig(built.towns[b]!);
+        const shared = [...sa].filter((k) => sb.has(k)).length;
+        expect(shared / Math.max(1, Math.min(sa.size, sb.size)), `${p.id} and ${q.id}`).toBeLessThan(0.5);
+      }
+    }
+  });
+
   it("refuses, by name, a setting it cannot honour", () => {
     expect(() => buildOn("serras-rest", { biome: "plains", sea: ["south"], relief: 0, ways: [{ side: "south", to: "x" }] })).toThrow(/a way out on its south side, which is sea/);
     expect(() => buildOn("serras-rest", { biome: "plains", sea: ["east"], river: "east", relief: 0, ways: [{ side: "south", to: "x" }] })).toThrow(/a river past its east side, which is sea/);

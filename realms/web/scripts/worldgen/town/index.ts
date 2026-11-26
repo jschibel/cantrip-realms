@@ -241,7 +241,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   // what the rest of the rows build.
   const points = [
     ...plan.gates.map((g) => ({ at: [Math.floor((g.passage.x0 + g.passage.x1 - 1) / 2), Math.floor((g.passage.z0 + g.passage.z1 - 1) / 2)] as XZ, gate: true })),
-    ...placer.placed.flatMap((p) => [...(p.need?.place ? [{ at: p.f.door, gate: false }] : []), ...(p.spot ? [{ at: p.spot, gate: false }] : [])]),
+    ...placer.placed.flatMap((p) => [...(p.need?.room ? [{ at: p.f.door, gate: false }] : []), ...(p.spot ? [{ at: p.spot, gate: false }] : [])]),
   ];
   const cut = passages(ctx, placer.placed, points);
   if (cut > 0) placer.reserve((x, z) => land.inside(x, z) && ctx.mustSee[land.idx(x, z)] === 1);

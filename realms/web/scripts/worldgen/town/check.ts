@@ -29,6 +29,8 @@ import type { TownGroundsData, TownReport } from "./types";
 import { TOWN_SIZE } from "./forms";
 import { STEP } from "./terrain";
 import { FOOTPATH } from "./passages";
+import { isOrganic } from "./organic";
+import { S } from "../ids";
 
 /** What stands tall enough to hide anything: measured for the camera. */
 const TALL = new Set([
@@ -225,7 +227,10 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   };
   let north = 0;
   let columns = 0;
-  for (let x = sq.x0; x < sq.x1; x++) {
+  // A round centre's north side is the top of its curve: its middle three fifths across (its ends run down its east and west).
+  const side0 = square.round ? sq.x0 + Math.floor((sq.x1 - sq.x0) * 0.2) : sq.x0;
+  const side1 = square.round ? sq.x1 - Math.floor((sq.x1 - sq.x0) * 0.2) : sq.x1;
+  for (let x = side0; x < side1; x++) {
     const top = topOf(x);
     if (top === null) continue;
     columns++;
@@ -407,6 +412,61 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   const homes = ctx.interiors.filter((r) => r.kind === "house").length;
   const wantHomes = formOf(town) === "capital" ? 10 : village ? 3 : 6;
   if (homes !== wantHomes) problems.push(`${homes} houses with a door for ${wantHomes}`);
+
+  // A grown town (amphitheatre.ts): its form's signature, fronts that step, and no long way round between neighbours.
+  if (isOrganic(plan)) {
+    const form = formOf(town);
+    const centre = data.plan!.squares[0]!;
+    const facing = townBuildings.filter((b) => b.rot === 0);
+    // The head of the centre: the temple, the shrine, the great hall - its door on the centre's north edge, on its axis.
+    const head = ctx.buildings.find((b) => b.interior === `${town.id}-temple` || b.interior === `${town.id}-shrine`);
+    const axis = centre.x + centre.w / 2;
+    if (!head || !head.door || Math.abs(head.door[0] - axis) > centre.w / 2 || head.door[1] > centre.z + 3 || head.door[1] < centre.z - 3) problems.push(`its ${form === "clan" ? "great hall" : form === "elfhame" ? "Grove" : "shrine or temple"} does not stand at the head of its ${centre.name ?? "centre"}`);
+    // An arc round the centre's north, east and west: fronts north of its middle on both sides of its axis, stepping.
+    const arc = facing.filter((b) => b.z + b.d <= centre.z + centre.d / 2 + 2 && Math.abs(b.x + b.w / 2 - axis) <= centre.w / 2 + 16);
+    if (!arc.some((b) => b.x + b.w / 2 < axis - 2) || !arc.some((b) => b.x + b.w / 2 > axis + 2)) problems.push(`no arc of fronts round its ${centre.name ?? "centre"} on both sides`);
+    // Fronts off any common line: no one row holds the fronts of most of its buildings.
+    const rows = new Map<number, number>();
+    for (const b of facing) rows.set(b.z + b.d, (rows.get(b.z + b.d) ?? 0) + 1);
+    const most = Math.max(0, ...rows.values());
+    if (facing.length >= 5 && most > Math.max(2, facing.length * 0.4)) problems.push(`${most} of its ${facing.length} fronts on one line (row ${[...rows].find(([, n]) => n === most)![0]})`);
+    if (form === "elfhame") {
+      if (!centre.round) problems.push("its glade is not round");
+      if (ctx.F.enclosure !== "none" || ctx.props.some((p) => p.id === "wall-run")) problems.push("an elfhame with a wall");
+      const trees = [...land.decor.values()].filter((p) => (p.id === "great-tree" || p.id === "elf-tree") && inBox(Math.floor(p.x), Math.floor(p.z))).length;
+      if (trees < 12) problems.push(`only ${trees} great trees about its glade`);
+    }
+    if (form === "clan") {
+      if (ctx.F.enclosure !== "palisade") problems.push("a clan hold with no palisade");
+      // An oval: its outline turns often, no straight side longer than half its width.
+      const o = data.plan!.outline;
+      let longest = 0;
+      for (let k = 0; k < o.length; k++) longest = Math.max(longest, Math.abs(o[k]![0] - o[(k + 1) % o.length]![0]) + Math.abs(o[k]![1] - o[(k + 1) % o.length]![1]));
+      const xs = o.map(([x]) => x);
+      if (longest > (Math.max(...xs) - Math.min(...xs)) * 0.6) problems.push(`its palisade runs ${longest} tiles straight: no oval`);
+    }
+    if (form === "stilts") {
+      // No ground street: every way is boardwalk, everything else bog or water.
+      let ground = 0;
+      for (const k of tiles) {
+        const [x, z] = k.split(",").map(Number) as [number, number];
+        if (!inside(x, z) || ctx.inTown[I(x, z)] !== 1) continue;
+        if (land.surface[I(x, z)] !== S.planks && !land.isWater(I(x, z))) ground++;
+      }
+      if (ground > 0) problems.push(`${ground} tiles of its ways on solid ground, not boardwalk`);
+    }
+    if (form === "village" && !(centre.round && land.surface[I(centre.x + Math.floor(centre.w / 2), centre.z + Math.floor(centre.d / 2))] === S.grass)) problems.push("no green");
+    // Neighbours: from every door to the nearest other, no long way round.
+    const doorsAll = ctx.buildings.filter((b) => b.door && inBox(b.door[0], b.door[1])).map((b) => b.door!);
+    for (const d of doorsAll) {
+      const others = doorsAll.filter((e) => e !== d).map((e) => ({ e, s: Math.hypot(e[0] - d[0], e[1] - d[1]) })).filter((o) => o.s >= 4).sort((p, q) => p.s - q.s);
+      const n = others[0];
+      if (!n) continue;
+      const from = walk([d]);
+      const walked = from.get(I(n.e[0], n.e[1])) ?? Infinity;
+      if (walked > n.s * 2 + 8) problems.push(`from the door at ${d.join(",")} to its nearest neighbour's at ${n.e.join(",")} is ${Math.round(walked)} tiles for ${Math.round(n.s)}: no path through the yards`);
+    }
+  }
 
   // What is used from beside it.
   for (const n of ctx.npcs) {

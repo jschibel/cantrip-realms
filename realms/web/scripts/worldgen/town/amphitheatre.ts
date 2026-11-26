@@ -61,7 +61,7 @@ interface Recipe {
 
 const RECIPES: Readonly<Record<Form, Recipe>> = {
   elfhame: { centre: { town: [16, 8], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } } },
-  clan: { centre: { town: [15, 7], village: [10, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 } },
+  clan: { centre: { town: [15, 7], village: [9, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 } },
   village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 } },
   stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } } },
 };
@@ -338,8 +338,8 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         // The arc ends where it turns below the centre's middle.
         if (Math.abs(inner - cx) > Rx + 14 || x0 < box.x0 + 2 || x1 > box.x1 - 2) break;
         let z1 = frontOf(wt, x0, x1);
-        // Fronts step down as the arc runs out, never back up.
-        z1 = Math.max(z1, toEast ? lastEast : lastWest);
+        // Fronts step down as the arc runs out, never back up, never in line with the one inside.
+        z1 = Math.max(z1, (toEast ? lastEast : lastWest) + 1);
         if (z1 > cz + 2) break;
         if (!fits(wt, x0, x1, z1)) continue;
         these.push(place(wt, x0, x1, z1, r));
@@ -471,7 +471,6 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       const inTown = (px: number, pz: number) => !oval || oval[I(px, pz)] === 1;
       const r = route(g, { from: [inner], goal: (px, pz) => centreTiles[I(px, pz)] === 1 || net.middle[I(px, pz)]! > 0, pass: (px, pz) => (passable(px, pz) && inTown(px, pz)) || (px === inner[0] && pz === inner[1]), cost, turn: 0.5, limit: 260 });
       if (!r) {
-        if (process.env.TOWN_DEBUG === "gates") console.log(`gate ${side} u ${u}: no route from ${inner.join(",")}`);
         continue;
       }
       const stub: XZ[] = [];
@@ -529,7 +528,9 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         const d = Math.hypot(x0 + wt.w / 2 - cx, z1 - cz);
         let shore = false;
         for (let k = 0; k < wt.w && !shore; k++) for (let s = 3; s < 9 && !shore; s++) if (g.inside(x0 + k, z1 + s) && seaTile[I(x0 + k, z1 + s)]) shore = true;
-        const score = d * 0.6 + near * 1.5 + (z1 > cz + 2 ? 5 : 0) - (shore && wt.role === "warehouse" ? 10 : 0) + random() * 2;
+        // Fronts step: one in line with another's is worth less.
+        const inLine = lots.filter((l) => l.z1 === z1).length;
+        const score = d * 0.6 + near * 1.5 + (z1 > cz + 2 ? 5 : 0) + inLine * 8 - (shore && wt.role === "warehouse" ? 10 : 0) + random() * 2;
         if (!bestLot || score < bestLot.score) bestLot = { x0, z1, score };
       }
     }
@@ -572,13 +573,17 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
 
   // --- The stilts' web: more boardwalks between the rings' paths, platforms at the junctions ---------------------------------------
   const platforms: TownSquare[] = [];
-  if (R.web) {
+  {
+    // Every path that ends at no junction goes on to the nearest other (a loop, not a dead end: no walk goes the long way
+    // round); the stilts' web joins one end in three of every path besides.
+    const count = new Map<string, number>();
+    for (const e of net.edges) for (const t of [e.tiles[0]!, e.tiles[e.tiles.length - 1]!]) count.set(`${t[0]},${t[1]}`, (count.get(`${t[0]},${t[1]}`) ?? 0) + 1);
     const ends = net.edges.flatMap((e) => [{ at: e.tiles[0]!, own: e.tiles }, { at: e.tiles[e.tiles.length - 1]!, own: e.tiles }]);
-    for (let k = 0; k < ends.length; k += 3) {
-      const { at, own } = ends[k]!;
-      if (centreTiles[I(at[0], at[1])]) continue;
-      connect(at, "net", false, own);
-    }
+    ends.forEach(({ at, own }, k) => {
+      if (centreTiles[I(at[0], at[1])] || net.middle[I(at[0], at[1])]! > 1) return;
+      const dead = (count.get(`${at[0]},${at[1]}`) ?? 0) === 1 && !gateNodes.some((n) => n[0] === at[0] && n[1] === at[1]);
+      if (dead || (R.web && k % 3 === 0)) connect(at, "net", false, own);
+    });
   }
 
   // --- The centre's open ground: inside the arcs, down to the centre, its edge wandering -------------------------------------------
@@ -610,9 +615,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     if (built[i] && (!oval || oval[i])) mask[i] = 1;
     if (nearSea[i] || x <= box.x0 || z <= box.z0 || x >= box.x1 - 1 || z >= box.z1 - 1) mask[i] = 0;
   }
-  if (process.env.TOWN_DEBUG === "mask") console.log(`built ${built.reduce((s, v) => s + v, 0)}, mask before holes ${mask.reduce((s, v) => s + (v ? 1 : 0), 0)}`);
   fillHoles(g, mask, box);
-  if (process.env.TOWN_DEBUG === "mask") console.log(`mask after holes ${mask.reduce((s, v) => s + (v ? 1 : 0), 0)}, box ${JSON.stringify(box)}`);
   // The ring round it: where the gates' roads cross it, its passages.
   ring(g, mask);
   const ringOpen = new Uint8Array(g.size);
