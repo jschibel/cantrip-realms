@@ -37,6 +37,26 @@ public sealed class CharacterTests
     }
 
     [Fact]
+    public async Task A_character_kept_where_the_world_no_longer_has_ground_stands_at_their_inn()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "G", "Ann");
+        CharacterView before = await browser.Me();
+
+        // As a map remade since they last played leaves them: on a tile far off the world, then in a room that is gone.
+        await app.Store(db => db.Players.ExecuteUpdateAsync(set => set.SetProperty(row => row.X, -5000).SetProperty(row => row.Z, -5000)));
+        CharacterView moved = await browser.Me();
+        Assert.Equal(RealmContent.WorldSpace, moved.Space);
+        Assert.True(RealmApp.Content.World.Walkable(new Tile(moved.X, moved.Z)));
+        Assert.Contains(RealmApp.Content.Inns.Values, inn => inn.Id == before.Inn && inn.At == new Tile(moved.X, moved.Z));
+
+        await app.Store(db => db.Players.ExecuteUpdateAsync(set => set.SetProperty(row => row.Space, "a-room-that-is-gone")));
+        CharacterView again = await browser.Me();
+        Assert.Equal(RealmContent.WorldSpace, again.Space);
+        Assert.Equal((moved.X, moved.Z), (again.X, again.Z));
+    }
+
+    [Fact]
     public async Task A_new_character_has_the_starting_kit()
     {
         await using var app = new RealmApp();

@@ -134,6 +134,14 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
         // As stored now, whatever this request has read before: a conditional update may have moved it since.
         PlayerRow row = await db.Players.AsNoTracking().SingleOrDefaultAsync(row => row.Id == player).ConfigureAwait(false)
             ?? throw Refusal.NotFound(Codes.NoCharacter, "You have no character yet.");
+        // A place the world no longer has (the map was remade since they last stood there: a tile now sea, a room gone)
+        // is nowhere to stand: they are at their inn's door instead. A dungeon run's places are the browser's own.
+        if (RealmContent.RunOf(row.Space) is null && (content.Space(row.Space) is not { } space || !space.Walkable(new Tile(row.X, row.Z))))
+        {
+            await ToInn(player).ConfigureAwait(false);
+            row = await db.Players.AsNoTracking().SingleAsync(stored => stored.Id == player).ConfigureAwait(false);
+        }
+
         List<GearInstance> gear = await Gear(player).ConfigureAwait(false);
         Dictionary<string, GearInstance?> loadout = await Loadout(player, gear).ConfigureAwait(false);
         List<string> unlocked = await db.Unlocks.Where(unlock => unlock.PlayerId == player).Select(unlock => unlock.Color).ToListAsync().ConfigureAwait(false);
