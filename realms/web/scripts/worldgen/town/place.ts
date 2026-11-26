@@ -293,12 +293,13 @@ export class Placer {
       }
       case "arena":
         if (sq > 40) return null;
-        s += Math.abs(sq - 18) * 0.6 + (onSquare ? 30 : 0) + (block.east === "lane" || block.west === "lane" ? -3 : 0);
+        s += sq * 0.7 + (onSquare ? 30 : 0) + Math.min(...this.placed.filter((p) => p.role === "inn").map((p) => Math.abs(p.f.door[0] - door[0]) + Math.abs(p.f.door[1] - door[1])), 40) * 0.3;
         break;
       case "home": {
-        // In the quiet rows, a walk from the square, apart from each other.
-        if (onSquare) return null;
+        // In the quiet rows, a walk from the square, apart from each other (on a village's green if it must).
+        if (onSquare && this.c.town.kind !== "village") return null;
         if (sq > 60) return null;
+        if (onSquare) s += 15;
         const near = this.placed.filter((p) => p.role === "home").map((p) => manhattan(p.f.door, door));
         s += Math.abs(sq - 22) * 0.4 + near.reduce((t, d) => t + Math.max(0, 24 - d) * 1.5, 0) + this.c.random() * 4;
         break;
@@ -468,14 +469,14 @@ export type District = "market" | "temple" | "keep" | "noble" | "artisan" | "har
 
 /** How a district builds along its frontages. */
 const FILL: Readonly<Record<District, { roles: readonly (readonly [Role, number])[]; gap: readonly [number, number]; garden: number; tall: number }>> = {
-  market: { roles: [["tenement", 3], ["house", 2]], gap: [1, 1], garden: 0.05, tall: 0.8 },
-  temple: { roles: [["house", 3], ["cottage", 1]], gap: [1, 2], garden: 0.25, tall: 0.5 },
-  keep: { roles: [["hall", 1], ["barn", 1]], gap: [2, 3], garden: 0.3, tall: 0.3 },
-  noble: { roles: [["house", 1]], gap: [2, 4], garden: 0.35, tall: 0.8 },
-  artisan: { roles: [["house", 2], ["warehouse", 1], ["barn", 1]], gap: [1, 2], garden: 0.1, tall: 0.4 },
-  harbour: { roles: [["warehouse", 3], ["house", 1]], gap: [1, 2], garden: 0.1, tall: 0.2 },
-  residential: { roles: [["house", 4], ["cottage", 2], ["tenement", 1]], gap: [1, 2], garden: 0.18, tall: 0.6 },
-  gardens: { roles: [["cottage", 2], ["barn", 1]], gap: [2, 4], garden: 0.5, tall: 0.1 },
+  market: { roles: [["tenement", 3], ["house", 2]], gap: [0, 1], garden: 0.03, tall: 0.9 },
+  temple: { roles: [["house", 3], ["cottage", 1]], gap: [1, 2], garden: 0.15, tall: 0.6 },
+  keep: { roles: [["hall", 1], ["barn", 1]], gap: [1, 2], garden: 0.15, tall: 0.4 },
+  noble: { roles: [["house", 1]], gap: [2, 3], garden: 0.2, tall: 0.9 },
+  artisan: { roles: [["house", 2], ["warehouse", 1], ["barn", 1]], gap: [1, 1], garden: 0.06, tall: 0.5 },
+  harbour: { roles: [["warehouse", 3], ["house", 1]], gap: [1, 1], garden: 0.05, tall: 0.3 },
+  residential: { roles: [["house", 4], ["cottage", 2], ["tenement", 1]], gap: [1, 2], garden: 0.1, tall: 0.7 },
+  gardens: { roles: [["cottage", 2], ["barn", 1]], gap: [2, 3], garden: 0.35, tall: 0.2 },
 };
 
 function weighted<T>(items: readonly (readonly [T, number])[], random: () => number): T {

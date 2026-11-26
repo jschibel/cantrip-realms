@@ -225,7 +225,7 @@ export function planTown(input: PlanInput): Plan {
       // they hide (none to keep in sight when it is the north row and no quay lies behind it).
       const fixed = new Map([[a, Math.max(F.row[0], Math.min(F.row[2] + 2, F.square[1]))]]);
       fixed.set(0, row0);
-      fixed.set(a - 1, Math.max(fixed.get(a - 1) ?? 0, a - 1 === 0 && !sea.has("north") ? input.civic[0] + 1 : input.civic[1]));
+      fixed.set(a - 1, Math.max(fixed.get(a - 1) ?? 0, a - 1 === 0 && northQuayDepth === 0 ? input.civic[0] + 1 : input.civic[1]));
       const depths = partition(span - n * W, n, F.row[0], F.row[2] + 1, random, fixed);
       if (process.env.DEBUG_PLAN) console.log("rows", n, a, [...fixed], depths);
       if (!depths) continue;
@@ -248,8 +248,9 @@ export function planTown(input: PlanInput): Plan {
           const d = s === "north" ? sqTop - box.z0 : s === "south" ? box.z1 - sqBottom : s === "west" ? qx - box.x0 : box.x1 - (qx + sqW);
           cost += weight(s) * d;
         }
-        // In the middle across, not jammed against the walls; the hall to the north of it with room behind; level ground.
-        cost += Math.abs(midX - (box.x0 + box.x1) / 2) * 0.35;
+        // In the middle across, not jammed against the walls (on the axis of a landmark at the north edge: the estate's
+        // village at its manor's gate, the capital's citadel above its square); level ground.
+        cost += Math.abs(midX - (box.x0 + box.x1) / 2) * (tall > 0 ? 1.6 : 0.35);
         if (a < Math.max(1, tall)) cost += 400;
         if (a === n - 1 && sides.includes("south")) cost += 6;
         let lo = Infinity;
@@ -262,6 +263,8 @@ export function planTown(input: PlanInput): Plan {
           }
         }
         cost += (hi - lo) * 6 + Math.abs(midZ - (box.z0 + box.z1) / 2) * 0.1;
+        // No sliver of a block between the square and a lane: its side either on the lane or a block's length from it.
+        for (const gap of [qx - (LX0 + westLane), LX1 - eastLane - (qx + sqW)]) if (gap > 0 && gap < F.block[0]) cost += 200;
         // Rows of the depth the form wants, and as many as fit: every row is a street's worth of fronts.
         cost += Math.abs(mean - target) * 3 - n * 60;
         cost += random() * 0.5;

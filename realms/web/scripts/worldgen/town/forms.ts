@@ -38,14 +38,14 @@ export const TOWN_SIZE: Readonly<Record<TownLayout["kind"], readonly [number, nu
 };
 
 const FORMS: Record<Form, FormSpec> = {
-  capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 26], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true },
-  city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 24], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
-  village: { enclosure: "hedge", street: 3, lane: 3, row: [7, 10, 14], block: [10, 22], square: [12, 9], round: false, southBand: 2, yards: "hedged", guards: false },
-  elfhame: { enclosure: "none", street: 3, lane: 3, row: [13, 16, 19], row0: 10, block: [12, 26], square: [20, 10], round: true, southBand: 4, yards: "open", guards: false },
-  stilts: { enclosure: "none", street: 3, lane: 3, row: [8, 10, 13], block: [10, 22], square: [12, 7], round: false, southBand: 3, yards: "bog", guards: false },
-  clan: { enclosure: "palisade", street: 3, lane: 3, row: [9, 11, 14], block: [11, 24], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
-  campus: { enclosure: "none", street: 3, lane: 3, row: [9, 11, 14], block: [11, 24], square: [22, 9], round: false, southBand: 4, yards: "open", guards: false },
-  estate: { enclosure: "wall", street: 3, lane: 3, row: [9, 11, 14], block: [11, 24], square: [18, 9], round: false, southBand: 3, yards: "hedged", guards: true },
+  capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 34], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true },
+  city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
+  village: { enclosure: "hedge", street: 3, lane: 3, row: [7, 10, 14], block: [10, 26], square: [12, 9], round: false, southBand: 2, yards: "hedged", guards: false },
+  elfhame: { enclosure: "none", street: 3, lane: 3, row: [13, 16, 19], row0: 10, block: [12, 32], square: [20, 10], round: true, southBand: 4, yards: "open", guards: false },
+  stilts: { enclosure: "none", street: 3, lane: 3, row: [8, 10, 13], block: [10, 26], square: [12, 7], round: false, southBand: 3, yards: "bog", guards: false },
+  clan: { enclosure: "palisade", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true },
+  campus: { enclosure: "none", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 4, yards: "open", guards: false },
+  estate: { enclosure: "wall", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [18, 9], round: false, southBand: 3, yards: "hedged", guards: true },
 };
 
 /** A small town's measures: a village's rows and square, whatever its form. */

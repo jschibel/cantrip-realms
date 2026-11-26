@@ -7,7 +7,7 @@ import type { PropData, XZ } from "../../../src/world/format";
 import { BARE, BLOCKED } from "../../../src/world/format";
 import { tilesOf } from "../../../src/art/props";
 import { S } from "../ids";
-import { Use, fbm, texel } from "../land";
+import { Use, fbm, noise, texel } from "../land";
 import { makeBuilding } from "./buildings";
 import type { Ctx } from "./index";
 import { type Fields, apron, countryOf, roadPath, treeProp } from "./site";
@@ -320,25 +320,7 @@ function scenery(ctx: Ctx, f: Fields): void {
     for (let dz = -m; dz <= m; dz++) for (let dx = -m; dx <= m; dx++) if (land.inside(x + dx, z + dz) && land.use[I(x + dx, z + dz)] === Use.Road) return true;
     return false;
   };
-  // Fields: in farming country, rectangles beside the roads.
   const farming = C.fields.some((s) => s === S.wheat || s === S.furrows || s === S.straw);
-  if (farming) {
-    const spots = poisson(W.x0 + 2, W.z0 + 2, W.x1 - 2, W.z1 - 2, 9, random, (x, z) => free(x, z) && !nearBox(x, z, 4) && nearRoad(x, z, 9) && !nearRoad(x, z, 2));
-    for (const [px, pz] of spots) {
-      const w = 6 + Math.floor(random() * 5);
-      const d = 4 + Math.floor(random() * 3);
-      const x0 = Math.floor(px - w / 2);
-      const z0 = Math.floor(pz - d / 2);
-      let ok = true;
-      for (let z = z0 - 1; z <= z0 + d && ok; z++) for (let x = x0 - 1; x <= x0 + w && ok; x++) ok = free(x, z) && !nearBox(x, z, 3) && !nearRoad(x, z, 1) && inWalked(x, z);
-      if (!ok) continue;
-      const surface = C.fields[Math.floor(random() * C.fields.length)]!;
-      for (let z = z0; z < z0 + d; z++) for (let x = x0; x < x0 + w; x++) {
-        land.surface[I(x, z)] = surface;
-        land.use[I(x, z)] = Use.Field;
-      }
-    }
-  }
   // A farmhouse and its barn by a road outside a town (not the stilts' or the elfhames').
   let farms = 0;
   const style = ctx.town.style === "benalish" ? "village" : ctx.town.style;
@@ -394,6 +376,35 @@ function scenery(ctx: Ctx, f: Fields): void {
       break;
     }
   }
+  // Fields in farming country: a patchwork over a jittered grid, each field a crop with a strip of grass round it, kept off
+  // the roads, the water and the town's shoulders, some left as pasture; walked in the country, seen in the apron.
+  if (farming) {
+    const cw = 11;
+    const cd = 8;
+    const jx = noise(`${ctx.tag}:fields-x`, 1);
+    const jz = noise(`${ctx.tag}:fields-z`, 1);
+    for (let gz = 0; gz * cd < land.depth; gz++) {
+      for (let gx = 0; gx * cw < land.width; gx++) {
+        // Each corner of the grid moved a little, the same for the cells that share it.
+        const cx = (u: number, v: number) => u * cw + Math.round((jx(u * 1.7, v * 1.3) - 0.5) * 5);
+        const czf = (u: number, v: number) => v * cd + Math.round((jz(u * 1.3, v * 1.7) - 0.5) * 3);
+        const x0 = cx(gx, gz) + 1;
+        const x1 = cx(gx + 1, gz) - 1;
+        const z0 = czf(gx, gz) + 1;
+        const z1 = czf(gx, gz + 1) - 1;
+        if (x1 - x0 < 4 || z1 - z0 < 3 || random() < 0.3) continue;
+        let ok = true;
+        for (let z = z0; z < z1 && ok; z++) for (let x = x0; x < x1 && ok; x++) ok = land.inside(x, z) && land.use[I(x, z)] === Use.Wild && !land.isWater(I(x, z)) && !land.decor.has(I(x, z)) && !nearBox(x, z, 4) && !nearRoad(x, z, 1);
+        if (!ok) continue;
+        const surface = C.fields[Math.floor(random() * C.fields.length)]!;
+        for (let z = z0; z < z1; z++) for (let x = x0; x < x1; x++) {
+          const i = I(x, z);
+          land.surface[i] = surface;
+          if (inWalked(x, z) && land.open(i)) land.use[i] = Use.Field;
+        }
+      }
+    }
+  }
   // Woods and scatter over the rest of the walked country, kept off the roads and the town's shoulders, never hiding a
   // road near the town; the apron's sparser.
   const wood = C.wood;
@@ -415,17 +426,6 @@ function scenery(ctx: Ctx, f: Fields): void {
     if (walked && propHides(p, 0).some(([hx, hz]) => land.inside(hx, hz) && ctx.mustSee[I(hx, hz)] === 1)) continue;
     land.put(I(x, z), p, true);
     if (!walked) land.flags[I(x, z)] = BLOCKED | BARE;
-  }
-  // The apron in farming country: fields seen beyond the hedges.
-  if (farming) {
-    const field = fbm(`${ctx.tag}:apron-fields`, 11, 1);
-    for (let i = 0; i < land.size; i++) {
-      const x = land.xOf(i);
-      const z = land.zOf(i);
-      if (inWalked(x, z) || land.use[i] !== Use.Wild || land.decor.has(i) || land.isWater(i)) continue;
-      const v = field(x, z);
-      if (v > 0.58) land.surface[i] = C.fields[Math.floor(v * 97) % C.fields.length]!;
-    }
   }
 }
 

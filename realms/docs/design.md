@@ -328,17 +328,27 @@ owner may extend.
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius and give chase when you come within 8 tiles, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** are big walled cities (New Benalia about 140 tiles across within its walls, home towns about 100, villages
-  about 40), shaped by the land they stand on, with gates,
-  streets, districts and a varied skyline. Building types: houses and tenements, shops, an inn or tavern, a temple, a
-  guildhall, a smithy, a library or mage's tower, warehouses, a market square, and docks where there is water. Each
-  region's towns are built in its own style: Benalish stone and banners, Tolarian domes on Walassa, the Morass's dark stilt-houses,
-  Keldon longhouses, Llanowar's tree-houses.
-  - **Every town is easy to cross.** Its streets are planned before anything is built: main streets from its gates
-    to the central square, where the shops are, and side streets that meet other streets in loops, never alleys to
-    nowhere - laid out as a grid in Benalia's cities, rings round the great hall or the great tree in Keld and Llanowar,
-    a high street between back lanes in a village. Buildings front the streets, their doors on them, and the walls meet
-    the roads at their gates.
+- **Towns** stand each in grounds of their own at walking scale: the town within its walls (New Benalia 108 by 88 tiles,
+  the home towns 72 by 60, the villages 44 by 30), the country round it that is walked - fields, a farm, a wood's edge,
+  the shore - closed by hedgerow, wood or water but where its roads leave, and scenery beyond. Each is shaped by where it
+  stands (a harbour and quay on the sea, a river through it under bridges, terraces climbing toward the north on a
+  hill) and by its roads, which become its gates. Building types: houses and tenements, shops, an inn, a temple (a
+  shrine in a village), a guildhall, a smithy, a library or mage's tower, warehouses, the square with its market, and
+  quays where there is water. Each region's towns are built in its own style: Benalish stone and banners, a Benalish
+  village's thatch, Tolarian domes, the Morass's dark stilt-houses, the Vess manor's black stone, Keldon longhouses
+  behind a palisade, Llanowar's tree-houses round a clearing.
+  - **Every town is built for the camera.** The camera looks north and never sees a north face, so a town is rows:
+    each row's buildings face south onto the street before them, their doors and signs seen whole, and behind them
+    lie their gardens, deep enough that nothing tall hides the street beyond. The south side of every street is low -
+    hedges, garden walls, orchards - so a street and the fronts across it are seen together. Tall things stand at the
+    north: the cathedral or great hall commands the square from its north side, the keep or the manor stands at the
+    north wall. The square is a room: fronts on its north, the rows' ends on its east and west, and its south side open
+    toward the main gate, so whoever arrives sees the square and the town's best fronts first.
+  - **Every town is easy to cross.** Main streets run from each gate straight to the square; the shops, the inn, the
+    temple, the guild and the rest stand on the square or a block off it, the inn nearest the main gate; short
+    north-south connectors join the east-west streets so every walk loops, never an alley to nowhere. Every building
+    has its door on a street and a reason to be there; open space - the square, gardens, orchards, a churchyard, a quay
+    - lies between.
   - **The map shows the way.** In a town the minimap is the town's: its streets, buildings, gates and places - the inn,
     the shops, the guild, the temple, the smithy, the quest board - and the whole map names each place and where each
     gate's road leads.
