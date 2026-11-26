@@ -287,6 +287,9 @@ export class Stage {
   reachableNear(tile: Tile, reach: number): Tile | null {
     const grid = this.current.grid;
     if (grid.walkable(tile.x, tile.z)) return tile;
+    // Never a door in the place of the tile pointed at: walked onto, an exit of a town's grounds leaves it, and a click
+    // beside the road past the grounds' edge is no way out.
+    const open = (x: number, z: number) => grid.walkable(x, z) && !this.doorAt({ x, z });
     let best: Tile | null = null;
     let bestD = Infinity;
     const me = this.player.tile;
@@ -294,7 +297,7 @@ export class Stage {
       for (let dx = -reach; dx <= reach; dx++) {
         const t = { x: tile.x + dx, z: tile.z + dz };
         const d = Math.hypot(dx, dz) + 0.3 * Math.hypot(t.x - me.x, t.z - me.z);
-        if (grid.walkable(t.x, t.z) && d < bestD) {
+        if (open(t.x, t.z) && d < bestD) {
           best = t;
           bestD = d;
         }
@@ -304,7 +307,7 @@ export class Stage {
     const n = Math.max(Math.abs(me.x - tile.x), Math.abs(me.z - tile.z));
     for (let i = 1; i <= n; i++) {
       const t = { x: Math.round(tile.x + ((me.x - tile.x) * i) / n), z: Math.round(tile.z + ((me.z - tile.z) * i) / n) };
-      if (grid.walkable(t.x, t.z)) return t;
+      if (open(t.x, t.z)) return t;
     }
     return null;
   }

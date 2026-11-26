@@ -142,7 +142,7 @@ for (const [n, id] of TOWNS.entries()) {
     test.setTimeout(Math.max(120_000, WALKS * 12_000));
     const town = world().towns.find((t) => t.id === id)!;
     const errors = await openRealm(page, { at: at(openNear({ x: town.center[0], z: town.center[1] }, 6)), extra: "&mobs=0" });
-    expect(await sweep(page, WALKS, Math.min(town.radius + 12, 48), 7 + n)).toEqual([]);
+    expect(await sweep(page, WALKS, town.radius + 8, 7 + n)).toEqual([]);
     expect(errors).toEqual([]);
   });
 }

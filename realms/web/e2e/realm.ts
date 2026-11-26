@@ -133,14 +133,28 @@ export async function waitSpace(page: Page, id: string | RegExp, seconds = 20): 
  * which a click would use), until within `near` of it. A duel a mob starts on the way is won.
  */
 export async function walkTo(page: Page, goal: Tile, near = 0, avoid: (t: Tile) => boolean = () => false): Promise<void> {
-  for (let tries = 0; tries < 60; tries++) {
+  let way: Tile[] | null = null;
+  for (let tries = 0; tries < 80; tries++) {
     if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
     await stopped(page);
     const from = await playerTile(page);
     if (chebyshev(from, goal) <= near) return;
-    // Toward the goal; past the grid the chunks read hold (a far goal), toward a tile on the way there.
-    let path: Tile[] | null = null;
-    for (const reach of [Infinity, 24, 12, 6]) {
+    // Toward the goal; past the grid the chunks read hold (a far goal), toward a tile on the way there: in the world,
+    // along the way over its files (route); in a room or a run, straight toward it.
+    let path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [goal.x, goal.z] as const)) as Tile[] | null;
+    if ((!path || path.length === 0) && (await realm<string>(page, "space.id")) === "world") {
+      way ??= route(from, goal);
+      if (way) {
+        let at = 0;
+        for (let i = 0; i < way.length; i++) if (chebyshev(way[i]!, from) < chebyshev(way[at]!, from)) at = i;
+        for (const ahead of [16, 10, 6, 3]) {
+          const aim = way[Math.min(way.length - 1, at + ahead)]!;
+          path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [aim.x, aim.z] as const)) as Tile[] | null;
+          if (path && path.length > 1) break;
+        }
+      }
+    }
+    for (const reach of path && path.length > 0 ? [] : [24, 12, 6]) {
       const d = chebyshev(from, goal);
       const k2 = Math.min(1, reach / Math.max(1, d));
       const aim = { x: Math.round(from.x + (goal.x - from.x) * k2), z: Math.round(from.z + (goal.z - from.z) * k2) };
@@ -167,18 +181,26 @@ export async function walkTo(page: Page, goal: Tile, near = 0, avoid: (t: Tile) 
  * figure or the HUD), until within `near` of it. A duel a mob starts on the way is won.
  */
 export async function clickWalk(page: Page, goal: Tile, near = 0, seconds = 20): Promise<void> {
-  for (let tries = 0; tries < 80; tries++) {
+  // The way there over the world's files (`route`), for a goal past the chunks the page has read: each leg is clicked
+  // toward a tile of it a little way on, within the view, as a player picks their way across a big town.
+  let way: Tile[] | null = null;
+  for (let tries = 0; tries < 120; tries++) {
     if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
     await stopped(page);
     const from = await playerTile(page);
     if (chebyshev(from, goal) <= near) return;
-    let path: Tile[] | null = null;
-    for (const reach of [Infinity, 24, 12, 6]) {
-      const d = chebyshev(from, goal);
-      const k = Math.min(1, reach / Math.max(1, d));
-      const aim = { x: Math.round(from.x + (goal.x - from.x) * k), z: Math.round(from.z + (goal.z - from.z) * k) };
-      path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [aim.x, aim.z] as const)) as Tile[] | null;
-      if (path && path.length > 0) break;
+    let path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [goal.x, goal.z] as const)) as Tile[] | null;
+    if (!path || path.length === 0) {
+      way ??= route(from, goal);
+      expect(way, `a way over the world's ground from ${from.x},${from.z} to ${goal.x},${goal.z}`).not.toBeNull();
+      // The tile of the way nearest where the player stands, and a little way on from it.
+      let at = 0;
+      for (let i = 0; i < way!.length; i++) if (chebyshev(way![i]!, from) < chebyshev(way![at]!, from)) at = i;
+      for (const ahead of [16, 10, 6, 3]) {
+        const aim = way![Math.min(way!.length - 1, at + ahead)]!;
+        path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [aim.x, aim.z] as const)) as Tile[] | null;
+        if (path && path.length > 1) break;
+      }
     }
     expect(path, `a way from ${from.x},${from.z} to ${goal.x},${goal.z}`).not.toBeNull();
     // The furthest step up to eight along whose point on the page a click lands on it.
@@ -418,6 +440,48 @@ export function openNear(target: Tile, steps: number, open: (t: Tile) => boolean
     }
   }
   throw new Error(`nowhere open near ${target.x},${target.z}`);
+}
+
+/**
+ * The shortest way between two world tiles over the world's files, as a player walks (eight ways, no corner cut, no ledge
+ * stepped over but a hop straight across), never onto a door, an entrance or anyone standing; the goal may be any open
+ * tile. Null where there is none: a town not walkable from one place to the other.
+ */
+export function route(from: Tile, goal: Tile, limit = 400_000): Tile[] | null {
+  const key = (t: Tile) => `${t.x},${t.z}`;
+  const open = (t: Tile) => (t.x === goal.x && t.z === goal.z ? standable(t) : openWorld(t));
+  const came = new Map<string, string | null>([[key(from), null]]);
+  let ring: Tile[] = [from];
+  while (ring.length > 0 && came.size < limit) {
+    const next: Tile[] = [];
+    for (const t of ring) {
+      if (t.x === goal.x && t.z === goal.z) {
+        const out: Tile[] = [];
+        for (let k: string | null = key(t); k; k = came.get(k) ?? null) {
+          const [x, z] = k.split(",").map(Number);
+          out.push({ x: x!, z: z! });
+        }
+        return out.reverse();
+      }
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const n = { x: t.x + dx, z: t.z + dz };
+          if ((!dx && !dz) || came.has(key(n)) || !open(n)) continue;
+          if (!dx || !dz) {
+            if (!noLedgeWorld(t, n) && !hopWorld(t, n)) continue;
+          } else {
+            const a = { x: t.x + dx, z: t.z };
+            const b = { x: t.x, z: t.z + dz };
+            if (!(openWorld(a) && openWorld(b) && noLedgeWorld(t, a) && noLedgeWorld(a, n) && noLedgeWorld(t, b) && noLedgeWorld(b, n))) continue;
+          }
+          came.set(key(n), key(t));
+          next.push(n);
+        }
+      }
+    }
+    ring = next;
+  }
+  return null;
 }
 
 /** The `at` of a world tile, for openRealm. */

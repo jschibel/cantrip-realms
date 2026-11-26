@@ -124,6 +124,62 @@ test("a held walk pushing into the icon from its south way goes in, onto the roa
   expect(errors).toEqual([]);
 });
 
+test("the grounds are left only by walking onto an exit: a held walk steered far past their edge beside the road stays, along the road it leaves", async ({ page }) => {
+  const errors = await open(page, tile(CENTER));
+  await until(page, async () => (await realm<boolean>(page, "streamed")) === true, "the grounds built");
+  const steer = (x: number, z: number) => page.evaluate(([a, b]) => (globalThis as any).sliceStage.player.steer({ x: a, z: b }), [x, z] as const);
+  // Far west past the grounds' edge, north of the west road's exits: it slides along the bank and stops, in the grounds.
+  await steer(GROUNDS[0] - 60, WEST.exit[0][1] - 20);
+  await advance(page, 25);
+  expect(await realm<boolean>(page, "transitioning")).toBe(false);
+  expect(inGrounds(await here(page)), `still in the grounds at ${JSON.stringify(await here(page))}`).toBe(true);
+  // From the middle again, far south-west past the edge, south of the exits: the same. (Steered on from the bank by
+  // the road, a walk slides along the bank into the road and onto an exit - walked onto, it leaves.)
+  await page.evaluate(() => (globalThis as any).sliceStage.player.steer(null));
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.placePlayer(x, z), [CENTER[0], CENTER[1]] as const);
+  await advance(page, 0.5);
+  await steer(GROUNDS[0] - 60, WEST.exit[2][1] + 30);
+  await advance(page, 20);
+  expect(inGrounds(await here(page)), (await page.evaluate(() => (globalThis as any).realmTest.game.trace as string[])).slice(-12).join(" | ")).toBe(true);
+  await page.evaluate(() => (globalThis as any).sliceStage.player.steer(null));
+  // A click far past the edge walks as near as it may, in the grounds.
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [WEST.exit[1][0] - 1, WEST.exit[0][1] - 6] as const);
+  await advance(page, 15);
+  expect(inGrounds(await here(page))).toBe(true);
+  expect(await realm<boolean>(page, "transitioning")).toBe(false);
+  // Along the road from its inside, steered far past its exit: onto the exit, and out beside the icon.
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.placePlayer(x, z), [WEST.inside[0], WEST.inside[1]] as const);
+  await advance(page, 0.5);
+  await steer(GROUNDS[0] - 60, WEST.inside[1] + 0.5);
+  await arrive(page, tile(WEST.outside), 0, "out by the west way");
+  expect(errors).toEqual([]);
+});
+
+test("on the travel map a click on ground past the icon walks there round it, and does not go in", async ({ page }) => {
+  const errors = await open(page, { x: SITE[0] - 8, z: SITE[1] });
+  await until(page, async () => (await realm<boolean>(page, "streamed")) === true, "the travel map built");
+  // Open ground beyond the icon, north-east of it from the player: walked to, round the icon, never into the town.
+  let beyond: Tile | null = null;
+  for (const t of [{ x: SITE[0] + 5, z: SITE[1] - 4 }, { x: SITE[0] + 5, z: SITE[1] + 4 }, { x: SITE[0] + 6, z: SITE[1] }, { x: SITE[0], z: SITE[1] - 5 }])
+    if (!beyond && (await page.evaluate(([x, z]) => (globalThis as any).realmTest.walkable(x, z), [t.x, t.z] as const))) beyond = t;
+  expect(beyond, "open ground past the icon").not.toBeNull();
+  await clickTile(page, beyond!.x, beyond!.z);
+  let iris = false;
+  await until(
+    page,
+    async () => {
+      iris ||= await realm<boolean>(page, "transitioning");
+      return !(await page.evaluate(() => (globalThis as any).sliceTest.player.moving));
+    },
+    "the walk ends",
+    20,
+  );
+  expect(iris, "no way taken").toBe(false);
+  expect(await here(page)).toEqual(beyond);
+  expect(onTravel(await here(page))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test("in the grounds the camera never shows the void past them, at any heading or zoom", async ({ page }) => {
   test.setTimeout(240_000);
   const errors = await open(page, { x: BASIN[0] + 1, z: BASIN[1] + 1 });

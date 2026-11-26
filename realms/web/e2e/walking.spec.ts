@@ -127,7 +127,21 @@ test("walking: held beside a shop, the player follows the cursor smoothly, slide
 
   // Held still at points all round, the shop among them: the walk goes at each, slides along what is in the way and
   // stops where it can go no further - once, never stepping back and forth there.
+  // (A point the shop's door leads toward - past its doorway, within the 70 degrees round the way it goes, wider than the
+  // 55 a drag goes through it by - is left out: held there from the door's tile, a walk rightly goes in, as the end of
+  // this test holds. Which points are so depends on where the town puts the shop.)
   for (const [dx, dy] of [[0, -220], [220, -40], [-220, -40], [160, -200], [-160, -200], [0, 200]] as const) {
+    const through = await page.evaluate(([x, y, tx, tz]) => {
+      const s = (globalThis as any).sliceStage;
+      const door = s.doorAt({ x: tx, z: tz });
+      const p = s.floorPointAt(x, y);
+      if (!door || !p) return false;
+      const [sx, sz] = door.step as [number, number];
+      const ox = p.x - (tx + 0.5);
+      const oz = p.z - (tz + 0.5);
+      return ox * sx + oz * sz >= 0.5 && (ox * sx + oz * sz) / Math.hypot(ox, oz) >= Math.cos((70 * Math.PI) / 180);
+    }, [centre.x + dx, centre.y + dy, doorOf(SHOP).x, doorOf(SHOP).z] as const);
+    if (through) continue;
     await page.mouse.move(centre.x + dx, centre.y + dy);
     const held = await track(page, 1.6);
     const m = smooth(`held at ${dx},${dy}`, held.slice(2));
