@@ -40,8 +40,16 @@ public sealed class ContentTests
         RealmContent content = RealmApp.Generated;
         RealmWorld world = content.World;
         Assert.Equal("dominaria", world.Plane);
-        Assert.Equal((0, 0, 1024, 1216), (world.X0, world.Z0, world.Width, world.Height));
-        Assert.Equal(32 * 38, world.Chunks.Count);
+        // Two scales: the travel map at the origin, each town's grounds in a pocket east of it, a chunk for each chunk of
+        // ground (the travel map's 16 by 24, and the grounds', whose sizes are the town generator's).
+        Assert.True(world.TwoScales);
+        Assert.Equal([0, 0, 512, 768], world.File.Travel!);
+        Assert.Equal((0, 0), (world.X0, world.Z0));
+        Assert.Equal(768, world.Height);
+        Assert.All(content.Towns.Keys, id => Assert.NotNull(world.File.Towns.Single(town => town.Id == id).Grounds));
+        int groundChunks = 16 * 24 + world.File.Towns.Sum(town => town.Grounds is [int x0, int z0, int x1, int z1] ? (x1 - x0) / 32 * ((z1 - z0) / 32) : 0);
+        Assert.Equal(groundChunks, world.Chunks.Count);
+        Assert.Equal(world.File.Towns.Max(town => town.Grounds![2]), world.Width);
         Assert.NotEmpty(world.Spawns);
 
         using JsonDocument layout = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "layout.json")));

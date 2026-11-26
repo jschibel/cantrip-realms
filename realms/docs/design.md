@@ -307,9 +307,17 @@ owner may extend.
     Shanodin to the east, the dark realm of **Amjad** at its south end; **Walassa and Denawa**, Orvada's isles with the
     Tolarian Academy, at the far east; and **Stahaan**, the xenophobic minotaurs' isle, north of Orvada in the
     north-east sea.
-  - **One connected world:** the islands are reached as the land is walked. Causeways and fords join the near ones, and
-    ferries at harbor docks cross to the far ones. A ferry crossing is seamless, as a door is: you board, the crossing
-    eases by, and you step off on the other shore.
+  - **One connected world:** every town, dungeon and landmark is reached on foot: bridges and fords cross the rivers,
+    passes cross the ranges, and ferries at harbor docks cross to the isles (Avenant, Foriys, Shanodin's isle, Walassa
+    and Denawa, Stahaan, Verdura, and over the Rip to Icehaven). The islets no ferry reaches are only seen. A ferry
+    crossing is seamless, as a door is: you board, the crossing eases by, and you step off on the other shore.
+  - **The land reads at a glance.** One level up or down is hopped, so hills are no obstacle; what stops a walker is
+    deliberate and plain to see: the sea, the rivers and lakes, and the ranges - walls of miniature peaks, the great
+    ranges (the Hurloons, the Ironclaws, the Smoke Mountains, the Gurdurings) crossed only at their named passes, the
+    lesser ones at gaps and where a road cuts through. A wood is thick at its heart but always walked through between
+    its trees. Each biome has its ground and its scenery (Benalia's fields round its towns, Llanowar's giant trees, the
+    Morass's drowned trees and pools, Surr's and Erg Mirab's dunes, the Badlands' red earth, the snows of Icehaven), and
+    a signpost at each fork of the roads says where each leads.
   - **Difficulty by distance** from the starting areas (New Benalia and the five homes): Benalia's fields and the edges
     of Llanowar are the gentlest. The Hurloon passes, the Durkwood and Sursi are harder, and the hardest are the
     Ironclaw Mountains, Parma's ice, Stahaan, the depths of Amjad and the desolate waste.

@@ -299,7 +299,7 @@ export class Roads {
       L.use[j] = Use.Road;
       if (main) this.main[j] = 1;
       const s = L.surface[j]!;
-      L.surface[j] = s === S.mud || s === S.moss ? S.planks : s === S.rock || s === S.snow || s === S.scree ? S.scree : main ? S.road : S.dirt;
+      L.surface[j] = s === S.mud || s === S.moss ? S.planks : main ? S.road : S.dirt;
     };
     // The road's levels: the land's, but through a range's band graded straight from the ground before it to the ground
     // after, a level a tile at most.

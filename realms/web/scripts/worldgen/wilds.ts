@@ -191,7 +191,7 @@ const SCATTER: Readonly<Record<GeoBiome, { readonly trees: number; readonly thin
   mountains: { trees: 0.04, things: ["boulder", "boulder"], share: 0.03 },
   volcanic: { trees: 0.008, things: ["boulder"], share: 0.03 },
   forest: { trees: 0.04, things: ["bush", "mushroom", "fern"], share: 0.02 },
-  tundra: { trees: 0.025, things: ["ice-rock", "boulder"], share: 0.02 },
+  tundra: { trees: 0.025, things: ["ice-rock", "boulder", "boulder"], share: 0.007 },
   waste: { trees: 0.006, things: ["boulder", "stump"], share: 0.02 },
   desert: { trees: 0.003, things: ["boulder"], share: 0.006 },
   badlands: { trees: 0.004, things: ["boulder", "boulder"], share: 0.025 },
@@ -218,16 +218,18 @@ export function scatter(land: Land, terrain: Terrain, geo: Geography, seed: numb
   const order = shuffle(tiles.slice(), random);
   const biomeOf = (i: number) => GEO_BIOMES[terrain.biome[i]!]!;
   const deep = (i: number) => terrain.forest[i]!;
+  const spread = fractal(`${seed}:grove-spread`, 7, 2);
   const radius = (i: number) => {
     const d = deep(i);
-    if (d > 0) return Math.max(1.5, 3.4 - d * 0.3);
+    // Never quite the closest packing, and never the same everywhere: no rows in a wood's heart.
+    if (d > 0) return Math.max(1.6, 3.4 - d * 0.3) * (1.05 + 0.25 * Math.abs(spread(i % W, Math.floor(i / W))));
     if (terrain.swamp[i]! > 0) return 2.2;
     return copse(i % W, Math.floor(i / W)) > 0.32 ? 1.6 : 3.5;
   };
   const chance = (i: number) => {
     if (!free(i)) return 0;
     const d = deep(i);
-    if (d > 0) return Math.min(0.97, 0.35 + d * 0.09);
+    if (d > 0) return Math.min(0.9, 0.35 + d * 0.09);
     if (terrain.swamp[i]! > 0) return Math.min(0.5, 0.12 + terrain.swamp[i]! * 0.04);
     const base = SCATTER[biomeOf(i)].trees;
     return copse(i % W, Math.floor(i / W)) > 0.32 ? Math.min(0.8, base * 22) : base;

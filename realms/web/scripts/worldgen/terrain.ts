@@ -340,7 +340,7 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
     const li = a.landmass === undefined ? -1 : geo.landmasses.findIndex((l) => l.id === a.landmass);
     for (let t = 0; t < W * H; t++) if (one[t] && (li < 0 || sketch.land[t] === li)) areaT[t] = k;
   });
-  const biomeWarp = warp(`${seed}:biomes`, 18, 5);
+  const biomeWarp = warp(`${seed}:biomes`, 20, 7);
   const biome = new Uint8Array(N);
   for (let z = 0; z < H; z++) {
     for (let x = 0; x < W; x++) {
@@ -488,7 +488,7 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
       const foot = (t - 1) * (m.width / 2);
       rise[i] = top * 0.35 * Math.max(0, 1 - foot / 10) ** 2 * (1 - 0.5 * open);
     }
-    const edge = 0.86 + 0.2 * edgeNoise(x, z);
+    const edge = 0.94 + 0.22 * edgeNoise(x, z);
     if (m.height >= 2 && t < edge && open < 0.5 && !reserved[i]) {
       band[i] = k + 1;
       crest[i] = Math.max(0, 1 - t / edge);
@@ -628,7 +628,8 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
           s = m > 0.15 ? S.mud : f < -0.2 ? S.mud : S.moss;
           break;
         case "mountains":
-          s = level >= 5 ? (m < 0 ? S.snow : S.rock) : m < -0.1 ? S.grass : m < 0.2 ? S.scree : S.rock;
+          // Rough upland grass, grass in the hollows, bare rock here and there; snow up high.
+          s = level >= 5 ? (m < 0 ? S.snow : S.highland) : m < -0.15 ? S.grass : f > 0.5 ? S.rock : S.highland;
           break;
         case "volcanic":
           s = m < 0 ? S.ash : S.rock;

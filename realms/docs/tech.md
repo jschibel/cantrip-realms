@@ -127,8 +127,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   of two scales never shows past it at any heading or zoom (`Framing.contained`, `CameraRig.footprint`: the view's
   ground as the camera stands, for floors as high as the place's highest, `rise`); a zoom step out it would not fit is
   refused, a turn to a corner steps the zoom in as far as it needs. Wanderers live, spawn and chase on the travel map
-  alone, and the finds of the wilds stand there alone. It is made offline by a seeded generator with set pieces in its code (`scripts/worldgen`, `npm run world`) from
-  `realms/content/dominaria/layout.json`, checked in, and linted. Nobody edits the map in the game: there is no map
+  alone, and the finds of the wilds stand there alone. It is made offline by a seeded generator (`scripts/worldgen`,
+  `npm run world`, about six seconds) from `realms/content/dominaria/geography.json` and `layout.json`, checked in, and
+  linted: a travel map of 512 by 768 tiles and sixteen towns' grounds, 1568 by 768 tiles in all, 705 chunk files. Nobody edits the map in the game: there is no map
   editor. Chunks near the view are read and built a step at a time (the ground, terrain from heights, the scenery merged
   per chunk) and those far away are dropped; paths are found over the chunks read, a bounded search.
 - **The tier zones are shown:** the regional map (the minimap, opening to the whole world's: in a world of two scales the
@@ -964,48 +965,101 @@ stepping onto `wayOut` (`/api/dungeon/leave`). The fights stand on `spots`: each
 
 #### Dominaria as generated
 
-The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about five seconds) writes Dominaria from
-`realms/content/dominaria/layout.json` (ported to squares) and the mob roster; `npm run world:map` draws it from above
-(`realms/web/e2e/screenshots/world2/`: world.png, zones.png, terraces.png and a close-up of the Hurloon terraces, a picture of
-every town, stretches of each kind of country; `npm run world:map -- <dir> towns` the towns alone). The hex generator
-is gone.
+The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about six seconds) writes Dominaria from
+`realms/content/dominaria/geography.json` (the travel map's sketch), `layout.json` (the towns' and dungeons' definitions:
+nothing of where they stand), the mob roster and the vendors. `npm run world:map` draws it from above into
+`realms/web/e2e/screenshots/world2/`: world.png (the travel map, two pixels a tile, with its labels), zones.png,
+terraces.png, close-ups at eight pixels a tile (`close-hurloon-passes`, `close-benalia-coast`, `close-llanowar-rivers`,
+`close-the-rip`, `close-sursi-cathedral`) and pockets.png (the whole world file); `npm run world:map -- <dir> crop x0 z0
+x1 z1 [scale]` any stretch. The towns' own pictures are the town generator's (`town-preview.ts`).
 
-**The travel map's geography** (the world revamp; the generator does not read it yet) is
-`realms/content/dominaria/geography.json`: the Domains at travel scale, 512 by 768 tiles, as authored curves for a
-generator to grow the map from - the coast traced from the classic map (`realms/docs/ref/domains2.jpg`, untracked) by
-color at 0.6 tiles a pixel, Walassa, Denawa and Stahaan drawn by hand, and the lakes, rivers, ranges and their passes,
-areas of each biome, regions (seeds), towns, dungeons, landmarks, ferries, roads and labels placed from all five
-reference maps. `scripts/worldgen/geography.ts` types it (each field's units and what a generator may assume) and checks
-it (`geography.test.ts`: closed, simple, clockwise polygons inside a 12-tile sea margin; places on open land in the
-landmass and region they name; rivers to the sea, a lake or another river; passes on their crests; every town reached
-over roads and ferries; the Hurloons a wall between North and South Aerona but at their two passes; the ids exactly
-layout.json's). `python tools/realms/geography-map.py` draws it (`e2e/screenshots/world2/geography.png`, the regions,
-and the map beside the reference; `--crop x0,z0,x1,z1` a close-up with a tile grid).
+**The travel map's geography** is `realms/content/dominaria/geography.json`: the Domains at travel scale, 512 by 768
+tiles, as authored curves to grow the map from - the coast traced from the classic map (`realms/docs/ref/domains2.jpg`,
+untracked) by color at 0.6 tiles a pixel, Walassa, Denawa and Stahaan drawn by hand, and the lakes, rivers, ranges and
+their passes, areas of each biome, regions (seeds), towns, dungeons, landmarks, ferries, roads and labels placed from all
+five reference maps. `scripts/worldgen/geography.ts` types it (each field's units and what a generator may assume) and
+checks it (`geography.test.ts`: closed, simple, clockwise polygons inside a 12-tile sea margin; places on open land in
+the landmass and region they name; rivers to the sea, a lake or another river; passes on their crests; every town
+reached over roads and ferries; the Hurloons a wall between North and South Aerona but at their two passes; the towns
+and dungeons exactly layout.json's). `python tools/realms/geography-map.py` draws it (`e2e/screenshots/world2/
+geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,z1` a close-up with a tile grid).
 
-- **Size.** 1024 by 1216 tiles from `[0, 0]`, 32 by 38 chunks (1,216 files), no `bounds`. Sized for walking at 4.2 tiles a
-  second: four to five minutes north to south in a straight line; New Benalia's walls to Capashen Hold's or the elfhames'
-  40 seconds by road, to Keld two minutes with the ferry; New Benalia's square 157 tiles (its walls about 140 across, 35
-  seconds), home towns' 93 to 121, villages' 45 to 49. Ferries cross in 11 to 27 seconds. The old map's shape is kept:
-  the hex layout's places turned so up is north, a tile to an old world unit, with a few landmasses added and towns moved
-  where the old map had them in the sea.
-- **Counts** (seed 1997): 16 towns, 505 buildings, 144 interiors, 36 dungeons (20 mage towers), 851 spawns, 120
-  waymarkers, about 45,600 props, 4 ferries, 34 roads. The files come to about 20 MB. No chest or heartbloom is placed:
-  the server spawns them (interfaces.md, "Finds of the wilds").
-- **Heights are terraces**, as the renderer draws them (`terraces`, land.ts): whole levels of 12 texels (`relief` 1;
-  0 regenerates a flat world), each level flat, open neighbours at most a level apart, no terrace a single tile wide.
-  Where a way climbs a level - a road, a street, a paved gate's way out, a dock, a door - its two tiles across the bank
-  are a ramp (flag `RAMP`, 4: the lower at a quarter of the way up, the upper at three quarters, so the pair is one even
-  slope); across the open country a straight two-tile ramp is cut where a bank runs straight, about one every 16 tiles of
-  bank. Every other bank is a ledge (`LEDGE`): the tiles both sides stay open, walked up to the brink and along it, and
-  - a level high - hopped by the players and most mobs (world/grid.ts `canStep`, `HOP`); a mob that does not hop leaves
-  a level only by a ramp. The generator still walks as one who does not hop (`Land.levelled` from here on: its steps
-  are the grid's with no hop, so what it joins is joined for every walker); `connect` grades any way it cuts, with
-  ramps. A bridge's deck and a ford's stones are at their banks' level.
-  Water tiles (sea, shallows, stream, bog, lava) are holes at their banks' height. dominaria.test.ts holds it: open tiles
-  side by side are level (a bridge's 4 texels at most), a ramp's, or a whole level apart across a ledge, and every ramp
-  climbs. Scenery a town or a field puts down blocks its tile as the art catalogue says the prop does (a flower bed is
-  walked over). `RAMP` is the renderer's format
-  addition, mirrored here (format.ts and the lint accept flags 0-7).
+**The travel map, grown from the sketch** (`terrain.ts`, `fields.ts`), each layer a field over its tiles:
+- **The coast**: a signed distance field of the landmasses' raster (an exact Euclidean distance transform,
+  Felzenszwalb and Huttenlocher's), sampled through a domain warp of 1.6 tiles and nudged by fractal noise of 0.7: ragged
+  at the tile's scale, every bay, cape, strait and islet where the sketch has it; a neck the noise cut is joined again
+  along the sketch's own land; a lone tile of land in the sea goes under. Shallows four tiles out, the open sea beyond.
+- **Regions** by the nearest seed on the tile's landmass (distance over weight), the borders waved by noise. **Biomes**
+  from the areas painted in order (a region's own biome where none is), sampled through a domain warp of 7 tiles, so a
+  border is a wandering, dithered line.
+- **Relief** in levels: low at the coast, rising inland (a smoothstep of the distance from the sea over 20 tiles); each
+  biome's base height and hill amplitude, box-blurred across its borders, over fractal Brownian motion of gradient
+  noise (plains nearly flat, highlands and tundra rolling, mesas for the badlands, ridged dunes for the deserts); the
+  ranges as ridged multifractal noise in a band along each crest (wandered a little), their height by the range's (1
+  hills, 2 mountains, 3 the great ranges), foothills round them; the rivers' lines wandered by noise and stamped as a
+  distance field, their beds graded down to the sea and a floodplain to either side; the lakes' shores graded to them;
+  each place's ground levelled. Then whole levels of 12 texels.
+- **The ranges are walls**: a range of height 2 or 3 is closed ground in a band along its crest (its edge noisy), its
+  tiles two levels at least above their feet, crowned with **peaks** (`wilds.ts` `placePeaks`: from the crest outward
+  the biggest peak - 5, 3 or 1 tiles square - whose square lies in the band where no peak's heart stands yet, so they
+  overlap at their skirts and read as one wall; any band tile left a single peak; each higher the nearer the crest, its
+  kind the range's). A great range (3) opens only at its named passes - a corridor five tiles wide straight across the
+  crest, its saddle at the foothills' height - and a road through a pass is routed through it (the sketch's `via`); a
+  range of height 2 also opens at gaps where a noise along its crest says, and where a road must cross it the road cuts
+  its own gap (dearly: the cost field prefers the way round). Hills (1) are walked over, a low peak here and there on
+  their crests.
+- **Open ground is terraced for the hop** (`settle`, land.ts): no terrace or pit a tile wide, and no two open neighbours
+  more than a level apart - one level is hopped by the players and most mobs (world/grid.ts `canStep`, `HOP`), so the
+  hills are no obstacle; the land's walls are the sea, the water and the ranges. Roads, places' grounds and docks are
+  held while the land settles round them. Where a road climbs a level, its two tiles across the bank are a ramp (flag
+  `RAMP`; `rampWays`). Water tiles (sea, shallows, stream, bog) are holes at their banks' height.
+- **Woods and scatter** (`scatter`): groves (`grove`, a miniature clump of trees) by Poisson-disc sampling at tile
+  resolution with a radius by how deep into a wood a tile lies (a distance field of the forest and jungle biomes): sparse
+  at a wood's edge, thick in its heart; swamp groves over the Morass and Amjad; copses where a noise says in the open
+  country. Their kind is the region's woods (Llanowar's `elfwood`, Skyshroud's and Keld's `snowpine`, the Morass's
+  `swamp` and `dead`, Verdura's `jungle` and `palm`) or the biome's. Then a sparser blue noise of small things by biome
+  (boulders, bushes, reeds by water, ferns, ice rocks) at 0.6 scale. Everything that blocks one tile stands alone - no
+  other closed tile in the eight round it - so a wood is always walked through and no scatter ever closes a way.
+  Farmland (`farmland`): the country round Benalia's and Sursi's towns cut into fields (a Voronoi patchwork of wheat,
+  furrows and meadow).
+- **Roads** (`roads.ts`): each of the sketch's roads the least-cost path over a cost field - A* in eight directions, a
+  level's rise dearer, a wood by its depth, a river crossed straight (a bridge on a main road, stepping stones on a
+  lesser one), cheap along a road already laid (main roads first, so the network merges), never over the sea, a lake, a
+  mere or a great range's band - then smoothed by string pulling (straight between two of its points wherever the line
+  costs no more) and drawn four-connected. Main roads two tiles wide (`road`), the rest one (`dirt`; `planks` over mud,
+  `scree` in the rocks). A **signpost** stands beside each fork, its text the places its roads lead to.
+- **Places** (`places.ts`): each town's `town-icon` (size by its kind, style by its style - a Benalish village's
+  `village` - walled by its form) over its blocked footprint at its site, the ring round it open and level; its ways on
+  each side a road arrives (never a side the sea lies on), their `outside` the open tile beside the footprint, `to` where
+  the road leads (over a ferry, the town beyond it); each dungeon's entrance prop by theme over its footprint
+  (`ENTRANCE_ON_MAP`, wilds.ts: the art's `TRAVEL_ENTRANCES`, 3 by 2 tiles, the castle's 5 by 2), facing where its road
+  comes from but never north, the entrance tile before its front, the spell table and a tower's waystone two tiles
+  either side, in the 5-by-5 square the sketch keeps; the `landmark`s (the lighthouse's light in its chunk's `lights`);
+  the ferries (a dock on each shore nearest the sketch's place, the lane straight over the sea where it can be, the
+  ferryman beside each dock). Each town's `TownSetting` for its grounds comes from the land round its icon: the biome
+  there, the sea within 12 tiles on the sides the sketch names (checked: a side the land does not bear out is a note),
+  the sketch's river and relief, its ways.
+- **One world** (`connect`): the travel map walked as one who hops walks it (`hopSteps`, `hopPieces`) from New
+  Benalia's icon; a pocket of fewer than 48 tiles with nothing in it is closed, a bigger one joined by the cheapest way
+  through (stepping stones over a river, a dry path over a bog, a notch through a range's band), never over the sea. The
+  islets no ferry reaches are closed: only seen.
+- **Tiers** (`zones.ts`): every tile's walking distance (hops and the ferries' lanes counted) from the nearest starting
+  town's icon - tier 1 within 55 tiles, 2 within 120, 3 within 200, 4 beyond; each 16-by-16 cell of the travel map its
+  land's middle distance's tier, never under its region's `minTier`, smoothed twice by the commonest tier round it.
+  Waymarkers beside the roads where the tier rises along them, on the harder side, and a few standing stones along the
+  rest of each rise.
+- **Spawns** (`populate`): about one per 3,500 tiles of land - one at the heart of every region of 400 tiles or more,
+  then blue noise 53 tiles apart - on open ground where a mob can wander (its radius of 4 tiles mostly walked ground),
+  never within 10 tiles of a town's icon, 6 of a main road in tier 1 country, 8 of an entrance or 6 of a landmark or a
+  dock, never in a town's grounds. Their mobs from the roster by tier and the zone's region's color, as before: a
+  colorless region (the Hurloons, Sursi, the regions the travel map added) takes any wanderer of its tier. Every
+  wanderer is met: one nobody drew joins the two spawns of its tier with fewest mobs.
+- **Size and counts** (seed 1997): the travel map `[0, 0, 512, 768]` (16 by 24 chunks, 161,655 tiles of land), the
+  towns' grounds packed in columns east of it two empty chunks apart, the world 1568 by 768 tiles, 705 chunk files. About
+  7,200 peaks, 6,800 groves, 780 small things, 1,400 tiles of fields, 45 roads (3,600 tiles), 21 signposts, 14 bridges
+  and fords, 54 spawns, 24 waymarkers, 36 dungeons (20 mage towers), 8 ferries, 12 landmarks, 69 labels. Walked at 4.2
+  tiles a second, the travel map is about three minutes north to south. No chest or heartbloom is placed: the server
+  spawns them (interfaces.md, "Finds of the wilds").
 - **Towns** stand each in a pocket of grounds at walking scale, laid out whole by the town generator
   (`scripts/worldgen/town/`: `buildTown(land, spec, seed)` into the pocket at `spec.origin`, `groundsSize(plan)`): the
   town within its outline, the country round it that is walked (16 tiles out on every side, to the water on the sea's),
@@ -1075,7 +1129,7 @@ and the map beside the reference; `--crop x0,z0,x1,z1` a close-up with a tile gr
   on a blocked tile of its own with `stand` at its middle, and a prop of the same id there to draw it.
 - **Dungeon entrances** are props by theme over a blocked footprint (`args.w`, `args.d` from `x`, `z`, facing `rot`),
   the entrance tile before the middle of its front, the spell table and a tower's waystone two tiles either side.
-- **Ferry lanes** are sea tiles made open (no other sea tile is, but the causeways roads raise to the near isles).
+- **Ferry lanes** are sea tiles made open (no other sea tile of the travel map is).
 - **Interiors** are laid out by kind in rooms 9 by 7 (a house) to 16 by 11 (an inn), the exit's gap and sill as the
   slice's shop has them, furnished with indoor props, a hearth's and the door's light, and their people.
 
