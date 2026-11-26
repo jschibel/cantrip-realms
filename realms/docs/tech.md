@@ -1162,8 +1162,9 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     and green lanterns, no wall; a **clan hold** (Keld, Keldon Watch, Foriys) the great hall at the head of a flagstone
     yard, longhouses in a horseshoe round it, a palisade oval, torches; a **village** (Serra's Rest, Avenant, Sursi) a
     green with its well and a pond, houses loosely round it, its lanes cobbled, a hedge where its yards meet the fields; the
-    **stilts** (Cabal Crossing) a platform of planks and lesser platforms with arcs of their own, every way a boardwalk over the bog, houses on stilts, a lantern at
-    every junction, no enclosure;
+    **stilts** (Cabal Crossing) a platform of planks and lesser platforms with arcs of their own, the boardwalks forking
+    and joining again, a deck of its own size wherever three meet away from the centre (a stack of crates at its back
+    corner), every way a boardwalk over the bog, houses on stilts, a lantern at every junction, no enclosure;
   - **landmarks** take ground across rows first, the streets between cut and connectors either side: the capital's
     cathedral north of its square, its churchyard behind it, and its citadel (a bailey, its gatehouse onto a street, the
     keep and a hall within) at the north wall; the Hold's keep on its rise; the Vess manor at the north end of its walled

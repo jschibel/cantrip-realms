@@ -514,6 +514,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         if (!bestQ || s < bestQ.s) bestQ = { x, z, s };
       }
     }
+    if (process.env.TOWN_DEBUG === "quads") console.log(`quad ${q}: ${bestQ ? `${bestQ.x},${bestQ.z}` : "none"}; queue ${queue.length}; centre ${cx},${cz} r ${rx},${rz} box ${box.x0},${box.z0}-${box.x1},${box.z1}`);
     if (!bestQ) break;
     const sq: TownSquare = { x: bestQ.x - qrx, z: bestQ.z - qrz, w: 2 * qrx + 1, d: 2 * qrz + 1, name: R.names?.[1] ?? "A square" };
     for (const [x, z] of squareTiles(sq)) if (g.inside(x, z)) centreTiles[I(x, z)] = 2 + q;
@@ -727,6 +728,35 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       if (dead || (R.web && k % 3 === 0)) connect(at, "net", false, own);
     });
   }
+  // The stilts' lesser platforms: where three boardwalks or more meet away from the centre and its platforms, a deck of
+  // planks of its own size (the web's knots), each one level.
+  if (R.web) {
+    const meets = new Map<string, number>();
+    for (const e of net.edges) for (const t of [e.tiles[0]!, e.tiles[e.tiles.length - 1]!]) meets.set(`${t[0]},${t[1]}`, (meets.get(`${t[0]},${t[1]}`) ?? 0) + 1);
+    const knots = [...meets.entries()].filter(([, n]) => n >= 3).map(([k]) => k.split(",").map(Number) as unknown as XZ);
+    knots.sort((a, b) => Math.hypot(b[0] - cx, b[1] - cz) - Math.hypot(a[0] - cx, a[1] - cz) || a[0] - b[0] || a[1] - b[1]);
+    const most = village ? 2 : 3;
+    for (const [jx, jz] of knots) {
+      if (quads.length >= (R.quads ? (village ? R.quads.village : R.quads.town) : 0) + most) break;
+      if (Math.hypot(jx - cx, (jz - cz) * 1.3) < rx + 8) continue;
+      if (quads.some((q) => Math.hypot(q.cx - jx, q.cz - jz) < 12)) continue;
+      // Of the sizes it may have (wider than deep, each knot its own), the biggest the ground there holds.
+      const sizes: [number, number][] = (quads.length % 2 === 0 ? [[3, 2], [2, 2], [2, 1]] : [[2, 2], [3, 1], [2, 1]]);
+      for (const [hx, hz] of sizes) {
+        const sq: TownSquare = { x: jx - hx, z: jz - hz, w: 2 * hx + 1, d: 2 * hz + 1, name: R.names?.[1] ?? "A platform" };
+        const tiles = squareTiles(sq);
+        if (!tiles.every(([x, z]) => g.inside(x, z) && !lotAt[I(x, z)] && !blocked[I(x, z)] && !wet(I(x, z)) && !centreTiles[I(x, z)])) continue;
+        // Nothing of it before a door (a lot's front row is its own).
+        if (tiles.some(([x, z]) => g.inside(x, z - 1) && lotAt[I(x, z - 1)])) continue;
+        const k = quads.length;
+        for (const [x, z] of tiles) centreTiles[I(x, z)] = 2 + k;
+        const lv = Math.max(centreLevel - 1, Math.min(centreLevel + 1, Math.round(height(jx, jz))));
+        quads.push({ cx: jx, cz: jz, rx: hx, rz: hz, square: sq, level: lv });
+        break;
+      }
+    }
+  }
+  if (process.env.TOWN_DEBUG === "quads") console.log(`platforms: ${quads.map((q) => `${q.cx},${q.cz} ${q.square.w}x${q.square.d}`).join("; ")}`);
 
   // --- The centre's open ground: inside the arcs, down to the centre, its edge wandering -------------------------------------------
   const open = new Uint8Array(g.size);
