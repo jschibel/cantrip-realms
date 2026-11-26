@@ -51,6 +51,6 @@
     {"kind":"point","at":[7,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":0}}
   ],
   "entry": [4,6],
-  "exit": [1111,264],
+  "exit": [1110,260],
   "params": {"specialty":"cards"}
 }
