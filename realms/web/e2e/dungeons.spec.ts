@@ -43,6 +43,8 @@ test("into a dungeon: the run's floor with its spell table, the warden before th
   await entity(page, (e) => e.kind === "spell-table", "the entrance's spell table");
   const calls = await realm<{ name: string; body?: unknown }[]>(page, "api");
   expect(calls.find((c) => c.name === "enterDungeon")?.body).toEqual({ Dungeon: id });
+  // Going in, no area of the travel map is crossed into (the keep's doorway lies past a tier's border): nothing said of one.
+  expect((await realm<string[]>(page, "messages")).filter((m) => /: tier \d\.( |$)/.test(m))).toEqual([]);
 
   // The stair is barred while the warden stands.
   const mobs = (await realm<{ kind: string; role: string | null }[]>(page, "entities")).filter((e) => e.kind === "mob");

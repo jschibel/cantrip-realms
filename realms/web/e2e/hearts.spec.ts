@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnNear } from "./places";
 import { at, chebyshev, clickClear, clickControl, clickEntity, enterTown, entities, entity, groundsHere, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
-import { enter, run, toShrine, walkInside } from "./runs";
+import { engageInside, enter, run, toShrine, walkInside } from "./runs";
 
 // Hearts (design.md A3, A3b), offline with the stand-in card layer: a lost duel costs a heart and pays nothing; a world
 // mob offers its buyout or a rematch, the rematch sideboarded and dealt with the mob at the life it kept; a dungeon's mob
@@ -268,9 +268,12 @@ test("in a dungeon the mob can't be bought off: only fought again", async ({ pag
   await openRealm(page, { at: id, extra: "&mobs=0" });
   await enter(page, id);
   await until(page, async () => /^run:/.test((await realm<string>(page, "space.id")) ?? ""), "in the run", 20);
-  const mob = await entity(page, (e) => e.kind === "mob" && e.role === "encounter", "an encounter");
-  await walkInside(page, mob.tile, 2);
-  if ((await open(page)) === null) await clickEntity(page, (e) => e.kind === "mob" && e.spawn === mob.spawn, "the encounter");
+  // An encounter engaged - by a click or by its coming for the player, whichever is first - and its duel lost: one
+  // encounter started, none finished before the loss.
+  const mob = await engageInside(page, "encounter");
+  const started = (await realm<{ name: string; body?: { Floor?: number; Index?: number; Mob?: string } }[]>(page, "api")).filter((c) => c.name === "startEncounter");
+  expect(started.map((c) => `${c.body?.Floor}:${c.body?.Index} ${c.body?.Mob}`)).toEqual([`${mob.spawn} ${mob.id}`]);
+  expect((await realm<{ name: string }[]>(page, "api")).some((c) => c.name === "finishEncounter")).toBe(false);
   await lose(page, 3, "defeat");
 
   await expect(page.locator("[data-test='defeat']")).toHaveAttribute("data-dungeon", "true");
