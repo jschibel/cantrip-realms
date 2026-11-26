@@ -16,7 +16,8 @@ import { readLayout } from "../layout";
 import { Picture, SURFACE_COLORS, rgb } from "../picture";
 import { buildInterior } from "../rooms";
 import { type BuiltTown, type TownSetting, buildTown, groundsSize } from "./index";
-import type { InteriorSpec as OldInteriorSpec } from "../towns";
+import { readGeography } from "../geography";
+import type { InteriorSpec as OldInteriorSpec } from "./types";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const web = join(here, "..", "..", "..");
@@ -81,6 +82,7 @@ export function pockets(ids: readonly string[]): { size: [number, number]; origi
 /** Builds the towns named (all by default) into one Land. */
 export function buildAll(ids?: readonly string[], seed?: number, lenient = false): { land: Land; towns: BuiltTown[]; size: [number, number] } {
   const layout = readLayout();
+  const geo = readGeography();
   const vendors = readVendors();
   const all = ids && ids.length > 0 ? ids : layout.towns.map((t) => t.id);
   const { size, origin } = pockets(all);
@@ -91,7 +93,7 @@ export function buildAll(ids?: readonly string[], seed?: number, lenient = false
     const plan = layout.towns[index]!;
     const sold = vendors.filter((v) => v.town === id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
     const exotic = vendors.find((v) => v.town === id && v.exotic) ?? null;
-    const color = layout.regions.find((r) => r.id === plan.region)?.color ?? null;
+    const color = geo.regions.find((r) => r.id === geo.towns[id]?.region)?.color ?? null;
     try {
       towns.push(buildTown(land, { plan, index, color, vendors: sold, exotic, setting: TOWN_SETTINGS[id]!, origin: origin.get(id)! }, seed ?? layout.seed, { lenient }));
     } catch (e) {

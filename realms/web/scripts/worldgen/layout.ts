@@ -32,8 +32,11 @@ export type Centrepiece = "fountain" | "statue" | "well" | "crystal" | "tree" | 
 export const FORMS = ["capital", "city", "village", "elfhame", "stilts", "clan", "campus", "estate"] as const;
 export type Form = (typeof FORMS)[number];
 
-/** A town as layout.json has it: everything but where it stands (its site on the travel map is the geography's). */
-export interface TownEntry {
+/**
+ * A town as layout.json has it: everything but where it stands (its site on the travel map is the geography's, its
+ * grounds' pocket the generator's).
+ */
+export interface TownLayout {
   readonly id: string;
   readonly name: string;
   readonly kind: "capital" | "town" | "village";
@@ -58,11 +61,6 @@ export interface TownEntry {
   readonly exotic?: string;
   /** A pitch in its market square where traveling vendors from other planes set up their caravans (design.md A5). */
   readonly caravan?: boolean;
-}
-
-/** A town as the town generator lays it: its entry, and its middle in the world's tiles (in its grounds' pocket). */
-export interface TownLayout extends TownEntry {
-  readonly at: At;
 }
 
 /**
@@ -93,7 +91,7 @@ export interface Layout {
   readonly seed: number;
   /** How much the land rises and falls: 1 as designed, 0 a flat world (every walked tile at height 0). */
   readonly relief: number;
-  readonly towns: readonly TownEntry[];
+  readonly towns: readonly TownLayout[];
   readonly dungeons: readonly DungeonLayout[];
 }
 

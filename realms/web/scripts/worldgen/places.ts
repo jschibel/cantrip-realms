@@ -8,7 +8,7 @@ import { LANDMARK_LIGHTS } from "../../src/art/props";
 import { GEO_BIOMES, type GeoBiome, type Geography, distanceToLine } from "./geography";
 import { S } from "./ids";
 import { LEVEL, type Land, Use, randomFor } from "./land";
-import type { TownEntry } from "./layout";
+import type { TownLayout } from "./layout";
 import type { Terrain } from "./terrain";
 
 export const SIDE_STEP: Readonly<Record<Side, XZ>> = { north: [0, -1], east: [1, 0], south: [0, 1], west: [-1, 0] };
@@ -23,12 +23,12 @@ export interface Icon {
 }
 
 /** The icon's style: the town's own, but a Benalish village is cottages and a windmill. */
-const iconStyle = (t: TownEntry) => (t.kind === "village" && (t.style === "benalish" || t.style === "argive") ? "village" : t.style);
+const iconStyle = (t: TownLayout) => (t.kind === "village" && (t.style === "benalish" || t.style === "argive") ? "village" : t.style);
 /** Walled: the capital, the cities, the clans' palisades and the estate. */
-const walled = (t: TownEntry) => ["capital", "city", "clan", "estate"].includes(t.form ?? (t.kind === "capital" ? "capital" : t.kind === "village" ? "village" : "city"));
+const walled = (t: TownLayout) => ["capital", "city", "clan", "estate"].includes(t.form ?? (t.kind === "capital" ? "capital" : t.kind === "village" ? "village" : "city"));
 
 /** Stands each town's icon on its site: the square blocked under its `town-icon`, the ring round it open and level. */
-export function placeIcons(land: Land, geo: Geography, towns: readonly TownEntry[], seed: number, props: PropData[]): Map<string, Icon> {
+export function placeIcons(land: Land, geo: Geography, towns: readonly TownLayout[], seed: number, props: PropData[]): Map<string, Icon> {
   const random = randomFor(seed, "icons");
   const icons = new Map<string, Icon>();
   for (const t of towns) {

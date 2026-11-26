@@ -435,7 +435,8 @@ export function connect(land: Land, terrain: Terrain, from: number, mine: (i: nu
       }
       land.decor.delete(i);
       land.unblock(i);
-      land.use[i] = Use.Kept;
+      // Wild ground, so `settle` grades it down to a level a step from the land it joins.
+      land.use[i] = Use.Wild;
       cutAll.push(i);
     }
     // (The way through is graded to a level a step by `settle`, after.)

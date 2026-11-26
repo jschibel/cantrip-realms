@@ -19,8 +19,8 @@ import { packPockets } from "./pockets";
 import { Roads } from "./roads";
 import { buildInterior } from "./rooms";
 import { shapeTravel } from "./terrain";
-// The town generator: the stand-in until the real one lands (the contract's interface; swap this import for "./towns").
-import { type BuiltTown, buildTown, groundsSize } from "./town-standin";
+// The town generator (town/index.ts, the contract's interface): each town's grounds at walking scale.
+import { type BuiltTown, buildTown, groundsSize } from "./town";
 import { type MobFile, type Site, connect, farmland, placeDungeon, placePeaks, populate, resolveMobs, scatter } from "./wilds";
 import { makeZones, walkingDistances } from "./zones";
 
@@ -97,7 +97,9 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     const icon = icons.get(id);
     if (icon) {
       const used = waysOf.get(id)!;
-      return SIDE_LIST.filter((s) => land.open(icon.outside[s]) && (!fresh || !used.has(s) || used.get(s) === other)).map((s) => icon.outside[s]);
+      // Never from the side the sea lies on: the town's harbour is there, not a road out.
+      const sea = geo.towns[id]!.sea ?? [];
+      return SIDE_LIST.filter((s) => !sea.includes(s) && land.open(icon.outside[s]) && (!fresh || !used.has(s) || used.get(s) === other)).map((s) => icon.outside[s]);
     }
     const dock = docks.get(id);
     if (dock !== undefined) return [dock];
@@ -144,6 +146,9 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   const joined = connect(land, terrain, from, mine, new Map());
   notes.push(...joined.stranded);
   settle(land, mine, fixed);
+  // Settling can part what was joined only where it raised a cut a level too far: once more, to be sure.
+  const again = connect(land, terrain, from, mine, new Map());
+  if (again.joined + again.filled > 0) settle(land, mine, fixed);
   log(`connect: ${joined.filled} pockets filled, ${joined.joined} joined`);
 
   const bridges = roads.bridges();
@@ -215,7 +220,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     return pick === undefined ? id : beyond(pick, far, depth + 1);
   };
   const colorOf = (region: string | undefined): Region | null => geo.regions.find((r) => r.id === region)?.color ?? null;
-  const towns: BuiltTown[] = layout.towns.map((plan, index) => {
+  const towns: (Omit<BuiltTown, "data"> & { readonly data: TownData })[] = layout.towns.map((plan, index) => {
     const sold = vendors.filter((v) => v.town === plan.id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
     const exotic = vendors.filter((v) => v.town === plan.id && v.exotic);
     if (exotic.length !== (plan.exotic ? 1 : 0) || (plan.exotic && exotic[0]!.id !== plan.exotic)) {
@@ -226,13 +231,25 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     if (ways.length === 0) throw new Error(`${plan.id}: no road arrives at its icon`);
     const setting = settingOf(land, terrain, geo, plan.id, icon.half, ways, notes);
     const g = pockets.get(plan.id)!;
-    const built = buildTown(land, { plan, index, color: colorOf(geo.towns[plan.id]!.region), vendors: sold, exotic: exotic[0] ?? null, setting, origin: [g[0], g[1]] }, seed);
-    const inGrounds = (i: number) => land.xOf(i) >= g[0] && land.zOf(i) >= g[1] && land.xOf(i) < g[2] && land.zOf(i) < g[3];
-    connect(land, terrain, land.idx(built.inn.x, built.inn.z), inGrounds, new Map());
+    // Lenient: a town that keeps its own rules only near enough says so in its report (passed on as notes) rather than
+    // stopping the world; the realm lint still holds every town to its streets' rules.
+    const spec = { plan, index, color: colorOf(geo.towns[plan.id]!.region), vendors: sold, exotic: exotic[0] ?? null, origin: [g[0], g[1]] as const };
+    let built: BuiltTown;
+    try {
+      built = buildTown(land, { ...spec, setting }, seed, { lenient: true });
+    } catch (e) {
+      // The town generator could not lay the town as the travel map has it: noted (for the town generator's work), and
+      // laid without its river, the one hint it has failed on.
+      const { river: _, ...dry } = setting;
+      notes.push(`town generator failed on ${plan.id} with setting ${JSON.stringify(setting)}: ${(e as Error).message}; laid without its river`);
+      built = buildTown(land, { ...spec, setting: dry }, seed, { lenient: true });
+    }
+    notes.push(...built.report.notes.map((n) => `${plan.id} (setting ${JSON.stringify(setting)}): ${n}`));
+    if (built.data.grounds.join() !== g.join()) throw new Error(`${plan.id}: its grounds ${built.data.grounds.join(",")} are not its pocket ${g.join(",")}`);
     const data: TownData = {
       ...built.data,
       site: icon.site,
-      ways: (built.data.ways ?? []).map(({ to, ...w }) => ({
+      ways: built.data.ways.map(({ to, ...w }) => ({
         side: w.side,
         outside: [land.xOf(icon.outside[w.side]), land.zOf(icon.outside[w.side])] as const,
         inside: w.inside,
