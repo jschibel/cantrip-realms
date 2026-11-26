@@ -207,20 +207,40 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name,
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
   until a test advances it: the offline suites never wait on the wall clock. `npm test` runs vitest; `npm run e2e` runs
-  the Playwright suite (`e2e/`) against the offline overworld with real clicks (`walking.spec.ts` follows the player
-  beside a shop frame by frame, `realmTest.track`, held and clicked: no jump, no turning back; `sweep.spec.ts` walks
-  and steers the player about towns and the country round them, every frame checked for a jump and the body for a
-  closed tile or a ledge under it but mid-hop (and mid-hop no longer than a hop takes), and walks a ledge's brink and
-  hops it, held and clicked; `hop.spec.ts` hops a terrace of the large world with the real mouse at each heading, held
-  down and clicked up, frame by frame and pictured; SWEEP_TOWNS, SWEEP_WALKS sweep more, and
-  `e2e/server/sweep.spec.ts`, with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too);
-  `map.spec.ts` opens the whole map with M at 1280x800 and 1920x1080 - filling the window at 2:3, every town named, no
-  two names over each other fitted and zoomed in on Benalia, Llanowar, North Aerona and Icehaven, a dungeon named on
-  hover, the tiers tinted, dragged, closed with Escape - and the minimap at a coast, a pass and a forest (`MAP_SHOTS=<dir>`
-  keeps the pictures); `tour.spec.ts` takes the pictures of the
-  Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
-  view in New Benalia at every heading; `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face. `npm run e2e:server` runs `e2e/server/` against the real realm
-  server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
+  the Playwright suite (`e2e/`) against the offline overworld with real clicks. Where a test starts is read from
+  world.json and the chunk files (`e2e/places.ts`: a spawn near a town's icon, a road's crossings, a ledge's brink in a
+  grounds or on the travel map, the travel map's places to walk), never a tile written in a test, so a regenerated world
+  or a town laid out anew still has a place for every test. `journey.spec.ts` plays the two scales as a player does,
+  every walk a real mouse click on the ground: out of New Benalia's inn and through its streets to the road out, onto
+  the exit and out beside the icon, along the road to Capashen Hold, in by a click on its icon (the hearts filled there,
+  the travel map's wilds filling none) and through its streets into its inn - no jump, no walk refused.
+  `grounds.spec.ts` opens each of the sixteen towns with `?at=<town>`: the player at the inn's door in its grounds, out
+  of any door a few seconds on, and no void's pixel in the frame at any heading or zoom the camera allows there
+  (`GROUNDS_SHOTS=<dir>` keeps the pictures). `walking.spec.ts` follows the player beside a shop frame by frame
+  (`realmTest.track`), held and clicked: no jump, no turning back; `sweep.spec.ts` walks and steers the player about
+  towns' grounds and, on the travel map, along a road, among a wood's groves, against a range's peaks, over a bridge and
+  up and down a bank, every frame checked for a jump and the body for a closed tile or a ledge under it but mid-hop (and
+  mid-hop no longer than a hop takes), and after each walk for a way back to where it began (never shut in a pocket);
+  and walks a ledge's brink and hops it, held and clicked, in a grounds and on the travel map; `hop.spec.ts` hops a
+  terrace of the large world with the real mouse at each heading, held down and clicked up, frame by frame and pictured;
+  SWEEP_TOWNS, SWEEP_TRAVEL (road, wood, range, bridge, bank), SWEEP_WALKS sweep more, and `e2e/server/sweep.spec.ts`,
+  with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too). `duel.spec.ts` has a wanderer of the
+  travel map engaged with a click, one that chases a player standing near into a duel itself, and one that does not hop
+  come as near as it can and stop at a bank's brink; `hearts.spec.ts` fills the hearts walking into a town's grounds
+  from its icon, and wakes the dead at their inn's door in its grounds; `dungeons.spec.ts` leaves a mage tower onto the
+  travel map beside its way in and travels by its waystone to another; `travel.spec.ts` crosses the Rip on the Keldon
+  ferry. `map.spec.ts` opens the whole map with M at 1280x800 and 1920x1080 - filling the window at 2:3, every town
+  named, no two names over each other fitted and zoomed in on Benalia, Llanowar, North Aerona and Icehaven, a dungeon
+  named on hover, the tiers tinted, dragged, closed with Escape - from a town's grounds too, and the minimap at a coast,
+  a pass and a forest (`MAP_SHOTS=<dir>` keeps the pictures); `tour.spec.ts` takes the pictures of the Domains
+  (`REALM_TOUR=1` writes `e2e/screenshots/tour`, `TOUR_ONLY=towns,regions,rooms,dungeons,rest` some of them): each town
+  at its inn's door, each region of the travel map (geography.json's) from the furthest zoom, an interior of each kind,
+  each dungeon's entrance on the travel map and a floor of it, and a walk out of New Benalia down its road and onto the
+  travel map as a GIF; `occlude.spec.ts` holds the occluder fade and the steady view in New Benalia at every heading;
+  `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face, on the large world's hills. `npm run
+  e2e:server` runs `e2e/server/` against the real realm server on the generated world instead (the page on its own
+  clock there, as the server times walks by its clock; its ports `REALMS_E2E_PORTS=web,realm,cards`, the card layer
+  another checkout's build with `REALM_CARD_LAYER_ROOT=<its wwwroot>`, the engine host with `CANTRIP_NATIVE_HOST`): it
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
   (`?server=`), signs in, makes a character, walks New Benalia's streets (held and clicked beside a shop, the relay
   refusing none of the walks told: `walking.spec.ts`), goes into a shop and asks for its vendor's
@@ -241,7 +261,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   vendor there (`spell-table.spec.ts`). A test starts its character where it needs to be and has the server
   count the stand-in's wins and losses through the development server's test-only calls (`POST /dev/place`, `/dev/verdict` with the mob's life at the end, `/dev/duel`, `/dev/cards`,
   interfaces.md); everything else is walked and clicked. `npm run bench` times the renderer on walks through the
-  Domains and the large world (`e2e/bench`). The dev galleries are `gallery.html` (the art library), `rooms.html`
+  Domains - New Benalia's streets in its grounds, a wood and a range of the travel map - and the large world
+  (`e2e/bench`). The dev galleries are `gallery.html` (the art library), `rooms.html`
   (rooms and dungeon floors) and `cast.html` (figures).
 
 #### The module layout (`realms/web/src`)
@@ -435,8 +456,10 @@ What the renderer does with the interfaces above at the scale of the whole world
 - **Terrain** (`render/terrain.ts`): each tile's floor at its height; where a tile's edge stands above its neighbour's,
   a face of rock down to it (a surface's look may name its own bank material as an optional `cliff`; else
   `bank-rock`); a **ramp** tile (flag `RAMP` = 4, the one format addition: `world/format.ts` and the lint accept it)
-  slopes along the axis its neighbours differ most on, from the level on one side to the level on the other, half-way to
-  a ramp neighbour, so a run of ramps is one even slope. `floorAt(x, z)` is the surface anywhere; figures and grass stand
+  slopes along the axis it is walked on - the one with more ends walked onto freely (a ramp a step up or down, or ground
+  no more than a ledge from it), else the one its neighbours differ most on - from the level on one side to the level
+  on the other, half-way to a ramp neighbour, so a run of ramps is one even slope; a neighbour more than a level from it
+  is a cliff beside it, never an end (a road's ramp along a range's foot slopes along the road). `floorAt(x, z)` is the surface anywhere; figures and grass stand
   on it. **Edges read from every heading** - a bank's face is hidden where the high ground is nearer the camera and
   seen edge on where the bank runs along the view, so the cues are on the ground's top, which always shows: the chunk's
   relief (`reliefMap`: each tile's corner heights, over the ground map's tiles and their border, so edges join across
@@ -1366,11 +1389,12 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   | Persistence | storage round-trips |
 
 - **Overworld:** vitest for the grid and its A* (the walk vectors the server checks too), spawn generation (the same golden vectors as the server), the world format, loader and lint (Dominaria's files lint clean and are what the generator writes), the art registries, rooms, dungeon floors, figures and the renderer's pieces, and the in-memory API.
-- **Browser end to end:** Playwright in a new `Cantrip.Realms.Web.Tests`, driving `realmTest` and `cantripTest` with real clicks.
-  - The flow: create a character → walk → engage a mob → the duel → its gold → a vendor sale → spell table edits → a loss, a heart gone, the buyout or a rematch → the last heart lost returns you home.
+- **Browser end to end:** Playwright in `realms/web/e2e` (B5, "Test hooks"), driving `realmTest` and `cantripTest` with real clicks: `npm run e2e` offline against the in-memory API and the stand-in card layer, `npm run e2e:server` against the realm server, the native engine host and the real card layer.
+  - The flow: create a character → walk → engage a mob → the duel → its gold → a vendor sale → spell table edits → a loss, a heart gone, the buyout or a rematch → the last heart lost returns you home, to your inn's door in its town's grounds.
+  - The two scales: a journey from one town's inn out onto the travel map and into the next town's by its icon, walked with real clicks; every town's grounds opened at its inn with no void at any heading or zoom; the travel map and towns' grounds swept by held and clicked walks for jumps and pockets; wanderers chasing on the travel map, and one that does not hop stopping at a bank's brink; a dungeon left onto the travel map beside its way in.
   - The duel is forced with a `.cantrip` scenario, never a seed hunt.
   - Two browser contexts see each other move and change gear.
-  - Screenshot checks of the world rendering.
+  - Screenshot checks of the world rendering: the void's pixels counted in towns' grounds, the occluder fade, the shadows at a terrace's foot; the tour's pictures for eyes.
 - **Load:** headless presence bots (200 clients) against the WebSocket relay.
 - **Deployment:**
   - The compose stack runs locally from the published image.

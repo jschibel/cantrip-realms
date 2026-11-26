@@ -2,13 +2,14 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, test } from "@playwright/test";
+import { travelSpots } from "../places";
 import { type Tile, openNear, openWorld, world } from "../realm";
 
 // The renderer's benchmark on the game page (see playwright.config.ts here): the same walks every run, timed frame by
-// frame on the manual clock with streaming on its real budget. The generated Domains - New Benalia's streets, the
-// forest of Llanowar, the Caligo Morass - at the closest zoom and the furthest (where the small props and the grass are
-// left out, and the trees are their far stand-ins), once turning the camera while it walks; and the large synthetic
-// world's town and forest, the yardstick the renderer was first measured on.
+// frame on the manual clock with streaming on its real budget. The generated Domains - New Benalia's streets in its
+// grounds, and on the travel map a wood's groves and a range's peaks - at the closest zoom and the furthest (where the
+// small props and the grass are left out, and the trees are their far stand-ins), once turning the camera while it
+// walks; and the large synthetic world's town and forest, the yardstick the renderer was first measured on.
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -56,11 +57,15 @@ function loop(at: Tile, r: number): Tile[] {
   return corners.map((c) => openNear(c, 0, openWorld));
 }
 
-test("bench: the Domains at 1080p - New Benalia's streets, Llanowar's forest, the Morass", async ({ page }) => {
+test("bench: the Domains at 1080p - New Benalia's streets in its grounds, a wood and a range of the travel map", async ({ page }) => {
+  test.setTimeout(900_000);
   const nb = world().towns.find((t) => t.id === "new-benalia")!;
   const town = loop({ x: nb.center[0], z: nb.center[1] }, 26);
-  const forest = loop({ x: 736, z: 846 }, 22);
-  const morass = loop({ x: 333, z: 386 }, 22);
+  // On the travel map (places.ts travelSpots): the wood nearest Llanowar's icon, and the foot of the range nearest the
+  // map's middle - a loop through the groves, and one along the peaks.
+  const spots = travelSpots();
+  const wood = loop(spots.find((s) => s.name === "wood")!.at, 16);
+  const range = loop(spots.find((s) => s.name === "range")!.at, 16);
   await bench(
     page,
     `at=world:${town[5]!.x},${town[5]!.z}`,
@@ -73,21 +78,21 @@ test("bench: the Domains at 1080p - New Benalia's streets, Llanowar's forest, th
   );
   await bench(
     page,
-    `at=world:${forest[5]!.x},${forest[5]!.z}`,
+    `at=world:${wood[5]!.x},${wood[5]!.z}`,
     [
-      { name: "Llanowar's forest, closest zoom", waypoints: forest, heading: 0, zoom: 0 },
-      { name: "Llanowar's forest, furthest zoom", waypoints: [...forest].reverse(), heading: -1, zoom: 2 },
+      { name: "the travel map's wood, closest zoom", waypoints: wood, heading: 0, zoom: 0 },
+      { name: "the travel map's wood, furthest zoom", waypoints: [...wood].reverse(), heading: -1, zoom: 2 },
     ],
-    "bench-llanowar.json",
+    "bench-wood.json",
   );
   await bench(
     page,
-    `at=world:${morass[5]!.x},${morass[5]!.z}`,
+    `at=world:${range[5]!.x},${range[5]!.z}`,
     [
-      { name: "the Morass, closest zoom", waypoints: morass, heading: 0, zoom: 0 },
-      { name: "the Morass, furthest zoom", waypoints: [...morass].reverse(), heading: 1, zoom: 2 },
+      { name: "the travel map's range, closest zoom", waypoints: range, heading: 0, zoom: 0 },
+      { name: "the travel map's range, furthest zoom", waypoints: [...range].reverse(), heading: 1, zoom: 2 },
     ],
-    "bench-morass.json",
+    "bench-range.json",
   );
 });
 

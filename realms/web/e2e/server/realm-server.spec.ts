@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { doorOf, spawnNear } from "../places";
-import { advance, chebyshev, clickClear, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitReady, waitSpace, walkTo, world } from "../realm";
+import { advance, chebyshev, clickClear, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitGround, waitReady, waitSpace, walkTo, world } from "../realm";
 import { type Me, api, character, query, requests, signIn, verdict } from "./server";
 
 // The overworld against the real realm server on the generated Domains (playwright.config.ts here): a player signs in by
@@ -59,11 +59,20 @@ test("a player signs in, makes a character, walks, visits a vendor and starts an
   await waitSpace(page, "world");
   await until(page, async () => (await api<Me>(page.request, "me")).Space === "world", "the server has Ann outside", 60);
 
-  // Out through the gate to a spawn of the wilds by the capital: the mob the page shows is the one the server holds
+  // Out by a road of its grounds onto the travel map, to a spawn of the wilds by the capital: the mob the page shows is the one the server holds
   // there, so the encounter starts, and the duel the card layer is asked for is the server's. (A mob that comes for Ann
   // on the way is beaten by the stand-in, which the server counts as a win for this test: POST /dev/verdict.)
   await verdict(page.request, "won");
   const spawn = spawnNear(capital.id);
+  // Out of the grounds by the way whose outside on the travel map is nearest the spawn: its road to its end, and on.
+  const way = [...capital.ways!].sort((p, q) => chebyshev(spawn, { x: p.outside[0], z: p.outside[1] }) - chebyshev(spawn, { x: q.outside[0], z: q.outside[1] }))[0]!;
+  await walkTo(page, { x: way.inside[0], z: way.inside[1] }, 1);
+  await clickEntity(page, (e) => e.kind === "town-out" && e.to === `way:${capital.id}:${way.side}:out`, "the road out");
+  await waitGround(page, null);
+  await until(page, async () => {
+    const me = await api<Me>(page.request, "me");
+    return me.X === way.outside[0] && me.Z === way.outside[1];
+  }, "the server has Ann outside the town, beside its icon", 60);
   await walkTo(page, openNear(spawn, 4), 1);
   // The mob is clicked once - and again after any duel with another that came for Ann on the way cut the walk short.
   let clickedAfter = -1;

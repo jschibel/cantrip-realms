@@ -1,13 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { doorOf } from "../places";
-import { advance, openNear, realm, waitReady, waitSpace } from "../realm";
-import { character, place, query } from "./server";
+import { advance, clickEntity, clickWalk, enterTown, openNear, realm, until, waitGround, waitReady, waitSpace, world } from "../realm";
+import { type Me, api, character, place, query } from "./server";
 
 // Walking beside a shop on the real server: a held walk circling the player and clicks all round it are told to the
 // relay as walks it takes - none refused (too many at once, or starting somewhere the server does not have the
 // player), so the server never puts the player back where it thinks they are, and the figure never jumps. And when the
 // server has lost track of the player all the same (a reconnection entering them where they last reported), the walk it
-// refuses is followed by the way there (net/relay.ts catchUp), never a snap back.
+// refuses is followed by the way there (net/relay.ts catchUp), never a snap back. And a journey across the two scales,
+// every walk a click: out of a town's grounds by its road onto the travel map, along the road and in by the next town's
+// icon, the server having the player where the page does at each end.
 
 test("walking beside a shop: the relay refuses none of a held walk's or the clicks' walks, and the player never jumps", async ({ page }) => {
   test.setTimeout(180_000);
@@ -57,6 +59,39 @@ test("walking beside a shop: the relay refuses none of a held walk's or the clic
   await advance(page, 1);
   expect(await realm<string[]>(page, "refused"), "walks the relay refused").toEqual([]);
   expect(await page.evaluate(() => (globalThis as any).walkJumps as number[]), "jumps of the figure").toEqual([]);
+});
+
+test("a journey across the two scales on the real server: out of New Benalia onto the travel map, in by Capashen Hold's icon, the server following", async ({ page }) => {
+  test.setTimeout(300_000);
+  const from = world().towns.find((t) => t.id === "new-benalia")!;
+  const to = world().towns.find((t) => t.id === "capashen-hold")!;
+  const out = from.ways!.find((w) => w.to === to.id)!;
+  const into = to.ways!.find((w) => w.to === from.id)!;
+  const road = world().roads.find((r) => (r.from === from.id && r.to === to.id) || (r.from === to.id && r.to === from.id))!;
+  const roadTiles = (road.from === from.id ? road.tiles : [...road.tiles].reverse()).map(([x, z]) => ({ x, z }));
+  await character(page.request, 73, "Wyn");
+  // On the road in from New Benalia's gate to Capashen Hold, a little way in.
+  await place(page.request, openNear({ x: out.inside[0], z: out.inside[1] }, 3));
+  await page.goto(query("&mobs=0"));
+  await waitReady(page);
+  await waitGround(page, from.id);
+  await clickWalk(page, { x: out.inside[0], z: out.inside[1] }, 1);
+  await clickEntity(page, (e) => e.kind === "town-out" && e.to === `way:${from.id}:${out.side}:out`, "the road out");
+  await waitGround(page, null);
+  // The server has the player beside the icon, on the travel map.
+  await until(page, async () => {
+    const me = await api<Me>(page.request, "me");
+    return me.Space === "world" && me.X === out.outside[0] && me.Z === out.outside[1];
+  }, "the server has the player outside", 10);
+  for (let i = 6; i < roadTiles.length; i += 6) await clickWalk(page, roadTiles[i]!, 1);
+  await clickWalk(page, { x: into.outside[0], z: into.outside[1] }, 2);
+  await enterTown(page, to.id);
+  await until(page, async () => {
+    const me = await api<Me>(page.request, "me");
+    return me.Space === "world" && Math.max(Math.abs(me.X - into.inside[0]), Math.abs(me.Z - into.inside[1])) <= 2;
+  }, "the server has the player in Capashen Hold's grounds", 10);
+  expect(await realm<string[]>(page, "refused"), "walks the relay refused").toEqual([]);
+  expect(await page.evaluate(() => ((globalThis as any).realmTest.game.jumps as unknown[]).map((j) => JSON.stringify(j))), "jumps of the figure").toEqual([]);
 });
 
 test("a walk refused after the server lost track of the player is caught up, not snapped back: the figure never jumps", async ({ page }) => {

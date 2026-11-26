@@ -2,7 +2,7 @@ import { type Page, expect, test } from "@playwright/test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnNear } from "../places";
-import { chebyshev, clickClear, clickControl, clickEntity, entities, entity, interior, openNear, playerTile, realm, until, waitReady, waitSpace, walkTo, winDuel, world } from "../realm";
+import { chebyshev, clickClear, clickControl, clickEntity, enterTown, entities, entity, interior, openNear, playerTile, realm, until, waitReady, waitSpace, walkTo, winDuel, world } from "../realm";
 import { enter, run, toShrine, walkInside } from "../runs";
 import { type FindView, type Me, SERVER, api, besideEntrance, character, drop, find, hearts, place, query, verdict } from "./server";
 
@@ -59,11 +59,15 @@ test("a lost duel on the real server: a heart gone, the buyout by the life the m
   expect(paid).toMatchObject({ Hearts: 1, Gold: before.Gold - price, Defeat: null });
   expect((await entities(page)).some((e) => e.kind === "mob" && e.spawn === spawn.id)).toBe(false);
 
-  // Walked back into New Benalia, the server sees the town where the character stands: the hearts fill.
+  // Walked back to New Benalia's icon and into its grounds, the server sees the town where the character stands: the
+  // hearts fill (and not before, on the travel map).
   const capital = world().towns.find((t) => t.kind === "capital")!;
-  const inn = world().inns.find((i) => i.town === capital.id)!;
   await verdict(page.request, null);
-  await walkTo(page, { x: inn.x, z: inn.z }, 4);
+  const here = await playerTile(page);
+  const way = [...capital.ways!].sort((a, b) => chebyshev(here, { x: a.outside[0], z: a.outside[1] }) - chebyshev(here, { x: b.outside[0], z: b.outside[1] }))[0]!;
+  await walkTo(page, { x: way.outside[0], z: way.outside[1] }, 3);
+  expect((await api<Me>(page.request, "me")).Hearts, "the travel map fills no hearts").toBe(1);
+  await enterTown(page, capital.id);
   await expect.poll(async () => (await api<Me>(page.request, "me")).Hearts, { timeout: 30_000 }).toBe(2);
   await until(page, async () => (await page.locator("[data-test='hud:hearts']").getAttribute("data-hearts")) === "2", "the HUD's hearts filled", 30);
 });

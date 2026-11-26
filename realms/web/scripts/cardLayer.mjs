@@ -13,8 +13,13 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** Where the built card layer is. */
-export const cardLayerRoot = resolve(here, "..", "..", "..", "dotnet", "src", "Cantrip.Client.Web", "bin", "Debug", "net10.0-browserwasm", "wwwroot");
+/**
+ * Where the built card layer is: this checkout's build, or `REALM_CARD_LAYER_ROOT` (another checkout's built wwwroot - a
+ * fresh worktree has none of its own).
+ */
+export const cardLayerRoot = process.env.REALM_CARD_LAYER_ROOT
+  ? resolve(process.env.REALM_CARD_LAYER_ROOT)
+  : resolve(here, "..", "..", "..", "dotnet", "src", "Cantrip.Client.Web", "bin", "Debug", "net10.0-browserwasm", "wwwroot");
 
 /** Where the catalog of card faces for a card layer with no realm server is written. */
 export const offlineCatalog = resolve(here, "..", ".cards", "catalog.msgpack");
