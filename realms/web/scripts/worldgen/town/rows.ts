@@ -22,19 +22,19 @@
 // - A river through the town runs along the square's south street (its quay) with a bridge on every connector; the sea
 //   takes a side's wall and gives a quay.
 // The plan keeps the town's streets as a graph (format.ts, `TownPlan`) for the maps and the lint.
+//
+// The row planner (planner.ts) of the capital, the cities, the campus and the estate.
 
 import type { StreetWay, TownSquare, XZ } from "../../../src/world/format";
+import { BARE, BLOCKED } from "../../../src/world/format";
 import { brushOf } from "../../../src/world/streets";
-import type { FormSpec } from "./forms";
+import { S } from "../ids";
+import { Use } from "../land";
+import { STREET_LIGHT, stand } from "./dress";
+import { formOf, groundsOf } from "./forms";
+import type { Ctx } from "./index";
+import type { Band, Block, Box, ExtraWay, Gate, Graph, Plan, PlanInput, Planner, Site } from "./planner";
 import type { Side } from "./types";
-
-/** A rectangle of tiles, x0..x1 and z0..z1, the ends excluded. */
-export interface Box {
-  readonly x0: number;
-  readonly z0: number;
-  readonly x1: number;
-  readonly z1: number;
-}
 
 /** An east-west street: tiles z..z+w-1 from x0 to x1 (excluded); after row `k`. */
 export interface Street {
@@ -58,106 +58,19 @@ export interface Connector {
   readonly kind: "lane" | "artery" | "connector";
 }
 
-export interface Gate {
-  readonly side: Side;
-  /** The way of the setting it serves (its index), or -1. */
-  readonly way: number;
-  readonly main: boolean;
-  /** Its passage through the outline: the tiles of the outline it crosses. */
-  readonly passage: Box;
-  /** The road's end just outside it: the plan's gate node, where the walk in starts. */
-  readonly node: XZ;
-  /** Where its way meets the streets inside: a junction of the plan. */
-  readonly inner: XZ;
-  readonly width: number;
-}
-
-/** A row's ground: its yards at the north, its buildings at the south along the street before it. */
-export interface Band {
-  readonly k: number;
-  readonly z0: number;
-  readonly z1: number;
-}
-
-/** A block: ground between streets, built along its south edge (the street at z1). */
-export interface Block {
-  readonly k: number;
-  readonly x0: number;
-  readonly x1: number;
-  readonly z0: number;
-  readonly z1: number;
-  /** Which of its ends lie on a north-south way (it may front onto them too) or the square. */
-  readonly west: "lane" | "street" | "square" | "wall" | "site";
-  readonly east: "lane" | "street" | "square" | "wall" | "site";
-}
-
-/** Ground a landmark takes across rows: from the north of row k0 to the street before row k1. */
-export interface Site {
-  readonly id: string;
-  readonly box: Box;
-  readonly k0: number;
-  readonly k1: number;
-}
-
-/** What the plan asks a landmark's ground to be. */
-export interface SiteRequest {
-  readonly id: string;
-  /** Tiles across, and rows deep (the rows it spans, ending at the row before a street). */
-  readonly w: number;
-  readonly rows: number;
-  /** Where it belongs: the town's north edge on the square's axis, or beside the square to the north. */
-  readonly where: "north" | "square";
-  /** The depth of what stands on it, when one row must hold it. */
-  readonly d?: number;
-}
-
-export interface Plan {
-  readonly box: Box;
-  /** The interior: inside the walls. */
-  readonly inner: Box;
+/** A town of rows' plan: the shared plan, and its rows. */
+export interface RowPlan extends Plan {
+  /** Each row's ground: its yards at the north, its buildings at the south along the street before it. */
   readonly bands: readonly Band[];
   /** How far each row reaches, x0..x1 (x1 excluded): the town's shape. */
   readonly ext: readonly (readonly [number, number])[];
   readonly streets: readonly Street[];
   readonly connectors: readonly Connector[];
   readonly square: Box & { readonly a: number };
-  readonly gates: readonly Gate[];
-  readonly sites: readonly Site[];
-  readonly blocks: readonly Block[];
-  /** The gardens inside the south wall (or the quay on the sea), z0..z1. */
-  readonly south: Band;
   /** A quay along the north (the sea to the north), or none. */
   readonly northQuay: Band | null;
-  /** A river through the town: its band, below the square's south street. */
-  readonly river: Band | null;
   /** The level of each row and its street (whole terraces), north to south. */
   readonly levels: readonly number[];
-  /** Sides that are sea: no wall, a quay. */
-  readonly sea: ReadonlySet<Side>;
-}
-
-/** The inputs a plan is made from. */
-export interface PlanInput {
-  readonly box: Box;
-  readonly F: FormSpec;
-  readonly ways: readonly { readonly side: Side; readonly to: string }[];
-  readonly sea: ReadonlySet<Side>;
-  readonly river: Side | "through" | undefined;
-  /** The land's height, in levels (fractional), at a tile. */
-  readonly height: (x: number, z: number) => number;
-  readonly sites: readonly SiteRequest[];
-  /** The town's shape: its rows' profile, how far an end may be pulled in, the noise that pulls it, a scale (1 as
-   * designed; less where the town must find more room). */
-  readonly shape: { readonly profile: "oval" | "lozenge" | "blob" | "flat"; readonly most: number; readonly scale: number; readonly noise: (u: number, v: number) => number };
-  /**
-   * What the row fronting the square from the north must hold: its great buildings' depth, and their depth and the
-   * ground they hide behind them.
-   */
-  readonly civic: readonly [number, number];
-  readonly random: () => number;
-  readonly gateWidth: number;
-  /** A tag for errors. */
-  readonly id: string;
 }
 
 const RIVER_WIDTH = 5;
@@ -187,7 +100,7 @@ export function partition(total: number, n: number, lo: number, hi: number, rand
   return rest === 0 ? out : null;
 }
 
-export function planTown(input: PlanInput): Plan {
+export function planTown(input: PlanInput): RowPlan {
   const { box, F, sea, random } = input;
   const W = F.street;
   const lw = F.lane;
@@ -205,16 +118,22 @@ export function planTown(input: PlanInput): Plan {
   const ZA = inner.z0 + northQuayDepth;
   const ZB = inner.z1 - southDepth;
   const through = input.river === "through";
+  // A river through the town runs below the square's row, its quay the square's south street; on a later try (a town too
+  // small for a river among its rows), below its last row, between it and the gardens.
+  const riverAfter = (a: number, n: number) => (input.deep ? n - 1 : a);
   const span = ZB - ZA - (through ? RIVER_WIDTH : 0);
 
   // --- The rows, and the square's row and place: what minimises the walk to every gate ---------------------------------
-  const target = F.row[1];
+  // A row's depth, least and most: the form's, or (a later try) as deep as the town's great buildings and what they hide.
+  const rowLo = input.deep ? Math.max(F.row[0], input.civic[1]) : F.row[0];
+  const rowHi = input.deep ? Math.max(F.row[2], rowLo + 2) : F.row[2];
+  const target = input.deep ? Math.max(F.row[1], rowLo + 1) : F.row[1];
   // The north row: shallow (nothing north of it to hide), but deep enough for what must stand in it.
   const deepest = input.sites.reduce((m, s) => Math.max(m, (s.d ?? 0) + 2), 0);
   // A quay to the north is a street behind the north row: that row keeps a yard as every row does.
   const row0 = Math.max(northQuayDepth > 0 ? F.row[1] : (F.row0 ?? F.row[0] + 1), deepest);
   const counts: number[] = [];
-  for (let n = 2; n <= 9; n++) if ((span - n * W - row0) / (n - 1) >= F.row[0] - 1) counts.push(n);
+  for (let n = 2; n <= 9; n++) if ((span - n * W - row0) / (n - 1) >= rowLo - 1) counts.push(n);
   if (counts.length === 0) throw new Error(`${input.id}: no rows fit ${span} tiles`);
   const sqW = F.square[0];
   const sides = input.ways.map((w) => w.side);
@@ -229,9 +148,11 @@ export function planTown(input: PlanInput): Plan {
       // hide); the row that fronts the square from the north deep enough for the town's great buildings and the ground
       // they hide (none to keep in sight when it is the north row and no quay lies behind it).
       const fixed = new Map([[a, Math.max(F.row[0], Math.min(F.row[2] + 2, F.square[1]))]]);
+      // The row south of the square: the square's best fronts look across at it, and the walks to the gates pass it.
+      if (input.deep && a + 1 < n) fixed.set(a + 1, input.civic[1]);
       fixed.set(0, row0);
       fixed.set(a - 1, Math.max(fixed.get(a - 1) ?? 0, a - 1 === 0 && northQuayDepth === 0 ? input.civic[0] + 1 : input.civic[1]));
-      const depths = partition(span - n * W, n, F.row[0], F.row[2] + 1, random, fixed);
+      const depths = partition(span - n * W, n, rowLo, rowHi + 1, random, fixed);
       if (process.env.DEBUG_PLAN) console.log("rows", n, a, [...fixed], depths);
       if (!depths) continue;
       const free = depths.filter((_, k) => !fixed.has(k));
@@ -241,7 +162,7 @@ export function planTown(input: PlanInput): Plan {
       const zs: number[] = [];
       for (let k = 0; k < n; k++) {
         zs.push(z);
-        z += depths[k]! + W + (through && k === a ? RIVER_WIDTH : 0);
+        z += depths[k]! + W + (through && k === riverAfter(a, n) ? RIVER_WIDTH : 0);
       }
       const sqTop = zs[a]! - W;
       const sqBottom = zs[a]! + depths[a]! + W;
@@ -279,6 +200,7 @@ export function planTown(input: PlanInput): Plan {
   }
   if (!best) throw new Error(`${input.id}: no place for its square`);
   const { n, a, depths, qx } = best;
+  const riverK = through ? riverAfter(a, n) : -1;
 
   // --- Bands and streets ----------------------------------------------------------------------------------------------
   const bands: Band[] = [];
@@ -291,7 +213,7 @@ export function planTown(input: PlanInput): Plan {
       z += depths[k]!;
       streetZ.push(z);
       z += W;
-      if (through && k === a) {
+      if (through && k === riverAfter(a, n)) {
         river = { k: -1, z0: z, z1: z + RIVER_WIDTH };
         z += RIVER_WIDTH;
       }
@@ -322,7 +244,10 @@ export function planTown(input: PlanInput): Plan {
       const taken = usedX.get(side) ?? [];
       // A south gate on the square's middle column; a north gate at the square's corner (its north row unbroken); a
       // second gate on a side at the other corner, or further out.
-      const options = side === "south" ? [qx + Math.floor((sqW - aw) / 2), qx - aw, square.x1, qx - aw - 14, square.x1 + 14] : [square.x1, qx - aw, qx + Math.floor((sqW - aw) / 2), square.x1 + 14, qx - aw - 14];
+      // The main gate in the north (no road from the south): its artery down the square's middle, the way the town is
+      // arrived at, its landmarks either side of it.
+      const middle = qx + Math.floor((sqW - aw) / 2);
+      const options = side === "south" ? [middle, qx - aw, square.x1, qx - aw - 14, square.x1 + 14] : main ? [middle, square.x1, qx - aw, square.x1 + 14, qx - aw - 14] : [square.x1, qx - aw, middle, square.x1 + 14, qx - aw - 14];
       const x = options.find((o) => o >= LX0 + westLane + 2 && o + aw <= LX1 - eastLane - 2 && taken.every((t) => Math.abs(t - o) >= aw + 6));
       if (x === undefined) throw new Error(`${input.id}: no room for a ${side} gate`);
       taken.push(x);
@@ -466,10 +391,10 @@ export function planTown(input: PlanInput): Plan {
     // Where the way is taken in this row: by the lanes (none in the north row, whose lots run to the walls), the
     // arteries, the square and the landmarks.
     const taken: [number, number][] = [];
-    const top = k === 0 ? b.z0 : streetZ[k - 1]! + W + (river && k === a + 1 ? RIVER_WIDTH : 0);
+    const top = k === 0 ? b.z0 : streetZ[k - 1]! + W + (river && k === riverK + 1 ? RIVER_WIDTH : 0);
     if (k > 0) {
-      connectors.push({ x: ex0(k), w: westLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
-      connectors.push({ x: ex1(k) - eastLane, w: eastLane, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      connectors.push({ x: ex0(k), w: westLane, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
+      connectors.push({ x: ex1(k) - eastLane, w: eastLane, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "lane" });
       taken.push([ex0(k), ex0(k) + westLane], [ex1(k) - eastLane, ex1(k)]);
       bandConnectors[k]!.push(ex0(k), ex1(k) - eastLane);
     }
@@ -517,7 +442,7 @@ export function planTown(input: PlanInput): Plan {
           bestX = x;
         }
       }
-      connectors.push({ x: bestX, w: lw, z0: top - (river && k === a + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "connector" });
+      connectors.push({ x: bestX, w: lw, z0: top - (river && k === riverK + 1 ? RIVER_WIDTH : 0), z1: b.z1, kind: "connector" });
       bandConnectors[k]!.push(bestX);
       split(x0, bestX);
       split(bestX + lw, x1);
@@ -544,7 +469,7 @@ export function planTown(input: PlanInput): Plan {
       });
     }
     const main = k === a || k === a - 1 || gates.some((g) => (g.side === "east" || g.side === "west") && g.inner[1] === mid(streetZ[k]!));
-    streets.push({ k, z: streetZ[k]!, w: W, runs, main, ...(river && k === a ? { quay: true } : {}) });
+    streets.push({ k, z: streetZ[k]!, w: W, runs, main, ...(river && k === riverK ? { quay: true } : {}) });
   }
 
   // --- Blocks -------------------------------------------------------------------------------------------------------------
@@ -591,13 +516,16 @@ export function planTown(input: PlanInput): Plan {
       if (levels[k]! < levels[k - 1]! - 1) levels[k] = levels[k - 1]! - 1;
     }
   }
-  return { box, inner, bands, ext, streets, connectors, square, gates, sites, blocks, south, northQuay, river, levels, sea };
+  // What the square's furniture keeps off: the arteries' columns through it. Bridges: every way across the river.
+  const across = connectors.filter((c) => c.kind === "artery").map((c) => ({ x0: c.x, z0: c.z0, x1: c.x + c.w, z1: c.z1 }));
+  const bridges = river ? connectors.filter((c) => !(c.z0 > river.z0 || c.z1 < river.z1)).map((c) => ({ x0: c.x, z0: river.z0 - 1, x1: c.x + c.w, z1: river.z1 + 1 })) : [];
+  return { box, inner, bands, ext, streets, connectors, square, gates, sites, blocks, south, northQuay, river, levels, sea, through: across, bridges };
 }
 
 // --- The plan as the world keeps it ---------------------------------------------------------------------------------------
 
 /** The plan's streets as a graph (format.ts, `TownPlan`): junctions, the ways between them, the squares, the gates. */
-export function planGraph(plan: Plan, extra: readonly { readonly a: XZ; readonly b: XZ; readonly width: number; readonly main?: boolean }[] = []): { nodes: XZ[]; ways: StreetWay[]; gates: number[]; squares: TownSquare[] } {
+export function planGraph(plan: RowPlan, extra: readonly ExtraWay[] = []): Graph {
   const nodes: XZ[] = [];
   const index = new Map<string, number>();
   const node = (p: XZ) => {
@@ -611,9 +539,9 @@ export function planGraph(plan: Plan, extra: readonly { readonly a: XZ; readonly
     return i;
   };
   const ways: StreetWay[] = [];
-  const way = (p: XZ, q: XZ, width: number, main: boolean) => {
+  const way = (p: XZ, q: XZ, width: number, main: boolean, via?: readonly XZ[]) => {
     if (p[0] === q[0] && p[1] === q[1]) return;
-    ways.push({ a: node(p), b: node(q), width, ...(main ? { main: true } : {}) });
+    ways.push({ a: node(p), b: node(q), width, ...(main ? { main: true } : {}), ...(via && via.length > 0 ? { via: via.map((v) => [v[0], v[1]] as XZ) } : {}) });
   };
   const midOf = (z: number, w: number) => z + Math.floor((w - 1) / 2);
   // Junctions along each street: every connector meeting it from above or below, its ends.
@@ -651,7 +579,7 @@ export function planGraph(plan: Plan, extra: readonly { readonly a: XZ; readonly
     if (g.side === "east" || g.side === "west") way(g.inner, g.node, g.width, true);
     gates.push(node(g.node));
   }
-  for (const e of extra) way(e.a, e.b, e.width, e.main ?? false);
+  for (const e of extra) way(e.a, e.b, e.width, e.main ?? false, e.via);
   // Ways that run the same tiles twice (an artery's stretch and the gate's) are one.
   const seen = new Set<string>();
   const kept = ways.filter((w) => {
@@ -664,3 +592,196 @@ export function planGraph(plan: Plan, extra: readonly { readonly a: XZ; readonly
   const squares: TownSquare[] = [{ x: sq.x0, z: sq.z0, w: sq.x1 - sq.x0, d: sq.z1 - sq.z0, name: "The square" }];
   return { nodes, ways: kept, gates, squares };
 }
+
+// --- The ground ------------------------------------------------------------------------------------------------------------
+
+/** Lays the town's ground: its lots, its streets and square, its wall's ring, its quays, the river through it. */
+function paintTown(ctx: Ctx): void {
+  const { land, F, town } = ctx;
+  const plan = ctx.plan as RowPlan;
+  const g = groundsOf(town);
+  const { box } = plan;
+  const tagN = ctx.spec.index + 1;
+  const I = (x: number, z: number) => land.idx(x, z);
+  const levelAt = (z: number): number => {
+    // The row a tile's z lies in (its band or the street after it), by the levels north to south.
+    for (let k = 0; k < plan.bands.length; k++) {
+      const s = plan.streets[k]!;
+      if (z < s.z + s.w) return plan.levels[k]!;
+    }
+    return plan.levels[plan.levels.length - 1]!;
+  };
+  // What the town takes of its box: its rows as far as each reaches, its streets, a strip of garden south of a street
+  // where the row below it is shorter (so no wall stands close south of a street, hiding it), the river through it, the
+  // gardens or the quay inside its south edge, the quay to the north; any hole filled. The ring round that is its edge.
+  const mask = ctx.inTown;
+  const mark = (x0: number, z0: number, x1: number, z1: number) => {
+    for (let z = Math.max(box.z0 + 1, z0); z < Math.min(box.z1 - 1, z1); z++) for (let x = Math.max(box.x0 + 1, x0); x < Math.min(box.x1 - 1, x1); x++) mask[I(x, z)] = 1;
+  };
+  const n = plan.bands.length;
+  plan.bands.forEach((b, k) => mark(plan.ext[k]![0], b.z0, plan.ext[k]![1], b.z1));
+  for (const s of plan.streets) {
+    for (const [x0, x1] of s.runs) mark(x0, s.z, x1, s.z + s.w);
+    const k = s.k;
+    if (k < n - 1) {
+      const below = plan.bands[k + 1]!;
+      const [x0, x1] = s.runs.reduce(([p, q], [a, b]) => [Math.min(p, a), Math.max(q, b)], [Infinity, -Infinity]);
+      mark(x0, s.z + s.w, x1, below.z0 + 4);
+    }
+  }
+  const [lx0, lx1] = plan.ext[n - 1]!;
+  mark(lx0, plan.south.z0, lx1, plan.south.z1);
+  if (plan.northQuay) mark(plan.ext[0]![0], plan.northQuay.z0, plan.ext[0]![1], plan.northQuay.z1);
+  for (const c of plan.connectors) mark(c.x, c.z0, c.x + c.w, c.z1);
+  {
+    // Holes: what the box's edge cannot reach without crossing the town.
+    const outside = new Uint8Array(land.size);
+    const queue: number[] = [];
+    for (let z = box.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if ((x === box.x0 || z === box.z0 || x === box.x1 - 1 || z === box.z1 - 1) && !mask[I(x, z)]) {
+      outside[I(x, z)] = 1;
+      queue.push(I(x, z));
+    }
+    for (let h = 0; h < queue.length; h++) {
+      const i = queue[h]!;
+      const x = land.xOf(i);
+      const z = land.zOf(i);
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nx = x + dx;
+        const nz = z + dz;
+        if (nx < box.x0 || nz < box.z0 || nx >= box.x1 || nz >= box.z1) continue;
+        const j = I(nx, nz);
+        if (outside[j] || mask[j]) continue;
+        outside[j] = 1;
+        queue.push(j);
+      }
+    }
+    for (let z = box.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if (!outside[I(x, z)]) mask[I(x, z)] = 1;
+  }
+  for (let z = box.z0; z < box.z1; z++) {
+    for (let x = box.x0; x < box.x1; x++) {
+      const i = I(x, z);
+      if (mask[i] === 1) continue;
+      let edge = false;
+      for (let dz = -1; dz <= 1 && !edge; dz++) for (let dx = -1; dx <= 1 && !edge; dx++) if (mask[I(x + dx, z + dz)] === 1) edge = true;
+      if (edge) mask[i] = 2;
+    }
+  }
+  for (let z = box.z0; z < box.z1; z++) {
+    for (let x = box.x0; x < box.x1; x++) {
+      const i = I(x, z);
+      if (!mask[i]) continue;
+      land.town[i] = tagN;
+      land.decor.delete(i);
+      land.flags[i] = 0;
+      land.surface[i] = g.yard;
+      land.use[i] = Use.Lot;
+      ctx.level[i] = levelAt(z);
+    }
+  }
+  // The ring: a wall (or hedge, or palisade) where the form has one and the sea does not take the side.
+  const sideOf = (x: number, z: number): Side | null => {
+    if (mask[I(x, z)] !== 2) return null;
+    const inner = (dx: number, dz: number) => mask[I(x + dx, z + dz)] === 1;
+    return inner(0, -1) || inner(-1, -1) || inner(1, -1) ? "south" : inner(0, 1) || inner(-1, 1) || inner(1, 1) ? "north" : inner(-1, 0) ? "east" : "west";
+  };
+  for (let z = box.z0; z < box.z1; z++) {
+    for (let x = box.x0; x < box.x1; x++) {
+      const side = sideOf(x, z);
+      if (!side) continue;
+      const i = I(x, z);
+      if (plan.sea.has(side) || F.enclosure === "none") {
+        // No wall: the town's edge is open ground (a quay's edge on the sea).
+        land.surface[i] = plan.sea.has(side) ? g.street : land.surface[i]!;
+        land.use[i] = plan.sea.has(side) ? Use.Street : Use.Lot;
+        continue;
+      }
+      land.use[i] = Use.Wall;
+      land.flags[i] = BLOCKED | BARE;
+    }
+  }
+  const pave = (x: number, z: number, surface: number, use = Use.Street) => {
+    if (!land.inside(x, z)) return;
+    const i = I(x, z);
+    land.flags[i] = 0;
+    land.surface[i] = surface;
+    land.use[i] = use;
+    land.decor.delete(i);
+    ctx.mustSee[i] = 1;
+  };
+  // The south band: gardens, or the quay on the sea; the north quay.
+  if (plan.sea.has("south")) for (let z = plan.south.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if (mask[I(x, z)]) pave(x, z, S.planks === g.street ? g.street : S.flagstones);
+  if (plan.northQuay) for (let z = box.z0; z < plan.northQuay.z1; z++) for (let x = box.x0; x < box.x1; x++) if (mask[I(x, z)]) pave(x, z, S.flagstones);
+  for (const s of plan.streets) for (const [x0, x1] of s.runs) for (let z = s.z; z < s.z + s.w; z++) for (let x = x0; x < x1; x++) pave(x, z, s.quay ? S.flagstones : g.street);
+  for (const c of plan.connectors) {
+    for (let z = c.z0; z < c.z1; z++) {
+      for (let x = c.x; x < c.x + c.w; x++) {
+        if (!land.inside(x, z)) continue;
+        // Sea-side lanes are quays.
+        const quay = (plan.sea.has("west") && c.x === plan.inner.x0) || (plan.sea.has("east") && c.x + c.w === plan.inner.x1);
+        pave(x, z, quay ? S.flagstones : c.kind === "artery" ? g.street : F.yards === "open" ? g.path : g.street);
+      }
+    }
+  }
+  const sq = plan.square;
+  for (let z = sq.z0; z < sq.z1; z++) {
+    for (let x = sq.x0; x < sq.x1; x++) {
+      if (F.round && Math.hypot((x + 0.5 - (sq.x0 + sq.x1) / 2) / ((sq.x1 - sq.x0) / 2), (z + 0.5 - (sq.z0 + sq.z1) / 2) / ((sq.z1 - sq.z0) / 2)) > 1.05) {
+        // Outside the round clearing's ellipse: still its streets where they run.
+        if (land.use[I(x, z)] === Use.Street) continue;
+      }
+      pave(x, z, g.square, Use.Kept);
+    }
+  }
+  // The street along its open south side, in front of it, paved as it is.
+  const south = plan.streets[sq.a]!;
+  for (let z = south.z; z < south.z + south.w; z++) for (let x = sq.x0; x < sq.x1; x++) if (land.use[I(x, z)] === Use.Street) land.surface[I(x, z)] = g.square;
+  // The gates' passages: through the ring, paved.
+  for (const gate of plan.gates) for (let z = gate.passage.z0; z < gate.passage.z1; z++) for (let x = gate.passage.x0; x < gate.passage.x1; x++) pave(x, z, g.street);
+  // A river through the town: water under the quay, bridges where the connectors cross it.
+  if (plan.river) {
+    for (let z = plan.river.z0; z < plan.river.z1; z++) {
+      for (let x = box.x0; x < box.x1; x++) {
+        const i = I(x, z);
+        const bridge = land.use[i] === Use.Street;
+        land.surface[i] = S.stream;
+        land.flags[i] = bridge ? 0 : BLOCKED;
+        if (!bridge) {
+          land.use[i] = Use.Wild;
+          ctx.mustSee[i] = 0;
+        }
+      }
+    }
+  }
+}
+
+/** Lamps in the gaps between buildings along the main streets' north sides (every street's, in the capital). */
+function rowLights(ctx: Ctx, id: string): void {
+  const { land, town } = ctx;
+  const plan = ctx.plan as RowPlan;
+  // In the gaps between buildings along the main streets' north sides, every ten tiles or so.
+  for (const s of plan.streets) {
+    if (!s.main && formOf(town) !== "capital") continue;
+    let last = -100;
+    for (const [x0, x1] of s.runs) {
+      for (let x = x0 + 2; x < x1 - 2; x++) {
+        const z = s.z - 1;
+        const i = land.idx(x, z);
+        if (land.use[i] !== Use.Lot || x - last < 9) continue;
+        if (land.use[land.idx(x - 1, z)] !== Use.Building && land.use[land.idx(x + 1, z)] !== Use.Building) continue;
+        stand(ctx, { id, x: x + 0.5, z: z + 0.5 }, Use.Yard);
+        last = x;
+      }
+    }
+  }
+}
+
+/** The row planner: the capital's, the cities', the campus's and the estate's. */
+export const ROWS: Planner = {
+  plan: planTown,
+  paint: paintTown,
+  graph: (plan, extra) => planGraph(plan as RowPlan, extra),
+  lights: (ctx) => {
+    const id = STREET_LIGHT[ctx.town.style] ?? null;
+    if (id) rowLights(ctx, id);
+  },
+};

@@ -1,0 +1,298 @@
+{
+  "new-benalia": {
+    "biome": "heartland",
+    "sea": [
+      "west"
+    ],
+    "relief": 0.2,
+    "ways": [
+      {
+        "side": "south",
+        "to": "capashen-hold"
+      },
+      {
+        "side": "east",
+        "to": "cabal-crossing"
+      },
+      {
+        "side": "north",
+        "to": "llanowar"
+      }
+    ]
+  },
+  "capashen-hold": {
+    "biome": "heartland",
+    "sea": [],
+    "river": "north",
+    "relief": 0.2,
+    "ways": [
+      {
+        "side": "north",
+        "to": "new-benalia"
+      },
+      {
+        "side": "east",
+        "to": "benalish-keep"
+      },
+      {
+        "side": "south",
+        "to": "durkwood-hollow"
+      },
+      {
+        "side": "west",
+        "to": "benalia-1"
+      }
+    ]
+  },
+  "llanowar": {
+    "biome": "forest",
+    "sea": [],
+    "relief": 0.3,
+    "ways": [
+      {
+        "side": "north",
+        "to": "new-benalia"
+      },
+      {
+        "side": "south",
+        "to": "steelleaf-glade"
+      },
+      {
+        "side": "east",
+        "to": "tolarian-academy"
+      },
+      {
+        "side": "west",
+        "to": "hurloon-caves"
+      }
+    ]
+  },
+  "vess-estate": {
+    "biome": "swamp",
+    "sea": [
+      "south",
+      "west"
+    ],
+    "river": "north",
+    "relief": 0.1,
+    "ways": [
+      {
+        "side": "east",
+        "to": "cabal-crossing"
+      },
+      {
+        "side": "north",
+        "to": "vess-crypts"
+      }
+    ]
+  },
+  "keld": {
+    "biome": "tundra",
+    "sea": [],
+    "relief": 0.5,
+    "ways": [
+      {
+        "side": "east",
+        "to": "keldon-watch"
+      },
+      {
+        "side": "south",
+        "to": "keldon-fortress"
+      },
+      {
+        "side": "north",
+        "to": "parma-caves"
+      },
+      {
+        "side": "west",
+        "to": "keld-1"
+      }
+    ]
+  },
+  "tolarian-academy": {
+    "biome": "coast",
+    "sea": [
+      "north"
+    ],
+    "relief": 0.3,
+    "ways": [
+      {
+        "side": "west",
+        "to": "llanowar"
+      },
+      {
+        "side": "south",
+        "to": "denawa"
+      },
+      {
+        "side": "east",
+        "to": "academy-tower"
+      }
+    ]
+  },
+  "serras-rest": {
+    "biome": "plains",
+    "sea": [
+      "east",
+      "south"
+    ],
+    "relief": 0.4,
+    "ways": [
+      {
+        "side": "north",
+        "to": "sursi"
+      },
+      {
+        "side": "west",
+        "to": "foriys"
+      }
+    ]
+  },
+  "steelleaf-glade": {
+    "biome": "forest",
+    "sea": [],
+    "relief": 0.2,
+    "ways": [
+      {
+        "side": "west",
+        "to": "llanowar"
+      },
+      {
+        "side": "south",
+        "to": "sursi"
+      }
+    ]
+  },
+  "cabal-crossing": {
+    "biome": "swamp",
+    "sea": [],
+    "river": "through",
+    "relief": 0.1,
+    "ways": [
+      {
+        "side": "south",
+        "to": "new-benalia"
+      },
+      {
+        "side": "west",
+        "to": "vess-estate"
+      },
+      {
+        "side": "east",
+        "to": "hurloon-caves"
+      },
+      {
+        "side": "north",
+        "to": "avenant"
+      }
+    ]
+  },
+  "keldon-watch": {
+    "biome": "tundra",
+    "sea": [
+      "east",
+      "south"
+    ],
+    "relief": 0.6,
+    "ways": [
+      {
+        "side": "west",
+        "to": "hurloon-caves"
+      },
+      {
+        "side": "north",
+        "to": "keld"
+      }
+    ]
+  },
+  "denawa": {
+    "biome": "coast",
+    "sea": [],
+    "relief": 0.2,
+    "ways": [
+      {
+        "side": "north",
+        "to": "tolarian-academy"
+      }
+    ]
+  },
+  "avenant": {
+    "biome": "plains",
+    "sea": [
+      "west"
+    ],
+    "relief": 0.3,
+    "ways": [
+      {
+        "side": "east",
+        "to": "cabal-crossing"
+      }
+    ]
+  },
+  "sursi": {
+    "biome": "plains",
+    "sea": [],
+    "relief": 0.4,
+    "ways": [
+      {
+        "side": "north",
+        "to": "steelleaf-glade"
+      },
+      {
+        "side": "south",
+        "to": "serras-rest"
+      },
+      {
+        "side": "east",
+        "to": "oneah"
+      },
+      {
+        "side": "west",
+        "to": "sursi-watchtower"
+      }
+    ]
+  },
+  "foriys": {
+    "biome": "highlands",
+    "sea": [
+      "north"
+    ],
+    "relief": 0.6,
+    "ways": [
+      {
+        "side": "west",
+        "to": "serras-rest"
+      }
+    ]
+  },
+  "oneah": {
+    "biome": "highlands",
+    "sea": [],
+    "relief": 0.6,
+    "ways": [
+      {
+        "side": "north",
+        "to": "sursi"
+      },
+      {
+        "side": "south",
+        "to": "amjad-crypt"
+      }
+    ]
+  },
+  "verdura-grove": {
+    "biome": "jungle",
+    "sea": [],
+    "relief": 0.2,
+    "ways": [
+      {
+        "side": "north",
+        "to": "serras-rest"
+      },
+      {
+        "side": "west",
+        "to": "verdura-hollow"
+      }
+    ]
+  }
+}

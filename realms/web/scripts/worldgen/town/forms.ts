@@ -6,7 +6,7 @@ import type { Form, TownLayout } from "../layout";
 
 export type Enclosure = "wall" | "palisade" | "hedge" | "none";
 
-/** How a form lays out its streets and rows (plan.ts). Tiles throughout. */
+/** How a form lays out its streets and rows (planner.ts; rows.ts). Tiles throughout. */
 export interface FormSpec {
   readonly enclosure: Enclosure;
   /** An east-west street's width (the stages), and a north-south connector's. */
@@ -26,7 +26,7 @@ export interface FormSpec {
   /** How yards are kept: hedged gardens (closed), open ground (walked), or bog under stilts. */
   readonly yards: "hedged" | "open" | "bog";
   readonly guards: boolean;
-  /** The town's shape: its rows' profile and how far a row's end may be pulled in (plan.ts). */
+  /** The town's shape: its rows' profile and how far a row's end may be pulled in (planner.ts; rows.ts). */
   readonly shape: readonly ["oval" | "lozenge" | "blob" | "flat", number];
   /** Whether a northern shore gets a quay behind the north row (a town's), or the gardens run down to the water. */
   readonly northQuay?: boolean;

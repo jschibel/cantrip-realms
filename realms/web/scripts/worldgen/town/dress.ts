@@ -17,19 +17,20 @@ import { poisson } from "./country";
 import { formOf, groundsOf, sizesFor } from "./forms";
 import type { Ctx } from "./index";
 import type { Placed } from "./place";
+import { isOrganic } from "./organic";
 import { propHides } from "./view";
 
 /** The named palette a town's banners fly, by its style. */
 const PALETTE_OF_STYLE: Readonly<Record<string, string>> = { benalish: "benalish", argive: "benalish", llanowar: "llanowar", urborg: "morass", keldon: "keldon", tolarian: "tolarian" };
 
-const STREET_LIGHT: Readonly<Record<string, string | null>> ={ benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
+export const STREET_LIGHT: Readonly<Record<string, string | null>> = { benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
 
 export function dress(ctx: Ctx, placed: readonly Placed[]): void {
   sites(ctx);
   arena(ctx, placed);
   board(ctx, placed);
   square(ctx);
-  lights(ctx, placed);
+  ctx.planner.lights(ctx);
   yards(ctx);
   walls(ctx);
   water(ctx);
@@ -45,7 +46,7 @@ function inSight(ctx: Ctx, p: PropData): boolean {
 }
 
 /** Stands a fixture, blocking (and closing) the tiles the catalogue says it covers. */
-function stand(ctx: Ctx, p: PropData, use = Use.Kept): void {
+export function stand(ctx: Ctx, p: PropData, use = Use.Kept): void {
   const { tiles, blocks } = tilesOf(p);
   for (const [x, z] of tiles) {
     if (!ctx.land.inside(x, z)) continue;
@@ -103,7 +104,7 @@ function sites(ctx: Ctx): void {
   const style = town.style === "argive" ? "benalish" : town.style;
   for (const site of plan.sites) {
     // A temple's ground is its own lot: the temple stands on it like any building, its churchyard behind (yards).
-    if (site.id.endsWith("-temple")) continue;
+    if (site.id.endsWith("-temple") || site.id.endsWith("-shrine")) continue;
     const b = site.box;
     const fz = b.z1;
     const mid = Math.floor((b.x0 + b.x1) / 2);
@@ -258,13 +259,15 @@ function square(ctx: Ctx): void {
   const cx = (sq.x0 + sq.x1) / 2;
   const form = formOf(town);
   const used = new Set<number>();
-  const clear = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Kept && land.open(land.idx(x, z)) && !used.has(land.idx(x, z));
+  // In a grown town ways come into the centre from every side: nothing stands where one meets it.
+  const grownWay = (x: number, z: number) => isOrganic(plan) && land.n8(land.idx(x, z)).some((j) => land.use[j] === Use.Street);
+  const clear = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Kept && land.open(land.idx(x, z)) && !used.has(land.idx(x, z)) && !grownWay(x, z);
   // Nothing within a tile of a door, a gate's way, the arteries' lines through the square.
   const doorNear = (x: number, z: number) => {
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (land.inside(x + dx, z + dz) && land.use[land.idx(x + dx, z + dz)] === Use.Door) return true;
     return false;
   };
-  const artery = (x: number) => plan.connectors.some((c) => c.kind === "artery" && x >= c.x - 1 && x < c.x + c.w + 1);
+  const artery = (x: number) => plan.through.some((c) => x >= c.x0 - 1 && x < c.x1 + 1);
   // The centrepiece: on the square's axis, as far north as it can stand without hiding a door.
   const pieces: Record<string, PropData> = {
     statue: { id: "statue", x: 0, z: 0, args: { size: 2 } },
@@ -338,33 +341,6 @@ function square(ctx: Ctx): void {
       for (const [tx, tz] of tiles) used.add(land.idx(tx, tz));
     }
   }
-}
-
-// --- Lights along the stages ---------------------------------------------------------------------------------------------
-
-function lights(ctx: Ctx, placed: readonly Placed[]): void {
-  const { land, town, plan } = ctx;
-  const id = STREET_LIGHT[town.style] ?? null;
-  if (!id) return;
-  // In the gaps between buildings along the main streets' north sides, every ten tiles or so.
-  const taken = new Set<number>();
-  for (const s of plan.streets) {
-    if (!s.main && formOf(town) !== "capital") continue;
-    let last = -100;
-    for (const [x0, x1] of s.runs) {
-      for (let x = x0 + 2; x < x1 - 2; x++) {
-        const z = s.z - 1;
-        const i = land.idx(x, z);
-        if (land.use[i] !== Use.Lot || x - last < 9) continue;
-        if (land.use[land.idx(x - 1, z)] !== Use.Building && land.use[land.idx(x + 1, z)] !== Use.Building) continue;
-        const p = { id, x: x + 0.5, z: z + 0.5 };
-        stand(ctx, p, Use.Yard);
-        taken.add(i);
-        last = x;
-      }
-    }
-  }
-  void placed;
 }
 
 // --- Yards, gardens and the south band --------------------------------------------------------------------------------------
@@ -573,12 +549,16 @@ function walls(ctx: Ctx): void {
   // Towers at the outline's outer corners (on the land side of the ring), and a gatehouse in each gate.
   const wall = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Wall;
   const nearGate = (x: number, z: number) => plan.gates.some((g) => x >= g.passage.x0 - 4 && x < g.passage.x1 + 4 && z >= g.passage.z0 - 4 && z < g.passage.z1 + 4);
+  const towers: XZ[] = [];
   for (const i of ring) {
     const x = land.xOf(i);
     const z = land.zOf(i);
     for (const [dx, dz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const) {
       if (!town1(x + dx, z + dz) || !wall(x + dx, z) || !wall(x, z + dz) || town1(x - dx, z) || town1(x, z - dz) || town1(x + dx, z - dz) || town1(x - dx, z + dz)) continue;
       if (nearGate(x, z)) continue;
+      // A grown town's outline turns at every step of its curve: a tower only every so often along it.
+      if (isOrganic(plan) && towers.some(([tx, tz]) => Math.abs(tx - x) + Math.abs(tz - z) < 16)) continue;
+      towers.push([x, z]);
       stand(ctx, { id: "wall-tower", x: dx > 0 ? x : x + 1, z: dz > 0 ? z : z + 1, args: { style, kind: F.enclosure, size: town.kind } }, Use.Wall);
     }
   }
@@ -599,8 +579,23 @@ function water(ctx: Ctx): void {
   const { land, plan } = ctx;
   const random = ctx.random("water");
   const box = plan.box;
+  // A grown town's piers: off its shore where it meets the sea, as its plan lays them.
+  if (isOrganic(plan)) {
+    for (const p of plan.piers) {
+      for (let z = p.box.z0; z < p.box.z1; z++) for (let x = p.box.x0; x < p.box.x1; x++) {
+        const i = land.idx(x, z);
+        land.flags[i] = 0;
+        land.use[i] = Use.Dock;
+        land.surface[i] = S.planks;
+        land.decor.delete(i);
+      }
+      land.fixtures.push({ id: "pier", x: p.box.x0, z: p.box.z0, args: { to: [p.box.x1, p.box.z1], y: 0.3 } });
+      const [bx, bz] = p.boat;
+      if (land.inside(Math.floor(bx), Math.floor(bz)) && land.isSea(land.idx(Math.floor(bx), Math.floor(bz)))) land.fixtures.push({ id: random() < 0.4 ? "sailboat" : "rowboat", x: bx, z: bz, y: -0.1, rot: p.along ? 0 : 1, args: { sail: "furled" } });
+    }
+  }
   // Piers out from the quay on each sea side, boats moored beside them.
-  for (const side of plan.sea) {
+  for (const side of isOrganic(plan) ? [] : plan.sea) {
     const along = side === "north" || side === "south";
     const [lo, hi] = along ? [box.x0 + 6, box.x1 - 6] : [box.z0 + 6, box.z1 - 6];
     for (let t = lo; t < hi; t += 16 + Math.floor(random() * 6)) {
@@ -615,7 +610,8 @@ function water(ctx: Ctx): void {
         const i = land.idx(x, z);
         land.flags[i] = 0;
         land.use[i] = Use.Dock;
-        if (!land.isWater(i)) land.surface[i] = S.planks;
+        // Its deck is what is walked: planks, over the water too (no open tile of the sea is walked).
+        land.surface[i] = S.planks;
         land.decor.delete(i);
       }
       land.fixtures.push({ id: "pier", x: x0, z: z0, args: { to: [x1, z1], y: 0.3 } });
@@ -631,13 +627,8 @@ function water(ctx: Ctx): void {
       }
     }
   }
-  // Bridges where the town's ways cross its river.
-  if (plan.river) {
-    for (const c of plan.connectors) {
-      if (c.z0 > plan.river.z0 || c.z1 < plan.river.z1) continue;
-      land.fixtures.push({ id: "bridge", x: c.x, z: plan.river.z0 - 1, args: { to: [c.x + c.w, plan.river.z1 + 1], y: 0 } });
-    }
-  }
+  // Bridges where the town's ways cross its water.
+  for (const b of plan.bridges) land.fixtures.push({ id: "bridge", x: b.x0, z: b.z0, args: { to: [b.x1, b.z1], y: 0 } });
 }
 
 // --- People --------------------------------------------------------------------------------------------------------------

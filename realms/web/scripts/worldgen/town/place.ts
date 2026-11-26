@@ -1,6 +1,6 @@
 // What a town is for, and where each thing goes. The places a player uses - the inn, the shops, the exotic wares, the
 // temple or shrine, the guild, the library or mage's tower, the smithy, the houses with a door, the arena - are a list a
-// small solver lands on the rows' frontages (plan.ts): every candidate spot along every block's front scored for what
+// small solver lands on the rows' frontages (planner.ts; rows.ts): every candidate spot along every block's front scored for what
 // that place wants (the shops on the square or a block off it, the inn by the main gate, the temple commanding the
 // square from its north, the smithy by a side gate or the water, the houses spread through the quiet rows), each place
 // taken in turn from the hardest to land, the best spot kept and the next tried when a later place finds no room
@@ -15,7 +15,7 @@ import type { BuildingData, InteriorKind, PlaceKind, XZ } from "../../../src/wor
 import type { TownLayout } from "../layout";
 import { type Footprint, makeBuilding, southFacing } from "./buildings";
 import { type FormSpec, type Role, formOf, kindFor, sizesFor, styleFor } from "./forms";
-import type { Block, Plan, SiteRequest } from "./plan";
+import type { Block, Plan, SiteRequest } from "./planner";
 import type { InteriorSpec, TownVendor } from "./types";
 import { buildingHides } from "./view";
 
@@ -121,6 +121,8 @@ export interface PlaceContext {
   /** The walk along the streets from the main gate, and from the square, to a street tile (Infinity off the streets). */
   readonly walkMain: (x: number, z: number) => number;
   readonly walkSquare: (x: number, z: number) => number;
+  /** The walk from the main gate to the square's nearest tile. */
+  readonly mainToSquare: number;
   /** Other gates' junctions, and the water's edge (the quay), for the artisans. */
   readonly sideGates: readonly XZ[];
 }
@@ -165,6 +167,17 @@ export class Placer {
     let list = this.taken.get(block);
     if (!list) this.taken.set(block, (list = []));
     list.push([x0, x1]);
+  }
+
+  /** Keeps the columns of a block that a way crosses (a footpath through its yards) from being built on. */
+  reserve(isWay: (x: number, z: number) => boolean): void {
+    for (const block of this.c.plan.blocks) {
+      for (let x = block.x0; x < block.x1; x++) {
+        let crossed = false;
+        for (let z = block.z0; z < block.z1 && !crossed; z++) crossed = isWay(x, z);
+        if (crossed) this.take(block, x, x + 1);
+      }
+    }
   }
 
   /** The frontages still free along a block, as [x0, x1) runs. */
@@ -261,8 +274,8 @@ export class Placer {
     let s = sizeIndex * 3 + (need.role === "home" || need.role === "manor" ? 0 : toEnd * 0.25);
     switch (need.role) {
       case "temple":
-        if (sq > 14) return null;
-        s += sq * 2 + Math.abs(door[0] - centreX) * 0.6 + northness * 2 + (onSquare ? 0 : 10);
+        // On the square or by it; further only where the square's north is a landmark's (the estate's manor).
+        s += sq * 2 + Math.max(0, sq - 14) * 8 + Math.abs(door[0] - centreX) * 0.6 + northness * 2 + (onSquare ? 0 : 10);
         break;
       case "shrine":
         s += sq * 1.5 + Math.abs(door[0] - centreX) * 0.5 + (onSquare ? 0 : 6);
@@ -273,7 +286,8 @@ export class Placer {
         break;
       case "inn":
         if (sq > 30) return null;
-        s += this.c.walkMain(door[0], door[1]) * 1.4 + sq * 0.8 + (onSquare ? -4 : 0);
+        // By the way in: no further from the main gate than a little past the square (check.ts holds it to that).
+        s += this.c.walkMain(door[0], door[1]) * 1.4 + Math.max(0, this.c.walkMain(door[0], door[1]) - this.c.mainToSquare - 12) * 20 + sq * 0.8 + (onSquare ? -4 : 0);
         break;
       case "shop":
       case "exotic":
@@ -336,8 +350,13 @@ export class Placer {
       }
       return missing;
     }
+    const fails = new Map<number, number>();
+    const hardest = () => {
+      const k = [...fails].sort((p, q) => q[1] - p[1] || p[0] - q[0])[0]?.[0] ?? i;
+      return `${order[k]!.id} (${this.why(order[k]!)})`;
+    };
     while (i < order.length) {
-      if (--budget < 0) throw new Error(`${this.c.town.id}: no room for ${order[i]!.id}`);
+      if (--budget < 0) throw new Error(`${this.c.town.id}: no room for ${hardest()}`);
       const need = order[i]!;
       const skip = tried.get(i) ?? 0;
       const found = this.firstFitting(need, skip);
@@ -348,8 +367,9 @@ export class Placer {
         continue;
       }
       // None: back up a step, and try the one before at its next spot.
+      fails.set(i, (fails.get(i) ?? 0) + 1);
       tried.delete(i);
-      if (i === 0) throw new Error(`${this.c.town.id}: no room for ${need.id} (${this.why(need)})`);
+      if (i === 0) throw new Error(`${this.c.town.id}: no room for ${hardest()}`);
       i--;
       this.undo(stack.pop()!);
     }
@@ -360,12 +380,12 @@ export class Placer {
   private why(need: Need): string {
     const spots = this.spots(need);
     const { plan } = this.c;
-    const rows = plan.bands.map((b) => `${b.z0}-${b.z1}`).join(" ");
+    const rows = plan.blocks.map((b) => `${b.x0},${b.z0}-${b.x1},${b.z1}`).join(" ");
     const sites = plan.sites.map((s) => `${s.id} ${s.box.x0},${s.box.z0}-${s.box.x1},${s.box.z1}`).join("; ");
-    if (spots.length === 0) return `no spot at all; rows ${rows}; square row ${plan.square.a}; sites ${sites}`;
+    if (spots.length === 0) return `no spot at all; blocks ${rows}; sites ${sites}`;
     const s = spots[0]!;
     const hidden = buildingHides(this.trial(need.id, need.role as Role, s.f, 1, need), 0).filter(([x, z]) => this.c.mustSee(x, z));
-    return `${spots.length} spots, the best at ${s.f.x},${s.f.z} ${s.f.w}x${s.f.d} hides ${hidden.length} street tiles (${hidden.slice(0, 3).join(" ")}); rows ${rows}; sites ${sites}`;
+    return `${spots.length} spots, the best at ${s.f.x},${s.f.z} ${s.f.w}x${s.f.d} hides ${hidden.length} street tiles (${hidden.slice(0, 3).join(" ")}); blocks ${rows}; sites ${sites}`;
   }
 
   /** The best spot after the first `skip` that takes the building without hiding a street, at the most storeys it can. */
@@ -407,6 +427,30 @@ export class Placer {
     const { random } = this.c;
     for (const block of this.c.plan.blocks) {
       const depth = block.z1 - block.z0;
+      if ((block as { one?: boolean }).one) {
+        // A grown town's lot: one building, its district's, as wide as the lot lets it, in the middle of it.
+        if (this.placed.some((p) => p.block === block)) continue;
+        const district = districtOf(block, (block.x0 + block.x1) / 2);
+        const roles = [weighted(FILL[district].roles, random), "house", "cottage"] as Role[];
+        found: for (const role of roles) {
+          const { style } = this.styleKind(role);
+          const options = [...sizesFor(style, role)].filter(([w, d]) => d <= depth - 1 && w <= block.x1 - block.x0).sort((p, q) => q[0] - p[0]);
+          for (const [w, d] of options) {
+            const x = block.x0 + Math.floor((block.x1 - block.x0 - w) / 2);
+            const f = southFacing([x + Math.floor(w / 2), block.z1], w, d);
+            if (!this.c.mustSee(f.door[0], f.door[1]) || !this.free(block, f.x, f.x + f.w, 0)) continue;
+            for (const storeys of random() < FILL[district].tall ? ([2, 1] as const) : ([1] as const)) {
+              const b = this.trial(`${this.c.town.id}-b${this.count + 1}`, role, f, storeys);
+              if (!this.seen(b)) continue;
+              this.count++;
+              this.take(block, f.x, f.x + f.w);
+              this.placed.push({ role, f, b, block });
+              break found;
+            }
+          }
+        }
+        continue;
+      }
       // A block beside the square closes the square's side: a building flush with its end there first.
       for (const end of ["west", "east"] as const) {
         if (block[end] !== "square") continue;

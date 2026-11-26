@@ -21,7 +21,7 @@ import { Roads } from "./roads";
 import { buildInterior } from "./rooms";
 import { shapeTravel } from "./terrain";
 // The town generator (town/index.ts, the contract's interface): each town's grounds at walking scale.
-import { type BuiltTown, buildTown, groundsSize } from "./town";
+import { type BuiltTown, type TownSetting, buildTown, groundsSize } from "./town";
 import { type MobFile, type Site, connect, farmland, placeDungeon, placePeaks, populate, resolveMobs, scatter } from "./wilds";
 import { makeZones, walkingDistances } from "./zones";
 
@@ -43,9 +43,11 @@ export interface Generated {
   readonly land: Land;
   /** What the generator would tell a person: the sketch's hints the land does not bear out. */
   readonly notes: readonly string[];
+  /** What the travel map says of where each town stands (town/types.ts), by its id: what its grounds were laid on. */
+  readonly settings: Readonly<Record<string, TownSetting>>;
 }
 
-export function generate(layout: Layout, roster: readonly MobFile[], vendors: readonly Vendor[], log: (text: string) => void = () => {}, geo: Geography = readGeography()): Generated {
+export function generate(layout: Layout, roster: readonly MobFile[], vendors: readonly Vendor[], log: (text: string) => void = () => {}, geo: Geography = readGeography(), options: { readonly onSettings?: (settings: Readonly<Record<string, TownSetting>>) => void } = {}): Generated {
   const seed = layout.seed;
   const travel: Rect = [0, 0, geo.size[0], geo.size[1]];
   const notes: string[] = [];
@@ -221,6 +223,14 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     return pick === undefined ? id : beyond(pick, far, depth + 1);
   };
   const colorOf = (region: string | undefined): Region | null => geo.regions.find((r) => r.id === region)?.color ?? null;
+  // What the travel map says of where each town stands, all of them first (each reads only the travel map round its icon).
+  const settings: Record<string, TownSetting> = {};
+  for (const plan of layout.towns) {
+    const ways = [...waysOf.get(plan.id)!].map(([side, to]) => ({ side, to: beyond(to, plan.id) }));
+    if (ways.length === 0) throw new Error(`${plan.id}: no road arrives at its icon`);
+    settings[plan.id] = settingOf(land, terrain, geo, plan.id, icons.get(plan.id)!.half, ways, notes);
+  }
+  options.onSettings?.(settings);
   const towns: (Omit<BuiltTown, "data"> & { readonly data: TownData })[] = layout.towns.map((plan, index) => {
     const sold = vendors.filter((v) => v.town === plan.id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
     const exotic = vendors.filter((v) => v.town === plan.id && v.exotic);
@@ -228,23 +238,11 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
       throw new Error(`${plan.id}: layout.json's exotic shop is ${plan.exotic ?? "none"}, its exotic vendors ${exotic.map((v) => v.id).join(", ") || "none"}`);
     }
     const icon = icons.get(plan.id)!;
-    const ways = [...waysOf.get(plan.id)!].map(([side, to]) => ({ side, to: beyond(to, plan.id) }));
-    if (ways.length === 0) throw new Error(`${plan.id}: no road arrives at its icon`);
-    const setting = settingOf(land, terrain, geo, plan.id, icon.half, ways, notes);
+    const setting = settings[plan.id]!;
     const g = pockets.get(plan.id)!;
-    // Lenient: a town that keeps its own rules only near enough says so in its report (passed on as notes) rather than
-    // stopping the world; the realm lint still holds every town to its streets' rules.
     const spec = { plan, index, color: colorOf(geo.towns[plan.id]!.region), vendors: sold, exotic: exotic[0] ?? null, origin: [g[0], g[1]] as const };
-    let built: BuiltTown;
-    try {
-      built = buildTown(land, { ...spec, setting }, seed, { lenient: true });
-    } catch (e) {
-      // The town generator could not lay the town as the travel map has it: noted (for the town generator's work), and
-      // laid without its river, the one hint it has failed on.
-      const { river: _, ...dry } = setting;
-      notes.push(`town generator failed on ${plan.id} with setting ${JSON.stringify(setting)}: ${(e as Error).message}; laid without its river`);
-      built = buildTown(land, { ...spec, setting: dry }, seed, { lenient: true });
-    }
+    // Strict: a town that breaks a rule of its own throws, naming it (town/check.ts).
+    const built: BuiltTown = buildTown(land, { ...spec, setting }, seed);
     notes.push(...built.report.notes.map((n) => `${plan.id} (setting ${JSON.stringify(setting)}): ${n}`));
     if (built.data.grounds.join() !== g.join()) throw new Error(`${plan.id}: its grounds ${built.data.grounds.join(",")} are not its pocket ${g.join(",")}`);
     const data: TownData = {
@@ -369,6 +367,7 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     files,
     land,
     notes,
+    settings,
     mobs: [...mobs].sort(),
     stats: {
       chunks: chunkCount,

@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { TOWN_LIMITS, lintTown } from "../../../src/world/lint";
 import { readLayout } from "../layout";
 import { groundsSize } from "./index";
-import { TOWN_SETTINGS, buildAll } from "./preview";
+import { formOf } from "./forms";
+import { INVENTED_SETTINGS, TOWN_SETTINGS, buildAll, buildOn, settingsMatrix } from "./preview";
 
-// The town generator on the sixteen towns of layout.json, each on the setting the preview gives it (town/preview.ts):
+// The town generator on the sixteen towns of layout.json, each on the setting the travel map gives it (town/settings.json):
 // every one is made strictly - its own checks (check.ts: the camera, the square, the walks, the grounds, the places it
 // must hold) throw on any rule broken - and is held here again to the street plan's lint and to what the world needs of
 // it; and the same inputs make the same town, byte for byte.
@@ -71,6 +72,31 @@ describe("the town generator", () => {
     }
   });
 
+  it("never lays two towns of one form to the same plan", () => {
+    // Each town's buildings about its centre: no two of one form share half of them.
+    const sig = (t: (typeof built.towns)[number]) => {
+      const sq = t.data.plan!.squares[0]!;
+      return new Set(t.buildings.map((b) => `${b.x - sq.x},${b.z - sq.z},${b.w},${b.d}`));
+    };
+    for (let a = 0; a < built.towns.length; a++) {
+      for (let b = a + 1; b < built.towns.length; b++) {
+        const p = layout.towns.find((t) => t.id === built.towns[a]!.data.id)!;
+        const q = layout.towns.find((t) => t.id === built.towns[b]!.data.id)!;
+        if (formOf(p) !== formOf(q)) continue;
+        const sa = sig(built.towns[a]!);
+        const sb = sig(built.towns[b]!);
+        const shared = [...sa].filter((k) => sb.has(k)).length;
+        expect(shared / Math.max(1, Math.min(sa.size, sb.size)), `${p.id} and ${q.id}`).toBeLessThan(0.5);
+      }
+    }
+  });
+
+  it("refuses, by name, a setting it cannot honour", () => {
+    expect(() => buildOn("serras-rest", { biome: "plains", sea: ["south"], relief: 0, ways: [{ side: "south", to: "x" }] })).toThrow(/a way out on its south side, which is sea/);
+    expect(() => buildOn("serras-rest", { biome: "plains", sea: ["east"], river: "east", relief: 0, ways: [{ side: "south", to: "x" }] })).toThrow(/a river past its east side, which is sea/);
+    expect(() => buildOn("serras-rest", { biome: "plains", sea: [], relief: 0, ways: [] })).toThrow(/no way out/);
+  });
+
   it("makes the same town from the same inputs", () => {
     const again = buildAll(["new-benalia", "keld", "serras-rest"], undefined, false);
     for (const t of again.towns) {
@@ -94,4 +120,30 @@ describe("the town generator", () => {
       expect(t.report).toEqual(first.report);
     }
   });
+});
+
+// Every form on any setting the travel map may give it (preview.ts `settingsMatrix`: each way alone, the pairs, three
+// and four; the sea on sides that hold no way; a river on each side, through or none; relief 0, 0.5 and 1; the biomes in
+// turn), and each town on the setting it stood on before the travel map: all strict, every place held.
+describe("the town generator on any setting", () => {
+  const byForm = new Map<string, string[]>();
+  for (const t of layout.towns) byForm.set(formOf(t), [...(byForm.get(formOf(t)) ?? []), t.id]);
+  for (const [form, ids] of byForm) {
+    it(`lays out every ${form} (${ids.join(", ")}) on every setting of the matrix`, { timeout: 600_000 }, () => {
+      const broken: string[] = [];
+      // A home town and a village of the form, where it has both.
+      const kinds = [...new Map(ids.map((id) => [layout.towns.find((t) => t.id === id)!.kind, id])).values()];
+      for (const id of kinds) {
+        for (const c of [...settingsMatrix(), { name: "invented", setting: INVENTED_SETTINGS[id]! }]) {
+          try {
+            const { town } = buildOn(id, c.setting);
+            expect(town.interiors.some((r) => r.kind === "inn"), `${id} ${c.name}`).toBe(true);
+          } catch (e) {
+            broken.push(`${id} [${c.name}]: ${(e as Error).message.split("\n").slice(0, 4).join(" | ")}`);
+          }
+        }
+      }
+      expect(broken).toEqual([]);
+    });
+  }
 });

@@ -20,7 +20,7 @@ import { PROPS } from "../../../src/art/props/registry";
 import type { BuildingData, PropData, TownData, XZ } from "../../../src/world/format";
 import { BLOCKED, OBJECT_KINDS, RAMP } from "../../../src/world/format";
 import { TOWN_LIMITS, lintTown } from "../../../src/world/lint";
-import { streetTiles } from "../../../src/world/streets";
+import { inSquare, streetTiles } from "../../../src/world/streets";
 import { Use } from "../land";
 import { formOf } from "./forms";
 import type { Ctx } from "./index";
@@ -28,6 +28,9 @@ import { HEADINGS, buildingHides, propHides } from "./view";
 import type { TownGroundsData, TownReport } from "./types";
 import { TOWN_SIZE } from "./forms";
 import { STEP } from "./terrain";
+import { FOOTPATH } from "./passages";
+import { isOrganic } from "./organic";
+import { S } from "../ids";
 
 /** What stands tall enough to hide anything: measured for the camera. */
 const TALL = new Set([
@@ -116,8 +119,10 @@ export function fillPockets(ctx: Ctx, from: number): number {
     if (seen[i] || !land.open(i)) continue;
     const x = land.xOf(i);
     const z = land.zOf(i);
-    if (x >= plan.box.x0 && x < plan.box.x1 && z >= plan.box.z0 && z < plan.box.z1) continue;
-    if (land.use[i] === Use.Road || land.use[i] === Use.Dock) continue;
+    // The town's ways and open ground are walked to or the checks say; anything else nobody reaches is overgrown.
+    const u = land.use[i];
+    if (u === Use.Road || u === Use.Dock || u === Use.Street || u === Use.Kept || u === Use.Door) continue;
+    void plan;
     land.put(i, { id: land.isWater(i) ? "reeds" : "undergrowth", x: x + 0.5, z: z + 0.5, seed: i % 16 }, true);
     land.flags[i] = BLOCKED | 2;
     filled++;
@@ -141,7 +146,8 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   for (const p of lintTown(asTown, open, ctx.buildings, TOWN_LIMITS)) problems.push(p);
   const tiles = streetTiles(data.plan!);
   const isStreet = (x: number, z: number) => tiles.has(`${x},${z}`);
-  for (const w of data.plan!.ways) if (w.width < 3) problems.push(`a way ${w.width} tiles wide (3 at the least)`);
+  // Streets three tiles wide at the least; a footpath through the yards (passages.ts) two.
+  for (const w of data.plan!.ways) if (w.width < (w.main ? 3 : FOOTPATH)) problems.push(`a way ${w.width} tiles wide (${w.main ? 3 : FOOTPATH} at the least)`);
 
   // Fronts.
   for (const b of ctx.buildings) {
@@ -211,14 +217,33 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
 
   // The square: a room with three walls, open to the south.
   const sq = plan.square;
+  // Each column's north edge of the square (a round one's ellipse): a front there - a building facing south whose front
+  // stands on it, or no more than a path's width north of it where the square is round (a glade's, a green's), or the
+  // wall of a landmark's ground (a keep's, a manor's) - is its north side.
+  const square = data.plan!.squares[0]!;
+  const topOf = (x: number) => {
+    for (let z = sq.z0; z < sq.z1; z++) if (inSquare(square, x, z)) return z;
+    return null;
+  };
   let north = 0;
-  for (let x = sq.x0; x < sq.x1; x++) if (townBuildings.some((b) => b.rot === 0 && b.z + b.d === sq.z0 && x >= b.x && x < b.x + b.w)) north++;
+  let columns = 0;
+  // A round centre's north side is the top of its curve: its middle three fifths across (its ends run down its east and west).
+  const side0 = square.round ? sq.x0 + Math.floor((sq.x1 - sq.x0) * 0.2) : sq.x0;
+  const side1 = square.round ? sq.x1 - Math.floor((sq.x1 - sq.x0) * 0.2) : sq.x1;
+  for (let x = side0; x < side1; x++) {
+    const top = topOf(x);
+    if (top === null) continue;
+    columns++;
+    const reach = square.round ? 3 : 0;
+    const fronted = townBuildings.some((b) => b.rot === 0 && b.z + b.d <= top && b.z + b.d >= top - reach && x >= b.x && x < b.x + b.w) || plan.sites.some((s) => !s.id.endsWith("-temple") && !s.id.endsWith("-shrine") && s.box.z1 === top && x >= s.box.x0 && x < s.box.x1);
+    if (fronted) north++;
+  }
   const sideFilled = (x0: number, x1: number) => {
     let n = 0;
     for (let z = sq.z0; z < sq.z1; z++) if (townBuildings.some((b) => b.x < x1 && b.x + b.w > x0 && z >= b.z && z < b.z + b.d)) n++;
     return n / (sq.z1 - sq.z0);
   };
-  const northShare = north / (sq.x1 - sq.x0);
+  const northShare = north / Math.max(1, columns);
   if (northShare < 0.4) problems.push(`the square's north side is ${Math.round(northShare * 100)}% fronts`);
   const west = sideFilled(sq.x0 - 8, sq.x0);
   const east = sideFilled(sq.x1, sq.x1 + 8);
@@ -325,11 +350,15 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   const toSquare = Math.min(...squareTiles.map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
   // The inn by the main arrival: no further than a block past where the square begins, or than the square's far side
   // (the inn fronting the square across from the way in, seen as one comes in).
-  const farSide = Math.min(...squareTiles.filter(([, z]) => z === sq.z0).map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
+  // The square's far side from the way in: its north edge for a gate in the south, its south edge for one in the north,
+  // the edge across from an east or west gate.
+  const far = mainGate.side === "south" ? ([, z]: XZ) => z === sq.z0 : mainGate.side === "north" ? ([, z]: XZ) => z === sq.z1 - 1 : mainGate.side === "east" ? ([x]: XZ) => x === sq.x0 : ([x]: XZ) => x === sq.x1 - 1;
+  const farSide = Math.min(...squareTiles.filter(far).map(([x, z]) => fromMain.get(I(x, z)) ?? Infinity));
   if (innPlace && toInn > Math.max(toSquare + 20, farSide + 8)) problems.push(`the inn is ${Math.round(toInn)} tiles from the main gate, the square ${Math.round(toSquare)}`);
 
   // Terraces: a hop at most between open neighbours; nothing walled in a pocket.
   let cliffs = 0;
+  let cliffAt = "";
   for (let i = 0; i < land.size; i++) {
     if (!land.open(i)) continue;
     const x = land.xOf(i);
@@ -340,10 +369,13 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     ] as const) {
       if (!inside(x + dx, z + dz)) continue;
       const j = I(x + dx, z + dz);
-      if (land.open(j) && !passes(ctx, i, j)) cliffs++;
+      if (land.open(j) && !passes(ctx, i, j)) {
+        cliffs++;
+        cliffAt ||= `${x},${z} (${land.height[i]}) to ${x + dx},${z + dz} (${land.height[j]})`;
+      }
     }
   }
-  if (cliffs > 0) problems.push(`${cliffs} edges between open tiles climb more than a hop`);
+  if (cliffs > 0) problems.push(`${cliffs} edges between open tiles climb more than a hop (one from ${cliffAt})`);
   const start = I(mainGate.node[0], mainGate.node[1]);
   const seen = walkedFrom(ctx, start);
   let stranded = 0;
@@ -381,6 +413,61 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   const wantHomes = formOf(town) === "capital" ? 10 : village ? 3 : 6;
   if (homes !== wantHomes) problems.push(`${homes} houses with a door for ${wantHomes}`);
 
+  // A grown town (amphitheatre.ts): its form's signature, fronts that step, and no long way round between neighbours.
+  if (isOrganic(plan)) {
+    const form = formOf(town);
+    const centre = data.plan!.squares[0]!;
+    const facing = townBuildings.filter((b) => b.rot === 0);
+    // The head of the centre: the temple, the shrine, the great hall - its door on the centre's north edge, on its axis.
+    const head = ctx.buildings.find((b) => b.interior === `${town.id}-temple` || b.interior === `${town.id}-shrine`);
+    const axis = centre.x + centre.w / 2;
+    if (!head || !head.door || Math.abs(head.door[0] - axis) > centre.w / 2 || head.door[1] > centre.z + 3 || head.door[1] < centre.z - 3) problems.push(`its ${form === "clan" ? "great hall" : form === "elfhame" ? "Grove" : "shrine or temple"} does not stand at the head of its ${centre.name ?? "centre"}`);
+    // An arc round the centre's north, east and west: fronts north of its middle on both sides of its axis, stepping.
+    const arc = facing.filter((b) => b.z + b.d <= centre.z + centre.d / 2 + 2 && Math.abs(b.x + b.w / 2 - axis) <= centre.w / 2 + 16);
+    if (!arc.some((b) => b.x + b.w / 2 < axis - 2) || !arc.some((b) => b.x + b.w / 2 > axis + 2)) problems.push(`no arc of fronts round its ${centre.name ?? "centre"} on both sides`);
+    // Fronts off any common line: no one row holds the fronts of most of its buildings.
+    const rows = new Map<number, number>();
+    for (const b of facing) rows.set(b.z + b.d, (rows.get(b.z + b.d) ?? 0) + 1);
+    const most = Math.max(0, ...rows.values());
+    if (facing.length >= 5 && most > Math.max(2, facing.length * 0.4)) problems.push(`${most} of its ${facing.length} fronts on one line (row ${[...rows].find(([, n]) => n === most)![0]})`);
+    if (form === "elfhame") {
+      if (!centre.round) problems.push("its glade is not round");
+      if (ctx.F.enclosure !== "none" || ctx.props.some((p) => p.id === "wall-run")) problems.push("an elfhame with a wall");
+      const trees = [...land.decor.values()].filter((p) => (p.id === "great-tree" || p.id === "elf-tree") && inBox(Math.floor(p.x), Math.floor(p.z))).length;
+      if (trees < 12) problems.push(`only ${trees} great trees about its glade`);
+    }
+    if (form === "clan") {
+      if (ctx.F.enclosure !== "palisade") problems.push("a clan hold with no palisade");
+      // An oval: its outline turns often, no straight side longer than half its width.
+      const o = data.plan!.outline;
+      let longest = 0;
+      for (let k = 0; k < o.length; k++) longest = Math.max(longest, Math.abs(o[k]![0] - o[(k + 1) % o.length]![0]) + Math.abs(o[k]![1] - o[(k + 1) % o.length]![1]));
+      const xs = o.map(([x]) => x);
+      if (longest > (Math.max(...xs) - Math.min(...xs)) * 0.6) problems.push(`its palisade runs ${longest} tiles straight: no oval`);
+    }
+    if (form === "stilts") {
+      // No ground street: every way is boardwalk, everything else bog or water.
+      let ground = 0;
+      for (const k of tiles) {
+        const [x, z] = k.split(",").map(Number) as [number, number];
+        if (!inside(x, z) || ctx.inTown[I(x, z)] !== 1) continue;
+        if (land.surface[I(x, z)] !== S.planks && !land.isWater(I(x, z))) ground++;
+      }
+      if (ground > 0) problems.push(`${ground} tiles of its ways on solid ground, not boardwalk`);
+    }
+    if (form === "village" && !(centre.round && land.surface[I(centre.x + Math.floor(centre.w / 2), centre.z + Math.floor(centre.d / 2))] === S.grass)) problems.push("no green");
+    // Neighbours: from every door to the nearest other, no long way round.
+    const doorsAll = ctx.buildings.filter((b) => b.door && inBox(b.door[0], b.door[1])).map((b) => b.door!);
+    for (const d of doorsAll) {
+      const others = doorsAll.filter((e) => e !== d).map((e) => ({ e, s: Math.hypot(e[0] - d[0], e[1] - d[1]) })).filter((o) => o.s >= 4).sort((p, q) => p.s - q.s);
+      const n = others[0];
+      if (!n) continue;
+      const from = walk([d]);
+      const walked = from.get(I(n.e[0], n.e[1])) ?? Infinity;
+      if (walked > n.s * 2 + 8) problems.push(`from the door at ${d.join(",")} to its nearest neighbour's at ${n.e.join(",")} is ${Math.round(walked)} tiles for ${Math.round(n.s)}: no path through the yards`);
+    }
+  }
+
   // What is used from beside it.
   for (const n of ctx.npcs) {
     if (!OBJECT_KINDS.has(n.kind)) {
@@ -411,8 +498,8 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     if (!lenient) throw new Error(text);
     notes.push(`BROKEN: ${text}`);
   }
-  const [TW, TD] = TOWN_SIZE[town.kind];
-  return { walled: [TW, TD], grounds: [land.width, land.depth], buildings: townBuildings.length, interiors: ctx.interiors.length, gateToSquare: Math.round(gateToSquare), squareToPlace: Math.round(squareToPlace), notes: [...notes] };
+  void TOWN_SIZE;
+  return { walled: [box.x1 - box.x0, box.z1 - box.z0], grounds: [land.width, land.depth], buildings: townBuildings.length, interiors: ctx.interiors.length, gateToSquare: Math.round(gateToSquare), squareToPlace: Math.round(squareToPlace), notes: [...notes] };
 }
 
 export type { BuildingData };

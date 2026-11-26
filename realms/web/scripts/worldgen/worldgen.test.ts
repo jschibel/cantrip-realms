@@ -185,6 +185,11 @@ describe("Dominaria as one run makes it", () => {
   const [W, H] = geo.size;
   const travel = (i: number) => i % land.width < W && Math.floor(i / land.width) < H;
 
+  it("lays each town on the setting town/settings.json holds (what the town tests build on; `town-preview.ts --settings` writes it)", () => {
+    const held = JSON.parse(readFileSync(new URL("./town/settings.json", import.meta.url), "utf8")) as unknown;
+    expect(result.settings).toEqual(held);
+  });
+
   it("is a travel map at the origin and every town's grounds in a pocket past it, a chunk file for each chunk of ground and no other", () => {
     expect(world.travel).toEqual([0, 0, 512, 768]);
     const rects = [world.travel!, ...world.towns.map((t) => t.grounds!)];
