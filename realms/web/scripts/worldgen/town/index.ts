@@ -17,7 +17,7 @@ import { Land, Use, noise, randomFor } from "../land";
 import type { Form, TownLayout } from "../layout";
 import { check, closeOnlyWhatIsDrawn, fillPockets } from "./check";
 import { dress } from "./dress";
-import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
+import { type FormSpec, TOWN_SIZE, formOf, formSpec, grownSize, walkedMargin } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
 import type { Box, ExtraWay, Plan, Planner } from "./planner";
 import { ROWS } from "./rows";
@@ -35,8 +35,8 @@ export const APRON = 26;
 
 /** The size of the grounds a town needs, whole chunks (multiples of 32) each way. */
 export function groundsSize(plan: TownLayout): readonly [number, number] {
-  const [w, d] = TOWN_SIZE[plan.kind];
-  const margin = 16 + APRON;
+  const [w, d] = grownSize(plan);
+  const margin = walkedMargin(plan) + APRON;
   return [Math.ceil((w + 2 * margin) / 32) * 32, Math.ceil((d + 2 * margin) / 32) * 32];
 }
 
@@ -80,6 +80,8 @@ export interface Ctx {
   /** Extra ways of the street plan (a harbour's quay, the gates' roads), for the graph. */
   readonly extraWays: ExtraWay[];
   readonly notes: string[];
+  /** The walled gardens the dressing laid (a manor's, a physic garden's): each lot walled round, its gate. */
+  readonly walledPlots: { readonly id: string; readonly box: Box; readonly gate: XZ }[];
   readonly random: (part: string) => () => number;
 }
 
@@ -105,11 +107,14 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
   // A grown town tries its own planner (its shape at each scale, then over a bigger built area); a town that was rows
   // falls back on them where its grown plan will not hold its places on that setting.
   const grownAttempts: { scale: number; deep: boolean; grow?: number }[] = [
+    // (`deep`: the inn grown by the main way in, amphitheatre.ts.)
     { scale: 1, deep: false },
+    { scale: 1, deep: true },
     { scale: 0.5, deep: false },
     { scale: 0, deep: false },
     { scale: 1, deep: false, grow: 6 },
     { scale: 0.5, deep: false, grow: 12 },
+    { scale: 0.5, deep: true, grow: 6 },
   ];
   const form = formOf(spec.plan);
   const own = PLANNERS[form];
@@ -127,6 +132,7 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
     } catch (e) {
       if (options.lenient) throw e;
       errors.push((e as Error).message);
+      if (process.env.TOWN_TRIES) console.log(`attempt ${k}: ${(e as Error).message.split("\n").join(" | ").slice(0, 600)}`);
       if (k === tries.length - 1) throw new Error(`${spec.plan.id} cannot be laid out on ${JSON.stringify(spec.setting)}; the first and the last tries broke on:\n${errors[0]}\n${errors[errors.length - 1]}`);
     }
   }
@@ -155,15 +161,15 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   const most = (g: number, t: number) => Math.min(t + 2 * grow, g - 2 * (APRON + 10));
   // A grown town (planner.ts: an elfhame, a clan hold, a village, the stilts) grows from its centre over more of its
   // grounds than a town of rows fills: what it does not build on is its woods and yards.
-  const grownBox = planner !== ROWS ? (town.kind === "village" ? (formOf(town) === "clan" ? 16 : 10) : 12) : 0;
-  const TW = most(GW0, TOWN_SIZE[town.kind][0] + grownBox);
-  const TD = most(GD0, TOWN_SIZE[town.kind][1] + grownBox);
+  const [TW0, TD0] = planner !== ROWS ? grownSize(town) : TOWN_SIZE[town.kind];
+  const TW = most(GW0, TW0);
+  const TD = most(GD0, TD0);
   const land = new Land(GW, GD);
   const tag = `${seed}:town:${town.id}`;
   const random = (part: string) => randomFor(seed, `town:${town.id}:${part}`);
   const box: Box = { x0: Math.floor((GW - TW) / 2), z0: Math.floor((GD - TD) / 2), x1: Math.floor((GW - TW) / 2) + TW, z1: Math.floor((GD - TD) / 2) + TD };
   const rise = town.kind === "capital" ? 3 : town.kind === "town" ? 2.4 : 1.6;
-  const fields = fieldsOf(GW, GD, box, spec.setting, tag, rise);
+  const fields = fieldsOf(GW, GD, box, spec.setting, tag, rise, walkedMargin(town));
   const { needs, sites } = programOf(town, spec.vendors, spec.exotic);
   const plan = planner.plan({
     box,
@@ -207,11 +213,12 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     ways: [],
     extraWays: [],
     notes: [],
+    walledPlots: [],
     random,
   };
 
   if (scale < 1) ctx.notes.push(`its shape drawn at ${scale} of its pull, to find room for its places`);
-  if (deep) ctx.notes.push("its rows as deep as its great buildings, to find room for its places");
+  if (deep) ctx.notes.push(planner === ROWS ? "its rows as deep as its great buildings, to find room for its places" : "its inn grown by the main way in, to have it by the main gate");
   if (grow > 0) ctx.notes.push(`its built area ${TW} by ${TD}, to find room for its places`);
   // --- The ground: the country, the sea and the river, then the town over it ----------------------------------------
   country(ctx, fields, "ground");

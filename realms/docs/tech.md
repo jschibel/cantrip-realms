@@ -1133,10 +1133,15 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   measures and the checks - is the same for every form. Every form is laid by the **amphitheatre planner**
   (`town/amphitheatre.ts`, below), each by its recipe; the **row planner** (`town/rows.ts`) is kept for the forms that
   were rows (capital, city, campus, estate), which fall back on it - noted - on a setting where their grown plan will not
-  hold their places. A town is laid out within a box of 108 by 100 tiles (the capital), 72 by 72 (a home town) or 44 by
-  40 (a village), and a grown town over some 10 or 12 tiles more each way (a clan village 16); it takes only the shape
-  it grows to. Where the places will not all fit, or a rule breaks, the town is drawn again - a grown one at a smaller
-  centre, then over a bigger built area; one of rows pulled in less (0.6, 0.3, then none of its pull), then with rows as
+  hold their places. **A town's size is whatever suits it**: its grounds are a pocket of their own, apart from the travel
+  map, and the world generator packs the pockets as they come (`worldgen/pockets.ts`, from `groundsSize`). A grown town
+  grows over the ground its form sets (`town/forms.ts` `GROWN_SIZE`): the capital 176 by 164 tiles, a home town 104 to
+  120 by 98 to 112 (Capashen Hold 116 by 110, Llanowar 120 by 112, the Academy 112 by 104, the Vess estate 108 by 112,
+  Keld 104 by 98), a village 72 to 74 by 66 to 70; the country walked round it grows with it (16 tiles and one more for
+  every 16 of its size, `walkedMargin`), the apron past that 26. A town of rows keeps its box of 108 by 100 (the capital),
+  72 by 72 or 44 by 40 within those grounds. Where the places will not all fit, or a rule breaks, the town is drawn again - a grown one
+  with its inn grown by the main way in (between the gate and the centre, by walks along the ways laid) rather than
+  beside its head, then at a smaller centre, then over a bigger built area; one of rows pulled in less (0.6, 0.3, then none of its pull), then with rows as
   deep as its great buildings and what they hide, then over a bigger built area - a fixed sequence, never a search over
   seeds; a setting it cannot honour (no way out, a way out over the sea, a river past a sea side) is refused by name.
   Every town is laid out on any setting the travel map may give it: `town/settings.json` holds the sixteen the world
@@ -1145,7 +1150,10 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   (`town/preview.ts` `settingsMatrix`: each way alone, the pairs, three and four, the sea on sides with no way, a river on
   each side, through or none, relief 0 to 1, the biomes in turn), all strictly. The wall, palisade or hedge stands on the
   ring round what is built, traced (TownPlan.outline its corners), with towers at its outer corners (a grown town's every
-  16 tiles or so) and gatehouses where the roads cross it. Its streets are kept in world.json (`towns[].plan`,
+  16 tiles or so) and gatehouses where the roads cross it; the capital's and a city's wall is **designed**: the ground
+  they grow over, stepped in at each corner as deep as leaves what stands outside it and set in along a stretch of each
+  side, straight curtains between, a tower at every bend, out or in, and a gatehouse on each way - the town grown to fill
+  it. Its streets are kept in world.json (`towns[].plan`,
   interfaces.md "Town plans") for the maps and the lint. Wherever a walk between two of the town's places (or from a
   gate to one) would be the long way round, a **footpath** two tiles wide is cut through the yards (`town/passages.ts`:
   a least-cost route, over a town's river by a footbridge, past a handful of unseen tiles only where nothing else will
@@ -1181,10 +1189,11 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     ground, clear of the water and the sea, near the middle, in an elfhame among the fewest trees); then the places on
     lots in **arcs concave to the south** round the centre's north, east and west: each arc fitted to an ellipse about
     the centre and sampled to lots stepped along it, the head lot on the axis (the temple, the shrine, the great hall),
-    the rest outward east and west in turn, each front on the arc over the lot's inner edge and a step below the one
-    inside it, so every door is seen from the centre; a path runs along each arc's fronts and jogs down between its
+    the rest outward east and west in turn (the inn first, on the side of the main way in), each front on the arc over
+    the lot's inner edge and a step below the one inside it, so every door is seen from the centre; a path runs along each arc's fronts and jogs down between its
     lots, a spoke from each jog into the centre; a second arc (a home town's) stands behind what the first hides. The
-    roads in are laid next, from each side's edge (a clan's from its palisade) by least-cost routes over a cost field (the
+    roads in are laid next, from each side's edge (a clan's or a designed wall's from its line) to the centre or a way
+    that leads straight on to it, by least-cost routes over a cost field (the
     lots and what they hide closed, a climb, a tree and water dearer, a way already laid cheaper so paths merge), pulled
     straight where the ground lets them, before anything else grows; what the arcs could not hold is grown outward from
     the paths over a field (nearer the centre and the ways, north rather than south, a shed by the shore, off the rows
@@ -1198,7 +1207,15 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     green with its well and a pond, houses loosely round it, its lanes cobbled, a hedge where its yards meet the fields; the
     **stilts** (Cabal Crossing) a platform of planks and lesser platforms with arcs of their own, the boardwalks forking
     and joining again, a deck of its own size wherever three meet away from the centre (a stack of crates at its back
-    corner), every way a boardwalk over the bog, houses on stilts, a lantern at every junction, no enclosure;
+    corner, railings round its edge where no boardwalk comes onto it: set apart from the walks), every way a boardwalk
+    over the bog, houses on stilts, a lantern at every junction, no enclosure. Llanowar's grove is bigger and denser,
+    platforms in half its great trees, and a second glade, **the druids' circle** (standing stones about a fire), with an
+    arc of its own; a clan hold on the sea has a **slip** (its first pier, the boat drawn up on it) with its sheds - the
+    stores - grown by the shore, and its yards run to drying grounds; a village has a dozen cottages and barns round its
+    green. **Lesser centres** (`Quarter`, each a recipe's): a square, close, yard, park, circle, quad or deck placed where
+    the ground is free (near the centre, on the high ground, or by a gate other than the main one), a way from its
+    south edge and one from its side to the rest, headed by the first still waiting of the roles it wants, its arcs
+    holding the queue, the manors or so many extra lots, and dressed as its kind (`dress.ts` `quarters`);
   - **landmarks** take ground across rows first, the streets between cut and connectors either side: the capital's
     cathedral north of its square, its churchyard behind it, and its citadel (a bailey, its gatehouse onto a street, the
     keep and a hall within) at the north wall; the Hold's keep on its rise; the Vess manor at the north end of its walled
@@ -1225,15 +1242,23 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     hiding a road near the town; the walked ground's edge closed by hedgerow, wood, palisade or bog everywhere but where
     each road leaves - there the road's tiles across the edge are that way's `exit`, a signpost stands by it, the road
     runs on between hedgerows into the apron, and `inside` is on the road three tiles in;
-  - the forms that were rows, grown: the **capital** (New Benalia) its market square with the cathedral at its head in
-    its close, the citadel in its own wall at the head of the second ring on the highest terrace, a lesser square with
-    an arc of its own, the Seven Houses' manors in walled gardens, its streets bending in from the gates, a many-towered
-    wall traced round what is built; a **city** (Capashen Hold) its square, the keep at the head of its second ring, the
-    rings terraced up the rise; the **campus** (the Academy, Denawa) no wall, its great quad with the mage's tower to one
-    side of its head and lesser quads with their own arcs (the library's, the guild's), lawns between; the **estate**
-    (the Vess manor) the manor in its walled grounds at the head of the village green, the village round the green
-    unwalled. Every form keeps the rows' rule for the camera: each front faces south onto a way, nothing tall south of
-    a way;
+  - the forms that were rows, grown: the **capital** (New Benalia) a city of quarters - its market square the heart,
+    the shops, inn, guild, temple, exotic wares, arena, pitch and quest board on it or just off it, the cathedral at its
+    head in its close, the citadel in its own wall at the head of the second ring on the highest terrace; a lesser
+    square with the great places it holds; the Seven Houses' close on the high ground, their manors in arcs round it,
+    each in its own walled garden with a gate onto the way beside the house (beds and fruit trees in it, walked); the
+    smiths' yard by a gate other than the main one, the smithy at its head and workshops round it (anvil, wood, cart,
+    barrels); a park (trees round it, a fountain, benches); a river always through it, bending, with a quay along its
+    north bank, warehouses grown onto the quay, bridges over it besides the roads' and the designed wall meeting the
+    water; houses grown to fill the wall, enterable ones still ten, the rest doors only painted, every one on a way and
+    seen. A **city** (Capashen Hold) its square, the keep at the head of its second ring, three rings terraced up the
+    rise, more houses grown to fill its designed wall, a quay where its water lies south of it; the **campus** (the
+    Academy, Denawa) no wall, its great quad with the mage's tower to one side of its head and lesser quads (three in
+    the Academy) with their own arcs of halls (the library's, the guild's), lawns between, a pond in the great quad's
+    open ground and a walled physic garden (beds of herbs, its gate in the middle of its front); the **estate** (the
+    Vess manor) the manor in its walled grounds at the head of the village green, a longer avenue up to it through a
+    formal garden of clipped hedges and graves, the village round the green unwalled and larger. Every form keeps the
+    rows' rule for the camera: each front faces south onto a way, nothing tall south of a way;
   - every town is checked as it is made (`town/check.ts`), and fails on any break: its plan's lint (`lintTown`); its
     fronts; the camera (no door hidden at any heading, no street or square tile at the front heading); its square's
     north side fronts (a landmark's wall counts; a round centre's north side is the top of its curve, the fronts there
@@ -1247,7 +1272,10 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     building at the head of its centre, fronts round the centre on both sides of its axis, no one row holding most of its
     fronts, from every door to its nearest neighbour's no long way round, and its form's signature (an elfhame's round
     glade among a dozen great trees at least and no wall, a clan's palisade an oval, the stilts' ways all boardwalk, a
-    village's green); and no two towns of one form share half their plan (`town.test.ts`).
+    village's green, the capital's quay along its river - twenty tiles of street on its bank at least - and every one of
+    its manors in its walled plot, the wall unbroken but at the gate and the gate open onto a way, and in a designed
+    wall a tower at every bend away from the gates); and no two towns of one form share half their plan (`town.test.ts`).
+    The capital's smithy, at the head of its smiths' yard by a gate, is the one place held to no walk from the square.
     `npx vite-node scripts/worldgen/town-preview.ts` builds the sixteen towns on the travel map's settings
     (`town/settings.json`), draws them from above (`e2e/screenshots/world2/town-<id>.png`, and `towns-sheet.png` all
     of them side by side) and writes them as a world of their own (`realms/web/town-preview/`), which the game opens

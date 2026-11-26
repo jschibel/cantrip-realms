@@ -379,17 +379,23 @@ owner may extend.
     or the manor at the north wall. The centre is a room open to the south, toward the way in, so whoever arrives sees
     it and the town's best fronts first.
   - **Each form is its own kind of place**, recognizable from above. Every town grows round its centre in arcs open to
-    the south, an amphitheatre, each form its own way. **New Benalia** is a walled city of quarters: its market square
-    with the cathedral at its head in its close, the citadel in its own wall on the highest ground behind, a lesser
-    square, the Seven Houses' manors in walled gardens, streets bending in from the gates. **Capashen Hold** climbs its
-    rise in terraces to the keep. The **Academy** has no street grid and no wall: quads of different sizes with the
-    mage's tower to one side of the great one, the library and the guild heading lesser ones, lawns between. The **Vess
-    estate** is the manor in its walled grounds at the head of a village green, the village round it. An
+    the south, an amphitheatre, each form its own way, and **each as large as suits it** - a town's grounds are its own,
+    apart from the travel map. **New Benalia** is a walled city of quarters: its market square the heart, the cathedral
+    at its head in its close, the citadel in its own wall on the highest ground behind, a lesser square, the Seven
+    Houses' manors each in its own walled garden round their close on the high ground, the smiths' yard by a gate, a
+    park, a bending river through the town with a quay, warehouses and bridges, and houses filling a designed wall -
+    straight curtains, a tower at every bend, a gatehouse on every road. **Capashen Hold** climbs its rise in terraces
+    to the keep inside its own designed wall. The **Academy** has no street grid and no wall: quads of different sizes
+    with the mage's tower to one side of the great one, the library and the guild heading lesser ones, lawns between, a
+    pond and a walled physic garden. The **Vess estate** is the manor in its walled grounds at the head of a long avenue
+    through hedges and graves, a village round the green below it. An
     **elfhame** is a glade among great trees with tree-houses round its north, east and west and winding dirt paths
-    between them, no wall; a **clan hold** is the great hall at the head of its yard, longhouses in a horseshoe round
-    it, inside an oval palisade; a **village** is houses gathered loosely round a green with its well, lanes wandering
-    off between gardens; the **stilts** of the Morass are houses on stilts round platforms of planks, every way a
-    boardwalk over the bog, a lantern at every junction. Their paths bend with the ground and fronts step forward and
+    between them, no wall (Llanowar a bigger grove with platforms in its trees and a second glade, the druids' circle of
+    standing stones); a **clan hold** is the great hall at the head of its yard, longhouses in a horseshoe round it,
+    inside an oval palisade, drying grounds in its yards, and on the sea a slip with its boat drawn up and sheds by it;
+    a **village** is a dozen cottages and barns gathered loosely round a green with its well and a pond, lanes
+    wandering off between gardens; the **stilts** of the Morass are houses on stilts round platforms of planks railed
+    round, every way a boardwalk over the bog, a lantern at every junction. Their paths bend with the ground and fronts step forward and
     back.
   - **Every town is easy to cross.** Main ways run from each gate to the centre; the shops, the inn, the temple, the
     guild and the rest stand on it or near it, the inn by the main gate's way in; every walk loops, never an alley to

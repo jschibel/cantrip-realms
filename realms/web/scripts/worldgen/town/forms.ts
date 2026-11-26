@@ -39,6 +39,34 @@ export const TOWN_SIZE: Readonly<Record<TownLayout["kind"], readonly [number, nu
   village: [44, 40],
 };
 
+/**
+ * The ground a grown town (amphitheatre.ts) may grow over, x by z: whatever suits it - a town's size is its own, not the
+ * travel map's (its grounds are a pocket of their own). The capital a city of quarters, a home town its rings and what
+ * grows round them, a village its green and the cottages and farms about it.
+ */
+const GROWN_SIZE: Readonly<Record<Form, { readonly town: readonly [number, number]; readonly village: readonly [number, number] }>> = {
+  capital: { town: [176, 164], village: [176, 164] },
+  city: { town: [116, 110], village: [84, 80] },
+  campus: { town: [112, 104], village: [72, 66] },
+  estate: { town: [108, 112], village: [80, 80] },
+  elfhame: { town: [120, 112], village: [74, 68] },
+  clan: { town: [104, 98], village: [74, 70] },
+  village: { town: [92, 86], village: [74, 68] },
+  stilts: { town: [92, 86], village: [72, 66] },
+};
+
+/** A grown town's ground, x by z (`GROWN_SIZE`). */
+export function grownSize(plan: TownLayout): readonly [number, number] {
+  const s = GROWN_SIZE[formOf(plan)];
+  return plan.kind === "village" ? s.village : s.town;
+}
+
+/** The country walked round a town, tiles past its edge each way: more round a bigger town. */
+export function walkedMargin(plan: TownLayout): number {
+  const [w, d] = grownSize(plan);
+  return 16 + Math.floor(Math.max(w, d) / 16);
+}
+
 const FORMS: Record<Form, FormSpec> = {
   capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 34], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true, shape: ["lozenge", 14] },
   city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["lozenge", 10] },

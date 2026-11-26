@@ -55,6 +55,8 @@ export function countryOf(biome: TownBiome): Country {
 export const COUNTRY = 16;
 
 export interface Fields {
+  /** Tiles of country walked past the town's edge (forms.ts `walkedMargin`). */
+  readonly country: number;
   readonly GW: number;
   readonly GD: number;
   readonly box: Box;
@@ -73,7 +75,7 @@ const opposite: Record<Side, Side> = { north: "south", south: "north", east: "we
  * The site: where the land rises (away from the sea, else north, so the banks face the camera), how hilly it is, and
  * where the sea comes to (a shore a few tiles out from the town on each sea side, wandering along the country).
  */
-export function fieldsOf(GW: number, GD: number, box: Box, setting: TownSetting, seedTag: string, rise: number): Fields {
+export function fieldsOf(GW: number, GD: number, box: Box, setting: TownSetting, seedTag: string, rise: number, country = COUNTRY): Fields {
   const sea = new Set(setting.sea);
   const high: Side = setting.sea.length > 0 ? opposite[setting.sea[0]!] : "north";
   const roll = fbm(`${seedTag}:height`, 26, 3);
@@ -102,12 +104,12 @@ export function fieldsOf(GW: number, GD: number, box: Box, setting: TownSetting,
     return Math.max(1, h);
   };
   const walked: Box = {
-    x0: sea.has("west") ? 2 : box.x0 - COUNTRY,
-    z0: sea.has("north") ? 2 : box.z0 - COUNTRY,
-    x1: sea.has("east") ? GW - 2 : box.x1 + COUNTRY,
-    z1: sea.has("south") ? GD - 2 : box.z1 + COUNTRY,
+    x0: sea.has("west") ? 2 : box.x0 - country,
+    z0: sea.has("north") ? 2 : box.z0 - country,
+    x1: sea.has("east") ? GW - 2 : box.x1 + country,
+    z1: sea.has("south") ? GD - 2 : box.z1 + country,
   };
-  return { GW, GD, box, walked, height, isSea, setting };
+  return { GW, GD, box, walked, height, isSea, setting, country };
 }
 
 /** A river's course outside the town: the tiles of its bed, by its middle line wandering a little. */

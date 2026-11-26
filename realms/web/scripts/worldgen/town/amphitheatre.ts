@@ -63,8 +63,22 @@ interface Recipe {
   readonly headOffset?: number;
   /** The ring whose head is the town's landmark at the north (the capital's citadel, the Hold's keep). */
   readonly landmarkRing?: number;
-  /** Lesser centres, each with an arc of its own (the capital's lesser square, the Academy's quads), and their radii. */
-  readonly quads?: { readonly town: number; readonly village: number; readonly size: readonly [number, number] };
+  /** Lesser centres, each with arcs of its own (the capital's lesser square and quarters, the Academy's quads). */
+  readonly quarters?: { readonly town: readonly Quarter[]; readonly village: readonly Quarter[] };
+  /** The town always stands on its river (through it, or along its south where the setting puts it on a side). */
+  readonly river?: boolean;
+  /** How far the river bends either way, tiles. */
+  readonly bend?: number;
+  /** A quay along the water south of the town (its river's north bank, or the shore), warehouses fronting it. */
+  readonly quay?: boolean;
+  /** Bridges over the river besides the roads', as many as there is room for. */
+  readonly bridges?: number;
+  /** A designed wall: straight curtains between towers, stepped in at its corners, the town grown to fill it. */
+  readonly designed?: boolean;
+  /** A lot kept for a garden with no building (the Academy's walled physic garden). */
+  readonly garden?: "physic";
+  /** A slip for the boats on a shore, its boat drawn up on it, and sheds by it (a clan's). */
+  readonly slip?: boolean;
   /** Each ring a terrace above the one inside it (a hold on its rise). */
   readonly terraced?: boolean;
   /** No wall round the town though its form has one: the estate's wall is its manor's alone. */
@@ -73,16 +87,50 @@ interface Recipe {
   readonly names?: readonly [string, string];
 }
 
+/** A lesser centre: a square, a close, a yard, a park, a quad, a deck - and the arcs that stand round it. */
+interface Quarter {
+  readonly kind: "square" | "close" | "yard" | "park" | "circle" | "quad" | "deck";
+  readonly name: string;
+  /** Its radii. */
+  readonly size: readonly [number, number];
+  /** What heads it: the first still waiting of these roles; none, and its arcs hold only what it holds. */
+  readonly head: readonly string[] | null;
+  /** What its arcs hold: the town's places in turn, the manors, or so many of the extra lots (workshops, houses). */
+  readonly fill: "queue" | "manor" | "extra";
+  readonly count?: number;
+  readonly rings: number;
+  /** Where it lies: near the centre, on the high ground, or by a gate other than the main one. */
+  readonly where: "near" | "high" | "gate";
+}
+
+/** A deck of the stilts': a lesser platform, the next of the town's places round it. */
+const DECK = (rx: number, rz: number): Quarter => ({ kind: "deck", name: "A platform", size: [rx, rz], head: null, fill: "queue", rings: 1, where: "near" });
+
+/** A quad of the Academy's: a lawn headed by a hall (its library, its guild), its own arc of halls round it. */
+const QUAD = (rx: number, rz: number): Quarter => ({ kind: "quad", name: "The quad", size: [rx, rz], head: ["library", "guildhall", "tower", "temple", "exotic", "shop"], fill: "queue", rings: 1, where: "near" });
+
+/**
+ * The capital's quarters besides its market square: the lesser square with the great places it holds, the Seven Houses'
+ * close on the high ground (their manors in arcs round it, each in its walled garden), the smiths' yard by a gate (the
+ * smithy at its head, workshops round it) and the park.
+ */
+const CAPITAL_QUARTERS: readonly Quarter[] = [
+  { kind: "square", name: "The lesser square", size: [7, 4], head: ["guildhall", "library", "exotic", "shop"], fill: "queue", rings: 1, where: "near" },
+  { kind: "close", name: "The Houses' close", size: [6, 3], head: ["manor"], fill: "manor", rings: 2, where: "high" },
+  { kind: "yard", name: "The smiths' yard", size: [5, 3], head: ["smithy"], fill: "extra", count: 6, rings: 1, where: "gate" },
+  { kind: "park", name: "The park", size: [8, 5], head: null, fill: "extra", count: 6, rings: 1, where: "near" },
+];
+
 const RECIPES: Readonly<Record<Form, Recipe>> = {
-  elfhame: { centre: { town: [16, 8], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } }, names: ["The glade", "The glade"] },
-  clan: { centre: { town: [15, 7], village: [9, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 }, names: ["The yard", "The yard"] },
-  village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, names: ["The green", "The green"] },
-  stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, names: ["The platform", "A platform"], quads: { town: 2, village: 2, size: [3, 2] } },
+  elfhame: { centre: { town: [16, 8], village: [14, 7] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 18, village: 6 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } }, names: ["The glade", "The glade"], quarters: { town: [{ kind: "circle", name: "The druids' circle", size: [7, 4], head: null, fill: "extra", count: 5, rings: 1, where: "near" }], village: [] } },
+  clan: { centre: { town: [15, 7], village: [10, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 16, village: 7 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 }, names: ["The yard", "The yard"], slip: true },
+  village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 10, village: 10 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, names: ["The green", "The green"] },
+  stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 8, village: 7 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, names: ["The platform", "A platform"], quarters: { town: [DECK(3, 2), DECK(2, 2)], village: [DECK(3, 2), DECK(2, 2)] } },
   // The forms that were rows.
-  capital: { centre: { town: [13, 7], village: [13, 7] }, round: false, rings: { town: 2, village: 2 }, extra: { town: 10, village: 10 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, quads: { town: 1, village: 1, size: [7, 4] }, terraced: true, names: ["The market square", "The lesser square"] },
-  city: { centre: { town: [11, 6], village: [9, 5] }, round: false, rings: { town: 3, village: 2 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, terraced: true, names: ["The square", "The square"] },
-  campus: { centre: { town: [12, 7], village: [9, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, head: "tower", headOffset: 0.5, quads: { town: 2, village: 1, size: [7, 4] }, names: ["The great quad", "The quad"] },
-  estate: { centre: { town: [15, 6], village: [10, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 5, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, head: "landmark", unwalled: true, names: ["The village green", "The green"] },
+  capital: { centre: { town: [13, 7], village: [13, 7] }, round: false, rings: { town: 2, village: 2 }, extra: { town: 80, village: 80 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, quarters: { town: CAPITAL_QUARTERS, village: CAPITAL_QUARTERS }, terraced: true, names: ["The market square", "The lesser square"], river: true, bend: 12, quay: true, bridges: 2, designed: true },
+  city: { centre: { town: [11, 6], village: [9, 5] }, round: false, rings: { town: 3, village: 2 }, extra: { town: 26, village: 10 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, terraced: true, names: ["The square", "The square"], quay: true, designed: true },
+  campus: { centre: { town: [12, 7], village: [9, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 12, village: 6 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, head: "tower", headOffset: 0.5, quarters: { town: [QUAD(7, 4), QUAD(6, 4), QUAD(6, 3)], village: [QUAD(7, 4), QUAD(5, 3)] }, names: ["The great quad", "The quad"], garden: "physic" },
+  estate: { centre: { town: [15, 6], village: [10, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 14, village: 9 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, head: "landmark", unwalled: true, names: ["The village green", "The green"] },
 };
 
 /** A strip's width: the path along a ring's fronts, a spoke, a road in. */
@@ -147,14 +195,20 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
   // The water: a course that meanders, past a side or through, three to five wide.
   const water = new Uint8Array(g.size);
-  if (setting.river) {
+  // A town that always stands on its river (the capital) has it through its south, bending: where the setting puts the
+  // river on a side, along its south side inside it.
+  const riverAt = R.river ? (setting.river === "south" || sea.has("south") ? "south-in" : "through") : setting.river;
+  if (riverAt) {
     const wander = fbm(`${input.tag}:stream`, 22, 2);
-    const width = village ? 3 : 4;
-    const along = setting.river === "through" || setting.river === "north" || setting.river === "south";
-    const base = setting.river === "through" ? Math.round((box.z0 + box.z1) / 2 + (box.z1 - box.z0) * 0.22) : setting.river === "north" ? box.z0 - 6 : setting.river === "south" ? box.z1 + 3 : setting.river === "west" ? box.x0 - 6 : box.x1 + 3;
+    const width = village ? 3 : R.river ? 6 : 4;
+    const along = riverAt === "through" || riverAt === "south-in" || riverAt === "north" || riverAt === "south";
+    const base = riverAt === "through" ? Math.round((box.z0 + box.z1) / 2 + (box.z1 - box.z0) * 0.22) : riverAt === "south-in" ? box.z1 - 20 : riverAt === "north" ? box.z0 - 6 : riverAt === "south" ? box.z1 + 3 : riverAt === "west" ? box.x0 - 6 : box.x1 + 3;
     const span = along ? g.W : g.D;
+    // A real bend: one long swing across the town, the noise's wander over it.
+    const phase = R.bend ? random() * Math.PI * 2 : 0;
     for (let t = 0; t < span; t++) {
-      const off = Math.round((wander(t, along ? 3 : 7) - 0.5) * (setting.river === "through" ? 12 : 10));
+      const swing = R.bend ? Math.round(Math.sin(((t - box.x0) / (box.x1 - box.x0)) * Math.PI * 1.6 + phase) * R.bend) : 0;
+      const off = swing + Math.round((wander(t, along ? 3 : 7) - 0.5) * (riverAt === "through" ? 12 : 10));
       for (let k = 0; k < width; k++) {
         const [x, z] = along ? [t, base + off + k] : [base + off + k, t];
         if (g.inside(x, z) && !seaTile[I(x, z)]) water[I(x, z)] = 1;
@@ -167,7 +221,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   const treeList: XZ[] = [];
   if (R.trees) {
     const thin = fbm(`${input.tag}:glades`, 24, 2);
-    for (const [px, pz] of poisson(box.x0, box.z0, box.x1, box.z1, 4.2, random, (x, z) => g.inside(x, z) && !blocked[I(x, z)] && !wet(I(x, z)))) {
+    for (const [px, pz] of poisson(box.x0, box.z0, box.x1, box.z1, village ? 4.2 : 3.6, random, (x, z) => g.inside(x, z) && !blocked[I(x, z)] && !wet(I(x, z)))) {
       const x = Math.floor(px);
       const z = Math.floor(pz);
       if (thin(x, z) < 0.42) continue;
@@ -187,11 +241,14 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     const d0 = Math.max(...sizes.map(([, d]) => d));
     const shadow = role === "arena" ? 1 : Math.max(...sizes.map(([w, d]) => shadowOf(style(role), role, w, d)));
     deepest = Math.max(deepest, d0);
-    wants.push({ id, role, w: w0 + (role === "inn" ? 3 : 1) + (site ? 2 : 0), d: d0, depth: d0 + 2, shadow, ...(site ? { site } : {}), ...(optional ? { optional } : {}) });
+    // A manor's lot is its walled garden: room beside it for the gate, and behind it for the garden.
+    const garden = role === "manor" ? 6 : 0;
+    wants.push({ id, role, w: w0 + (role === "inn" ? 3 : 1) + (site ? 2 : 0) + garden, d: d0, depth: d0 + 2 + garden, shadow, ...(site ? { site } : {}), ...(optional ? { optional } : {}) });
   };
   // A landmark's ground (the citadel, the keep, the manor): a lot of its own, built by the dressing (dress.ts).
   const landmarkWant = (req: (typeof input.sites)[number]): Want => {
-    const depth = req.id.endsWith("-manor") ? 26 : req.id.endsWith("-citadel") ? 22 : 15;
+    // The estate's manor at the head of a long avenue through its formal garden.
+    const depth = req.id.endsWith("-manor") ? 31 : req.id.endsWith("-citadel") ? 22 : 15;
     return { id: req.id, role: "hall", w: req.w, d: depth - 2, depth, shadow: 14, site: req.id };
   };
   const landmarks = input.sites.filter((s) => s.where === "north").map(landmarkWant);
@@ -206,7 +263,11 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   const rank: Record<string, number> = { inn: 0, shop: 1, exotic: 1, guildhall: 2, library: 2, tower: 2, temple: 2, arena: 2.5, smithy: 4, home: 5, manor: 6 };
   for (const n of [...input.needs].filter((n) => n.id !== head.id).sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9))) want(n.id, n.role);
   const extra = village ? R.extra.village : R.extra.town;
-  for (let k = 0; k < extra; k++) want(`${town.id}-lot-${k + 1}`, k % 3 === 2 ? "warehouse" : "house", undefined, true);
+  // The extra lots: houses, and every third a store - a barn in a village, a longhouse's shed in a hold, a warehouse in a
+  // town by the water; the Academy keeps one for its physic garden.
+  const third: Role = form === "village" || form === "estate" ? "barn" : "warehouse";
+  for (let k = 0; k < extra; k++) want(`${town.id}-lot-${k + 1}`, k % 3 === 2 ? third : "house", undefined, true);
+  if (R.garden === "physic" && !village) wants.push({ id: `${town.id}-physic-garden`, role: "house", w: 14, d: 8, depth: 12, shadow: 0, optional: true });
 
   // --- 2. The centre -------------------------------------------------------------------------------------------------------
   const [rx0, rz0] = village ? R.centre.village : R.centre.town;
@@ -354,7 +415,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
    * east and west in turn, each front a step below the one inside it. A path along each arc's fronts jogs down between
    * them, a spoke from each jog down to the centre (or the arc inside it).
    */
-  function arcsAround(c: Centre, rings: number, headW: Want | null, offset: number, landmark: Want | null, landmarkRing: number, ringBase: number): void {
+  function arcsAround(c: Centre, rings: number, headW: Want | null, offset: number, landmark: Want | null, landmarkRing: number, ringBase: number, westFirst = false): void {
     const { cx: ax, cz: az, rx: arx, rz: arz } = c;
     const mine: (Lot & { want: Want })[][] = [];
     for (let r = 1; r <= rings; r++) {
@@ -405,7 +466,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       let lastEast = these[0] ? these[0].z1 : -Infinity;
       let lastWest = lastEast;
       for (let side = 0; queue.length > 0 && !(eastDone && westDone); side++) {
-        const toEast = (side % 2 === 0 && !eastDone) || westDone;
+        const toEast = ((side % 2 === (westFirst ? 1 : 0)) && !eastDone) || westDone;
         const wt = queue[0]!;
         let placed = false;
         for (let shift = 0; shift <= 6 && !placed; shift += 2) {
@@ -471,7 +532,17 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
   const main: Centre = { cx, cz, rx, rz, square: centre, level: centreLevel };
   const landmark = landmarks.shift() ?? null;
-  arcsAround(main, rings, head, R.headOffset ?? 0, landmark, R.landmarkRing ?? 0, 0);
+  // What a quarter of its own will hold (the manors in their close, the smithy at the head of its yard) waits for it.
+  const quarterList0 = R.quarters ? (village ? R.quarters.village : R.quarters.town) : [];
+  const reserved = queue.filter((w) => quarterList0.some((q) => (q.fill === "manor" && w.role === "manor") || (q.kind === "yard" && (q.head ?? []).includes(w.role))));
+  for (const w of reserved) queue.splice(queue.indexOf(w), 1);
+  // The inn is first of the rest, beside the head on the side of the main way in; where that leaves it too far from the
+  // main gate, the later tries (index.ts, `deep` for a grown town) have it wait for the roads in and grow by the main way,
+  // between the gate and the centre.
+  const innWant: Want | null = input.deep ? (queue.find((w) => w.role === "inn") ?? null) : null;
+  if (innWant) queue.splice(queue.indexOf(innWant), 1);
+  arcsAround(main, rings, head, R.headOffset ?? 0, landmark, R.landmarkRing ?? 0, 0, mainWay === "west");
+  queue.unshift(...reserved);
   // A landmark no ring took stands where it may: at the north, on the axis as near as it can.
   if (landmark && !lots.some((l) => l.want === landmark)) {
     let best2: { x0: number; z1: number; s: number } | null = null;
@@ -491,18 +562,28 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   // The lesser centres: each where the ground is free and level a little way from the main one, an arc of its own round it
   // headed by the next of the town's great places, and a way to the rest.
   const quads: Centre[] = [];
-  const nQuads = R.quads ? (village ? R.quads.village : R.quads.town) : 0;
-  for (let q = 0; q < nQuads; q++) {
-    const [qx0, qz0] = R.quads!.size;
-    const qrx = Math.max(2, qx0 - q);
-    const qrz = Math.max(2, qz0 - (q % 2));
+  /** Each lesser centre's quarter, by its index in `quads` (the stilts' knots have none). */
+  const quarterOf: Quarter[] = [];
+  const quarterList = R.quarters ? (village ? R.quarters.village : R.quarters.town) : [];
+  // A quarter by a gate: by the first way in that is not the main one (else the main one), inside the town's edge beside
+  // where its road comes in, so the road passes its open side.
+  const wayIn = (): XZ => {
+    const sides = setting.ways.map((w) => w.side);
+    const side = sides.find((s) => s !== mainWay && (s === "east" || s === "west")) ?? sides.find((s) => s !== mainWay) ?? mainWay;
+    const inset = 24;
+    return side === "east" ? [box.x1 - inset, cz + Math.round(rz / 2) - 6] : side === "west" ? [box.x0 + inset, cz + Math.round(rz / 2) - 6] : side === "north" ? [cx + 18, box.z0 + inset + 8] : [cx + 18, box.z1 - inset];
+  };
+  for (const [q, spec] of quarterList.entries()) {
+    const [qrx, qrz] = spec.size;
+    const behind = spec.fill === "manor" ? 16 : 8;
+    const target = spec.where === "gate" ? wayIn() : null;
     let bestQ: { x: number; z: number; s: number } | null = null;
-    for (let z = box.z0 + qrz + 10; z <= box.z1 - qrz - 4; z++) {
+    for (let z = box.z0 + qrz + behind + 2; z <= box.z1 - qrz - 4; z++) {
       for (let x = box.x0 + qrx + 4; x <= box.x1 - qrx - 4; x++) {
         const d = Math.hypot(x - cx, (z - cz) * 1.3);
-        if (d < rx + qrx + 8 || d > rx + qrx + 34) continue;
+        if (d < rx + qrx + 8 || (!target && d > rx + qrx + 34 + (spec.where === "high" ? 30 : 0))) continue;
         let ok = true;
-        for (let zz = z - qrz - 8; zz <= z + qrz + 2 && ok; zz++) for (let xx = x - qrx - 2; xx <= x + qrx + 2 && ok; xx++) {
+        for (let zz = z - qrz - behind; zz <= z + qrz + 2 && ok; zz++) for (let xx = x - qrx - 2; xx <= x + qrx + 2 && ok; xx++) {
           if (!g.inside(xx, zz)) ok = false;
           else {
             const i = I(xx, zz);
@@ -510,32 +591,53 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
           }
         }
         if (!ok) continue;
-        const s = Math.abs(d - (rx + qrx + 14)) + Math.abs(z - cz) * 0.4 + quads.reduce((t, o) => t + Math.max(0, 30 - Math.hypot(o.cx - x, o.cz - z)), 0) + random();
+        const apart = quads.reduce((t, o) => t + Math.max(0, 30 - Math.hypot(o.cx - x, o.cz - z)), 0);
+        const where = target ? Math.hypot(x - target[0], z - target[1]) * 2 : spec.where === "high" ? -height(x, z) * 8 + Math.abs(d - (rx + qrx + 30)) * 0.3 : Math.abs(d - (rx + qrx + 14)) + Math.abs(z - cz) * 0.4;
+        const s = where + apart + random();
         if (!bestQ || s < bestQ.s) bestQ = { x, z, s };
       }
     }
-    if (process.env.TOWN_DEBUG === "quads") console.log(`quad ${q}: ${bestQ ? `${bestQ.x},${bestQ.z}` : "none"}; queue ${queue.length}; centre ${cx},${cz} r ${rx},${rz} box ${box.x0},${box.z0}-${box.x1},${box.z1}`);
-    if (!bestQ) break;
-    const sq: TownSquare = { x: bestQ.x - qrx, z: bestQ.z - qrz, w: 2 * qrx + 1, d: 2 * qrz + 1, name: R.names?.[1] ?? "A square" };
-    for (const [x, z] of squareTiles(sq)) if (g.inside(x, z)) centreTiles[I(x, z)] = 2 + q;
+    if (process.env.TOWN_DEBUG === "quads") console.log(`quad ${q} ${spec.name}: ${bestQ ? `${bestQ.x},${bestQ.z}` : "none"}; queue ${queue.length}; centre ${cx},${cz} r ${rx},${rz} box ${box.x0},${box.z0}-${box.x1},${box.z1}`);
+    if (!bestQ) continue;
+    quarterOf[quads.length] = spec;
+    const sq: TownSquare = { x: bestQ.x - qrx, z: bestQ.z - qrz, w: 2 * qrx + 1, d: 2 * qrz + 1, name: spec.name };
+    const k = quads.length;
+    for (const [x, z] of squareTiles(sq)) if (g.inside(x, z)) centreTiles[I(x, z)] = 2 + k;
     const lv = Math.max(centreLevel - 1, Math.min(centreLevel + 1, Math.round(height(bestQ.x, bestQ.z))));
     const c: Centre = { cx: bestQ.x, cz: bestQ.z, rx: qrx, rz: qrz, square: sq, level: lv };
     quads.push(c);
     // Its way to the rest: from the middle of its south edge to the network or the main centre.
     const from: XZ = [bestQ.x, sq.z + sq.d - 1];
-    const r = route(g, { from: [from], goal: (x, z) => net.middle[I(x, z)]! > 0 || centreTiles[I(x, z)] === 1, pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + q, cost, turn: 0.5, limit: 160 });
+    const r = route(g, { from: [from], goal: (x, z) => net.middle[I(x, z)]! > 0 || centreTiles[I(x, z)] === 1, pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + k, cost, turn: 0.5, limit: 200 });
     if (!r) throw new Error(`${town.id}: no way to its ${sq.name}`);
     net.add(pull(r, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "street");
     // And a second from its side toward the main centre, so the two are near by more than one way.
     {
       const side: XZ = bestQ.x < cx ? [sq.x + sq.w - 1, bestQ.z] : [sq.x, bestQ.z];
-      const r2 = route(g, { from: [side], goal: (x, z) => centreTiles[I(x, z)] === 1 || (net.middle[I(x, z)]! > 0 && !inSquare(sq, x, z)), pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + q, cost, turn: 0.5, limit: 120 });
+      const r2 = route(g, { from: [side], goal: (x, z) => centreTiles[I(x, z)] === 1 || (net.middle[I(x, z)]! > 0 && !inSquare(sq, x, z)), pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + k, cost, turn: 0.5, limit: 120 });
       if (r2 && r2.length >= 2) net.add(pull(r2, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "street");
     }
-    // Its head: the next of the great places still waiting (the library, the guild), else the next lot.
-    const k = queue.findIndex((w) => ["library", "guildhall", "tower", "temple", "exotic", "shop"].includes(w.role as string));
-    const headQ = k >= 0 ? queue.splice(k, 1)[0]! : (queue.shift() ?? null);
-    arcsAround(c, 1, headQ, 0, null, 0, 10 * (q + 1));
+    // Its head: the first still waiting of the roles it wants (the library, the guild; a manor; the smithy), or none.
+    let headQ: Want | null = null;
+    for (const role of spec.head ?? []) {
+      const at = queue.findIndex((w) => w.role === role);
+      if (at >= 0) {
+        headQ = queue.splice(at, 1)[0]!;
+        break;
+      }
+    }
+    if (spec.head && !headQ && spec.fill === "queue") headQ = queue.shift() ?? null;
+    // What its arcs hold: the queue as it stands, or only the manors, or so many of the extra lots.
+    const take = spec.fill === "manor" ? queue.filter((w) => w.role === "manor") : spec.fill === "extra" ? queue.filter((w) => w.optional).slice(0, spec.count ?? 6) : null;
+    if (take) {
+      const rest = queue.filter((w) => !take.includes(w));
+      queue.length = 0;
+      queue.push(...take);
+      arcsAround(c, spec.rings, headQ, 0, null, 0, 10 * (k + 1));
+      const left = [...queue];
+      queue.length = 0;
+      queue.push(...rest.filter((w) => !w.optional), ...left.filter((w) => !w.optional), ...rest.filter((w) => w.optional), ...left.filter((w) => w.optional));
+    } else arcsAround(c, spec.rings, headQ, 0, null, 0, 10 * (k + 1));
     if (headQ && !lots.some((l) => l.want === headQ)) queue.unshift(headQ);
   }
 
@@ -574,7 +676,103 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     }
     // What already stands is inside it.
     for (let i = 0; i < g.size; i++) if (lotAt[i] || centreTiles[i] || net.paved[i]) oval[i] = 1;
+  } else if (R.designed) {
+    // A designed wall: the ground the town may grow over, stepped in at each corner (as deep a step as leaves what stands
+    // outside it) and in along a stretch of each side - straight curtains between the corners, a tower at each. The town
+    // grows to fill it.
+    oval = new Uint8Array(g.size);
+    const stands = (x: number, z: number) => g.inside(x, z) && (lotAt[I(x, z)]! > 0 || centreTiles[I(x, z)]! > 0 || net.paved[I(x, z)]! > 0);
+    const clearOf = (ax: number, az: number, bx: number, bz: number) => {
+      for (let z = Math.min(az, bz); z <= Math.max(az, bz); z++) for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++) if (stands(x, z)) return false;
+      return true;
+    };
+    const X0 = box.x0 + 1;
+    const Z0 = box.z0 + 1;
+    const X1 = box.x1 - 2;
+    const Z1 = box.z1 - 2;
+    const cuts: Box[] = [];
+    for (const [sx, sz] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+      const sizes = [[30, 22], [24, 18], [18, 14], [12, 9], [7, 5]].map(([w, d]) => [w! + Math.floor(random() * 6), d! + Math.floor(random() * 4)] as const);
+      for (const [w, d] of sizes) {
+        const ax = sx ? X1 - w + 1 : X0;
+        const az = sz ? Z1 - d + 1 : Z0;
+        if (!clearOf(ax - 2, az - 2, ax + w + 1, az + d + 1)) continue;
+        cuts.push({ x0: ax, z0: az, x1: ax + w, z1: az + d });
+        break;
+      }
+    }
+    // A stretch of each side set in by a few tiles, where nothing stands there.
+    for (const side of ["north", "south", "east", "west"] as const) {
+      const along = side === "north" || side === "south";
+      const len = Math.floor(((along ? X1 - X0 : Z1 - Z0) * (0.22 + random() * 0.12)));
+      const at = Math.floor((along ? X0 : Z0) + (along ? X1 - X0 : Z1 - Z0) * (0.3 + random() * 0.4) - len / 2);
+      const depth = 4 + Math.floor(random() * 3);
+      const b: Box = side === "north" ? { x0: at, z0: Z0, x1: at + len, z1: Z0 + depth } : side === "south" ? { x0: at, z0: Z1 - depth + 1, x1: at + len, z1: Z1 + 1 } : side === "west" ? { x0: X0, z0: at, x1: X0 + depth, z1: at + len } : { x0: X1 - depth + 1, z0: at, x1: X1 + 1, z1: at + len };
+      if (clearOf(b.x0 - 2, b.z0 - 2, b.x1 + 1, b.z1 + 1)) cuts.push(b);
+    }
+    for (let z = Z0; z <= Z1; z++) for (let x = X0; x <= X1; x++) {
+      if (cuts.some((c) => x >= c.x0 && x < c.x1 && z >= c.z0 && z < c.z1)) continue;
+      if (!nearSea[I(x, z)]) oval[I(x, z)] = 1;
+    }
+    for (let i = 0; i < g.size; i++) if (lotAt[i] || centreTiles[i] || net.paved[i]) oval[i] = 1;
   }
+  // A quay along the water south of the town: its river's north bank, or the shore - a street the length of the town,
+  // its warehouses fronting it (growth puts them there), a way up from it to the centre.
+  const quayTiles: XZ[] = [];
+  if (R.quay) {
+    const runs: XZ[][] = [];
+    let run: XZ[] = [];
+    for (let x = box.x0 + 2; x < box.x1 - 2; x++) {
+      let zw = -1;
+      for (let z = cz + rz + 4; z < box.z1 && zw < 0; z++) if (wet(I(x, z)) || nearSea[I(x, z)]) zw = z;
+      const zq = zw - 2;
+      const ok = zw > 0 && [zq - 1, zq, zq + 1].every((z) => g.inside(x, z) && (!oval || oval[I(x, z)] === 1) && !blocked[I(x, z)] && !lotAt[I(x, z)] && !shade[I(x, z)] && !wet(I(x, z)) && !centreTiles[I(x, z)]);
+      if (ok && (run.length === 0 || Math.abs(run[run.length - 1]![1] - zq) <= 3)) run.push([x, zq]);
+      else {
+        if (run.length) runs.push(run);
+        run = ok ? [[x, zq]] : [];
+      }
+    }
+    if (run.length) runs.push(run);
+    const best = runs.sort((a, b) => b.length - a.length)[0];
+    if (best && best.length >= 16) {
+      const line = chain(best);
+      // In stretches between the ways it crosses, each joined to them there.
+      let from = 0;
+      for (let k = 1; k < line.length; k++) {
+        const crossing = net.middle[I(line[k]![0], line[k]![1])]! > 0;
+        if (!crossing && k < line.length - 1) continue;
+        const part = line.slice(from, k + 1);
+        if (part.length >= 2 && !part.slice(1, -1).some(([x, z]) => net.middle[I(x, z)]! > 0)) net.add(part, W, true, "street");
+        from = k;
+      }
+      quayTiles.push(...line);
+      const mid = line[Math.floor(line.length / 2)]!;
+      if (!connect(mid, "centre", true, line)) connect(mid, "net", true, line);
+    }
+  }
+  /** Walks along the ways laid so far (and over the centre) from some tiles. */
+  const alongWays = (from: readonly XZ[]): Float32Array => {
+    const d = new Float32Array(g.size).fill(Infinity);
+    const q: number[] = [];
+    for (const [x, z] of from) if (g.inside(x, z)) {
+      d[I(x, z)] = 0;
+      q.push(I(x, z));
+    }
+    for (let h = 0; h < q.length; h++) {
+      const i = q[h]!;
+      for (const [dx, dz] of N4) {
+        const x = g.x(i) + dx;
+        const z = g.z(i) + dz;
+        if (!g.inside(x, z)) continue;
+        const j = I(x, z);
+        if (!(net.paved[j] || centreTiles[j] === 1) || d[j]! <= d[i]! + 1) continue;
+        d[j] = d[i]! + 1;
+        q.push(j);
+      }
+    }
+    return d;
+  };
   const gates: Gate[] = [];
   const gateNodes: XZ[] = [];
   const gatePaths: XZ[][] = [];
@@ -588,6 +786,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     const along = side === "north" || side === "south";
     const base = along ? cx : cz + Math.round(rz / 2);
     const taken = usedLateral.get(side) ?? [];
+    const toCentre = alongWays(squareTiles(centre).filter(([px, pz]) => g.inside(px, pz)));
     for (const off of [...Array(81).keys()].map((k) => (k % 2 === 0 ? k / 2 : -(k + 1) / 2))) {
       const u = base + off;
       if (taken.some((t) => Math.abs(t - u) < 8)) continue;
@@ -616,7 +815,11 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       if (!ok) continue;
       const inner: XZ = [x - 5 * dx, z - 5 * dz];
       const inTown = (px: number, pz: number) => !oval || oval[I(px, pz)] === 1;
-      const r = route(g, { from: [inner], goal: (px, pz) => centreTiles[I(px, pz)] === 1 || net.middle[I(px, pz)]! > 0, pass: (px, pz) => (passable(px, pz) && inTown(px, pz)) || (px === inner[0] && pz === inner[1]), cost, turn: 0.5, limit: 260 });
+      // Each road in runs to the centre, or joins a way that leads straight on to it (not one that goes the long way round).
+      const direct = (px: number, pz: number) => toCentre[I(px, pz)]! <= Math.max(10, Math.hypot(px - cx, pz - cz) * 1.35);
+      const passIn = (px: number, pz: number) => (passable(px, pz) && inTown(px, pz)) || (px === inner[0] && pz === inner[1]);
+      // Where no way that leads straight on can be reached, the nearest way.
+      const r = route(g, { from: [inner], goal: (px, pz) => centreTiles[I(px, pz)] === 1 || (net.middle[I(px, pz)]! > 0 && direct(px, pz)), pass: passIn, cost, turn: 0.5, limit: 140 }) ?? route(g, { from: [inner], goal: (px, pz) => centreTiles[I(px, pz)] === 1 || net.middle[I(px, pz)]! > 0, pass: passIn, cost, turn: 0.5, limit: 260 });
       if (!r) {
         continue;
       }
@@ -637,11 +840,52 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     throw new Error(`${town.id}: no way in from the ${side}`);
   });
   if (gates.length > 0 && !gates.some((gg) => gg.main)) gates[0] = { ...gates[0]!, main: true };
+  // Bridges from the quay over the river, besides the roads': straight across where the river runs narrow enough, each
+  // well apart from the others and from a road's, a way on from its far end to the rest.
+  if (R.bridges && quayTiles.length > 0) {
+    const crossings: number[] = [];
+    for (let i = 0; i < g.size; i++) if (wet(i) && net.middle[i]) crossings.push(g.x(i));
+    const byX = new Map(quayTiles.map(([x, z]) => [x, z] as const));
+    const want = [cx - 34, cx + 34, cx - 58, cx + 58];
+    let made = 0;
+    for (const tx of want) {
+      if (made >= R.bridges) break;
+      for (const dx of [0, 3, -3, 6, -6, 9, -9]) {
+        const x = tx + dx;
+        const zq = byX.get(x);
+        if (zq === undefined || crossings.some((c) => Math.abs(c - x) < 16)) continue;
+        // Down from the quay, over the water, to dry ground three past it.
+        let z = zq + 1;
+        while (g.inside(x, z) && !wet(I(x, z))) z++;
+        const wetFrom = z;
+        while (g.inside(x, z) && wet(I(x, z))) z++;
+        const end = z + 3;
+        if (z - wetFrom > 9 || z === wetFrom) continue;
+        let ok = true;
+        for (let zz = zq + 2; zz <= end + 1 && ok; zz++) for (const xx of [x - 1, x, x + 1]) if (!g.inside(xx, zz) || (oval && !oval[I(xx, zz)]) || blocked[I(xx, zz)] || lotAt[I(xx, zz)] || shade[I(xx, zz)] || (net.paved[I(xx, zz)] && zz > z)) ok = false;
+        if (!ok) continue;
+        // On from its far end along the bank to the nearest way there (never back over the water).
+        const on = route(g, { from: [[x, end]], goal: (px, pz) => net.middle[I(px, pz)]! > 0 && pz > z - 1, pass: (px, pz) => (passable(px, pz) && !wet(I(px, pz)) && (!oval || oval[I(px, pz)] === 1)) || (px === x && pz === end), cost, turn: 0.5, limit: 140 });
+        if (!on || on.length < 2) continue;
+        const span = chain([[x, zq], [x, end]]);
+        net.add(span, W, true, "street");
+        net.add(pull(on, (px, pz) => passable(px, pz) && !wet(I(px, pz)), cost), W, false, "street");
+        crossings.push(x);
+        made++;
+        break;
+      }
+    }
+  }
   // A clan's: nothing past its palisade.
   if (oval) for (let i = 0; i < g.size; i++) if (!oval[i]) blocked[i] = 1;
 
 
   // --- 4. Growth: what the rings could not hold, grown outward from the paths ----------------------------------------------------
+  if (innWant) queue.unshift(innWant);
+  const mainInner = (gates.find((gg) => gg.main) ?? gates[0])?.inner ?? null;
+  // The main way in's stretch near the centre: the inn stands by it, so its walk from the gate is the way's own.
+  const mainPath = (gatePaths[Math.max(0, gates.findIndex((gg) => gg.main))] ?? []).filter(([x, z]) => Math.hypot(x - cx, z - cz) < (village ? 22 : town.kind === "capital" ? 34 : 28));
+  const byMainWay = (x: number, z: number) => (mainPath.length ? Math.min(...mainPath.map(([px, pz]) => Math.abs(px - x) + Math.abs(pz - z))) : 0);
   for (const wt of [...queue]) {
     // How far each tile is from a way (or the centre), walking where a path could run: a lot's door must be near one.
     const reach = new Float64Array(g.size).fill(Infinity);
@@ -655,7 +899,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       for (const [dx, dz] of N4) {
         const x = g.x(i) + dx;
         const z = g.z(i) + dz;
-        if (!g.inside(x, z) || !passable(x, z)) continue;
+        if (!g.inside(x, z) || !passable(x, z) || (wet(I(x, z)) && !net.paved[I(x, z)])) continue;
         const j = I(x, z);
         if (reach[j]! <= reach[i]! + 1) continue;
         reach[j] = reach[i]! + 1;
@@ -663,6 +907,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       }
     }
     const candidates: { x0: number; z1: number; score: number }[] = [];
+    const innWalks = wt.role === "inn" && mainInner ? { gate: alongWays([mainInner]), square: alongWays(squareTiles(centre).filter(([x, z]) => g.inside(x, z))) } : null;
     for (let z1 = box.z0 + wt.depth + 2; z1 < box.z1 - W - 2; z1++) {
       for (let x0 = box.x0 + 2; x0 + wt.w <= box.x1 - 2; x0++) {
         const c = Math.floor(x0 + wt.w / 2);
@@ -674,20 +919,41 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         // Near the centre and the ways, north of the centre rather than south, a store or a shed by the shore.
         const d = Math.hypot(x0 + wt.w / 2 - cx, z1 - cz);
         let shore = false;
-        for (let k = 0; k < wt.w && !shore; k++) for (let s = 3; s < 9 && !shore; s++) if (g.inside(x0 + k, z1 + s) && seaTile[I(x0 + k, z1 + s)]) shore = true;
+        for (let k = 0; k < wt.w && !shore; k++) for (let s = 3; s < 9 && !shore; s++) if (g.inside(x0 + k, z1 + s) && (seaTile[I(x0 + k, z1 + s)] || wet(I(x0 + k, z1 + s)))) shore = true;
         // Fronts step: one in line with another's is worth less.
         const inLine = lots.filter((l) => l.z1 === z1).length;
         // In a town of arcs, on the next arc out: the amphitheatre holds what grows (an elfhame's, a clan's, a village's).
         const arcR = Math.hypot((x0 + wt.w / 2 - cx) / (rx + 14), (z1 - cz) / (rz + 12));
         const onArc = R.round ? Math.abs(arcR - 1) * 14 + (z1 > cz + 2 ? 8 : 0) : 0;
-        const score = d * (R.round ? 0.3 : 0.6) + near * 1.5 + onArc + (z1 > cz + 2 ? 5 : 0) + inLine * 8 - (shore && wt.role === "warehouse" ? 10 : 0) + random() * 2;
+        // The inn by the main gate's way and within a short walk of the square (dearly past it); the town's other places
+        // near the centre; the rest where they fill the town (in a designed wall, distance from the centre counts for
+        // little).
+        const innReach = village ? 20 : town.kind === "capital" ? 30 : 26;
+        let lean = d * (wt.optional ? (R.round ? 0.3 : R.designed ? 0.25 : 0.6) : 1);
+        if (wt.role === "inn" && innWalks) {
+          // Its door by a way: the walk to it from the main gate as short as may be, and on from it to the square short.
+          let wg = Infinity;
+          let ws = Infinity;
+          for (let dz = -2; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) {
+            const x = c + dx;
+            const z = z1 + 1 + dz;
+            if (!g.inside(x, z)) continue;
+            const k = Math.abs(dx) + Math.abs(dz);
+            wg = Math.min(wg, innWalks.gate[I(x, z)]! + k);
+            ws = Math.min(ws, innWalks.square[I(x, z)]! + k);
+          }
+          if (Number.isFinite(wg) && Number.isFinite(ws)) lean = wg * 2 + ws * 0.6 + Math.max(0, ws - innReach) * 10 + byMainWay(c, z1 + 1) * 0.2;
+          else lean = 1000 + d;
+        }
+        const score = lean + near * 1.5 + (wt.role === "inn" ? 0 : onArc + (z1 > cz + 2 ? 5 : 0)) + inLine * 8 - (shore && wt.role === "warehouse" ? 16 : 0) + random() * 2;
         candidates.push({ x0, z1, score });
       }
     }
     candidates.sort((a, b) => a.score - b.score || a.z1 - b.z1 || a.x0 - b.x0);
+    if (process.env.TOWN_DEBUG === "growth") console.log(`growth ${wt.id} ${wt.w}x${wt.depth}+${wt.shadow}: ${candidates.length} candidates${candidates[0] ? ` best ${candidates[0].x0},${candidates[0].z1}` : ""}`);
     // The best that a path can reach: each tried in turn, its lot taken back where none can.
     let landed = false;
-    for (const cand of candidates.slice(0, 16)) {
+    for (const cand of candidates.slice(0, R.designed ? 48 : 16)) {
       const lot = place(wt, cand.x0, cand.x0 + wt.w, cand.z1, 0);
       const m = lot.z1 + 1;
       const c = Math.floor((lot.x0 + lot.x1) / 2);
@@ -697,7 +963,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         break;
       }
       const onWay = strip.some(([x, z]) => net.middle[I(x, z)]! > 0);
-      const r = onWay ? null : route(g, { from: [[c, m]], goal: (x, z) => (net.middle[I(x, z)]! > 0 && !strip.some(([sx, sz]) => sx === x && sz === z)) || centreTiles[I(x, z)]! > 0, pass: (x, z) => passable(x, z) || (x === c && z === m), cost, turn: 0.5, limit: 120 });
+      const r = onWay ? null : route(g, { from: [[c, m]], goal: (x, z) => (net.middle[I(x, z)]! > 0 && !strip.some(([sx, sz]) => sx === x && sz === z)) || centreTiles[I(x, z)]! > 0, pass: (x, z) => (passable(x, z) && (!wet(I(x, z)) || net.paved[I(x, z)]! > 0)) || (x === c && z === m), cost, turn: 0.5, limit: 120 });
       if (!onWay && (!r || r.length < 2)) {
         unplace(lot);
         continue;
@@ -715,6 +981,30 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
 
 
+  // Every lot's door on a way: a front some path's cutting back left bare gets its strip again, joined to the rest.
+  for (const lot of lots) {
+    // A landmark's ground fronts its own way (its gate's).
+    if (lot.want.site && lot.want.role === "hall") continue;
+    const m = lot.z1 + 1;
+    const c = Math.floor((lot.x0 + lot.x1) / 2);
+    if (net.paved[I(c, lot.z1)]) continue;
+    const strip = chain([[lot.x0 + 1, m], [lot.x1 - 2, m]]);
+    if (!strip.every(([x, z]) => g.inside(x, z) && passable(x, z))) continue;
+    if (strip.some(([x, z]) => net.middle[I(x, z)]! > 0)) {
+      // A way runs by already: the strip in stretches, each joined to it where it meets it.
+      let from = 0;
+      for (let k = 1; k < strip.length; k++) {
+        if (net.middle[I(strip[k]![0], strip[k]![1])]! === 0 && k < strip.length - 1) continue;
+        const part = strip.slice(from, k + 1);
+        if (part.length >= 2 && !part.slice(1, -1).some(([x, z]) => net.middle[I(x, z)]! > 0)) net.add(part, W, false, R.planks ? "planks" : "path");
+        from = k;
+      }
+      continue;
+    }
+    net.add(strip, W, false, R.planks ? "planks" : "path");
+    if (!connect([c, m], "net", false, strip)) connect([c, m], "centre", false, strip);
+  }
+  if (process.env.TOWN_DEBUG === "lots") console.log(`lots ${lots.length} (${lots.filter((l) => l.want.optional).length} extra); left ${queue.map((w) => w.id).join(" ")}; ${lots.filter((l) => !l.want.optional).map((l) => `${l.want.id}@${l.x0},${l.z0}-${l.x1},${l.z1}${net.paved[I(Math.floor((l.x0 + l.x1) / 2), l.z1)] ? "" : "!"}`).join(" ")}`);
   // --- The stilts' web: more boardwalks between the rings' paths, platforms at the junctions ---------------------------------------
   {
     // Every path that ends at no junction goes on to the nearest other (a loop, not a dead end: no walk goes the long way
@@ -737,7 +1027,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     knots.sort((a, b) => Math.hypot(b[0] - cx, b[1] - cz) - Math.hypot(a[0] - cx, a[1] - cz) || a[0] - b[0] || a[1] - b[1]);
     const most = village ? 2 : 3;
     for (const [jx, jz] of knots) {
-      if (quads.length >= (R.quads ? (village ? R.quads.village : R.quads.town) : 0) + most) break;
+      if (quads.length >= quarterList.length + most) break;
       if (Math.hypot(jx - cx, (jz - cz) * 1.3) < rx + 8) continue;
       if (quads.some((q) => Math.hypot(q.cx - jx, q.cz - jz) < 12)) continue;
       // Of the sizes it may have (wider than deep, each knot its own), the biggest the ground there holds.
@@ -777,7 +1067,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
 
   // --- A village's pond on its green: a little water in the open ground at the green's south-east or south-west --------------
-  if (form === "village") {
+  if (form === "village" || form === "campus") {
     for (const sx of [1, -1]) {
       const px = cx + sx * Math.round(rx * 0.75);
       const pz = cz + Math.round(rz * 0.6);
@@ -852,7 +1142,11 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       let okP = true;
       for (let zz = box2.z0; zz < box2.z1 && okP; zz++) for (let xx = box2.x0; xx < box2.x1 && okP; xx++) okP = g.inside(xx, zz) && seaTile[I(xx, zz)] === 1;
       if (!okP) continue;
-      piers.push({ box: box2, boat: along ? [box2.x1 + 1.5, (box2.z0 + box2.z1) / 2] : [(box2.x0 + box2.x1) / 2, box2.z1 + 1.5], along });
+      // A clan's first is its slip: the boat drawn up on it, sheds by it on the shore.
+      const slip = R.slip === true && piers.length === 0;
+      // Its boat at its seaward end, the slip walked up to it from the shore.
+      const far: XZ = [dx > 0 ? box2.x1 - 1.5 : dx < 0 ? box2.x0 + 1.5 : (box2.x0 + box2.x1) / 2, dz > 0 ? box2.z1 - 1.5 : dz < 0 ? box2.z0 + 1.5 : (box2.z0 + box2.z1) / 2];
+      piers.push({ box: box2, boat: slip ? far : along ? [box2.x1 + 1.5, (box2.z0 + box2.z1) / 2] : [(box2.x0 + box2.x1) / 2, box2.z1 + 1.5], along, ...(slip ? { slip } : {}) });
       lastAt = t;
     }
   }
@@ -878,7 +1172,8 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
 
   // --- The plan ---------------------------------------------------------------------------------------------------------------
   const sites = lots.filter((l) => l.site).map((l) => ({ id: l.site!, box: { x0: l.x0, z0: l.z0, x1: l.x1, z1: l.z1 }, k0: 0, k1: 0 }));
-  const blocks = lots.filter((l) => !l.site).map((l) => blockOf(l, box, l.want.id));
+  // Each lot one building's block (a store's a store, the physic garden none).
+  const blocks = lots.filter((l) => !l.site).map((l) => blockOf(l, box, l.want.id, l.want.id.endsWith("-physic-garden") ? { garden: "physic" } : l.want.optional && l.want.role !== "house" ? { role: l.want.role } : {}));
   // Roads up into the centre its furniture keeps off (one across it, from the east or the west, is walked round); bridges
   // where the ways cross the water.
   const through: Box[] = [];
@@ -938,6 +1233,13 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     net,
     centre,
     platforms: quads.map((q) => q.square),
+    platformSurfaces: quads.map((_, k) => {
+      const kind = quarterOf[k]?.kind;
+      return kind === "park" || kind === "quad" || kind === "circle" ? S.grass : kind === "yard" ? S.dirt : kind === "close" ? S.flagstones : surfaces.platform;
+    }),
+    quarters: quads.map((_, k) => quarterOf[k]?.kind ?? "deck"),
+    designed: R.designed === true,
+    quay: quayTiles,
     head: head.id,
     open,
     mask,

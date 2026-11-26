@@ -410,8 +410,8 @@ export interface Lot {
 }
 
 /** A lot as the solver's block (planner.ts): one building, its door on row z1. */
-export function blockOf(l: Lot, box: Box, meant?: string): Block & { readonly one: true; readonly meant?: string } {
-  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true, ...(meant ? { meant } : {}) };
+export function blockOf(l: Lot, box: Box, meant?: string, extra: { readonly role?: string; readonly garden?: "physic" } = {}): Block & { readonly one: true; readonly meant?: string; readonly role?: string; readonly garden?: "physic" } {
+  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true, ...(meant ? { meant } : {}), ...extra };
 }
 
 // --- The plan of a grown town -------------------------------------------------------------------------------------------------
@@ -436,14 +436,22 @@ export interface OrganicPlan extends Plan {
   readonly trees: readonly PropData[];
   /** Surfaces: of the centre and its open ground, and of the streets, paths and boardwalks. */
   readonly surfaces: { readonly centre: number; readonly open: number; readonly street: number; readonly path: number; readonly planks: number; readonly platform: number };
+  /** Each lesser centre's own ground, by its index in `platforms` (a park's grass, a smiths' yard's beaten earth). */
+  readonly platformSurfaces: readonly number[];
   /** The site at the head of the centre (its temple, shrine, tower or landmark). */
   readonly head: string;
   /** Junctions where a light stands. */
   readonly lanterns: readonly XZ[];
   /** The light that stands there. */
   readonly light: PropData | null;
-  /** Piers off the shore, and where a boat lies by each. */
-  readonly piers: readonly { readonly box: Box; readonly boat: XZ; readonly along: boolean }[];
+  /** Piers off the shore, and where a boat lies by each (a slip's drawn up on it). */
+  readonly piers: readonly { readonly box: Box; readonly boat: XZ; readonly along: boolean; readonly slip?: boolean }[];
+  /** Each lesser centre's kind, by its index in `platforms`: a park, a smiths' yard, a close, a circle, a quad, a deck. */
+  readonly quarters: readonly string[];
+  /** A designed wall: straight curtains, a tower at every bend (check.ts holds it to that). */
+  readonly designed: boolean;
+  /** The quay's middle line along the water, if it has one. */
+  readonly quay: readonly XZ[];
   /** The gates' nodes outside the town, by gate. */
   readonly gateNodes: readonly XZ[];
 }
@@ -484,12 +492,12 @@ function paintOrganic(ctx: Ctx): void {
   };
   // The centre's open ground, then its square, then the ways over them.
   for (let i = 0; i < land.size; i++) if (plan.open[i] && mask[i] === 1) pave(i, plan.surfaces.open, Use.Kept, false);
-  for (const sq of [plan.centre, ...plan.platforms]) {
+  [plan.centre, ...plan.platforms].forEach((sq, k) => {
     for (const [x, z] of squareTiles(sq)) {
       if (!land.inside(x, z)) continue;
-      pave(land.idx(x, z), sq === plan.centre ? plan.surfaces.centre : plan.surfaces.platform, Use.Kept, true);
+      pave(land.idx(x, z), k === 0 ? plan.surfaces.centre : (plan.platformSurfaces[k - 1] ?? plan.surfaces.platform), Use.Kept, true);
     }
-  }
+  });
   for (const e of plan.net.edges) {
     const surface = e.surface === "planks" ? plan.surfaces.planks : e.surface === "street" ? plan.surfaces.street : plan.surfaces.path;
     for (const [x, z] of Net.brush(e)) {

@@ -237,6 +237,7 @@ export class Placer {
     // A landmark's ground made for this need is its own block; nobody else's.
     const own = plan.sites.filter((s) => s.id === need.id).map((s): Block => ({ k: s.k1, x0: s.box.x0, x1: s.box.x1, z0: s.box.z0, z1: s.box.z1, west: "street", east: "street" }));
     for (const block of own.length > 0 ? own : plan.blocks) {
+      if ((block as { garden?: string }).garden) continue;
       const depth = block.z1 - block.z0;
       const fz = frontZ(block);
       for (let si = 0; si < sizes.length; si++) {
@@ -266,6 +267,7 @@ export class Placer {
     const door = f.door;
     const onSquare = toSquare(plan, door[0], door[1]) === 0;
     const sq = this.c.walkSquare(door[0], door[1]);
+    if (process.env.TOWN_DEBUG === "score" && (block as { meant?: string }).meant === need.id) console.log(`score ${need.id} at ${door.join(",")}: walk ${sq} seen ${this.c.mustSee(door[0], door[1])}`);
     if (!Number.isFinite(sq)) return null;
     const centreX = (plan.square.x0 + plan.square.x1) / 2;
     const northness = block.k;
@@ -275,6 +277,10 @@ export class Placer {
     // A grown town's lot was laid for one of its needs: another may take it, but dearly.
     const meant = (block as { meant?: string }).meant;
     if (meant && meant !== need.id) s += 25;
+    // A manor's lot is its walled garden: only a manor takes one, and a manor takes no other.
+    if (meant && (need.role === "manor") !== meant.includes("-manor-")) return null;
+    // The arena's lot is the arena's.
+    if (meant && meant.endsWith("-arena") && need.role !== "arena") return null;
     // How far from the square a place may be at the most (check.ts holds every place to it); each role's own reach is
     // what it wants, and past it a spot is dearer.
     const most = this.c.town.kind === "capital" ? 46 : this.c.town.kind === "town" ? 34 : 21;
@@ -311,7 +317,10 @@ export class Placer {
         s += sq * 1.2 + northness * 3;
         break;
       case "smithy": {
-        if (!within(36)) return null;
+        // The capital's at the head of its smiths' yard, by a gate (its lot is meant for it): far from the square if it must.
+        if (this.c.town.kind === "capital") {
+          if (sq > 125) return null;
+        } else if (!within(36)) return null;
         const side = Math.min(...this.c.sideGates.map((g) => manhattan(g, door)), 80);
         s += side * 0.8 + sq * 0.6 + (onSquare ? 8 : 0);
         break;
@@ -442,8 +451,11 @@ export class Placer {
       if ((block as { one?: boolean }).one) {
         // A grown town's lot: one building, its district's, as wide as the lot lets it, in the middle of it.
         if (this.placed.some((p) => p.block === block)) continue;
+        // A garden's lot keeps no building (dress.ts walls and plants it).
+        const own = block as { role?: Role; garden?: string };
+        if (own.garden) continue;
         const district = districtOf(block, (block.x0 + block.x1) / 2);
-        const roles = [weighted(FILL[district].roles, random), "house", "cottage"] as Role[];
+        const roles = [...(own.role ? [own.role] : []), weighted(FILL[district].roles, random), "house", "cottage"] as Role[];
         found: for (const role of roles) {
           const { style } = this.styleKind(role);
           const options = [...sizesFor(style, role)].filter(([w, d]) => d <= depth - 1 && w <= block.x1 - block.x0).sort((p, q) => q[0] - p[0]);
