@@ -501,10 +501,13 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     const form = formOf(town);
     const centre = data.plan!.squares[0]!;
     const facing = townBuildings.filter((b) => b.rot === 0);
-    // The head of the centre: the temple, the shrine, the great hall - its door on the centre's north edge, on its axis.
-    const head = ctx.buildings.find((b) => b.interior === `${town.id}-temple` || b.interior === `${town.id}-shrine`);
+    // The head of the centre - the temple, the shrine, the great hall, the mage's tower, the manor's grounds: its front
+    // on the centre's north edge, over the centre.
     const axis = centre.x + centre.w / 2;
-    if (!head || !head.door || Math.abs(head.door[0] - axis) > centre.w / 2 || head.door[1] > centre.z + 3 || head.door[1] < centre.z - 3) problems.push(`its ${form === "clan" ? "great hall" : form === "elfhame" ? "Grove" : "shrine or temple"} does not stand at the head of its ${centre.name ?? "centre"}`);
+    const headBuilding = ctx.buildings.find((b) => b.interior === plan.head);
+    const headSite = plan.sites.find((s) => s.id === plan.head);
+    const front: XZ | null = headBuilding?.door ?? (headSite ? [Math.floor((headSite.box.x0 + headSite.box.x1) / 2), headSite.box.z1] : null);
+    if (!front || Math.abs(front[0] - axis) > centre.w / 2 || front[1] > centre.z + 3 || front[1] < centre.z - 3) problems.push(`its ${plan.head} does not stand at the head of its ${centre.name ?? "centre"}`);
     // An arc round the centre's north, east and west: fronts north of its middle on both sides of its axis, stepping.
     const arc = facing.filter((b) => b.z + b.d <= centre.z + centre.d / 2 + 2 && Math.abs(b.x + b.w / 2 - axis) <= centre.w / 2 + 16);
     if (!arc.some((b) => b.x + b.w / 2 < axis - 2) || !arc.some((b) => b.x + b.w / 2 > axis + 2)) problems.push(`no arc of fronts round its ${centre.name ?? "centre"} on both sides`);

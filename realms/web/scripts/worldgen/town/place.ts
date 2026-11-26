@@ -272,6 +272,9 @@ export class Placer {
     // A door near the end of its block is near a way round it: walks between the town's places stay short.
     const toEnd = Math.min(door[0] - block.x0, block.x1 - 1 - door[0]);
     let s = sizeIndex * 3 + (need.role === "home" || need.role === "manor" ? 0 : toEnd * 0.25);
+    // A grown town's lot was laid for one of its needs: another may take it, but dearly.
+    const meant = (block as { meant?: string }).meant;
+    if (meant && meant !== need.id) s += 25;
     switch (need.role) {
       case "temple":
         // On the square or by it; further only where the square's north is a landmark's (the estate's manor).

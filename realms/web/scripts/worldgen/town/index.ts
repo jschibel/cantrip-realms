@@ -42,10 +42,10 @@ export function groundsSize(plan: TownLayout): readonly [number, number] {
 
 /** The planner of each form (planner.ts). */
 export const PLANNERS: Readonly<Record<Form, Planner>> = {
-  capital: ROWS,
-  city: ROWS,
-  campus: ROWS,
-  estate: ROWS,
+  capital: grown("capital"),
+  city: grown("city"),
+  campus: grown("campus"),
+  estate: grown("estate"),
   village: grown("village"),
   elfhame: grown("elfhame"),
   clan: grown("clan"),

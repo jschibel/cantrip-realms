@@ -24,7 +24,7 @@
 // The lots are the solver's blocks (place.ts), one building each; the centre is the plan's square.
 
 import type { PropData, TownSquare, XZ } from "../../../src/world/format";
-import { squareTiles } from "../../../src/world/streets";
+import { inSquare, squareTiles } from "../../../src/world/streets";
 import { S } from "../ids";
 import { fbm, noise } from "../land";
 import { makeBuilding } from "./buildings";
@@ -35,7 +35,7 @@ import type { Box, Gate, PlanInput, Planner } from "./planner";
 import type { Side } from "./types";
 import { buildingHides } from "./view";
 
-type Form = "elfhame" | "clan" | "village" | "stilts";
+type Form = "elfhame" | "clan" | "village" | "stilts" | "capital" | "city" | "campus" | "estate";
 
 /** What a form asks of the planner. */
 interface Recipe {
@@ -57,13 +57,32 @@ interface Recipe {
   readonly web: boolean;
   /** A light at the junctions. */
   readonly light: PropData | null;
+  /** What heads the centre: its temple (or shrine), its mage's tower, or its landmark (the estate's manor). */
+  readonly head?: "temple" | "tower" | "landmark";
+  /** The head's place off the centre's axis, as a share of its half-width (the Academy's tower stands to one side). */
+  readonly headOffset?: number;
+  /** The ring whose head is the town's landmark at the north (the capital's citadel, the Hold's keep). */
+  readonly landmarkRing?: number;
+  /** Lesser centres, each with an arc of its own (the capital's lesser square, the Academy's quads), and their radii. */
+  readonly quads?: { readonly town: number; readonly village: number; readonly size: readonly [number, number] };
+  /** Each ring a terrace above the one inside it (a hold on its rise). */
+  readonly terraced?: boolean;
+  /** No wall round the town though its form has one: the estate's wall is its manor's alone. */
+  readonly unwalled?: boolean;
+  /** The centre's name, and a lesser one's. */
+  readonly names?: readonly [string, string];
 }
 
 const RECIPES: Readonly<Record<Form, Recipe>> = {
-  elfhame: { centre: { town: [16, 8], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } } },
-  clan: { centre: { town: [15, 7], village: [9, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 } },
-  village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 } },
-  stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } } },
+  elfhame: { centre: { town: [16, 8], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "traced", trees: true, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "green" } }, names: ["The glade", "The glade"] },
+  clan: { centre: { town: [15, 7], village: [9, 5] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 2 }, outline: "oval", trees: false, planks: false, web: false, light: { id: "torch-post", x: 0, z: 0 }, names: ["The yard", "The yard"] },
+  village: { centre: { town: [14, 7], village: [12, 6] }, round: true, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, names: ["The green", "The green"] },
+  stilts: { centre: { town: [9, 6], village: [7, 5] }, round: false, rings: { town: 2, village: 1 }, extra: { town: 4, village: 3 }, outline: "traced", trees: false, planks: true, web: true, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, names: ["The platform", "A platform"], quads: { town: 2, village: 2, size: [3, 2] } },
+  // The forms that were rows.
+  capital: { centre: { town: [13, 7], village: [13, 7] }, round: false, rings: { town: 2, village: 2 }, extra: { town: 10, village: 10 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, quads: { town: 1, village: 1, size: [7, 4] }, terraced: true, names: ["The market square", "The lesser square"] },
+  city: { centre: { town: [11, 6], village: [9, 5] }, round: false, rings: { town: 3, village: 2 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, terraced: true, names: ["The square", "The square"] },
+  campus: { centre: { town: [12, 7], village: [9, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, head: "tower", headOffset: 0.5, quads: { town: 2, village: 1, size: [7, 4] }, names: ["The great quad", "The quad"] },
+  estate: { centre: { town: [10, 5], village: [8, 4] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 5, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, head: "landmark", unwalled: true, names: ["The village green", "The green"] },
 };
 
 /** A strip's width: the path along a ring's fronts, a spoke, a road in. */
@@ -157,18 +176,31 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   const style = (role: Role) => styleFor(town, role);
   const wants: Want[] = [];
   let deepest = 0;
+  const capital = form === "capital";
   const want = (id: string, role: Role | "arena", site?: string, optional = false) => {
-    const sizes: readonly (readonly [number, number])[] = role === "arena" ? [[12, 8]] : sizesFor(style(role), role);
+    const sizes: readonly (readonly [number, number])[] = role === "arena" ? [[12, 8]] : sizesFor(style(role), role, capital);
     const w0 = Math.max(...sizes.map(([w]) => w));
     const d0 = Math.max(...sizes.map(([, d]) => d));
     const shadow = role === "arena" ? 1 : Math.max(...sizes.map(([w, d]) => shadowOf(style(role), role, w, d)));
     deepest = Math.max(deepest, d0);
     wants.push({ id, role, w: w0 + (role === "inn" ? 3 : 1) + (site ? 2 : 0), d: d0, depth: d0 + 2, shadow, ...(site ? { site } : {}), ...(optional ? { optional } : {}) });
   };
-  const head = input.needs.find((n) => n.role === "temple" || n.role === "shrine")!;
-  want(head.id, head.role as Role, head.id);
-  const rank: Record<string, number> = { inn: 0, shop: 1, exotic: 1, guildhall: 2, library: 2, tower: 2, arena: 3, smithy: 4, home: 5 };
-  for (const n of [...input.needs].filter((n) => n !== head).sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9))) want(n.id, n.role);
+  // A landmark's ground (the citadel, the keep, the manor): a lot of its own, built by the dressing (dress.ts).
+  const landmarkWant = (req: (typeof input.sites)[number]): Want => {
+    const depth = req.id.endsWith("-manor") ? 26 : req.id.endsWith("-citadel") ? 22 : 15;
+    return { id: req.id, role: "hall", w: req.w, d: depth - 2, depth, shadow: 14, site: req.id };
+  };
+  const landmarks = input.sites.filter((s) => s.where === "north").map(landmarkWant);
+  const headNeed = R.head === "tower" ? input.needs.find((n) => n.role === "tower") : R.head === "landmark" ? undefined : input.needs.find((n) => n.role === "temple" || n.role === "shrine");
+  if (headNeed) want(headNeed.id, headNeed.role as Role, headNeed.id);
+  else if (R.head === "landmark" && landmarks[0]) wants.push(landmarks.shift()!);
+  else {
+    const n = input.needs.find((q) => q.role === "temple" || q.role === "shrine")!;
+    want(n.id, n.role as Role, n.id);
+  }
+  const head = wants[0]!;
+  const rank: Record<string, number> = { inn: 0, shop: 1, exotic: 1, guildhall: 2, library: 2, tower: 2, temple: 2, arena: 3, smithy: 4, home: 5, manor: 6 };
+  for (const n of [...input.needs].filter((n) => n.id !== head.id).sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9))) want(n.id, n.role);
   const extra = village ? R.extra.village : R.extra.town;
   for (let k = 0; k < extra; k++) want(`${town.id}-lot-${k + 1}`, k % 3 === 2 ? "warehouse" : "house", undefined, true);
 
@@ -215,13 +247,10 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
   if (!best) throw new Error(`${town.id}: no ground for its centre`);
   const { cx, cz } = best;
-  const centre: TownSquare = R.round ? { x: cx - rx, z: cz - rz, w: 2 * rx + 1, d: 2 * rz + 1, round: true, name: form === "elfhame" ? "The glade" : form === "clan" ? "The yard" : form === "village" ? "The green" : "The platform" } : { x: cx - rx, z: cz - rz, w: 2 * rx + 1, d: 2 * rz + 1, name: "The platform" };
+  const centre: TownSquare = { x: cx - rx, z: cz - rz, w: 2 * rx + 1, d: 2 * rz + 1, ...(R.round ? { round: true } : {}), name: R.names?.[0] ?? "The square" };
   const centreTiles = new Uint8Array(g.size);
   for (const [x, z] of squareTiles(centre)) if (g.inside(x, z)) centreTiles[I(x, z)] = 1;
-  const topOf = (x: number): number | null => {
-    for (let z = centre.z; z < centre.z + centre.d; z++) if (g.inside(x, z) && centreTiles[I(x, z)]) return z;
-    return null;
-  };
+  const centreLevel = Math.max(1, Math.round(average(squareTiles(centre), (x, z) => height(x, z))));
 
   const net = new Net(g);
   const lots: (Lot & { want: Want })[] = [];
@@ -254,7 +283,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   function connect(from: XZ, to: "centre" | "net", main: boolean, own: readonly XZ[] = []): boolean {
     // Not back onto the path it starts from.
     const mine = new Set(own.map(([x, z]) => I(x, z)));
-    const goal = (x: number, z: number) => (to === "net" && net.middle[I(x, z)]! > 0 && !mine.has(I(x, z))) || centreTiles[I(x, z)] === 1;
+    const goal = (x: number, z: number) => (to === "net" && net.middle[I(x, z)]! > 0 && !mine.has(I(x, z))) || centreTiles[I(x, z)]! > 0;
     const r = route(g, { from: [from], goal, pass: (x, z) => passable(x, z) || (x === from[0] && z === from[1]), cost, turn: 0.5, limit: 120 });
     if (!r || r.length < 2) return false;
     const tiles = pull(r, (x, z) => passable(x, z), cost);
@@ -290,106 +319,201 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     return lot;
   };
   const queue = [...wants.slice(1)];
+  /** A centre the town's arcs stand round: the main one, or a lesser square, quad or platform. */
+  interface Centre {
+    readonly cx: number;
+    readonly cz: number;
+    readonly rx: number;
+    readonly rz: number;
+    readonly square: TownSquare;
+    readonly level: number;
+  }
+  const topIn = (c: Centre, x: number): number | null => {
+    for (let z = c.square.z; z < c.square.z + c.square.d; z++) if (g.inside(x, z) && inSquare(c.square, x, z)) return z;
+    return null;
+  };
+  /** Each lot's ring, its centre's level, for the terraces. */
+  const lotLevel = new Map<Lot, number>();
   const ringLots: (Lot & { want: Want })[][] = [];
-  for (let r = 1; r <= rings; r++) {
-    const these: (Lot & { want: Want })[] = [];
-    // The arc: an ellipse about the centre, the first just outside it, the next behind what the first hides.
-    const prev = ringLots[r - 2] ?? [];
-    const Rx = r === 1 ? rx + 1 : rx + 1 + 10 * (r - 1);
-    const Rz = r === 1 ? rz + 1 : rz + 1 + (headWant.depth + headWant.shadow + W) * (r - 1);
-    const frontAt = (m: number) => Math.round(cz - Rz * Math.sqrt(Math.max(0, 1 - ((m - cx) / Rx) ** 2)));
-    /** The front a lot takes: on the arc over its inner edge, behind what the ring before hides, never above the one inside it. */
-    const frontOf = (wt: Want, x0: number, x1: number): number => {
-      const inner = x1 <= cx ? x1 - 1 : x0 >= cx ? x0 : cx;
-      let z1 = frontAt(inner);
-      if (r === 1) {
-        // On the centre's edge where the centre runs under it.
-        let top = Infinity;
-        for (let x = x0; x < x1; x++) {
-          const t = topOf(x);
-          if (t !== null) top = Math.min(top, t);
+  /**
+   * Arcs round a centre: `rings` of them, the first just outside it, each next behind what the one before hides; the
+   * first's head on the axis (or off it by `offset`), a landmark at the head of ring `landmarkRing`; the rest outward to
+   * east and west in turn, each front a step below the one inside it. A path along each arc's fronts jogs down between
+   * them, a spoke from each jog down to the centre (or the arc inside it).
+   */
+  function arcsAround(c: Centre, rings: number, headW: Want | null, offset: number, landmark: Want | null, landmarkRing: number, ringBase: number): void {
+    const { cx: ax, cz: az, rx: arx, rz: arz } = c;
+    const mine: (Lot & { want: Want })[][] = [];
+    for (let r = 1; r <= rings; r++) {
+      const these: (Lot & { want: Want })[] = [];
+      const prev = mine[r - 2] ?? [];
+      const depthBehind = (headW ?? queue[0] ?? head).depth + (headW ?? queue[0] ?? head).shadow + W;
+      const Rx = r === 1 ? arx + 1 : arx + 1 + 10 * (r - 1);
+      const Rz = r === 1 ? arz + 1 : arz + 1 + depthBehind * (r - 1);
+      const frontAt = (m: number) => Math.round(az - Rz * Math.sqrt(Math.max(0, 1 - ((m - ax) / Rx) ** 2)));
+      const frontOf = (x0: number, x1: number): number => {
+        const inner = x1 <= ax ? x1 - 1 : x0 >= ax ? x0 : ax;
+        let z1 = frontAt(inner);
+        if (r === 1) {
+          let top = Infinity;
+          for (let x = x0; x < x1; x++) {
+            const t = topIn(c, x);
+            if (t !== null) top = Math.min(top, t);
+          }
+          if (Number.isFinite(top)) z1 = c.square.round ? Math.min(z1, top - 1) : top;
         }
-        // A platform's fronts on its edge; a round centre's just above it, the path along them over its rim.
-        if (Number.isFinite(top)) z1 = R.round ? Math.min(z1, top - 1) : top;
-      }
-      for (const p of prev) if (p.x0 < x1 + 1 && p.x1 > x0 - 1) z1 = Math.min(z1, p.z1 - p.want.d - p.want.shadow - W);
-      return z1;
-    };
-    if (r === 1) {
-      const x0 = cx - Math.floor(headWant.w / 2);
-      const z1 = frontOf(headWant, x0, x0 + headWant.w);
-      if (!fits(headWant, x0, x0 + headWant.w, z1)) throw new Error(`${town.id}: no room at the head of its centre`);
-      these.push(place(headWant, x0, x0 + headWant.w, z1, 1));
-    }
-    let east = r === 1 ? these[0]!.x1 + GAP : cx + 1;
-    let west = r === 1 ? these[0]!.x0 - GAP : cx - 1;
-    let eastDone = false;
-    let westDone = false;
-    let lastEast = r === 1 ? these[0]!.z1 : -Infinity;
-    let lastWest = lastEast;
-    for (let side = 0; queue.length > 0 && !(eastDone && westDone); side++) {
-      const toEast = (side % 2 === 0 && !eastDone) || westDone;
-      const wt = queue[0]!;
-      let placed = false;
-      for (let shift = 0; shift <= 6 && !placed; shift += 2) {
-        const x0 = toEast ? east + shift : west - shift - wt.w;
-        const x1 = x0 + wt.w;
-        const inner = toEast ? x0 : x1 - 1;
-        // The arc ends where it turns below the centre's middle.
-        if (Math.abs(inner - cx) > Rx + 14 || x0 < box.x0 + 2 || x1 > box.x1 - 2) break;
-        let z1 = frontOf(wt, x0, x1);
-        // Fronts step down as the arc runs out, never back up, never in line with the one inside.
-        z1 = Math.max(z1, (toEast ? lastEast : lastWest) + 1);
-        if (z1 > cz + 2) break;
-        if (!fits(wt, x0, x1, z1)) continue;
-        these.push(place(wt, x0, x1, z1, r));
-        queue.shift();
-        if (toEast) {
-          east = x1 + GAP;
-          lastEast = z1;
-        } else {
-          west = x0 - GAP;
-          lastWest = z1;
+        for (const p of prev) if (p.x0 < x1 + 1 && p.x1 > x0 - 1) z1 = Math.min(z1, p.z1 - p.want.d - p.want.shadow - W);
+        return z1;
+      };
+      // The head of this ring: the centre's own (the first), or the landmark.
+      const crown = r === 1 ? headW : r === landmarkRing ? landmark : null;
+      if (crown) {
+        const want0 = Math.round(ax + offset * arx - crown.w / 2);
+        let done = false;
+        for (const shift of [0, 2, -2, 4, -4, 6, -6, 9, -9]) {
+          const x0 = want0 + shift;
+          const z1 = frontOf(x0, x0 + crown.w);
+          if (!fits(crown, x0, x0 + crown.w, z1)) continue;
+          const lot = place(crown, x0, x0 + crown.w, z1, ringBase + r);
+          lotLevel.set(lot, c.level + (R.terraced ? r - 1 : 0) + (crown === landmark && R.terraced ? 1 : 0));
+          these.push(lot);
+          done = true;
+          break;
         }
-        placed = true;
+        if (!done && r === 1 && ringBase === 0) throw new Error(`${town.id}: no room at the head of ${c.square.name ?? "its centre"}`);
       }
-      if (!placed) {
-        if (toEast) eastDone = true;
-        else westDone = true;
+      let east = these[0] ? these[0].x1 + GAP : ax + 1;
+      let west = these[0] ? these[0].x0 - GAP : ax - 1;
+      let eastDone = false;
+      let westDone = false;
+      let lastEast = these[0] ? these[0].z1 : -Infinity;
+      let lastWest = lastEast;
+      for (let side = 0; queue.length > 0 && !(eastDone && westDone); side++) {
+        const toEast = (side % 2 === 0 && !eastDone) || westDone;
+        const wt = queue[0]!;
+        let placed = false;
+        for (let shift = 0; shift <= 6 && !placed; shift += 2) {
+          const x0 = toEast ? east + shift : west - shift - wt.w;
+          const x1 = x0 + wt.w;
+          const inner = toEast ? x0 : x1 - 1;
+          if (Math.abs(inner - ax) > Rx + 14 || x0 < box.x0 + 2 || x1 > box.x1 - 2) break;
+          let z1 = frontOf(x0, x1);
+          // Fronts step down as the arc runs out, never back up, never in line with the one inside - but along a square's
+          // straight north side (a market square, a quad) they close it, in line.
+          const onSide = r === 1 && !c.square.round && x0 < c.square.x + c.square.w && x1 > c.square.x;
+          z1 = Math.max(z1, (toEast ? lastEast : lastWest) + (onSide ? 0 : 1));
+          if (z1 > az + 2) break;
+          if (!fits(wt, x0, x1, z1)) continue;
+          const lot = place(wt, x0, x1, z1, ringBase + r);
+          lotLevel.set(lot, c.level + (R.terraced ? r - 1 : 0));
+          these.push(lot);
+          queue.shift();
+          if (toEast) {
+            east = x1 + GAP;
+            lastEast = z1;
+          } else {
+            west = x0 - GAP;
+            lastWest = z1;
+          }
+          placed = true;
+        }
+        if (!placed) {
+          if (toEast) eastDone = true;
+          else westDone = true;
+        }
+      }
+      these.sort((a, b) => a.x0 - b.x0);
+      mine.push(these);
+      ringLots.push(these);
+      if (these.length === 0) continue;
+      const mid = (l: Lot) => l.z1 + 1;
+      // Its ends at the outer lots' outer corners, each a spoke's start.
+      const first = these[0]!;
+      const pts: XZ[] = [[first.x0 - 2, mid(first)]];
+      const jogs: XZ[] = [];
+      for (let k = 0; k + 1 < these.length; k++) {
+        const a = these[k]!;
+        const b = these[k + 1]!;
+        const j = Math.floor((a.x1 + b.x0 - 1) / 2);
+        pts.push([j, mid(a)], [j, mid(b)]);
+        jogs.push([j, Math.max(mid(a), mid(b))]);
+      }
+      const last = these[these.length - 1]!;
+      pts.push([last.x1 + 1, mid(last)]);
+      const line = chain(pts.filter((p, k) => k === 0 || p[0] !== pts[k - 1]![0] || p[1] !== pts[k - 1]![1]));
+      if (line.length >= 2) net.add(line, W, r === 1 && ringBase === 0, R.planks ? "planks" : r === 1 ? "street" : "path");
+      const own = line.length >= 2 ? line : [];
+      const spokeEnds: XZ[] = [...jogs, pts[0]!, pts[pts.length - 1]!];
+      for (const [jx, jz] of spokeEnds) {
+        if (connect([jx, jz], r === 1 ? "centre" : "net", false, own) || connect([jx, jz], "net", false, own)) continue;
+        // An outer end with no spoke down from it ends at its lot's door instead (no path running on past it).
+        const lot = jx < ax ? first : last;
+        const mx = Math.floor((lot.x0 + lot.x1) / 2);
+        if ((jx === pts[0]![0] && jz === pts[0]![1]) || (jx === pts[pts.length - 1]![0] && jz === pts[pts.length - 1]![1])) net.cutBack(jx, jz, ([x]) => Math.abs(x - mx) <= 1);
       }
     }
-    these.sort((a, b) => a.x0 - b.x0);
-    ringLots.push(these);
-    // The ring's path: along each lot's front, jogging down between them (a stepped curve), its ends at its outer lots'
-    // middles; spokes from each jog down to the centre (or the ring inside it) make every jog a junction.
-    if (these.length === 0) continue;
-    const mid = (l: Lot) => l.z1 + 1;
-    // Its ends at the outer lots' outer corners, each a spoke's start.
-    const first = these[0]!;
-    const pts: XZ[] = [[first.x0 - 2, mid(first)]];
-    const jogs: XZ[] = [];
-    for (let k = 0; k + 1 < these.length; k++) {
-      const a = these[k]!;
-      const b = these[k + 1]!;
-      const j = Math.floor((a.x1 + b.x0 - 1) / 2);
-      pts.push([j, mid(a)], [j, mid(b)]);
-      jogs.push([j, Math.max(mid(a), mid(b))]);
+  }
+  const main: Centre = { cx, cz, rx, rz, square: centre, level: centreLevel };
+  const landmark = landmarks.shift() ?? null;
+  arcsAround(main, rings, head, R.headOffset ?? 0, landmark, R.landmarkRing ?? 0, 0);
+  // A landmark no ring took stands where it may: at the north, on the axis as near as it can.
+  if (landmark && !lots.some((l) => l.want === landmark)) {
+    let best2: { x0: number; z1: number; s: number } | null = null;
+    for (let z1 = box.z0 + landmark.depth + 2; z1 < cz - rz - 2; z1++) for (let x0 = box.x0 + 2; x0 + landmark.w <= box.x1 - 2; x0++) {
+      if (!fits(landmark, x0, x0 + landmark.w, z1)) continue;
+      const s = Math.abs(x0 + landmark.w / 2 - cx) + (z1 - box.z0) * 0.5;
+      if (!best2 || s < best2.s) best2 = { x0, z1, s };
     }
-    const last = these[these.length - 1]!;
-    pts.push([last.x1 + 1, mid(last)]);
-    const line = chain(pts.filter((p, k) => k === 0 || p[0] !== pts[k - 1]![0] || p[1] !== pts[k - 1]![1]));
-    if (line.length >= 2) net.add(line, W, r === 1, R.planks ? "planks" : r === 1 ? "street" : "path");
-    const own = line.length >= 2 ? line : [];
-    // Spokes.
-    const spokeEnds: XZ[] = [...jogs];
-    spokeEnds.push(pts[0]!, pts[pts.length - 1]!);
-    for (const [jx, jz] of spokeEnds) {
-      if (connect([jx, jz], r === 1 ? "centre" : "net", false, own) || connect([jx, jz], "net", false, own)) continue;
-      // An outer end with no spoke down from it ends at its lot's door instead (no path running on past it).
-      const lot = jx < cx ? first : last;
-      const c = Math.floor((lot.x0 + lot.x1) / 2);
-      if ((jx === pts[0]![0] && jz === pts[0]![1]) || (jx === pts[pts.length - 1]![0] && jz === pts[pts.length - 1]![1])) net.cutBack(jx, jz, ([x]) => Math.abs(x - c) <= 1);
+    if (!best2) throw new Error(`${town.id}: no room for ${landmark.id}`);
+    const lot = place(landmark, best2.x0, best2.x0 + landmark.w, best2.z1, rings + 1);
+    lotLevel.set(lot, centreLevel + (R.terraced ? rings : 0));
+    const m = best2.z1 + 1;
+    const strip = chain([[best2.x0 + 1, m], [best2.x0 + landmark.w - 2, m]]);
+    net.add(strip, W, true, "street");
+    if (!connect([Math.floor(best2.x0 + landmark.w / 2), m], "net", false, strip)) throw new Error(`${town.id}: no way to ${landmark.id}`);
+  }
+  // The lesser centres: each where the ground is free and level a little way from the main one, an arc of its own round it
+  // headed by the next of the town's great places, and a way to the rest.
+  const quads: Centre[] = [];
+  const nQuads = R.quads ? (village ? R.quads.village : R.quads.town) : 0;
+  for (let q = 0; q < nQuads; q++) {
+    const [qx0, qz0] = R.quads!.size;
+    const qrx = Math.max(2, qx0 - q);
+    const qrz = Math.max(2, qz0 - (q % 2));
+    let bestQ: { x: number; z: number; s: number } | null = null;
+    for (let z = box.z0 + qrz + 10; z <= box.z1 - qrz - 4; z++) {
+      for (let x = box.x0 + qrx + 4; x <= box.x1 - qrx - 4; x++) {
+        const d = Math.hypot(x - cx, (z - cz) * 1.3);
+        if (d < rx + qrx + 8 || d > rx + qrx + 34) continue;
+        let ok = true;
+        for (let zz = z - qrz - 8; zz <= z + qrz + 2 && ok; zz++) for (let xx = x - qrx - 2; xx <= x + qrx + 2 && ok; xx++) {
+          if (!g.inside(xx, zz)) ok = false;
+          else {
+            const i = I(xx, zz);
+            ok = !blocked[i] && !wet(i) && !lotAt[i] && !net.paved[i] && !centreTiles[i] && !shade[i];
+          }
+        }
+        if (!ok) continue;
+        const s = Math.abs(d - (rx + qrx + 14)) + Math.abs(z - cz) * 0.4 + quads.reduce((t, o) => t + Math.max(0, 30 - Math.hypot(o.cx - x, o.cz - z)), 0) + random();
+        if (!bestQ || s < bestQ.s) bestQ = { x, z, s };
+      }
     }
+    if (!bestQ) break;
+    const sq: TownSquare = { x: bestQ.x - qrx, z: bestQ.z - qrz, w: 2 * qrx + 1, d: 2 * qrz + 1, name: R.names?.[1] ?? "A square" };
+    for (const [x, z] of squareTiles(sq)) if (g.inside(x, z)) centreTiles[I(x, z)] = 2 + q;
+    const lv = Math.max(centreLevel - 1, Math.min(centreLevel + 1, Math.round(height(bestQ.x, bestQ.z))));
+    const c: Centre = { cx: bestQ.x, cz: bestQ.z, rx: qrx, rz: qrz, square: sq, level: lv };
+    quads.push(c);
+    // Its way to the rest: from the middle of its south edge to the network or the main centre.
+    const from: XZ = [bestQ.x, sq.z + sq.d];
+    const r = route(g, { from: [from], goal: (x, z) => net.middle[I(x, z)]! > 0 || centreTiles[I(x, z)] === 1, pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + q, cost, turn: 0.5, limit: 160 });
+    if (!r) throw new Error(`${town.id}: no way to its ${sq.name}`);
+    net.add(pull(r, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "street");
+    // Its head: the next of the great places still waiting (the library, the guild), else the next lot.
+    const k = queue.findIndex((w) => ["library", "guildhall", "tower", "temple", "exotic", "shop"].includes(w.role as string));
+    const headQ = k >= 0 ? queue.splice(k, 1)[0]! : (queue.shift() ?? null);
+    arcsAround(c, 1, headQ, 0, null, 0, 10 * (q + 1));
+    if (headQ && !lots.some((l) => l.want === headQ)) queue.unshift(headQ);
   }
 
   // --- 5. The roads in: before what grows, so nothing grows across them -----------------------------------------------------------
@@ -572,7 +696,6 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
 
 
   // --- The stilts' web: more boardwalks between the rings' paths, platforms at the junctions ---------------------------------------
-  const platforms: TownSquare[] = [];
   {
     // Every path that ends at no junction goes on to the nearest other (a loop, not a dead end: no walk goes the long way
     // round); the stilts' web joins one end in three of every path besides.
@@ -619,7 +742,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   // The ring round it: where the gates' roads cross it, its passages.
   ring(g, mask);
   const ringOpen = new Uint8Array(g.size);
-  for (let i = 0; i < g.size; i++) if (mask[i] === 2 && (nearSea[i] || dilate1(i))) ringOpen[i] = 1;
+  for (let i = 0; i < g.size; i++) if (mask[i] === 2 && (R.unwalled || nearSea[i] || dilate1(i))) ringOpen[i] = 1;
   function dilate1(i: number): boolean {
     const x = g.x(i);
     const z = g.z(i);
@@ -659,22 +782,27 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
 
   // --- 7. The terraces -----------------------------------------------------------------------------------------------------------
-  const c = Math.max(1, Math.round(average(squareTiles(centre), (x, z) => height(x, z))));
+  const c = centreLevel;
   const groups: { tiles: number[]; level: number }[] = [];
   const centreGroup: number[] = [];
-  for (let i = 0; i < g.size; i++) if (centreTiles[i] || open[i]) centreGroup.push(i);
+  for (let i = 0; i < g.size; i++) if (centreTiles[i] === 1 || open[i]) centreGroup.push(i);
   groups.push({ tiles: centreGroup, level: c });
+  quads.forEach((q, k) => {
+    const tiles: number[] = [];
+    for (let i = 0; i < g.size; i++) if (centreTiles[i] === 2 + k) tiles.push(i);
+    groups.push({ tiles, level: q.level });
+  });
   for (const l of lots) {
     const tiles: number[] = [];
     for (let z = l.z0; z < l.z1 + W; z++) for (let x = l.x0; x < l.x1; x++) if (g.inside(x, z) && !centreTiles[I(x, z)] && !open[I(x, z)]) tiles.push(I(x, z));
-    const lv = Math.max(1, Math.min(c + 1, Math.max(c - 1, Math.round(height((l.x0 + l.x1) / 2, (l.z0 + l.z1) / 2)))));
+    const lv = Math.max(1, lotLevel.get(l) ?? Math.min(c + 1, Math.max(c - 1, Math.round(height((l.x0 + l.x1) / 2, (l.z0 + l.z1) / 2)))));
     groups.push({ tiles, level: lv });
   }
   const level = terraces(g, mask, (x, z) => height(x, z), groups);
 
   // --- The plan ---------------------------------------------------------------------------------------------------------------
   const sites = lots.filter((l) => l.site).map((l) => ({ id: l.site!, box: { x0: l.x0, z0: l.z0, x1: l.x1, z1: l.z1 }, k0: 0, k1: 0 }));
-  const blocks = lots.filter((l) => !l.site).map((l) => blockOf(l, box));
+  const blocks = lots.filter((l) => !l.site).map((l) => blockOf(l, box, l.want.id));
   // Roads up into the centre its furniture keeps off (one across it, from the east or the west, is walked round); bridges
   // where the ways cross the water.
   const through: Box[] = [];
@@ -724,16 +852,17 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   }
   const square = { x0: centre.x, z0: centre.z, x1: centre.x + centre.w, z1: centre.z + centre.d, ...(R.round ? { round: true } : {}) };
   const surfaces = R.planks
-    ? { centre: S.planks, open: S.planks, street: S.planks, path: S.planks, planks: S.planks }
-    : form === "village"
-      ? { centre: S.grass, open: S.grass, street: looks.street, path: looks.path, planks: S.planks }
-      : { centre: looks.square, open: form === "elfhame" ? S.moss : looks.path, street: looks.street, path: looks.path, planks: S.planks };
+    ? { centre: S.planks, open: S.planks, street: S.planks, path: S.planks, planks: S.planks, platform: S.planks }
+    : form === "village" || form === "estate"
+      ? { centre: S.grass, open: S.grass, street: looks.street, path: looks.path, planks: S.planks, platform: S.grass }
+      : { centre: looks.square, open: form === "elfhame" ? S.moss : form === "campus" ? S.grass : looks.path, street: looks.street, path: looks.path, planks: S.planks, platform: looks.square };
   return {
     organic: true,
     g,
     net,
     centre,
-    platforms,
+    platforms: quads.map((q) => q.square),
+    head: head.id,
     open,
     mask,
     ringOpen,

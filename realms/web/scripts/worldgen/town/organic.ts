@@ -410,8 +410,8 @@ export interface Lot {
 }
 
 /** A lot as the solver's block (planner.ts): one building, its door on row z1. */
-export function blockOf(l: Lot, box: Box): Block & { readonly one: true } {
-  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true };
+export function blockOf(l: Lot, box: Box, meant?: string): Block & { readonly one: true; readonly meant?: string } {
+  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true, ...(meant ? { meant } : {}) };
 }
 
 // --- The plan of a grown town -------------------------------------------------------------------------------------------------
@@ -435,7 +435,9 @@ export interface OrganicPlan extends Plan {
   /** What stands in the town from the plan: the elfhame's great trees. */
   readonly trees: readonly PropData[];
   /** Surfaces: of the centre and its open ground, and of the streets, paths and boardwalks. */
-  readonly surfaces: { readonly centre: number; readonly open: number; readonly street: number; readonly path: number; readonly planks: number };
+  readonly surfaces: { readonly centre: number; readonly open: number; readonly street: number; readonly path: number; readonly planks: number; readonly platform: number };
+  /** The site at the head of the centre (its temple, shrine, tower or landmark). */
+  readonly head: string;
   /** Junctions where a light stands. */
   readonly lanterns: readonly XZ[];
   /** The light that stands there. */
@@ -485,7 +487,7 @@ function paintOrganic(ctx: Ctx): void {
   for (const sq of [plan.centre, ...plan.platforms]) {
     for (const [x, z] of squareTiles(sq)) {
       if (!land.inside(x, z)) continue;
-      pave(land.idx(x, z), sq === plan.centre ? plan.surfaces.centre : plan.surfaces.planks, Use.Kept, true);
+      pave(land.idx(x, z), sq === plan.centre ? plan.surfaces.centre : plan.surfaces.platform, Use.Kept, true);
     }
   }
   for (const e of plan.net.edges) {
