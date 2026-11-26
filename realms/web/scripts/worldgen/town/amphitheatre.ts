@@ -82,7 +82,7 @@ const RECIPES: Readonly<Record<Form, Recipe>> = {
   capital: { centre: { town: [13, 7], village: [13, 7] }, round: false, rings: { town: 2, village: 2 }, extra: { town: 10, village: 10 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, quads: { town: 1, village: 1, size: [7, 4] }, terraced: true, names: ["The market square", "The lesser square"] },
   city: { centre: { town: [11, 6], village: [9, 5] }, round: false, rings: { town: 3, village: 2 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, landmarkRing: 2, terraced: true, names: ["The square", "The square"] },
   campus: { centre: { town: [12, 7], village: [9, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 6, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lamp-post", x: 0, z: 0 }, head: "tower", headOffset: 0.5, quads: { town: 2, village: 1, size: [7, 4] }, names: ["The great quad", "The quad"] },
-  estate: { centre: { town: [10, 5], village: [8, 4] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 5, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, head: "landmark", unwalled: true, names: ["The village green", "The green"] },
+  estate: { centre: { town: [15, 6], village: [10, 5] }, round: false, rings: { town: 1, village: 1 }, extra: { town: 5, village: 3 }, outline: "traced", trees: false, planks: false, web: false, light: { id: "lantern-post", x: 0, z: 0, args: { glow: "gold" } }, head: "landmark", unwalled: true, names: ["The village green", "The green"] },
 };
 
 /** A strip's width: the path along a ring's fronts, a spoke, a road in. */
@@ -111,8 +111,12 @@ function shadowOf(style: string, role: Role, w: number, d: number): number {
   const key = `${style}:${role}:${w}:${d}`;
   let s = shadows.get(key);
   if (s === undefined) {
-    const b = makeBuilding("measure", style, kindFor(style, role), { x: 0, z: 0, w, d, rot: 0, door: [Math.floor(w / 2), d] }, () => 0.5, { storeys: 2, params: role === "tower" ? { floors: 3 } : style === "urborg" ? { stilts: 1.2 } : {} });
-    s = Math.max(0, ...buildingHides(b, 0).map(([, z]) => -z));
+    // The tallest it may be built: each of its recipe's choices at either end.
+    s = 0;
+    for (const pick of [0, 0.5, 0.999]) {
+      const b = makeBuilding("measure", style, kindFor(style, role), { x: 0, z: 0, w, d, rot: 0, door: [Math.floor(w / 2), d] }, () => pick, { storeys: 2, params: role === "tower" ? { floors: 3 } : style === "urborg" ? { stilts: 1.2 } : {}, ...(role === "manor" ? { grand: true } : {}) });
+      s = Math.max(s, ...buildingHides(b, 0).map(([, z]) => -z));
+    }
     shadows.set(key, s);
   }
   return s;
@@ -214,6 +218,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   const north = headWant.depth + 2 + (rings > 1 ? Math.max(...wants.map((w) => w.shadow)) + W + headWant.depth : 0);
   let best: { cx: number; cz: number; cost: number } | null = null;
   const height = input.height;
+  const mainWay: Side = setting.ways.some((w) => w.side === "south") ? "south" : setting.ways[0]!.side;
   for (let cz = box.z0 + rz + Math.min(north, Math.floor((box.z1 - box.z0) / 2) - rz) ; cz <= box.z1 - rz - 6; cz++) {
     for (let cx = box.x0 + rx + 8; cx <= box.x1 - rx - 8; cx++) {
       let bad = false;
@@ -241,7 +246,9 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       // Free ground north of it for the rings.
       let room = 0;
       for (let z = cz - rz - 1; z >= cz - rz - north && z > box.z0; z -= 2) for (let x = cx - rx; x <= cx + rx; x += 3) if (g.inside(x, z) && !blocked[I(x, z)] && !wet(I(x, z))) room++;
-      const cost = Math.abs(cx - mx) * 0.8 + Math.abs(cz - mz - 4) * 0.5 + (hi - lo) * 4 + trees * 1.5 - room * 0.25 + random() * 0.5;
+      // Toward the main way in, so the walk from its gate to the centre is short.
+      const toMain = mainWay === "south" ? box.z1 - cz : mainWay === "north" ? cz - box.z0 : mainWay === "east" ? box.x1 - cx : cx - box.x0;
+      const cost = Math.abs(cx - mx) * (mainWay === "east" || mainWay === "west" ? 0.4 : 0.8) + Math.abs(cz - mz - 4) * 0.3 + toMain * 0.25 + (hi - lo) * 4 + trees * 1.5 - room * 0.25 + random() * 0.5;
       if (!best || cost < best.cost) best = { cx, cz, cost };
     }
   }
@@ -255,7 +262,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   const net = new Net(g);
   const lots: (Lot & { want: Want })[] = [];
   const lotAt = new Int16Array(g.size);
-  const shade = new Uint8Array(g.size);
+  const shade = new Uint16Array(g.size);
   // --- The paths: a route from a tile to the centre or the network ------------------------------------------------------------
   const wander = noise(`${input.tag}:paths`, 6);
   function passable(x: number, z: number): boolean {
@@ -315,8 +322,14 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     const lot = { x0, z0: z1 - wt.depth, x1, z1, ring: ringNo, want: wt, ...(wt.site ? { site: wt.site } : {}) };
     lots.push(lot);
     for (let z = lot.z0; z < z1; z++) for (let x = x0; x < x1; x++) lotAt[I(x, z)] = lots.length;
-    for (let z = z1 - wt.d - wt.shadow; z < z1 - wt.d; z++) for (let x = x0; x < x1; x++) if (g.inside(x, z)) shade[I(x, z)] = 1;
+    for (let z = z1 - wt.d - wt.shadow; z < z1 - wt.d; z++) for (let x = x0; x < x1; x++) if (g.inside(x, z)) shade[I(x, z)]!++;
     return lot;
+  };
+  /** Takes back the lot last placed. */
+  const unplace = (lot: Lot & { want: Want }) => {
+    lots.splice(lots.indexOf(lot), 1);
+    for (let z = lot.z0; z < lot.z1; z++) for (let x = lot.x0; x < lot.x1; x++) lotAt[I(x, z)] = 0;
+    for (let z = lot.z1 - lot.want.d - lot.want.shadow; z < lot.z1 - lot.want.d; z++) for (let x = lot.x0; x < lot.x1; x++) if (g.inside(x, z)) shade[I(x, z)]!--;
   };
   const queue = [...wants.slice(1)];
   /** A centre the town's arcs stand round: the main one, or a lesser square, quad or platform. */
@@ -505,10 +518,16 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
     const c: Centre = { cx: bestQ.x, cz: bestQ.z, rx: qrx, rz: qrz, square: sq, level: lv };
     quads.push(c);
     // Its way to the rest: from the middle of its south edge to the network or the main centre.
-    const from: XZ = [bestQ.x, sq.z + sq.d];
+    const from: XZ = [bestQ.x, sq.z + sq.d - 1];
     const r = route(g, { from: [from], goal: (x, z) => net.middle[I(x, z)]! > 0 || centreTiles[I(x, z)] === 1, pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + q, cost, turn: 0.5, limit: 160 });
     if (!r) throw new Error(`${town.id}: no way to its ${sq.name}`);
     net.add(pull(r, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "street");
+    // And a second from its side toward the main centre, so the two are near by more than one way.
+    {
+      const side: XZ = bestQ.x < cx ? [sq.x + sq.w - 1, bestQ.z] : [sq.x, bestQ.z];
+      const r2 = route(g, { from: [side], goal: (x, z) => centreTiles[I(x, z)] === 1 || (net.middle[I(x, z)]! > 0 && !inSquare(sq, x, z)), pass: (x, z) => passable(x, z) || centreTiles[I(x, z)] === 2 + q, cost, turn: 0.5, limit: 120 });
+      if (r2 && r2.length >= 2) net.add(pull(r2, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "street");
+    }
     // Its head: the next of the great places still waiting (the library, the guild), else the next lot.
     const k = queue.findIndex((w) => ["library", "guildhall", "tower", "temple", "exotic", "shop"].includes(w.role as string));
     const headQ = k >= 0 ? queue.splice(k, 1)[0]! : (queue.shift() ?? null);
@@ -639,7 +658,7 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         frontier.push(j);
       }
     }
-    let bestLot: { x0: number; z1: number; score: number } | null = null;
+    const candidates: { x0: number; z1: number; score: number }[] = [];
     for (let z1 = box.z0 + wt.depth + 2; z1 < box.z1 - W - 2; z1++) {
       for (let x0 = box.x0 + 2; x0 + wt.w <= box.x1 - 2; x0++) {
         const c = Math.floor(x0 + wt.w / 2);
@@ -654,44 +673,41 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
         for (let k = 0; k < wt.w && !shore; k++) for (let s = 3; s < 9 && !shore; s++) if (g.inside(x0 + k, z1 + s) && seaTile[I(x0 + k, z1 + s)]) shore = true;
         // Fronts step: one in line with another's is worth less.
         const inLine = lots.filter((l) => l.z1 === z1).length;
-        const score = d * 0.6 + near * 1.5 + (z1 > cz + 2 ? 5 : 0) + inLine * 8 - (shore && wt.role === "warehouse" ? 10 : 0) + random() * 2;
-        if (!bestLot || score < bestLot.score) bestLot = { x0, z1, score };
+        // In a town of arcs, on the next arc out: the amphitheatre holds what grows (an elfhame's, a clan's, a village's).
+        const arcR = Math.hypot((x0 + wt.w / 2 - cx) / (rx + 14), (z1 - cz) / (rz + 12));
+        const onArc = R.round ? Math.abs(arcR - 1) * 14 + (z1 > cz + 2 ? 8 : 0) : 0;
+        const score = d * (R.round ? 0.3 : 0.6) + near * 1.5 + onArc + (z1 > cz + 2 ? 5 : 0) + inLine * 8 - (shore && wt.role === "warehouse" ? 10 : 0) + random() * 2;
+        candidates.push({ x0, z1, score });
       }
     }
-    if (!bestLot) {
-      if (process.env.TOWN_DEBUG === "growth") {
-        let near = 0;
-        let fit = 0;
-        for (let z1 = box.z0 + wt.depth + 2; z1 < box.z1 - W - 2; z1++) for (let x0 = box.x0 + 2; x0 + wt.w <= box.x1 - 2; x0++) {
-          if (reach[I(Math.floor(x0 + wt.w / 2), z1 + 1)]! > 30) continue;
-          near++;
-          if (fits(wt, x0, x0 + wt.w, z1)) fit++;
-          else if (near % 97 === 0) {
-            const why: string[] = [];
-            for (let z = z1 - wt.depth - 1; z < z1 + W; z++) for (let x = x0 - 1; x <= x0 + wt.w; x++) {
-              const i = I(x, z);
-              if (blocked[i] || wet(i) || centreTiles[i] || net.paved[i] || lotAt[i] || shade[i]) why.push(`${x},${z}:${blocked[i] ? "b" : ""}${wet(i) ? "w" : ""}${centreTiles[i] ? "c" : ""}${net.paved[i] ? "p" : ""}${lotAt[i] ? "l" : ""}${shade[i] ? "s" : ""}`);
-            }
-            console.log(`  at ${x0},${z1}: ${why.slice(0, 8).join(" ")}`);
-          }
-        }
-        console.log(`growth ${wt.id} ${wt.w}x${wt.depth}: ${near} near, ${fit} fit`);
+    candidates.sort((a, b) => a.score - b.score || a.z1 - b.z1 || a.x0 - b.x0);
+    // The best that a path can reach: each tried in turn, its lot taken back where none can.
+    let landed = false;
+    for (const cand of candidates.slice(0, 16)) {
+      const lot = place(wt, cand.x0, cand.x0 + wt.w, cand.z1, 0);
+      const m = lot.z1 + 1;
+      const c = Math.floor((lot.x0 + lot.x1) / 2);
+      const strip = chain([[lot.x0 + 1, m], [lot.x1 - 2, m]]);
+      if (strip.every(([x, z]) => net.paved[I(x, z)])) {
+        landed = true;
+        break;
       }
+      const onWay = strip.some(([x, z]) => net.middle[I(x, z)]! > 0);
+      const r = onWay ? null : route(g, { from: [[c, m]], goal: (x, z) => (net.middle[I(x, z)]! > 0 && !strip.some(([sx, sz]) => sx === x && sz === z)) || centreTiles[I(x, z)]! > 0, pass: (x, z) => passable(x, z) || (x === c && z === m), cost, turn: 0.5, limit: 120 });
+      if (!onWay && (!r || r.length < 2)) {
+        unplace(lot);
+        continue;
+      }
+      net.add(strip, W, false, R.planks ? "planks" : "path");
+      if (r) net.add(pull(r, (x, z) => passable(x, z), cost), W, false, R.planks ? "planks" : "path");
+      landed = true;
+      break;
+    }
+    if (!landed) {
       if (process.env.TOWN_DEBUG || wt.optional) continue;
       throw new Error(`${town.id}: no room for the lot of ${wt.id}`);
     }
-    const lot = place(wt, bestLot.x0, bestLot.x0 + wt.w, bestLot.z1, 0);
     queue.splice(queue.indexOf(wt), 1);
-    // Its path: along its front, joined to the nearest way.
-    const m = lot.z1 + 1;
-    const c = Math.floor((lot.x0 + lot.x1) / 2);
-    const strip = chain([[lot.x0 + 1, m], [lot.x1 - 2, m]]);
-    if (strip.every(([x, z]) => net.paved[I(x, z)])) continue;
-    net.add(strip, W, false, R.planks ? "planks" : "path");
-    if (!strip.some(([x, z]) => net.middle[I(x, z)]! > 1) && !connect([c, m], "net", false, strip)) {
-      if (process.env.TOWN_DEBUG) continue;
-      throw new Error(`${town.id}: no path to the lot of ${wt.id}`);
-    }
   }
 
 
@@ -724,6 +740,33 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
       for (const l of lots) if (x >= l.x0 - 1 && x < l.x1 + 1 && z >= l.z1) under = true;
       if (!under && z < cz) continue;
       open[i] = 1;
+    }
+  }
+
+  // --- A village's pond on its green: a little water in the open ground at the green's south-east or south-west --------------
+  if (form === "village") {
+    for (const sx of [1, -1]) {
+      const px = cx + sx * Math.round(rx * 0.75);
+      const pz = cz + Math.round(rz * 0.6);
+      const tiles: number[] = [];
+      let ok = true;
+      for (let z = pz - 2; z <= pz + 2 && ok; z++) for (let x = px - 3; x <= px + 3 && ok; x++) {
+        if (!inEllipse(px + 0.5, pz + 0.5, 3, 1.9, x, z)) continue;
+        if (!g.inside(x, z)) ok = false;
+        else {
+          const i = I(x, z);
+          // In the open ground about the green, never on a way or the green's own square tiles where the ways come in.
+          if (!(open[i] || centreTiles[i] === 1) || net.paved[i] || lotAt[i]) ok = false;
+          for (const [dx, dz] of N8) if (g.inside(x + dx, z + dz) && net.paved[I(x + dx, z + dz)]) ok = false;
+          tiles.push(i);
+        }
+      }
+      if (!ok || tiles.length < 8) continue;
+      for (const i of tiles) {
+        water[i] = 1;
+        open[i] = 0;
+      }
+      break;
     }
   }
 

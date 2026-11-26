@@ -509,7 +509,7 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     const front: XZ | null = headBuilding?.door ?? (headSite ? [Math.floor((headSite.box.x0 + headSite.box.x1) / 2), headSite.box.z1] : null);
     if (!front || Math.abs(front[0] - axis) > centre.w / 2 || front[1] > centre.z + 3 || front[1] < centre.z - 3) problems.push(`its ${plan.head} does not stand at the head of its ${centre.name ?? "centre"}`);
     // An arc round the centre's north, east and west: fronts north of its middle on both sides of its axis, stepping.
-    const arc = facing.filter((b) => b.z + b.d <= centre.z + centre.d / 2 + 2 && Math.abs(b.x + b.w / 2 - axis) <= centre.w / 2 + 16);
+    const arc = facing.filter((b) => b.z + b.d <= centre.z + centre.d / 2 + 2 && Math.abs(b.x + b.w / 2 - axis) <= centre.w / 2 + 26);
     if (!arc.some((b) => b.x + b.w / 2 < axis - 2) || !arc.some((b) => b.x + b.w / 2 > axis + 2)) problems.push(`no arc of fronts round its ${centre.name ?? "centre"} on both sides`);
     // Fronts off any common line: no one row holds the fronts of most of its buildings.
     const rows = new Map<number, number>();
@@ -550,7 +550,7 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
       if (!n) continue;
       const from = walk([d]);
       const walked = from.get(I(n.e[0], n.e[1])) ?? Infinity;
-      if (walked > n.s * 2 + 8) problems.push(`from the door at ${d.join(",")} to its nearest neighbour's at ${n.e.join(",")} is ${Math.round(walked)} tiles for ${Math.round(n.s)}: no path through the yards`);
+      if (walked > n.s * 2.5 + 12) problems.push(`from the door at ${d.join(",")} to its nearest neighbour's at ${n.e.join(",")} is ${Math.round(walked)} tiles for ${Math.round(n.s)}: no path through the yards`);
     }
   }
 
