@@ -271,7 +271,7 @@
     "relief": 0.6,
     "ways": [
       {
-        "side": "north",
+        "side": "west",
         "to": "sursi"
       },
       {
