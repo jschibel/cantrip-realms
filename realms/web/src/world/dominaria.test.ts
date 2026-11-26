@@ -21,6 +21,8 @@ import {
   type WorldData,
   chunkKey,
   frontStep,
+  groundChunks,
+  siteRect,
   isBlocked,
   parseChunkKey,
   tierAt,
@@ -64,7 +66,15 @@ const known: KnownArt = {
   propProblems: (p) => PROPS.problems(p.id, p),
   buildingProblems: (b) => BUILDINGS.problems(b.style, b),
   propTiles: tilesOf,
-  liquid: (s) => SURFACES.has(s) && SURFACES.look(s).hole === true,
+  // A surface's look is drawn afresh at every call (milliseconds): asked once a surface.
+  liquid: (() => {
+    const holes = new Map<string, boolean>();
+    return (s: string) => {
+      let hole = holes.get(s);
+      if (hole === undefined) holes.set(s, (hole = SURFACES.has(s) && SURFACES.look(s).hole === true));
+      return hole;
+    };
+  })(),
   onUnknown: (kind, id) => {
     let found = unknown.get(kind);
     if (!found) unknown.set(kind, (found = new Set()));
@@ -73,10 +83,11 @@ const known: KnownArt = {
 };
 
 describe("Dominaria's files", () => {
-  it("are every chunk of the world, each named for the tiles it holds and good on its own", () => {
+  it("are every chunk of ground of the world - the travel map's and each town's grounds' - each named for the tiles it holds and good on its own", () => {
     expect(checkWorld(world)).toEqual([]);
     expect((world.size[0] % 32) + (world.size[1] % 32)).toBe(0);
-    expect(chunkFiles.size).toBe((world.size[0] / 32) * (world.size[1] / 32));
+    expect(world.travel).toEqual([0, 0, 512, 768]);
+    expect(new Set(chunkFiles.keys())).toEqual(groundChunks(world));
     const bad: string[] = [];
     for (const [name, c] of chunkFiles) {
       const at = parseChunkKey(name);
@@ -112,9 +123,9 @@ describe("Dominaria's files", () => {
     const cx = Math.floor(inn.x / 32);
     const cz = Math.floor(inn.z / 32);
     const near = chunks.filter((c) => Math.abs(c.cx - cx) <= 2 && Math.abs(c.cz - cz) <= 2);
-    expect(near).toHaveLength(25);
+    expect(near.length).toBeGreaterThanOrEqual(9);
     const grid = gridOfChunks(world, near);
-    expect([grid.width, grid.height]).toEqual([160, 160]);
+    expect(grid.width * grid.height).toBe(near.length * 32 * 32);
     const goal = all("buildings").find((b) => b.door && Math.max(Math.abs(Math.floor(b.door[0] / 32) - cx), Math.abs(Math.floor(b.door[1] / 32) - cz)) === 2);
     expect(goal, "a door two chunks away").toBeDefined();
     const path = grid.path({ x: inn.x, z: inn.z }, { x: goal!.door![0], z: goal!.door![1] });
@@ -186,9 +197,19 @@ describe("Dominaria's files", () => {
   it("keep the tiers of the zones: tier 1 round the starting areas, the hardest lands tier 4, every mob met", () => {
     const starts = world.towns.filter((t) => t.start);
     const spawns = all("spawns");
-    const near = spawns.filter((s) => starts.some((t) => Math.max(Math.abs(s.x - t.center[0]), Math.abs(s.z - t.center[1])) < t.radius + 40));
-    expect(near.filter((s) => s.tier === 1).length / near.length, "tier 1 by the starting areas").toBeGreaterThan(0.7);
-    for (let tier = 1; tier <= 4; tier++) expect(spawns.filter((s) => s.tier === tier).length, `tier ${tier} spawns`).toBeGreaterThan(40);
+    // A starting town is its icon on the travel map; the wilds are sparse there (about a spawn a 3,500 tiles of land).
+    const near = spawns.filter((s) => starts.some((t) => Math.max(Math.abs(s.x - t.site![0]), Math.abs(s.z - t.site![1])) < 45));
+    expect(near.length, "spawns by the starting towns").toBeGreaterThan(5);
+    expect(near.filter((s) => s.tier === 1).length / near.length, "tier 1 by the starting towns").toBeGreaterThan(0.7);
+    for (let tier = 1; tier <= 4; tier++) expect(spawns.filter((s) => s.tier === tier).length, `tier ${tier} spawns`).toBeGreaterThanOrEqual(5);
+    // No spawn within ten tiles of a town's icon, none in a town's grounds.
+    for (const s of spawns) {
+      expect(world.towns.every((t) => !t.grounds || s.x < t.grounds[0] || s.x >= t.grounds[2] || s.z < t.grounds[1] || s.z >= t.grounds[3]), s.id).toBe(true);
+      for (const t of world.towns) {
+        const r = siteRect(t)!;
+        expect(Math.max(r[0] - s.x, s.x - (r[2] - 1), r[1] - s.z, s.z - (r[3] - 1)), `${s.id} by ${t.id}`).toBeGreaterThanOrEqual(10);
+      }
+    }
     const portal = dungeons.get("phyrexian-portal")!;
     expect(tierAt(world, portal.entrance[0], portal.entrance[1])).toBe(4);
     expect(portal.requires).toBe("WUBRG");
@@ -200,7 +221,8 @@ describe("Dominaria's files", () => {
   it("are terraces: open ground level but at its ramps and ledges, a ledge a whole level high, and every ramp between two levels", () => {
     const [W, H] = world.size;
     const height = new Int16Array(W * H);
-    const flags = new Uint8Array(W * H);
+    // No ground (between the pockets) is closed.
+    const flags = new Uint8Array(W * H).fill(1);
     for (const c of chunks) {
       c.tiles.forEach((t, k) => {
         const i = (c.cz * 32 + Math.floor(k / 32)) * W + c.cx * 32 + (k % 32);
@@ -234,11 +256,11 @@ describe("Dominaria's files", () => {
     }
     expect(steps, "open neighbours more than a step and less than a level apart").toBe(0);
     expect(ledges).toBeGreaterThan(1000);
-    expect(ramps).toBeGreaterThan(400);
+    expect(ramps).toBeGreaterThan(200);
     expect(lone, "ramps that climb nowhere").toBeLessThan(ramps * 0.02);
   });
 
-  it("keep the sea unwalked but for the ferries' lanes and the causeways", () => {
+  it("keep the sea unwalked but for the ferries' lanes", () => {
     const lanes = new Set(world.ferries.flatMap((f) => f.lane.map(([x, z]) => `${x},${z}`)));
     const wet: string[] = [];
     for (const c of chunks) {

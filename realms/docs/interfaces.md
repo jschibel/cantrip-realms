@@ -185,21 +185,21 @@ world.json its `size`, `origin`, `chunk`, `tile`, `towns` (with their `site`, `g
 `pitches`, `ferries`, `zones` (what the finds of the wilds spawn by: "Finds of the wilds", below) and `travel` ("Two
 scales", below). No file holds a chest or a heartbloom: they come and go.
 
-- **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains), in square tiles `[x, z]`
-  (x east, z south) and lengths in tiles: its `size` (whole chunks each way) and `relief` (how much the land rolls, 1 as
-  designed, 0 flat); its landmasses (`center`, `radius`, `wobble`, `stretch`, `turn`), `bays` and `archipelagos`; its
-  `regions` (`{id, name, color or null, biome: heartland|plains|coast|swamp|mountains|volcanic|forest|tundra|waste,
-  style, at, weight, minTier, areas: [4 names]}`, every tile the region's whose `at` is nearest by its `weight`, `minTier`
-  the least tier of its wilds); `mountains`, `rivers` and `lakes`; the `towns` (`{id, name, kind, region, style, at,
-  radius, inn, innkeeper, board, folk, centrepiece, start, home, temple, guild, exotic, caravan}`, `radius` the tiles
-  from the centre to the walls along x and z, `exotic` the id of the town's exotic wares vendor, whose shop is
-  `<vendor>-shop`); the `roads` between towns, dungeons and ferry docks (`ferry:<id>:from`, `ferry:<id>:to`); the
-  `dungeons` (as `dungeons/<id>.json` below, at a place, their mobs, warden and boss mob ids or asked of the roster:
-  `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`); and the `ferries` (`{id, name, from, to}`, each dock the
-  open shore nearest its place). The world generator reads it (and refuses one whose towns stand within 16 tiles of each
-  other, wall to wall), and the server tests' world takes its towns' and dungeons' ids from it.
+- **The geography and the layout.** Where everything stands is `geography.json` (the travel map's sketch: its coast,
+  lakes, rivers, ranges and passes, areas of each biome, regions, the towns' and dungeons' sites, landmarks, ferries,
+  roads and labels; `scripts/worldgen/geography.ts` types and checks it). What is not geography is `layout.json`: its
+  `seed` and `relief` (how much the land rolls, 1 as designed, 0 flat); the `towns` (`{id, name, kind, style, radius,
+  form, inn, innkeeper, board, folk, centrepiece, start, home, temple, guild, exotic, caravan}`, `radius` the town's size
+  at walking scale, `exotic` the id of the town's exotic wares vendor, whose shop is `<vendor>-shop`); and the
+  `dungeons` (as `dungeons/<id>.json` below: their theme, floors, tier, mobs, warden and boss mob ids or asked of the
+  roster - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2` - and the `region` whose color their mobs are
+  drawn by). One source for each fact: layout.json names no place, `checkLayout` refuses one that does, and
+  `checkGeography` proves the two name the same towns and dungeons. The server tests' world takes its towns' and
+  dungeons' ids from layout.json.
 - **The world** is the version-2 format ("Version 2 of the world data", below; types in
-  `realms/web/src/world/format.ts`). Dominaria is 1024 by 1216 tiles from `[0, 0]` (32 by 38 chunks), no `bounds`.
+  `realms/web/src/world/format.ts`). Dominaria is of two scales ("Two scales"): its travel map `[0, 0, 512, 768]` and
+  each town's grounds in a pocket east of it, 1568 by 768 tiles in all, 705 chunk files (one for each chunk of ground),
+  no `bounds`.
   `world/world.json` holds `{size: [width, height], chunk: 32, tile: 1, seed, regions: [{color, name, tiles}] (each
   colored region and how many tiles of land it has), towns: [{id, name, kind: capital|town|village, center: [x, z],
   radius, style, region (a color, optional), start, home (a color, optional), plan (its streets: "Town plans",

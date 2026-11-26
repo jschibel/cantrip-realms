@@ -4,52 +4,49 @@
   "kind": "inn",
   "town": "oneah",
   "style": "llanowar",
-  "w": 11,
+  "w": 10,
   "d": 7,
-  "area": [0,0,11,8],
+  "area": [0,0,10,8],
   "tiles": [
-    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],
-    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-elfwood",0],
-    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
-    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
-    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
+    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
+    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
+    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
+    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
+    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
   ],
   "props": [
     {"id":"inn-stair","x":0,"z":0.625,"tint":"room-llanowar","args":{"rise":2.75,"rail":"east"}},
     {"id":"bar-counter","x":1.25,"z":2.2,"tint":"room-llanowar","args":{"to":[5.75,2.85]}},
-    {"id":"bar-shelf","x":3.4,"z":0,"tint":"room-llanowar","seed":2,"args":{"w":2.5}},
+    {"id":"bar-shelf","x":3.4,"z":0,"tint":"room-llanowar","seed":1,"args":{"w":2.5}},
     {"id":"keg-rack","x":1.9,"z":0,"tint":"room-llanowar"},
     {"id":"tankards","x":2.9,"z":2.5,"y":1,"seed":4},
     {"id":"candle","x":5.6,"z":2.5,"y":1},
-    {"id":"hearth","x":8,"z":0},
-    {"id":"candle","x":6.75,"z":0.3,"y":1.875},
-    {"id":"pot","x":8.75,"z":0.3,"y":1.875,"args":{"r":0.12}},
-    {"id":"skull","x":7.6,"z":0.32,"y":1.875},
-    {"id":"spell-desk","x":9,"z":4.5},
+    {"id":"spell-desk","x":8,"z":4.5},
     {"id":"table","x":5,"z":3.5,"tint":"room-llanowar","args":{"w":1.5,"d":0.75,"cloth":false}},
     {"id":"tankards","x":5,"z":3.5,"y":0.8125,"seed":2},
     {"id":"candle","x":5.45,"z":3.3,"y":0.8125},
     {"id":"bench-seat","x":5,"z":4.4,"tint":"room-llanowar","args":{"len":1.5}},
-    {"id":"wall-lamp","x":5.5,"z":0,"y":1.6},
-    {"id":"barrel","x":10.5,"z":5.45},
-    {"id":"sack","x":10.45,"z":6.45},
-    {"id":"wall-lamp","x":0.59375,"z":0,"y":1.6}
+    {"id":"wall-lamp","x":4.5,"z":0,"y":1.6},
+    {"id":"barrel","x":9.5,"z":5.45},
+    {"id":"sack","x":9.45,"z":6.45},
+    {"id":"wall-lamp","x":0.59375,"z":0,"y":1.6},
+    {"id":"wall-lamp","x":7.85625,"z":0,"y":1.6}
   ],
   "npcs": [
     {"id":"oneah-innkeeper","x":3,"z":1,"kind":"innkeeper","name":"The keeper of The Quiet Oak","stand":[3.5,0,1.5],"behaviour":{"rest":[0,1],"watch":5},"text":["The Quiet Oak. Small, but the beds are dry."],"figure":"innkeeper","seed":949},
-    {"id":"oneah-inn-spell-table","x":8,"z":4,"kind":"spell-table","name":"Spell table","stand":[8.5,0,4.5]}
+    {"id":"oneah-inn-spell-table","x":7,"z":4,"kind":"spell-table","name":"Spell table","stand":[7.5,0,4.5]}
   ],
   "lights": [
     {"kind":"point","at":[5.6,1.5,2.6],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[8,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":1}},
     {"kind":"point","at":[5.45,1.2,3.3],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[5.5,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2},
-    {"kind":"point","at":[0.59375,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
+    {"kind":"point","at":[4.5,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2},
+    {"kind":"point","at":[0.59375,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2},
+    {"kind":"point","at":[7.85625,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [5,6],
-  "exit": [864,686],
+  "exit": [1301,252],
   "params": {"gallery":{"y":2.75,"depth":0.625,"from":0,"to":6,"doors":[2,4.5]}}
 }

@@ -1,6 +1,7 @@
 // Writes Dominaria (design.md A6): `npm run world` runs the seeded world generator (worldgen/generate.ts) on the plane's
-// layout (realms/content/dominaria/layout.json: its landmasses, regions, towns, roads and dungeons) and writes
-// realms/content/dominaria/world/ (world.json and every chunk), interiors/ and dungeons/ in the version-2 format
+// geography (realms/content/dominaria/geography.json: the travel map's sketch) and layout (layout.json: its towns' and
+// dungeons' definitions) and writes realms/content/dominaria/world/ (world.json and a chunk for every chunk of ground),
+// interiors/ and dungeons/ in the version-2 format
 // (realms/docs/interfaces.md, "Version 2 of the world data"), removing files of those directories it no longer writes. Each file is checked as the
 // loader checks it (world/lint.ts) before anything is written. The same layout, seed and mob roster give the same files;
 // after the roster changes (realms/content/dominaria/mobs/*.json), a rerun is all it takes for the spawns to name its mobs.
@@ -67,3 +68,4 @@ for (const [path, text] of result.files) {
 console.log(`world.ts: ${result.files.size} files (${written} changed) in ${Math.round(performance.now() - started)} ms`);
 console.log(`  ${Object.entries(result.stats).map(([k, v]) => `${k} ${v}`).join(", ")}`);
 console.log(`  mobs: ${result.mobs.length}`);
+for (const note of result.notes) console.log(`  note: ${note}`);

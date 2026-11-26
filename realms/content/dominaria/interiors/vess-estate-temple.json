@@ -4,18 +4,18 @@
   "kind": "temple",
   "town": "vess-estate",
   "style": "morass",
-  "w": 11,
+  "w": 10,
   "d": 7,
-  "area": [0,0,11,8],
+  "area": [0,0,10,8],
   "tiles": [
-    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
-    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
-    [0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",0],
-    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],
-    [0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],
-    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],
-    [0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
-    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
+    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
+    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],
+    [0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",0],
+    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
+    [0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],
+    [0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],
+    [0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",1],[0,"room-bogwood",0],[0,"room-bogwood",0],[0,"room-bogwood",0],
+    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-bogwood",1],[0,"room-bogwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
   ],
   "props": [
     {"id":"altar","x":5,"z":1.25,"args":{"dais":true}},
@@ -25,20 +25,20 @@
     {"id":"candle-stand","x":2.5,"z":1.5},
     {"id":"candle-stand","x":7.5,"z":1.5},
     {"id":"pillar","x":1.5,"z":2.5,"args":{"h":4.25}},
-    {"id":"pillar","x":9.5,"z":2.5,"args":{"h":4.25}},
+    {"id":"pillar","x":8.5,"z":2.5,"args":{"h":4.25}},
     {"id":"pillar","x":1.5,"z":4.5,"args":{"h":4.25}},
-    {"id":"pillar","x":9.5,"z":4.5,"args":{"h":4.25}},
+    {"id":"pillar","x":8.5,"z":4.5,"args":{"h":4.25}},
     {"id":"pew","x":3,"z":4.5,"rot":2,"tint":"room-morass","args":{"len":1.75}},
     {"id":"pew","x":3,"z":5.5,"rot":2,"tint":"room-morass","args":{"len":1.75}},
-    {"id":"pew","x":7.5,"z":3.5,"rot":2,"tint":"room-morass","args":{"len":2.75}},
-    {"id":"pew","x":7.5,"z":4.5,"rot":2,"tint":"room-morass","args":{"len":2.75}},
-    {"id":"pew","x":7.5,"z":5.5,"rot":2,"tint":"room-morass","args":{"len":2.75}},
+    {"id":"pew","x":7,"z":4.5,"rot":2,"tint":"room-morass","args":{"len":1.75}},
+    {"id":"pew","x":7,"z":5.5,"rot":2,"tint":"room-morass","args":{"len":1.75}},
+    {"id":"font","x":6.5,"z":6.5},
     {"id":"candle-rack","x":0.6,"z":6.5,"rot":3},
     {"id":"carpet","x":4.125,"z":2.75,"tint":"room-morass","args":{"to":[5.875,7]}},
-    {"id":"wall-lamp","x":0.75625,"z":0,"y":1.6},
+    {"id":"guild-banner","x":0.75625,"z":0,"y":2.6,"tint":"room-morass"},
     {"id":"wall-lamp","x":3.65,"z":0,"y":1.6},
-    {"id":"wall-lamp","x":6.74375,"z":0,"y":1.6},
-    {"id":"guild-banner","x":9.9875,"z":0,"y":2.6,"tint":"room-morass"}
+    {"id":"guild-banner","x":6.74375,"z":0,"y":2.6,"tint":"room-morass"},
+    {"id":"wall-lamp","x":9.4875,"z":0,"y":1.6}
   ],
   "npcs": [
     {"id":"vess-estate-temple-keeper","x":5,"z":3,"kind":"healer","name":"Priest","behaviour":{"rest":[0,1],"watch":5},"text":["Rest a while. The wells of Dominaria remember the faithful."],"figure":"townsfolk-caligo","seed":617}
@@ -50,10 +50,9 @@
     {"kind":"point","at":[2.5,1.45,1.6],"color":[1,0.75,0.4],"intensity":1.8,"reach":3.2},
     {"kind":"point","at":[7.5,1.45,1.6],"color":[1,0.75,0.4],"intensity":1.8,"reach":3.2},
     {"kind":"point","at":[0.6,1,6.5],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[0.75625,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2},
     {"kind":"point","at":[3.65,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2},
-    {"kind":"point","at":[6.74375,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
+    {"kind":"point","at":[9.4875,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [5,6],
-  "exit": [348,386]
+  "exit": [939,526]
 }

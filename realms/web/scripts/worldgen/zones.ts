@@ -1,31 +1,64 @@
-// The tier zones (design.md A6, interfaces.md "Spawn tiers"): difficulty by distance. Each 16-by-16 square of the world
-// takes the tier of how far it is from the nearest starting area (the capital's and the home towns' walls), the main
-// roads out of the starting areas keeping the wilds along them tame, the far coasts the hardest, and never less than its
-// region's least tier. The sea is no tier's. Every spawn point takes its square's tier, and the waymarkers stand where
-// the tier rises.
+// The tier zones of the travel map (design.md A6, interfaces.md "Spawn tiers"): difficulty by how far one walks. Every
+// tile's walking distance (one who hops, the ferries' lanes taken as the walk over them) from the nearest starting town's
+// icon; each 16-by-16 square of the travel map the tier of its land's middle distance, never less than its region's least
+// tier, then smoothed by the commonest tier round it (twice), so a zone is a band as wide as a region, not confetti. The
+// sea is no tier's, and so is everything off the travel map (the towns' grounds are tier 0: format.ts `tierAt`).
 
 import type { ZoneArea, Zones } from "../../src/world/format";
-import type { Land } from "./land";
-import type { Layout } from "./layout";
+import type { Geography } from "./geography";
+import { Heap, type Land, hopSteps } from "./land";
+import type { Terrain } from "./terrain";
 
 export const CELL = 16;
 
-/** The tier of an effective distance, tiles, from the starting areas. */
+/** The tier of a walking distance, tiles, from the nearest starting town's icon. */
 export function tierOfDistance(distance: number): number {
-  return distance <= 70 ? 1 : distance <= 140 ? 2 : distance <= 220 ? 3 : 4;
+  return distance <= 55 ? 1 : distance <= 120 ? 2 : distance <= 200 ? 3 : 4;
 }
 
-export function makeZones(land: Land, layout: Layout, starts: Iterable<number>, mainRoads: Uint8Array, fromLand: Float32Array): Zones {
-  const fromStart = land.distances(starts);
-  const roadTiles: number[] = [];
-  for (let i = 0; i < mainRoads.length; i++) if (mainRoads[i]) roadTiles.push(i);
-  const fromRoad = land.distances(roadTiles);
-  const cols = Math.ceil(land.width / CELL);
-  const rows = Math.ceil(land.depth / CELL);
+/**
+ * Walking distances, tiles, over the travel map from `starts` (one who hops: a straight step 1, a hop 1.5, a diagonal
+ * the root of 2; `links` a ferry's lane from dock to dock at its length). Tiles not walked to get Infinity.
+ */
+export function walkingDistances(land: Land, starts: readonly number[], mine: (i: number) => boolean, links: ReadonlyMap<number, readonly { to: number; cost: number }[]>): Float32Array {
+  const d = new Float32Array(land.size).fill(Infinity);
+  const heap = new Heap();
+  for (const s of starts) {
+    d[s] = 0;
+    heap.push(s, 0);
+  }
+  const near: number[] = [];
+  const W = land.width;
+  while (heap.size > 0) {
+    const i = heap.pop();
+    const here = d[i]!;
+    for (const n of hopSteps(land, i, near)) {
+      if (!mine(n)) continue;
+      const diagonal = n % W !== i % W && Math.floor(n / W) !== Math.floor(i / W);
+      const step = diagonal ? Math.SQRT2 : Math.abs(land.height[n]! - land.height[i]!) > 4 ? 1.5 : 1;
+      if (here + step < d[n]!) {
+        d[n] = here + step;
+        heap.push(n, d[n]!);
+      }
+    }
+    for (const { to, cost } of links.get(i) ?? []) {
+      if (here + cost < d[to]!) {
+        d[to] = here + cost;
+        heap.push(to, d[to]!);
+      }
+    }
+  }
+  return d;
+}
+
+export function makeZones(land: Land, terrain: Terrain, geo: Geography, distance: Float32Array): Zones {
+  const W = land.width;
+  const cols = Math.ceil(terrain.W / CELL);
+  const rows = Math.ceil(terrain.H / CELL);
   const areas: ZoneArea[] = [{ id: "the-sea", name: "The Sea", region: null, tier: 0 }];
   const byKey = new Map<string, number>();
   const area = (k: number, tier: number): number => {
-    const region = layout.regions[k]!;
+    const region = geo.regions[k]!;
     const key = `${region.id}:${tier}`;
     let index = byKey.get(key);
     if (index === undefined) {
@@ -37,38 +70,59 @@ export function makeZones(land: Land, layout: Layout, starts: Iterable<number>, 
     }
     return index;
   };
+  // Each cell: its land's middle distance and its commonest region.
+  const tier = new Int8Array(cols * rows);
+  const region = new Int16Array(cols * rows).fill(-1);
+  const minOf = (k: number) => geo.regions[k]!.minTier ?? 1;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const ds: number[] = [];
+      const counts = new Map<number, number>();
+      for (let z = row * CELL; z < Math.min(terrain.H, row * CELL + CELL); z++) {
+        for (let x = col * CELL; x < Math.min(terrain.W, col * CELL + CELL); x++) {
+          const i = z * W + x;
+          if (terrain.mass[i]! < 0) continue;
+          ds.push(distance[i]!);
+          counts.set(land.region[i]!, (counts.get(land.region[i]!) ?? 0) + 1);
+        }
+      }
+      if (ds.length < (CELL * CELL) / 8) continue;
+      ds.sort((a, b) => a - b);
+      const k = [...counts].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]![0];
+      const mid = ds[Math.floor(ds.length / 2)]!;
+      region[row * cols + col] = k;
+      tier[row * cols + col] = Math.max(tierOfDistance(Number.isFinite(mid) ? mid : 1e9), minOf(k));
+    }
+  }
+  // Smoothed: each land cell the commonest tier of the land cells round it (ties to its own), its region's least at the least.
+  for (let pass = 0; pass < 2; pass++) {
+    const next = tier.slice();
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const c = row * cols + col;
+        if (region[c]! < 0) continue;
+        const votes = [0, 0, 0, 0, 0];
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          const r2 = row + dr;
+          const c2 = col + dc;
+          if (r2 < 0 || c2 < 0 || r2 >= rows || c2 >= cols || region[r2 * cols + c2]! < 0) continue;
+          votes[tier[r2 * cols + c2]!]! += dr === 0 && dc === 0 ? 1.5 : 1;
+        }
+        let best = tier[c]!;
+        for (let t = 1; t <= 4; t++) if (votes[t]! > votes[best]!) best = t;
+        next[c] = Math.max(best, minOf(region[c]!));
+      }
+    }
+    tier.set(next);
+  }
   const grid: number[][] = [];
   for (let row = 0; row < rows; row++) {
     const line: number[] = [];
     for (let col = 0; col < cols; col++) {
-      let ground = 0;
-      const regions = new Array<number>(layout.regions.length).fill(0);
-      for (const i of land.rect(col * CELL, row * CELL, col * CELL + CELL - 1, row * CELL + CELL - 1)) {
-        if (land.isSea(i)) continue;
-        ground++;
-        regions[land.region[i]!]!++;
-      }
-      if (ground < (CELL * CELL) / 5) {
-        line.push(0);
-        continue;
-      }
-      const c = land.idx(Math.min(land.width - 1, col * CELL + CELL / 2), Math.min(land.depth - 1, row * CELL + CELL / 2));
-      const effective = Math.min(fromStart[c]!, 43 + 2.5 * fromRoad[c]!);
-      let tier = tierOfDistance(effective);
-      // The edges of the world, by the open sea far from any start, are the hardest.
-      if (fromLand[c]! === 0 && seaNear(land, fromLand, c) && fromStart[c]! > 190) tier = 4;
-      const k = regions.indexOf(Math.max(...regions));
-      line.push(area(k, Math.max(tier, layout.regions[k]!.minTier ?? 1)));
+      const c = row * cols + col;
+      line.push(region[c]! < 0 ? 0 : area(region[c]!, tier[c]!));
     }
     grid.push(line);
   }
   return { cell: CELL, cols, rows, areas, grid };
-}
-
-/** Whether the open sea lies within 20 tiles of a tile. */
-function seaNear(land: Land, fromLand: Float32Array, i: number): boolean {
-  const x = land.xOf(i);
-  const z = land.zOf(i);
-  for (let dz = -20; dz <= 20; dz += 5) for (let dx = -20; dx <= 20; dx += 5) if (land.inside(x + dx, z + dz) && fromLand[land.idx(x + dx, z + dz)]! > 6) return true;
-  return false;
 }
