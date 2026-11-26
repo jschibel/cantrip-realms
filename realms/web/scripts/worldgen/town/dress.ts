@@ -19,7 +19,10 @@ import type { Ctx } from "./index";
 import type { Placed } from "./place";
 import { propHides } from "./view";
 
-const STREET_LIGHT: Readonly<Record<string, string | null>> = { benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
+/** The named palette a town's banners fly, by its style. */
+const PALETTE_OF_STYLE: Readonly<Record<string, string>> = { benalish: "benalish", argive: "benalish", llanowar: "llanowar", urborg: "morass", keldon: "keldon", tolarian: "tolarian" };
+
+const STREET_LIGHT: Readonly<Record<string, string | null>> ={ benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
 
 export function dress(ctx: Ctx, placed: readonly Placed[]): void {
   sites(ctx);
@@ -227,7 +230,7 @@ function arena(ctx: Ctx, placed: readonly Placed[]): void {
   for (const [x, z] of [
     [f.x + 2, f.z + 2],
     [f.x + f.w - 3, f.z + 2],
-  ] as const) land.fixtures.push({ id: "banner-pole", x: x + 0.5, z: z + 0.5, tint: town.style === "argive" ? "benalish" : town.style });
+  ] as const) land.fixtures.push({ id: "banner-pole", x: x + 0.5, z: z + 0.5, tint: PALETTE_OF_STYLE[town.style] ?? "benalish" });
   ctx.npcs.push({ id: `${town.id}-arena`, x: gate[0], z: gate[1], kind: "arena", name: "The arena", text: ["The arena is closed. A sign reads: coming soon."], stand: [gate[0] + 0.5, 0, gate[1] + 0.5] });
   ctx.places.push({ kind: "arena", name: "The arena", x: gate[0], z: gate[1] });
 }
@@ -276,14 +279,17 @@ function square(ctx: Ctx): void {
     for (const h of [-1, 0, 1] as const) for (const [x, z] of propHides(p, h)) if (land.inside(x, z) && land.use[land.idx(x, z)] === Use.Door) return false;
     return true;
   };
-  for (let z = Math.floor((sq.z0 + sq.z1) / 2) - 1; z < sq.z1 - 2; z++) {
-    const p = { ...piece, x: Math.floor(cx) + (piece.id === "fountain" || piece.id === "giant-tree" ? 0 : 0.5), z: z + 0.5 };
-    const tiles = tilesOf(p).tiles;
-    if (!tiles.every(([x, zz]) => clear(x, zz) && !doorNear(x, zz) && !artery(x))) continue;
-    if (!doorsSeen(p)) continue;
-    stand(ctx, p);
-    for (const [x, zz] of tiles) used.add(land.idx(x, zz));
-    break;
+  // On the square's axis where the way through it allows, else beside the way.
+  placing: for (const dx of [0, -4, 4, -6, 6]) {
+    for (let z = Math.floor((sq.z0 + sq.z1) / 2) - 1; z < sq.z1 - 2; z++) {
+      const p = { ...piece, x: Math.floor(cx) + dx + (piece.id === "fountain" || piece.id === "giant-tree" ? 0 : 0.5), z: z + 0.5 };
+      const tiles = tilesOf(p).tiles;
+      if (!tiles.every(([x, zz]) => clear(x, zz) && !doorNear(x, zz) && !artery(x))) continue;
+      if (!doorsSeen(p)) continue;
+      stand(ctx, p);
+      for (const [x, zz] of tiles) used.add(land.idx(x, zz));
+      break placing;
+    }
   }
   // The caravans' pitch: open paving, open all round, toward the square's east.
   if (town.caravan) {

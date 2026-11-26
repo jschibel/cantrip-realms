@@ -447,9 +447,11 @@ export function planTown(input: PlanInput): Plan {
       let bestX = -1;
       let bestScore = Infinity;
       for (let x = lo2; x <= hi2; x++) {
-        const middle = Math.abs(x + lw / 2 - (x0 + x1) / 2);
-        const stagger = above.some((c) => Math.abs(c - x) > 0 && Math.abs(c - x) < 6) ? 6 : 0;
-        const score = middle + stagger + random() * len * 0.15;
+        // Near the middle, but never in line with a connector of the row above: the rows meet the ways down at T
+        // junctions, a brick bond rather than a grid.
+        const middle = Math.abs(x + lw / 2 - (x0 + x1) / 2) * 0.6;
+        const stagger = above.some((c) => Math.abs(c - x) < 7) ? 14 : 0;
+        const score = middle + stagger + random() * len * 0.2;
         if (score < bestScore) {
           bestScore = score;
           bestX = x;

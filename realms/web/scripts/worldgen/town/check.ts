@@ -14,6 +14,9 @@
 //   and smithy, its quest board, its arena, its caravans' pitch;
 // - every thing used from beside it stands on a closed tile with a street beside it.
 
+import { BUILDINGS } from "../../../src/art/buildings";
+import { PALETTES } from "../../../src/art/paint/palette";
+import { PROPS } from "../../../src/art/props/registry";
 import type { BuildingData, PropData, TownData, XZ } from "../../../src/world/format";
 import { BLOCKED, OBJECT_KINDS, RAMP } from "../../../src/world/format";
 import { TOWN_LIMITS, lintTown } from "../../../src/world/lint";
@@ -384,6 +387,15 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     }
     if (open(n.x, n.z)) problems.push(`${n.id} stands on an open tile`);
     if (![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => isStreet(n.x + dx!, n.z + dz!) && open(n.x + dx!, n.z + dz!))) problems.push(`${n.id} has no street beside it`);
+  }
+  // Everything names art there is: every prop's id and palette, every building's style and palette.
+  for (const p of [...land.fixtures, ...land.decor.values()]) {
+    if (!PROPS.has(p.id)) problems.push(`a prop ${p.id} the art does not have`);
+    if (p.tint && !PALETTES.has(p.tint)) problems.push(`${p.id} tinted ${p.tint}, no palette of the art's`);
+  }
+  for (const b of ctx.buildings) {
+    if (!BUILDINGS.has(b.style)) problems.push(`${b.id} in a style ${b.style} the art does not have`);
+    if (b.palette && !PALETTES.has(b.palette)) problems.push(`${b.id} in a palette ${b.palette} the art does not have`);
   }
   // Buildings apart.
   const owner = new Map<number, string>();

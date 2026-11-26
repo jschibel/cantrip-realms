@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+﻿import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Page, test } from "@playwright/test";
@@ -28,7 +28,7 @@ function spots(t: WorldData["towns"][number]): { gate: At; square: At; inn: At; 
   // The main arrival: the south gate where there is one (the camera looks north, into the town).
   const gate = [...gates].sort((a, b) => b[1] - a[1])[0]!;
   const sq = plan.squares[0]!;
-  const square = { x: sq.x + Math.floor(sq.w / 2), z: sq.z + Math.floor(sq.d * 0.7) };
+  const square = { x: sq.x + Math.floor(sq.w / 2), z: sq.z + Math.floor(sq.d * 0.55) };
   const inn = world!.inns.find((i) => i.town === t.id)!;
   // A main street a little way from the square: the middle of the main way furthest from it within 30 tiles.
   const mains = plan.ways.filter((w) => w.main).map((w) => {
@@ -89,7 +89,7 @@ test.describe("towns from the camera", () => {
           await settle(page);
           const file = join(out, `${t.id}-${name}-${h === 0 ? "front" : h < 0 ? "left" : "right"}-z${z}.png`);
           await page.screenshot({ path: file });
-          if (process.env.TOWN_SHOTS === "tour" && name === "gate" && z === 1) copyFileSync(file, join(tour, `town-${t.id}-${h === 0 ? "front" : h < 0 ? "left" : "right"}.png`));
+          if (process.env.TOWN_SHOTS === "tour" && name === "square" && z === 1) copyFileSync(file, join(tour, `town-${t.id}-${h === 0 ? "front" : h < 0 ? "left" : "right"}.png`));
         }
         await heading(page, 0);
       }
