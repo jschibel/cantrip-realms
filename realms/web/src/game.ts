@@ -923,6 +923,8 @@ export class Overworld {
   private async takeFind(find: Find, clicked: boolean): Promise<void> {
     if (this.taking) return;
     this.taking = true;
+    // Gear found is shown with the world kept still until the character is refreshed; the world goes on after, whatever happens.
+    let shown = false;
     try {
       const at = this.player.tile;
       this.lastReported = `${this.spaceId}:${at.x},${at.z}`;
@@ -937,7 +939,10 @@ export class Overworld {
       } else {
         this.say(found.Gear ? `You open the chest: ${gold(found.Found)} gold, and ${found.Gear.Gear.Name}.` : `You open the chest: ${gold(found.Found)} gold.`);
         // Gear found is shown as the card it is, on the loot screen with nothing else to take.
-        if (found.Gear) await this.openCards("loot", { offer: [], cap: 0, mob: "The chest", source: "chest", gear: found.Gear }, false);
+        if (found.Gear) {
+          shown = true;
+          await this.openCards("loot", { offer: [], cap: 0, mob: "The chest", source: "chest", gear: found.Gear }, false);
+        }
         await this.refresh();
       }
     } catch (e) {
@@ -949,6 +954,7 @@ export class Overworld {
         this.say(find.Kind === "heartbloom" ? "Someone picked the heartbloom first." : "Someone got to the chest first.");
       } else this.say(refusal(e));
     } finally {
+      if (shown) this.paused = false;
       this.taking = false;
     }
   }

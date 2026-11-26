@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { entity, openNear, realm, until, waitReady } from "../realm";
+import { clickWalk, entity, openNear, playerTile, realm, until, waitReady } from "../realm";
 import { SERVER, api, character, find, place, verdict } from "./server";
 
 // Gear end to end (design.md A4, A3, A5) against the real realm server, with the real card layer framed over the world
@@ -300,6 +300,13 @@ test("worn gear is in the duel's command zone, and a won duel's gear drop and a 
   await cardUntil(page, (s) => /You wear/.test(s.realm!.status), "worn from the loot screen");
   const worn = await api<Me>(page.request, "me");
   expect(Object.values(worn.Loadout).some((g) => g?.InstanceId === found.Gear!.InstanceId)).toBe(true);
+  // The loot screen closed, the world goes on: the player walks again.
+  await clickCardControl(page, /^Take|^Leave them|^Done$/);
+  await expect.poll(() => realm<string | null>(page, "layer.open"), { timeout: 30_000 }).toBe(null);
+  await expect.poll(() => realm<boolean>(page, "paused"), { timeout: 30_000 }).toBe(false);
+  const stood = await playerTile(page);
+  await clickWalk(page, openNear(stood, 4));
+  expect(await playerTile(page)).not.toEqual(stood);
   await drop(page.request, null);
   await verdict(page.request, null);
 });
