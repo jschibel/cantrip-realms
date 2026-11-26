@@ -15,7 +15,7 @@ import type { BuildingData, NpcData, PropData, TownPlace, TownPlan, XZ } from ".
 import { BARE, BLOCKED } from "../../../src/world/format";
 import { Land, Use, noise, randomFor } from "../land";
 import type { Form, TownLayout } from "../layout";
-import { check, fillPockets } from "./check";
+import { check, closeOnlyWhatIsDrawn, fillPockets } from "./check";
 import { dress } from "./dress";
 import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
@@ -271,6 +271,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   country(ctx, fields, "scenery");
   levelGrounds(ctx);
   fillPockets(ctx, land.idx(main.node[0], main.node[1]));
+  closeOnlyWhatIsDrawn(ctx, land.idx(main.node[0], main.node[1]));
 
   // --- The plan as the world keeps it, the checks ------------------------------------------------------------------------
   const graph = normalize(planner.graph(plan, ctx.extraWays), ctx.extraWays.flatMap((e) => [e.a, e.b]));

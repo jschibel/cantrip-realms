@@ -30,7 +30,8 @@ import { TOWN_SIZE } from "./forms";
 import { STEP } from "./terrain";
 import { FOOTPATH } from "./passages";
 import { isOrganic } from "./organic";
-import { S } from "../ids";
+import { S, SURFACES } from "../ids";
+import { tilesOf } from "../../../src/art/props";
 
 /** What stands tall enough to hide anything: measured for the camera. */
 const TALL = new Set([
@@ -75,7 +76,9 @@ function passes(ctx: Ctx, i: number, j: number): boolean {
 }
 
 /** The tiles walked to from a tile: eight ways, never cutting a closed corner, a hop straight across only. */
-export function walkedFrom(ctx: Ctx, from: number): Uint8Array {
+export function walkedFrom(ctx: Ctx, from: number, stopAtExits = false): Uint8Array {
+  // Past an exit the player leaves the grounds: a walk that stops there goes no further.
+  const exits = new Set(stopAtExits ? ctx.ways.flatMap((w) => w.exit.map(([x, z]) => ctx.land.idx(x, z))) : []);
   const { land } = ctx;
   const seen = new Uint8Array(land.size);
   const queue = new Int32Array(land.size);
@@ -87,6 +90,7 @@ export function walkedFrom(ctx: Ctx, from: number): Uint8Array {
   const level = (i: number, j: number) => Math.abs(land.height[i]! - land.height[j]!) <= 4 || (land.flags[i]! & land.flags[j]! & RAMP) !== 0;
   while (head < tail) {
     const i = queue[head++]!;
+    if (exits.has(i)) continue;
     const x = i % W;
     const z = (i - x) / W;
     for (let dz = -1; dz <= 1; dz++) {
@@ -128,6 +132,82 @@ export function fillPockets(ctx: Ctx, from: number): number {
     filled++;
   }
   return filled;
+}
+
+/**
+ * The tiles something drawn closes (the realm lint's notion, lint.ts `unseenClosed`): a building's footprint, the tiles
+ * a prop that blocks covers as the art catalogue says, what is used from beside it (an NPC object's tile).
+ */
+function drawnClosed(ctx: Ctx): Uint8Array {
+  const { land } = ctx;
+  const out = new Uint8Array(land.size);
+  for (const b of ctx.buildings) for (let z = b.z; z < b.z + b.d; z++) for (let x = b.x; x < b.x + b.w; x++) if (land.inside(x, z)) out[land.idx(x, z)] = 1;
+  for (const p of [...land.fixtures, ...land.decor.values()]) {
+    const { tiles, blocks } = tilesOf(p);
+    if (blocks) for (const [x, z] of tiles) if (land.inside(x, z)) out[land.idx(x, z)] = 1;
+  }
+  for (const n of ctx.npcs) if (OBJECT_KINDS.has(n.kind) && land.inside(n.x, n.z)) out[land.idx(n.x, n.z)] = 1;
+  return out;
+}
+
+/** Closed tiles one comes up against with nothing drawn there to close them: [tile, ...] (water, a liquid, is drawn). */
+function unseenClosed(ctx: Ctx, walked: Uint8Array): number[] {
+  const { land } = ctx;
+  const drawn = drawnClosed(ctx);
+  const out: number[] = [];
+  for (let i = 0; i < land.size; i++) {
+    if (land.open(i) || drawn[i] || land.isWater(i) || land.surface[i] === S.none) continue;
+    const x = land.xOf(i);
+    const z = land.zOf(i);
+    // Come up against: from a tile walked to beside it, level with it or a hop below or above it.
+    if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => land.inside(x + dx!, z + dz!) && walked[land.idx(x + dx!, z + dz!)] === 1 && Math.abs(land.height[land.idx(x + dx!, z + dz!)]! - land.height[i]!) <= STEP)) out.push(i);
+  }
+  return out;
+}
+
+/**
+ * A tile is closed only where something drawn closes it: whatever the plan and the dressing closed (a wall's ring
+ * thicker than its runs, a gate's cheeks, a yard's edge with no fence on it) that nothing drawn covers and one would come
+ * up against is opened again, its ground as it is. Walls, palisades, hedges and fences close the tiles their footprints
+ * cover, and those alone.
+ */
+export function closeOnlyWhatIsDrawn(ctx: Ctx, from: number): number {
+  const { land } = ctx;
+  let opened = 0;
+  const drawnNow = () => drawnClosed(ctx);
+  for (let pass = 0; pass < 4; pass++) {
+    const walked = walkedFrom(ctx, from, true);
+    const unseen = unseenClosed(ctx, walked);
+    if (unseen.length === 0) break;
+    const drawn = drawnNow();
+    const done = new Set<number>();
+    if (process.env.TOWN_DEBUG === "unseen") console.log(`${ctx.town.id}: ${unseen.length} unseen closed: ${unseen.slice(0, 8).map((i) => `${land.xOf(i)},${land.zOf(i)} use ${land.use[i]} town ${ctx.inTown[i]}`).join("; ")}`);
+    for (const u of unseen) {
+      if (done.has(u)) continue;
+      if (ctx.inTown[u] === 0) {
+        // In the country: something drawn there to close it, a bush.
+        land.put(u, { id: "bush", x: land.xOf(u) + 0.5, z: land.zOf(u) + 0.5, seed: u % 16 }, true);
+        done.add(u);
+        opened++;
+        continue;
+      }
+      // In the town: the whole stretch of it closed with nothing drawn is open ground.
+      const region = [u];
+      done.add(u);
+      for (let h = 0; h < region.length; h++) for (const j of land.n4(region[h]!)) {
+        if (done.has(j) || land.open(j) || drawn[j] || land.isWater(j) || ctx.inTown[j] === 0) continue;
+        done.add(j);
+        region.push(j);
+      }
+      for (const i of region) {
+        land.flags[i] = 0;
+        land.decor.delete(i);
+        if (land.use[i] === Use.Wall || land.use[i] === Use.Yard) land.use[i] = Use.Lot;
+        opened++;
+      }
+    }
+  }
+  return opened;
 }
 
 export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[], lenient = false): TownReport {
@@ -386,6 +466,9 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     at ||= `${land.xOf(i)},${land.zOf(i)}`;
   }
   if (stranded > 0) problems.push(`${stranded} open tiles nobody walks to (one at ${at})`);
+  // Nothing closed that nothing drawn closes (the realm lint's rule, within the grounds).
+  const unseen = unseenClosed(ctx, walkedFrom(ctx, start, true));
+  if (unseen.length > 0) problems.push(`${unseen.length} closed tiles with nothing drawn there to close them (one at ${land.xOf(unseen[0]!)},${land.zOf(unseen[0]!)}, ${SURFACES[land.surface[unseen[0]!]!]})`);
   // The walked ground's edge: only the exits open, each walked to, its inside on its road.
   for (const w of ctx.ways) {
     for (const [x, z] of w.exit) if (!seen[I(x, z)]) problems.push(`the ${w.side} exit at ${x},${z} is not walked to`);

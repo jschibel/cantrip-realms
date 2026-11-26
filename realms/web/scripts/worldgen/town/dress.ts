@@ -177,7 +177,8 @@ function sites(ctx: Ctx): void {
       for (let z = b.z0; z < fz - 8; z++) for (let x = b.x0; x < b.x1; x++) {
         const i = land.idx(x, z);
         if (land.use[i] !== Use.Kept) continue;
-        land.flags[i] = BLOCKED;
+        // The keep's lawn behind it: open ground (nothing drawn there closes it).
+        land.flags[i] = 0;
         land.use[i] = Use.Yard;
         land.surface[i] = S.grass;
       }
