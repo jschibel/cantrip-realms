@@ -273,14 +273,20 @@ owner may extend.
   | R | Keld | Keld's longhouse town | Icehaven, north of Aerona: frozen mountains and tundra | a Keldon fortress in the mountains (caves) | Garna, Bloodfist of Keld |
   | U | Orvada | the Tolarian Academy on Walassa | Orvada's isles, Walassa and Denawa, off Aerona's coast | the academy's tower (tower) | Teferi |
 
-  - **Aerona** is split north from south by the **Hurloon Mountains**, home of the minotaurs. North of them are the
-    Durkwood, Sursi of the pegasi, Foriys of the two-headed giants, Avenant of the archers, and the **Ironclaw
-    Mountains** of the orcs. South of them lie Benalia and Llanowar, with the Suder River between.
-  - **Icehaven**, across a strait to the north, holds Keld in its south and **Parma** of the ice giants in its frozen
-    north. A **desolate waste** divides Keld from the rest of the Domains; the **Phyrexian Portal** stands in it.
-  - **Islands:** **Verdura**, lush druid woodland, to the south; **Shanodin's island** to the east, with the forest of
-    Shanodin, the small nation of Oneah and the dark realm of Amjad; **Orvada's isles** to the west; and **Stahaan**,
-    the xenophobic minotaurs' isle, north of Orvada.
+  - **Aerona** is split north from south by the **Hurloon Mountains**, home of the minotaurs, across the neck between
+    them. North Aerona holds the Whispering and Wild Woods, the Smoke, Bade and K'Cur Mountains, the desert of Surr,
+    Hammerheim, Wrenna and Muronia, and Cape Tempest. South of the Hurloons lie Benalia in the north-west (the Caligo
+    Morass at its tip, Avenant of the archers on the isles off it), the Kb'Briann Highlands and the Durkwood, Llanowar
+    in the middle with its rivers Fors, Moen and Selendine, the **Ironclaw Mountains** of the orcs down the east coast,
+    the Tonga Mountains and Erg Mirab, Sursi of the pegasi in the east (the Cathedral of Serra), and the tail south:
+    Kush, the Green Lands and Barbar.
+  - **Icehaven**, across the Rip to the north, holds Keld in its south-west and **Parma** of the ice giants in its frozen
+    north-east. A **desolate waste** in Surr, by the Rip, divides Keld from the rest of the Domains; the **Phyrexian
+    Portal** stands in it.
+  - **Islands:** **Verdura**, lush druid woodland, at the south-west tip; **Foriys** of the two-headed giants south-east
+    of the tail; **Shanodin's island** to the east, with the forest of Shanodin, the small nation of Oneah and the dark
+    realm of Amjad at its south end; **Orvada's isles**, Walassa and Denawa, at the far east; and **Stahaan**, the
+    xenophobic minotaurs' isle, north of Orvada.
   - **One connected world:** the islands are reached as the land is walked. Causeways and fords join the near ones, and
     ferries at harbor docks cross to the far ones. A ferry crossing is seamless, as a door is: you board, the crossing
     eases by, and you step off on the other shore.

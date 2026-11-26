@@ -857,6 +857,18 @@ The world generator (`realms/web/scripts/worldgen/`, `npm run world`, about five
 every town, stretches of each kind of country; `npm run world:map -- <dir> towns` the towns alone). The hex generator
 is gone.
 
+**The travel map's geography** (the world revamp; the generator does not read it yet) is
+`realms/content/dominaria/geography.json`: the Domains at travel scale, 512 by 768 tiles, as authored curves for a
+generator to grow the map from - the coast traced from the classic map (`realms/docs/ref/domains2.jpg`, untracked) by
+color at 0.6 tiles a pixel, Walassa, Denawa and Stahaan drawn by hand, and the lakes, rivers, ranges and their passes,
+areas of each biome, regions (seeds), towns, dungeons, landmarks, ferries, roads and labels placed from all five
+reference maps. `scripts/worldgen/geography.ts` types it (each field's units and what a generator may assume) and checks
+it (`geography.test.ts`: closed, simple, clockwise polygons inside a 12-tile sea margin; places on open land in the
+landmass and region they name; rivers to the sea, a lake or another river; passes on their crests; every town reached
+over roads and ferries; the Hurloons a wall between North and South Aerona but at their two passes; the ids exactly
+layout.json's). `python tools/realms/geography-map.py` draws it (`e2e/screenshots/world2/geography.png`, the regions,
+and the map beside the reference; `--crop x0,z0,x1,z1` a close-up with a tile grid).
+
 - **Size.** 1024 by 1216 tiles from `[0, 0]`, 32 by 38 chunks (1,216 files), no `bounds`. Sized for walking at 4.2 tiles a
   second: four to five minutes north to south in a straight line; New Benalia's walls to Capashen Hold's or the elfhames'
   40 seconds by road, to Keld two minutes with the ferry; New Benalia's square 157 tiles (its walls about 140 across, 35
