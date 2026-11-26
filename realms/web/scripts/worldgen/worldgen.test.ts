@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BLOCKED, CHUNK, type ChunkData, type DungeonData, ICON_SIZE, type InteriorData, LEDGE, RAMP, type WorldData, chunkKey, siteRect } from "../../src/world/format";
 import { POCKET_GAP, lintRealm } from "../../src/world/lint";
+import { tilesOf } from "../../src/art/props";
+import { SURFACES } from "../../src/art/surfaces";
 import { distanceTo, poissonTiles } from "./fields";
 import { type Vendor, generate } from "./generate";
 import { distanceToLine, landmassAt, readGeography, signedArea2 } from "./geography";
@@ -338,6 +340,27 @@ describe("the realm lint, on Dominaria made wrong on purpose", () => {
     expect(lint({ ...world, ferries: [{ ...ferry, lane: [ferry.lane[0]!, ...ferry.lane.slice(3)] }, ...world.ferries.slice(1)] }, chunks)).toMatch(/no step of a walk/);
     const withEntrance = chunks.find((c) => c.entrances.length > 0)!;
     expect(lint(world, withChunk((c) => c === withEntrance, (c) => ({ ...c, entrances: c.entrances.map((e) => ({ ...e, dungeon: "nowhere" })) })))).toMatch(/no dungeon nowhere/);
+  });
+
+  it("walks onto a town's exit and out through its way, never on past it", () => {
+    const town = world.towns.find((t) => t.id === "new-benalia")!;
+    const way = town.ways![0]!;
+    const [sx, sz] = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] }[way.side] as [number, number];
+    const [ex, ez] = way.exit[Math.floor(way.exit.length / 2)]!;
+    const close = (x: number, z: number) =>
+      chunks.map((c) =>
+        c.cx === Math.floor(x / CHUNK) && c.cz === Math.floor(z / CHUNK)
+          ? { ...c, tiles: c.tiles.map((t, k) => (k === (z - c.cz * CHUNK) * CHUNK + (x - c.cx * CHUNK) ? ([t[0], "grass", BLOCKED] as const) : t)) }
+          : c,
+      );
+    const seen = { propTiles: tilesOf, liquid: (s: string) => SURFACES.has(s) && SURFACES.look(s).hole === true };
+    const known = { surfaces: new Set<string>(), props: new Set<string>(), styles: new Set<string>(), rooms: new Set<string>(), figures: new Set<string>(), palettes: new Set<string>(), onUnknown: () => {}, ...seen };
+    const grass = (c: ChunkData[]) => Number(/(\d+) closed grass tile/.exec(lintRealm(world, c, interiors, dungeons, { known }).join("\n"))?.[1] ?? 0);
+    const before = grass(chunks);
+    // A tile past the exit, closed with nothing drawn there: nobody comes up against it.
+    expect(grass(close(ex + sx, ez + sz))).toBe(before);
+    // The same two steps inside the grounds from the exit: walked up to.
+    expect(grass(close(ex - 2 * sx, ez - 2 * sz))).toBe(before + 1);
   });
 
   it("catches a town's way whose outside is not beside its icon, and a spawn by an icon", () => {

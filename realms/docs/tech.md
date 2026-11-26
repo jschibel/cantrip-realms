@@ -366,7 +366,8 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   where)`, given, takes an id the art does not have instead of its being a problem (while the art is built beside the
   world). The realm, `lintRealm(world, chunks, interiors, dungeons, {known, tiers})`: `lintWorld` and the
   whole world as the game plays it - walked whole from the first inn as a player walks (`canStep`: eight ways, no
-  corner cut, no ledge stepped over but a hop straight across), everything stood on
+  corner cut, no ledge stepped over but a hop straight across; a town's ways taken as doors, an exit tile stepped onto
+  and left by but never walked on past), everything stood on
   open and reached, the rest reached beside, interiors in the towns their doors stand in, entrances and dungeons where
   world.json says with spell tables and waystones beside them and an open step out, spawns of their zone's tier and their
   mobs', tiers growing with distance, waymarkers at rises, ferry lanes walks from dock to dock with ferrymen, pitches open
@@ -988,7 +989,8 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
 - **The coast**: a signed distance field of the landmasses' raster (an exact Euclidean distance transform,
   Felzenszwalb and Huttenlocher's), sampled through a domain warp of 1.6 tiles and nudged by fractal noise of 0.7: ragged
   at the tile's scale, every bay, cape, strait and islet where the sketch has it; a neck the noise cut is joined again
-  along the sketch's own land; a lone tile of land in the sea goes under. Shallows four tiles out, the open sea beyond.
+  along the sketch's own land; a lone tile of land in the sea goes under. Shallows two tiles out (light,
+  green-blue water over a sandy bed: the art's `shallows`), the deep sea beyond.
 - **Regions** by the nearest seed on the tile's landmass (distance over weight), the borders waved by noise. **Biomes**
   from the areas painted in order (a region's own biome where none is), sampled through a domain warp of 7 tiles, so a
   border is a wandering, dithered line.
@@ -998,12 +1000,17 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   ranges as ridged multifractal noise in a band along each crest (wandered a little), their height by the range's (1
   hills, 2 mountains, 3 the great ranges), foothills round them; the rivers' lines wandered by noise and stamped as a
   distance field, their beds graded down to the sea and a floodplain to either side; the lakes' shores graded to them;
-  each place's ground levelled. Then whole levels of 12 texels.
+  each place's ground levelled. Then the field is smoothed (two box blurs, about a Gaussian of three tiles) and read on a
+  lattice of 3-tile cells that slides by noise across the map, so a brink runs straight for a cell before it steps (a
+  staircase of bold steps, never of single tiles: 8% of brink edges are single-tile steps, 43% before), cut into whole
+  levels of 12 texels, and each level's small tongues and notches taken out by a 5-by-5 majority filter.
 - **The ranges are walls**: a range of height 2 or 3 is closed ground in a band along its crest (its edge noisy), its
-  tiles two levels at least above their feet, crowned with **peaks** (`wilds.ts` `placePeaks`: from the crest outward
-  the biggest peak - 5, 3 or 1 tiles square - whose square lies in the band where no peak's heart stands yet, so they
-  overlap at their skirts and read as one wall; any band tile left a single peak; each higher the nearer the crest, its
-  kind the range's). A great range (3) opens only at its named passes - a corridor five tiles wide straight across the
+  tiles two levels at least above their feet, crowned with a few big **peaks** (`wilds.ts` `placePeaks`: blue noise from
+  the crest out, peaks 5 tiles square where the band holds one, then 3 between them, each at least 0.65 of their widths
+  apart so their feet overlap and their summits stand apart; each the taller the nearer the crest line; its kind the
+  range's; a single-tile peak only now and then on a rim). What no peak covers is ground that reads as mountain - rock,
+  scree, snow, a boulder here and there - two levels at least above any walked tile beside it, a cliff never come up
+  against. A great range (3) opens only at its named passes - a corridor five tiles wide straight across the
   crest, its saddle at the foothills' height - and a road through a pass is routed through it (the sketch's `via`); a
   range of height 2 also opens at gaps where a noise along its crest says, and where a road must cross it the road cuts
   its own gap (dearly: the cost field prefers the way round). Hills (1) are walked over, a low peak here and there on
@@ -1056,8 +1063,9 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   wanderer is met: one nobody drew joins the two spawns of its tier with fewest mobs.
 - **Size and counts** (seed 1997): the travel map `[0, 0, 512, 768]` (16 by 24 chunks, 161,655 tiles of land), the
   towns' grounds packed in columns east of it two empty chunks apart, the world 1568 by 768 tiles, 705 chunk files. About
-  7,200 peaks, 6,800 groves, 780 small things, 1,400 tiles of fields, 45 roads (3,600 tiles), 21 signposts, 14 bridges
-  and fords, 54 spawns, 24 waymarkers, 36 dungeons (20 mage towers), 8 ferries, 12 landmarks, 69 labels. Walked at 4.2
+  1,129 peaks (193,000 triangles, `npx vite-node scripts/peak-triangles.ts`; 7,200 and 1.15 million before the ranges were drawn as a few big peaks), 6,500
+  groves, 650 small things, 1,400 tiles of fields, 45 roads (3,600 tiles), 20 signposts, 14 bridges
+  and fords, 52 spawns, 27 waymarkers, 36 dungeons (20 mage towers), 8 ferries, 12 landmarks, 69 labels. Walked at 4.2
   tiles a second, the travel map is about three minutes north to south. No chest or heartbloom is placed: the server
   spawns them (interfaces.md, "Finds of the wilds").
 - **Towns** stand each in a pocket of grounds at walking scale, laid out whole by the town generator

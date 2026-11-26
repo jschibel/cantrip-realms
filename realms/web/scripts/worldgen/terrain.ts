@@ -56,19 +56,19 @@ export interface Terrain {
 
 /** Each biome's ground before the hills, and its hills' height, in levels. */
 const RELIEF: Record<GeoBiome, { readonly base: number; readonly amp: number }> = {
-  heartland: { base: 0.7, amp: 1.3 },
-  plains: { base: 0.6, amp: 1.0 },
-  coast: { base: 0.3, amp: 0.9 },
+  heartland: { base: 0.7, amp: 0.8 },
+  plains: { base: 0.6, amp: 0.55 },
+  coast: { base: 0.3, amp: 0.6 },
   swamp: { base: 0.0, amp: 0.35 },
   mountains: { base: 2.0, amp: 2.0 },
   volcanic: { base: 1.6, amp: 1.6 },
-  forest: { base: 0.9, amp: 1.3 },
+  forest: { base: 0.9, amp: 1.0 },
   tundra: { base: 1.0, amp: 1.8 },
   waste: { base: 0.9, amp: 1.2 },
   desert: { base: 0.7, amp: 0.8 },
   badlands: { base: 1.2, amp: 1.4 },
   highlands: { base: 1.8, amp: 2.4 },
-  jungle: { base: 0.6, amp: 1.2 },
+  jungle: { base: 0.6, amp: 0.9 },
 };
 
 /** A range's crest above its feet by its height (1 hills, 2 mountains, 3 the great ranges), levels. */
@@ -508,7 +508,7 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
   }
   const base = blur(baseF, W, H, LW, 9);
   const amp = blur(ampF, W, H, LW, 9);
-  const hills = fractal(`${seed}:hills`, 60, 4);
+  const hills = fractal(`${seed}:hills`, 80, 3);
   const mesas = fractal(`${seed}:mesas`, 26, 3);
   const dunes = ridged(`${seed}:dunes`, 11, 2);
   const E = new Float32Array(N);
@@ -591,6 +591,28 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
     }
   }
 
+  // The field smoothed before it is cut into levels (two box blurs, near enough a Gaussian of three tiles), so the brinks
+  // follow long, easy contours and not the noise's every wrinkle; the places' level ground kept as it was.
+  {
+    const soft = blur(blur(E, W, H, LW, 3), W, H, LW, 3);
+    // Then read on a lattice of 3-tile cells, so a brink runs straight for a cell's width before it steps (a staircase of
+    // bold 3-tile steps, never one of single tiles); the lattice slides by noise across the map, so it is never a grid.
+    const slideX = gradient(`${seed}:lattice-x`, 40);
+    const slideZ = gradient(`${seed}:lattice-z`, 40);
+    for (let z = 0; z < H; z++) {
+      for (let x = 0; x < W; x++) {
+        const i = at(x, z);
+        if (!isLand(i) || reserved[i]) continue;
+        const ox = Math.floor((slideX(z, 0) + 1) * 1.5);
+        const oz = Math.floor((slideZ(x, 0) + 1) * 1.5);
+        const sx = Math.min(W - 1, Math.max(0, Math.floor((x + ox) / 3) * 3 + 1 - ox));
+        const sz = Math.min(H - 1, Math.max(0, Math.floor((z + oz) / 3) * 3 + 1 - oz));
+        const j = at(sx, sz);
+        E[i] = isLand(j) ? soft[j]! : soft[i]!;
+      }
+    }
+  }
+
   // --- Levels, and what each tile is ----------------------------------------------------------------------------------------
   const wet = fractal(`${seed}:wet`, 34, 3);
   const fine = gradient(`${seed}:fine`, 4);
@@ -601,7 +623,8 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
       const i = at(x, z);
       land.use[i] = Use.Wild;
       if (!isLand(i)) {
-        land.surface[i] = fromLandT[z * W + x]! <= 4 ? S.shallows : S.sea;
+        // A band of shallow water two tiles wide along every shore, the deep sea beyond.
+        land.surface[i] = fromLandT[z * W + x]! <= 2 ? S.shallows : S.sea;
         land.height[i] = 0;
         land.flags[i] = BLOCKED;
         water[i] = 4;
@@ -681,6 +704,30 @@ export function shapeTravel(land: Land, geo: Geography, layout: Layout): Terrain
         // A peak's ground stands two levels at least over its feet, so a range reads as a wall from below.
         land.height[i] = Math.max(land.height[i]!, (level + 2) * LEVEL);
       }
+    }
+  }
+  // Each level's ground closed and opened (a majority filter over the 5-by-5 round each open tile, twice): no level a
+  // tongue or a notch a tile or two wide, so a brink runs on in long strokes instead of zigzagging.
+  {
+    const ground = (i: number) => isLand(i) && land.flags[i] === 0 && water[i] === 0 && !band[i] && !reserved[i];
+    const votes = new Int32Array(16);
+    for (let pass = 0; pass < 2; pass++) {
+      const next = land.height.slice();
+      for (let z = 2; z < H - 2; z++) {
+        for (let x = 2; x < W - 2; x++) {
+          const i = at(x, z);
+          if (!ground(i)) continue;
+          votes.fill(0);
+          for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
+            const j = i + dz * LW + dx;
+            if (ground(j)) votes[land.height[j]! / LEVEL]!++;
+          }
+          let best = land.height[i]! / LEVEL;
+          for (let l = 0; l < votes.length; l++) if (votes[l]! > votes[best]!) best = l;
+          if (votes[best]! >= 17) next[i] = best * LEVEL;
+        }
+      }
+      land.height.set(next);
     }
   }
   // The water's floor: a river's or a lake's at its lowest bank's level, the sea at 0.

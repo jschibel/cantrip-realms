@@ -1091,22 +1091,24 @@ export function roadGravel(seed = 142): Pixmap {
   return p;
 }
 
-/** The bed of shallow water: sand and pebbles seen through a film of pale water (the shallows' `under`). */
+/** Shallow water's own ramp: lighter and greener than the deep sea's, its ripples catching the light. */
+const SHALLOW_WATER: Ramp = [0x1d5e6e, 0x2a7e8c, 0x3a9ea6, 0x52b4b4, 0x86d2cc, 0xb8e8e0, 0xeefcf8];
+
+/**
+ * The shallows' water (their `under`): water first - light, green-blue, rippled as the sea's is - with the sandy bed
+ * only a tint through it (a fifth), so a shallow coast reads as water from every zoom and never as pale ground.
+ */
 export function shallowsBed(seed = 143): Pixmap {
-  const p = sand(R.SAND, seed);
-  const w = 0x4ea2bc;
+  const bed = sand(R.SAND, seed);
+  const water = waterOf(SHALLOW_WATER, seed, 32);
+  const p = new Pixmap(SIZE, SIZE);
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
-      const c = p.get(x, y);
-      const mix = (s: number) => Math.round(((c >> s) & 0xff) * 0.5 + ((w >> s) & 0xff) * 0.5);
+      const c = water.get(x % 32, y % 32);
+      const b = bed.get(x, y);
+      const mix = (s: number) => Math.round(((c >> s) & 0xff) * 0.8 + ((b >> s) & 0xff) * 0.2);
       p.set(x, y, (mix(16) << 16) | (mix(8) << 8) | mix(0));
     }
-  }
-  const random = seeded(seed + 1);
-  for (let k = 0; k < 16; k++) {
-    const x = Math.floor(random() * SIZE);
-    const y = Math.floor(random() * SIZE);
-    for (let i = 0; i < 4; i++) p.set(x + i, y, i === 1 ? 0xffffff : 0xa6dce6);
   }
   return p;
 }

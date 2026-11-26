@@ -442,10 +442,18 @@ export function rampWays(land: Land, way: (i: number) => boolean): number {
   const near: number[] = [];
   const ramp = new Uint8Array(land.size);
   const pairs: [number, number][] = [];
+  const W = land.width;
   for (let i = 0; i < land.size; i++) {
     if (!way(i) || ramp[i]) continue;
     for (const n of land.n4(i, near)) {
       if (!way(n) || ramp[n] || h[n] !== h[i]! - LEVEL) continue;
+      // Only where the way runs straight up the bank: on below the lower tile, on above the higher (else the hop is
+      // the way up, and a ramp there would climb nowhere).
+      const below = n + (n - i);
+      const above = i + (i - n);
+      if (Math.abs((n % W) - (i % W)) + Math.abs(Math.floor(n / W) - Math.floor(i / W)) !== 1) continue;
+      if (below < 0 || below >= land.size || above < 0 || above >= land.size) continue;
+      if (h[below]! > h[n]! || h[above]! < h[i]! || ramp[below] || ramp[above]) continue;
       ramp[n] = 1;
       ramp[i] = 1;
       pairs.push([n, i]);

@@ -16,7 +16,7 @@ import { fractal, poissonTiles } from "./fields";
 import type { GeoBiome, Geography, XZ } from "./geography";
 import { GEO_BIOMES } from "./geography";
 import { S } from "./ids";
-import { type Land, Use, between, hopPieces, hopSteps, randomFor, shuffle, texel } from "./land";
+import { LEVEL, type Land, Use, between, hopPieces, hopSteps, randomFor, shuffle, texel } from "./land";
 import type { DungeonLayout } from "./layout";
 import type { Terrain } from "./terrain";
 
@@ -92,51 +92,83 @@ export function placeDungeon(land: Land, plan: DungeonLayout, at: XZ, toward: XZ
 // --- The peaks ------------------------------------------------------------------------------------------------------------
 
 /**
- * The ranges' bands crowned with peaks: from the crest outward, the biggest peak (5, 3 or 1 tiles square) whose square
- * lies all in the band where no peak's heart stands yet - so the peaks overlap at their skirts and the range reads as one
- * wall - then a peak of one tile on any band tile no peak's square covers. Each the higher the nearer the crest, by its
- * range's height; its kind the range's. The hills (ranges of height 1) get a scatter of low single peaks along their
- * crests, each alone (walked round). Returns the peaks.
+ * The ranges' bands crowned with a few big peaks, as one draws a range: blue noise along the crest, from the crest out -
+ * peaks 5 tiles square where the band holds one, then 3 between them - each at least 0.65 of their widths apart, so
+ * their feet overlap and their summits stand apart with saddles between; each the taller the nearer the crest line, by
+ * its range's height; its kind the range's. A single-tile peak only now and then on a range's rim. What no peak covers
+ * is closed ground that reads as mountain: two levels at least above any walked tile beside it (a cliff: never come up
+ * against, so nothing need be drawn on it), scree at the rim, a boulder here and there. The hills (ranges of height 1)
+ * get a scatter of low single peaks along their crests, each alone (walked round). Returns the peaks.
  */
 export function placePeaks(land: Land, terrain: Terrain, geo: Geography, seed: number, free: (i: number) => boolean): PropData[] {
   const random = randomFor(seed, "peaks");
   const out: PropData[] = [];
   const W = land.width;
-  const heart = new Uint8Array(land.size);
-  const covered = new Uint8Array(land.size);
   const bandTiles: number[] = [];
   for (let z = 0; z < terrain.H; z++) for (let x = 0; x < terrain.W; x++) if (terrain.band[z * W + x]) bandTiles.push(z * W + x);
   const jitter = new Float32Array(land.size);
   for (const i of bandTiles) jitter[i] = random();
-  bandTiles.sort((a, b) => terrain.crest[b]! + jitter[b]! * 0.15 - (terrain.crest[a]! + jitter[a]! * 0.15) || a - b);
+  bandTiles.sort((a, b) => terrain.crest[b]! + jitter[b]! * 0.35 - (terrain.crest[a]! + jitter[a]! * 0.35) || a - b);
   const square = (i: number, half: number, test: (j: number) => boolean) => {
     for (let dz = -half; dz <= half; dz++) for (let dx = -half; dx <= half; dx++) if (!test(i + dz * W + dx)) return false;
     return true;
   };
-  const peak = (i: number, w: number) => {
-    const k = terrain.band[i]! - 1;
-    const m = geo.mountains[k]!;
-    const tall = m.height === 3 ? 1.15 : 0.9;
-    const h = Math.min(12, Math.round((0.9 * w + 1) * tall * (0.7 + 0.45 * terrain.crest[i]! + 0.2 * random()) * 10) / 10);
-    out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w, h, kind: m.kind } });
-    const half = (w - 1) / 2;
-    const core = Math.max(0, half - 1);
-    for (let dz = -half; dz <= half; dz++) for (let dx = -half; dx <= half; dx++) covered[i + dz * W + dx] = 1;
-    for (let dz = -core; dz <= core; dz++) for (let dx = -core; dx <= core; dx++) heart[i + dz * W + dx] = 1;
+  /** Each peak's width at its middle tile (0 where none stands). */
+  const centre = new Uint8Array(land.size);
+  const covered = new Uint8Array(land.size);
+  /** Whether a peak `w` wide may stand at a tile: no other's middle nearer than 0.65 of their two widths' mean, so their feet overlap and their summits stand apart. */
+  const roomFor = (i: number, w: number) => {
+    const x = i % W;
+    const z = Math.floor(i / W);
+    for (let dz = -4; dz <= 4; dz++) for (let dx = -4; dx <= 4; dx++) {
+      const o = centre[i + dz * W + dx];
+      if (o && Math.hypot(dx, dz) < 0.65 * ((w + o) / 2)) return false;
+    }
+    return x >= 3 && z >= 3;
   };
-  for (const i of bandTiles) {
-    if (heart[i]) continue;
-    const k = terrain.band[i];
-    const inBand = (j: number) => terrain.band[j] === k;
-    const fresh = (j: number) => !heart[j];
-    if (square(i, 2, inBand) && square(i, 1, fresh) && random() < 0.85) peak(i, 5);
-    else if (square(i, 1, inBand) && fresh(i)) peak(i, 3);
+  const peak = (i: number, w: number) => {
+    const m = geo.mountains[terrain.band[i]! - 1]!;
+    const tall = m.height === 3 ? 1.15 : 0.95;
+    // Tallest on the crest line, lower toward the feet.
+    const h = Math.min(12, Math.round((0.9 * w + 1) * tall * (0.62 + 0.55 * terrain.crest[i]! + 0.15 * random()) * 10) / 10);
+    out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w, h, kind: m.kind } });
+    centre[i] = w;
+    const half = (w - 1) / 2;
+    for (let dz = -half; dz <= half; dz++) for (let dx = -half; dx <= half; dx++) covered[i + dz * W + dx] = 1;
+  };
+  // The big peaks first, from the crest out (a staggered blue noise along it), then the middling ones between them.
+  for (const w of [5, 3]) {
+    const half = (w - 1) / 2;
+    for (const i of bandTiles) {
+      const k = terrain.band[i];
+      if (centre[i] || !square(i, half, (j) => terrain.band[j] === k) || !roomFor(i, w)) continue;
+      // Not every spot that has room: the lattice stays ragged.
+      if (random() < 0.12) continue;
+      peak(i, w);
+    }
   }
-  for (const i of bandTiles) if (!covered[i]) peak(i, 1);
+  // An outlier now and then on a range's rim, alone.
+  for (const i of bandTiles) if (!covered[i] && terrain.crest[i]! < 0.35 && random() < 0.03 && roomFor(i, 1)) peak(i, 1);
+  // What no peak covers is closed by ground that reads as mountain: two levels at least above any walked ground beside
+  // it (a cliff, never come up against), bare rock and scree, a boulder here and there.
+  const near: number[] = [];
+  for (const i of bandTiles) {
+    let foot = -Infinity;
+    for (const n of land.n4(i, near)) if (land.open(n)) foot = Math.max(foot, land.height[n]!);
+    if (foot > -Infinity) land.height[i] = Math.max(land.height[i]!, foot + 2 * LEVEL);
+    if (covered[i]) continue;
+    const kind = geo.mountains[terrain.band[i]! - 1]!.kind;
+    if (foot > -Infinity && (kind === "rock" || kind === "redrock" || kind === "sandstone")) land.surface[i] = S.scree;
+    if (random() < 0.07) land.decor.set(i, { id: "boulder", x: texel((i % W) + 0.5), z: texel(Math.floor(i / W) + 0.5), seed: between(random, 0, 15), scale: 0.8 });
+  }
+  // No hollow behind a raised rim: the band's ground a level below its highest neighbour's at the most.
+  for (let pass = 0; pass < 4; pass++) {
+    for (const i of bandTiles) for (const n of land.n4(i, near)) if (terrain.band[n] && land.height[n]! - LEVEL > land.height[i]!) land.height[i] = land.height[n]! - LEVEL;
+  }
   // The hills: a low peak here and there along their crests, alone.
   const taken = new Uint8Array(land.size);
   const order = shuffle(Array.from({ length: land.size }, (_, i) => i).filter((i) => terrain.hill[i]), random);
-  for (const i of poissonTiles(W, land.depth, order, () => 3.2, (i) => (free(i) ? 0.55 : 0), taken, random)) {
+  for (const i of poissonTiles(W, land.depth, order, () => 4.5, (i) => (free(i) ? 0.45 : 0), taken, random)) {
     const m = geo.mountains[terrain.hill[i]! - 1]!;
     land.block(i);
     out.push({ id: "peak", x: (i % W) + 0.5, z: Math.floor(i / W) + 0.5, seed: between(random, 0, 63), args: { w: 1, h: Math.round((1.3 + random() * 0.8) * 10) / 10, kind: m.kind } });

@@ -88,7 +88,8 @@ class WorldPicture {
     const view = world.overview;
     const colors = new Map<string, [number, number, number]>();
     for (const [letter, surface] of Object.entries(view.legend)) {
-      colors.set(letter, rgb(surface === "town" ? "#bcbfc9" : surface === "woods" ? "#285a3a" : surfaceColor(surface)));
+      // The overview's own letters: a town's icon, woods (the groves' canopy), a range's peaks (grey rock and snow).
+      colors.set(letter, rgb(surface === "town" ? "#bcbfc9" : surface === "woods" ? "#285a3a" : surface === "peaks" ? "#9a9aa4" : surfaceColor(surface)));
     }
     const sea = new Set(Object.entries(view.legend).filter(([, s]) => s === "sea").map(([l]) => l));
     const base = this.base.getContext("2d")!;

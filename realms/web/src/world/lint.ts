@@ -549,7 +549,9 @@ export interface RealmOptions {
 
 /**
  * A whole realm (interfaces.md, "The world, interiors and dungeons"), beyond `lintWorld`: the world is one walkable whole
- * from the first inn (every open tile reached, eight ways with no corner cut, the ferries' lanes included) and
+ * from the first inn (every open tile reached, eight ways with no corner cut, the ferries' lanes included, a town's
+ * ways taken as doors - an exit tile stepped onto and left by, never walked on past: what lies beyond it is no tile of
+ * the walk) and
  * everything in it is reached - inns, doors, entrances, spawns, pitches, docks, and beside every NPC, chest and
  * waymarker; nothing that is stood on stands on a blocked tile; every interior belongs to the town its door stands in;
  * every entrance has its dungeon where world.json and the dungeon say, its spell table beside it, a tower its waystone,
@@ -605,8 +607,10 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   queue[tail++] = index(first.x, first.z);
   reached[index(first.x, first.z)] = 1;
   // A town's ways are walked as doors are (a world of two scales): from a way's outside into its grounds at its inside,
-  // and from each of its exit tiles out onto its outside.
+  // and from each of its exit tiles out onto its outside. An exit tile is the end of a walk in the grounds - the game
+  // takes the player out there - so the walk steps onto it and through its way, never on past it.
   const ways = new Map<number, number[]>();
+  const exits = new Set<number>();
   const link = (from: XZ, to: XZ) => {
     if (!open(from[0], from[1]) || !open(to[0], to[1])) return;
     const k = index(from[0], from[1]);
@@ -614,13 +618,16 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   };
   for (const t of world.towns) for (const way of t.ways ?? []) {
     link(way.outside, way.inside);
-    for (const e of way.exit) link(e, way.outside);
+    for (const e of way.exit) {
+      link(e, way.outside);
+      if (open(e[0], e[1])) exits.add(index(e[0], e[1]));
+    }
   }
   for (let head = 0; head < tail; head++) {
     const k = queue[head]!;
     const x = (k % W) + rect[0];
     const z = Math.floor(k / W) + rect[1];
-    for (let dz = -1; dz <= 1; dz++) {
+    for (let dz = -1; dz <= 1 && !exits.has(k); dz++) {
       for (let dx = -1; dx <= 1; dx++) {
         if ((!dx && !dz) || !canStep(ground, x, z, x + dx, z + dz)) continue;
         const n = index(x + dx, z + dz);
@@ -640,11 +647,41 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
     for (let dz = -reach; dz <= reach; dz++) for (let dx = -reach; dx <= reach; dx++) if (walked(p.x + dx, p.z + dz)) return true;
     return false;
   };
+  // What lies on past an exit (a grounds' road running on into its apron) is no tile of the walk: nobody stands there.
+  const beyond = new Uint8Array(W * H);
+  {
+    const past: number[] = [];
+    for (const e of exits) {
+      const x = (e % W) + rect[0];
+      const z = Math.floor(e / W) + rect[1];
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        if ((!dx && !dz) || !canStep(ground, x, z, x + dx, z + dz)) continue;
+        const n = index(x + dx, z + dz);
+        if (!reached[n] && !beyond[n]) {
+          beyond[n] = 1;
+          past.push(n);
+        }
+      }
+    }
+    while (past.length > 0) {
+      const k = past.pop()!;
+      const x = (k % W) + rect[0];
+      const z = Math.floor(k / W) + rect[1];
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        if ((!dx && !dz) || !canStep(ground, x, z, x + dx, z + dz)) continue;
+        const n = index(x + dx, z + dz);
+        if (!reached[n] && !beyond[n]) {
+          beyond[n] = 1;
+          past.push(n);
+        }
+      }
+    }
+  }
   let openCount = 0;
-  for (let k = 0; k < openTiles.length; k++) openCount += openTiles[k]!;
+  for (let k = 0; k < openTiles.length; k++) if (!beyond[k]) openCount += openTiles[k]!;
   if (tail !== openCount) {
     let sample = "";
-    for (let k = 0; k < openTiles.length && !sample; k++) if (openTiles[k] && !reached[k]) sample = `${(k % W) + rect[0]},${Math.floor(k / W) + rect[1]}`;
+    for (let k = 0; k < openTiles.length && !sample; k++) if (openTiles[k] && !reached[k] && !beyond[k]) sample = `${(k % W) + rect[0]},${Math.floor(k / W) + rect[1]}`;
     out.push(`the world: ${openCount - tail} open tiles are not walked to from inn ${first.id} (one at ${sample})`);
   }
   for (const inn of world.inns) {
@@ -763,9 +800,10 @@ export function lintRealm(world: WorldData, chunks: readonly ChunkData[], interi
   const buildings = all("buildings");
   for (const town of world.towns) if (town.plan) out.push(...lintTown(town, open, buildings));
 
-  // Nothing closed unseen.
+  // Nothing closed unseen - from where a walker stands: on an exit tile nobody stands, the game takes them out there.
   const { propTiles, liquid } = options.known ?? {};
-  if (propTiles && liquid) out.push(...unseenClosed(world, chunks, propTiles, liquid, walked, (ax, az, bx, bz) => pass(ax, az, bx, bz) || hop(ax, az, bx, bz)));
+  const stood = (x: number, z: number) => walked(x, z) && !exits.has(index(x, z));
+  if (propTiles && liquid) out.push(...unseenClosed(world, chunks, propTiles, liquid, stood, (ax, az, bx, bz) => pass(ax, az, bx, bz) || hop(ax, az, bx, bz)));
   return out;
 }
 

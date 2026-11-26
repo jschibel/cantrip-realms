@@ -49,6 +49,8 @@ export interface SurfaceEntry {
 }
 
 const entries = new Map<string, SurfaceEntry>();
+/** Each look made, by its id and palette. */
+const looks = new Map<string, SurfaceLook>();
 
 export function defineSurface(id: string, about: string, palette: Palette, look: (palette: Palette) => SurfaceLook): void {
   if (entries.has(id)) throw new Error(`surface "${id}" is defined twice`);
@@ -63,14 +65,22 @@ export const SURFACES = {
     if (!e) throw new Error(`no surface "${id}"`);
     return e;
   },
-  /** A surface's look under a palette (over its own). */
+  /**
+   * A surface's look under a palette (over its own). Painting one takes milliseconds, so each is made once, by id and
+   * palette, and kept: the same look object every time.
+   */
   look(id: string, palette?: Palette): SurfaceLook {
+    const key = palette === undefined ? id : `${id}@${JSON.stringify(palette)}`;
+    const known = looks.get(key);
+    if (known) return known;
     const e = SURFACES.get(id);
     const look = e.look(withDefaults(e.palette, palette));
     // Every surface's bank, as biomes.ts gives it, where the surface does not name its own.
     const cliff = look.cliff ?? bankOf(id);
     const brink = look.brink ?? brinkOf(id);
-    return { ...look, ...(cliff ? { cliff } : {}), ...(brink !== undefined ? { brink } : {}) };
+    const made: SurfaceLook = { ...look, ...(cliff ? { cliff } : {}), ...(brink !== undefined ? { brink } : {}) };
+    looks.set(key, made);
+    return made;
   },
 };
 

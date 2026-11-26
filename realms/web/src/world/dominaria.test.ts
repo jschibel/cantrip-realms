@@ -66,15 +66,7 @@ const known: KnownArt = {
   propProblems: (p) => PROPS.problems(p.id, p),
   buildingProblems: (b) => BUILDINGS.problems(b.style, b),
   propTiles: tilesOf,
-  // A surface's look is drawn afresh at every call (milliseconds): asked once a surface.
-  liquid: (() => {
-    const holes = new Map<string, boolean>();
-    return (s: string) => {
-      let hole = holes.get(s);
-      if (hole === undefined) holes.set(s, (hole = SURFACES.has(s) && SURFACES.look(s).hole === true));
-      return hole;
-    };
-  })(),
+  liquid: (s) => SURFACES.has(s) && SURFACES.look(s).hole === true,
   onUnknown: (kind, id) => {
     let found = unknown.get(kind);
     if (!found) unknown.set(kind, (found = new Set()));

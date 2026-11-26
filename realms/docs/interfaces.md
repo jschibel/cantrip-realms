@@ -347,7 +347,9 @@ scale (the slice and large fixtures).
   stands on the travel map at walking scale, with no icon nor ways.
 - The lint (`checkWorld`, `lintWorld`, `lintRealm`) checks the above, the icon's footprint blocked, each way's ends open,
   and walks the world whole from the first inn through the ways as through doors (from a way's outside to its inside,
-  from each exit to its outside).
+  from each exit to its outside). An exit tile ends a walk in the grounds - the game takes the player out there - so the
+  walk steps onto it and through its way but never on past it: what lies beyond an exit (a road running on into the
+  apron) is no tile of the walk, and nothing beside an exit alone is come up against.
 - **Taking a way** is told to the server as a door is, by `POST /api/position` (Places, below): the overworld reports the
   tile it stands on (the outside, or the exit), then - the other side read and built behind the closing iris - the tile
   it arrives on; and then enters the relay anew (`Enter`, Presence), which shows the player gone from where they were
