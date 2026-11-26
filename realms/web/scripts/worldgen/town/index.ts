@@ -99,6 +99,8 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
     { scale: 0, deep: true },
     { scale: 0, deep: true, grow: 6 },
     { scale: 0, deep: true, grow: 12 },
+    { scale: 0.3, deep: false, grow: 6 },
+    { scale: 0, deep: false, grow: 12 },
   ];
   const errors: string[] = [];
   for (let k = Number(process.env.TOWN_ATTEMPT ?? 0); ; k++) {

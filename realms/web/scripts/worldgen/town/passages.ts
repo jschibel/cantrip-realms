@@ -97,23 +97,31 @@ export function passages(ctx: Ctx, placed: readonly Placed[], points: readonly {
   const g = new Grid(land.width, land.depth);
   // What the camera must see past: the ground the buildings standing hide at any heading is no place for a path.
   const hidden = new Uint8Array(land.size);
+  const standing = new Uint8Array(land.size);
   for (const p of placed) {
     // What stands there: the building, the arena's ring, the board beside the inn.
-    for (let z = p.f.z; z < p.f.z + p.f.d; z++) for (let x = p.f.x; x < p.f.x + p.f.w; x++) if (land.inside(x, z)) hidden[land.idx(x, z)] = 1;
-    if (p.spot && land.inside(p.spot[0], p.spot[1])) hidden[land.idx(p.spot[0], p.spot[1])] = 1;
+    for (let z = p.f.z; z < p.f.z + p.f.d; z++) for (let x = p.f.x; x < p.f.x + p.f.w; x++) if (land.inside(x, z)) standing[land.idx(x, z)] = 1;
+    if (p.spot && land.inside(p.spot[0], p.spot[1])) standing[land.idx(p.spot[0], p.spot[1])] = 1;
     if (!p.b) continue;
     for (const [x, z] of buildingHides(p.b, 0)) if (land.inside(x, z)) hidden[land.idx(x, z)] = 1;
   }
+  // Where nothing else will do, a footpath may pass a few tiles the camera cannot see (check.ts lets a town hide a
+  // hundredth of its streets): half a hundredth here, all its footpaths together.
+  let streets = 0;
+  for (let i = 0; i < land.size; i++) if (ctx.mustSee[i] === 1 && ctx.inTown[i] !== 0) streets++;
+  let budget = Math.floor(streets * 0.005);
+  let shadowOK = false;
   const yard = (i: number) => land.use[i] === Use.Lot && land.open(i) && !land.isWater(i);
   const way = (i: number) => ctx.mustSee[i] === 1 && land.open(i);
   const free = (x: number, z: number) => {
     if (!land.inside(x, z)) return false;
     const i = land.idx(x, z);
-    return way(i) || (yard(i) && !hidden[i]);
+    // Over a river in the town too, by a footbridge.
+    return way(i) || ((yard(i) || (ctx.river.has(i) && ctx.inTown[i] !== 0)) && !standing[i] && (shadowOK || !hidden[i]));
   };
   // The middle line passes a tile where its width (FOOTPATH: the tile and those east and south of it) is free.
   const pass = (x: number, z: number) => free(x, z) && free(x + 1, z) && free(x, z + 1) && free(x + 1, z + 1);
-  const cost = (x: number, z: number) => (way(land.idx(x, z)) ? 1 : 2.2);
+  const cost = (x: number, z: number) => (way(land.idx(x, z)) ? 1 : (hidden[land.idx(x, z)] ? 12 : 0) + (ctx.river.has(land.idx(x, z)) ? 6 : 2.2));
   let cut = 0;
   for (let round = 0; round < 3; round++) {
     let changed = false;
@@ -136,23 +144,45 @@ export function passages(ctx: Ctx, placed: readonly Placed[], points: readonly {
         if (!long || !Number.isFinite(walk)) continue;
         const targets = new Set(to.map(([x, z]) => land.idx(x, z)));
         const t0 = performance.now();
-        const r = route(g, { from, goal: (x, z) => targets.has(land.idx(x, z)), toward: pb, pass: (x, z) => pass(x, z) || targets.has(land.idx(x, z)) || from.some((f) => f[0] === x && f[1] === z), cost, turn: 0.3, limit: straight * 3 + 12 });
+        const find = () => route(g, { from, goal: (x, z) => targets.has(land.idx(x, z)), toward: pb, pass: (x, z) => pass(x, z) || targets.has(land.idx(x, z)) || from.some((f) => f[0] === x && f[1] === z), cost, turn: 0.3, limit: straight * 3 + 12 });
+        const shorter = (q: XZ[] | null) => !!q && pathTiles(q).length < walk * 0.95;
+        let r = find();
+        if (!shorter(r) && budget > 0) {
+          shadowOK = true;
+          const s = find();
+          shadowOK = false;
+          // As many tiles of it unseen as the budget has left.
+          const unseen = s ? new Set(pathTiles(s).flatMap(([x, z]) => [[0, 0], [1, 0], [0, 1], [1, 1]].map(([dx, dz]) => land.idx(x + dx!, z + dz!))).filter((i) => hidden[i] && !way(i))).size : Infinity;
+          if (shorter(s) && unseen <= budget) {
+            r = s;
+            budget -= unseen;
+          }
+        }
         if (process.env.DEBUG_PASSAGES) console.log(`route ${pa.join(",")} -> ${pb.join(",")} straight ${straight.toFixed(0)} walk ${walk.toFixed(0)}: ${r ? r.length : "none"} in ${Math.round(performance.now() - t0)} ms`);
-        if (!r) continue;
+        if (!r || !shorter(r)) continue;
         const tiles = pathTiles(r);
         // Only what is not a way yet is cut; each stretch of it, with the way tile at either end, is a footpath.
         const before = cut;
         let run: XZ[] = [];
         const flush = () => {
           if (run.length >= 2) {
+            const wet: number[] = [];
             for (const [x, z] of run) for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
               const i = land.idx(x + dx, z + dz);
               if (way(i)) continue;
               land.use[i] = Use.Street;
               land.flags[i] = 0;
               land.decor.delete(i);
-              land.surface[i] = groundsOf(ctx.town).path;
+              if (ctx.river.has(i)) wet.push(i);
+              else land.surface[i] = groundsOf(ctx.town).path;
               ctx.mustSee[i] = 1;
+            }
+            if (wet.length > 0) {
+              // A footbridge over the stretch of water it crosses.
+              const xs = wet.map((i) => land.xOf(i));
+              const zs = wet.map((i) => land.zOf(i));
+              const across = Math.max(...xs) - Math.min(...xs) <= Math.max(...zs) - Math.min(...zs);
+              land.fixtures.push({ id: "bridge", x: Math.min(...xs) - (across ? 0 : 1), z: Math.min(...zs) - (across ? 1 : 0), args: { to: [Math.max(...xs) + (across ? 1 : 2), Math.max(...zs) + (across ? 2 : 1)], y: 0 } });
             }
             const c = corners(run);
             ctx.extraWays.push({ a: c[0]!, b: c[c.length - 1]!, width: FOOTPATH, via: c.slice(1, -1) });
