@@ -133,11 +133,27 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   editor. Chunks near the view are read and built a step at a time (the ground, terrain from heights, the scenery merged
   per chunk) and those far away are dropped; paths are found over the chunks read, a bounded search.
 - **The tier zones are shown:** the regional map (the minimap, opening to the whole world's: in a world of two scales the
-  travel map's alone, the towns at their icons and the world's `labels` written over the land and the sea) tints and borders each zone
-  in its tier's color with a legend, draws the roads between the places, and marks the towns, dungeons and mage towers
-  with their tiers, attuned waystones lit; waymarkers in the tier's color and number stand where it rises; the HUD names
-  the area and its tier, and says so on crossing into a harder one; a wanderer under the pointer shows its name and
-  tier.
+  travel map's alone, the towns at their icons) is the travel map drawn as an atlas (`mapArt.ts`, from world.json's
+  `overview`, a letter and a level a tile, and its peaks): the coast smoothed and outlined over shallows and lines of
+  depth, the land by biome in the map's own palette (plains, fields, forest, jungle, swamp, highland, desert, badlands,
+  tundra, snow, ice, waste) with its relief shaded from the levels under a light from the north-west, the woods as
+  miniature trees, the ranges as rows of peaks (snow-capped where the range is), rivers and lakes, the roads (those
+  between towns bolder) and the ferries' lanes dashed over the sea. Each tier's zone is bordered in its color where the
+  tier changes, washed faintly, and numbered; the whole map's Tiers toggle tints the zones strongly. It is drawn at any
+  scale in squares of 256 pixels kept once drawn (a few tens of milliseconds a screenful), so a view is a few images
+  copied. The minimap is it at three pixels a tile round the player, the marks near; the whole map (the minimap
+  clicked, or M; `worldMap.ts`) fills the window at the Domains' 2:3 beside its legend - the marks drawn as the map draws
+  them - and zooms (the wheel, + and -, its buttons; clamped) and drags. Its names are placed afresh at each zoom
+  (`mapLabels.ts`): the towns' first, each beside its mark (joined to it by a line where a crowd pushes it off), then the
+  lands' (large and spaced), the seas' (italic), the regions', the features' and, closer in, the wonders' and the
+  zones' tier numbers, each nudged off what was placed before it, shrunk, or left out at that zoom - never two over each
+  other, so more appear as it closes in. It marks the towns by kind (the capital's keep, the home towns' houses in
+  their color, the villages), the player's inn ringed in gold, the dungeons with their tiers (a color's boss ringed in
+  its color, filled once it is held), the mage towers (lit when attuned), the wonders (world.json's `landmarks`), the
+  Phyrexian Portal, the ferries' docks, the players near and the player, ringed and pointing the way they go; each mark
+  is named on hover with its tier and its boss or its waystone, and the land with its area and tier. Escape or M closes
+  it. Waymarkers in the tier's color and number stand where it rises; the HUD names the area and its tier, and says so
+  on crossing into a harder one; a wanderer under the pointer shows its name and tier.
 - **Towns are mapped:** in a town (or at its gates; in a world of two scales, anywhere in its grounds, the area line
   naming the town there too) the minimap is the town's map round the player instead
   (`townMap.ts`, from the town's street plan in world.json): its streets and squares paved light with dark kerbs, its
@@ -198,7 +214,10 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   hops it, held and clicked; `hop.spec.ts` hops a terrace of the large world with the real mouse at each heading, held
   down and clicked up, frame by frame and pictured; SWEEP_TOWNS, SWEEP_WALKS sweep more, and
   `e2e/server/sweep.spec.ts`, with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too);
-  `tour.spec.ts` takes the pictures of the
+  `map.spec.ts` opens the whole map with M at 1280x800 and 1920x1080 - filling the window at 2:3, every town named, no
+  two names over each other fitted and zoomed in on Benalia, Llanowar, North Aerona and Icehaven, a dungeon named on
+  hover, the tiers tinted, dragged, closed with Escape - and the minimap at a coast, a pass and a forest (`MAP_SHOTS=<dir>`
+  keeps the pictures); `tour.spec.ts` takes the pictures of the
   Domains (`REALM_TOUR=1` writes `e2e/screenshots/tour`); `occlude.spec.ts` holds the occluder fade and the steady
   view in New Benalia at every heading; `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face. `npm run e2e:server` runs `e2e/server/` against the real realm
   server on the generated world instead (the page on its own clock there, as the server times walks by its clock): it
@@ -239,7 +258,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 | `dungeon/` | the dungeon floors per theme, on squares |
 | `art/figures/` | the figure rig, bodies, palettes, gear parts per slot, every creature model, the NPCs |
 | `world/` | the world data format (types, loader, lint), towns' street plans (`streets.ts`), the walk grid, and Dominaria's files (`realm.ts`) |
-| `game.ts`, `entities.ts`, `input.ts`, `hud.ts`, `townMap.ts`, `screens/`, `net/`, `testHooks.ts` | the game around it |
+| `game.ts`, `entities.ts`, `input.ts`, `hud.ts`, `townMap.ts`, `mapArt.ts`, `worldMap.ts`, `mapLabels.ts`, `screens/`, `net/`, `testHooks.ts` | the game around it (the maps: a town's, the travel map's atlas, the whole map's view and marks, its names' placing) |
 
 Each recipe module is a registry: an id maps to a pure function from a recipe and a palette to meshes and materials.
 The world data names ids; nothing in the world data is three.js.

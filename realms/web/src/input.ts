@@ -5,7 +5,7 @@ import { WalkInput } from "./render/pointer";
 // The mouse and keys on the world. A click walks there, or walks up to what was clicked and uses it (a person, a mob,
 // a chest, a door); held, the walk follows the cursor (render/pointer.ts). What the pointer is over is named beside it
 // - a wanderer's name and tier, a door's room - and the cursor shows what a click would do. Q and E turn the camera a
-// heading; the wheel, + and - step the outdoor zoom.
+// heading; the wheel, + and - step the outdoor zoom; M opens the whole map (hud.ts), whose keys they are while it is open.
 
 export function bindInput(game: Overworld): WalkInput {
   const canvas = game.canvas;
@@ -35,6 +35,9 @@ export function bindInput(game: Overworld): WalkInput {
   });
   window.addEventListener("keydown", (e) => {
     if (e.repeat || game.screen !== "world" || (e.target as HTMLElement | null)?.tagName === "INPUT") return;
+    // The whole map takes the keys while it is open (M or Escape closes it, + and - zoom it); M opens it.
+    if (game.hud.mapKey(e.key)) return;
+    if (e.key === "m" || e.key === "M") return game.hud.openMap();
     if (e.key === "q" || e.key === "Q") game.turn(-1);
     if (e.key === "e" || e.key === "E") game.turn(1);
     if (e.key === "+" || e.key === "=") game.zoomBy(-1);

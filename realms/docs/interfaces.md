@@ -223,8 +223,20 @@ scales", below). No file holds a chest or a heartbloom: they come and go.
     index in `areas` of the square at `x = col * cell`, `z = row * cell`. An area is a region's band of one tier (named in
     `layout.json`), or the sea (tier 0); a town within its walls is no tier's. A tile's tier is its square's area's
     (`areaAt`, `tierAt`);
-  - `overview` is the world from above for the regional map: `{cell, legend: {letter: surface, T: town, F: woods},
-    rows}`, a letter for each `cell`-by-`cell` square (8).
+  - `overview` is the travel map from above for the regional map (`world/overview.ts` writes and reads it):
+    `{cell, legend: {letter: what}, rle?, rows, levels?, peaks?}`. `rows` are a letter for each `cell`-by-`cell` square
+    from the origin, row by row, each letter one the `legend` names: a surface's id, or `woods:<kind>` where a grove of
+    that kind stands (the first version's coarse grids also name `town`, `woods` and `peaks`). The generator writes a
+    cell of 1 - a letter a tile - with `rle: true`: each row run-length coded, a run its count (left out for one) then
+    its letter, so no letter is a digit (`"3ab4cd"` is `aaabccccd`). `levels` are the ground's level a square, coded as
+    the rows and as long: `a` level 0, `b` level 1 and on (a floor's height over a terrace's 12 texels, rounded).
+    `peaks` are the ranges' peaks, `[x, z, width, kind]`: the middle tile of each one's footprint, its width in tiles
+    (1, 3, 5) and its kind (the `peak` prop's: `rock`, `snow`, `ice`, `ash`, `sandstone`, `redrock`). Dominaria's is a
+    letter for each of the 512 by 768 tiles, about 145 KB of world.json. The towns' icons, the roads, the ferries and the
+    zones the map draws from their own lists.
+  - `landmarks` (optional) are the travel map's wonders for the whole map: `[{id, name, kind, x, z}]`, `kind` the
+    `landmark` prop's (`cathedral`, `great-oak`, `floating-towers`, `ruin`, `obelisk`, `arena`, `lighthouse`) and `x, z`
+    the middle tile of its footprint.
 
   `world/chunks/<cx>_<cz>.json` is each 32-by-32 chunk ("Version 2 of the world data" has every field): its `tiles` (`[height, surface,
   flags]`, row by row; flags 1 blocked, 2 bare, 4 a ramp, which is walked as any open tile), `props`, `buildings` (a door into an interior has `door` and `interior`), `npcs`, `spawns`,
@@ -375,7 +387,7 @@ The art slice's small world is `realms/web/fixtures/slice-world`.
     `start`, `home`, `plan`, and in a world of two scales `site`, `grounds`, `ways`), `inns` (`{id, town, x, z, interior}`),
     `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x, z}`), `roads` (`{from, to, tiles}`), `zones` (the tier
     grid: squares of `cell` tiles from the origin), `overview`; and `travel?: [x0, z0, x1, z1]`, `labels?` ("Two scales",
-    above).
+    above), `landmarks?` (above).
   - Every position is `[x, z]` in tiles, with x east and z south; an entity in a list has fields `x` and `z`.
 - `chunks/<cx>_<cz>.json`, 32 by 32 tiles, chunk (cx, cz) holding x from `cx * 32`, likewise z (negative chunks are
   named `-1_0.json`):

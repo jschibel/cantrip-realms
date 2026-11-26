@@ -414,10 +414,32 @@ export interface Zones {
   readonly grid: readonly (readonly number[])[];
 }
 
+/**
+ * The travel map from above, for the regional map (overview.ts reads and writes it): `cell`-by-`cell` squares from the
+ * origin, a letter each that `legend` names (a surface's id, `woods:<kind>` where a grove stands; a first-version grid's
+ * `town`, `woods`, `peaks`). The generator's is a tile a square, its `rows` and `levels` run-length coded (`rle`).
+ */
 export interface Overview {
   readonly cell: number;
   readonly legend: Readonly<Record<string, string>>;
   readonly rows: readonly string[];
+  /** Rows (and levels) run-length coded: each run its count, left out for one, then its letter. */
+  readonly rle?: boolean;
+  /** Each square's ground level, a letter a square as the rows: `a` level 0 (a floor's height over 12 texels, rounded). */
+  readonly levels?: readonly string[];
+  /** The ranges' peaks: the middle tile of each one's footprint, its width in tiles and its kind (the `peak` prop's). */
+  readonly peaks?: readonly (readonly [number, number, number, string])[];
+}
+
+/** A wonder of the travel map (a `landmark` prop's), named for the whole map. */
+export interface MapLandmark {
+  readonly id: string;
+  readonly name: string;
+  /** The `landmark` prop's `args.kind`: `cathedral`, `great-oak`, `floating-towers`, `ruin`, `obelisk`, `arena`, `lighthouse`. */
+  readonly kind: string;
+  /** The middle tile of its footprint. */
+  readonly x: number;
+  readonly z: number;
 }
 
 export interface RoadData {
@@ -475,6 +497,8 @@ export interface WorldData {
   readonly travel?: Rect;
   /** Names the whole map writes over the land and the sea. */
   readonly labels?: readonly MapLabel[];
+  /** The travel map's wonders, which the whole map marks and names. */
+  readonly landmarks?: readonly MapLandmark[];
 }
 
 export interface DungeonData {

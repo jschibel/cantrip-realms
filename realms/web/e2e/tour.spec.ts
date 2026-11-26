@@ -44,9 +44,10 @@ for (const town of world().towns) {
 
 // --- Regions, from the furthest zoom ------------------------------------------------------------------------------------
 
-const layout = JSON.parse(readFileSync(join(here, "..", "..", "content", "dominaria", "layout.json"), "utf8")) as { regions: { id: string; at: [number, number] }[] };
+const layout = JSON.parse(readFileSync(join(here, "..", "..", "content", "dominaria", "layout.json"), "utf8")) as { regions?: { id: string; at: [number, number] }[] };
 
-for (const region of layout.regions) {
+// (layout.json of the world of two scales has no regions: their sketch is geography.json's.)
+for (const region of layout.regions ?? []) {
   test(`tour: region ${region.id} from afar`, async ({ page }) => {
     // Open country near the region's heart, away from any town.
     const [x, z] = region.at;
@@ -146,9 +147,23 @@ test("tour: the regional map and the whole map", async ({ page }) => {
   await openRealm(page, { at: "benalia-1", extra: "&mobs=0" });
   await settle(page, 1);
   await page.locator("#hud-place").screenshot({ path: join(out, "map-regional.png") });
+  // The whole map at 1920x1080: fitted, closed in on Benalia and Llanowar, and with the tiers tinted.
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await page.mouse.click(...(await minimap(page)));
-  await advance(page, 0.5);
+  const drawn = async (zoomed: (w: { zoom: number; steps: number[]; tiers: boolean }) => boolean) =>
+    until(page, async () => {
+      const w = await realm<{ zoom: number; steps: number[]; tiers: boolean; ready: boolean } | null>(page, "map.whole");
+      return !!w && w.ready && zoomed(w);
+    }, "the whole map drawn");
+  await drawn((w) => w.zoom === w.steps[0]);
+  await page.mouse.move(2, 2);
   await shot(page, "map-world");
+  await page.evaluate(() => (globalThis as any).realmTest.showWholeMap(3, 138, 362, false));
+  await drawn((w) => w.zoom === w.steps[3]);
+  await shot(page, "map-world-zoom");
+  await page.evaluate(() => (globalThis as any).realmTest.showWholeMap(0, null, null, true));
+  await drawn((w) => w.zoom === w.steps[0] && w.tiers);
+  await shot(page, "map-world-tiers");
 });
 
 test("tour: a town's map, on the minimap and the whole map", async ({ page }) => {

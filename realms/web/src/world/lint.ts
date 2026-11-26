@@ -44,6 +44,7 @@ import {
   ICON_SIZE,
 } from "./format";
 import { type Ground, canStep } from "./grid";
+import { checkOverview, overviewSize } from "./overview";
 import { inSquare, streetTiles, wayPoints } from "./streets";
 
 // The world's lint, in two parts. Per file (`checkWorld`, `checkChunk`, `checkInterior`): each file is what the format
@@ -145,6 +146,9 @@ export function checkWorld(data: unknown): Problems {
   need(out, w, data, "zones", isObject, "the tier zones");
   need(out, w, data, "overview", isObject, "the overview");
   if (out.length > 0) return out;
+  out.push(...checkOverview(data.overview));
+  may(out, w, data, "landmarks", (v) => Array.isArray(v) && v.every((l) => isObject(l) && isStr(l.id) && isStr(l.name) && isStr(l.kind) && isInt(l.x) && isInt(l.z)), "a list of {id, name, kind, x, z}");
+  if (out.length > 0) return out;
   const world = data as unknown as WorldData;
   const rect = worldRect(world);
   if (world.bounds && !(world.bounds[0] >= rect[0] && world.bounds[1] >= rect[1] && world.bounds[2] <= rect[2] && world.bounds[3] <= rect[3])) {
@@ -212,8 +216,11 @@ function checkScales(world: WorldData): Problems {
   const z = world.zones;
   if (ox + z.cols * z.cell > travel[2] + z.cell || oz + z.rows * z.cell > travel[3] + z.cell) out.push(`${w}: the zones reach past the travel map`);
   const ov = world.overview;
-  if (ov.rows.length * ov.cell > travel[3] - oz + ov.cell || ov.rows.some((row) => row.length * ov.cell > travel[2] - ox + ov.cell)) out.push(`${w}: the overview reaches past the travel map`);
+  const seen = overviewSize(ov);
+  if (seen.rows * ov.cell > travel[3] - oz + ov.cell || seen.cols * ov.cell > travel[2] - ox + ov.cell) out.push(`${w}: the overview reaches past the travel map`);
   const onTravel = (p: XZ) => inRect(travel, p[0], p[1]);
+  for (const p of ov.peaks ?? []) if (!onTravel([p[0], p[1]])) out.push(`${w}: the overview's peak at ${p[0]},${p[1]} is not on the travel map`);
+  for (const l of world.landmarks ?? []) if (!onTravel([l.x, l.z])) out.push(`${w}: landmark ${l.id} at ${l.x},${l.z} is not on the travel map`);
   for (const d of world.dungeons) if (!onTravel([d.x, d.z])) out.push(`${w}: dungeon ${d.id} at ${d.x},${d.z} is not on the travel map`);
   for (const f of world.ferries) if (![f.from, f.to, ...f.lane].every(onTravel)) out.push(`${w}: ferry ${f.id} is not all on the travel map`);
   const pockets: { id: string; r: Rect }[] = [];

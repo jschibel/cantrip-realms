@@ -204,7 +204,13 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
         view: hud.mapView,
         town: hud.mapState.town,
         places: hud.mapState.places.map((p) => ({ ...p })),
+        /** The world's whole map while it is open: its zoom and steps, the tiers' tint, whether it is all drawn, the names placed. */
+        whole: hud.wholeMap ? JSON.parse(JSON.stringify(hud.wholeMap)) : null,
       };
+    },
+    /** The world's whole map (open) zoomed to a step, the fitted 0 first, centred on a tile if given, its tiers tinted or not. */
+    showWholeMap(step: number, x: number | null = null, z: number | null = null, tiers = false) {
+      live()?.hud.showWholeMap(step, x === null || z === null ? null : { x, z }, tiers);
     },
     /** The tier the map draws at a world tile, and the world's data's. */
     zoneAt(x: number, z: number) {

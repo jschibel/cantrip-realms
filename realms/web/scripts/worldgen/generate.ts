@@ -12,6 +12,7 @@ import { distanceTo } from "./fields";
 import { type Geography, readGeography } from "./geography";
 import { SURFACES } from "./ids";
 import { BLOCKED } from "../../src/world/format";
+import { encodeOverview } from "../../src/world/overview";
 import { Land, Use, hopPieces, rampWays, settle } from "./land";
 import type { DungeonLayout, Layout } from "./layout";
 import { type Icon, SIDE_LIST, layFerries, placeIcons, placeLandmarks, settingOf } from "./places";
@@ -349,8 +350,9 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
     ferries: ferries as FerryData[],
     pitches: towns.flatMap((t) => (t.pitch ? [{ town: t.data.id, x: t.pitch.x, z: t.pitch.z }] : [])),
     zones,
-    overview: overview(land, travel, icons, peaks),
+    overview: overview(land, travel, peaks),
     labels: geo.labels.map((l) => ({ name: l.name, x: l.x, z: l.z, kind: l.kind })),
+    landmarks: geo.landmarks.map((l) => ({ id: l.id, name: l.name, kind: l.kind, x: l.at[0], z: l.at[1] })),
   };
   files.set("world/world.json", formatWorld(world));
 
@@ -410,44 +412,23 @@ function dungeonData(plan: DungeonLayout, color: Region | null, entrance: readon
   };
 }
 
-/** The letters of the overview, by surface. */
-const LETTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
-
 /**
- * The travel map from above for the regional map: a letter for each 8-by-8 square - a town where an icon stands, peaks
- * where a range's peaks are most of it, woods where the groves are thick, else its commonest ground.
+ * The travel map from above for the regional map (world/overview.ts): a letter a tile - its surface, or `woods:<kind>`
+ * where a grove stands - with its level, run-length coded row by row, and the ranges' peaks as a list. The towns' icons,
+ * the roads and the rest the map draws from the world's own lists.
  */
-function overview(land: Land, travel: Rect, icons: ReadonlyMap<string, Icon>, peaks: readonly PropData[]): Overview {
-  const cell = 8;
-  const legend: Record<string, string> = {};
-  SURFACES.forEach((s, k) => {
-    if (s !== "") legend[LETTERS[k - 1]!] = s;
+function overview(land: Land, travel: Rect, peaks: readonly PropData[]): Overview {
+  return encodeOverview({
+    width: travel[2] - travel[0],
+    depth: travel[3] - travel[1],
+    ground: (x, z) => {
+      const i = land.idx(travel[0] + x, travel[1] + z);
+      const decor = land.decor.get(i);
+      return decor?.id === "grove" ? `woods:${(decor.args?.kind as string | undefined) ?? "broadleaf"}` : SURFACES[land.surface[i]!]!;
+    },
+    height: (x, z) => land.height[land.idx(travel[0] + x, travel[1] + z)]!,
+    peaks: peaks.map((p) => [Math.floor(p.x), Math.floor(p.z), (p.args?.w as number | undefined) ?? 1, (p.args?.kind as string | undefined) ?? "rock"] as const),
   });
-  legend.T = "town";
-  legend.F = "woods";
-  legend.M = "peaks";
-  const peaked = new Uint8Array(land.size);
-  for (const p of peaks) {
-    const w = (p.args?.w as number) ?? 1;
-    const h = (w - 1) / 2;
-    for (let dz = -h; dz <= h; dz++) for (let dx = -h; dx <= h; dx++) peaked[land.idx(Math.floor(p.x) + dx, Math.floor(p.z) + dz)] = 1;
-  }
-  const town = new Uint8Array(land.size);
-  for (const icon of icons.values()) for (const i of land.rect(icon.site[0] - icon.half, icon.site[1] - icon.half, icon.site[0] + icon.half, icon.site[1] + icon.half)) town[i] = 1;
-  const rows: string[] = [];
-  for (let z0 = travel[1]; z0 < travel[3]; z0 += cell) {
-    let row = "";
-    for (let x0 = travel[0]; x0 < travel[2]; x0 += cell) {
-      const counts = new Map<string, number>();
-      for (const i of land.rect(x0, z0, x0 + cell - 1, z0 + cell - 1)) {
-        const k = town[i] ? "T" : peaked[i] ? "M" : land.decor.get(i)?.id === "grove" ? "F" : LETTERS[land.surface[i]! - 1]!;
-        counts.set(k, (counts.get(k) ?? 0) + (k === "T" ? 20 : k === "F" ? 3.5 : 1));
-      }
-      row += [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]![0];
-    }
-    rows.push(row);
-  }
-  return { cell, legend, rows };
 }
 
 // --- Formatting: one item to a line (a chunk's tiles a row to a line), so a file diffs well --------------------------
@@ -480,10 +461,22 @@ function formatInterior(room: InteriorData): string {
 }
 
 function formatWorld(world: WorldData): string {
-  const { zones, overview: view, roads, ferries, pitches, labels, ...rest } = world;
+  const { zones, overview: view, roads, ferries, pitches, labels, landmarks, ...rest } = world;
   const head = formatRecord(rest as unknown as Record<string, unknown>, ["regions", "towns", "inns", "dungeons"]).trimEnd().slice(0, -2);
   const zoneText = `  "zones": {\n    "cell": ${zones.cell}, "cols": ${zones.cols}, "rows": ${zones.rows},\n    "areas": [\n${zones.areas.map((a) => `      ${line(a)}`).join(",\n")}\n    ],\n    "grid": [\n${zones.grid.map((r) => `      ${line(r)}`).join(",\n")}\n    ]\n  }`;
-  const viewText = `  "overview": {\n    "cell": ${view.cell},\n    "legend": ${line(view.legend)},\n    "rows": [\n${view.rows.map((r) => `      ${line(r)}`).join(",\n")}\n    ]\n  }`;
+  const lines = (name: string, items: readonly unknown[], per = 1) => {
+    const out: string[] = [];
+    for (let i = 0; i < items.length; i += per) out.push(`      ${items.slice(i, i + per).map(line).join(",")}`);
+    return `    "${name}": [\n${out.join(",\n")}\n    ]`;
+  };
+  const viewText = [
+    `  "overview": {\n    "cell": ${view.cell},\n    "legend": ${line(view.legend)},`,
+    ...(view.rle ? [`    "rle": true,`] : []),
+    `${lines("rows", view.rows)}${view.levels || view.peaks ? "," : ""}`,
+    ...(view.levels ? [`${lines("levels", view.levels)}${view.peaks ? "," : ""}`] : []),
+    ...(view.peaks ? [lines("peaks", view.peaks, 8)] : []),
+    "  }",
+  ].join("\n");
   const list = (name: string, items: readonly unknown[]) => (items.length === 0 ? `  "${name}": []` : `  "${name}": [\n${items.map((r) => `    ${line(r)}`).join(",\n")}\n  ]`);
-  return `${head},\n${list("roads", roads)},\n${list("ferries", ferries)},\n${list("pitches", pitches)},\n${list("labels", labels ?? [])},\n${zoneText},\n${viewText}\n}\n`;
+  return `${head},\n${list("roads", roads)},\n${list("ferries", ferries)},\n${list("pitches", pitches)},\n${list("labels", labels ?? [])},\n${list("landmarks", landmarks ?? [])},\n${zoneText},\n${viewText}\n}\n`;
 }
