@@ -3,7 +3,8 @@ import { openNear, waitReady, waitSpace, world } from "../realm";
 import { character, place, query } from "./server";
 
 // The sweep against the real server (e2e/sweep.spec.ts is the offline one), on the page's own clock: clicks and held walks
-// round towns, every frame-to-frame move of the figure further than its walk could go and every walk the relay refused
+// round towns, every frame-to-frame move of the figure further than its walk could go (or up or down, but mid-hop) and
+// every walk the relay refused
 // noted with the walk and where (each also logged as it happens, `[sweep] ...`). Minutes a town, so only on asking:
 // REALMS_SWEEP=1, with SWEEP_TOWNS (town ids, comma-separated) and SWEEP_WALKS.
 
@@ -37,7 +38,7 @@ for (const [n, id] of TOWNS.entries()) {
         let s = seed;
         const rnd = () => ((s = (s * 1103515245 + 12345) % 2147483648), s / 2147483648);
         const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-        let last: { a: unknown; x: number; y: number; z: number; t: number } | null = null;
+        let last: { a: unknown; x: number; y: number; z: number; t: number; hopping: boolean } | null = null;
         let walk = "start";
         let refusals = 0;
         const after = o.stage.afterTick;
@@ -49,13 +50,14 @@ for (const [n, id] of TOWNS.entries()) {
           if (last && last.a === pl && !st.transition) {
             const flat = Math.hypot(p.x - last.x, p.z - last.z);
             const rise = Math.abs(p.y - last.y);
-            if (flat > 4.2 * dt * 1.2 + 0.01 || rise > 0.3) say({ kind: "jump", walk, dt, from: [last.x, last.y, last.z], to: [p.x, p.y, p.z], refused: o.refusals.slice(refusals) });
+            // A hop rises and falls on its arc over a few frames (a frame of a twentieth climbs half a tile of it): no jump.
+            if (flat > 4.2 * dt * 1.2 + 0.01 || (rise > 0.3 && !pl.hopping && !last.hopping)) say({ kind: "jump", walk, dt, from: [last.x, last.y, last.z], to: [p.x, p.y, p.z], refused: o.refusals.slice(refusals) });
           }
           if (o.refusals.length > refusals) {
             say({ kind: "refused", walk, at: [p.x, p.z], reasons: o.refusals.slice(refusals) });
             refusals = o.refusals.length;
           }
-          last = { a: pl, x: p.x, y: p.y, z: p.z, t: st.time };
+          last = { a: pl, x: p.x, y: p.y, z: p.z, t: st.time, hopping: pl.hopping };
         };
         const wait = async (seconds: number, stop?: () => boolean) => {
           const until = o.stage.time + seconds;
