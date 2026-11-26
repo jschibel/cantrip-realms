@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BASIN, GROUNDS, SITE, SOUTH, TRAVEL, TWO_CAVES, TWO_CHUNKS, TWO_WORLD, WEST, chunksOf, twoChunk, twoFiles, twoSource } from "../../fixtures/two-world/source";
 import { LARGE_WORLD } from "../../fixtures/large-world/source";
@@ -138,5 +140,12 @@ describe("the lint of a world of two scales", () => {
     const files = twoFiles();
     expect(files.size).toBe(TWO_CHUNKS.length + 4);
     expect(checkWorld(files.get("world/world.json"))).toEqual([]);
+    // The files the realm server's tests read (`npm run two-world`) are the source's, but for the props, which the art decides.
+    const dir = join(__dirname, "..", "..", "fixtures", "two-world", "files");
+    const noProps = (d: unknown) => (d && typeof d === "object" && "props" in d && "cx" in d ? { ...d, props: [] } : d);
+    for (const [path, data] of files) {
+      const written = JSON.parse(readFileSync(join(dir, ...path.split("/")), "utf8")) as unknown;
+      expect(noProps(written), `${path}: run npm run two-world`).toEqual(noProps(JSON.parse(JSON.stringify(data))));
+    }
   });
 });

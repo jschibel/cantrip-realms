@@ -96,29 +96,46 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   standing) is followed by the grid's way from where it has them to where the figure stands, at the fastest, so the
   server catches up and the figure is never snapped back; only a way longer than 24 steps, or a refusal of that way
   too, stands the figure where the server says.
+  **Towns are entered from their icons** (a world of two scales, interfaces.md "Two scales"): each of a town's ways is a
+  door of the travel map, stood on its `outside` and stepped into the icon, its doorway the whole icon - so a click on
+  the icon from anywhere walks to the nearest way's outside the player can reach and goes in, and a held walk pushing
+  into the icon from an outside goes in as one into a doorway does (`StageDoor.area`). In the grounds each tile of a
+  way's `exit` is a door out, and walking onto one leaves. Going through, the iris closes on the icon (or the road's
+  end), the tile stood on and then the other side's are told the server, and the other side is read and built round
+  where the player will stand while it is shut (`ChunkStreamer.settle` keeping what is built: the place left is still
+  seen) - no loading screen; it opens on the way's `inside`, facing into the town, or its `outside`, facing away from
+  the icon, where standing still goes nowhere. The streamer then drops what was left.
 - **The debug overlay** (F3, or `?debug`; `src/debug.ts`): the place, chunk, the player's exact position, tile and
   floor height, the tile under the pointer (open or closed, its floor), and every jump of the player's figure - a move
   in one frame further than 0.6 of a tile, or a rise or drop of more than 0.3 - with the tiles it went from and to, also
   logged to the console (a door, a waystone or a lost duel stands a new figure behind the iris: no jump). A click
   copies it, so a teleport or an invisible obstruction seen in play is reported by its coordinates.
-- **The world:** one connected map of the Domains streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and
-  dungeons"), made offline by a seeded generator with set pieces in its code (`scripts/worldgen`, `npm run world`) from
+- **The world:** one map of the Domains streamed in 32-by-32 chunks (interfaces.md, "The world, interiors and
+  dungeons"), of two scales (interfaces.md, "Two scales"): a travel map, where each town is an icon, and each town's
+  grounds at walking scale in a pocket of its own; chunks exist only over the two, and the streamer never asks for
+  another (`hasGround`). The camera keeps to the ground the player is on - the grounds, or the travel map - and in a world
+  of two scales never shows past it at any heading or zoom (`Framing.contained`, `CameraRig.footprint`: the view's
+  ground as the camera stands, for floors as high as the place's highest, `rise`); a zoom step out it would not fit is
+  refused, a turn to a corner steps the zoom in as far as it needs. Wanderers live, spawn and chase on the travel map
+  alone, and the finds of the wilds stand there alone. It is made offline by a seeded generator with set pieces in its code (`scripts/worldgen`, `npm run world`) from
   `realms/content/dominaria/layout.json`, checked in, and linted. Nobody edits the map in the game: there is no map
   editor. Chunks near the view are read and built a step at a time (the ground, terrain from heights, the scenery merged
   per chunk) and those far away are dropped; paths are found over the chunks read, a bounded search.
-- **The tier zones are shown:** the regional map (the minimap, opening to the whole world's) tints and borders each zone
+- **The tier zones are shown:** the regional map (the minimap, opening to the whole world's: in a world of two scales the
+  travel map's alone, the towns at their icons and the world's `labels` written over the land and the sea) tints and borders each zone
   in its tier's color with a legend, draws the roads between the places, and marks the towns, dungeons and mage towers
   with their tiers, attuned waystones lit; waymarkers in the tier's color and number stand where it rises; the HUD names
   the area and its tier, and says so on crossing into a harder one; a wanderer under the pointer shows its name and
   tier.
-- **Towns are mapped:** in a town (or at its gates) the minimap is the town's map round the player instead
+- **Towns are mapped:** in a town (or at its gates; in a world of two scales, anywhere in its grounds, the area line
+  naming the town there too) the minimap is the town's map round the player instead
   (`townMap.ts`, from the town's street plan in world.json): its streets and squares paved light with dark kerbs, its
   buildings as blocks (those with a door brighter), its wall and gates, its key places as lettered icons (the inn and
   the mages' guild with their spell tables, the shops, the exotic wares, the temple or shrine, the library or mage's
   tower, the smithy and its armorer, the quest board, the arena, the caravans' pitch) with a legend under it; any
   dungeon or tower near is marked as on the regional map. The whole map opens on the town's, as big as the window lets
-  it, every place named and every gate named for where its road leads ("To New Benalia"), and turns to the world's
-  map and back.
+  it, every place named and every gate named for where its road leads ("To New Benalia": in a grounds, by its way's `to`),
+  and turns to the world's map and back - in a grounds, the player marked on it at the town's icon.
 - **Ferries** cross to the far isles along their lanes: the ferryman offers the crossing, the player rides the lane at a
   walk on the ferry's raft and steps off at the far dock. The lanes are closed to walking otherwise.
 - **Traders from other planes:** the overworld asks `GET /api/travelers` now and then, and stands each trader with their
@@ -152,8 +169,14 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   `REALM_CARD_LAYER_PORT`; `vite.config.ts`) and says where in a `<meta name="card-layer">`; `?cards=stub` (or
   `REALM_CARD_LAYER=stub`, as the offline suites set) asks for the stand-in panels (`cardStub.ts`). `?at=` (`world:x,z`, a town, an interior or a dungeon),
   `?now=`, `?wander=0`, `?mobs=0`, `?attuned=`, `?heading=`, `?zoom=`, `?still` and `?nohud` force a state for tests and
-  development (src/main.ts). `?world=slice|large` plays the art slice's street or the renderer's large synthetic world
-  instead of the Domains.
+  development (src/main.ts): `?at=` a town is its inn's door (in its grounds, in a world of two scales), `world:x,z` a
+  tile of either scale. `?world=slice|large|two` plays the art slice's street, the renderer's large synthetic world or
+  the small world of two scales (`fixtures/two-world`: a travel map with Twoford's icon, its two ways, the caves and a
+  spawn of each tier; Twoford's grounds three chunks east) instead of the Domains; offline, the MockApi plays the world
+  shown (`MockApi.useWorld`). `e2e/travel-map.spec.ts` plays the two scales on it: the icon clicked and gone into behind
+  the iris, an exit walked out of to stand beside the icon (and stay), a held walk into the icon, the camera in the
+  grounds showing no void at any heading or zoom (the frame's pixels counted, `TRAVEL_SHOTS=<dir>` keeping the
+  pictures), and the maps switching.
 - **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name,
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
   until a test advances it: the offline suites never wait on the wall clock. `npm test` runs vitest; `npm run e2e` runs
@@ -309,13 +332,16 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
 
 ##### `world/` (three-free)
 
-- format.ts: the version-2 types below, and `chunkOf`, `chunkKey`, `parseChunkKey`, `worldRect`, `viewBounds`,
+- format.ts: the two scales (interfaces.md, "Two scales": `WorldData.travel`, `labels`, `TownData.site`, `grounds`,
+  `ways`, `TownWay`) and their helpers - `inTravel`, `travelRect`, `groundsAt`, `siteAt`, `siteRect`, `ICON_SIZE`,
+  `sideStep`, `wayAt`, `scaleAt`, `framingAt`, `groundRects`, `groundChunks`, `hasGround`; the version-2 types below,
+  and `chunkOf`, `chunkKey`, `parseChunkKey`, `worldRect`, `viewBounds`,
   `chunksOver`, `chunkTile`, `interiorArea`, `interiorTile`, `heightOf`, `isBlocked`, `isBare`, `LEDGE`, `noLedge`,
   `frontStep`; and (phase
   2, World) `areaAt`, `tierAt` (a tile's tier zone and tier), `inTown`, `townAt` (a town is the square of tiles within
   its `radius` of its `center` along x and z).
 - load.ts: a `WorldSource` (`globSource` over Vite's `import.meta.glob`, or `fetchSource(baseUrl)`), `loadWorld`,
-  `loadChunk`, `loadChunks(source, world, rect?)`, `loadAllChunks`, `loadInterior` - each file checked as it comes, a bad
+  `loadChunk(source, cx, cz, world?)` (given the world, a chunk over no ground is none, never asked for), `loadChunks(source, world, rect?)`, `loadAllChunks`, `loadInterior` - each file checked as it comes, a bad
   one a `WorldFormatError` - and the walkable `Grid`s: `gridOfWorld(world, chunks)`, `gridOfInterior(room)`, and (phase
   2) `gridOfChunks(world, chunks)`, a grid over only the rectangle the loaded chunks cover, so a walk crosses chunk edges
   as one ground without a grid the size of the world (the chunk manager remakes it as chunks come and go).
@@ -329,7 +355,8 @@ faces.ts (`cloth`, `layer`, `rows`, `stamp`, `hairRows`, `hairAll`, `hairCrown`,
   open and reached, the rest reached beside, interiors in the towns their doors stand in, entrances and dungeons where
   world.json says with spell tables and waystones beside them and an open step out, spawns of their zone's tier and their
   mobs', tiers growing with distance, waymarkers at rises, ferry lanes walks from dock to dock with ferrymen, pitches open
-  in their towns, spell tables spell-table NPCs, each town's streets (`lintTown`, below), and - given `known.propTiles`
+  in their towns, spell tables spell-table NPCs, each town's streets (`lintTown`, below), the two scales (the walk
+  through the towns' ways, spawns, waymarkers and entrances on the travel map, none within 10 tiles of an icon), and - given `known.propTiles`
   and `known.liquid` - nothing closed unseen: every closed tile a walker comes up against on its own level (not seen as a
   bank from below) has what closes it drawn there (no ground, a liquid, a building, a prop that blocks over it, a thing
   used from beside it, a waymarker, a ferry's lane), so no invisible obstruction stands on the ground. (The renderer
@@ -422,7 +449,9 @@ What the renderer does with the interfaces above at the scale of the whole world
   far-zoom tree, would be the Art library's lever).
 - **Fixtures:** `fixtures/large-world/source.ts` is an 8 by 8 chunk synthetic world as a `WorldSource` (a dense town
   with shops and rooms, a forest, terraced hills with ramps, a lake, fields, roads, townsfolk, lamps, spawns), for the
-  renderer's tests and benchmark: the game page's `?world=large`.
+  renderer's tests and benchmark: the game page's `?world=large`. `fixtures/two-world/source.ts` is a world of two
+  scales (a 96 by 96 travel map, a town's 96 by 96 grounds in a pocket): `?world=two`, and written as files for the
+  realm server's tests by `npm run two-world`.
 - **The game page** (`index.html`, `src/main.ts`, `game.ts`, `entities.ts`, `input.ts`, `testHooks.ts`) runs on the
   stage over the generated Domains (`world/realm.ts`), or `?world=slice` / `?world=large` for tests. Positions are
   `{Space, X, Z}`, presence paths `[x, z]` from the open tile the player stands on along the grid's path, speeds at most

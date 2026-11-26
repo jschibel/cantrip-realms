@@ -174,8 +174,9 @@ The server reads these files in version 2 of the world data, on square tiles ("V
 Places, below): what it reads of a chunk is its `cx`, `cz` and `tiles`, its buildings' `door` and `interior`
 (the doors into interiors), its `npcs` (vendors, armorers, innkeepers, spell tables: a spell table is a `spell-table`
 NPC), `spawns` and `entrances`; of an interior its `w`, `d`, `area`, `tiles`, `npcs`, `entry`, `exit` and `town`; of
-world.json its `size`, `origin`, `chunk`, `tile`, `towns`, `inns`, `dungeons`, `pitches`, `ferries` and `zones` (what the
-finds of the wilds spawn by: "Finds of the wilds", below). No file holds a chest or a heartbloom: they come and go.
+world.json its `size`, `origin`, `chunk`, `tile`, `towns` (with their `site`, `grounds` and `ways`), `inns`, `dungeons`,
+`pitches`, `ferries`, `zones` (what the finds of the wilds spawn by: "Finds of the wilds", below) and `travel` ("Two
+scales", below). No file holds a chest or a heartbloom: they come and go.
 
 - **The layout.** `layout.json` is the world's geography as data (design.md A6, the Domains), in square tiles `[x, z]`
   (x east, z south) and lengths in tiles: its `size` (whole chunks each way) and `relief` (how much the land rolls, 1 as
@@ -305,6 +306,52 @@ over the open street tiles alone; no street running on more than a lot's depth (
 at no door; and no walk along the streets between two of its key places at least 12 tiles apart (gate to gate aside)
 longer than twice the straight line between them.
 
+#### Two scales
+
+A world may hold two kinds of ground (design.md A6, "One world, two scales"; types and helpers in
+`realms/web/src/world/format.ts`): **the travel map**, the Domains at travel scale, where each town is an icon; and each
+**town's grounds** at walking scale - the town within its walls, the country round it that is walked, and an apron of
+scenery past that which is only seen - a rectangle of the world's tiles of its own (a pocket), past the travel map. A
+world with no `travel` is one scale, as before: every tile is the travel map's, and its towns stand on it at walking
+scale (the slice and large fixtures).
+
+- world.json `travel: [x0, z0, x1, z1]`: the travel map's tiles. It starts at the world's origin, and the `zones` and
+  the `overview` cover it alone (a tile off the zones' grid is tier 0, so every grounds is). `labels: [{name, x, z,
+  kind: land | region | feature | sea}]`: names the whole map writes over the land and the sea (Aerona, Benalia, the
+  Hurloon Mountains, the Sea of Avenant).
+- A town's `site: [x, z]`: on the travel map, the middle tile of its icon - a `town-icon` prop over a blocked square
+  footprint, 7, 5 or 3 tiles across for a capital, a town or a village (`ICON_SIZE`, `siteRect`). Its `grounds: [x0, z0,
+  x1, z1]`: the rectangle drawn for it, which the camera keeps within; its `center`, `radius`, `plan`, inns and pitch lie
+  in it. Its `ways: [{side: north | east | south | west, outside: [x, z], inside: [x, z], exit: [[x, z], ...], to?}]`:
+  `outside` the open travel-map tile beside the icon on that side - pushing from it into the icon enters, and leaving
+  that way stands one there; `inside` where one arrives in the grounds, on the road a few tiles in from the exit; `exit`
+  the open tiles across the road at the edge of the walked ground - walking onto one leaves to `outside`; `to` the town's
+  or dungeon's id the road leads to, for the maps' "To New Benalia".
+- **Chunks exist only over ground**: over the travel map and each town's grounds (`groundChunks`, `hasGround`). A chunk
+  with no file is no ground; the loader never asks for one over no ground, the overworld's streamer never reads one (so
+  no request fails between the pockets), and the lint holds the files to it: a file for every chunk of ground and none
+  for any other, every tile of a chunk off the travel map and the grounds closed. `size` spans the travel map and every
+  pocket.
+- The pockets lie apart: every grounds at least two empty chunks (`POCKET_GAP`) from the travel map and from every other
+  grounds, so nobody in one is ever within the presence relay's two chunks of anybody in another or on the travel map.
+- Spawns, waymarkers, dungeon entrances and ferries stand on the travel map alone, and no spawn within 10 tiles of a
+  town's icon (`SPAWN_FROM_ICON`). A town with no grounds in a world with `travel` (the server tests' two-scale world)
+  stands on the travel map at walking scale, with no icon nor ways.
+- The lint (`checkWorld`, `lintWorld`, `lintRealm`) checks the above, the icon's footprint blocked, each way's ends open,
+  and walks the world whole from the first inn through the ways as through doors (from a way's outside to its inside,
+  from each exit to its outside).
+- **Taking a way** is told to the server as a door is, by `POST /api/position` (Places, below): the overworld reports the
+  tile it stands on (the outside, or the exit), then - the other side read and built behind the closing iris - the tile
+  it arrives on; and then enters the relay anew (`Enter`, Presence), which shows the player gone from where they were
+  and come to where they are. The server takes the second report, though it is far, only as a way: into the grounds
+  from on or beside a way's `outside` to within 2 tiles of its `inside`, in its town's grounds; out from on or beside one
+  of its `exit` tiles to on or beside its `outside` (`RealmWorld.WayTaken`). Nothing else jumps.
+- The realm server's test world is written by `World/make-world.py` twice: as before, and as one of two scales
+  (`World/two`: the map its travel map, Avenant an icon on it with a way west, its grounds four chunks east). The
+  overworld's own fixture of two scales, `realms/web/fixtures/two-world` (the game page's `?world=two`), is written as
+  files for the server's tests by `npm run two-world` (`fixtures/two-world/files`, checked against the source by
+  `src/world/scales.test.ts`).
+
 #### Version 2 of the world data (types in `realms/web/src/world/format.ts`)
 
 The art slice's small world is `realms/web/fixtures/slice-world`.
@@ -315,8 +362,10 @@ The art slice's small world is `realms/web/fixtures/slice-world`.
     camera keeps its view - tiles past it are scenery seen from a corner (the sample's wood round its edges). Dominaria
     keeps `origin` [0, 0] and no `bounds`.
   - plus the existing content: `regions` (`{color, name, tiles}`), `towns` (with `style`, `center: [x, z]`, `radius`,
-    `start`, `home`, `plan`), `inns` (`{id, town, x, z, interior}`), `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x,
-    z}`), `roads` (`{from, to, tiles}`), `zones` (the tier grid: squares of `cell` tiles from the origin), `overview`.
+    `start`, `home`, `plan`, and in a world of two scales `site`, `grounds`, `ways`), `inns` (`{id, town, x, z, interior}`),
+    `dungeons` (`{id, x, z}`), `ferries`, `pitches` (`{town, x, z}`), `roads` (`{from, to, tiles}`), `zones` (the tier
+    grid: squares of `cell` tiles from the origin), `overview`; and `travel?: [x0, z0, x1, z1]`, `labels?` ("Two scales",
+    above).
   - Every position is `[x, z]` in tiles, with x east and z south; an entity in a list has fields `x` and `z`.
 - `chunks/<cx>_<cz>.json`, 32 by 32 tiles, chunk (cx, cz) holding x from `cx * 32`, likewise z (negative chunks are
   named `-1_0.json`):
@@ -386,6 +435,9 @@ The server keeps the last reported place (`POST /api/position`):
   refused;
 - an interior is entered from on or beside one of its doors in the world (a building's `door` with that `interior`), and
   left to its `exit` (the door tile) or beside it (409 `NoWay` otherwise, and from one interior straight into another);
+- in a world of two scales, a town's way is taken as a door is (Two scales, above): a report in the world further than
+  walking allows is taken from on or beside a way's `outside` to within 2 tiles of its `inside` (in the grounds), or from
+  on or beside one of its `exit` tiles to on or beside its `outside`; else 409 `NoWay`;
 - a dungeon run is entered by `/api/dungeon/enter` and left by `/api/dungeon/leave` or a lost duel; within a live run of
   theirs any tile is taken (the layout is the browser's), and no other space is reported until it ends (409 `NoWay`).
   The server puts the character in the run at tile 0, 0, a placeholder: the browser stands them on the floor's `arrive`
@@ -401,7 +453,8 @@ one they set with `POST /api/inn` inside an inn, else the start town's (`REALMS_
 character begins. A game lost with hearts left leaves the character where they stand.
 
 A place in a town fills the character's hearts to their capacity (design.md A3b): a world tile within a town's `radius`
-of its `center` (Chebyshev), or any tile of an interior of a town. The server sees it in what `POST /api/position`
+of its `center` (Chebyshev), any tile of a town's grounds in a world of two scales (the country round a town is walked
+as safely as its streets: no wanderer is ever there), or any tile of an interior of a town. The server sees it in what `POST /api/position`
 reports, the place it has checked as above, and answers with the hearts after it.
 
 ### Models (figures: `realms/web/src/art/figures`)
@@ -585,13 +638,14 @@ player with no character is 404 `NoCharacter`.
 - **Finds of the wilds** (design.md A5, A3b; `Economy/Finds.cs`, and `realms/web/src/world/finds.ts` for the offline
   stand-in): treasure chests and heartblooms come and go, never kept in the world's files nor the store, and each is
   everyone's - the first to take it has it, and it is gone for all. Treasure chests spawn in each tier zone of the wilds
-  (world.json's `zones`, a tier above 0): at most `REALMS_CHESTS_PER_ZONE` (2) at once, a new one about every
+  (world.json's `zones`, a tier above 0): at most `REALMS_CHESTS_PER_ZONE` (1) at once, a new one about every
   `REALMS_CHEST_EVERY` (600 seconds, give or take half) while a zone has fewer, crumbling after `REALMS_CHEST_LASTS`
   (1,800) unopened; a chest's gold is its zone's tier's (1: 50-150, 2: 100-250, 3: 180-380, 4: 300-500). Heartblooms grow
-  anywhere in the wilds: at most `REALMS_HEARTBLOOMS` (8) at once, each at least 150 tiles (Chebyshev) from the next, one
+  anywhere in the wilds: at most `REALMS_HEARTBLOOMS` (3) at once, each at least 85 tiles (Chebyshev) from the next, one
   about every `REALMS_HEARTBLOOM_EVERY` (1,800), wilting after `REALMS_HEARTBLOOM_LASTS` (10,800). A find stands on a
   random open tile of a zone with open, level ground all round (each of the eight round a step of the grid's) - never on
-  worked ground (a `road`, `cobbles`, `flagstones`, `planks`, `wheat` or `furrows` tile), in a town, within 3 tiles of a
+  worked ground (a `road`, `cobbles`, `flagstones`, `planks`, `wheat` or `furrows` tile), in a town or off the travel map
+  (in a world of two scales the wilds are the travel map's: never in a town's grounds), within 3 tiles of a
   door, an entrance, an NPC or a spawn point, within 8 of another find, or within 4 of a player the relay has there. A
   find closes no tile: it is walked onto (or clicked, which walks onto it) and taken there. The overworld asks for
   them every ten seconds in the world and on coming back into it. The world moves on when asked, on the server's clock;
@@ -672,7 +726,7 @@ player with no character is 404 `NoCharacter`.
   configured, so the world's "sign in", `GET /signin`, lands on it): development and tests only.
   Such a server alone also takes calls for tests, on the signed-in cookie, that arrange what play would take long to
   reach (the end-to-end suite against the real server, `realms/web/e2e/server/`): `POST /dev/place {Space, X, Z}` puts
-  the character at once on an open tile of the world or an interior (422 `NoSuchPlace` otherwise), `POST /dev/verdict
+  the character at once on an open tile of the world (of either scale) or an interior (422 `NoSuchPlace` otherwise), `POST /dev/verdict
   {Outcome, MobLife}` (`"won"`, `"lost"`, or null to replay again) judges the player's duels as it says in place of
   replaying their logs, so the card layer's stand-in counts as a win, the mob ending each at `MobLife` (null: the life it
   began the game with); `POST /dev/drop {Gear, Shrine}` (each `true`, `false`, or null

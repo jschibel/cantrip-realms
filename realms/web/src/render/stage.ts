@@ -471,7 +471,11 @@ export class Stage {
     }
     const here = this.current;
     here.place.update(this.time, this.renderer.view.yaw, this.viewFor(here).yaw, this.focus);
-    if (!this.transition) this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
+    if (!this.transition) {
+      this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
+      // A place the view keeps within holds the focus there at once (a zoom out, a turn): it never eases past the edge.
+      if (here.contained) this.focus.copy(rig.clampFocus(this.focus, here));
+    }
     this.renderer.focus.copy(this.focus);
     // Every figure leans for the camera as it is this frame, so the lean turns with the camera and never lags it.
     const { pitch, yaw } = this.renderer.view;

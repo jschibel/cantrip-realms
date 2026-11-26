@@ -27,6 +27,17 @@ public sealed class RealmApp : WebApplicationFactory<Program>
 
     private static readonly Lazy<RealmContent> SharedGenerated = new(() => RealmContent.Load(Root));
 
+    private static readonly Lazy<RealmContent> SharedTwoScales = new(() => RealmContent.Load(Root, places: TwoScalesPlaces));
+
+    /// <summary>The test world as one of two scales (World/make-world.py, World/two): Avenant's grounds in a pocket of their own.</summary>
+    public static RealmContent TwoScales => SharedTwoScales.Value;
+
+    /// <summary>Where the two-scale test world's planes are read from.</summary>
+    public static string TwoScalesPlaces => Path.Combine(Root, "realms", "dotnet", "Cantrip.Realms.Server.Tests", "World", "two");
+
+    /// <summary>Whether this server runs on the two-scale test world (<see cref="TwoScales"/>).</summary>
+    public bool OnTwoScales { get; init; }
+
     private readonly string _database = Path.Combine(Path.GetTempPath(), $"cantrip-realm-{Guid.NewGuid():N}.db");
 
     /// <summary>The repository the tests run in.</summary>
@@ -88,7 +99,7 @@ public sealed class RealmApp : WebApplicationFactory<Program>
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Time);
             services.RemoveAll<RealmContent>();
-            services.AddSingleton(_ => OnGenerated ? SharedGenerated.Value : SharedContent.Value);
+            services.AddSingleton(_ => OnTwoScales ? SharedTwoScales.Value : OnGenerated ? SharedGenerated.Value : SharedContent.Value);
             services.RemoveAll<IDuelVerifier>();
             services.AddSingleton<IDuelVerifier>(NativeVerifier ? new NativeDuelVerifier() : Verifier);
             services.RemoveAll<RealmDice>();

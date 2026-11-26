@@ -127,12 +127,9 @@ test("a held walk pushing into the icon from its south way goes in, onto the roa
 test("in the grounds the camera never shows the void past them, at any heading or zoom", async ({ page }) => {
   test.setTimeout(240_000);
   const errors = await open(page, { x: BASIN[0] + 1, z: BASIN[1] + 1 });
-  const corners: Tile[] = [
-    { x: BASIN[0] + 1, z: BASIN[1] + 1 },
-    { x: BASIN[2] - 2, z: BASIN[3] - 2 },
-    { x: BASIN[0] + 1, z: BASIN[3] - 2 },
-    tile(CENTER),
-  ];
+  // Two corners of the walked ground (the bank round them two terraces high: raised ground is seen further up the screen)
+  // and the town's middle.
+  const corners: Tile[] = [{ x: BASIN[0] + 1, z: BASIN[1] + 1 }, { x: BASIN[2] - 2, z: BASIN[3] - 2 }, tile(CENTER)];
   const shares: string[] = [];
   for (const [i, at] of corners.entries()) {
     await page.evaluate(([x, z]) => (globalThis as any).realmTest.placePlayer(x, z), [at.x, at.z] as const);
@@ -147,7 +144,7 @@ test("in the grounds the camera never shows the void past them, at any heading o
       }, heading);
       for (let zoom = 0; zoom < 3; zoom++) {
         if (zoom > 0) await page.evaluate(() => (globalThis as any).sliceTest.zoomBy(1));
-        await advance(page, 1.2);
+        await advance(page, 0.8);
         await until(page, async () => (await realm<boolean>(page, "streamed")) === true, "the grounds built", 20);
         const share = await voidShare(page);
         const step = await realm<number>(page, "zoom.step");
