@@ -386,7 +386,8 @@ What the renderer does with the interfaces above at the scale of the whole world
   more in red than in blue), so two levels never meet in one color. Standing grass keeps off a brink's rim and a bank's foot (`nearBank`). Terrain
   ground is outlined where it stands in front of lower ground (normal-pass kind 0.875) - the brink of a drop away from
   the camera or along the view, just past the lip - and two pixels deep over a cliff (a depth gap of 1.75, between one
-  level's 1.06 and two levels' 2.12 at the 45 degree pitch). `e2e/edges.spec.ts` holds it on the large world's mesas
+  level's 1.06 and two levels' 2.12 at the 45 degree pitch); the lower ground seen just past such a brink is shaded a
+  pixel (two past a cliff), so a drop away from the camera reads as lip, line and shadow. `e2e/edges.spec.ts` holds it on the large world's mesas
   (snow, sand, rock and tundra: a two-level cliff, a bank, an inner corner, a ramp) at every heading. For
   the generator: hills as terraces of whole texels (12 is a good step), banks a tile apart, ramps in straight runs; a
   terrace's bank is a ledge the grid walks up to but never over (`LEDGE`), left by its ramps. Rooms are still drawn level.

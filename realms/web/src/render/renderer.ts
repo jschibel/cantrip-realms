@@ -87,11 +87,17 @@ void main() {
   float highlight = 0.0;
   // Terrain (kind 0.875) is outlined where it stands in front of markedly farther ground - a terrace's brink, whichever
   // way it runs: away from the camera, across the view or along it - and has no highlights; flat ground and decals
-  // (0.5) neither. A brink over a drop of two levels or more (a cliff) is outlined two pixels deep.
+  // (0.5) neither. A brink over a drop of two levels or more (a cliff) is outlined two pixels deep. The lower ground
+  // seen just past a brink is shaded (a pixel, two past a cliff's), so a drop away from the camera reads as lip, line
+  // and shadow.
+  float past = 0.0;
   if (kind > 0.85 && kind < 0.9) {
     for (int i = 0; i < 4; i++) {
       float gap = edgeDepthAt(vUv + offsets[i], under) - d;
       if (gap > 0.32 || edgeDepthAt(vUv + 2.0 * offsets[i], under) - d > 1.75) outline = 1.0;
+      float k1 = texture2D(tNormal, vUv + offsets[i]).a;
+      float k2 = texture2D(tNormal, vUv + 2.0 * offsets[i]).a;
+      if ((gap < -0.32 && k1 > 0.85 && k1 < 0.9) || (edgeDepthAt(vUv + 2.0 * offsets[i], under) - d < -1.75 && k2 > 0.85 && k2 < 0.9)) past = 1.0;
     }
   }
   if (kind > 0.9) {
@@ -117,6 +123,8 @@ void main() {
   if (outline > 0.5) {
     // A soft outline: the color itself, darkened and pushed to violet, never a flat black.
     color = color * vec3(0.42, 0.38, 0.52) * outlineStrength + color * (1.0 - outlineStrength);
+  } else if (past > 0.5) {
+    color = color * mix(vec3(1.0), vec3(0.7, 0.68, 0.8), outlineStrength);
   } else if (highlight > 0.5) {
     color = min(vec3(1.0), color * (1.0 + 0.32 * highlightStrength) + vec3(0.05, 0.045, 0.03) * highlightStrength);
   }
