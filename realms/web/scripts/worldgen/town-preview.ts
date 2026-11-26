@@ -10,6 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { INVENTED_SETTINGS, TOWN_SETTINGS, buildAll, buildOn, drawBuildings, picture, readVendors, settingsMatrix, writeWorld } from "./town/preview";
 import { generate } from "./generate";
+import { Picture } from "./picture";
 import { readLayout } from "./layout";
 
 const web = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -80,5 +81,28 @@ for (const t of towns) {
   writeFileSync(join(shots, `town-${t.data.id}.png`), p.png());
   const r = t.report;
   console.log(`${t.data.id.padEnd(18)} walled ${r.walled.join("x")} grounds ${r.grounds.join("x")} buildings ${r.buildings} interiors ${r.interiors} gate->square ${r.gateToSquare} square->place ${r.squareToPlace}${r.notes.length ? `\n    ${r.notes.join("\n    ")}` : ""}`);
+}
+{
+  // A contact sheet: the towns named (all by default) side by side, each its walked ground from above at 3 pixels a tile.
+  const S = 3;
+  const cell = 150;
+  const cols = 4;
+  const sheet = new Picture(cols * cell * S, Math.ceil(towns.length / cols) * cell * S);
+  towns.forEach((t, k) => {
+    const [gx0, gz0, gx1, gz1] = t.data.grounds;
+    const cx = Math.floor((gx0 + gx1) / 2);
+    const cz = Math.floor((gz0 + gz1) / 2);
+    const crop = [cx - cell / 2, cz - cell / 2, cx + cell / 2, cz + cell / 2] as const;
+    const clipped = [Math.max(gx0, crop[0]), Math.max(gz0, crop[1]), Math.min(gx1, crop[2]), Math.min(gz1, crop[3])] as const;
+    const p = picture(land, t, S, clipped);
+    drawBuildings(p, t, clipped[0], clipped[1], S, []);
+    const ox = (k % cols) * cell * S + (clipped[0] - crop[0]) * S;
+    const oy = Math.floor(k / cols) * cell * S + (clipped[1] - crop[1]) * S;
+    for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) {
+      const o = (y * p.width + x) * 3;
+      sheet.set(ox + x, oy + y, [p.pixels[o]!, p.pixels[o + 1]!, p.pixels[o + 2]!]);
+    }
+  });
+  writeFileSync(join(shots, ids.length > 0 ? "towns-sheet-some.png" : "towns-sheet.png"), sheet.png());
 }
 if (!process.argv.includes("--no-world")) writeWorld(join(web, "town-preview"), land, towns, size);

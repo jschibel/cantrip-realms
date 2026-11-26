@@ -498,8 +498,8 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     if (!lenient) throw new Error(text);
     notes.push(`BROKEN: ${text}`);
   }
-  const [TW, TD] = TOWN_SIZE[town.kind];
-  return { walled: [TW, TD], grounds: [land.width, land.depth], buildings: townBuildings.length, interiors: ctx.interiors.length, gateToSquare: Math.round(gateToSquare), squareToPlace: Math.round(squareToPlace), notes: [...notes] };
+  void TOWN_SIZE;
+  return { walled: [box.x1 - box.x0, box.z1 - box.z0], grounds: [land.width, land.depth], buildings: townBuildings.length, interiors: ctx.interiors.length, gateToSquare: Math.round(gateToSquare), squareToPlace: Math.round(squareToPlace), notes: [...notes] };
 }
 
 export type { BuildingData };
