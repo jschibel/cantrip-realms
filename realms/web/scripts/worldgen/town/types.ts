@@ -57,7 +57,7 @@ export interface TownWay {
 }
 
 /** A town's world.json entry, with its grounds and its ways (format.ts adds `grounds` and `ways` to `TownData`). */
-export type TownGroundsData = TownData & {
+export type TownGroundsData = Omit<TownData, "grounds" | "ways" | "site"> & {
   /** Its grounds at walking scale: the rectangle of tiles drawn for it, `[x0, z0, x1, z1]`, x1 and z1 excluded. */
   readonly grounds: readonly [number, number, number, number];
   readonly ways: readonly TownWay[];

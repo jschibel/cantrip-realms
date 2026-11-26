@@ -34,7 +34,7 @@ describe("the town generator", () => {
     const { land } = built;
     const open = (x: number, z: number) => land.inside(x, z) && land.open(land.idx(x, z));
     const buildings = built.towns.flatMap((t) => t.buildings);
-    for (const t of built.towns) expect(lintTown(t.data, open, buildings, TOWN_LIMITS), t.data.id).toEqual([]);
+    for (const t of built.towns) expect(lintTown({ ...t.data, ways: undefined }, open, buildings, TOWN_LIMITS), t.data.id).toEqual([]);
   });
 
   it("faces every place with a door or a sign south, and nothing north", () => {
