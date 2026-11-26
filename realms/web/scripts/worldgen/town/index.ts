@@ -101,7 +101,7 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
     { scale: 0, deep: true, grow: 12 },
   ];
   const errors: string[] = [];
-  for (let k = 0; ; k++) {
+  for (let k = Number(process.env.TOWN_ATTEMPT ?? 0); ; k++) {
     try {
       return buildOnce(target, spec, seed, options, attempts[k]!.scale, attempts[k]!.deep, attempts[k]!.grow ?? 0);
     } catch (e) {

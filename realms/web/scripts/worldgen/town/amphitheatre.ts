@@ -662,8 +662,17 @@ function planGrown(form: Form, input: PlanInput): OrganicPlan {
   // --- The plan ---------------------------------------------------------------------------------------------------------------
   const sites = lots.filter((l) => l.site).map((l) => ({ id: l.site!, box: { x0: l.x0, z0: l.z0, x1: l.x1, z1: l.z1 }, k0: 0, k1: 0 }));
   const blocks = lots.filter((l) => !l.site).map((l) => blockOf(l, box));
-  // Bridges where the ways cross the water. (No way across the centre is kept clear of its furniture: it is walked round.)
+  // Roads up into the centre its furniture keeps off (one across it, from the east or the west, is walked round); bridges
+  // where the ways cross the water.
   const through: Box[] = [];
+  for (const p of gatePaths) {
+    const k = p.findIndex(([x, z]) => centreTiles[I(x, z)]);
+    if (k <= 0) continue;
+    // Where it comes up into the centre from the north or the south: its columns there.
+    const [ex, ez] = p[k]!;
+    if (p[k - 1]![0] !== ex || p[k - 1]![1] === ez) continue;
+    through.push({ x0: ex - 1, z0: centre.z, x1: ex + 2, z1: centre.z + centre.d });
+  }
   const bridges: Box[] = [];
   {
     const seen = new Uint8Array(g.size);
