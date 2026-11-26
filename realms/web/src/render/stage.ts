@@ -472,7 +472,11 @@ export class Stage {
     const here = this.current;
     here.place.update(this.time, this.renderer.view.yaw, this.viewFor(here).yaw, this.focus);
     if (!this.transition) {
-      this.focus.lerp(rig.clampFocus(this.player.position, here), Math.min(1, dt * 8));
+      const toward = rig.clampFocus(this.player.position, here).clone();
+      // A hop's arc is the figure's, not the view's: the focus keeps its height while the figure is in the air and eases
+      // to the new level once it lands, so the hop is seen against a view that holds still.
+      if (this.player.hopping) toward.y = this.focus.y;
+      this.focus.lerp(toward, Math.min(1, dt * 8));
       // A place the view keeps within holds the focus there at once (a zoom out, a turn): it never eases past the edge.
       if (here.contained) this.focus.copy(rig.clampFocus(this.focus, here));
     }
