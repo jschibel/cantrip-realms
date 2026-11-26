@@ -1,6 +1,6 @@
 // What a town is for, and where each thing goes. The places a player uses - the inn, the shops, the exotic wares, the
 // temple or shrine, the guild, the library or mage's tower, the smithy, the houses with a door, the arena - are a list a
-// small solver lands on the rows' frontages (plan.ts): every candidate spot along every block's front scored for what
+// small solver lands on the rows' frontages (planner.ts; rows.ts): every candidate spot along every block's front scored for what
 // that place wants (the shops on the square or a block off it, the inn by the main gate, the temple commanding the
 // square from its north, the smithy by a side gate or the water, the houses spread through the quiet rows), each place
 // taken in turn from the hardest to land, the best spot kept and the next tried when a later place finds no room
@@ -15,7 +15,7 @@ import type { BuildingData, InteriorKind, PlaceKind, XZ } from "../../../src/wor
 import type { TownLayout } from "../layout";
 import { type Footprint, makeBuilding, southFacing } from "./buildings";
 import { type FormSpec, type Role, formOf, kindFor, sizesFor, styleFor } from "./forms";
-import type { Block, Plan, SiteRequest } from "./plan";
+import type { Block, Plan, SiteRequest } from "./planner";
 import type { InteriorSpec, TownVendor } from "./types";
 import { buildingHides } from "./view";
 
@@ -360,12 +360,12 @@ export class Placer {
   private why(need: Need): string {
     const spots = this.spots(need);
     const { plan } = this.c;
-    const rows = plan.bands.map((b) => `${b.z0}-${b.z1}`).join(" ");
+    const rows = plan.blocks.map((b) => `${b.x0},${b.z0}-${b.x1},${b.z1}`).join(" ");
     const sites = plan.sites.map((s) => `${s.id} ${s.box.x0},${s.box.z0}-${s.box.x1},${s.box.z1}`).join("; ");
-    if (spots.length === 0) return `no spot at all; rows ${rows}; square row ${plan.square.a}; sites ${sites}`;
+    if (spots.length === 0) return `no spot at all; blocks ${rows}; sites ${sites}`;
     const s = spots[0]!;
     const hidden = buildingHides(this.trial(need.id, need.role as Role, s.f, 1, need), 0).filter(([x, z]) => this.c.mustSee(x, z));
-    return `${spots.length} spots, the best at ${s.f.x},${s.f.z} ${s.f.w}x${s.f.d} hides ${hidden.length} street tiles (${hidden.slice(0, 3).join(" ")}); rows ${rows}; sites ${sites}`;
+    return `${spots.length} spots, the best at ${s.f.x},${s.f.z} ${s.f.w}x${s.f.d} hides ${hidden.length} street tiles (${hidden.slice(0, 3).join(" ")}); blocks ${rows}; sites ${sites}`;
   }
 
   /** The best spot after the first `skip` that takes the building without hiding a street, at the most storeys it can. */

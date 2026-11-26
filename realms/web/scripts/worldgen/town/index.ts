@@ -3,24 +3,24 @@
 // walked, and the apron of scenery past that - and says what it built. The integrator places the pocket (`origin`) and
 // fills what lies on the travel map (the town's `site`, each way's `outside`).
 //
-// The steps, each its own module: the site's fields (site.ts: the land's height, the sea, the river); the street plan
-// (plan.ts: rows facing south onto their streets, the square where the walks to the gates are shortest, arteries to the
-// gates, landmarks' ground, connectors splitting the rows into blocks); the program and its solver (place.ts: every place
-// the town needs landed where it serves best, no building hiding a street from the camera); the country (roads out from
-// the gates by weighted A*, fields, farms, woods, the walked ground's closed edge and the apron); the dressing (dress.ts:
-// walls, gardens, the square's furniture, lights, the harbour, and the people); the terraces and their ramps; and the
-// checks (check.ts), which fail the town when a rule of its design breaks.
+// The steps, each its own module: the site's fields (site.ts: the land's height, the sea, the river); the plan, by the
+// planner of the town's form (planner.ts, the seam: rows.ts's rows facing south onto their streets for the capital, the
+// cities, the campus and the estate); the program and its solver (place.ts: every place the town needs landed where it
+// serves best, no building hiding a street from the camera); the country (roads out from the gates by weighted A*,
+// fields, farms, woods, the walked ground's closed edge and the apron); the dressing (dress.ts: walls, gardens, the
+// square's furniture, lights, the harbour, and the people); the terraces and their ramps; and the checks (check.ts),
+// which fail the town when a rule of its design breaks.
 
 import type { BuildingData, NpcData, PropData, TownPlace, TownPlan, XZ } from "../../../src/world/format";
 import { BARE, BLOCKED } from "../../../src/world/format";
-import { S } from "../ids";
 import { Land, Use, noise, randomFor } from "../land";
-import type { TownLayout } from "../layout";
+import type { Form, TownLayout } from "../layout";
 import { check, fillPockets } from "./check";
 import { dress } from "./dress";
-import { type FormSpec, TOWN_SIZE, formOf, formSpec, groundsOf } from "./forms";
+import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
-import { type Box, type Plan, planGraph, planTown } from "./plan";
+import type { Box, Plan, Planner } from "./planner";
+import { ROWS } from "./rows";
 import { country } from "./country";
 import { fieldsOf, riverTiles } from "./site";
 import { levelGrounds } from "./terrain";
@@ -38,12 +38,25 @@ export function groundsSize(plan: TownLayout): readonly [number, number] {
   return [Math.ceil((w + 2 * margin) / 32) * 32, Math.ceil((d + 2 * margin) / 32) * 32];
 }
 
+/** The planner of each form (planner.ts). */
+export const PLANNERS: Readonly<Record<Form, Planner>> = {
+  capital: ROWS,
+  city: ROWS,
+  campus: ROWS,
+  estate: ROWS,
+  village: ROWS,
+  elfhame: ROWS,
+  clan: ROWS,
+  stilts: ROWS,
+};
+
 /** Everything the steps share. */
 export interface Ctx {
   readonly spec: TownSpec;
   readonly town: TownLayout;
   readonly F: FormSpec;
   readonly land: Land;
+  readonly planner: Planner;
   readonly plan: Plan;
   readonly seed: number;
   readonly tag: string;
@@ -94,7 +107,8 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   const rise = town.kind === "capital" ? 3 : town.kind === "town" ? 2.4 : 1.6;
   const fields = fieldsOf(GW, GD, box, spec.setting, tag, rise);
   const { needs, sites } = programOf(town, spec.vendors, spec.exotic);
-  const plan = planTown({
+  const planner = PLANNERS[formOf(town)];
+  const plan = planner.plan({
     box,
     F,
     ways: spec.setting.ways,
@@ -107,12 +121,18 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     random: random("plan"),
     gateWidth: F.street,
     id: town.id,
+    town,
+    needs,
+    setting: spec.setting,
+    fields,
+    tag,
   });
   const ctx: Ctx = {
     spec,
     town,
     F,
     land,
+    planner,
     plan,
     seed,
     tag,
@@ -123,7 +143,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     npcs: [],
     places: [],
     interiors: [],
-    river: riverTiles(fields, plan, tag),
+    river: plan.water ? new Set(plan.water) : riverTiles(fields, plan, tag),
     inTown: new Uint8Array(land.size),
     walked: new Uint8Array(land.size),
     ways: [],
@@ -135,7 +155,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   if (scale < 1) ctx.notes.push(`its shape drawn at ${scale} of its pull, to find room for its places`);
   // --- The ground: the country, the sea and the river, then the town over it ----------------------------------------
   country(ctx, fields, "ground");
-  paintTown(ctx);
+  planner.paint(ctx);
 
   // --- The places, the districts, the rest of the rows ------------------------------------------------------------------
   const main = plan.gates.find((g) => g.main) ?? plan.gates[0]!;
@@ -204,7 +224,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   fillPockets(ctx, land.idx(main.node[0], main.node[1]));
 
   // --- The plan as the world keeps it, the checks ------------------------------------------------------------------------
-  const graph = planGraph(plan, ctx.extraWays);
+  const graph = planner.graph(plan, ctx.extraWays);
   // The outline its wall (or edge) runs along: traced round the ring it stands on.
   const outline = traceOutline((x, z) => land.inside(x, z) && ctx.inTown[land.idx(x, z)] !== 0, { x0: box.x0 - 1, z0: box.z0 - 1, x1: box.x1 + 1, z1: box.z1 + 1 });
   const squares = graph.squares;
@@ -283,164 +303,6 @@ export function traceOutline(inside: (x: number, z: number) => boolean, box: Box
     const c = pts[(k + 1) % pts.length]!;
     return !((a[0] === p[0] && p[0] === c[0]) || (a[1] === p[1] && p[1] === c[1]));
   });
-}
-
-/** Lays the town's ground: its lots, its streets and square, its wall's ring, its quays, the river through it. */
-function paintTown(ctx: Ctx): void {
-  const { land, plan, F, town } = ctx;
-  const g = groundsOf(town);
-  const { box } = plan;
-  const tagN = ctx.spec.index + 1;
-  const I = (x: number, z: number) => land.idx(x, z);
-  const levelAt = (z: number): number => {
-    // The row a tile's z lies in (its band or the street after it), by the levels north to south.
-    for (let k = 0; k < plan.bands.length; k++) {
-      const s = plan.streets[k]!;
-      if (z < s.z + s.w) return plan.levels[k]!;
-    }
-    return plan.levels[plan.levels.length - 1]!;
-  };
-  // What the town takes of its box: its rows as far as each reaches, its streets, a strip of garden south of a street
-  // where the row below it is shorter (so no wall stands close south of a street, hiding it), the river through it, the
-  // gardens or the quay inside its south edge, the quay to the north; any hole filled. The ring round that is its edge.
-  const mask = ctx.inTown;
-  const mark = (x0: number, z0: number, x1: number, z1: number) => {
-    for (let z = Math.max(box.z0 + 1, z0); z < Math.min(box.z1 - 1, z1); z++) for (let x = Math.max(box.x0 + 1, x0); x < Math.min(box.x1 - 1, x1); x++) mask[I(x, z)] = 1;
-  };
-  const n = plan.bands.length;
-  plan.bands.forEach((b, k) => mark(plan.ext[k]![0], b.z0, plan.ext[k]![1], b.z1));
-  for (const s of plan.streets) {
-    for (const [x0, x1] of s.runs) mark(x0, s.z, x1, s.z + s.w);
-    const k = s.k;
-    if (k < n - 1) {
-      const below = plan.bands[k + 1]!;
-      const [x0, x1] = s.runs.reduce(([p, q], [a, b]) => [Math.min(p, a), Math.max(q, b)], [Infinity, -Infinity]);
-      mark(x0, s.z + s.w, x1, below.z0 + 4);
-    }
-  }
-  const [lx0, lx1] = plan.ext[n - 1]!;
-  mark(lx0, plan.south.z0, lx1, plan.south.z1);
-  if (plan.northQuay) mark(plan.ext[0]![0], plan.northQuay.z0, plan.ext[0]![1], plan.northQuay.z1);
-  for (const c of plan.connectors) mark(c.x, c.z0, c.x + c.w, c.z1);
-  {
-    // Holes: what the box's edge cannot reach without crossing the town.
-    const outside = new Uint8Array(land.size);
-    const queue: number[] = [];
-    for (let z = box.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if ((x === box.x0 || z === box.z0 || x === box.x1 - 1 || z === box.z1 - 1) && !mask[I(x, z)]) {
-      outside[I(x, z)] = 1;
-      queue.push(I(x, z));
-    }
-    for (let h = 0; h < queue.length; h++) {
-      const i = queue[h]!;
-      const x = land.xOf(i);
-      const z = land.zOf(i);
-      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
-        const nx = x + dx;
-        const nz = z + dz;
-        if (nx < box.x0 || nz < box.z0 || nx >= box.x1 || nz >= box.z1) continue;
-        const j = I(nx, nz);
-        if (outside[j] || mask[j]) continue;
-        outside[j] = 1;
-        queue.push(j);
-      }
-    }
-    for (let z = box.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if (!outside[I(x, z)]) mask[I(x, z)] = 1;
-  }
-  for (let z = box.z0; z < box.z1; z++) {
-    for (let x = box.x0; x < box.x1; x++) {
-      const i = I(x, z);
-      if (mask[i] === 1) continue;
-      let edge = false;
-      for (let dz = -1; dz <= 1 && !edge; dz++) for (let dx = -1; dx <= 1 && !edge; dx++) if (mask[I(x + dx, z + dz)] === 1) edge = true;
-      if (edge) mask[i] = 2;
-    }
-  }
-  for (let z = box.z0; z < box.z1; z++) {
-    for (let x = box.x0; x < box.x1; x++) {
-      const i = I(x, z);
-      if (!mask[i]) continue;
-      land.town[i] = tagN;
-      land.decor.delete(i);
-      land.flags[i] = 0;
-      land.surface[i] = g.yard;
-      land.use[i] = Use.Lot;
-      ctx.level[i] = levelAt(z);
-    }
-  }
-  // The ring: a wall (or hedge, or palisade) where the form has one and the sea does not take the side.
-  const sideOf = (x: number, z: number): Side | null => {
-    if (mask[I(x, z)] !== 2) return null;
-    const inner = (dx: number, dz: number) => mask[I(x + dx, z + dz)] === 1;
-    return inner(0, -1) || inner(-1, -1) || inner(1, -1) ? "south" : inner(0, 1) || inner(-1, 1) || inner(1, 1) ? "north" : inner(-1, 0) ? "east" : "west";
-  };
-  for (let z = box.z0; z < box.z1; z++) {
-    for (let x = box.x0; x < box.x1; x++) {
-      const side = sideOf(x, z);
-      if (!side) continue;
-      const i = I(x, z);
-      if (plan.sea.has(side) || F.enclosure === "none") {
-        // No wall: the town's edge is open ground (a quay's edge on the sea).
-        land.surface[i] = plan.sea.has(side) ? g.street : land.surface[i]!;
-        land.use[i] = plan.sea.has(side) ? Use.Street : Use.Lot;
-        continue;
-      }
-      land.use[i] = Use.Wall;
-      land.flags[i] = BLOCKED | BARE;
-    }
-  }
-  const pave = (x: number, z: number, surface: number, use = Use.Street) => {
-    if (!land.inside(x, z)) return;
-    const i = I(x, z);
-    land.flags[i] = 0;
-    land.surface[i] = surface;
-    land.use[i] = use;
-    land.decor.delete(i);
-    ctx.mustSee[i] = 1;
-  };
-  // The south band: gardens, or the quay on the sea; the north quay.
-  if (plan.sea.has("south")) for (let z = plan.south.z0; z < box.z1; z++) for (let x = box.x0; x < box.x1; x++) if (mask[I(x, z)]) pave(x, z, S.planks === g.street ? g.street : S.flagstones);
-  if (plan.northQuay) for (let z = box.z0; z < plan.northQuay.z1; z++) for (let x = box.x0; x < box.x1; x++) if (mask[I(x, z)]) pave(x, z, S.flagstones);
-  for (const s of plan.streets) for (const [x0, x1] of s.runs) for (let z = s.z; z < s.z + s.w; z++) for (let x = x0; x < x1; x++) pave(x, z, s.quay ? S.flagstones : g.street);
-  for (const c of plan.connectors) {
-    for (let z = c.z0; z < c.z1; z++) {
-      for (let x = c.x; x < c.x + c.w; x++) {
-        if (!land.inside(x, z)) continue;
-        // Sea-side lanes are quays.
-        const quay = (plan.sea.has("west") && c.x === plan.inner.x0) || (plan.sea.has("east") && c.x + c.w === plan.inner.x1);
-        pave(x, z, quay ? S.flagstones : c.kind === "artery" ? g.street : F.yards === "open" ? g.path : g.street);
-      }
-    }
-  }
-  const sq = plan.square;
-  for (let z = sq.z0; z < sq.z1; z++) {
-    for (let x = sq.x0; x < sq.x1; x++) {
-      if (F.round && Math.hypot((x + 0.5 - (sq.x0 + sq.x1) / 2) / ((sq.x1 - sq.x0) / 2), (z + 0.5 - (sq.z0 + sq.z1) / 2) / ((sq.z1 - sq.z0) / 2)) > 1.05) {
-        // Outside the round clearing's ellipse: still its streets where they run.
-        if (land.use[I(x, z)] === Use.Street) continue;
-      }
-      pave(x, z, g.square, Use.Kept);
-    }
-  }
-  // The street along its open south side, in front of it, paved as it is.
-  const south = plan.streets[sq.a]!;
-  for (let z = south.z; z < south.z + south.w; z++) for (let x = sq.x0; x < sq.x1; x++) if (land.use[I(x, z)] === Use.Street) land.surface[I(x, z)] = g.square;
-  // The gates' passages: through the ring, paved.
-  for (const gate of plan.gates) for (let z = gate.passage.z0; z < gate.passage.z1; z++) for (let x = gate.passage.x0; x < gate.passage.x1; x++) pave(x, z, g.street);
-  // A river through the town: water under the quay, bridges where the connectors cross it.
-  if (plan.river) {
-    for (let z = plan.river.z0; z < plan.river.z1; z++) {
-      for (let x = box.x0; x < box.x1; x++) {
-        const i = I(x, z);
-        const bridge = land.use[i] === Use.Street;
-        land.surface[i] = S.stream;
-        land.flags[i] = bridge ? 0 : BLOCKED;
-        if (!bridge) {
-          land.use[i] = Use.Wild;
-          ctx.mustSee[i] = 0;
-        }
-      }
-    }
-  }
 }
 
 /** Shifts everything into the world at the grounds' origin and writes the grounds into the Land. */

@@ -8,7 +8,7 @@ import type { PropData, XZ } from "../../../src/world/format";
 import { BLOCKED } from "../../../src/world/format";
 import { S } from "../ids";
 import { type Land, Use, fbm, noise, texel } from "../land";
-import type { Box, Plan } from "./plan";
+import type { Box, Plan } from "./planner";
 import type { Side, TownBiome, TownSetting } from "./types";
 
 /** The ground of the country by biome: its grass, its worn ground, its trees, its field surfaces. */

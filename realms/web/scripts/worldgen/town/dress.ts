@@ -22,14 +22,14 @@ import { propHides } from "./view";
 /** The named palette a town's banners fly, by its style. */
 const PALETTE_OF_STYLE: Readonly<Record<string, string>> = { benalish: "benalish", argive: "benalish", llanowar: "llanowar", urborg: "morass", keldon: "keldon", tolarian: "tolarian" };
 
-const STREET_LIGHT: Readonly<Record<string, string | null>> ={ benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
+export const STREET_LIGHT: Readonly<Record<string, string | null>> = { benalish: "lamp-post", tolarian: "lamp-post", keldon: "torch-post", urborg: "lantern-post", llanowar: null, argive: "lamp-post" };
 
 export function dress(ctx: Ctx, placed: readonly Placed[]): void {
   sites(ctx);
   arena(ctx, placed);
   board(ctx, placed);
   square(ctx);
-  lights(ctx, placed);
+  ctx.planner.lights(ctx);
   yards(ctx);
   walls(ctx);
   water(ctx);
@@ -45,7 +45,7 @@ function inSight(ctx: Ctx, p: PropData): boolean {
 }
 
 /** Stands a fixture, blocking (and closing) the tiles the catalogue says it covers. */
-function stand(ctx: Ctx, p: PropData, use = Use.Kept): void {
+export function stand(ctx: Ctx, p: PropData, use = Use.Kept): void {
   const { tiles, blocks } = tilesOf(p);
   for (const [x, z] of tiles) {
     if (!ctx.land.inside(x, z)) continue;
@@ -264,7 +264,7 @@ function square(ctx: Ctx): void {
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (land.inside(x + dx, z + dz) && land.use[land.idx(x + dx, z + dz)] === Use.Door) return true;
     return false;
   };
-  const artery = (x: number) => plan.connectors.some((c) => c.kind === "artery" && x >= c.x - 1 && x < c.x + c.w + 1);
+  const artery = (x: number) => plan.through.some((c) => x >= c.x0 - 1 && x < c.x1 + 1);
   // The centrepiece: on the square's axis, as far north as it can stand without hiding a door.
   const pieces: Record<string, PropData> = {
     statue: { id: "statue", x: 0, z: 0, args: { size: 2 } },
@@ -338,33 +338,6 @@ function square(ctx: Ctx): void {
       for (const [tx, tz] of tiles) used.add(land.idx(tx, tz));
     }
   }
-}
-
-// --- Lights along the stages ---------------------------------------------------------------------------------------------
-
-function lights(ctx: Ctx, placed: readonly Placed[]): void {
-  const { land, town, plan } = ctx;
-  const id = STREET_LIGHT[town.style] ?? null;
-  if (!id) return;
-  // In the gaps between buildings along the main streets' north sides, every ten tiles or so.
-  const taken = new Set<number>();
-  for (const s of plan.streets) {
-    if (!s.main && formOf(town) !== "capital") continue;
-    let last = -100;
-    for (const [x0, x1] of s.runs) {
-      for (let x = x0 + 2; x < x1 - 2; x++) {
-        const z = s.z - 1;
-        const i = land.idx(x, z);
-        if (land.use[i] !== Use.Lot || x - last < 9) continue;
-        if (land.use[land.idx(x - 1, z)] !== Use.Building && land.use[land.idx(x + 1, z)] !== Use.Building) continue;
-        const p = { id, x: x + 0.5, z: z + 0.5 };
-        stand(ctx, p, Use.Yard);
-        taken.add(i);
-        last = x;
-      }
-    }
-  }
-  void placed;
 }
 
 // --- Yards, gardens and the south band --------------------------------------------------------------------------------------
@@ -631,13 +604,8 @@ function water(ctx: Ctx): void {
       }
     }
   }
-  // Bridges where the town's ways cross its river.
-  if (plan.river) {
-    for (const c of plan.connectors) {
-      if (c.z0 > plan.river.z0 || c.z1 < plan.river.z1) continue;
-      land.fixtures.push({ id: "bridge", x: c.x, z: plan.river.z0 - 1, args: { to: [c.x + c.w, plan.river.z1 + 1], y: 0 } });
-    }
-  }
+  // Bridges where the town's ways cross its water.
+  for (const b of plan.bridges) land.fixtures.push({ id: "bridge", x: b.x0, z: b.z0, args: { to: [b.x1, b.z1], y: 0 } });
 }
 
 // --- People --------------------------------------------------------------------------------------------------------------
