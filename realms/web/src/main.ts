@@ -14,7 +14,7 @@ import { HEADING_NAMES, type Zoom } from "./render/camera";
 import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
 import { publishTestHooks } from "./testHooks";
-import { type WorldSource, globSource, loadWorld } from "./world/load";
+import { type WorldSource, fetchSource, globSource, loadWorld } from "./world/load";
 import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 
 // The overworld page (tech.md, B5-B6), drawn by the renderer's stage (render/stage.ts) over a version-2 world. Its
@@ -27,8 +27,9 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 //                   duel and loot are the card layer's: the screens that trade and save are the stand-in's.
 //   ?art=<url>      where the card layer finds card art (also VITE_CARD_ART): a realm server started with REALMS_ART, for
 //                   local play (tools/realms/play.cmd); else beside the card layer's page.
-//   ?world=slice|large   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
-//                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
+//   ?world=slice|large|towns   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
+//                   slice's street (fixtures/slice-world), the renderer's large synthetic one, for tests, or the towns'
+//                   grounds the town generator's preview wrote (realms/web/town-preview, gitignored).
 //   ?test           publishes globalThis.realmTest (and sliceTest); ?manual holds the clock until a test advances it;
 //                   ?still stands the townsfolk still, ?nohud hides the HUD (pictures).
 // and, for development and tests, forces a state rather than waiting on chance:
@@ -49,6 +50,8 @@ void boot();
 async function worldSource(): Promise<WorldSource> {
   const which = query.get("world");
   if (which === "large") return (await import("../fixtures/large-world/source")).largeSource();
+  // The towns' grounds alone, as the town generator's preview writes them (scripts/worldgen/town-preview.ts).
+  if (which === "towns") return fetchSource("/town-preview");
   if (which !== "slice") return DOMINARIA;
   return globSource(
     () => import("../fixtures/slice-world/world.json"),

@@ -10,3 +10,5 @@ playwright-report/
 # The card faces the offline card layer serves (scripts/cardLayer.mjs), and the launcher's store and logs (tools/realms/play.cmd).
 .cards/
 .play/
+# The town generator's preview world (scripts/worldgen/town-preview.ts), opened with ?world=towns.
+town-preview/
