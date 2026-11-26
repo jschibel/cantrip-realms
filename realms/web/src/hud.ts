@@ -3,7 +3,7 @@ import type { ManaColor } from "./art/figures";
 import { type Character as CharacterData, identityOf } from "./net/api";
 import { type Colors, tierFor } from "./world/standing";
 import { surfaceColor } from "./surfaceColors";
-import { type BuildingData, type ChunkData, type DungeonData, type PlaceKind, type TownData, type WorldData, areaAt } from "./world/format";
+import { type BuildingData, type ChunkData, type DungeonData, type PlaceKind, type TownData, type WorldData, areaAt, groundsAt, travelRect } from "./world/format";
 import { mobInfo } from "./mobs";
 import { PLACE_LOOK, TownPicture, drawPlace, gatesOf } from "./townMap";
 
@@ -59,7 +59,8 @@ interface Marker {
 
 /**
  * The whole world drawn once, small, north up: the land from the world's overview, each tier's zone tinted in its color
- * with its border drawn solid, and the roads. `tiers` is the zone layer alone.
+ * with its border drawn solid, and the roads. `tiers` is the zone layer alone. In a world of two scales it is the travel
+ * map alone (the towns' grounds are their own maps).
  */
 class WorldPicture {
   /** Pixels a tile. */
@@ -73,9 +74,11 @@ class WorldPicture {
   private readonly origin: readonly [number, number];
 
   constructor(readonly world: WorldData) {
-    this.origin = world.origin ?? [0, 0];
-    const width = Math.ceil(world.size[0] * WorldPicture.SCALE);
-    const height = Math.ceil(world.size[1] * WorldPicture.SCALE);
+    const shown = travelRect(world);
+    this.origin = [shown[0], shown[1]];
+    const [wx, wz] = world.origin ?? [0, 0];
+    const width = Math.ceil((shown[2] - shown[0]) * WorldPicture.SCALE);
+    const height = Math.ceil((shown[3] - shown[1]) * WorldPicture.SCALE);
     this.base = document.createElement("canvas");
     this.tiers = document.createElement("canvas");
     for (const c of [this.base, this.tiers]) {
@@ -95,8 +98,9 @@ class WorldPicture {
     const tierOf = new Int8Array(width * height).fill(-1);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        const tx = x / WorldPicture.SCALE;
-        const tz = y / WorldPicture.SCALE;
+        // The tile, from the world's origin, where the overview starts.
+        const tx = x / WorldPicture.SCALE + this.origin[0] - wx;
+        const tz = y / WorldPicture.SCALE + this.origin[1] - wz;
         const letter = view.rows[Math.floor(tz / view.cell)]?.[Math.floor(tx / view.cell)];
         if (!letter) continue;
         const [r, g, b] = colors.get(letter) ?? [11, 12, 16];
@@ -105,7 +109,7 @@ class WorldPicture {
         image.data[o + 1] = g;
         image.data[o + 2] = b;
         image.data[o + 3] = 255;
-        tierOf[y * width + x] = areaAt(world, tx + this.origin[0], tz + this.origin[1])?.tier ?? 0;
+        tierOf[y * width + x] = areaAt(world, tx + wx, tz + wz)?.tier ?? 0;
         if (!sea.has(letter)) {
           this.land.x = Math.min(this.land.x, x);
           this.land.y = Math.min(this.land.y, y);
@@ -348,9 +352,24 @@ export class Hud {
     this.legend.innerHTML = placeLegend(town!);
   }
 
-  /** The town a tile is in or at the gates of, if it has a plan to draw. */
+  /**
+   * The town a tile is in or at the gates of, if it has a plan to draw: in a world of two scales, the town whose grounds
+   * hold it (on the travel map a town is an icon, and the map the regional one).
+   */
   private townAt(x: number, z: number): TownData | null {
-    return this.worldData?.towns.find((t) => t.plan && Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) <= t.radius + 6) ?? null;
+    const world = this.worldData;
+    if (!world) return null;
+    if (world.travel) {
+      const town = groundsAt(world, x, z);
+      return town?.plan ? town : null;
+    }
+    return world.towns.find((t) => t.plan && Math.max(Math.abs(x - t.center[0]), Math.abs(z - t.center[1])) <= t.radius + 6) ?? null;
+  }
+
+  /** Where the player is on the world's map: their tile, or in a town's grounds the town's icon. */
+  private onWorldMap(at: { readonly x: number; readonly z: number }): { x: number; z: number } {
+    const town = this.worldData ? groundsAt(this.worldData, at.x, at.z) : null;
+    return town?.site ? { x: town.site[0], z: town.site[1] } : at;
   }
 
   /** A town's map at a scale, drawn again when more of its buildings have loaded since. */
@@ -434,7 +453,8 @@ export class Hud {
   }
 
   /** The regional map round the player in the world, with the people near them. */
-  drawMap(dots: readonly MinimapDot[], attuned: readonly string[]): void {
+  drawMap(seen: readonly MinimapDot[], attuned: readonly string[]): void {
+    let dots = seen;
     this.attuned = attuned;
     const g = this.minimap.getContext("2d")!;
     const size = this.minimap.width;
@@ -449,7 +469,10 @@ export class Hud {
     }
     this.showLegend("world");
     const pic = this.world;
-    const centre = pic.at(player.x, player.z);
+    // In a town's grounds with no plan to draw, the regional map round its icon, the player on it.
+    const onMap = this.onWorldMap(player);
+    if (onMap.x !== player.x || onMap.z !== player.z) dots = [{ ...player, x: onMap.x + 0.5, z: onMap.z + 0.5 }];
+    const centre = pic.at(onMap.x, onMap.z);
     const left = Math.round(centre.x - size / 2);
     const top = Math.round(centre.y - size / 2);
     g.fillStyle = "#22557c";
@@ -476,7 +499,8 @@ export class Hud {
     const pic = this.world;
     const found: Marker[] = [];
     for (const town of this.worldData!.towns) {
-      const p = pic.at(town.center[0], town.center[1]);
+      const [tx, tz] = town.site ?? town.center;
+      const p = pic.at(tx, tz);
       found.push({ id: town.id, kind: "town", tier: 0, x: p.x, y: p.y, name: town.name });
     }
     for (const d of this.dungeons.values()) {
@@ -593,7 +617,17 @@ export class Hud {
     // Where each gate's road leads.
     const names = new Map<string, string>([...this.worldData!.towns.map((t) => [t.id, t.name] as const), ...[...this.dungeons.values()].map((d) => [d.id, d.name] as const)]);
     for (const f of this.worldData!.ferries) for (const end of ["from", "to"]) names.set(`ferry:${f.id}:${end}`, f.name);
-    for (const gate of gatesOf(plan)) {
+    // In a town's grounds (a world of two scales), each way's gate - the gate of the plan nearest where it arrives - named
+    // for where its road leads.
+    const gates = gatesOf(plan);
+    for (const way of town.ways ?? []) {
+      if (!way.to) continue;
+      const gate = gates.reduce<(typeof gates)[number] | null>((best, g) => (!best || Math.hypot(g.node[0] - way.inside[0], g.node[1] - way.inside[1]) < Math.hypot(best.node[0] - way.inside[0], best.node[1] - way.inside[1]) ? g : best), null);
+      const [x, z] = gate?.node ?? way.inside;
+      const p = picture.at(x, z);
+      wanted.unshift({ text: `To ${names.get(way.to) ?? way.to}`, x: p.x, y: p.y, r: 4, className: "map-label gate", test: "map:gate" });
+    }
+    for (const gate of town.ways ? [] : gates) {
       const leads = this.worldData!.roads.flatMap((r) => {
         const first = r.tiles[0];
         const last = r.tiles[r.tiles.length - 1];
@@ -682,7 +716,19 @@ export class Hud {
         labels.appendChild(label);
       }
     }
-    const player = this.mapState.space === "world" ? this.mapState.centre : null;
+    // The names over the land and the sea (a world's `labels`): the land's biggest, a region's, a feature's, a sea's in italics.
+    for (const l of this.worldData!.labels ?? []) {
+      const p = pic.at(l.x, l.z);
+      const label = document.createElement("span");
+      label.className = `map-label name ${l.kind}`;
+      label.textContent = l.name;
+      label.dataset.test = "map:label";
+      label.style.left = `${Math.round((p.x - crop.x) * k)}px`;
+      label.style.top = `${Math.round((p.y - crop.y) * k)}px`;
+      labels.appendChild(label);
+    }
+    const seen = this.mapState.space === "world" ? this.mapState.centre : null;
+    const player = seen ? this.onWorldMap(seen) : null;
     if (player) {
       const p = pic.at(player.x, player.z);
       const x = Math.round((p.x - crop.x) * k);

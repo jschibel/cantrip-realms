@@ -15,6 +15,7 @@ import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
 import { publishTestHooks } from "./testHooks";
 import { type WorldSource, globSource, loadWorld } from "./world/load";
+import type { WorldData } from "./world/format";
 import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 
 // The overworld page (tech.md, B5-B6), drawn by the renderer's stage (render/stage.ts) over a version-2 world. Its
@@ -27,12 +28,14 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 //                   duel and loot are the card layer's: the screens that trade and save are the stand-in's.
 //   ?art=<url>      where the card layer finds card art (also VITE_CARD_ART): a realm server started with REALMS_ART, for
 //                   local play (tools/realms/play.cmd); else beside the card layer's page.
-//   ?world=slice|large   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
-//                   slice's street (fixtures/slice-world) or the renderer's large synthetic one, for tests.
+//   ?world=slice|large|two   another version-2 world than Dominaria (realms/content/dominaria, the default): the art
+//                   slice's street (fixtures/slice-world), the renderer's large synthetic one, or a small world of two
+//                   scales (fixtures/two-world: a travel map and a town's grounds), for tests.
 //   ?test           publishes globalThis.realmTest (and sliceTest); ?manual holds the clock until a test advances it;
 //                   ?still stands the townsfolk still, ?nohud hides the HUD (pictures).
 // and, for development and tests, forces a state rather than waiting on chance:
-//   ?at=world:x,z | <town> | <dungeon> | <interior>  start there (a town at its middle, a dungeon outside its entrance); ?heading=left|front|right, ?zoom=0..2;
+//   ?at=world:x,z | <town> | <dungeon> | <interior>  start there (a town at its inn's door - in its grounds, in a world of
+//                   two scales - else its middle; a dungeon outside its entrance); ?heading=left|front|right, ?zoom=0..2;
 //   ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home, ?mobs=0 leaves them out;
 //   ?name=&color=&body=&palette= makes the offline character without the screen; ?attuned=<tower>,... starts the
 //   offline character with those mage towers' waystones attuned.
@@ -49,6 +52,7 @@ void boot();
 async function worldSource(): Promise<WorldSource> {
   const which = query.get("world");
   if (which === "large") return (await import("../fixtures/large-world/source")).largeSource();
+  if (which === "two") return (await import("../fixtures/two-world/source")).twoSource();
   if (which !== "slice") return DOMINARIA;
   return globSource(
     () => import("../fixtures/slice-world/world.json"),
@@ -83,6 +87,10 @@ async function boot(): Promise<void> {
 
   const source = await worldSource();
   const world = await loadWorld(source);
+  if (api instanceof MockApi && source !== DOMINARIA) api.useWorld(world, source);
+  // A test's world brings its own dungeons (the two-scale fixture's caves).
+  const two = query.get("world") === "two" ? await import("../fixtures/two-world/source") : null;
+  const dungeons = source === DOMINARIA ? DUNGEONS : two ? new Map([[two.TWO_CAVES.id, two.TWO_CAVES]]) : new Map();
   const character = (await signedIn(api, server)) ?? (await createCharacter(api));
   const presence: Presence = offline
     ? new LocalPresence({ Player: Math.floor(Math.random() * 2 ** 31), Name: character.Name, Identity: character.Identity })
@@ -105,11 +113,13 @@ async function boot(): Promise<void> {
     },
     source,
     world,
-    source === DOMINARIA ? DUNGEONS : new Map(),
+    dungeons,
   );
   // Another world than Dominaria (a test's): the character's place is Dominaria's, so start at its start town.
   const town = world.towns.find((t) => t.start) ?? world.towns[0];
-  const start = (await parseAt(query.get("at"), world.towns, source)) ?? (source !== DOMINARIA && town ? { space: "world", tile: { x: town.center[0], z: town.center[1] } } : undefined);
+  const innDoor = (id: string) => world.inns.find((i) => i.town === id);
+  const startAt = town ? (innDoor(town.id) && world.travel ? { x: innDoor(town.id)!.x, z: innDoor(town.id)!.z } : { x: town.center[0], z: town.center[1] }) : null;
+  const start = (await parseAt(query.get("at"), world, source)) ?? (source !== DOMINARIA && startAt ? { space: "world", tile: startAt } : undefined);
   if (query.has("nohud")) document.body.classList.add("nohud");
   // The start is the game's to make; input binds to its stage once it stands.
   const started = game.start(character, start);
@@ -135,16 +145,20 @@ function socketUrl(server: string): string {
   return url.toString();
 }
 
-/** `world:x,z`, a town (its middle), a dungeon (outside its entrance), or a room's id (`<interior>`, `<interior>:x,z`). */
-async function parseAt(at: string | null, towns: readonly { readonly id: string; readonly center: readonly [number, number] }[], source: WorldSource): Promise<Start | undefined> {
+/**
+ * `world:x,z` (a tile of either scale), a town (in a world of two scales its grounds, at its inn's door; else its middle),
+ * a dungeon (outside its entrance), or a room's id (`<interior>`, `<interior>:x,z`).
+ */
+async function parseAt(at: string | null, world: WorldData, source: WorldSource): Promise<Start | undefined> {
   if (!at) return undefined;
   const [space, where] = at.split(":");
   if (!space) return undefined;
   const [x, z] = (where ?? "").split(",").map(Number);
   const tile = where && Number.isFinite(x) && Number.isFinite(z) ? { x: x!, z: z! } : undefined;
   if (space === "world") return { space: "world", tile };
-  const town = towns.find((t) => t.id === space);
-  if (town) return { space: "world", tile: { x: town.center[0], z: town.center[1] } };
+  const town = world.towns.find((t) => t.id === space);
+  const inn = world.inns.find((i) => i.town === space);
+  if (town) return { space: "world", tile: world.travel && inn ? { x: inn.x, z: inn.z } : { x: town.center[0], z: town.center[1] } };
   const dungeon = source === DOMINARIA ? DUNGEONS.get(space) : undefined;
   if (dungeon) {
     const [dx, dz] = await besideEntrance(dungeon.entrance);

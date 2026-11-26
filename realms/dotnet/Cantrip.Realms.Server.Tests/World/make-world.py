@@ -16,6 +16,12 @@ Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier w
 (layout.json's ids, the roster's bosses, wardens and mages), each with a spell table beside its entrance; and a ferry (the finds
 of the wilds - chests, heartblooms - are the server's to spawn, in the zones, and none is kept here). Every mob of realms/content/dominaria/mobs is met somewhere, as the server's
 content check asks. The same roster gives the same files.
+
+It also writes the same world as one of two scales (realms/docs/interfaces.md, "Two scales") to
+realms/dotnet/Cantrip.Realms.Server.Tests/World/two/dominaria: the map above is its travel map (`travel`, the towns on it
+standing there at walking scale, as a world of two scales allows), and the village of Avenant is an icon on it - a
+blocked 3 by 3 square at TWO_SITE, its west way's outside beside it - whose grounds are a pocket of their own four chunks
+east of it (TWO_GROUNDS: open grass, its inn's house and door, its west way's exit and inside).
 """
 
 import json
@@ -86,6 +92,14 @@ PORTAL = ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger", "gitaxia
 ROOM_W, ROOM_D = 7, 5
 ENTRY = (4, ROOM_D - 1)
 
+# The two-scale world's village: its icon on the travel map, its grounds' pocket (chunks 7 and 8 by 0 and 1: three empty
+# chunks, 4 to 6, between it and the travel map), its middle, and its west way.
+TWO_TOWN = "avenant"
+TWO_SITE = (100, 84)
+TWO_GROUNDS = (224, 0, 288, 64)
+TWO_CENTER = (256, 32)
+TWO_WAY = {"side": "west", "outside": [TWO_SITE[0] - 2, TWO_SITE[1]], "inside": [230, 32], "exit": [[225, 31], [225, 32], [225, 33]], "to": "new-benalia"}
+
 
 def load(path):
     with open(path, encoding="utf-8") as f:
@@ -100,16 +114,25 @@ def write(path, data):
 
 
 def main():
+    build(two=False)
+    build(two=True)
+
+
+def build(two):
+    out_root = os.path.join(HERE, "two", "dominaria") if two else OUT
     layout = load(os.path.join(CONTENT, "layout.json"))
     plans = {t["id"]: t for t in layout["towns"]}
     dungeon_plans = {d["id"]: d for d in layout["dungeons"]}
     mobs = {m["id"]: m for m in (load(os.path.join(CONTENT, "mobs", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "mobs"))) if f.endswith(".json"))}
     vendors = [load(os.path.join(CONTENT, "vendors", f)) for f in sorted(os.listdir(os.path.join(CONTENT, "vendors"))) if f.endswith(".json")]
 
+    pocket = [(cx, cz) for cx in range(TWO_GROUNDS[0] // CHUNK, TWO_GROUNDS[2] // CHUNK) for cz in range(TWO_GROUNDS[1] // CHUNK, TWO_GROUNDS[3] // CHUNK)] if two else []
     chunks = {(cx, cz): {"cx": cx, "cz": cz, "tiles": None, "props": [], "buildings": [], "npcs": [], "spawns": [],
-                         "entrances": [], "waymarkers": []} for cx in CHUNKS_X for cz in CHUNKS_Z}
+                         "entrances": [], "waymarkers": []} for (cx, cz) in [(cx, cz) for cx in CHUNKS_X for cz in CHUNKS_Z] + pocket}
     # Every tile: [height (texels), surface, flags].
     ground = {(x, z): [0, "grass", 0] for x in range(ORIGIN[0], ORIGIN[0] + SIZE[0]) for z in range(ORIGIN[1], ORIGIN[1] + SIZE[1])}
+    if two:
+        ground.update({(x, z): [0, "grass", 0] for x in range(TWO_GROUNDS[0], TWO_GROUNDS[2]) for z in range(TWO_GROUNDS[1], TWO_GROUNDS[3])})
     taken = {}
 
     def chunk_of(x, z):
@@ -228,6 +251,26 @@ def main():
             take(cx - 2, cz, f"{town}'s pitch")
             pitches.append({"town": town, "x": cx - 2, "z": cz})
 
+    if two:
+        # Avenant: its icon on the travel map, and in its grounds its street, its inn and its way's ends.
+        plan = plans[TWO_TOWN]
+        for x in range(TWO_SITE[0] - 1, TWO_SITE[0] + 2):
+            for z in range(TWO_SITE[1] - 1, TWO_SITE[1] + 2):
+                block(x, z, f"{TWO_TOWN}'s icon")
+        take(*TWO_WAY["outside"], f"{TWO_TOWN}'s west way")
+        cx, cz = TWO_CENTER
+        for x in range(TWO_GROUNDS[0] + 1, cx + 6):
+            for z in (cz - 1, cz, cz + 1):
+                if (x, z) not in taken:
+                    ground[(x, z)] = [0, "cobbles", 0]
+        door = building(f"{TWO_TOWN}-inn", TWO_TOWN, plan["style"], "house", (0, -2, 0), TWO_CENTER, f"{TWO_TOWN}-inn", f"The {plan['name']} Inn")
+        room(f"{TWO_TOWN}-inn", f"The {plan['name']} Inn", "inn", TWO_TOWN, plan["style"], door, [
+            {"id": "innkeeper", "kind": "innkeeper", "x": 3, "z": 1},
+        ])
+        inns.append({"id": f"{TWO_TOWN}-inn", "town": TWO_TOWN, "x": door[0], "z": door[1] + 1, "interior": f"{TWO_TOWN}-inn"})
+        towns.append({"id": TWO_TOWN, "name": plan["name"], "kind": plan["kind"], "center": list(TWO_CENTER), "radius": RADII[plan["kind"]],
+                      "style": plan["style"], "start": False, "site": list(TWO_SITE), "grounds": list(TWO_GROUNDS), "ways": [TWO_WAY]})
+
     # A spell table in New Benalia's street, in the world.
     block(19, 16, "New Benalia's spell table", "cobbles")
     chunks[(0, 0)]["npcs"].append({"id": "new-benalia-spell-table", "kind": "spell-table", "x": 19, "z": 16})
@@ -322,7 +365,7 @@ def main():
     # The tier zones, a chunk a cell: tier 1 by New Benalia, rising with distance; and the overview, a letter a chunk.
     areas = [{"id": f"tier-{t}", "name": f"Tier {t}", "region": "W", "tier": t} for t in range(1, 5)]
     world = {
-        "size": list(SIZE),
+        "size": [TWO_GROUNDS[2] - ORIGIN[0], SIZE[1]] if two else list(SIZE),
         "origin": list(ORIGIN),
         "chunk": CHUNK,
         "tile": 1,
@@ -338,21 +381,24 @@ def main():
                   "grid": [[min(3, max(abs(cx), cz)) for cx in CHUNKS_X] for cz in CHUNKS_Z]},
         "overview": {"cell": CHUNK, "legend": {"G": "grass"}, "rows": ["G" * len(CHUNKS_X) for _ in CHUNKS_Z]},
     }
+    if two:
+        world["travel"] = [ORIGIN[0], ORIGIN[1], ORIGIN[0] + SIZE[0], ORIGIN[1] + SIZE[1]]
+        world["labels"] = [{"name": "Aerona", "x": 48, "z": 64, "kind": "land"}]
 
     for folder in ("world/chunks", "interiors", "dungeons"):
-        path = os.path.join(OUT, *folder.split("/"))
+        path = os.path.join(out_root, *folder.split("/"))
         if os.path.isdir(path):
             for name in os.listdir(path):
                 if name.endswith(".json"):
                     os.remove(os.path.join(path, name))
-    write(os.path.join(OUT, "world", "world.json"), world)
+    write(os.path.join(out_root, "world", "world.json"), world)
     for (cx, cz), chunk in chunks.items():
-        write(os.path.join(OUT, "world", "chunks", f"{cx}_{cz}.json"), chunk)
+        write(os.path.join(out_root, "world", "chunks", f"{cx}_{cz}.json"), chunk)
     for id, data in interiors.items():
-        write(os.path.join(OUT, "interiors", f"{id}.json"), data)
+        write(os.path.join(out_root, "interiors", f"{id}.json"), data)
     for data in dungeons:
-        write(os.path.join(OUT, "dungeons", f"{data['id']}.json"), data)
-    print(f"make-world: {len(chunks)} chunks, {len(towns)} towns, {len(interiors)} interiors, {len(dungeons)} dungeons")
+        write(os.path.join(out_root, "dungeons", f"{data['id']}.json"), data)
+    print(f"make-world{' (two scales)' if two else ''}: {len(chunks)} chunks, {len(towns)} towns, {len(interiors)} interiors, {len(dungeons)} dungeons")
 
 
 if __name__ == "__main__":

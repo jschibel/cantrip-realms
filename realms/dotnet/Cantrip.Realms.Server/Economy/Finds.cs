@@ -27,7 +27,8 @@ public sealed record Find(string Id, FindKind Kind, Tile At, int Tier, long Sinc
 /// unopened. Heartblooms grow anywhere in the wilds, at most <see cref="FindOptions.Heartblooms"/> at once and
 /// <see cref="HeartbloomApart"/> tiles from each other, one about every <see cref="FindOptions.HeartbloomEvery"/>,
 /// wilting after <see cref="FindOptions.HeartbloomLasts"/>. A find stands on a random open tile of the wilds with open,
-/// level ground all round - never on worked ground (a road, a field), in a town, near a door, a way in, a person or a
+/// level ground all round - never on worked ground (a road, a field), in a town (in a world of two scales, anywhere but on the
+/// travel map: never in a town's grounds), near a door, a way in, a person or a
 /// spawn point, near another find, or where a player stands - and is everyone's: the first to take it has it, and it is
 /// gone for all (<see cref="Take"/>). The world moves on when it is asked (<see cref="Live"/>), on the injected clock; the
 /// finds are kept in memory, so a server started anew grows its own.
@@ -37,8 +38,11 @@ public sealed class Finds(RealmContent content, RealmOptions options, TimeProvid
     /// <summary>How near another find, in tiles (Chebyshev), a find never spawns.</summary>
     public const int Apart = 8;
 
-    /// <summary>How near another heartbloom one never grows (design.md A3b: far apart, so the far ones are worth the walk).</summary>
-    public const int HeartbloomApart = 150;
+    /// <summary>
+    /// How near another heartbloom one never grows (design.md A3b: far apart, so the far ones are worth the walk): 85 tiles
+    /// of the 512 by 768 travel map, as 150 were of the 1,024 by 1,216 world it was first set for.
+    /// </summary>
+    public const int HeartbloomApart = 85;
 
     /// <summary>How near a player a find never spawns, tiles: none appears underfoot.</summary>
     public const int AwayFromPlayers = 4;
@@ -200,7 +204,7 @@ public sealed class Finds(RealmContent content, RealmOptions options, TimeProvid
         {
             (int col, int row) = cells[_random.Next(cells.Count)];
             var at = new Tile(World.X0 + (col * zones.Cell) + _random.Next(zones.Cell), World.Z0 + (row * zones.Cell) + _random.Next(zones.Cell));
-            if (!World.Walkable(at) || World.IsWorked(at) || _kept.Contains(at) || content.TownAt(at) is not null) continue;
+            if (!World.Walkable(at) || World.IsWorked(at) || _kept.Contains(at) || content.TownAt(at) is not null || !World.InTravel(at) || World.GroundsAt(at) is not null) continue;
             if (!Tile.Steps.All(step => World.CanStep(at, at.Plus(step)))) continue;
             if (_live.Values.Any(find => find.At.DistanceTo(at) < (kind == FindKind.Heartbloom && find.Kind == FindKind.Heartbloom ? HeartbloomApart : Apart))) continue;
             if (players.Any(player => player.Tile.DistanceTo(at) < AwayFromPlayers)) continue;

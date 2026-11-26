@@ -252,6 +252,50 @@ public sealed class RealmWorld : RealmSpace
     /// <summary>Whether a tile is within the world's <c>size</c> from its <c>origin</c>.</summary>
     public bool Inside(Tile at) => at.X >= X0 && at.Z >= Z0 && at.X < X0 + Width && at.Z < Z0 + Height;
 
+    // --- Two scales (interfaces.md, "Two scales") ---------------------------------------------------------------------
+
+    /// <summary>Whether the world has two scales: a travel map, its towns' grounds in pockets past it.</summary>
+    public bool TwoScales => File.Travel is [_, _, _, _];
+
+    /// <summary>Whether a tile is the travel map's (every tile is, in a world of one scale).</summary>
+    public bool InTravel(Tile at) => File.Travel is not [int x0, int z0, int x1, int z1] || (at.X >= x0 && at.Z >= z0 && at.X < x1 && at.Z < z1);
+
+    /// <summary>The town whose grounds hold a tile, if any.</summary>
+    public TownEntry? GroundsAt(Tile at) => File.Towns.FirstOrDefault(town => town.InGrounds(at));
+
+    /// <summary>
+    /// Whether a chunk may hold ground: in a world of two scales, one over the travel map or a town's grounds (a chunk with
+    /// no file is no ground, and one over neither has none); in a world of one scale, every chunk.
+    /// </summary>
+    public bool HasGround(int cx, int cz)
+    {
+        if (!TwoScales) return true;
+        bool Over(IReadOnlyList<int>? r) => r is [int x0, int z0, int x1, int z1] && cx * Chunk < x1 && (cx + 1) * Chunk > x0 && cz * Chunk < z1 && (cz + 1) * Chunk > z0;
+        return Over(File.Travel) || File.Towns.Any(town => Over(town.Grounds));
+    }
+
+    /// <summary>
+    /// Whether a jump from one tile of the world to another is a town's way taken (interfaces.md, "Two scales"): into its
+    /// grounds from on or beside a way's outside, arriving on or within <see cref="WayArrival"/> of its inside; or out of
+    /// them from on or beside one of its exit tiles, arriving on or beside its outside. The town and the way, or null.
+    /// </summary>
+    public (TownEntry Town, TownWay Way, bool Into)? WayTaken(Tile from, Tile to)
+    {
+        foreach (TownEntry town in File.Towns)
+        {
+            foreach (TownWay way in town.Ways)
+            {
+                if (from.DistanceTo(way.OutsideAt) <= 1 && to.DistanceTo(way.InsideAt) <= WayArrival && town.InGrounds(to)) return (town, way, true);
+                if (way.ExitAt.Any(exit => from.DistanceTo(exit) <= 1) && town.InGrounds(from) && to.DistanceTo(way.OutsideAt) <= 1) return (town, way, false);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>How far from a way's inside, tiles, one may be stood arriving through it: the figure steps in from behind it.</summary>
+    public const int WayArrival = 2;
+
     private (byte State, short Height) Cell(Tile at)
     {
         if (!Inside(at)) return (None, 0);

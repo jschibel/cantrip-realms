@@ -225,7 +225,9 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
     /// Records where a character is (<c>POST /api/position</c>, interfaces.md "Places"). A place of the world or an interior
     /// is a tile nobody is kept off, and is reached from the last by walking - no farther, in tiles (<see cref="Tile.Distance"/>,
     /// which no walk of eight-way steps beats), than the walking speed allows in the time since - or through a door: into an
-    /// interior from on or beside a door of it, out of one on or beside its exit. A dungeon run is entered and left by its own
+    /// interior from on or beside a door of it, out of one on or beside its exit; and in a world of two scales through a
+    /// town's way (<see cref="RealmWorld.WayTaken"/>): into its grounds from beside the way's outside, out of them from
+    /// beside its exit. A dungeon run is entered and left by its own
     /// calls, and its places are the browser's, so within a live run of theirs any tile is taken; a waystone is travelled by
     /// its own call. A place in a town - within its walls, or in one of its buildings - fills the character's hearts
     /// (design.md A3b), the server's knowledge of where they stand being what it has checked here. Their hearts after it.
@@ -275,8 +277,13 @@ public sealed partial class Characters(RealmDb db, RealmContent content, RealmOp
             }
             else if (row.Space == space.Id)
             {
+                // Walked there; or, in a world of two scales, through a town's way: into its grounds from beside the way by
+                // its icon, out of them from its exit (Places, "Two scales").
                 long walkable = (long)Math.Floor(Math.Max(0, now - row.PlacedAt) / 1000.0 * options.WalkingSpeed) + Slack;
-                if (here.DistanceTo(at) > walkable) throw Refusal.Conflict(Codes.NoWay, "Nobody walks that far that fast.");
+                if (here.DistanceTo(at) > walkable && (space is not RealmWorld world || world.WayTaken(here, at) is null))
+                {
+                    throw Refusal.Conflict(Codes.NoWay, "Nobody walks that far that fast.");
+                }
             }
             else if (space is RealmInterior into)
             {

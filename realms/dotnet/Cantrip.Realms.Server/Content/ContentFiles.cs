@@ -339,6 +339,55 @@ public sealed class TownEntry
     public string? Style { get; init; }
 
     public Tile At => Center is [int x, int z] ? new Tile(x, z) : default;
+
+    /// <summary>
+    /// A world of two scales (interfaces.md, "Two scales"): on the travel map, the middle tile of its icon, a blocked square
+    /// <see cref="IconSize"/> across; none for a town standing on the map at walking scale.
+    /// </summary>
+    public IReadOnlyList<int>? Site { get; init; }
+
+    /// <summary>Its grounds at walking scale, <c>[x0, z0, x1, z1]</c> (x1 and z1 excluded), in a pocket of the world of their own.</summary>
+    public IReadOnlyList<int>? Grounds { get; init; }
+
+    /// <summary>The ways between its grounds and the travel map.</summary>
+    public IReadOnlyList<TownWay> Ways { get; init; } = [];
+
+    /// <summary>Tiles across a town's icon on the travel map, by its kind.</summary>
+    public int IconSize => Kind switch { "capital" => 7, "town" => 5, _ => 3 };
+
+    /// <summary>Whether a tile is in its grounds.</summary>
+    public bool InGrounds(Tile at) => Grounds is [int x0, int z0, int x1, int z1] && at.X >= x0 && at.Z >= z0 && at.X < x1 && at.Z < z1;
+
+    /// <summary>Whether a tile is under its icon on the travel map.</summary>
+    public bool UnderIcon(Tile at) => Site is [int x, int z] && Math.Abs(at.X - x) <= IconSize / 2 && Math.Abs(at.Z - z) <= IconSize / 2;
+}
+
+/// <summary>
+/// A way between a town's grounds and the travel map (interfaces.md, "Two scales"): from beside <see cref="Outside"/>, by
+/// the icon, into the grounds at <see cref="Inside"/>; from on or beside an <see cref="Exit"/> tile out onto <see cref="Outside"/>.
+/// </summary>
+public sealed class TownWay
+{
+    /// <summary><c>north</c>, <c>east</c>, <c>south</c> or <c>west</c>: the side of the icon (and of the grounds) it leaves by.</summary>
+    public string Side { get; init; } = string.Empty;
+
+    /// <summary>The open travel-map tile beside the icon on that side, <c>[x, z]</c>.</summary>
+    public IReadOnlyList<int> Outside { get; init; } = [];
+
+    /// <summary>Where one arrives in the grounds, <c>[x, z]</c>.</summary>
+    public IReadOnlyList<int> Inside { get; init; } = [];
+
+    /// <summary>The tiles at the edge of the walked ground that lead out, each <c>[x, z]</c>.</summary>
+    public IReadOnlyList<IReadOnlyList<int>> Exit { get; init; } = [];
+
+    /// <summary>Where its road leads (a town's or a dungeon's id), for the maps.</summary>
+    public string? To { get; init; }
+
+    public Tile OutsideAt => Outside is [int x, int z] ? new Tile(x, z) : new Tile(int.MinValue, int.MinValue);
+
+    public Tile InsideAt => Inside is [int x, int z] ? new Tile(x, z) : new Tile(int.MinValue, int.MinValue);
+
+    public IEnumerable<Tile> ExitAt => Exit.Select(step => step is [int x, int z] ? new Tile(x, z) : new Tile(int.MinValue, int.MinValue));
 }
 
 /// <summary>An inn of the world, at the tile outside its door where a character whose home it is wakes after a lost duel.</summary>
@@ -435,6 +484,12 @@ public sealed class WorldFile
 
     /// <summary>The tier zones (interfaces.md, "Version 2 of the world data"): what the finds of the wilds spawn by.</summary>
     public ZonesEntry? Zones { get; init; }
+
+    /// <summary>
+    /// The travel map, <c>[x0, z0, x1, z1]</c> (interfaces.md, "Two scales"): the Domains at travel scale, the towns' grounds
+    /// in pockets past it; none for a world of one scale, every tile of which is the travel map's.
+    /// </summary>
+    public IReadOnlyList<int>? Travel { get; init; }
 }
 
 /// <summary>

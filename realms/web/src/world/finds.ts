@@ -1,4 +1,4 @@
-import { type ChunkData, type TileData, type WorldData, CHUNK, chunkKey, isBlocked, noLedge, townAt } from "./format";
+import { type ChunkData, type TileData, type WorldData, CHUNK, chunkKey, groundsAt, inTravel, isBlocked, noLedge, townAt } from "./format";
 
 // The finds of the wilds (design.md A5, A3b): treasure chests and heartblooms, none kept in the world's files - they come
 // and go. The server spawns them (Economy/Finds.cs) and says which stand (`GET /api/finds`); the offline stand-in
@@ -8,7 +8,9 @@ import { type ChunkData, type TileData, type WorldData, CHUNK, chunkKey, isBlock
 // heartbloomEvery, wilting after heartbloomLasts. A find stands on a random open tile of the wilds with open, level ground
 // all round - never on worked ground (WORKED_GROUND), in a town, within AWAY_FROM_PLACES of a door, a way in, a person or
 // a spawn point, within FIND_APART of another find, or within AWAY_FROM_PLAYERS of a player - and the first to take it has
-// it, gone for all.
+// it, gone for all. In a world of two scales the wilds are the travel map's (its zones cover it alone): none ever stands in
+// a town's grounds. The counts and the spacing are the 512 by 768 travel map's: a third of the land of the 1024 by 1216
+// world they were first made for, and so a third as many finds, each a little over half as far from the next.
 
 export type FindKind = "chest" | "heartbloom";
 
@@ -22,11 +24,11 @@ export interface FindRules {
   readonly heartbloomLasts: number;
 }
 
-export const FIND_RULES: FindRules = { chestsPerZone: 2, chestEvery: 600, chestLasts: 1800, heartblooms: 8, heartbloomEvery: 1800, heartbloomLasts: 10_800 };
+export const FIND_RULES: FindRules = { chestsPerZone: 1, chestEvery: 600, chestLasts: 1800, heartblooms: 3, heartbloomEvery: 1800, heartbloomLasts: 10_800 };
 
 /** How near another find, tiles (Chebyshev), a find never spawns; how near another heartbloom one never grows. */
 export const FIND_APART = 8;
-export const HEARTBLOOM_APART = 150;
+export const HEARTBLOOM_APART = 85;
 /** How near a player, and a door, a way in, a person or a spawn point, a find never spawns, tiles. */
 export const AWAY_FROM_PLAYERS = 4;
 export const AWAY_FROM_PLACES = 3;
@@ -161,7 +163,7 @@ export class FindSpawner {
       const [c, r] = cells[Math.floor(this.random() * cells.length)]!;
       const x = ox + c * cell + Math.floor(this.random() * cell);
       const z = oz + r * cell + Math.floor(this.random() * cell);
-      if (townAt(this.world.towns, x, z)) continue;
+      if (townAt(this.world.towns, x, z) || !inTravel(this.world, x, z) || groundsAt(this.world, x, z)) continue;
       const apart = (o: { x: number; z: number }, reach: number) => Math.max(Math.abs(o.x - x), Math.abs(o.z - z)) < reach;
       if ([...this.live.values()].some((f) => apart(f, kind === "heartbloom" && f.kind === "heartbloom" ? HEARTBLOOM_APART : FIND_APART))) continue;
       if (players.some((p) => apart({ x: Math.floor(p.x), z: Math.floor(p.z) }, AWAY_FROM_PLAYERS))) continue;

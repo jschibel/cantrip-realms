@@ -9,6 +9,7 @@ import {
   chunkKey,
   chunkTile,
   chunksOver,
+  hasGround,
   interiorArea,
   interiorTile,
   isBlocked,
@@ -102,8 +103,13 @@ export async function loadWorld(source: WorldSource): Promise<WorldData> {
   return data as WorldData;
 }
 
-/** One chunk, checked; null where the world has none there. */
-export async function loadChunk(source: WorldSource, cx: number, cz: number): Promise<ChunkData | null> {
+/**
+ * One chunk, checked; null where the world has none there. Given the world, a chunk it has no ground in (past its tiles,
+ * or in a world of two scales over neither the travel map nor a town's grounds: format.ts `hasGround`) is none, never
+ * asked of the source.
+ */
+export async function loadChunk(source: WorldSource, cx: number, cz: number, world?: WorldData): Promise<ChunkData | null> {
+  if (world && !hasGround(world, cx, cz)) return null;
   const data = await source.chunk(cx, cz);
   if (data === null) return null;
   const problems = checkChunk(data, cx, cz);
@@ -111,11 +117,14 @@ export async function loadChunk(source: WorldSource, cx: number, cz: number): Pr
   return data as ChunkData;
 }
 
-/** The chunks over a rectangle of tiles (default every chunk the world's tiles touch), checked; missing ones left out. */
+/**
+ * The chunks over a rectangle of tiles (default every chunk the world's tiles touch), checked; missing ones left out, and
+ * in a world of two scales those over no ground never asked for (`hasGround`).
+ */
 export async function loadChunks(source: WorldSource, world: WorldData, over: Rect = worldRect(world)): Promise<ChunkData[]> {
   const keys = source.chunkKeys?.();
-  const wanted = chunksOver(over).filter(({ cx, cz }) => !keys || keys.includes(chunkKey(cx, cz)));
-  const chunks = await Promise.all(wanted.map(({ cx, cz }) => loadChunk(source, cx, cz)));
+  const wanted = chunksOver(over).filter(({ cx, cz }) => hasGround(world, cx, cz) && (!keys || keys.includes(chunkKey(cx, cz))));
+  const chunks = await Promise.all(wanted.map(({ cx, cz }) => loadChunk(source, cx, cz, world)));
   return chunks.filter((c): c is ChunkData => c !== null);
 }
 

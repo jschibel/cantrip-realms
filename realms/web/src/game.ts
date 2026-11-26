@@ -22,7 +22,7 @@ import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type WorldData, chunkKey, isBlocked, townAt } from "./world/format";
+import { CHUNK, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type TownData, type TownWay, type WorldData, chunkKey, groundsAt, inTravel, isBlocked, sideStep, siteRect, townAt } from "./world/format";
 import { type Grid, type Tile, flatGround } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
@@ -467,19 +467,95 @@ export class Overworld {
     return took;
   }
 
-  /** The world's dungeon entrances near the chunks built, as ways out of the world. */
+  /** The world's dungeon entrances near the chunks built, and (a world of two scales) the towns' ways, as ways out of where one is. */
   private entrances(): StageDoor[] {
     const out: StageDoor[] = [];
-    for (const key of this.world.streamer.builtKeys) {
+    const built = new Set(this.world.streamer.builtKeys);
+    for (const key of built) {
       for (const e of this.world.streamer.data.get(key)?.entrances ?? []) {
         out.push({ name: `entrance:${e.dungeon}`, tile: { x: e.x, z: e.z }, step: [0, -1], to: `dungeon:${e.dungeon}`, at: new THREE.Vector3(e.x + 0.5, this.world.floorAt(e.x + 0.5, e.z + 0.5), e.z), kind: "entrance" });
+      }
+    }
+    out.push(...this.townWays(built));
+    return out;
+  }
+
+  /**
+   * The towns' ways (a world of two scales, interfaces.md "Two scales") as doors of the world: on the travel map, each way
+   * into a town whose icon is built - stood on its `outside` and stepped into the icon, its doorway the whole icon, so a
+   * click anywhere on it walks to the nearest way's outside and in; in a town's grounds, each tile of its ways' `exit`s,
+   * stepped out past the edge of the walked ground.
+   */
+  private townWays(built: ReadonlySet<string>): StageDoor[] {
+    const out: StageDoor[] = [];
+    const here = this.world.here;
+    const grounds = groundsAt(this.worldData, here.x, here.z);
+    const builtAt = (x: number, z: number) => built.has(chunkKey(Math.floor(x / CHUNK), Math.floor(z / CHUNK)));
+    for (const town of this.worldData.towns) {
+      if (grounds) {
+        if (town !== grounds) continue;
+        for (const way of town.ways ?? []) {
+          const [sx, sz] = sideStep(way.side);
+          for (const [x, z] of way.exit) {
+            if (!builtAt(x, z)) continue;
+            out.push({ name: `exit:${town.id}:${way.side}`, tile: { x, z }, step: [sx, sz], to: `way:${town.id}:${way.side}:out`, at: new THREE.Vector3(x + 0.5 + sx, this.world.floorAt(x + 0.5, z + 0.5) + 0.6, z + 0.5 + sz), kind: "town-out" });
+          }
+        }
+        continue;
+      }
+      const site = siteRect(town);
+      if (!site || !town.site || !builtAt(town.site[0], town.site[1])) continue;
+      for (const way of town.ways ?? []) {
+        const [sx, sz] = sideStep(way.side);
+        const [x, z] = way.outside;
+        out.push({ name: `way:${town.id}:${way.side}`, tile: { x, z }, step: [-sx, -sz], to: `way:${town.id}:${way.side}:in`, at: new THREE.Vector3(town.site[0] + 0.5, this.world.floorAt(x + 0.5, z + 0.5) + 0.8, town.site[1] + 0.5), kind: "town", area: site });
       }
     }
     return out;
   }
 
+  /** A town and its way, from a way's door (`way:<town>:<side>:in|out`). */
+  private wayOf(door: StageDoor): { town: TownData; way: TownWay } | null {
+    const [, id, side] = door.to.split(":");
+    const town = this.worldData.towns.find((t) => t.id === id);
+    const way = town?.ways?.find((w) => w.side === side);
+    return town && way ? { town, way } : null;
+  }
+
+  /**
+   * Through a town's way (interfaces.md, "Two scales"): where the player stands told to the server first - the way's
+   * outside, or the exit tile - then the other side read and built round where they will stand while the iris closes
+   * (the place left kept until they are there), then that they stand there, which the server takes only through a way.
+   * Into the grounds one arrives on the way's `inside` facing into the town; out, on its `outside` facing away from the
+   * icon. A refusal opens the iris back where they stood.
+   */
+  private async crossWay(town: TownData, way: TownWay, into: boolean): Promise<Arrival> {
+    const from = this.player.tile;
+    await this.api.position(placeOf("world", from)).then((r) => this.heartsAre(r.Hearts), () => {});
+    const [x, z] = into ? way.inside : way.outside;
+    const tile = { x, z };
+    await this.world.streamer.settle(x, z, this.stage.streamReach(), false);
+    try {
+      const r = await this.api.position(placeOf("world", tile));
+      this.heartsAre(r.Hearts);
+    } catch (e) {
+      this.note(`way ${town.id} ${way.side} refused: ${e instanceof Error ? e.message : String(e)}`);
+      this.say(refusal(e));
+      throw e;
+    }
+    this.lastReported = `world:${x},${z}`;
+    this.note(`${into ? "into" : "out of"} ${town.id} by its ${way.side} way, at ${x},${z}`);
+    const [sx, sz] = sideStep(way.side);
+    return { spot: this.world, tile, facing: into ? [-sx, -sz] : [sx, sz] };
+  }
+
   /** Ways the game resolves itself: a dungeon's entrance, a run's stairs and its way out. */
   private otherWay(door: StageDoor, from: Spot): Arrival | Promise<Arrival> | null {
+    if (door.kind === "town" || door.kind === "town-out") {
+      const found = this.wayOf(door);
+      if (!found) throw new Error("no way");
+      return this.crossWay(found.town, found.way, door.kind === "town");
+    }
     if (door.kind === "entrance") return this.enterRun(door.to.slice("dungeon:".length));
     if (door.kind === "down" && this.run) return this.descend();
     if (from.id.startsWith("run:") && door.name === "way-out" && this.run && !this.bossBeaten(this.run)) {
@@ -581,6 +657,13 @@ export class Overworld {
     const find = this.findAt(t);
     if (find) return find.Kind === "heartbloom" ? "A heartbloom" : "A chest";
     const door = this.stage.doorAt(t);
+    if (door?.kind === "town" || door?.kind === "town-out") {
+      const found = this.wayOf(door);
+      if (!found) return null;
+      if (door.kind === "town") return found.town.name;
+      const to = found.way.to ? (this.worldData.towns.find((t) => t.id === found.way.to)?.name ?? this.dungeons.get(found.way.to)?.name ?? found.way.to) : null;
+      return to ? `To ${to}` : `Leave ${found.town.name}`;
+    }
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
     return null;
   }
@@ -672,7 +755,8 @@ export class Overworld {
   /** On every step: the area and its tier, and now and then where the player is. */
   private stepped(t: Tile, arriving = false): void {
     if (this.inWorld) {
-      const town = townAt(this.worldData.towns, t.x, t.z);
+      // Within a town's walls, or anywhere in its grounds (a world of two scales), the town's.
+      const town = townAt(this.worldData.towns, t.x, t.z) ?? groundsAt(this.worldData, t.x, t.z);
       const z = this.worldData.zones;
       const [ox, oz] = this.worldData.origin ?? [0, 0];
       const zone = z.areas[z.grid[Math.floor((t.z - oz) / z.cell)]?.[Math.floor((t.x - ox) / z.cell)] ?? -1];
@@ -695,6 +779,14 @@ export class Overworld {
     }
     // On a door's tile, at once: the server lets one into a room only from beside its door.
     if (!arriving) this.report(!!this.stage.doorAt(t));
+    // Onto an exit of a town's grounds: out to the travel map, as through a door.
+    if (!arriving && this.inWorld && !this.stage.transition && !this.paused) {
+      const exit = this.spot.doors.find((d) => d.kind === "town-out" && d.tile.x === t.x && d.tile.z === t.z);
+      if (exit) {
+        this.stage.startDoor(exit);
+        return;
+      }
+    }
     // Onto a find: taken (a click's walk to one takes it on arriving instead).
     const find = !arriving && !this.pending ? this.findAt(t) : undefined;
     if (find) void this.takeFind(find, false);
@@ -702,7 +794,8 @@ export class Overworld {
 
   /** Where the player is, to the server: on standing, and every two seconds of walking. */
   private report(force = false): void {
-    if (this.spot.id.startsWith("run:")) return;
+    // Going through a door, the next place's own report is the one that counts.
+    if (this.spot.id.startsWith("run:") || this.stage.transition) return;
     const now = performance.now();
     const where = `${this.spaceId}:${this.player.tile.x},${this.player.tile.z}`;
     // Once for each place stood on (never again every frame while standing), and every two seconds of a walk.
@@ -1086,7 +1179,7 @@ export class Overworld {
   private async townHere(): Promise<string> {
     if (!this.inWorld) return (await this.places.read(this.spaceId).catch(() => null))?.town ?? this.spot.id;
     const p = this.player.tile;
-    return townAt(this.worldData.towns, p.x, p.z)?.id ?? this.spot.id;
+    return (townAt(this.worldData.towns, p.x, p.z) ?? groundsAt(this.worldData, p.x, p.z))?.id ?? this.spot.id;
   }
 
   async talk(npc: NpcData, actor?: Actor): Promise<void> {
@@ -1719,7 +1812,10 @@ export class Overworld {
     this.watchJumps();
     if (!this.paused) {
       const free = (who: Actor) => this.free(who);
-      for (const mob of this.mobsHere()) {
+      // The wanderers live on the travel map (a world of two scales): in a town's grounds nothing chases.
+      const here = this.player.tile;
+      const wild = !this.inWorld || (inTravel(this.worldData, here.x, here.z) && !groundsAt(this.worldData, here.x, here.z));
+      for (const mob of wild ? this.mobsHere() : []) {
         // The world's grid is a window remade as chunks come and go: walk the one there is now.
         if (mob.actor.grid !== this.spot.grid) mob.actor.grid = this.spot.grid;
         if (mob.think(dt, this.player, free(mob.actor), this.options.wander)) void this.engage(mob);

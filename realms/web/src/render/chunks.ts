@@ -16,6 +16,7 @@ import {
   chunkKey,
   chunkTile,
   frontStep,
+  hasGround,
   isBare,
   isBlocked,
   RAMP,
@@ -296,7 +297,10 @@ export class ChunkStreamer {
 
   private pendingBuild: string[] = [];
 
-  /** The chunks whose square is within `reach` tiles of a point. */
+  /**
+   * The chunks whose square is within `reach` tiles of a point: those with ground (in a world of two scales, over the
+   * travel map or a town's grounds alone: format.ts `hasGround`, so no chunk of the void between is ever asked for).
+   */
   private chunksNear(x: number, z: number, reach: number): string[] {
     const r = worldRect(this.world);
     const out: string[] = [];
@@ -309,7 +313,7 @@ export class ChunkStreamer {
         // Distance from the point to the chunk's square.
         const dx = Math.max(cx * CHUNK - x, 0, x - (cx + 1) * CHUNK);
         const dz = Math.max(cz * CHUNK - z, 0, z - (cz + 1) * CHUNK);
-        if (Math.hypot(dx, dz) <= reach) out.push(chunkKey(cx, cz));
+        if (Math.hypot(dx, dz) <= reach && hasGround(this.world, cx, cz)) out.push(chunkKey(cx, cz));
       }
     }
     return out;
@@ -319,7 +323,7 @@ export class ChunkStreamer {
     let p = this.loading.get(key);
     if (p) return p;
     const at = parseChunkKey(key)!;
-    p = loadChunk(this.source, at.cx, at.cz)
+    p = loadChunk(this.source, at.cx, at.cz, this.world)
       .then((c) => {
         this.data.set(key, c);
       })
@@ -341,16 +345,17 @@ export class ChunkStreamer {
     return true;
   }
 
+  /** Whether a chunk may hold ground (one that cannot is never read, and is no neighbour to wait for). */
   private insideWorld(cx: number, cz: number): boolean {
-    const r = worldRect(this.world);
-    return cx * CHUNK < r[2] && (cx + 1) * CHUNK > r[0] && cz * CHUNK < r[3] && (cz + 1) * CHUNK > r[1];
+    return hasGround(this.world, cx, cz);
   }
 
   /**
    * What to keep round a point: reads what is within `load`, queues for building what is within `build` (nearest
-   * first), and drops what is past `drop`.
+   * first), and drops what is past `drop` - unless `drop` is false (a far place made ready while the near one is still
+   * seen: going through a door between them).
    */
-  want(x: number, z: number, reach: StreamReach): void {
+  want(x: number, z: number, reach: StreamReach, drop = true): void {
     for (const k of this.chunksNear(x, z, reach.load)) if (!this.data.has(k)) void this.read(k);
     const wanted = this.chunksNear(x, z, reach.build);
     // A chunk is built once its eight neighbours are read: read those of every chunk wanted for building, which the load
@@ -370,6 +375,7 @@ export class ChunkStreamer {
       return Math.hypot((cx + 0.5) * CHUNK - x, (cz + 0.5) * CHUNK - z);
     };
     this.pendingBuild = near.sort((a, b) => centre(a) - centre(b));
+    if (!drop) return;
     const keep = new Set(this.chunksNear(x, z, reach.drop));
     for (const k of [...this.built, ...this.building.keys()]) if (!keep.has(k)) this.drop(k);
     // Data far past the drop reach is forgotten too (the grid stays a window).
@@ -431,12 +437,15 @@ export class ChunkStreamer {
     if (this.gridDirty) this.remakeGrid();
   }
 
-  /** Reads and builds everything wanted now, however long it takes (arriving somewhere: the iris is shut). */
-  async settle(x: number, z: number, reach: StreamReach): Promise<void> {
+  /**
+   * Reads and builds everything wanted now, however long it takes (arriving somewhere: the iris is shut); with `drop`
+   * false, keeping what is built elsewhere (the place still seen while the iris closes).
+   */
+  async settle(x: number, z: number, reach: StreamReach, drop = true): Promise<void> {
     for (let i = 0; i < 64; i++) {
-      this.want(x, z, reach);
+      this.want(x, z, reach, drop);
       await Promise.all([...this.loading.values()]);
-      this.want(x, z, reach);
+      this.want(x, z, reach, drop);
       while (this.building.size > 0 || this.pendingBuild.some((k) => this.data.has(k) && this.neighboursRead(k))) this.pump({ steps: 1000 });
       if (this.loading.size === 0 && this.pendingBuild.length === 0) break;
     }

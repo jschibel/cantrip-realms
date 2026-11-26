@@ -390,6 +390,12 @@ button.primary:hover { filter: brightness(1.08); }
 .map-label.placed { transform: none; }
 .map-label.place { font-size: 11px; }
 .map-label.gate { font-size: 11px; color: #f2dc8c; }
+/* The names over the land and the sea (world.json's labels): the land's large and spaced, a region's, a feature's small, a sea's in italic blue. */
+.map-label.name { transform: translate(-50%, -50%); opacity: 0.9; letter-spacing: 0.06em; }
+.map-label.name.land { font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase; }
+.map-label.name.region { font-size: 15px; text-transform: uppercase; color: #f4ecc2; }
+.map-label.name.feature { font-size: 11px; color: #e6dcc0; }
+.map-label.name.sea { font-size: 13px; font-style: italic; color: #a8c8ec; }
 body.nohud #hud, body.nohud #notice { display: none; }
 
 /* The debug overlay (src/debug.ts): F3. */

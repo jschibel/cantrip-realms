@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { mulberry32 } from "../random";
 import { FIND_APART, FIND_RULES, FindSpawner, HEARTBLOOM_APART, type StandingFind, WORKED_GROUND, goldOf, zoneOf } from "./finds";
-import { CHUNK, type ChunkData, type WorldData, chunkKey, isBlocked, townAt } from "./format";
+import { CHUNK, type ChunkData, type WorldData, chunkKey, groundsAt, inTravel, isBlocked, townAt } from "./format";
+import { TWO_WORLD, twoChunk } from "../../fixtures/two-world/source";
 
 // The stand-in's finds of the wilds (finds.ts), spawned over Dominaria's own files, as the server's are (FindsTests):
 // what holds whatever its dice roll.
@@ -59,6 +60,19 @@ describe("the finds of the wilds", () => {
     expect(spawner.take(one.id)).toBe(true);
     expect(spawner.take(one.id)).toBe(false);
     expect([1, 2, 3, 4].map(goldOf)).toEqual([[50, 150], [100, 250], [180, 380], [300, 500]]);
+  });
+
+  it("stand on the travel map alone in a world of two scales, never in a town's grounds", async () => {
+    const spawner = new FindSpawner(TWO_WORLD, async (cx, cz) => twoChunk(cx, cz), mulberry32(11), { ...FIND_RULES, chestEvery: 30, heartbloomEvery: 60, chestsPerZone: 3, heartblooms: 4 });
+    const seen = new Set<string>();
+    for (let minute = 1; minute <= 240; minute++) {
+      for (const f of await spawner.standing(minute * 60_000)) {
+        seen.add(f.id);
+        expect(inTravel(TWO_WORLD, f.x, f.z), `${f.id} at ${f.x},${f.z}`).toBe(true);
+        expect(groundsAt(TWO_WORLD, f.x, f.z), `${f.id} at ${f.x},${f.z}`).toBeNull();
+      }
+    }
+    expect(seen.size).toBeGreaterThan(3);
   });
 
   it("never spawn where a player stands", async () => {

@@ -28,9 +28,13 @@ public sealed class Hearts(RealmDb db, RealmContent content)
     /// <summary>What a character who holds <paramref name="capacity"/> hearts pays for one more; null at the most.</summary>
     public static long? PriceAfter(int capacity) => Prices.TryGetValue(capacity + 1, out long gold) ? gold : null;
 
-    /// <summary>Whether a place is in a town, where hearts fill: the world within a town's walls, or a building of a town.</summary>
+    /// <summary>
+    /// Whether a place is in a town, where hearts fill: the world within a town's walls - or, in a world of two scales,
+    /// anywhere in a town's grounds, the country round it walked as safely as its streets (no wanderer is there) - or a
+    /// building of a town.
+    /// </summary>
     public bool InTown(string space, Tile at) =>
-        space == RealmContent.WorldSpace ? content.TownAt(at) is not null : content.Interiors.GetValueOrDefault(space)?.Town is not null;
+        space == RealmContent.WorldSpace ? content.TownAt(at) is not null || content.World.GroundsAt(at) is not null : content.Interiors.GetValueOrDefault(space)?.Town is not null;
 
     /// <summary>Fills a character's hearts to their capacity: in a town, and on waking at home.</summary>
     public Task Refill(string player) =>

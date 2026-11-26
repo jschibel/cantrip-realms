@@ -8,11 +8,11 @@ import { mobInfo } from "../mobs";
 import { mobSeat, playerSeat, starterDeck } from "./mockDuel";
 import { mulberry32 } from "../random";
 import { DOMINARIA, DUNGEONS, PLANE_NAMES, VENDORS, type VendorFile, WORLD, besideEntrance, innOf, startTown, tilesApart, waystoneTiles } from "../world/realm";
-import { type ChunkData, type DungeonData, townAt } from "../world/format";
+import { type ChunkData, type DungeonData, type WorldData, groundsAt, townAt } from "../world/format";
+import { type WorldSource, loadChunk } from "../world/load";
 import { FindSpawner, type FindKind, type StandingFind, goldOf } from "../world/finds";
 import { dealtBy, tableOf } from "../world/standing";
 
-const INNS = WORLD.inns;
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -200,7 +200,10 @@ export class MockApi implements RealmApi {
   private deck: Deck = { Main: [], Sideboard: [] };
   private readonly encounters = new Map<string, Encounter>();
   /** The finds of the wilds, spawned as the server spawns them (world/finds.ts), on the stand-in's clock and dice. */
-  private readonly finding: FindSpawner;
+  private finding: FindSpawner;
+  /** The world played (Dominaria, or a test's: `useWorld`): its towns fill the hearts, its inns are rested at. */
+  private world: WorldData = WORLD;
+  private readonly seed: number;
   private readonly runs = new Map<string, { run: Run; dungeon: string; floor: number; fought: Set<string>; live: boolean; prayed: boolean }>();
   private attuned: string[];
   /** When each boss was last beaten (unix ms on the stand-in clock), for its week of rest. */
@@ -221,9 +224,19 @@ export class MockApi implements RealmApi {
 
   constructor(seed = 1, character?: { name: string; body: Body; palette: number; color: ManaColor }, attuned: readonly string[] = []) {
     this.random = mulberry32(seed);
+    this.seed = seed;
     this.finding = new FindSpawner(WORLD, async (cx, cz) => (await DOMINARIA.chunk(cx, cz)) as ChunkData | null, mulberry32(seed + 7));
     this.attuned = [...attuned];
     if (character) this.make(character.name, character.body, character.palette, character.color);
+  }
+
+  /**
+   * Plays another world than Dominaria (a test's fixture, the page's ?world=): its finds spawned over its own wilds, its
+   * towns - within their walls, or anywhere in their grounds - filling the hearts, its inns rested at.
+   */
+  useWorld(world: WorldData, source: WorldSource): void {
+    this.world = world;
+    this.finding = new FindSpawner(world, (cx, cz) => loadChunk(source, cx, cz, world), mulberry32(this.seed + 7));
   }
 
   /** Sets the character's hearts at once, as a test arranges a heart missing (the server's POST /dev/hearts). */
@@ -636,8 +649,10 @@ export class MockApi implements RealmApi {
     const c = this.character;
     if (c.Space !== body.Space && c.Space.startsWith("run:") && this.runs.get(c.Space.slice("run:".length))?.live) throw new ApiError(409, "NoWay", "Leave the dungeon first.");
     this.update({ Space: body.Space, X: body.X, Z: body.Z });
-    // In a town - within its walls, or a building of it (its room's id starts with the town's) - the hearts fill.
-    const inTown = body.Space === "world" ? townAt(WORLD.towns, body.X, body.Z) !== null : WORLD.towns.some((t) => body.Space.startsWith(`${t.id}-`));
+    // In a town - within its walls, anywhere in its grounds, or a building of it (its room's id starts with the town's) -
+    // the hearts fill.
+    const towns = this.world.towns;
+    const inTown = body.Space === "world" ? townAt(towns, body.X, body.Z) !== null || groundsAt(this.world, body.X, body.Z) !== null : towns.some((t) => body.Space.startsWith(`${t.id}-`));
     if (inTown) this.update({ Hearts: this.need().MaxHearts });
     return { Hearts: this.need().Hearts };
   }
@@ -645,7 +660,7 @@ export class MockApi implements RealmApi {
   async setInn(): Promise<{ Inn: string }> {
     this.log("setInn");
     const c = this.need();
-    const room = INNS.find((i) => i.interior === c.Space);
+    const room = this.world.inns.find((i) => i.interior === c.Space);
     if (!room) throw new ApiError(409, "NotNear", "You are not in an inn.");
     this.inn = room.town;
     this.update({ Inn: room.id });
