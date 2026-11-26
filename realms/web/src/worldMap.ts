@@ -324,6 +324,44 @@ export function drawPlayer(g: CanvasRenderingContext2D, x: number, y: number, he
   g.restore();
 }
 
+/** A compass rose in the sea's corner: north up, its needle gold. */
+function drawCompass(g: CanvasRenderingContext2D, x: number, y: number): void {
+  g.save();
+  g.translate(Math.round(x), Math.round(y));
+  g.beginPath();
+  g.arc(0, 0, 13, 0, Math.PI * 2);
+  g.strokeStyle = "#a9cdf066";
+  g.lineWidth = 1;
+  g.stroke();
+  const point = (a: number, len: number, lit: string, dark: string) => {
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    for (const [side, color] of [
+      [1, lit],
+      [-1, dark],
+    ] as const) {
+      g.beginPath();
+      g.moveTo(0, 0);
+      g.lineTo(c * len, s * len);
+      g.lineTo(-s * 3 * side, c * 3 * side);
+      g.closePath();
+      g.fillStyle = color;
+      g.fill();
+    }
+  };
+  point(Math.PI / 2, 10, "#c9d6e2", "#7d8b99");
+  point(0, 10, "#c9d6e2", "#7d8b99");
+  point(Math.PI, 10, "#c9d6e2", "#7d8b99");
+  point(-Math.PI / 2, 14, "#f6d68a", "#c08a2a");
+  g.font = "700 11px Beleren, serif";
+  g.textAlign = "center";
+  g.fillStyle = "#0b0c10";
+  g.fillText("N", 1, -16);
+  g.fillStyle = "#f6d68a";
+  g.fillText("N", 0, -17);
+  g.restore();
+}
+
 /** What the whole map asks of the HUD each time it draws. */
 export interface MapSource {
   marks(): readonly MapMark[];
@@ -650,6 +688,7 @@ export class WorldMapView {
       const p = this.at(me.x, me.z);
       drawPlayer(g, p.x, p.y, me.heading, performance.now() / 1000, 1.15);
     }
+    drawCompass(g, this.width - 30, this.height - 34);
   }
 
   /** Where the tiers' numbers went at this zoom (map pixels). */
