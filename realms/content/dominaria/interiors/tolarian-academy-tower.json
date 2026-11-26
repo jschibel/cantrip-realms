@@ -4,42 +4,40 @@
   "kind": "tower",
   "town": "tolarian-academy",
   "style": "tolarian",
-  "w": 10,
-  "d": 10,
-  "area": [0,0,10,11],
+  "w": 8,
+  "d": 8,
+  "area": [0,0,8,9],
   "tiles": [
-    [0,"",1],[0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"",1],[0,"",1],
-    [0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
-    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
-    [0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"",1],
-    [0,"",1],[0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"",1],[0,"",1],
-    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
+    [0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],
+    [0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",1],[0,"room-mosaic",1],
+    [0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"room-mosaic",0],[0,"",1],
+    [0,"",1],[0,"",1],[0,"",1],[0,"room-mosaic",1],[0,"room-mosaic",1],[0,"",1],[0,"",1],[0,"",1]
   ],
   "props": [
-    {"id":"spiral-stair","x":3.5,"z":3.5,"tint":"room-tolarian","args":{"r":1.3,"h":3.5,"flip":true}},
-    {"id":"bookshelf","x":7.161039522177011,"z":0.5186600013401168,"turn":0.55,"seed":5},
-    {"id":"bookshelf","x":8.315322406958684,"z":1.2903993020922466,"turn":0.8300000000000002,"seed":8},
-    {"id":"bookshelf","x":9.211377735745382,"z":2.351076149288528,"turn":1.11,"seed":28,"args":{"goods":true}},
-    {"id":"rune-circle","x":5,"z":5.5,"args":{"r":1.6,"color":"violet"}},
-    {"id":"floating-crystal","x":5,"z":5.5,"y":1.7,"args":{"color":"violet","size":0.3}},
-    {"id":"orrery","x":6.5,"z":3.5,"tint":"room-tolarian"},
-    {"id":"telescope","x":7.5,"z":5.5,"rot":1,"tint":"room-tolarian"},
-    {"id":"reading-desk","x":2,"z":6.5,"tint":"room-tolarian","rot":3},
-    {"id":"crystal-pedestal","x":3.5,"z":7.5,"args":{"color":"teal"}}
+    {"id":"spiral-stair","x":2.5,"z":2.5,"tint":"room-tolarian","args":{"r":1.3,"h":3.5,"flip":true}},
+    {"id":"bookshelf","x":5.638352293246351,"z":0.37118452339962293,"turn":0.55,"seed":5},
+    {"id":"bookshelf","x":6.57739103584872,"z":0.9652750621635136,"turn":0.8300000000000002,"seed":8},
+    {"id":"bookshelf","x":7.315679050065335,"z":1.7957376660302342,"turn":1.11,"seed":28,"args":{"goods":true}},
+    {"id":"rune-circle","x":4,"z":4.5,"args":{"r":1.6,"color":"violet"}},
+    {"id":"floating-crystal","x":4,"z":4.5,"y":1.7,"args":{"color":"violet","size":0.3}},
+    {"id":"orrery","x":5.5,"z":2.5,"tint":"room-tolarian"},
+    {"id":"telescope","x":5.5,"z":4.5,"rot":1,"tint":"room-tolarian"},
+    {"id":"reading-desk","x":2,"z":5.5,"tint":"room-tolarian","rot":3},
+    {"id":"crystal-pedestal","x":2.5,"z":6.5,"args":{"color":"teal"}}
   ],
   "npcs": [
-    {"id":"tolarian-academy-tower-keeper","x":5,"z":4,"kind":"townsfolk","name":"Archmage","behaviour":{"rest":[0,1],"watch":5},"text":["Every card ever printed is written down somewhere. Most of them here."],"figure":"townsfolk-orvada","seed":80}
+    {"id":"tolarian-academy-tower-keeper","x":4,"z":3,"kind":"townsfolk","name":"Archmage","behaviour":{"rest":[0,1],"watch":5},"text":["Every card ever printed is written down somewhere. Most of them here."],"figure":"townsfolk-orvada","seed":80}
   ],
   "lights": [
-    {"kind":"point","at":[5,1.6,5.5],"color":[0.7,0.45,1],"intensity":7,"reach":6},
-    {"kind":"point","at":[2,1.3,6.5],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[3.5,1.4,7.5],"color":[0.35,1,0.8],"intensity":3.5,"reach":4}
+    {"kind":"point","at":[4,1.6,4.5],"color":[0.7,0.45,1],"intensity":7,"reach":6},
+    {"kind":"point","at":[2,1.3,5.5],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
+    {"kind":"point","at":[2.5,1.4,6.5],"color":[0.35,1,0.8],"intensity":3.5,"reach":4}
   ],
-  "entry": [5,9],
-  "exit": [106,666]
+  "entry": [4,7],
+  "exit": [899,311]
 }

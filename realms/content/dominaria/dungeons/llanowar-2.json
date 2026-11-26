@@ -3,8 +3,8 @@
   "name": "The Llanowar Tower of the Second Circle",
   "theme": "tower",
   "entrance": [
-    805,
-    956
+    150,
+    433
   ],
   "floors": [
     1,
