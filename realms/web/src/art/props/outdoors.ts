@@ -1,7 +1,7 @@
 import { MeshBuilder } from "../paint/builder";
 import * as C from "../paint/colors";
 import * as D from "./draw";
-import { bool, drawn, needs, num, point, str } from "./registry";
+import { bool, drawn, needs, num, point, scaledAbout, str } from "./registry";
 
 // Scenery out of doors, by id: the street's furniture and the open country's. Anchors are as each says; `args.to` is a
 // line's far end or a rectangle's far corner, world units.
@@ -54,7 +54,7 @@ drawn(
 drawn(
   "bush",
   "a round bush at x, z; args.r its radius (0.45), args.flowering",
-  (b, p, pal) => D.bush(b, p.x, p.z, num(p, "r", 0.45), bool(p, "flowering"), pal.leaves, bool(p, "fine") ? 2 : 1),
+  scaledAbout((b, p, pal) => D.bush(b, p.x, p.z, num(p, "r", 0.45), bool(p, "flowering"), pal.leaves, bool(p, "fine") ? 2 : 1)),
   { leaves: C.LEAF },
 );
 drawn(
@@ -71,8 +71,8 @@ drawn(
     D.hedgeRow(b, p.x, p.z, x1, z1, p.seed ?? 0, pal.leaves, 0);
   },
 );
-drawn("boulder", "a boulder at x, z; args.r its radius (0.5), its shape seed", (b, p) => D.boulder(b, p.x, p.z, num(p, "r", 0.5), p.seed ?? 0));
-drawn("stepping-stone", "a flat stone in a stream at x, z", (b, p) => D.steppingStone(b, p.x, p.z));
+drawn("boulder", "a boulder at x, z; args.r its radius (0.5), its shape seed; scale (1)", scaledAbout((b, p) => D.boulder(b, p.x, p.z, num(p, "r", 0.5), p.seed ?? 0)));
+drawn("stepping-stone", "a flat stone in a stream at x, z; scale (1)", scaledAbout((b, p) => D.steppingStone(b, p.x, p.z)));
 
 // --- The open country's set pieces ------------------------------------------------------------------------------------
 

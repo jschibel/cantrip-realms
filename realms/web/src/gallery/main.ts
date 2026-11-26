@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { BUILDINGS } from "../art/buildings";
 import { MeshBuilder, type Model, tiled } from "../art/paint/builder";
 import { namedPalette } from "../art/paint/palette";
+import { figureSpec } from "../art/figures";
+import { Figure } from "../art/figures/rig";
 import { PROPS } from "../art/props";
 import type { Built } from "../art/recipe";
 import { SURFACES, type SurfaceLook } from "../art/surfaces";
@@ -106,6 +108,16 @@ function buildPlace(b: Board): Place {
 }
 
 const place = buildPlace(board);
+// Figures standing on the board for scale, leaning back toward the camera as the game's do.
+const figures = (board.figures ?? []).map((f) => {
+  const figure = new Figure(figureSpec(f.id));
+  figure.root.position.set(f.x, 0, f.z);
+  figure.face(...(f.face ?? [0, 1]));
+  figure.root.traverse((o) => (o.castShadow = o.receiveShadow = true));
+  place.addFigure(figure.root);
+  return figure;
+});
+const LEAN = (25 * Math.PI) / 180;
 const framing: Framing = { inside: false, turns: true, bounds: [-40, -40, board.w + 40, board.d + 40] };
 const askedZoom = Number(query.get("zoom") ?? "0");
 const rig = new CameraRig(canvas, HEADING_NAMES[query.get("heading") ?? ""] ?? 0, askedZoom === 1 || askedZoom === 2 ? askedZoom : 0, framing);
@@ -189,6 +201,10 @@ function tick(dt: number): void {
   rig.stepZoom(dt);
   renderer.snap = rig.settled;
   place.update(time, renderer.view.yaw, rig.viewFor(framing).yaw);
+  for (const f of figures) {
+    f.update(dt, 0);
+    f.setLean(LEAN, renderer.view.pitch, renderer.view.yaw);
+  }
   renderer.focus.copy(focus);
 }
 

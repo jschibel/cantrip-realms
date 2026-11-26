@@ -23,6 +23,7 @@ import type { SurfaceLook } from "./index";
 //    4.6  ford (shallow water over stones: its banks grow over it, it over the tracks)
 //    4.8  the forest floor: loam, leaf litter, needles, moss
 //    5    grass; 5.1 pasture; 5.2 plains; 5.3 meadow; 5.4 marsh; 5.5 tundra - the growing things over the bare
+//    3.9  badlands; 4.3 dunes; 4.9 the jungle's floor; 5.35 highland (the travel map's open country)
 //    6    snow, over everything that grows; 6.5 ash, drifting over all of it
 //    7    Phyrexian ground: the corruption creeps over every biome it meets
 //
@@ -70,6 +71,9 @@ export const SURFACE_GROUPS: Readonly<Record<string, readonly string[]>> = {
   coast: ["sand", "wet-sand", "shingle", "sea", "shallows", "ford"],
   fire: ["ash", "basalt", "lava"],
   waste: ["waste", "cracked-earth", "salt-flat"],
+  desert: ["dunes", "badlands"],
+  upland: ["highland"],
+  jungle: ["jungle-floor"],
   phyrexian: ["phyrexian-ground", "plating", "oil"],
   roads: ["dirt", "road", "cart-track", "cobbles", "setts", "flagstones", "marble-paving", "mud-track", "boardwalk", "boardwalk-ns", "planks"],
   waters: ["stream", "river", "lake", "sea", "shallows", "bog", "lava", "oil", "ford"],
@@ -90,6 +94,8 @@ const BANK_LOOKS: Readonly<Record<string, { readonly ramp: Ramp; readonly kind: 
   sand: { ramp: R.SAND, kind: "sand", fringe: null },
   basalt: { ramp: R.BASALT, kind: "basalt", fringe: null },
   waste: { ramp: R.WASTE, kind: "earth", fringe: null },
+  "red-earth": { ramp: R.BADLANDS, kind: "earth", fringe: null },
+  heath: { ramp: C.DIRT, kind: "earth", fringe: R.HIGHLAND },
   masonry: { ramp: C.COBBLE, kind: "masonry", fringe: null },
   marble: { ramp: R.MARBLE, kind: "masonry", fringe: null },
   metal: { ramp: R.PHYREXIAN, kind: "metal", fringe: R.OIL },
@@ -110,6 +116,7 @@ export const BANKS: Readonly<Record<string, string>> = {
   "phyrexian-ground": "metal", plating: "metal", oil: "metal",
   cobbles: "masonry", setts: "masonry", flagstones: "masonry", "marble-paving": "marble", boardwalk: "peat", "boardwalk-ns": "peat", planks: "peat",
   stream: "earth", river: "earth", lake: "earth",
+  dunes: "sand", badlands: "red-earth", highland: "heath", "jungle-floor": "loam",
 };
 
 /** A surface's bank material, if it has one. */
@@ -209,6 +216,29 @@ export function defineBiomes(define: Define): void {
   // --- The waste -----------------------------------------------------------------------------------------------------
   define("waste", "the desolate waste: bleached earth cracked into plates", { earth: R.WASTE }, (p) => ({ picture: G.waste(ramp(p, "earth")), priority: PRIORITY.waste }));
   define("salt-flat", "a salt flat: white crust in ridged polygons", {}, () => ({ picture: G.saltFlat(), priority: PRIORITY.salt }));
+
+  // --- The travel map's open country -------------------------------------------------------------------------------
+  // Dunes drift over the hard ground (badlands, the waste, mud, rock) and grass grows over them; badlands are hard
+  // ground, under sand and every growing thing; highland's heath is grass, growing over the plains and pasture but
+  // under tundra and snow; the jungle's floor is a forest floor a little above the others (it creeps over their edges).
+  define("dunes", "desert dunes: orange sand in long swells, lit windward, shaded in their lee, rippled", { sand: R.DUNE }, (p) => ({
+    picture: G.dunes(ramp(p, "sand")),
+    priority: PRIORITY.mud + 0.1,
+  }));
+  define("badlands", "the badlands: dry red earth cracked into plates, gullies, red stones", { earth: R.BADLANDS }, (p) => ({
+    picture: G.badlands(ramp(p, "earth")),
+    priority: PRIORITY.shingle + 0.1,
+  }));
+  define("highland", "highland: rough upland grass, heather in violet clumps, stones breaking through", { grass: R.HIGHLAND, heather: R.HEATHER }, (p) => ({
+    picture: G.highland(ramp(p, "grass"), ramp(p, "heather")),
+    priority: PRIORITY.meadow + 0.05,
+    tufts: 2,
+    tuftRamp: ramp(p, "grass"),
+  }));
+  define("jungle-floor", "the jungle's floor: black loam under broad leaves, fern fronds and roots", { soil: R.JUNGLE_SOIL, leaves: R.LUSH }, (p) => ({
+    picture: G.jungleFloor(ramp(p, "soil"), ramp(p, "leaves")),
+    priority: PRIORITY.forest + 0.1,
+  }));
 
   // --- Phyrexia ------------------------------------------------------------------------------------------------------
   define("phyrexian-ground", "Phyrexian ground: ash slick with glistening oil, shards and sinew", {}, () => ({ picture: G.phyrexianGround(), priority: PRIORITY.phyrexian }));

@@ -177,7 +177,7 @@ const mouth = (w: number, h: number, rim: Ramp) => material(`mouth-${w}x${h}@${r
  * out facing south with its door's foot at the origin and its body behind (north, -z), `base` its own size across and
  * deep, and it is scaled up to fill the footprint (at most by 1.35). Returns the doorway.
  */
-function entrance(b: MeshBuilder, p: PropData, base: readonly [number, number], draw: () => number): { doorway: XYZ } {
+function entrance(b: MeshBuilder, p: PropData, base: readonly [number, number], draw: () => number, placed?: (at: (local: V3) => V3) => void): { doorway: XYZ } {
   const rot = (((p.rot ?? 0) % 4) + 4) % 4;
   const [w, d] = sizeOf(p);
   const door: [number, number] = [
@@ -191,13 +191,20 @@ function entrance(b: MeshBuilder, p: PropData, base: readonly [number, number], 
   const scale = Math.max(0.5, Math.min(across / base[0], deep / base[1], 1.35));
   const t = turned(p);
   const saved = b.matrix;
-  b.matrix = saved.clone().multiply(new THREE.Matrix4().makeTranslation(door[0], 0, door[1]).multiply(new THREE.Matrix4().makeRotationY(t)).multiply(new THREE.Matrix4().makeScale(scale, scale, scale)));
+  const local = new THREE.Matrix4().makeTranslation(door[0], 0, door[1]).multiply(new THREE.Matrix4().makeRotationY(t)).multiply(new THREE.Matrix4().makeScale(scale, scale, scale));
+  b.matrix = saved.clone().multiply(local);
   let y = 1;
   try {
     y = draw() * scale;
   } finally {
     b.matrix = saved;
   }
+  // Where a point of the drawing (facing south, its door's foot at the origin) lands, placed, turned and scaled.
+  const at = (q: V3): V3 => {
+    const v = new THREE.Vector3(...q).applyMatrix4(local);
+    return [v.x, v.y, v.z];
+  };
+  placed?.(at);
   return { doorway: [door[0] + Math.sin(t) * 0.05, y, door[1] + Math.cos(t) * 0.05] };
 }
 
@@ -333,6 +340,7 @@ prop(
   "a foundry's door (foundry theme): an iron door in a rock face, its seams glowing, chimneys of stone smoking above, over its footprint args.w by args.d from x, z (the corner), facing rot",
   { category: "entrance", biomes: ["mountain", "keld", "volcanic"], footprint: SIZED("foundry-gate") },
   (b, p, pal) => {
+    let flame: V3 = [p.x, 4.75, p.z];
     const out = entrance(b, p, [5, 3], () => {
       const r = rock(pal.stone!, null);
       lump(b, 0, -1.6, 0, [[2.6, 0], [2.3, 1.6], [1.6, 3.0], [0.6, 3.6]], 8, r, 5, 0.2, { squash: 0.7 });
@@ -345,8 +353,9 @@ prop(
       ] as const)
         b.cylinder(x, -1.4, 2.0, h, 0.3, 8, { mat: stock.cryptBrick(R.BASALT) }, { mat: glowing(C.FIRE[1]!) });
       return 1;
-    });
-    return { ...out, frames: [flames(p.x - 1.3, 4.75, p.z - 1.39, 10)] };
+    }, (at) => (flame = at([-1.3, 4.75, -1.4])));
+    // The flame on the west chimney's top, wherever the entrance stands, turned and scaled as it is.
+    return { ...out, frames: [flames(...flame, 10)] };
   },
   { stone: R.BASALT },
 );
@@ -417,6 +426,21 @@ function skullPicture(): Pixmap {
   rows.forEach((row, y) => [...row].forEach((ch, x) => ch !== "." && p.set(x, y, ch === "w" ? C.INK : C.BONE[4]!)));
   return p;
 }
+
+/**
+ * Each entrance's footprint on the travel map, across its front and deep (args.w, args.d): between a figure and a town
+ * icon in size. The drawing fits its footprint (at least half its full size: `entrance`), so these draw it at half to two
+ * thirds; odd widths keep its door on a tile's middle. `scale` is not read by the entrances: give args.w and args.d.
+ */
+export const TRAVEL_ENTRANCES: Readonly<Record<string, readonly [number, number]>> = {
+  "cave-mouth": [3, 2],
+  "castle-gate": [5, 2],
+  "mage-tower": [3, 2],
+  "crypt-door": [3, 2],
+  "root-hollow": [3, 2],
+  "foundry-gate": [3, 2],
+  "phyrexian-portal": [3, 2],
+};
 
 /** The entrance prop of each dungeon theme. */
 export const ENTRANCES = { caves: "cave-mouth", castle: "castle-gate", tower: "mage-tower", crypt: "crypt-door", hollow: "root-hollow", foundry: "foundry-gate", portal: "phyrexian-portal" } as const;

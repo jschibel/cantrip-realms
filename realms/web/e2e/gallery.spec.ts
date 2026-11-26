@@ -69,6 +69,14 @@ const BOARDS = [
   "style-vess",
   "style-village",
   "style-phyrexian",
+  "surfaces-travel",
+  "meet-desert",
+  "meet-jungle",
+  "travel-peaks",
+  "travel-groves",
+  "travel-towns",
+  "travel-landmarks",
+  "travel-scene",
 ];
 
 test("gallery: its boards are the ones this suite walks", async ({ page }) => {
@@ -77,13 +85,28 @@ test("gallery: its boards are the ones this suite walks", async ({ page }) => {
 
 for (const board of BOARDS) {
   test(`gallery: ${board} draws at every heading`, async ({ page }) => {
-    test.setTimeout(120_000);
+    // The travel map's boards take a picture at every heading and zoom of each of their places.
+    test.setTimeout(board.startsWith("travel-") ? 480_000 : 120_000);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     // A style's street is seen whole at the far step, so its turned headings are pictured there (and its rows up close
     // from the front); every other board at the three headings one step out.
     const style = board.startsWith("style-");
-    const views: [string, number][] = style
+    // The travel map's boards at every heading and every zoom step: it is walked at all of them.
+    const travel = board.startsWith("travel-");
+    const views: [string, number][] = travel
+      ? [
+          ["front", 1],
+          ["left", 1],
+          ["right", 1],
+          ["front", 0],
+          ["left", 0],
+          ["right", 0],
+          ["front", 2],
+          ["left", 2],
+          ["right", 2],
+        ]
+      : style
       ? [
           ["front", 1],
           ["left", 2],
@@ -102,7 +125,7 @@ for (const board of BOARDS) {
     const places = (await page.evaluate(() => (globalThis as any).galleryTest.views)) as [number, number][];
     for (const [heading, zoom] of shots ? views : views.slice(0, 3)) {
       // A style's board is a picture per row of buildings one step out; the rest one picture a view.
-      const where: ([number, number] | undefined)[] = zoom === 1 && places.length > 1 ? places : [undefined];
+      const where: ([number, number] | undefined)[] = (zoom === 1 || (travel && zoom === 0)) && places.length > 1 ? places : [undefined];
       for (const [k, focus] of where.entries()) {
         await open(page, board, heading, zoom, focus);
         expect(await page.evaluate(() => (globalThis as any).galleryTest.heading)).toBe(heading);

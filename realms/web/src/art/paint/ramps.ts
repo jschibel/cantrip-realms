@@ -133,6 +133,27 @@ export const ELF_CLOTH = ramp("#0e2a18", "#164426", "#20623a", "#30844c", "#4aa4
 /** Tolarian blue-white. */
 export const TOLARIAN_CLOTH = ramp("#101c44", "#1a2e6a", "#284894", "#3c68ba", "#6090da", "#9cc0f0");
 
+// --- The travel map: deserts, badlands, uplands, jungle, and the miniature mountains' stone ------------------------------
+
+/** Desert dune sand: warmer and more orange than a beach's. */
+export const DUNE = ramp("#4a2c1c", "#74442a", "#9e6436", "#c48a48", "#dcaa5e", "#ecc67c", "#f8e2a6");
+/** Badlands: dry red earth, rust in its cracks. */
+export const BADLANDS = ramp("#2c1416", "#481e1c", "#682a22", "#8a3c2a", "#a85236", "#c26e48", "#d88e62");
+/** Sandstone in strata: rust, ochre and cream. */
+export const SANDSTONE = ramp("#3a2420", "#5a382a", "#7c5034", "#a06c44", "#c28c58", "#dcac74", "#f0cc96");
+/** Red rock of the badlands and the Red Iron Mountains: iron-red, violet in shadow. */
+export const REDROCK = ramp("#24121a", "#3c1a20", "#5a2424", "#7a3228", "#984432", "#b45e40", "#cc7c56");
+/** Stone under glaciers: granite gone blue-grey with the cold. */
+export const ICE_ROCK = ramp("#1a1e2e", "#262c40", "#363e54", "#4a5468", "#626e80", "#7e8a9a", "#a0aab6");
+/** Upland grass: olive, tawny where it dries. */
+export const HIGHLAND = ramp("#1e2618", "#2e3a1e", "#424e26", "#58642e", "#707838", "#8c8c48", "#aca460");
+/** Heather in bloom: violet and mauve. */
+export const HEATHER = ramp("#24142a", "#3a1e3e", "#542a54", "#70386a", "#8c4c80", "#a8669a", "#c488b4");
+/** A swamp's drooping trees: grey olive, mossy, paler than a cypress so they read over dark water. */
+export const SWAMP_LEAF = ramp("#141a12", "#1f2819", "#2c3922", "#3c4b2b", "#506034", "#687a42", "#849656");
+/** The jungle's floor: rich black-brown loam. */
+export const JUNGLE_SOIL = ramp("#100a0c", "#1a1012", "#281a16", "#38261c", "#4a3424", "#5e442c", "#765834");
+
 /** Waymarkers and their banners, by tier: 1 green, 2 gold, 3 orange, 4 red (hud.ts's tier colors, in ramps). */
 export const TIER: readonly (readonly Rgb[])[] = [
   ramp("#2a2c38", "#444858", "#666c7e", "#8a90a2", "#aeb4c2", "#d0d4de"),
