@@ -33,6 +33,7 @@ if (process.argv.includes("--matrix")) {
   const all = ids.length > 0 ? ids : readLayout().towns.map((t) => t.id);
   let broken = 0;
   let count = 0;
+  let rowsFallback = 0;
   for (const id of all) {
     const cases = [{ name: "real", setting: TOWN_SETTINGS[id]! }, { name: "invented", setting: INVENTED_SETTINGS[id]! }, ...settingsMatrix()];
     const only = process.argv.find((a) => a.startsWith("--case="))?.slice(7);
@@ -40,7 +41,11 @@ if (process.argv.includes("--matrix")) {
       if (only && !c.name.includes(only)) continue;
       count++;
       try {
-        buildOn(id, c.setting);
+        const { town: t } = buildOn(id, c.setting);
+        if (t.report.notes.some((n) => n.startsWith("laid out in rows"))) {
+          rowsFallback++;
+          console.log(`${id} [${c.name}]: laid out in rows`);
+        }
       } catch (e) {
         if (process.argv.includes("--draw")) {
           // The broken town drawn as far as it goes, to look at.
@@ -59,7 +64,7 @@ if (process.argv.includes("--matrix")) {
       }
     }
   }
-  console.log(`${broken} of ${count} broken`);
+  console.log(`${broken} of ${count} broken, ${rowsFallback} laid out in rows`);
   process.exit(broken > 0 ? 1 : 0);
 }
 const t0 = performance.now();

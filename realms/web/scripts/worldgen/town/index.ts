@@ -15,7 +15,7 @@ import type { BuildingData, NpcData, PropData, TownPlace, TownPlan, XZ } from ".
 import { BARE, BLOCKED } from "../../../src/world/format";
 import { Land, Use, noise, randomFor } from "../land";
 import type { Form, TownLayout } from "../layout";
-import { check, fillPockets } from "./check";
+import { check, closeOnlyWhatIsDrawn, fillPockets } from "./check";
 import { dress } from "./dress";
 import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
@@ -42,10 +42,10 @@ export function groundsSize(plan: TownLayout): readonly [number, number] {
 
 /** The planner of each form (planner.ts). */
 export const PLANNERS: Readonly<Record<Form, Planner>> = {
-  capital: ROWS,
-  city: ROWS,
-  campus: ROWS,
-  estate: ROWS,
+  capital: grown("capital"),
+  city: grown("city"),
+  campus: grown("campus"),
+  estate: grown("estate"),
   village: grown("village"),
   elfhame: grown("elfhame"),
   clan: grown("clan"),
@@ -102,17 +102,38 @@ export function buildTown(target: Land, spec: TownSpec, seed: number, options: {
     { scale: 0.3, deep: false, grow: 6 },
     { scale: 0, deep: false, grow: 12 },
   ];
+  // A grown town tries its own planner (its shape at each scale, then over a bigger built area); a town that was rows
+  // falls back on them where its grown plan will not hold its places on that setting.
+  const grownAttempts: { scale: number; deep: boolean; grow?: number }[] = [
+    { scale: 1, deep: false },
+    { scale: 0.5, deep: false },
+    { scale: 0, deep: false },
+    { scale: 1, deep: false, grow: 6 },
+    { scale: 0.5, deep: false, grow: 12 },
+  ];
+  const form = formOf(spec.plan);
+  const own = PLANNERS[form];
+  const tries: { planner: Planner; scale: number; deep: boolean; grow?: number }[] = [
+    ...(own === ROWS ? attempts : grownAttempts).map((a) => ({ ...a, planner: own })),
+    ...(own !== ROWS && ROW_FALLBACK.has(form) ? attempts.map((a) => ({ ...a, planner: ROWS })) : []),
+  ];
   const errors: string[] = [];
   for (let k = Number(process.env.TOWN_ATTEMPT ?? 0); ; k++) {
+    const t = tries[k]!;
     try {
-      return buildOnce(target, spec, seed, options, attempts[k]!.scale, attempts[k]!.deep, attempts[k]!.grow ?? 0);
+      const built = buildOnce(target, spec, seed, options, t.planner, t.scale, t.deep, t.grow ?? 0);
+      if (t.planner === own) return built;
+      return { ...built, report: { ...built.report, notes: [...built.report.notes, "laid out in rows: its grown plan did not hold its places on this setting"] } };
     } catch (e) {
       if (options.lenient) throw e;
       errors.push((e as Error).message);
-      if (k === attempts.length - 1) throw new Error(`${spec.plan.id} cannot be laid out on ${JSON.stringify(spec.setting)}; the first and the last tries broke on:\n${errors[0]}\n${errors[errors.length - 1]}`);
+      if (k === tries.length - 1) throw new Error(`${spec.plan.id} cannot be laid out on ${JSON.stringify(spec.setting)}; the first and the last tries broke on:\n${errors[0]}\n${errors[errors.length - 1]}`);
     }
   }
 }
+
+/** The forms that were rows: where their grown plan will not hold, rows still do. */
+const ROW_FALLBACK: ReadonlySet<Form> = new Set(["capital", "city", "campus", "estate"]);
 
 /** A setting the town generator cannot honour: no way, a way out over the sea, a river past a side that is sea. */
 function validate(spec: TownSpec): void {
@@ -125,7 +146,7 @@ function validate(spec: TownSpec): void {
   if (!(s.relief >= 0 && s.relief <= 1)) throw new Error(`${id}: relief ${s.relief}, not 0 to 1`);
 }
 
-function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, scale: number, deep: boolean, grow: number): BuiltTown {
+function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, planner: Planner, scale: number, deep: boolean, grow: number): BuiltTown {
   const town = spec.plan;
   const F = formSpec(town);
   const [GW, GD] = groundsSize(town);
@@ -134,7 +155,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   const most = (g: number, t: number) => Math.min(t + 2 * grow, g - 2 * (APRON + 10));
   // A grown town (planner.ts: an elfhame, a clan hold, a village, the stilts) grows from its centre over more of its
   // grounds than a town of rows fills: what it does not build on is its woods and yards.
-  const grownBox = PLANNERS[formOf(town)] !== ROWS ? (town.kind === "village" ? (formOf(town) === "clan" ? 16 : 10) : 12) : 0;
+  const grownBox = planner !== ROWS ? (town.kind === "village" ? (formOf(town) === "clan" ? 16 : 10) : 12) : 0;
   const TW = most(GW0, TOWN_SIZE[town.kind][0] + grownBox);
   const TD = most(GD0, TOWN_SIZE[town.kind][1] + grownBox);
   const land = new Land(GW, GD);
@@ -144,7 +165,6 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   const rise = town.kind === "capital" ? 3 : town.kind === "town" ? 2.4 : 1.6;
   const fields = fieldsOf(GW, GD, box, spec.setting, tag, rise);
   const { needs, sites } = programOf(town, spec.vendors, spec.exotic);
-  const planner = PLANNERS[formOf(town)];
   const plan = planner.plan({
     box,
     F,
@@ -271,6 +291,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   country(ctx, fields, "scenery");
   levelGrounds(ctx);
   fillPockets(ctx, land.idx(main.node[0], main.node[1]));
+  closeOnlyWhatIsDrawn(ctx, land.idx(main.node[0], main.node[1]));
 
   // --- The plan as the world keeps it, the checks ------------------------------------------------------------------------
   const graph = normalize(planner.graph(plan, ctx.extraWays), ctx.extraWays.flatMap((e) => [e.a, e.b]));

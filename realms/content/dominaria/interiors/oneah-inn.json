@@ -47,6 +47,6 @@
     {"kind":"point","at":[7.85625,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [5,6],
-  "exit": [1322,256],
+  "exit": [1323,262],
   "params": {"gallery":{"y":2.75,"depth":0.625,"from":0,"to":6,"doors":[2,4.5]}}
 }

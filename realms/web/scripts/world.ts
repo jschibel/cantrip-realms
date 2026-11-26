@@ -65,6 +65,21 @@ for (const [path, text] of result.files) {
     written++;
   }
 }
+// The towns' settings, as this world laid them, beside the town generator (its tests and preview build on them).
+{
+  const file = join(here, "worldgen", "town", "settings.json");
+  const text = `${JSON.stringify(result.settings, null, 2)}\n`;
+  let old: string | null = null;
+  try {
+    old = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+  } catch {
+    old = null;
+  }
+  if (old !== text) {
+    writeFileSync(file, text);
+    console.log("world.ts: the towns' settings changed (scripts/worldgen/town/settings.json)");
+  }
+}
 console.log(`world.ts: ${result.files.size} files (${written} changed) in ${Math.round(performance.now() - started)} ms`);
 console.log(`  ${Object.entries(result.stats).map(([k, v]) => `${k} ${v}`).join(", ")}`);
 console.log(`  mobs: ${result.mobs.length}`);

@@ -410,8 +410,8 @@ export interface Lot {
 }
 
 /** A lot as the solver's block (planner.ts): one building, its door on row z1. */
-export function blockOf(l: Lot, box: Box): Block & { readonly one: true } {
-  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true };
+export function blockOf(l: Lot, box: Box, meant?: string): Block & { readonly one: true; readonly meant?: string } {
+  return { k: Math.max(0, Math.floor((l.z1 - box.z0) / 10)), x0: l.x0, x1: l.x1, z0: l.z0, z1: l.z1, west: "street", east: "street", one: true, ...(meant ? { meant } : {}) };
 }
 
 // --- The plan of a grown town -------------------------------------------------------------------------------------------------
@@ -435,7 +435,9 @@ export interface OrganicPlan extends Plan {
   /** What stands in the town from the plan: the elfhame's great trees. */
   readonly trees: readonly PropData[];
   /** Surfaces: of the centre and its open ground, and of the streets, paths and boardwalks. */
-  readonly surfaces: { readonly centre: number; readonly open: number; readonly street: number; readonly path: number; readonly planks: number };
+  readonly surfaces: { readonly centre: number; readonly open: number; readonly street: number; readonly path: number; readonly planks: number; readonly platform: number };
+  /** The site at the head of the centre (its temple, shrine, tower or landmark). */
+  readonly head: string;
   /** Junctions where a light stands. */
   readonly lanterns: readonly XZ[];
   /** The light that stands there. */
@@ -485,7 +487,7 @@ function paintOrganic(ctx: Ctx): void {
   for (const sq of [plan.centre, ...plan.platforms]) {
     for (const [x, z] of squareTiles(sq)) {
       if (!land.inside(x, z)) continue;
-      pave(land.idx(x, z), sq === plan.centre ? plan.surfaces.centre : plan.surfaces.planks, Use.Kept, true);
+      pave(land.idx(x, z), sq === plan.centre ? plan.surfaces.centre : plan.surfaces.platform, Use.Kept, true);
     }
   }
   for (const e of plan.net.edges) {
@@ -552,6 +554,20 @@ function lightsOrganic(ctx: Ctx): void {
     return false;
   };
   const taken: XZ[] = [];
+  // A deck of planks (the stilts' lesser platforms) keeps its stores: a stack of crates at a back corner no way crosses.
+  if (plan.surfaces.platform === S.planks) {
+    plan.platforms.forEach((sq, k) => {
+      for (const [x, z] of [[sq.x, sq.z], [sq.x + sq.w - 1, sq.z]] as const) {
+        if (!land.inside(x, z)) continue;
+        const i = land.idx(x, z);
+        if (land.use[i] !== Use.Kept || !land.open(i) || doorNear(x, z)) continue;
+        const p: PropData = { id: "crate-stack", x: x + 0.5, z: z + 0.5, seed: k };
+        if (propHides(p, 0).some(([hx, hz]) => land.inside(hx, hz) && ctx.mustSee[land.idx(hx, hz)] === 1 && land.use[land.idx(hx, hz)] !== Use.Kept)) continue;
+        stand(ctx, p, Use.Yard);
+        return;
+      }
+    });
+  }
   for (const [jx, jz] of plan.lanterns) {
     let done = false;
     for (let r = 1; r <= 3 && !done; r++) {

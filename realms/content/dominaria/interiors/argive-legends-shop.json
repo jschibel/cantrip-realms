@@ -53,6 +53,6 @@
     {"kind":"point","at":[8.4875,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [4,6],
-  "exit": [707,122],
+  "exit": [713,102],
   "params": {"specialty":"books"}
 }

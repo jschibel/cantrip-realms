@@ -272,6 +272,17 @@ export class Placer {
     // A door near the end of its block is near a way round it: walks between the town's places stay short.
     const toEnd = Math.min(door[0] - block.x0, block.x1 - 1 - door[0]);
     let s = sizeIndex * 3 + (need.role === "home" || need.role === "manor" ? 0 : toEnd * 0.25);
+    // A grown town's lot was laid for one of its needs: another may take it, but dearly.
+    const meant = (block as { meant?: string }).meant;
+    if (meant && meant !== need.id) s += 25;
+    // How far from the square a place may be at the most (check.ts holds every place to it); each role's own reach is
+    // what it wants, and past it a spot is dearer.
+    const most = this.c.town.kind === "capital" ? 46 : this.c.town.kind === "town" ? 34 : 21;
+    const within = (want: number): boolean => {
+      if (sq > most) return false;
+      s += Math.max(0, sq - want) * 4;
+      return true;
+    };
     switch (need.role) {
       case "temple":
         // On the square or by it; further only where the square's north is a landmark's (the estate's manor).
@@ -281,38 +292,39 @@ export class Placer {
         s += sq * 1.5 + Math.abs(door[0] - centreX) * 0.5 + (onSquare ? 0 : 6);
         break;
       case "guildhall":
-        if (sq > 24) return null;
+        if (!within(24)) return null;
         s += sq * 1.6 + (onSquare ? 0 : 4);
         break;
       case "inn":
-        if (sq > 30) return null;
+        if (!within(30)) return null;
         // By the way in: no further from the main gate than a little past the square (check.ts holds it to that).
         s += this.c.walkMain(door[0], door[1]) * 1.4 + Math.max(0, this.c.walkMain(door[0], door[1]) - this.c.mainToSquare - 12) * 20 + sq * 0.8 + (onSquare ? -4 : 0);
         break;
       case "shop":
       case "exotic":
-        if (sq > 28) return null;
+        if (!within(28)) return null;
         s += sq * 2 + (onSquare ? -6 : 0) + Math.abs(door[0] - centreX) * 0.1;
         break;
       case "library":
       case "tower":
-        if (sq > 32) return null;
+        if (!within(32)) return null;
         s += sq * 1.2 + northness * 3;
         break;
       case "smithy": {
-        if (sq > 36) return null;
+        if (!within(36)) return null;
         const side = Math.min(...this.c.sideGates.map((g) => manhattan(g, door)), 80);
         s += side * 0.8 + sq * 0.6 + (onSquare ? 8 : 0);
         break;
       }
       case "arena":
-        if (sq > 40) return null;
+        if (sq > 70) return null;
+        s += Math.max(0, sq - 40) * 3;
         s += sq * 0.7 + (onSquare ? 30 : 0) + Math.min(...this.placed.filter((p) => p.role === "inn").map((p) => Math.abs(p.f.door[0] - door[0]) + Math.abs(p.f.door[1] - door[1])), 40) * 0.3;
         break;
       case "home": {
         // In the quiet rows, a walk from the square, apart from each other (on a village's green if it must).
         if (onSquare && this.c.town.kind !== "village") return null;
-        if (sq > 60) return null;
+        if (sq > 90) return null;
         if (onSquare) s += 15;
         const near = this.placed.filter((p) => p.role === "home").map((p) => manhattan(p.f.door, door));
         s += Math.abs(sq - 22) * 0.4 + near.reduce((t, d) => t + Math.max(0, 24 - d) * 1.5, 0) + this.c.random() * 4;

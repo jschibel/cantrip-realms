@@ -48,6 +48,6 @@
     {"kind":"point","at":[6.5,1.4,3.5],"color":[1,0.85,0.55],"intensity":2.5,"reach":3.5}
   ],
   "entry": [4,6],
-  "exit": [944,527],
+  "exit": [935,516],
   "params": {"specialty":"curios"}
 }
