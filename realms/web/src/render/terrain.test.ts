@@ -50,6 +50,24 @@ describe("terrain", () => {
     expect(ew.every((n) => Math.abs(n) < 1e-9)).toBe(true);
   });
 
+  it("slopes a road's ramp along the road, never up a cliff or a terrace beside it", () => {
+    // A road coming down from 48 to 36 eastward on two ramps along the middle row, a lower terrace north of it and a cliff
+    // of scree (72) at the second ramp's south (the Domains' travel map, where a pass runs along a range's foot).
+    const at = tiles([
+      ["48", "36", "36", "36"],
+      ["48", "45r", "39r", "36"],
+      ["48", "48", "72", "36"],
+    ]);
+    expect(cornersOf(at, 1, 1)).toEqual([3, 2.625, 2.625, 3]);
+    expect(cornersOf(at, 2, 1)).toEqual([2.625, 2.25, 2.25, 2.625]);
+    // Walked along the road, the floor runs evenly down from 48 to 36 texels: no step where one tile meets the next.
+    for (let x = 0.5; x < 3.5; x += 0.01) {
+      const a = floorAt(at, x, 1.5);
+      const b = floorAt(at, x + 0.01, 1.5);
+      expect(Math.abs(b - a), `at ${x.toFixed(2)}`).toBeLessThan(0.01);
+    }
+  });
+
   it("maps a block's relief for the ground's shader: every tile's corners in texels, nothing where there is no ground", () => {
     const at = tiles([["0", "6r", "12"], ["24", "12", "12"]]);
     const relief = reliefMap(at, 0, 0, 4, 2);

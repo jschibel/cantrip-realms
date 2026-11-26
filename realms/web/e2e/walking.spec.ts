@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { doorOf } from "./places";
+import { doorOf, raisedNear } from "./places";
 import { type Tile, advance, at, openNear, openRealm, realm } from "./realm";
 
 // Walking beside buildings, frame by frame (realmTest.track notes where the figure is drawn every sixtieth): holding the
@@ -107,7 +107,8 @@ async function shopFrom(page: Page, me: Tile): Promise<{ wall: Tile; past: Tile 
 }
 
 test("walking: held beside a shop, the player follows the cursor smoothly, slides along its walls, and goes in only pushed into its door", async ({ page }) => {
-  const errors = await openRealm(page, { at: at(openNear(doorOf(SHOP), 2)), extra: "&mobs=0" });
+  const start = openNear(doorOf(SHOP), 2);
+  const errors = await openRealm(page, { at: at(start), extra: "&mobs=0" });
   await advance(page, 0.5);
   const centre = await playerOnPage(page);
 
@@ -144,7 +145,10 @@ test("walking: held beside a shop, the player follows the cursor smoothly, slide
   expect(await realm<string>(page, "space.id"), "never in the shop, all that way round it").toBe("world");
 
   // The shop's door, held on by a drag: the walk goes up to it and stays outside; held on past it, into the doorway,
-  // it goes in, as a walk into the door would.
+  // it goes in, as a walk into the door would. From before the shop, where the walk began: the held walks may have
+  // slid round its corner and behind it, from where a walk held straight at the door meets its back wall.
+  await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [start.x, start.z] as const);
+  for (let i = 0; i < 40 && (await track(page, 0.25)).at(-1)!.moving; i++);
   // (Held from where the player stands: a press on the door would be a click on it, which goes in on its own.)
   const me = await playerOnPage(page);
   await page.mouse.move(me.x, me.y);
@@ -161,8 +165,11 @@ test("walking: held beside a shop, the player follows the cursor smoothly, slide
     await track(page, 0.25);
   }
   await onDoor(0);
-  smooth("held on the door", await track(page, 0.5));
+  const onIt = await track(page, 0.5);
+  smooth("held on the door", onIt);
   expect(await realm<string>(page, "space.id"), "held on the door's tile, still outside").toBe("world");
+  const door = doorOf(SHOP);
+  expect([Math.floor(onIt.at(-1)!.x), Math.floor(onIt.at(-1)!.z)], "held on the door, walked onto it").toEqual([door.x, door.z]);
   for (let i = 0; i < 20 && (await realm<string>(page, "space.id")) === "world"; i++) {
     await onDoor(40);
     await track(page, 0.25);
@@ -242,9 +249,9 @@ test("walking: a click round a shop walks it in straight legs with no jump, and 
 });
 
 test("walking: opened by ?at= on a raised square, the player stands on it from the first frame, not sunk to its foot", async ({ page }) => {
-  // New Benalia's square stands three quarters of a tile up, and a start at a world tile is put there before its chunk
-  // is read.
-  const errors = await openRealm(page, { at: "world:523,733", extra: "&mobs=0" });
+  // New Benalia's streets stand up off the ground (raisedNear: the open tile nearest its middle more than half a tile up),
+  // and a start at a world tile is put there before its chunk is read.
+  const errors = await openRealm(page, { at: at(raisedNear()), extra: "&mobs=0" });
   const stood = await page.evaluate(() => {
     const s = (globalThis as any).sliceStage;
     const p = s.player.position;

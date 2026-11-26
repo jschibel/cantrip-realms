@@ -162,6 +162,96 @@ export async function walkTo(page: Page, goal: Tile, near = 0, avoid: (t: Tile) 
 }
 
 /**
+ * Walks the current place toward a tile as a player does, by real mouse clicks on the ground a few tiles along the grid's
+ * path at a time: each click at a point of the page the stage picks as that tile (never a door's, never one under a
+ * figure or the HUD), until within `near` of it. A duel a mob starts on the way is won.
+ */
+export async function clickWalk(page: Page, goal: Tile, near = 0, seconds = 20): Promise<void> {
+  for (let tries = 0; tries < 80; tries++) {
+    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
+    await stopped(page);
+    const from = await playerTile(page);
+    if (chebyshev(from, goal) <= near) return;
+    let path: Tile[] | null = null;
+    for (const reach of [Infinity, 24, 12, 6]) {
+      const d = chebyshev(from, goal);
+      const k = Math.min(1, reach / Math.max(1, d));
+      const aim = { x: Math.round(from.x + (goal.x - from.x) * k), z: Math.round(from.z + (goal.z - from.z) * k) };
+      path = (await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [aim.x, aim.z] as const)) as Tile[] | null;
+      if (path && path.length > 0) break;
+    }
+    expect(path, `a way from ${from.x},${from.z} to ${goal.x},${goal.z}`).not.toBeNull();
+    // The furthest step up to eight along whose point on the page a click lands on it.
+    const { spot, why } = await page.evaluate((steps) => {
+      const s = (globalThis as any).sliceStage;
+      const t = (globalThis as any).realmTest;
+      const why: string[] = [];
+      for (let k = Math.min(8, steps.length - 1); k >= 1; k--) {
+        const step = steps[k]!;
+        if (s.doorAt(step)) {
+          why.push(`${step.x},${step.z} a door`);
+          continue;
+        }
+        // Points over the tile's ground, its middle first: what stands in front of part of it (a stall, a tree) takes a
+        // click there, as it would a player's.
+        const floor = s.current.floorAt?.(step.x + 0.5, step.z + 0.5) ?? 0;
+        let seen = "";
+        for (const [ox, oz] of [[0.5, 0.5], [0.5, 0.2], [0.2, 0.2], [0.8, 0.2], [0.2, 0.5], [0.8, 0.5], [0.5, 0.8], [0.2, 0.8], [0.8, 0.8]]) {
+          const p = s.player.position.clone().set(step.x + ox!, floor, step.z + oz!);
+          const at = s.toScreen(p) as { x: number; y: number };
+          if (at.x < 4 || at.y < 4 || at.x > innerWidth - 4 || at.y > innerHeight - 4) {
+            seen ||= "off the page";
+            continue;
+          }
+          const under = document.elementFromPoint(at.x, at.y);
+          if (under !== s.renderer.canvas) {
+            seen ||= `under ${under?.tagName}#${under?.id}`;
+            continue;
+          }
+          const picked = s.pick(at.x, at.y) as { x: number; z: number } | null;
+          if (picked && picked.x === step.x && picked.z === step.z && t.figureAt(at.x, at.y) === null) return { spot: at, why };
+          seen ||= `picks ${picked?.x},${picked?.z}`;
+        }
+        why.push(`${step.x},${step.z} ${seen}`);
+      }
+      return { spot: null, why };
+    }, path!);
+    expect(spot, `a point on the page to click toward ${goal.x},${goal.z} from ${from.x},${from.z}: ${why.join("; ")}`).not.toBeNull();
+    await page.mouse.click(spot!.x, spot!.y);
+    await advance(page, 0.2);
+    await until(page, async () => (await realm<string | null>(page, "layer.open")) !== null || !(await player(page)).moving, "the walk ends", seconds);
+  }
+  expect(chebyshev(await playerTile(page), goal), `walked to within ${near} of ${goal.x},${goal.z}`).toBeLessThanOrEqual(near);
+}
+
+/** The town whose grounds the player stands in (a world of two scales), or null on the travel map. */
+export async function groundsHere(page: Page): Promise<string | null> {
+  const t = await playerTile(page);
+  return world().towns.find((w) => w.grounds && t.x >= w.grounds[0] && t.z >= w.grounds[1] && t.x < w.grounds[2] && t.z < w.grounds[3])?.id ?? null;
+}
+
+/** Waits until the player stands, the iris open, in a town's grounds (an id) or on the travel map (null). */
+export async function waitGround(page: Page, town: string | null, seconds = 40): Promise<void> {
+  await until(
+    page,
+    async () =>
+      !(await realm<boolean>(page, "transitioning")) &&
+      (await realm<string>(page, "space.id")) === "world" &&
+      (await groundsHere(page)) === town &&
+      !(await player(page)).moving &&
+      (await realm<boolean>(page, "streamed")),
+    town ? `in ${town}'s grounds` : "on the travel map",
+    seconds,
+  );
+}
+
+/** Clicks a town's icon on the travel map (its ways' doors, which the whole icon is), and waits to stand in its grounds. */
+export async function enterTown(page: Page, town: string): Promise<void> {
+  await clickEntity(page, (e) => e.kind === "town" && (e.to ?? "").startsWith(`way:${town}:`), `${town}'s icon`);
+  await waitGround(page, town);
+}
+
+/**
  * A point on the page where a click lands on `e` itself, as the stage picks it (realmTest.figureAt): on its own figure for
  * one that has a figure (a person, a mob: the entities that say whether they are `moving`), and for a thing that has none
  * (a board, a table, a chest) a point of it with no figure in front - a guard walking his round, an NPC passing, a
@@ -235,6 +325,7 @@ let worldFile: WorldData | null = null;
 export const world = (): WorldData => (worldFile ??= read<WorldData>("world/world.json"));
 export const dungeon = (id: string): DungeonData => read<DungeonData>(`dungeons/${id}.json`);
 export const interior = (id: string): InteriorData => read<InteriorData>(`interiors/${id}.json`);
+export const mobFile = (id: string): { readonly id: string; readonly tier: number; readonly hops?: boolean } => read(`mobs/${id}.json`);
 
 const chunks = new Map<string, ChunkData | null>();
 export function chunk(cx: number, cz: number): ChunkData | null {

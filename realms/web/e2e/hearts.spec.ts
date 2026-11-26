@@ -2,7 +2,7 @@ import { type Page, expect, test } from "@playwright/test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnNear } from "./places";
-import { at, chebyshev, clickClear, clickControl, clickEntity, entities, entity, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
+import { at, chebyshev, clickClear, clickControl, clickEntity, enterTown, entities, entity, groundsHere, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
 import { enter, run, toShrine, walkInside } from "./runs";
 
 // Hearts (design.md A3, A3b), offline with the stand-in card layer: a lost duel costs a heart and pays nothing; a world
@@ -125,11 +125,16 @@ test("the last heart lost: death, and the character wakes at home with their hea
   expect(await me(page)).toMatchObject({ hearts: 2, maxHearts: 2, defeat: null });
   const capital = world().towns.find((t) => t.kind === "capital")!;
   expect(await realm<{ name: string }>(page, "area")).toMatchObject({ name: capital.name });
+  // At the inn's door, in the capital's grounds (from the travel map, where the duel was).
+  const inn = world().inns.find((i) => i.town === capital.id)!;
+  expect(await groundsHere(page)).toBe(capital.id);
+  expect(chebyshev(await playerTile(page), { x: inn.x, z: inn.z })).toBeLessThanOrEqual(1);
+  expect(await realm<boolean>(page, "transitioning")).toBe(false);
   expect((await realm<string[]>(page, "messages")).some((m) => /You wake at the inn in New Benalia, your hearts restored/.test(m))).toBe(true);
   await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "2");
 });
 
-test("a town fills the hearts: walking in through its gate", async ({ page }) => {
+test("a town fills the hearts: walking into its grounds from its icon on the travel map", async ({ page }) => {
   await engage(page);
   await lose(page, 10, "defeat");
   await clickControl(page, "defeat:pay");
@@ -137,11 +142,15 @@ test("a town fills the hearts: walking in through its gate", async ({ page }) =>
   expect((await me(page)).hearts).toBe(1);
   await page.screenshot({ path: join(SHOTS, "hud-hearts.png") });
 
+  // To the capital's icon (the way nearest), and in: the hearts filled there, before the player stands in the grounds.
   const capital = world().towns.find((t) => t.kind === "capital")!;
-  const inn = world().inns.find((i) => i.town === capital.id)!;
-  await walkTo(page, { x: inn.x, z: inn.z }, 4);
+  const here = await playerTile(page);
+  const way = [...capital.ways!].sort((a, b) => chebyshev(here, { x: a.outside[0], z: a.outside[1] }) - chebyshev(here, { x: b.outside[0], z: b.outside[1] }))[0]!;
+  await walkTo(page, { x: way.outside[0], z: way.outside[1] }, 3);
+  expect((await me(page)).hearts, "the travel map fills no hearts").toBe(1);
+  await enterTown(page, capital.id);
   await until(page, async () => (await me(page)).hearts === 2, "the hearts filled", 30);
-  expect((await realm<string[]>(page, "messages")).some((m) => /your hearts are restored: 2 of 2/.test(m))).toBe(true);
+  expect((await realm<string[]>(page, "messages")).some((m) => m === `Safe within ${capital.name}, your hearts are restored: 2 of 2.`)).toBe(true);
   await expect(page.locator("[data-test='hud:hearts']")).toHaveAttribute("data-hearts", "2");
 });
 

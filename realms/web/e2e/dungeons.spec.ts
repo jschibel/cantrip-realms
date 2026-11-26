@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { chebyshev, clickControl, clickEntity, dungeon, entity, openRealm, player, realm, until, waitSpace } from "./realm";
+import { chebyshev, clickControl, clickEntity, dungeon, entity, groundsHere, openRealm, player, realm, until, waitSpace } from "./realm";
 import { beat, enter, run, walkInside } from "./runs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -85,6 +85,10 @@ test("a mage tower attuned by beating its mage, then its waystone's travel to an
   await walkInside(page, out, 1);
   await clickEntity(page, (e) => e.kind === "leave" && e.name === "way-out", "the way out");
   await waitSpace(page, "world");
+  // Out on the travel map, beside the tower's way in.
+  const entrance = { x: dungeon(tower).entrance[0], z: dungeon(tower).entrance[1] };
+  expect(chebyshev((await player(page)).tile, entrance)).toBe(1);
+  expect(await groundsHere(page)).toBeNull();
   const lit = await entity(page, (e) => e.kind === "waystone" && e.id === tower, "the tower's waystone");
   await page.mouse.move(lit.x, lit.y);
   await until(page, async () => /attuned/.test((await realm<string | null>(page, "tooltip")) ?? ""), "lit");

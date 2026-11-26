@@ -1,14 +1,17 @@
 import { type Page, expect, test } from "@playwright/test";
-import { ledgeBrink } from "./places";
+import { siteRect } from "../src/world/format";
+import { ledgeBrink, travelSpots } from "./places";
 import { advance, at, openNear, openRealm, realm, world } from "./realm";
 
-// The player walked about towns and the country round them, frame by frame, looking for teleports: clicks to open tiles
-// across streets and squares and held walks steered every way - into walls, along them, up to doors and the brinks of
-// terraces, and over them - each frame checked as it is drawn: no move further than a walk goes in a frame, no rise or
-// drop popped (a hop's arc rises and falls over several), the body never over a closed tile nor across a ledge but
-// mid-hop, and never mid-hop longer than a hop takes. And a ledge a level high itself: walked up to and along, hopped
+// The player walked about towns' grounds and the travel map, frame by frame, looking for teleports: clicks to open
+// tiles across streets and squares and held walks steered every way - into walls, along them, up to doors and the
+// brinks of terraces, and over them; on the travel map along a road, among a wood's groves, against a range's peaks,
+// over a bridge, up and down a bank - each frame checked as it is drawn: no move further than a walk goes in a frame, no
+// rise or drop popped (a hop's arc rises and falls over several), the body never over a closed tile nor across a ledge
+// but mid-hop, and never mid-hop longer than a hop takes; and after each walk, a way back to where it began (never shut
+// in a pocket). And a ledge a level high itself, in a town's grounds and on the travel map: walked up to and along, hopped
 // whole, held or clicked, flush to flush. Every finding names its walk and both positions. SWEEP_TOWNS (town ids,
-// comma-separated) and SWEEP_WALKS sweep more.
+// comma-separated), SWEEP_TRAVEL (travelSpots' names: road, wood, range, bridge, bank) and SWEEP_WALKS sweep more.
 
 /** The most a walk at 4.2 tiles a second goes in a sixtieth, and a little over. */
 const STRIDE = (4.2 / 60) * 1.2;
@@ -26,11 +29,20 @@ interface Finding {
 
 /**
  * `walks` walks from where the player stands, each a click on an open tile within `radius` (never a door) or a held walk
- * steered at a point a few tiles off for a few seconds, chosen by a seeded draw; every frame watched.
+ * steered at a point a few tiles off for a few seconds, chosen by a seeded draw; every frame watched. Neither goes into
+ * or across the rectangles `avoid` (tiles, [x0, z0, x1, z1] both included: the travel map's icons and entrances, which a
+ * walk pushing into goes through). After each walk the way back to where the sweep began is looked for: a player shut in
+ * a pocket is a finding.
  */
-function sweep(page: Page, walks: number, radius: number, seed: number): Promise<Finding[]> {
+function sweep(page: Page, walks: number, radius: number, seed: number, avoid: readonly (readonly number[])[] = []): Promise<Finding[]> {
   return page.evaluate(
-    async ({ walks, radius, seed, stride, hopFrames }) => {
+    async ({ walks, radius, seed, stride, hopFrames, avoid }) => {
+      const inAvoid = (x: number, z: number) => avoid.some(([x0, z0, x1, z1]) => x >= x0! && x < x1! + 1 && z >= z0! && z < z1! + 1);
+      const lineAvoids = (a: { x: number; z: number }, b: { x: number; z: number }) => {
+        const n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) * 4) + 1;
+        for (let k = 0; k <= n; k++) if (inAvoid(a.x + ((b.x - a.x) * k) / n, a.z + ((b.z - a.z) * k) / n)) return true;
+        return false;
+      };
       const o = (globalThis as any).realmTest.game;
       const out: Finding[] = [];
       let s = seed;
@@ -79,33 +91,49 @@ function sweep(page: Page, walks: number, radius: number, seed: number): Promise
         }
       };
       const centre = { x: o.player.position.x, z: o.player.position.z };
+      const home = { x: Math.floor(centre.x), z: Math.floor(centre.z) };
       for (let w = 0; w < walks && o.stage.current.id === "world"; w++) {
         const st = o.stage;
         const me = st.player.position;
+        const at = { x: me.x, z: me.z };
         const from = `from ${me.x.toFixed(2)},${me.z.toFixed(2)}`;
+        let walk = "";
         if (rnd() < 0.5) {
           let to: { x: number; z: number } | null = null;
           for (let k = 0; k < 40 && !to; k++) {
             const x = Math.floor(centre.x + (rnd() * 2 - 1) * radius);
             const z = Math.floor(centre.z + (rnd() * 2 - 1) * radius);
-            if (st.current.grid.walkable(x, z) && !st.doorAt({ x, z })) to = { x, z };
+            if (st.current.grid.walkable(x, z) && !st.doorAt({ x, z }) && !inAvoid(x + 0.5, z + 0.5)) to = { x, z };
           }
           if (!to) continue;
+          // A way there that keeps off what is avoided (a click's walk goes the grid's way, round anything).
+          const path = st.current.grid.path(st.player.tile, to) as { x: number; z: number }[] | null;
+          if (!path || path.some((t) => inAvoid(t.x + 0.5, t.z + 0.5))) continue;
+          walk = `click ${to.x},${to.z} ${from}`;
           st.clickTile(to);
-          await run(60 * 20, `click ${to.x},${to.z} ${from}`, () => !st.player.moving);
+          await run(60 * 20, walk, () => !st.player.moving);
         } else {
           const a = rnd() * Math.PI * 2;
           const d = 3 + rnd() * 10;
           const point = { x: me.x + Math.cos(a) * d, z: me.z + Math.sin(a) * d };
+          if (lineAvoids(at, point)) continue;
+          walk = `held toward ${point.x.toFixed(2)},${point.z.toFixed(2)} ${from}`;
           st.player.steer(point);
-          await run(60 * (1 + rnd() * 3), `held toward ${point.x.toFixed(2)},${point.z.toFixed(2)} ${from}`);
+          await run(60 * (1 + rnd() * 3), walk);
           st.player.steer(null);
+          // A hop under way is finished, even let go.
+          await run(60, walk, () => !st.player.hopping);
         }
-        if (st.transition || st.current.id !== "world") out.push({ kind: `went through a door into ${st.current.id}`, walk: `walk ${w}`, from: [me.x, me.z], to: [] });
+        if (st.transition || st.current.id !== "world") {
+          out.push({ kind: `went through a door into ${st.current.id}`, walk: `walk ${w}`, from: [at.x, at.z], to: [] });
+          break;
+        }
+        // (Where the sweep began is still in the chunks read: else there is nothing to ask.)
+        if (st.current.grid.walkable(home.x, home.z) && !st.current.grid.path(st.player.tile, home)) out.push({ kind: "shut in: no way back to where the sweep began", walk, from: [at.x, at.z], to: [st.player.position.x, st.player.position.z] });
       }
       return out;
     },
-    { walks, radius, seed, stride: STRIDE, hopFrames: HOP_FRAMES },
+    { walks, radius, seed, stride: STRIDE, hopFrames: HOP_FRAMES, avoid: avoid.map((r) => [...r]) },
   );
 }
 
@@ -115,6 +143,31 @@ for (const [n, id] of TOWNS.entries()) {
     const town = world().towns.find((t) => t.id === id)!;
     const errors = await openRealm(page, { at: at(openNear({ x: town.center[0], z: town.center[1] }, 6)), extra: "&mobs=0" });
     expect(await sweep(page, WALKS, Math.min(town.radius + 12, 48), 7 + n)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
+/** The rectangles a sweep of the travel map keeps out of: each town's icon and each dungeon's entrance, two tiles round. */
+function waysOfTheTravelMap(): number[][] {
+  const w = world();
+  const out: number[][] = [];
+  for (const t of w.towns) {
+    const r = siteRect(t);
+    if (r) out.push([r[0] - 2, r[1] - 2, r[2] + 1, r[3] + 1]);
+  }
+  for (const d of w.dungeons) out.push([d.x - 2, d.z - 2, d.x + 2, d.z + 2]);
+  return out;
+}
+
+// The travel map at its own scale: a road, a wood's groves, a range's peaks, a bridge, a bank a level high (places.ts
+// travelSpots; SWEEP_TRAVEL, names comma-separated, picks some).
+const TRAVEL = (process.env.SWEEP_TRAVEL ?? "").split(",").filter(Boolean);
+for (const [n, spot] of travelSpots().entries()) {
+  if (TRAVEL.length > 0 && !TRAVEL.includes(spot.name)) continue;
+  test(`sweep: walked about the travel map at ${spot.name}, the player never jumps nor is shut in`, async ({ page }) => {
+    test.setTimeout(Math.max(120_000, WALKS * 12_000));
+    const errors = await openRealm(page, { at: at(spot.at), extra: "&mobs=0" });
+    expect(await sweep(page, WALKS, 14, 31 + n, waysOfTheTravelMap())).toEqual([]);
     expect(errors).toEqual([]);
   });
 }
@@ -138,8 +191,8 @@ function hopsSmoothly(what: string, frames: readonly Frame[]): void {
   }
 }
 
-test("sweep: a ledge a level high is walked up to and along, and hopped whole - held or clicked, flush to flush, on an arc", async ({ page }) => {
-  const { at: brink, below } = ledgeBrink();
+for (const travel of [false, true]) test(`sweep: a ledge a level high ${travel ? "on the travel map" : "in a town's grounds"} is walked up to and along, and hopped whole - held or clicked, flush to flush, on an arc`, async ({ page }) => {
+  const { at: brink, below } = ledgeBrink("new-benalia", travel);
   await openRealm(page, { at: at({ x: brink.x + 2, z: brink.z }), extra: "&mobs=0" });
   const state = () =>
     page.evaluate(() => {

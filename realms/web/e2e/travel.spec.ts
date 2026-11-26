@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { TRADERS_IN, at, chebyshev, clickControl, clickEntity, openNear, openRealm, playerTile, realm, until, walkTo, world } from "./realm";
+import { TRADERS_IN, at, chebyshev, clickControl, clickEntity, enterTown, openNear, openRealm, playerTile, realm, until, world } from "./realm";
 
 // Across the world: a ferry to a far isle, crossed seamlessly; the traveling vendors from other planes at their
 // caravan pitches by the schedule, and the HUD saying who is in town.
@@ -42,10 +42,12 @@ test("coming into a town, the HUD says which trader is there and until when", as
   const town = world().towns.find((t) => t.id === "capashen-hold")!;
   const road = world().roads.find((r) => r.from === town.id || r.to === town.id)!;
   const tiles = (road.from === town.id ? road.tiles : [...road.tiles].reverse()).map(([x, z]) => ({ x, z }));
-  // A few tiles out along the road from the town's edge, then in to its middle.
-  const outside = tiles.findIndex((t) => chebyshev(t, { x: town.center[0], z: town.center[1] }) > town.radius + 4);
+  // A few tiles out along a road from the town's icon on the travel map, then in by the icon.
+  const site = { x: town.site![0], z: town.site![1] };
+  const outside = tiles.findIndex((t) => chebyshev(t, site) > 8);
   await openRealm(page, { at: at(tiles[Math.max(0, outside)]!), extra: "&mobs=0", now: TRADERS_IN });
   await until(page, async () => (await realm<unknown[]>(page, "travelers")).length > 0, "the schedule");
-  await walkTo(page, { x: town.center[0], z: town.center[1] }, town.radius - 4);
+  expect((await realm<string[]>(page, "messages")).some((m) => /^A trader from/.test(m)), "no trader told of on the travel map").toBe(false);
+  await enterTown(page, town.id);
   await until(page, async () => (await realm<string[]>(page, "messages")).some((m) => /^A trader from [\w ]+ is in Capashen Hold until \d\d:\d\d\.$/.test(m)), "the trader announced");
 });

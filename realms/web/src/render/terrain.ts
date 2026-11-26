@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { type Material, MeshBuilder, type Model } from "../art/paint/builder";
 import { material } from "../art/paint/materials";
 import * as T from "../art/paint/textures";
-import { NO_SURFACE, RAMP, TEXELS_PER_TILE, type TileData } from "../world/format";
+import { HOP, LEDGE, NO_SURFACE, RAMP, TEXELS_PER_TILE, type TileData } from "../world/format";
 
 // The ground's shape: each tile's floor at its height, the bank down to a lower neighbour drawn as a face of rock, and
 // a ramp tile sloped from the level before it to the level after it. Heights are whole texels (world/format.ts), so a
@@ -26,26 +26,31 @@ const isRamp = (t: TileData | null): boolean => t !== null && (t[2] & RAMP) !== 
 export type Corners = readonly [number, number, number, number];
 
 /**
- * The corners of a tile's floor. A flat tile is level at its height. A ramp slopes along the axis its neighbours differ
- * most on: each of its two ends meets the neighbour there - at that neighbour's height, or half-way to it where the
- * neighbour is a ramp as well (a ramp of several tiles is one even slope).
+ * The corners of a tile's floor. A flat tile is level at its height. A ramp slopes along the axis it is walked on: the
+ * one with more ends walked onto freely (a ramp a step up or down from it, or ground no further than a ledge from it, as
+ * world/format.ts `noLedge` walks them), else the one its neighbours differ most on. Each of its two ends meets the neighbour there - at
+ * that neighbour's height, or half-way to it where the neighbour is a ramp as well (a ramp of several tiles is one even
+ * slope). A neighbour more than a level from it is a cliff beside it, never an end: a road's ramp along a cliff's foot
+ * slopes along the road, not up the cliff.
  */
 export function cornersOf(tileAt: TileAt, x: number, z: number): Corners {
   const t = tileAt(x, z);
   if (!t) return [0, 0, 0, 0];
   const h = levelOf(t);
   if (!isRamp(t)) return [h, h, h, h];
-  const end = (n: TileData | null): number => {
-    if (!hasGround(n)) return h;
+  const end = (n: TileData | null): { at: number; walked: boolean } => {
+    if (!hasGround(n) || Math.abs(n[0] - t[0]) > HOP) return { at: h, walked: false };
     const nh = levelOf(n);
-    return isRamp(n) ? (h + nh) / 2 : nh;
+    // (A ramp at its own height beside it is another lane of a wide ramp: a side.)
+    return isRamp(n) ? { at: (h + nh) / 2, walked: n[0] !== t[0] } : { at: nh, walked: Math.abs(n[0] - t[0]) <= LEDGE };
   };
   const north = end(tileAt(x, z - 1));
   const south = end(tileAt(x, z + 1));
   const west = end(tileAt(x - 1, z));
   const east = end(tileAt(x + 1, z));
-  if (Math.abs(north - south) >= Math.abs(east - west)) return [north, north, south, south];
-  return [west, east, east, west];
+  const along = Number(north.walked) + Number(south.walked) - (Number(west.walked) + Number(east.walked));
+  if (along > 0 || (along === 0 && Math.abs(north.at - south.at) >= Math.abs(east.at - west.at))) return [north.at, north.at, south.at, south.at];
+  return [west.at, east.at, east.at, west.at];
 }
 
 /** The floor's height at a point (world units), the tile's corners blended across it: what a figure stands on. */

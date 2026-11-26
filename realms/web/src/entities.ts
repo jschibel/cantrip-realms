@@ -71,7 +71,12 @@ export class Mob {
         const beside: Tile[] = [];
         for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) beside.push({ x: p.x + dx, z: p.z + dz });
         const stand = beside.filter((t) => (free(t) || (t.x === me.x && t.z === me.z)) && grid.canStep(t, p, hops)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
-        if (stand) this.actor.retarget(stand);
+        // No way to the player's side (across a ledge it does not hop, the ramps round it out of reach): as near as it
+        // can go - the brink, where it gives up the chase.
+        if (!stand || !this.actor.retarget(stand)) {
+          const brink = this.nearestTo(p, free);
+          if (brink.x !== me.x || brink.z !== me.z) this.actor.retarget(brink);
+        }
       }
       return false;
     }
@@ -85,6 +90,38 @@ export class Mob {
       this.rest = 2 + Math.random() * 3;
     }
     return false;
+  }
+
+  /**
+   * The free tile nearest `to` it can walk to from where it stands (its own steps: a ledge hopped only if it hops), no
+   * further from it than the chase reaches past the player: where a mob that cannot get to the player stops - at the
+   * brink of the ledge between them. Its own tile when nothing it reaches is nearer.
+   */
+  private nearestTo(to: Tile, free: (t: Tile) => boolean): Tile {
+    const me = this.actor.tile;
+    const grid = this.actor.grid;
+    const reach = CHASE_RANGE + 2;
+    const closer = (a: Tile, b: Tile) => chebyshev(a, to) - chebyshev(b, to) || Math.hypot(a.x - to.x, a.z - to.z) - Math.hypot(b.x - to.x, b.z - to.z) || a.x - b.x || a.z - b.z;
+    const seen = new Set([`${me.x},${me.z}`]);
+    let best = me;
+    let ring: Tile[] = [me];
+    while (ring.length > 0) {
+      const next: Tile[] = [];
+      for (const t of ring) {
+        for (let dz = -1; dz <= 1; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const n = { x: t.x + dx, z: t.z + dz };
+            const k = `${n.x},${n.z}`;
+            if ((!dx && !dz) || seen.has(k) || chebyshev(n, me) > reach || !free(n) || !grid.canStep(t, n, this.actor.hops)) continue;
+            seen.add(k);
+            next.push(n);
+            if (closer(n, best) < 0) best = n;
+          }
+        }
+      }
+      ring = next;
+    }
+    return best;
   }
 }
 

@@ -541,7 +541,8 @@ export class Overworld {
     await this.world.streamer.settle(x, z, this.stage.streamReach(), false);
     try {
       const r = await this.api.position(placeOf("world", tile));
-      this.heartsAre(r.Hearts);
+      // Filled on the way in, before the player stands there: the town's, not the travel map's area left.
+      this.heartsAre(r.Hearts, into ? town.name : undefined);
     } catch (e) {
       this.note(`way ${town.id} ${way.side} refused: ${e instanceof Error ? e.message : String(e)}`);
       this.say(refusal(e));
@@ -1621,15 +1622,18 @@ export class Overworld {
     if (next) await this.encounter(info, next, { actor, spawn: defeat.Spawn, epoch: defeat.Epoch, role: actor?.run?.role ?? null });
   }
 
-  /** The hearts the server says the character has after a report of where they stand: a town fills them. */
-  private heartsAre(hearts: number): void {
+  /**
+   * The hearts the server says the character has after a report of where they stand: a town fills them. `town` names the
+   * town reported in when the player does not stand there yet (a way in, behind the iris).
+   */
+  private heartsAre(hearts: number, town?: string): void {
     if (!this.data || hearts === this.data.Hearts) return;
     const filled = hearts > this.data.Hearts;
     this.data = { ...this.data, Hearts: hearts };
     this.hud.showCharacter(this.data);
     if (filled) {
       this.hud.flashHearts();
-      this.say(`Safe within ${this.area?.name ?? "the town"}, your hearts are restored: ${hearts} of ${this.data.MaxHearts}.`);
+      this.say(`Safe within ${town ?? this.area?.name ?? "the town"}, your hearts are restored: ${hearts} of ${this.data.MaxHearts}.`);
     }
   }
 

@@ -1,5 +1,5 @@
-import { type BuildingData, CHUNK, HOP, NO_SURFACE, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile } from "../src/world/format";
-import { type Tile, chebyshev, chunk, chunkAt, interior, openNear, openWorld, world } from "./realm";
+import { type BuildingData, CHUNK, HOP, ICON_SIZE, type PropData, RAMP, type SpawnData, TEXELS_PER_TILE, type TileData, areaAt, chunkTile, siteRect } from "../src/world/format";
+import { type Tile, chebyshev, chunk, chunkAt, interior, mobFile, openWorld, world } from "./realm";
 
 // Where the tests find what they need in the generated world: read from its files, never guessed, so a regenerated
 // world still has a place for every test.
@@ -26,11 +26,38 @@ export function doorOf(id: string): Tile {
   return door;
 }
 
-/** A spawn point outside a town's walls, the nearest to them of the tier asked for. */
-export function spawnNear(town: string, tier = 1): SpawnData {
+/**
+ * Where a town is on the ground wanderers walk, and how far from there its edge lies: its icon on the travel map (a
+ * world of two scales: wanderers live there alone), or its walls (one scale).
+ */
+export function townSpot(town: string): { centre: Tile; edge: number } {
   const t = world().towns.find((x) => x.id === town)!;
-  const centre = { x: t.center[0], z: t.center[1] };
-  const spawns = chunksNear(centre, t.radius + 80).flatMap((c) => c.spawns).filter((s) => s.tier === tier && chebyshev(s, centre) > t.radius + 4);
+  if (t.site) return { centre: { x: t.site[0], z: t.site[1] }, edge: Math.floor((ICON_SIZE[t.kind] ?? 3) / 2) };
+  return { centre: { x: t.center[0], z: t.center[1] }, edge: t.radius };
+}
+
+/** Every spawn point of the travel map (a world of two scales; of the whole world in one of one scale). */
+export function travelSpawns(): SpawnData[] {
+  const w = world();
+  const r = w.travel ?? [0, 0, w.size[0], w.size[1]];
+  const out: SpawnData[] = [];
+  for (let cx = Math.floor(r[0] / CHUNK); cx < Math.ceil(r[2] / CHUNK); cx++) for (let cz = Math.floor(r[1] / CHUNK); cz < Math.ceil(r[3] / CHUNK); cz++) out.push(...(chunk(cx, cz)?.spawns ?? []));
+  return out;
+}
+
+/** Whether a mob hops a ledge a level high (its file's `hops`, true when left out: mobs.ts mobInfo). */
+export function hops(mob: string): boolean {
+  try {
+    return mobFile(mob).hops !== false;
+  } catch {
+    return true;
+  }
+}
+
+/** A spawn point outside a town (its walls, or on the travel map its icon), the nearest to it of the tier asked for. */
+export function spawnNear(town: string, tier = 1): SpawnData {
+  const { centre, edge } = townSpot(town);
+  const spawns = chunksNear(centre, edge + 120).flatMap((c) => c.spawns).filter((s) => s.tier === tier && chebyshev(s, centre) > edge + 4);
   spawns.sort((a, b) => chebyshev(a, centre) - chebyshev(b, centre) || a.x - b.x || a.z - b.z);
   if (!spawns[0]) throw new Error(`no tier ${tier} spawn near ${town}`);
   return spawns[0];
@@ -61,7 +88,10 @@ export const tierRise = () => {
   return roadCrossing((a, b) => {
     const ta = areaAt(w, a.x, a.z)?.tier ?? 0;
     const tb = areaAt(w, b.x, b.z)?.tier ?? 0;
-    return ta >= 1 && tb > ta && w.towns.every((t) => chebyshev(a, { x: t.center[0], z: t.center[1] }) > t.radius + 3);
+    return ta >= 1 && tb > ta && w.towns.every((t) => {
+      const { centre, edge } = townSpot(t.id);
+      return chebyshev(a, centre) > edge + 3;
+    });
   }, 3);
 };
 
@@ -134,6 +164,22 @@ export function behindBuilding(town = "new-benalia"): { at: Tile; from: Tile } {
   throw new Error(`no building to stand behind in ${town}`);
 }
 
+/** The open tile nearest a town's middle whose floor stands more than half a tile up (its square, a terrace of it). */
+export function raisedNear(town = "new-benalia"): Tile {
+  const t = world().towns.find((x) => x.id === town)!;
+  for (let r = 0; r < 80; r++) {
+    for (let dz = -r; dz <= r; dz++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+        const at = { x: t.center[0] + dx, z: t.center[1] + dz };
+        const d = tileData(at.x, at.z);
+        if (d && d[0] > TEXELS_PER_TILE / 2 && openWorld(at)) return at;
+      }
+    }
+  }
+  throw new Error(`no raised ground near the middle of ${town}`);
+}
+
 /** A world tile's data, or null past the world. */
 function tileData(x: number, z: number): TileData | null {
   const c = chunkAt({ x, z });
@@ -141,86 +187,32 @@ function tileData(x: number, z: number): TileData | null {
 }
 
 /**
- * The foot of a terrace's east face, the side its shadow falls on (the sun stands to the south-west), out in the open:
- * a straight run of at least six rows where the ground stands a whole step (12 texels) or more above flat ground east
- * of it, three tiles of that ground flat, nothing built or standing within six tiles toward the sun and four the other
- * ways, and no higher ground near enough to shade it - so no other shadow falls there. `x` is the face's line, rows
- * `z0` to `z1` (both included) the run, `y` the lower ground's height (world units); `stand` the open tile nearest a
- * few tiles north of the run, for the player, whose figure and shadow are then clear of it.
- */
-export function terraceFoot(near = "new-benalia"): { x: number; z0: number; z1: number; y: number; stand: Tile } {
-  const t = world().towns.find((x) => x.id === near)!;
-  const centre = { x: t.center[0], z: t.center[1] };
-  const flat = (d: TileData | null): d is TileData => d !== null && d[1] !== NO_SURFACE && (d[2] & RAMP) === 0;
-  const step = (x: number, z: number): number | null => {
-    const hi = tileData(x, z);
-    const lo = tileData(x + 1, z);
-    if (!flat(hi) || !flat(lo) || hi[0] - lo[0] < 12) return null;
-    for (let k = 2; k <= 3; k++) {
-      const d = tileData(x + k, z);
-      if (!flat(d) || d[0] !== lo[0]) return null;
-    }
-    return lo[0];
-  };
-  const clear = (x0: number, z0: number, x1: number, z1: number) =>
-    unbuilt(x0, z0, x1, z1) &&
-    chunksNear({ x: (x0 + x1) / 2, z: (z0 + z1) / 2 }, CHUNK).every((c) =>
-      [...c.props, ...c.npcs].every((p) => p.x < x0 || p.x > x1 + 1 || p.z < z0 || p.z > z1 + 1),
-    );
-  // No ground above the terrace near enough to shade the foot: the sun stands about as high as it is far, so a rise of
-  // h casts about h along the ground, and a tenth more is room enough.
-  const unshaded = (x: number, z0: number, z1: number, hi: number, lo: number): boolean => {
-    for (let tz = z0 - 8; tz <= z1 + 16; tz++) {
-      for (let tx = x - 16; tx <= x + 6; tx++) {
-        const d = tileData(tx, tz);
-        if (!d || d[0] <= hi) continue;
-        const far = Math.max(Math.abs(tx - (x + 1)), tz < z0 ? z0 - tz : tz > z1 ? tz - z1 : 0);
-        if (((d[0] - lo) / TEXELS_PER_TILE) * 1.1 >= far) return false;
-      }
-    }
-    return true;
-  };
-  // Ring by ring out from the town, so the run found is the nearest and always the same.
-  for (let r = 0; r < 400; r++) {
-    for (let dz = -r; dz <= r; dz++) {
-      for (let dx = -r; dx <= r; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
-        const x = centre.x + dx;
-        const z0 = centre.z + dz;
-        const y = step(x, z0);
-        if (y === null || step(x, z0 - 1) !== null) continue;
-        let z1 = z0;
-        while (step(x, z1 + 1) === y && z1 - z0 < 9) z1++;
-        if (z1 - z0 < 5 || !clear(x - 6, z0 - 4, x + 5, z1 + 6) || !unshaded(x, z0, z1, tileData(x, z0)![0], y)) continue;
-        return { x: x + 1, z0, z1, y: y / TEXELS_PER_TILE, stand: openNear({ x: x + 2, z: z0 - 3 }, 0) };
-      }
-    }
-  }
-  throw new Error(`no terrace's foot in the open near ${near}`);
-}
-
-/**
  * The brink of a straight ledge a level high near a town (world/grid.ts canStep, a hop): an open tile with open ground
  * one level (HOP) below it to the west, and the same for two tiles north and south of it, with open ground on its level
- * east of all five for a few tiles - hopped straight across, walked along.
+ * east of all five for a few tiles - hopped straight across, walked along. Outside its walls, in its grounds (a world of
+ * two scales); `travel`: on the travel map round its icon instead.
  */
-export function ledgeBrink(town = "new-benalia"): { at: Tile; below: Tile } {
+export function ledgeBrink(town = "new-benalia", travel = false): { at: Tile; below: Tile } {
   const t = world().towns.find((x) => x.id === town)!;
+  const onTravel = travel && !!t.site;
+  const { centre, edge } = onTravel ? townSpot(town) : { centre: { x: t.center[0], z: t.center[1] }, edge: t.radius };
+  const bounds = onTravel ? world().travel ?? null : t.grounds ?? null;
+  const inside = (x: number, z: number) => !bounds || (x >= bounds[0] && z >= bounds[1] && x < bounds[2] && z < bounds[3]);
   const tile = (x: number, z: number) => {
     const c = chunkAt({ x, z });
     return c ? c.tiles[(z - c.cz * CHUNK) * CHUNK + (x - c.cx * CHUNK)]! : null;
   };
   const level = (x: number, z: number, h: number) => {
     const n = tile(x, z);
-    return !!n && openWorld({ x, z }) && (n[2] & RAMP) === 0 && n[0] === h;
+    return inside(x, z) && !!n && openWorld({ x, z }) && (n[2] & RAMP) === 0 && n[0] === h;
   };
   const found: Tile[] = [];
-  for (let r = t.radius + 2; r < t.radius + 160 && found.length === 0; r++) {
+  for (let r = edge + 2; r < edge + 160 && found.length === 0; r++) {
     for (let dz = -r; dz <= r; dz++) {
       for (let dx = -r; dx <= r; dx++) {
         if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
-        const x = t.center[0] + dx;
-        const z = t.center[1] + dz;
+        const x = centre.x + dx;
+        const z = centre.z + dz;
         const here = tile(x, z);
         if (!here || !level(x, z, here[0])) continue;
         const west = tile(x - 1, z);
@@ -236,6 +228,90 @@ export function ledgeBrink(town = "new-benalia"): { at: Tile; below: Tile } {
     }
   }
   found.sort((a, b) => a.z - b.z || a.x - b.x);
-  if (!found[0]) throw new Error(`no ledge near ${town}`);
+  if (!found[0]) throw new Error(`no ledge near ${town}${onTravel ? " on the travel map" : ""}`);
   return { at: found[0], below: { x: found[0].x - 1, z: found[0].z } };
+}
+
+/** Whether a tile of the travel map is within `margin` of a town's icon, a dungeon's entrance or a ferry's dock. */
+export function nearAWay(t: Tile, margin: number): boolean {
+  const w = world();
+  for (const town of w.towns) {
+    const r = siteRect(town);
+    if (r && t.x >= r[0] - margin && t.x < r[2] + margin && t.z >= r[1] - margin && t.z < r[3] + margin) return true;
+  }
+  if (w.dungeons.some((d) => chebyshev(t, d) <= margin)) return true;
+  return w.ferries.some((f) => chebyshev(t, { x: f.from[0], z: f.from[1] }) <= margin || chebyshev(t, { x: f.to[0], z: f.to[1] }) <= margin);
+}
+
+/** The props of the travel map, every chunk's. */
+function travelProps(): PropData[] {
+  const r = world().travel;
+  if (!r) return [];
+  const out: PropData[] = [];
+  for (let cx = Math.floor(r[0] / CHUNK); cx < Math.ceil(r[2] / CHUNK); cx++) for (let cz = Math.floor(r[1] / CHUNK); cz < Math.ceil(r[3] / CHUNK); cz++) out.push(...(chunk(cx, cz)?.props ?? []));
+  return out;
+}
+
+/** An open tile within `reach` of a point, the nearest (then the first by z, x), or null. */
+function openWithin(at: Tile, reach: number): Tile | null {
+  for (let r = 0; r <= reach; r++) {
+    for (let dz = -r; dz <= r; dz++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const t = { x: at.x + dx, z: at.z + dz };
+        if (Math.max(Math.abs(dx), Math.abs(dz)) === r && openWorld(t)) return t;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Places of the travel map to walk about (a world of two scales), each at least 16 tiles from any icon, entrance or dock:
+ * the middle of the longest road there is such a middle of, the heart of a wood nearest Llanowar's icon, the foot of a
+ * range's peaks nearest the middle of the map, a bridge over a river, and a bank a level high near New Benalia's icon.
+ */
+export function travelSpots(): { name: string; at: Tile }[] {
+  const w = world();
+  if (!w.travel) return [];
+  const clear = (t: Tile | null): t is Tile => !!t && !nearAWay(t, 16);
+  const out: { name: string; at: Tile }[] = [];
+  const roads = [...w.roads].sort((a, b) => b.tiles.length - a.tiles.length || a.from.localeCompare(b.from) || a.to.localeCompare(b.to));
+  for (const road of roads) {
+    const [x, z] = road.tiles[Math.floor(road.tiles.length / 2)]!;
+    const at = openWithin({ x, z }, 1);
+    if (clear(at)) {
+      out.push({ name: "road", at });
+      break;
+    }
+  }
+  const props = travelProps();
+  const groves = props.filter((p) => p.id === "grove");
+  const llanowar = townSpot("llanowar").centre;
+  const woods = groves.map((g) => ({ x: Math.floor(g.x), z: Math.floor(g.z) })).sort((a, b) => chebyshev(a, llanowar) - chebyshev(b, llanowar) || a.x - b.x || a.z - b.z);
+  for (const g of woods) {
+    if (groves.filter((o) => chebyshev(g, o) <= 5).length < 20) continue;
+    const at = openWithin(g, 2);
+    if (clear(at)) {
+      out.push({ name: "wood", at });
+      break;
+    }
+  }
+  const middle = { x: (w.travel[0] + w.travel[2]) / 2, z: (w.travel[1] + w.travel[3]) / 2 };
+  const peaks = (w.overview.peaks ?? []).map(([x, z, size]) => ({ x, z, size })).filter((p) => p.size >= 3).sort((a, b) => chebyshev(a, middle) - chebyshev(b, middle) || a.x - b.x || a.z - b.z);
+  for (const p of peaks) {
+    const at = openWithin(p, Math.floor(p.size / 2) + 2);
+    if (clear(at)) {
+      out.push({ name: "range", at });
+      break;
+    }
+  }
+  for (const b of props.filter((p) => p.id === "bridge").sort((a, b) => a.x - b.x || a.z - b.z)) {
+    const at = openWithin({ x: Math.floor(b.x), z: Math.floor(b.z) }, 3);
+    if (clear(at)) {
+      out.push({ name: "bridge", at });
+      break;
+    }
+  }
+  out.push({ name: "bank", at: ledgeBrink("new-benalia", true).at });
+  return out;
 }
