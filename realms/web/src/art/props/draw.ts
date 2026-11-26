@@ -240,17 +240,18 @@ export function gravestone(b: MeshBuilder, x: number, z: number, turn = 0): void
   });
 }
 
-/** Iron railings along a line, with spear-point finials. */
+/** Iron railings along a line, with spear-point finials: a post at each end and about every quarter; a line of no length, one post. */
 export function railings(b: MeshBuilder, x0: number, z0: number, x1: number, z1: number): void {
   const length = Math.hypot(x1 - x0, z1 - z0);
-  const n = Math.round(length / 0.25);
+  const n = length > 0 ? Math.max(1, Math.round(length / 0.25)) : 0;
   for (let i = 0; i <= n; i++) {
-    const t = i / n;
+    const t = n > 0 ? i / n : 0;
     const x = x0 + (x1 - x0) * t;
     const z = z0 + (z1 - z0) * t;
     b.box(x - 0.025, 0, z - 0.025, x + 0.025, 1.0, z + 0.025, sides(iron()));
     b.box(x - 0.04, 1.0, z - 0.04, x + 0.04, 1.08, z + 0.04, sides(gold()));
   }
+  if (length === 0) return;
   const dx = (x1 - x0) / length;
   const dz = (z1 - z0) / length;
   for (const y of [0.15, 0.85]) {

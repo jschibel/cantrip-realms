@@ -86,6 +86,22 @@ describe("the art registries", () => {
     expect(mergeModels(parts)).toEqual(whole);
   });
 
+  it("round a box thinner than twice its rounding by half its thinnest side, and one with no thickness not at all", () => {
+    const lime = stock.limestone();
+    for (const w of [0, 1e-9, 0.1, 0.24, 1]) {
+      for (const steps of [1, 2]) {
+        const b = new MeshBuilder();
+        b.roundedBox(2, 0, 0, 2 + w, 0.9, 0.76, 0.12, sides(lime), { steps });
+        const positions = b.model().parts.flatMap((p) => p.positions);
+        expect(positions.every(Number.isFinite), `${w} wide`).toBe(true);
+        // Its faces never fold out past the box.
+        const xs = positions.filter((_, i) => i % 3 === 0);
+        expect(Math.min(...xs), `${w} wide`).toBeGreaterThanOrEqual(2 - 1e-9);
+        expect(Math.max(...xs), `${w} wide`).toBeLessThanOrEqual(2 + w + 1e-9);
+      }
+    }
+  });
+
   it("turn a building to face its rot, its door with it", () => {
     const south: BuildingData = { id: "h", style: "benalish", x: 0, z: 0, w: 6, d: 4, rot: 0, params: { openings: [{ at: 3, kind: "door" }] } };
     expect(BUILDINGS.build("benalish", south).doorway).toEqual([3, 1, 4]);

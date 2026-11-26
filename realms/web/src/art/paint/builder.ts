@@ -257,7 +257,9 @@ export class MeshBuilder {
   /**
    * A box with its edges and corners rounded off by `r`: each face is cut at `r` from its edges and its border strips
    * are bent in towards the box's middle, so every edge is two narrow facets and every corner a few - a chunky,
-   * rounded block (a head, a crate) whose faces keep their pictures texel for texel, the border texels on the bends.
+   * rounded block (a head, a crate) whose faces keep their pictures texel for texel, the border texels on the bends. A
+   * box thinner than twice `r` is rounded by half its thinnest side (its border strips meet in its middle, never cross),
+   * and a box with no thickness (a hedge of no length) by nothing: it is drawn flat.
    */
   roundedBox(
     x0: number,
@@ -274,6 +276,7 @@ export class MeshBuilder {
      */
     options: { readonly steps?: number; readonly warp?: (c: V3) => V3 } = {},
   ): void {
+    r = Math.max(0, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2, (z1 - z0) / 2));
     const steps = options.steps ?? 1;
     const warp = options.warp ?? ((c: V3) => c);
     const lo = new THREE.Vector3(x0 + r, y0 + r, z0 + r);
@@ -287,11 +290,13 @@ export class MeshBuilder {
       return warp([inner.x, inner.y, inner.z]);
     };
     // Each face as a grid of cells: its middle, and its border strips (r wide) cut into `steps` facets each; corners
-    // counter-clockwise from the bottom left.
+    // counter-clockwise from the bottom left. A side of no size has no border (r is nothing there), its cells all at its
+    // one place.
     const cuts = (size: number) => {
+      const border = size > 0 ? r / size : 0;
       const out = [0];
-      for (let k = 1; k <= steps; k++) out.push((r * k) / steps / size);
-      for (let k = steps; k >= 0; k--) out.push(1 - (r * k) / steps / size);
+      for (let k = 1; k <= steps; k++) out.push((border * k) / steps);
+      for (let k = steps; k >= 0; k--) out.push(1 - (border * k) / steps);
       return out;
     };
     const grid = (face: Face | undefined, corner: (s: number, t: number) => V3, width: number, height: number) => {

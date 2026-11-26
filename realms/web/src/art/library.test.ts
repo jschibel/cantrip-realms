@@ -62,6 +62,26 @@ describe("the props", () => {
     });
   }
 
+  it("build a line of no length - a one-tile run of fence, from a tile's middle to itself - with every number finite", () => {
+    const holed: string[] = [];
+    for (const id of PROP_CATALOGUE.keys()) {
+      const p = example(id);
+      const to = p.args?.to as readonly [number, number] | undefined;
+      if (!to) continue;
+      for (const [dx, dz] of [
+        [0, 0],
+        [1e-9, 0],
+        [0.1, 0],
+        [0, 0.1],
+      ] as const) {
+        const short: PropData = { ...p, args: { ...p.args, to: [p.x + dx, p.z + dz] } };
+        const built = PROPS.build(id, short);
+        if (![built.model, ...(built.far ? [built.far] : []), ...(built.frames ?? []).flatMap((f) => f.models)].every(finite)) holed.push(`${id} to +${dx},${dz}`);
+      }
+    }
+    expect(holed).toEqual([]);
+  });
+
   it("trees and dense growth have a far stand-in of about a hundred triangles, and are a few hundred near", () => {
     for (const [id, info] of PROP_CATALOGUE) {
       if (info.category !== "tree") continue;

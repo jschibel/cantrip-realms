@@ -10,6 +10,7 @@ import { BUILDINGS } from "../art/buildings";
 import { FIGURES } from "../art/figures";
 import { PALETTES } from "../art/paint/palette";
 import { PROPS, tilesOf } from "../art/props";
+import type { Built } from "../art/recipe";
 import { ROOMS } from "../art/rooms";
 import { SURFACES } from "../art/surfaces";
 import {
@@ -104,6 +105,21 @@ describe("Dominaria's files", () => {
     // What the art has yet to make, for the record.
     console.log(`placeholders still named: ${[...unknown].map(([k, ids]) => `${k}s ${[...ids].sort().join(" ")}`).join("; ")}`);
   });
+
+  it("build every building and prop it holds with every number of their geometry finite", () => {
+    // A NaN corner leaves a hole in the picture and spoils the whole merged mesh it lands in: its bounds, so its culling
+    // and the clicks raycast against it.
+    const holed = (built: Built) =>
+      [built.model, ...(built.far ? [built.far] : []), ...(built.frames ?? []).flatMap((f) => f.models), ...(built.cutaways ?? []).flatMap((c) => [c.full, c.low])].some((m) =>
+        m.parts.some((p) => !(p.positions.every(Number.isFinite) && p.normals.every(Number.isFinite) && p.uvs.every(Number.isFinite))),
+      );
+    const bad: string[] = [];
+    for (const c of chunks) {
+      for (const b of c.buildings) if (BUILDINGS.has(b.style) && holed(BUILDINGS.build(b.style, b))) bad.push(`${b.id} (${b.style})`);
+      for (const p of c.props) if (PROPS.has(p.id) && holed(PROPS.build(p.id, p))) bad.push(JSON.stringify(p));
+    }
+    expect(bad.slice(0, 20)).toEqual([]);
+  }, 120_000);
 
   it("keeps no finds in its files: the server spawns its chests and heartblooms", () => {
     expect(chunks.filter((c) => "chests" in c).map((c) => chunkKey(c.cx, c.cz))).toEqual([]);

@@ -28,6 +28,12 @@ for (const town of world().towns) {
   test(`?at=${town.id}: at the inn's door in its grounds, and no void at any heading or zoom`, async ({ page }) => {
     test.setTimeout(120_000);
     const inn = world().inns.find((i) => i.town === town.id)!;
+    // What three.js says is wrong with the scenery it was given (a mesh with NaN in its corners, whose bounds are then
+    // NaN: "computeBoundingSphere(): Computed radius is NaN"), however far the grounds stream in.
+    const three: string[] = [];
+    page.on("console", (m) => {
+      if (m.type() === "error" && m.text().includes("THREE.")) three.push(m.text().slice(0, 160));
+    });
     const errors = await openRealm(page, { at: town.id, extra: "&mobs=0&still" });
     expect(await playerTile(page), "standing on the inn's door").toEqual({ x: inn.x, z: inn.z });
     expect(await groundsHere(page)).toBe(town.id);
@@ -59,5 +65,6 @@ for (const town of world().towns) {
       }
     }
     expect(errors).toEqual([]);
+    expect(three).toEqual([]);
   });
 }
