@@ -232,7 +232,7 @@ export interface RouteOptions {
 export function route(g: Grid, o: RouteOptions): XZ[] | null {
   const turn = o.turn ?? 0.4;
   // A state is a tile and the direction it was entered by (0-7, 8 none).
-  const best = new Float32Array(g.size * 9).fill(Infinity);
+  const best = new Float64Array(g.size * 9).fill(Infinity);
   const came = new Int32Array(g.size * 9).fill(-1);
   const heap = new Heap();
   const h = (x: number, z: number) => (o.toward ? Math.hypot(x - o.toward[0], z - o.toward[1]) * 0.98 : 0);
@@ -514,7 +514,7 @@ function graphOrganic(plan: Plan, extra: readonly ExtraWay[]): Graph {
     }
     return i;
   };
-  for (const e of extra) if (e.a[0] !== e.b[0] || e.a[1] !== e.b[1]) ways.push({ a: node(e.a), b: node(e.b), width: e.width, ...(e.main ? { main: true } : {}) });
+  for (const e of extra) if (e.a[0] !== e.b[0] || e.a[1] !== e.b[1]) ways.push({ a: node(e.a), b: node(e.b), width: e.width, ...(e.main ? { main: true } : {}), ...(e.via && e.via.length > 0 ? { via: e.via.map((v) => [v[0], v[1]] as XZ) } : {}) });
   const gates = p.gateNodes.map(node);
   return { nodes, ways, gates, squares: [p.centre, ...p.platforms] };
 }

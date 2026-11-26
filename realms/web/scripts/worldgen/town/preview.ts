@@ -15,7 +15,7 @@ import { Land } from "../land";
 import { readLayout } from "../layout";
 import { Picture, SURFACE_COLORS, rgb } from "../picture";
 import { buildInterior } from "../rooms";
-import { type BuiltTown, type TownSetting, buildTown, groundsSize } from "./index";
+import { type BuiltTown, type Side, type TownSetting, buildTown, groundsSize } from "./index";
 import { readGeography } from "../geography";
 import type { InteriorSpec as OldInteriorSpec } from "./types";
 
@@ -23,8 +23,11 @@ const here = dirname(fileURLToPath(import.meta.url));
 const web = join(here, "..", "..", "..");
 const plane = join(web, "..", "content", "dominaria");
 
-/** Where each town stands, as the travel map will say: made up from the canon (the world revamp's brief). */
-export const TOWN_SETTINGS: Readonly<Record<string, TownSetting>> = {
+/** Where each town stands, as the travel map says (the world generator's settings, `town-preview.ts --settings` writes them). */
+export const TOWN_SETTINGS: Readonly<Record<string, TownSetting>> = JSON.parse(readFileSync(join(here, "settings.json"), "utf8")) as Record<string, TownSetting>;
+
+/** Where each town stood before the travel map existed: made up from the canon - more settings each town is held to. */
+export const INVENTED_SETTINGS: Readonly<Record<string, TownSetting>> = {
   "new-benalia": { biome: "plains", sea: [], river: "through", relief: 0.35, ways: [{ side: "south", to: "capashen-hold" }, { side: "north", to: "vess-estate" }, { side: "east", to: "llanowar" }, { side: "west", to: "avenant" }] },
   "capashen-hold": { biome: "plains", sea: ["west"], relief: 0.8, ways: [{ side: "north", to: "new-benalia" }, { side: "south", to: "serras-rest" }, { side: "east", to: "llanowar" }] },
   llanowar: { biome: "forest", sea: [], river: "east", relief: 0.3, ways: [{ side: "west", to: "new-benalia" }, { side: "south", to: "steelleaf-glade" }, { side: "east", to: "sursi" }] },
@@ -80,7 +83,7 @@ export function pockets(ids: readonly string[]): { size: [number, number]; origi
 }
 
 /** Builds the towns named (all by default) into one Land. */
-export function buildAll(ids?: readonly string[], seed?: number, lenient = false): { land: Land; towns: BuiltTown[]; size: [number, number] } {
+export function buildAll(ids?: readonly string[], seed?: number, lenient = false, settings: Readonly<Record<string, TownSetting>> = TOWN_SETTINGS): { land: Land; towns: BuiltTown[]; size: [number, number] } {
   const layout = readLayout();
   const geo = readGeography();
   const vendors = readVendors();
@@ -95,13 +98,59 @@ export function buildAll(ids?: readonly string[], seed?: number, lenient = false
     const exotic = vendors.find((v) => v.town === id && v.exotic) ?? null;
     const color = geo.regions.find((r) => r.id === geo.towns[id]?.region)?.color ?? null;
     try {
-      towns.push(buildTown(land, { plan, index, color, vendors: sold, exotic, setting: TOWN_SETTINGS[id]!, origin: origin.get(id)! }, seed ?? layout.seed, { lenient }));
+      towns.push(buildTown(land, { plan, index, color, vendors: sold, exotic, setting: settings[id]!, origin: origin.get(id)! }, seed ?? layout.seed, { lenient }));
     } catch (e) {
       if (!lenient) throw e;
       console.log(`FAILED ${(e as Error).message}`);
     }
   }
   return { land, towns, size };
+}
+
+// --- The settings matrix -----------------------------------------------------------------------------------------------------
+
+const SIDE_ORDER: readonly Side[] = ["north", "east", "south", "west"];
+const BIOMES: readonly TownSetting["biome"][] = ["heartland", "plains", "coast", "swamp", "mountains", "volcanic", "forest", "tundra", "waste", "desert", "badlands", "highlands", "jungle"];
+
+/**
+ * Settings a town of any form must be laid on: every way set (each side alone, each pair, all four, three without the
+ * south), each with the sea on a side that holds no way or none, a river on each side, through or none, relief at its
+ * extremes and between, the biomes in turn - a covering of the matrix, not its every product.
+ */
+export function settingsMatrix(): { readonly name: string; readonly setting: TownSetting }[] {
+  const waySets: Side[][] = [
+    ...SIDE_ORDER.map((s) => [s]),
+    ...SIDE_ORDER.flatMap((a, i) => SIDE_ORDER.slice(i + 1).map((b) => [a, b])),
+    ["north", "east", "west"],
+    [...SIDE_ORDER],
+  ];
+  const rivers: (Side | "through" | undefined)[] = [undefined, "north", "east", "south", "west", "through"];
+  const reliefs = [0, 1, 0.5];
+  const out: { name: string; setting: TownSetting }[] = [];
+  waySets.forEach((ways, k) => {
+    const free = SIDE_ORDER.filter((s) => !ways.includes(s));
+    const sea = k % 3 === 2 || free.length === 0 ? [] : k % 3 === 0 ? [free[k % free.length]!] : free.slice(0, 2);
+    let river = rivers[k % rivers.length];
+    if (river && river !== "through" && sea.includes(river)) river = undefined;
+    const setting: TownSetting = { biome: BIOMES[k % BIOMES.length]!, sea, ...(river ? { river } : {}), relief: reliefs[k % reliefs.length]!, ways: ways.map((side) => ({ side, to: `to-${side}` })) };
+    out.push({ name: `ways ${ways.join("+")}, sea ${sea.join("+") || "none"}, river ${river ?? "none"}, relief ${setting.relief}`, setting });
+  });
+  return out;
+}
+
+/** Builds one town on a setting in a Land of its own, strictly (throws on a broken rule). */
+export function buildOn(id: string, setting: TownSetting, seed?: number, lenient = false): { town: BuiltTown; land: Land } {
+  const layout = readLayout();
+  const geo = readGeography();
+  const vendors = readVendors();
+  const index = layout.towns.findIndex((t) => t.id === id);
+  const plan = layout.towns[index]!;
+  const [w, d] = groundsSize(plan);
+  const land = new Land(w, d);
+  const sold = vendors.filter((v) => v.town === id && !v.exotic).sort((a, b) => a.id.localeCompare(b.id));
+  const exotic = vendors.find((v) => v.town === id && v.exotic) ?? null;
+  const color = geo.regions.find((r) => r.id === geo.towns[id]?.region)?.color ?? null;
+  return { town: buildTown(land, { plan, index, color, vendors: sold, exotic, setting, origin: [0, 0] }, seed ?? layout.seed, { lenient }), land };
 }
 
 // --- Pictures -----------------------------------------------------------------------------------------------------------

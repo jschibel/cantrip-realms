@@ -28,6 +28,7 @@ import { HEADINGS, buildingHides, propHides } from "./view";
 import type { TownGroundsData, TownReport } from "./types";
 import { TOWN_SIZE } from "./forms";
 import { STEP } from "./terrain";
+import { FOOTPATH } from "./passages";
 
 /** What stands tall enough to hide anything: measured for the camera. */
 const TALL = new Set([
@@ -141,7 +142,8 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
   for (const p of lintTown(asTown, open, ctx.buildings, TOWN_LIMITS)) problems.push(p);
   const tiles = streetTiles(data.plan!);
   const isStreet = (x: number, z: number) => tiles.has(`${x},${z}`);
-  for (const w of data.plan!.ways) if (w.width < 3) problems.push(`a way ${w.width} tiles wide (3 at the least)`);
+  // Streets three tiles wide at the least; a footpath through the yards (passages.ts) two.
+  for (const w of data.plan!.ways) if (w.width < (w.main ? 3 : FOOTPATH)) problems.push(`a way ${w.width} tiles wide (${w.main ? 3 : FOOTPATH} at the least)`);
 
   // Fronts.
   for (const b of ctx.buildings) {
@@ -330,6 +332,7 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
 
   // Terraces: a hop at most between open neighbours; nothing walled in a pocket.
   let cliffs = 0;
+  let cliffAt = "";
   for (let i = 0; i < land.size; i++) {
     if (!land.open(i)) continue;
     const x = land.xOf(i);
@@ -340,10 +343,13 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     ] as const) {
       if (!inside(x + dx, z + dz)) continue;
       const j = I(x + dx, z + dz);
-      if (land.open(j) && !passes(ctx, i, j)) cliffs++;
+      if (land.open(j) && !passes(ctx, i, j)) {
+        cliffs++;
+        cliffAt ||= `${x},${z} (${land.height[i]}) to ${x + dx},${z + dz} (${land.height[j]})`;
+      }
     }
   }
-  if (cliffs > 0) problems.push(`${cliffs} edges between open tiles climb more than a hop`);
+  if (cliffs > 0) problems.push(`${cliffs} edges between open tiles climb more than a hop (one from ${cliffAt})`);
   const start = I(mainGate.node[0], mainGate.node[1]);
   const seen = walkedFrom(ctx, start);
   let stranded = 0;

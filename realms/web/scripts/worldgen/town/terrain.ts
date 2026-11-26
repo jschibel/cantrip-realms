@@ -86,10 +86,13 @@ export function levelGrounds(ctx: Ctx): void {
   }
   // Ramps: each tile of a way at the top of a bank whose way goes on a level below it, with the tile below.
   const ramp = new Uint8Array(land.size);
+  // A ramp's upper tile is lowered a quarter and its lower raised a quarter: neither may then be more than a hop from an
+  // open neighbour it does not ramp with (the upper one's higher neighbours, the lower one's lower).
+  const steady = (i: number, sign: number) => land.n4(i, []).every((m) => !land.open(m) || sign * (land.height[m]! - land.height[i]!) <= 0);
   for (let i = 0; i < land.size; i++) {
-    if (!way(ctx, i) || water(i) || ramp[i]) continue;
+    if (!way(ctx, i) || water(i) || ramp[i] || !steady(i, 1)) continue;
     for (const n of land.n4(i, near)) {
-      if (!way(ctx, n) || water(n) || ramp[n] || land.height[n] !== land.height[i]! - STEP) continue;
+      if (!way(ctx, n) || water(n) || ramp[n] || land.height[n] !== land.height[i]! - STEP || !steady(n, -1)) continue;
       ramp[i] = 1;
       ramp[n] = 1;
       break;

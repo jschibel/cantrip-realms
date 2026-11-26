@@ -167,6 +167,17 @@ export class Placer {
     list.push([x0, x1]);
   }
 
+  /** Keeps the columns of a block that a way crosses (a footpath through its yards) from being built on. */
+  reserve(isWay: (x: number, z: number) => boolean): void {
+    for (const block of this.c.plan.blocks) {
+      for (let x = block.x0; x < block.x1; x++) {
+        let crossed = false;
+        for (let z = block.z0; z < block.z1 && !crossed; z++) crossed = isWay(x, z);
+        if (crossed) this.take(block, x, x + 1);
+      }
+    }
+  }
+
   /** The frontages still free along a block, as [x0, x1) runs. */
   freeRuns(block: Block): [number, number][] {
     const list = [...(this.taken.get(block) ?? [])].sort((a, b) => a[0] - b[0]);
@@ -261,8 +272,8 @@ export class Placer {
     let s = sizeIndex * 3 + (need.role === "home" || need.role === "manor" ? 0 : toEnd * 0.25);
     switch (need.role) {
       case "temple":
-        if (sq > 14) return null;
-        s += sq * 2 + Math.abs(door[0] - centreX) * 0.6 + northness * 2 + (onSquare ? 0 : 10);
+        // On the square or by it; further only where the square's north is a landmark's (the estate's manor).
+        s += sq * 2 + Math.max(0, sq - 14) * 8 + Math.abs(door[0] - centreX) * 0.6 + northness * 2 + (onSquare ? 0 : 10);
         break;
       case "shrine":
         s += sq * 1.5 + Math.abs(door[0] - centreX) * 0.5 + (onSquare ? 0 : 6);

@@ -121,13 +121,16 @@ export function planTown(input: PlanInput): RowPlan {
   const span = ZB - ZA - (through ? RIVER_WIDTH : 0);
 
   // --- The rows, and the square's row and place: what minimises the walk to every gate ---------------------------------
-  const target = F.row[1];
+  // A row's depth, least and most: the form's, or (a later try) as deep as the town's great buildings and what they hide.
+  const rowLo = input.deep ? Math.max(F.row[0], input.civic[1]) : F.row[0];
+  const rowHi = input.deep ? Math.max(F.row[2], rowLo + 2) : F.row[2];
+  const target = input.deep ? Math.max(F.row[1], rowLo + 1) : F.row[1];
   // The north row: shallow (nothing north of it to hide), but deep enough for what must stand in it.
   const deepest = input.sites.reduce((m, s) => Math.max(m, (s.d ?? 0) + 2), 0);
   // A quay to the north is a street behind the north row: that row keeps a yard as every row does.
   const row0 = Math.max(northQuayDepth > 0 ? F.row[1] : (F.row0 ?? F.row[0] + 1), deepest);
   const counts: number[] = [];
-  for (let n = 2; n <= 9; n++) if ((span - n * W - row0) / (n - 1) >= F.row[0] - 1) counts.push(n);
+  for (let n = 2; n <= 9; n++) if ((span - n * W - row0) / (n - 1) >= rowLo - 1) counts.push(n);
   if (counts.length === 0) throw new Error(`${input.id}: no rows fit ${span} tiles`);
   const sqW = F.square[0];
   const sides = input.ways.map((w) => w.side);
@@ -142,9 +145,11 @@ export function planTown(input: PlanInput): RowPlan {
       // hide); the row that fronts the square from the north deep enough for the town's great buildings and the ground
       // they hide (none to keep in sight when it is the north row and no quay lies behind it).
       const fixed = new Map([[a, Math.max(F.row[0], Math.min(F.row[2] + 2, F.square[1]))]]);
+      // The row south of the square: the square's best fronts look across at it, and the walks to the gates pass it.
+      if (input.deep && a + 1 < n) fixed.set(a + 1, input.civic[1]);
       fixed.set(0, row0);
       fixed.set(a - 1, Math.max(fixed.get(a - 1) ?? 0, a - 1 === 0 && northQuayDepth === 0 ? input.civic[0] + 1 : input.civic[1]));
-      const depths = partition(span - n * W, n, F.row[0], F.row[2] + 1, random, fixed);
+      const depths = partition(span - n * W, n, rowLo, rowHi + 1, random, fixed);
       if (process.env.DEBUG_PLAN) console.log("rows", n, a, [...fixed], depths);
       if (!depths) continue;
       const free = depths.filter((_, k) => !fixed.has(k));
@@ -527,9 +532,9 @@ export function planGraph(plan: RowPlan, extra: readonly ExtraWay[] = []): Graph
     return i;
   };
   const ways: StreetWay[] = [];
-  const way = (p: XZ, q: XZ, width: number, main: boolean) => {
+  const way = (p: XZ, q: XZ, width: number, main: boolean, via?: readonly XZ[]) => {
     if (p[0] === q[0] && p[1] === q[1]) return;
-    ways.push({ a: node(p), b: node(q), width, ...(main ? { main: true } : {}) });
+    ways.push({ a: node(p), b: node(q), width, ...(main ? { main: true } : {}), ...(via && via.length > 0 ? { via: via.map((v) => [v[0], v[1]] as XZ) } : {}) });
   };
   const midOf = (z: number, w: number) => z + Math.floor((w - 1) / 2);
   // Junctions along each street: every connector meeting it from above or below, its ends.
@@ -567,7 +572,7 @@ export function planGraph(plan: RowPlan, extra: readonly ExtraWay[] = []): Graph
     if (g.side === "east" || g.side === "west") way(g.inner, g.node, g.width, true);
     gates.push(node(g.node));
   }
-  for (const e of extra) way(e.a, e.b, e.width, e.main ?? false);
+  for (const e of extra) way(e.a, e.b, e.width, e.main ?? false, e.via);
   // Ways that run the same tiles twice (an artery's stretch and the gate's) are one.
   const seen = new Set<string>();
   const kept = ways.filter((w) => {

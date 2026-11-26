@@ -19,9 +19,10 @@ import { check, fillPockets } from "./check";
 import { dress } from "./dress";
 import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
-import type { Box, Plan, Planner } from "./planner";
+import type { Box, ExtraWay, Plan, Planner } from "./planner";
 import { ROWS } from "./rows";
 import { country } from "./country";
+import { normalize, passages } from "./passages";
 import { fieldsOf, riverTiles } from "./site";
 import { levelGrounds } from "./terrain";
 import type { BuiltTown, InteriorSpec, Side, TownSpec, TownWay } from "./types";
@@ -76,26 +77,50 @@ export interface Ctx {
   readonly walked: Uint8Array;
   readonly ways: TownWay[];
   /** Extra ways of the street plan (a harbour's quay, the gates' roads), for the graph. */
-  readonly extraWays: { a: XZ; b: XZ; width: number; main?: boolean }[];
+  readonly extraWays: ExtraWay[];
   readonly notes: string[];
   readonly random: (part: string) => () => number;
 }
 
 /** Lays the whole grounds (its terrain, the town, the country round it, the apron) into the Land at `origin`. */
 export function buildTown(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean } = {}): BuiltTown {
+  validate(spec);
   // The town's shape as designed first; where its places will not all fit or a rule breaks, the same town drawn fuller
-  // (its rows pulled in less) - a fixed sequence, the same every time, never a search over seeds.
-  const scales = [1, 0.6, 0.3, 0];
+  // (its rows pulled in less), then with rows as deep as its great buildings need - a fixed sequence, the same every
+  // time, never a search over seeds.
+  const attempts: { scale: number; deep: boolean }[] = [
+    { scale: 1, deep: false },
+    { scale: 0.6, deep: false },
+    { scale: 0.3, deep: false },
+    { scale: 0, deep: false },
+    { scale: 1, deep: true },
+    { scale: 0.3, deep: true },
+    { scale: 0, deep: true },
+  ];
+  const errors: string[] = [];
   for (let k = 0; ; k++) {
     try {
-      return buildOnce(target, spec, seed, options, scales[k]!);
+      return buildOnce(target, spec, seed, options, attempts[k]!.scale, attempts[k]!.deep);
     } catch (e) {
-      if (k === scales.length - 1 || options.lenient) throw e;
+      if (options.lenient) throw e;
+      errors.push((e as Error).message);
+      if (k === attempts.length - 1) throw new Error(`${spec.plan.id} cannot be laid out on ${JSON.stringify(spec.setting)}; the first and the last tries broke on:\n${errors[0]}\n${errors[errors.length - 1]}`);
     }
   }
 }
 
-function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, scale: number): BuiltTown {
+/** A setting the town generator cannot honour: no way, a way out over the sea, a river past a side that is sea. */
+function validate(spec: TownSpec): void {
+  const s = spec.setting;
+  const id = spec.plan.id;
+  if (s.ways.length === 0) throw new Error(`${id}: a setting with no way out (TownSetting.ways is empty)`);
+  for (const w of s.ways) if (s.sea.includes(w.side)) throw new Error(`${id}: a way out on its ${w.side} side, which is sea`);
+  if (s.river && s.river !== "through" && s.sea.includes(s.river)) throw new Error(`${id}: a river past its ${s.river} side, which is sea`);
+  if (s.sea.length >= 4) throw new Error(`${id}: the sea on every side`);
+  if (!(s.relief >= 0 && s.relief <= 1)) throw new Error(`${id}: relief ${s.relief}, not 0 to 1`);
+}
+
+function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readonly lenient?: boolean }, scale: number, deep: boolean): BuiltTown {
   const town = spec.plan;
   const F = formSpec(town);
   const [GW, GD] = groundsSize(town);
@@ -126,6 +151,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     setting: spec.setting,
     fields,
     tag,
+    deep,
   });
   const ctx: Ctx = {
     spec,
@@ -153,6 +179,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   };
 
   if (scale < 1) ctx.notes.push(`its shape drawn at ${scale} of its pull, to find room for its places`);
+  if (deep) ctx.notes.push("its rows as deep as its great buildings, to find room for its places");
   // --- The ground: the country, the sea and the river, then the town over it ----------------------------------------
   country(ctx, fields, "ground");
   planner.paint(ctx);
@@ -196,6 +223,14 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
     sideGates: [...plan.gates.filter((g) => g !== main).map((g) => g.inner), ...(plan.river ? [[(plan.box.x0 + plan.box.x1) / 2, plan.river.z0] as XZ] : [])],
   });
   for (const m of placer.solve(needs, options.lenient ?? false)) ctx.notes.push(`BROKEN: ${m}`);
+  // Footpaths through the yards where a walk between the places (or from a gate) is the long way round; kept clear of
+  // what the rest of the rows build.
+  const points = [
+    ...plan.gates.map((g) => ({ at: g.inner, gate: true })),
+    ...placer.placed.flatMap((p) => [...(p.need?.place ? [{ at: p.f.door, gate: false }] : []), ...(p.spot ? [{ at: p.spot, gate: false }] : [])]),
+  ];
+  const cut = passages(ctx, placer.placed, points);
+  if (cut > 0) placer.reserve((x, z) => land.inside(x, z) && ctx.mustSee[land.idx(x, z)] === 1);
   placer.fill(districts(plan, placer.placed, random("districts")));
   for (const p of placer.placed) {
     if (!p.b) continue;
@@ -224,7 +259,7 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   fillPockets(ctx, land.idx(main.node[0], main.node[1]));
 
   // --- The plan as the world keeps it, the checks ------------------------------------------------------------------------
-  const graph = planner.graph(plan, ctx.extraWays);
+  const graph = normalize(planner.graph(plan, ctx.extraWays), ctx.extraWays.flatMap((e) => [e.a, e.b]));
   // The outline its wall (or edge) runs along: traced round the ring it stands on.
   const outline = traceOutline((x, z) => land.inside(x, z) && ctx.inTown[land.idx(x, z)] !== 0, { x0: box.x0 - 1, z0: box.z0 - 1, x1: box.x1 + 1, z1: box.z1 + 1 });
   const squares = graph.squares;

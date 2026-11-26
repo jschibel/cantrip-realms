@@ -159,6 +159,8 @@ export interface PlanInput {
   readonly fields: Fields;
   /** The seed's tag, for noise of the planner's own. */
   readonly tag: string;
+  /** A later try, where the first broke: give every frontage the depth the town's great buildings and what they hide need. */
+  readonly deep: boolean;
 }
 
 /** A way another step adds to the plan's graph. */
@@ -167,6 +169,8 @@ export interface ExtraWay {
   readonly b: XZ;
   readonly width: number;
   readonly main?: boolean;
+  /** Its corners between `a` and `b`, in order. */
+  readonly via?: readonly XZ[];
 }
 
 /** The plan's streets as the world keeps them (format.ts, `TownPlan`). */
