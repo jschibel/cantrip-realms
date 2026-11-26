@@ -124,7 +124,10 @@ describe("the town generator", () => {
 
 // Every form on any setting the travel map may give it (preview.ts `settingsMatrix`: each way alone, the pairs, three
 // and four; the sea on sides that hold no way; a river on each side, through or none; relief 0, 0.5 and 1; the biomes in
-// turn), and each town on the setting it stood on before the travel map: all strict, every place held.
+// turn), and each town on the setting it stood on before the travel map: all strict, every place held. A build of the
+// capital takes seconds, so a run takes three settings of the matrix (a way alone, a pair, all four); TOWN_MATRIX=full
+// takes them all (a quarter of an hour), as a change to the town generator should.
+const FULL_MATRIX = process.env.TOWN_MATRIX === "full";
 describe("the town generator on any setting", () => {
   const byForm = new Map<string, string[]>();
   for (const t of layout.towns) byForm.set(formOf(t), [...(byForm.get(formOf(t)) ?? []), t.id]);
@@ -134,7 +137,8 @@ describe("the town generator on any setting", () => {
       // A home town and a village of the form, where it has both.
       const kinds = [...new Map(ids.map((id) => [layout.towns.find((t) => t.id === id)!.kind, id])).values()];
       for (const id of kinds) {
-        for (const c of [...settingsMatrix(), { name: "invented", setting: INVENTED_SETTINGS[id]! }]) {
+        const cases = FULL_MATRIX ? [...settingsMatrix(), { name: "invented", setting: INVENTED_SETTINGS[id]! }] : settingsMatrix().filter((_, k) => k === 2 || k === 7 || k === 12);
+        for (const c of cases) {
           try {
             const { town } = buildOn(id, c.setting);
             expect(town.interiors.some((r) => r.kind === "inn"), `${id} ${c.name}`).toBe(true);

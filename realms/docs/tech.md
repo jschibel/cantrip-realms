@@ -1281,7 +1281,8 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
     of them side by side) and writes them as a world of their own (`realms/web/town-preview/`), which the game opens
     with `?world=towns`; `--matrix` builds every town on its real setting, its invented one and the matrix and prints
     what breaks (`--draw` keeps a picture of each); `TOWN_SHOTS=1` with `e2e/towns.spec.ts` takes their pictures from
-    the camera.
+    the camera. `town.test.ts` builds each form on three settings of the matrix in a usual run, and on all of them with
+    `TOWN_MATRIX=full` (a quarter of an hour: run it for a change to the town generator).
 - **What players use but nobody walks through** - a quest board, the arena's gate, a spell table, a waystone - is an NPC
   on a blocked tile of its own with `stand` at its middle, and a prop of the same id there to draw it.
 - **Dungeon entrances** are props by theme over a blocked footprint (`args.w`, `args.d` from `x`, `z`, facing `rot`),
