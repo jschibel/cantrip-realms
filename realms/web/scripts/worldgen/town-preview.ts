@@ -90,7 +90,7 @@ for (const t of towns) {
 {
   // A contact sheet: the towns named (all by default) side by side, each its walked ground from above at 3 pixels a tile.
   const S = 3;
-  const cell = 150;
+  const cell = 200;
   const cols = 4;
   const sheet = new Picture(cols * cell * S, Math.ceil(towns.length / cols) * cell * S);
   towns.forEach((t, k) => {
