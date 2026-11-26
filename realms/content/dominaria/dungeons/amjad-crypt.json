@@ -3,14 +3,14 @@
   "name": "The Crypts of Amjad",
   "theme": "crypt",
   "entrance": [
-    936,
-    827
+    440,
+    607
   ],
   "floors": [
     2,
     3
   ],
-  "tier": 3,
+  "tier": 4,
   "encounters": [
     2,
     3

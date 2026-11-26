@@ -110,6 +110,10 @@ export const SURFACE_COLORS: Readonly<Record<string, [number, number, number]>> 
     road: "#c9a978",
     planks: "#a07850",
     "phyrexian-ground": "#2a2230",
+    dunes: "#d8a860",
+    badlands: "#a0503a",
+    highland: "#7a7a48",
+    "jungle-floor": "#2e4a2a",
   }).map(([k, v]) => [k, hex(v)]),
 );
 

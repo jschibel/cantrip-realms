@@ -544,12 +544,8 @@ export function checkGeography(geo: Geography, layout: Layout = readLayout(geo.p
     if (r.seeds.length === 0) problems.push(`region ${r.id}: no seeds`);
     for (const [x, z] of r.seeds) if (!tileOnLand(geo, x, z)) problems.push(`region ${r.id}: seed [${x}, ${z}] is off the land`);
   }
-  for (const r of layout.regions) {
-    const g = regions.get(r.id);
-    if (g === undefined) { problems.push(`region ${r.id} of layout.json is missing`); continue; }
-    if (g.color !== r.color || g.style !== r.style || g.name !== r.name || (g.weight ?? 1) !== (r.weight ?? 1) || g.minTier !== r.minTier || g.areas.join("|") !== r.areas.join("|")) problems.push(`region ${r.id} does not carry over layout.json's name, color, style, areas, weight and minTier`);
-  }
-  for (const r of geo.regions) if (!layout.regions.some((l) => l.id === r.id) && !(ADDED_REGIONS as readonly string[]).includes(r.id)) problems.push(`region ${r.id} is neither layout.json's nor in ADDED_REGIONS`);
+  // The regions are the geography's alone (layout.json once had them): a dungeon's mobs are drawn by one of them.
+  for (const d of layout.dungeons) if (d.region !== undefined && !regions.has(d.region)) problems.push(`dungeon ${d.id} of layout.json: its mobs' region ${d.region} is none of the geography's`);
 
   // Places.
   const square = (at: XZ, half: number) => {
@@ -628,7 +624,6 @@ export function checkGeography(geo: Geography, layout: Layout = readLayout(geo.p
   // Ferries.
   for (const id of ["keldon-ferry", "verdura-ferry", "shanodin-ferry", "stahaan-ferry"]) if (!geo.ferries.some((f) => f.id === id)) problems.push(`ferry ${id} of layout.json is missing`);
   for (const f of geo.ferries) {
-    if (!layout.ferries.some((l) => l.id === f.id) && !(ADDED_FERRIES as readonly string[]).includes(f.id)) problems.push(`ferry ${f.id} is neither layout.json's nor in ADDED_FERRIES`);
     for (const end of [f.from, f.to]) {
       if (!tileOnLand(geo, end[0], end[1])) problems.push(`ferry ${f.id}: its dock [${end.join(", ")}] is not on land`);
       const land = landmassAt(geo, end[0] + 0.5, end[1] + 0.5);

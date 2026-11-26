@@ -4,22 +4,22 @@
   "kind": "shop",
   "town": "llanowar",
   "style": "llanowar",
-  "w": 11,
+  "w": 9,
   "d": 7,
-  "area": [0,0,11,8],
+  "area": [0,0,9,8],
   "tiles": [
-    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],
-    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],
-    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
-    [0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
+    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],
+    [0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],[0,"room-mossy-flags",0],
+    [0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",0],[0,"room-elfwood",1],
+    [0,"",1],[0,"",1],[0,"",1],[0,"room-elfwood",1],[0,"room-elfwood",1],[0,"",1],[0,"",1],[0,"",1],[0,"",1]
   ],
   "props": [
-    {"id":"bar-counter","x":0.25,"z":2.25,"args":{"to":[4.75,3]}},
-    {"id":"bar-counter","x":4,"z":1,"args":{"to":[4.75,2.25]}},
+    {"id":"bar-counter","x":0.25,"z":2.25,"args":{"to":[3.75,3]}},
+    {"id":"bar-counter","x":3,"z":1,"args":{"to":[3.75,2.25]}},
     {"id":"scales","x":1.5,"z":2.6,"y":1.0625},
     {"id":"coins","x":2.5,"z":2.55,"y":1.0625},
     {"id":"ledger","x":3.25,"z":2.35,"y":1.0625},
@@ -28,29 +28,26 @@
     {"id":"bookshelf","x":1,"z":0,"seed":13,"args":{"goods":true}},
     {"id":"bookshelf","x":2,"z":0,"seed":15,"args":{"goods":true}},
     {"id":"bookshelf","x":3,"z":0,"seed":7,"args":{"goods":true}},
-    {"id":"bookshelf","x":4,"z":0,"seed":7,"args":{"goods":true}},
-    {"id":"hearth","x":9,"z":0},
-    {"id":"candle","x":7.75,"z":0.3,"y":1.875},
-    {"id":"pot","x":9.75,"z":0.3,"y":1.875,"args":{"r":0.12}},
-    {"id":"skull","x":8.6,"z":0.32,"y":1.875},
-    {"id":"curio-case","x":5,"z":0,"seed":3,"tint":"room-llanowar"},
-    {"id":"curio-case","x":6,"z":0,"seed":9,"tint":"room-llanowar"},
-    {"id":"relic-pedestal","x":8.5,"z":3.5,"seed":3},
-    {"id":"pot","x":10.5,"z":3.5,"args":{"r":0.22}},
-    {"id":"pot","x":10.5,"z":4.5,"args":{"r":0.22}},
-    {"id":"barrel","x":10.5,"z":5.45},
-    {"id":"sack","x":10.45,"z":6.45},
-    {"id":"crate","x":9.9,"z":6.5,"turn":0.15,"args":{"size":0.5,"goods":"apples"}}
+    {"id":"hearth","x":7,"z":0},
+    {"id":"candle","x":5.75,"z":0.3,"y":1.875},
+    {"id":"pot","x":7.75,"z":0.3,"y":1.875,"args":{"r":0.12}},
+    {"id":"skull","x":6.6,"z":0.32,"y":1.875},
+    {"id":"curio-case","x":4,"z":0,"seed":4,"tint":"room-llanowar"},
+    {"id":"relic-pedestal","x":6.5,"z":3.5,"seed":0},
+    {"id":"pot","x":8.5,"z":3.5,"args":{"r":0.22}},
+    {"id":"pot","x":8.5,"z":4.5,"args":{"r":0.22}},
+    {"id":"barrel","x":8.5,"z":5.45},
+    {"id":"sack","x":8.45,"z":6.45}
   ],
   "npcs": [
     {"id":"llanowar-green-goods","x":1,"z":1,"kind":"vendor","name":"Llanowar Provisions","stand":[1.5,0,1.6],"behaviour":{"rest":[0,1],"watch":5},"vendor":"llanowar-green-goods","figure":"shopkeeper","seed":700}
   ],
   "lights": [
     {"kind":"point","at":[0.5,1.6,2.7],"color":[1,0.75,0.4],"intensity":2.2,"reach":3.2},
-    {"kind":"point","at":[9,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":0}},
-    {"kind":"point","at":[8.5,1.4,3.5],"color":[1,0.85,0.55],"intensity":2.5,"reach":3.5}
+    {"kind":"point","at":[7,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":0}},
+    {"kind":"point","at":[6.5,1.4,3.5],"color":[1,0.85,0.55],"intensity":2.5,"reach":3.5}
   ],
-  "entry": [5,6],
-  "exit": [736,874],
+  "entry": [4,6],
+  "exit": [925,102],
   "params": {"specialty":"curios"}
 }

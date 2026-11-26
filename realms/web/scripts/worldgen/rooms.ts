@@ -9,7 +9,7 @@ import { layoutRoom, type RoomKind } from "../../src/art/rooms/layout";
 import { fnv1a32 } from "../../src/random";
 import type { InteriorData, NpcData } from "../../src/world/format";
 import { BLOCKED } from "../../src/world/format";
-import type { InteriorSpec } from "./towns";
+import type { InteriorSpec } from "./town/types";
 
 /** The art's region of a town's style: its people dress as the region does (art/figures/npcs.ts). */
 export const REGION_OF_STYLE: Readonly<Record<string, string>> = { benalish: "benalia", llanowar: "llanowar", urborg: "caligo", keldon: "keld", tolarian: "orvada", argive: "benalia" };
