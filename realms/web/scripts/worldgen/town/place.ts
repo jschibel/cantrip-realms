@@ -427,6 +427,30 @@ export class Placer {
     const { random } = this.c;
     for (const block of this.c.plan.blocks) {
       const depth = block.z1 - block.z0;
+      if ((block as { one?: boolean }).one) {
+        // A grown town's lot: one building, its district's, as wide as the lot lets it, in the middle of it.
+        if (this.placed.some((p) => p.block === block)) continue;
+        const district = districtOf(block, (block.x0 + block.x1) / 2);
+        const roles = [weighted(FILL[district].roles, random), "house", "cottage"] as Role[];
+        found: for (const role of roles) {
+          const { style } = this.styleKind(role);
+          const options = [...sizesFor(style, role)].filter(([w, d]) => d <= depth - 1 && w <= block.x1 - block.x0).sort((p, q) => q[0] - p[0]);
+          for (const [w, d] of options) {
+            const x = block.x0 + Math.floor((block.x1 - block.x0 - w) / 2);
+            const f = southFacing([x + Math.floor(w / 2), block.z1], w, d);
+            if (!this.c.mustSee(f.door[0], f.door[1]) || !this.free(block, f.x, f.x + f.w, 0)) continue;
+            for (const storeys of random() < FILL[district].tall ? ([2, 1] as const) : ([1] as const)) {
+              const b = this.trial(`${this.c.town.id}-b${this.count + 1}`, role, f, storeys);
+              if (!this.seen(b)) continue;
+              this.count++;
+              this.take(block, f.x, f.x + f.w);
+              this.placed.push({ role, f, b, block });
+              break found;
+            }
+          }
+        }
+        continue;
+      }
       // A block beside the square closes the square's side: a building flush with its end there first.
       for (const end of ["west", "east"] as const) {
         if (block[end] !== "square") continue;

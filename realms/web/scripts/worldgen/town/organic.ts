@@ -149,6 +149,26 @@ export class Net {
     return false;
   }
 
+  /** Cuts back the path that ends at (x, z) from that end, as far as `keep` says it may (its tiles in order from that end). */
+  cutBack(x: number, z: number, keep: (t: XZ) => boolean): void {
+    for (const e of this.edges) {
+      const first = e.tiles[0]!;
+      const last = e.tiles[e.tiles.length - 1]!;
+      const atStart = first[0] === x && first[1] === z;
+      const atEnd = last[0] === x && last[1] === z;
+      if (!atStart && !atEnd) continue;
+      const order = atStart ? [...e.tiles] : [...e.tiles].reverse();
+      let k = 0;
+      while (k < order.length - 2 && !keep(order[k]!)) k++;
+      if (k === 0) return;
+      this.mark(e, -1);
+      const kept = order.slice(k);
+      e.tiles = atStart ? kept : kept.reverse();
+      this.mark(e, 1);
+      return;
+    }
+  }
+
   /** Whether a tile is an end of a path. */
   isEnd(x: number, z: number): boolean {
     return this.edges.some((e) => (e.tiles[0]![0] === x && e.tiles[0]![1] === z) || (e.tiles[e.tiles.length - 1]![0] === x && e.tiles[e.tiles.length - 1]![1] === z));
@@ -494,6 +514,9 @@ function paintOrganic(ctx: Ctx): void {
   for (const t of plan.trees) {
     const i = land.idx(Math.floor(t.x), Math.floor(t.z));
     if (land.use[i] !== Use.Lot) continue;
+    // Never where it hides a way, the centre or a door from the camera.
+    if (propHides(t, 0).some(([hx, hz]) => land.inside(hx, hz) && ctx.mustSee[land.idx(hx, hz)] === 1)) continue;
+    if (land.n8(i).some((j) => ctx.mustSee[j] === 1)) continue;
     land.put(i, t);
     land.use[i] = Use.Yard;
   }

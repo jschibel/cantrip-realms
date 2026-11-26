@@ -117,8 +117,10 @@ export function fillPockets(ctx: Ctx, from: number): number {
     if (seen[i] || !land.open(i)) continue;
     const x = land.xOf(i);
     const z = land.zOf(i);
-    if (x >= plan.box.x0 && x < plan.box.x1 && z >= plan.box.z0 && z < plan.box.z1) continue;
-    if (land.use[i] === Use.Road || land.use[i] === Use.Dock) continue;
+    // The town's ways and open ground are walked to or the checks say; anything else nobody reaches is overgrown.
+    const u = land.use[i];
+    if (u === Use.Road || u === Use.Dock || u === Use.Street || u === Use.Kept || u === Use.Door) continue;
+    void plan;
     land.put(i, { id: land.isWater(i) ? "reeds" : "undergrowth", x: x + 0.5, z: z + 0.5, seed: i % 16 }, true);
     land.flags[i] = BLOCKED | 2;
     filled++;
@@ -228,7 +230,7 @@ export function check(ctx: Ctx, data: TownGroundsData, gateNodes: readonly XZ[],
     if (top === null) continue;
     columns++;
     const reach = square.round ? 3 : 0;
-    const fronted = townBuildings.some((b) => b.rot === 0 && b.z + b.d <= top && b.z + b.d >= top - reach && x >= b.x && x < b.x + b.w) || plan.sites.some((s) => !s.id.endsWith("-temple") && s.box.z1 === top && x >= s.box.x0 && x < s.box.x1);
+    const fronted = townBuildings.some((b) => b.rot === 0 && b.z + b.d <= top && b.z + b.d >= top - reach && x >= b.x && x < b.x + b.w) || plan.sites.some((s) => !s.id.endsWith("-temple") && !s.id.endsWith("-shrine") && s.box.z1 === top && x >= s.box.x0 && x < s.box.x1);
     if (fronted) north++;
   }
   const sideFilled = (x0: number, x1: number) => {

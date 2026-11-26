@@ -17,6 +17,7 @@ import { poisson } from "./country";
 import { formOf, groundsOf, sizesFor } from "./forms";
 import type { Ctx } from "./index";
 import type { Placed } from "./place";
+import { isOrganic } from "./organic";
 import { propHides } from "./view";
 
 /** The named palette a town's banners fly, by its style. */
@@ -103,7 +104,7 @@ function sites(ctx: Ctx): void {
   const style = town.style === "argive" ? "benalish" : town.style;
   for (const site of plan.sites) {
     // A temple's ground is its own lot: the temple stands on it like any building, its churchyard behind (yards).
-    if (site.id.endsWith("-temple")) continue;
+    if (site.id.endsWith("-temple") || site.id.endsWith("-shrine")) continue;
     const b = site.box;
     const fz = b.z1;
     const mid = Math.floor((b.x0 + b.x1) / 2);
@@ -546,12 +547,16 @@ function walls(ctx: Ctx): void {
   // Towers at the outline's outer corners (on the land side of the ring), and a gatehouse in each gate.
   const wall = (x: number, z: number) => land.inside(x, z) && land.use[land.idx(x, z)] === Use.Wall;
   const nearGate = (x: number, z: number) => plan.gates.some((g) => x >= g.passage.x0 - 4 && x < g.passage.x1 + 4 && z >= g.passage.z0 - 4 && z < g.passage.z1 + 4);
+  const towers: XZ[] = [];
   for (const i of ring) {
     const x = land.xOf(i);
     const z = land.zOf(i);
     for (const [dx, dz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const) {
       if (!town1(x + dx, z + dz) || !wall(x + dx, z) || !wall(x, z + dz) || town1(x - dx, z) || town1(x, z - dz) || town1(x + dx, z - dz) || town1(x - dx, z + dz)) continue;
       if (nearGate(x, z)) continue;
+      // A grown town's outline turns at every step of its curve: a tower only every so often along it.
+      if (isOrganic(plan) && towers.some(([tx, tz]) => Math.abs(tx - x) + Math.abs(tz - z) < 16)) continue;
+      towers.push([x, z]);
       stand(ctx, { id: "wall-tower", x: dx > 0 ? x : x + 1, z: dz > 0 ? z : z + 1, args: { style, kind: F.enclosure, size: town.kind } }, Use.Wall);
     }
   }
@@ -572,8 +577,23 @@ function water(ctx: Ctx): void {
   const { land, plan } = ctx;
   const random = ctx.random("water");
   const box = plan.box;
+  // A grown town's piers: off its shore where it meets the sea, as its plan lays them.
+  if (isOrganic(plan)) {
+    for (const p of plan.piers) {
+      for (let z = p.box.z0; z < p.box.z1; z++) for (let x = p.box.x0; x < p.box.x1; x++) {
+        const i = land.idx(x, z);
+        land.flags[i] = 0;
+        land.use[i] = Use.Dock;
+        land.surface[i] = S.planks;
+        land.decor.delete(i);
+      }
+      land.fixtures.push({ id: "pier", x: p.box.x0, z: p.box.z0, args: { to: [p.box.x1, p.box.z1], y: 0.3 } });
+      const [bx, bz] = p.boat;
+      if (land.inside(Math.floor(bx), Math.floor(bz)) && land.isSea(land.idx(Math.floor(bx), Math.floor(bz)))) land.fixtures.push({ id: random() < 0.4 ? "sailboat" : "rowboat", x: bx, z: bz, y: -0.1, rot: p.along ? 0 : 1, args: { sail: "furled" } });
+    }
+  }
   // Piers out from the quay on each sea side, boats moored beside them.
-  for (const side of plan.sea) {
+  for (const side of isOrganic(plan) ? [] : plan.sea) {
     const along = side === "north" || side === "south";
     const [lo, hi] = along ? [box.x0 + 6, box.x1 - 6] : [box.z0 + 6, box.z1 - 6];
     for (let t = lo; t < hi; t += 16 + Math.floor(random() * 6)) {

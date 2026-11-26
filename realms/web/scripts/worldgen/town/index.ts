@@ -21,6 +21,7 @@ import { type FormSpec, TOWN_SIZE, formOf, formSpec } from "./forms";
 import { civicDepth, districts, Placer, programOf } from "./place";
 import type { Box, ExtraWay, Plan, Planner } from "./planner";
 import { ROWS } from "./rows";
+import { grown } from "./amphitheatre";
 import { country } from "./country";
 import { normalize, passages } from "./passages";
 import { fieldsOf, riverTiles } from "./site";
@@ -45,10 +46,10 @@ export const PLANNERS: Readonly<Record<Form, Planner>> = {
   city: ROWS,
   campus: ROWS,
   estate: ROWS,
-  village: ROWS,
-  elfhame: ROWS,
-  clan: ROWS,
-  stilts: ROWS,
+  village: grown("village"),
+  elfhame: grown("elfhame"),
+  clan: grown("clan"),
+  stilts: grown("stilts"),
 };
 
 /** Everything the steps share. */
@@ -129,8 +130,11 @@ function buildOnce(target: Land, spec: TownSpec, seed: number, options: { readon
   // The box it grows in: its kind's, or bigger by `grow` each way, leaving the walked country and the apron room.
   const [GW0, GD0] = groundsSize(town);
   const most = (g: number, t: number) => Math.min(t + 2 * grow, g - 2 * (APRON + 10));
-  const TW = most(GW0, TOWN_SIZE[town.kind][0]);
-  const TD = most(GD0, TOWN_SIZE[town.kind][1]);
+  // A grown town (planner.ts: an elfhame, a clan hold, a village, the stilts) grows from its centre over more of its
+  // grounds than a town of rows fills: what it does not build on is its woods and yards.
+  const grownBox = PLANNERS[formOf(town)] !== ROWS ? (town.kind === "village" ? 10 : 12) : 0;
+  const TW = most(GW0, TOWN_SIZE[town.kind][0] + grownBox);
+  const TD = most(GD0, TOWN_SIZE[town.kind][1] + grownBox);
   const land = new Land(GW, GD);
   const tag = `${seed}:town:${town.id}`;
   const random = (part: string) => randomFor(seed, `town:${town.id}:${part}`);

@@ -161,7 +161,7 @@ function roads(ctx: Ctx, f: Fields): void {
       (i) => ctx.river.has(i),
       wanted,
     );
-    if (path.length === 0) throw new Error(`${ctx.town.id}: no road out of its ${side} gate`);
+    if (path.length === 0) throw new Error(`${ctx.town.id}: no road out of its ${side} gate (from ${start.join(",")}, in the town ${ctx.inTown[land.idx(start[0], start[1])]}, water ${ctx.river.has(land.idx(start[0], start[1]))})`);
     // The stretch from the passage to the node.
     const lead: XZ[] = [];
     for (let s = 1; s <= 3; s++) lead.push([start[0] - sx * s, start[1] - sz * s]);
