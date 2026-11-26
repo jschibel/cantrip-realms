@@ -343,9 +343,11 @@ export class Stage {
     const next = this.makePlayer(arrival.tile, arrival.spot);
     next.speed = this.player.speed;
     this.player = next;
-    if (fromDoor) {
-      // Out of the doorway a step, then onto the tile.
-      const back = centre(arrival.tile, next.position.y).add(new THREE.Vector3(-arrival.facing[0] * 0.8, 0, -arrival.facing[1] * 0.8));
+    // Out of the doorway a step, then onto the tile - where the doorway is ground one stands on (a door's tile, a road's
+    // end); never out of what nobody stands on (a town's icon, whose ways' outsides are arrived at from it): the figure,
+    // and where it is told the server, are only ever on open ground.
+    const back = centre(arrival.tile, next.position.y).add(new THREE.Vector3(-arrival.facing[0] * 0.8, 0, -arrival.facing[1] * 0.8));
+    if (fromDoor && arrival.spot.grid.walkable(Math.floor(back.x), Math.floor(back.z))) {
       next.position.copy(back);
       next.walkTo(centre(arrival.tile, next.position.y));
     }

@@ -355,6 +355,12 @@ export function openWorld(t: Tile): boolean {
   return !c.npcs.some((n) => n.x === t.x && n.z === t.z) && !c.spawns.some((s) => s.x === t.x && s.z === t.z);
 }
 
+/** Whether a world tile can be stood on at all: ground, and nothing closing it (a door or a road's end is fine). */
+export function standable(t: Tile): boolean {
+  const c = chunkAt(t);
+  return !!c && !isBlocked(chunkTile(c, t.x, t.z));
+}
+
 /** No ledge between two side-by-side world tiles (format.ts LEDGE): what a step of the grid's never crosses. */
 export function noLedgeWorld(a: Tile, b: Tile): boolean {
   const ca = chunkAt(a);

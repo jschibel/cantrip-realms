@@ -69,6 +69,10 @@ test("a journey across the two scales on the real server: out of New Benalia ont
   const into = to.ways!.find((w) => w.to === from.id)!;
   const road = world().roads.find((r) => (r.from === from.id && r.to === to.id) || (r.from === to.id && r.to === from.id))!;
   const roadTiles = (road.from === from.id ? road.tiles : [...road.tiles].reverse()).map(([x, z]) => ({ x, z }));
+  const said: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "warning" || /refused/.test(m.text())) said.push(m.text());
+  });
   await character(page.request, 73, "Wyn");
   // On the road in from New Benalia's gate to Capashen Hold, a little way in.
   await place(page.request, openNear({ x: out.inside[0], z: out.inside[1] }, 3));
@@ -90,7 +94,7 @@ test("a journey across the two scales on the real server: out of New Benalia ont
     const me = await api<Me>(page.request, "me");
     return me.Space === "world" && Math.max(Math.abs(me.X - into.inside[0]), Math.abs(me.Z - into.inside[1])) <= 2;
   }, "the server has the player in Capashen Hold's grounds", 10);
-  expect(await realm<string[]>(page, "refused"), "walks the relay refused").toEqual([]);
+  expect(await realm<string[]>(page, "refused"), `walks the relay refused: ${said.join(" | ")} | trace: ${(await page.evaluate(() => (globalThis as any).realmTest.game.trace as string[])).join(" | ")}`).toEqual([]);
   expect(await page.evaluate(() => ((globalThis as any).realmTest.game.jumps as unknown[]).map((j) => JSON.stringify(j))), "jumps of the figure").toEqual([]);
 });
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { type Tile, chebyshev, clickEntity, clickWalk, enterTown, openRealm, playerTile, realm, until, waitGround, waitSpace, world } from "./realm";
+import { type Tile, chebyshev, clickEntity, clickWalk, enterTown, openRealm, standable, playerTile, realm, until, waitGround, waitSpace, world } from "./realm";
 
 // A journey across the world of two scales (design.md A6, "One world, two scales"), played as a player plays it, with
 // real mouse clicks on the page: from New Benalia's inn out of its door, through the streets to the gate whose road leads
@@ -58,6 +58,9 @@ test("a journey: New Benalia's inn, out of its gate onto the travel map, the roa
   await clickEntity(page, (e) => e.kind === "door" && e.to === inn.interior, "the inn's door");
   await waitSpace(page, inn.interior);
 
+  // Every place told the server was ground one stands on - never the icon's footprint, stepping out of it.
+  const told = (await realm<{ name: string; body?: { Space: string; X: number; Z: number } }[]>(page, "api")).filter((c) => c.name === "position" && c.body?.Space === "world").map((c) => ({ x: c.body!.X, z: c.body!.Z }));
+  expect(told.filter((t) => !standable(t)), "places told the server that nobody can stand on").toEqual([]);
   expect(await jumps(page), "no jump all the way").toEqual([]);
   expect(await realm<string[]>(page, "refused"), "no walk refused").toEqual([]);
   expect(errors).toEqual([]);
