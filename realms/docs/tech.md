@@ -169,7 +169,8 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   Phyrexian Portal, the ferries' docks, the players near and the player, ringed and pointing the way they go; each mark
   is named on hover with its tier and its boss or its waystone, and the land with its area and tier. Escape or M closes
   it. Waymarkers in the tier's color and number stand where it rises; the HUD names the area and its tier, and says so
-  on crossing into a harder one; a wanderer under the pointer shows its name and tier.
+  on crossing into a harder one; a wanderer under the pointer shows its name and tier, and every wanderer carries a gem of
+  its tier's color over its head (`entities.ts` `tierMarker`).
 - **Towns are mapped:** in a town (or at its gates; in a world of two scales, anywhere in its grounds, the area line
   naming the town there too) the minimap is the town's map round the player instead
   (`townMap.ts`, from the town's street plan in world.json): its streets and squares paved light with dark kerbs, its

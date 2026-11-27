@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { mobFigure } from "./art/figures";
 import type { MobInfo } from "./mobs";
 import { Actor } from "./render/actor";
@@ -41,6 +42,9 @@ export class Mob {
     actor.hops = info.hops;
     actor.place({ x: spawn.x, z: spawn.z });
     actor.speed = WANDER_SPEED;
+    // A wanderer carries its tier over its head, so the player sees which fights are theirs to pick before choosing one
+    // (a dungeon's challengers stand on their circles instead).
+    if (!run) actor.figure.root.add(tierMarker(spawn.tier || info.tier, actor.figure.root));
     return new Mob(actor, info, spawn, epoch, run);
   }
 
@@ -74,6 +78,24 @@ export class Mob {
       this.rest = 2 + Math.random() * 3;
     }
   }
+}
+
+/** The tiers' colors (worldMap.ts TIER_COLORS, the regional map's legend): 1 green, 2 gold, 3 orange, 4 red. */
+const TIER_GEMS: readonly number[] = [0x979cab, 0x1fbf62, 0xffc94a, 0xf58a3a, 0xe02a3a];
+
+/** A small gem of a tier's color floating a little over a figure's head, unlit so it reads at any hour. */
+export function tierMarker(tier: number, figure: THREE.Object3D): THREE.Object3D {
+  // In the figure's own frame, whatever its size: placed by its height in the world, the same size over any creature.
+  figure.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(figure);
+  const s = figure.scale;
+  const top = Number.isFinite(box.max.y) ? box.max.y - figure.position.y : 1.6;
+  const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.17, 0), new THREE.MeshBasicMaterial({ color: TIER_GEMS[Math.max(0, Math.min(4, tier))]! }));
+  gem.scale.set(1 / s.x, 1.5 / s.y, 1 / s.z);
+  gem.position.set(0, (top + 0.35) / s.y, 0);
+  gem.name = "tier-marker";
+  gem.userData.tier = tier;
+  return gem;
 }
 
 /** Another player in this place, as the relay tells it. */

@@ -381,7 +381,8 @@ owner may extend.
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
   - Behavior: they wander within a home radius; one a player comes within 5 tiles of stops and watches them, waiting to
-    be challenged. None gives chase. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
+    be challenged. None gives chase. Each carries a small gem of its tier's color (the map's: green, gold, orange, red)
+    over its head, so a fight's danger is seen before it is chosen. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
 - **Towns are hubs**: where a player goes to buy and sell cards, rework their deck, take quests, train with the guild,
   buy gear and hearts, and rest - not places to get lost in. **Every town is the same plan** in its own region's style,
   so whoever has learned one knows them all, and everything in it faces south toward the camera:
