@@ -551,15 +551,18 @@ export class Hud {
     // Where each gate's road leads.
     const names = new Map<string, string>([...this.worldData!.towns.map((t) => [t.id, t.name] as const), ...[...this.dungeons.values()].map((d) => [d.id, d.name] as const)]);
     for (const f of this.worldData!.ferries) for (const end of ["from", "to"]) names.set(`ferry:${f.id}:${end}`, f.name);
-    // In a town's grounds (a world of two scales), each way's gate - the gate of the plan nearest where it arrives - named
-    // for where its road leads.
+    // In a town's grounds (a world of two scales), each gate - the gate of the plan nearest where its ways arrive - named
+    // for where their roads lead (every way of a Dominaria town shares its one gate: "To the travel map" names them all).
     const gates = gatesOf(plan);
+    const leadsTo = new Map<(typeof gates)[number] | null, string[]>();
     for (const way of town.ways ?? []) {
-      if (!way.to) continue;
       const gate = gates.reduce<(typeof gates)[number] | null>((best, g) => (!best || Math.hypot(g.node[0] - way.inside[0], g.node[1] - way.inside[1]) < Math.hypot(best.node[0] - way.inside[0], best.node[1] - way.inside[1]) ? g : best), null);
-      const [x, z] = gate?.node ?? way.inside;
-      const p = picture.at(x, z);
-      wanted.unshift({ text: `To ${names.get(way.to) ?? way.to}`, x: p.x, y: p.y, r: 4, className: "map-label gate", test: "map:gate" });
+      leadsTo.set(gate, [...(leadsTo.get(gate) ?? []), ...(way.to ? [names.get(way.to) ?? way.to] : [])]);
+    }
+    for (const [gate, to] of leadsTo) {
+      if (!gate) continue;
+      const p = picture.at(gate.node[0], gate.node[1]);
+      wanted.unshift({ text: to.length === 1 ? `To ${to[0]}` : "To the travel map", x: p.x, y: p.y, r: 4, className: "map-label gate", test: "map:gate" });
     }
     for (const gate of town.ways ? [] : gates) {
       const leads = this.worldData!.roads.flatMap((r) => {

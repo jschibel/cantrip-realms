@@ -198,7 +198,7 @@ scales", below). No file holds a chest or a heartbloom: they come and go.
   dungeons' ids from layout.json.
 - **The world** is the version-2 format ("Version 2 of the world data", below; types in
   `realms/web/src/world/format.ts`). Dominaria is of two scales ("Two scales"): its travel map `[0, 0, 512, 768]` and
-  each town's grounds in a pocket east of it, 1568 by 768 tiles in all, 705 chunk files (one for each chunk of ground),
+  each town's grounds in a pocket east of it, 1024 by 768 tiles in all, 501 chunk files (one for each chunk of ground),
   no `bounds`.
   `world/world.json` holds `{size: [width, height], chunk: 32, tile: 1, seed, regions: [{color, name, tiles}] (each
   colored region and how many tiles of land it has), towns: [{id, name, kind: capital|town|village, center: [x, z],
@@ -330,8 +330,8 @@ than twice the straight line between them.
 
 A world may hold two kinds of ground (design.md A6, "One world, two scales"; types and helpers in
 `realms/web/src/world/format.ts`): **the travel map**, the Domains at travel scale, where each town is an icon; and each
-**town's grounds** at walking scale - the town within its walls, the country round it that is walked, and an apron of
-scenery past that which is only seen - a rectangle of the world's tiles of its own (a pocket), past the travel map. A
+**town's grounds** at walking scale - the town within its wall and the country round it, which is only seen - a
+rectangle of the world's tiles of its own (a pocket), past the travel map. A
 world with no `travel` is one scale, as before: every tile is the travel map's, and its towns stand on it at walking
 scale (the slice and large fixtures).
 
@@ -344,8 +344,10 @@ scale (the slice and large fixtures).
   x1, z1]`: the rectangle drawn for it, which the camera keeps within; its `center`, `radius`, `plan`, inns and pitch lie
   in it. Its `ways: [{side: north | east | south | west, outside: [x, z], inside: [x, z], exit: [[x, z], ...], to?}]`:
   `outside` the open travel-map tile beside the icon on that side - pushing from it into the icon enters, and leaving
-  that way stands one there; `inside` where one arrives in the grounds, on the road a few tiles in from the exit; `exit`
-  the open tiles across the road at the edge of the walked ground - walking onto one leaves to `outside`; `to` the town's
+  that way stands one there; `inside` where one arrives in the grounds, a few tiles in from the exit; `exit`
+  the open tiles across the road just outside the town's gate - walking onto one leaves to `outside`. Dominaria's towns
+  each have one gate, which all their ways share (the same `inside` and `exit`); the overworld leaves by the way the
+  player came in by; `to` the town's
   or dungeon's id the road leads to, for the maps' "To New Benalia".
 - **Chunks exist only over ground**: over the travel map and each town's grounds (`groundChunks`, `hasGround`). A chunk
   with no file is no ground; the loader never asks for one over no ground, the overworld's streamer never reads one (so
@@ -550,8 +552,11 @@ mob is built bigger in whole texels, so every size stays crisp. `realms/web/cast
 
 `specialty` is any of `colors` (a color identity the card's is within), `types`, `subtypes`, `rarities`, `names` (a theme
 listed outright) - all that are given must hold. Its pool is the plane's pool filtered by it. `town` is a town of
-world.json; every vendor keeps a shop there, the interior `<vendor>-shop`: a `vendor` NPC of an interior of that town
-names it.
+world.json; every vendor keeps a stall or a shop there. A card vendor keeps a **stall** in its town's market: a `vendor`
+NPC in the world (a chunk's `npcs`, `vendor` its id) on an open tile within the town, before a `canopy-stall` prop of
+cards (`RealmContent.StallOf`). An exotic dealer keeps a **shop**, the interior `<vendor>-shop`: a `vendor` NPC of an
+interior of that town names it. The server takes either (the test world keeps most vendors in shops and one,
+`argive-knights`, at a stall in its street).
 
 **Wares from other planes** (design.md A5) come only through the exotic dealers, who deal in the off-plane pool alone,
 and no other vendor deals in it:
@@ -560,7 +565,7 @@ and no other vendor deals in it:
   it was printed on. A trader's plane is any plane of `planes.json` not walked (the traders' are Ravnica, Zendikar,
   Innistrad, Kamigawa, Theros, Kaladesh, Amonkhet, Ixalan, Eldraine, Mirrodin, Alara, Tarkir, Lorwyn, Kaldheim and
   Strixhaven).
-- An **exotic wares shop** is a vendor with `"exotic": true`, in its shop like any (`new-benalia-exotic-wares` and
+- An **exotic wares shop** is a vendor with `"exotic": true`, in a shop of its own, indoors (`new-benalia-exotic-wares` and
   `capashen-hold-exotic-wares`, layout.json's towns' `exotic`): its stock
   is off-plane cards within its `specialty`; it shows at most 6 cards, gains one at each six-hour mark of the clock (00, 06,
   12, 18 UTC) while it shows fewer, lets a card go unsold after 3 days, and is created with 6 that leave six hours apart.
@@ -653,7 +658,8 @@ player with no character is 404 `NoCharacter`.
 - A vendor's `Gold` is the character's; `Buying` is every card of theirs it deals in, with what it pays for one (`Gold`, half
   the list price rounded down), how many they own and how many of those are `Spare` (in neither the deck nor the sideboard):
   what the `vendor` screen offers to sell.
-- A vendor trades with a character inside its shop (an interior with its `vendor` NPC), an armorer inside a smithy of
+- A vendor trades with a character at its stall - in the world within 2 tiles of its NPC (`Vendors.AtStall`) - or
+  inside its shop (an interior with its `vendor` NPC), an armorer inside a smithy of
   its town (an interior of the town with an `armorer` NPC), else 409 `NotNear`; `/api/armorer/{town}` takes a town's id.
   A vendor sells at list price, the copy that would leave its shelf soonest first, and buys at half the list price
   rounded down.

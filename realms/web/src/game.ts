@@ -670,9 +670,7 @@ export class Overworld {
     if (door?.kind === "town" || door?.kind === "town-out") {
       const found = this.wayOf(door);
       if (!found) return null;
-      if (door.kind === "town") return found.town.name;
-      const to = found.way.to ? (this.worldData.towns.find((t) => t.id === found.way.to)?.name ?? this.dungeons.get(found.way.to)?.name ?? found.way.to) : null;
-      return to ? `To ${to}` : `Leave ${found.town.name}`;
+      return door.kind === "town" ? found.town.name : `Leave ${found.town.name}`;
     }
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
     return null;

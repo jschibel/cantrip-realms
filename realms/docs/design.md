@@ -65,7 +65,8 @@ The owner's decisions:
 
 ### A3. Duels and rewards
 - **Starting a duel:**
-  - A wandering mob that reaches your tile, or one you click, starts a duel.
+  - **Every fight is the player's choice.** Clicking a mob walks the player up to it, and the duel starts beside it. No
+    mob comes after anyone: a wanderer a player comes near stops, turns to watch them and waits to be challenged.
   - The splash shows the mob's name, its tier, its stats and gear traits, its gold range and your
     hearts. Then the table opens.
   - The mob's seat is played by the tactical bot in your tab.
@@ -199,11 +200,14 @@ owner may extend.
     - 12 seeded cards when it is created.
     - **3 random new cards each hour** from its specialty pool; one not sold within 24 hours leaves.
     - Cards players sell stay until bought, up to 60. When that is full the vendor buys nothing more.
+  - **Card vendors keep stalls in their town's market**, every one in sight of the gate: a counter of card racks under
+    a canopy, the vendor standing before it. A player trades with them standing at the stall (within two tiles).
   - A card a player sells shows up at full price for everyone.
   - There is no trading between players.
 - **Wares from other planes.** Until other planes can be explored, cards printed only beyond Dominaria come in a
   slow, small trickle, through two kinds of exotic dealer and nowhere else:
-  - **Exotic wares shops** in the biggest towns (New Benalia and Capashen Hold), inside like any shop. Each shows at most 6
+  - **Exotic wares shops** in the biggest towns (New Benalia and Capashen Hold), a shop of their own, indoors, beside the
+    inn. Each shows at most 6
     off-plane cards and gains one new card every 6 hours; a card not sold within 3 days leaves.
   - **Traveling vendors from other planes:** planeswalker traders whose caravan visits one of the big towns for a few
     hours each day, by a schedule the server keeps and everyone sees. They rotate through New Benalia, Capashen Hold, the
@@ -225,17 +229,17 @@ owner may extend.
   Domains themselves, JRPG-overworld style: the player's figure walks it at its usual size and speed, mountains are
   miniature peaks, forests clumps of miniature trees, and each town an icon - a miniature of the town. Roads join the
   icons, wilderness lies between them, and the regions' terrain shades into each other. **A town** is at walking scale,
-  as its streets, interiors and dungeons always were: its grounds hold the town within its walls, the country round it
-  that is walked (fields, farms, a wood's edge, the shore) and scenery past that which is only seen, and the camera never
-  looks past them. Walking into a town's icon from the road beside it - a click on the icon walks there and in - closes
-  the iris and opens it on that road coming into the town; walking a road out to the edge of its country closes it and
-  opens it beside the icon on that side, on the travel map. A dungeon's or a mage tower's entrance stands on the travel
+  as its streets, interiors and dungeons always were: its grounds hold the town within its wall and the country
+  round it, which is only seen, and the camera never looks past them. Walking into a town's icon from the road beside
+  it - a click on the icon walks there and in - closes the iris and opens it just inside the town's gate, in its market;
+  walking out through the gate closes it and opens it beside the icon where the player went in, on the travel map.
+  Getting in or out of a town takes a few seconds, never a walk through the country. A dungeon's or a mage tower's entrance stands on the travel
   map.
 - **The scale.** A tile is the art's: a house is five to eight tiles across, a street two to five wide. The travel map is
   512 by 768 square tiles, walked eight ways at 4.2 tiles a second: about three minutes north to south in a straight
-  line, a minute or so between neighbouring towns by road, a ferry crossing 10 to 30 seconds. A town's grounds are as
-  big as it needs: New Benalia about 140 tiles across within its walls, 35 seconds across, home towns about 100,
-  villages about 40. The Domains keep their shape, compressed (see Geography below). Waystones and ferries make the far
+  line, a minute or so between neighbouring towns by road, a ferry crossing 10 to 30 seconds. A town is small enough to
+  learn at a glance: New Benalia about 60 tiles across within its wall (15 seconds across), a home town about 54, a
+  village about 34; from the gate to any stall or door is a few seconds' walk. The Domains keep their shape, compressed (see Geography below). Waystones and ferries make the far
   places near.
 - **Wanderers are few, and only on the travel map:** about one spawn point to 3,500 tiles of land, none within 6 tiles of
   a main road in the gentlest country nor within 10 of a town's icon. A town's grounds are safe: no wanderer is ever
@@ -256,7 +260,8 @@ owner may extend.
   reaches the far wilds only as you can face them.
 - **Interiors.** A building with a door has an interior: its own small scene, not part of the world map. Walking through
   the door is seamless. The door opens, the view eases into the room and the player is inside, with no loading screen and
-  no jump cut, and leaving reverses it. Shops, inns, guildhalls, temples, smithies, libraries and houses have interiors.
+  no jump cut, and leaving reverses it. Inns, guildhalls, temples and shrines, smithies, libraries and the mage's tower,
+  the exotic wares shops and the houses of townsfolk have interiors.
 - **Dungeons** are not on the world map. A dungeon's entrance stands in the world (a cave mouth, a castle gate, a tower
   door); stepping in starts a **single-player instance generated in the browser**, new each run, that no other player
   sees. Each dungeon has a theme that fits the land it is in:
@@ -362,56 +367,44 @@ owner may extend.
   the forest's big creatures; a Shivan Dragon brings dragons, burn and red mana. Each has stats and gear traits, through the same
   Vanguard-object system as the player, which is what makes the far ones harder. Mage bosses are Dominaria's mages
   (wizard creatures and planeswalkers the engine has), and dungeon bosses its legends.
-  - Behavior: they wander within a home radius and give chase when you come within 8 tiles, a little slower than you walk. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
-- **Towns** stand each in grounds of their own at walking scale: the town within its walls (New Benalia within some 108 by 100 tiles,
-  the home towns 72 by 72, the villages 44 by 40, each the shape it grew to, its wall traced round it), the country round it that is walked - fields, a farm, a wood's edge,
-  the shore - closed by hedgerow, wood or water but where its roads leave, and scenery beyond. Each is shaped by where it
-  stands (a harbour and quay on the sea, a river through it under bridges, terraces climbing toward the north on a
-  hill) and by its roads, which become its gates. Building types: houses and tenements, shops, an inn, a temple (a
-  shrine in a village), a guildhall, a smithy, a library or mage's tower, warehouses, the square with its market, and
-  quays where there is water. Each region's towns are built in its own style: Benalish stone and banners, a Benalish
-  village's thatch, Tolarian domes, the Morass's dark stilt-houses, the Vess manor's black stone, Keldon longhouses
-  behind a palisade, Llanowar's tree-houses round a clearing.
-  - **Every town is built for the camera.** The camera looks north and never sees a north face, so every building that
-    matters faces south, its door and sign seen whole, and behind it lies ground deep enough that nothing tall hides a
-    street, a square or a door beyond. Tall things stand at the north of the open space they command: the cathedral,
-    the great hall, the Grove of Gaea, the shrine at the head of the square, the green, the glade or the yard; the keep
-    or the manor at the north wall. The centre is a room open to the south, toward the way in, so whoever arrives sees
-    it and the town's best fronts first.
-  - **Each form is its own kind of place**, recognizable from above. Every town grows round its centre in arcs open to
-    the south, an amphitheatre, each form its own way, and **each as large as suits it** - a town's grounds are its own,
-    apart from the travel map. **New Benalia** is a walled city of quarters: its market square the heart, the cathedral
-    at its head in its close, the citadel in its own wall on the highest ground behind, a lesser square, the Seven
-    Houses' manors each in its own walled garden round their close on the high ground, the smiths' yard by a gate, a
-    park, a bending river through the town with a quay, warehouses and bridges, and houses filling a designed wall -
-    straight curtains, a tower at every bend, a gatehouse on every road. **Capashen Hold** climbs its rise in terraces
-    to the keep inside its own designed wall. The **Academy** has no street grid and no wall: quads of different sizes
-    with the mage's tower to one side of the great one, the library and the guild heading lesser ones, lawns between, a
-    pond and a walled physic garden. The **Vess estate** is the manor in its walled grounds at the head of a long avenue
-    through hedges and graves, a village round the green below it. An
-    **elfhame** is a glade among great trees with tree-houses round its north, east and west and winding dirt paths
-    between them, no wall (Llanowar a bigger grove with platforms in its trees and a second glade, the druids' circle of
-    standing stones); a **clan hold** is the great hall at the head of its yard, longhouses in a horseshoe round it,
-    inside an oval palisade, drying grounds in its yards, and on the sea a slip with its boat drawn up and sheds by it;
-    a **village** is a dozen cottages and barns gathered loosely round a green with its well and a pond, lanes
-    wandering off between gardens; the **stilts** of the Morass are houses on stilts round platforms of planks railed
-    round, every way a boardwalk over the bog, a lantern at every junction. Their paths bend with the ground and fronts step forward and
-    back.
-  - **Every town is easy to cross.** Main ways run from each gate to the centre; the shops, the inn, the temple, the
-    guild and the rest stand on it or near it, the inn by the main gate's way in; every walk loops, never an alley to
-    nowhere, and where the way round between two places or neighbours would be long, a footpath runs through the yards.
-    Every building has its door on a way and a reason to be there; open space - the square, gardens, orchards, a
-    churchyard, a quay - lies between. A town is laid out wherever the travel map puts it: on any roads in, any shore, a
-    river through or past it, flat or on a hill.
-  - **The map shows the way.** In a town the minimap is the town's: its streets, buildings, gates and places - the inn,
-    the shops, the guild, the temple, the smithy, the quest board - and the whole map names each place and where each
-    gate's road leads.
-  - **Vendors work inside their shops**, the armorer inside the smithy, the innkeeper inside the inn. A shop's sign says
-    what it trades in.
-  - An **inn**, where you respawn and set your home. The spell table is inside it, and another is in the mages' guild.
-  - A **temple** (in a village a **shrine**), whose priest or keeper is a healer: hearts are bought there (A3b).
-  - A **quest board** outside the inn.
-  - A **PvP arena**, locked with a "coming soon" sign until Part B9.
+  - Behavior: they wander within a home radius; one a player comes within 5 tiles of stops and watches them, waiting to
+    be challenged. None gives chase. In the world they respawn on their spawn point's timer; in a dungeon, not within the run.
+- **Towns are hubs**: where a player goes to buy and sell cards, rework their deck, take quests, train with the guild,
+  buy gear and hearts, and rest - not places to get lost in. **Every town is the same plan** in its own region's style,
+  so whoever has learned one knows them all, and everything in it faces south toward the camera:
+
+  ```
+          ====================== wall ======================
+          [house] [Guild hall]  [ Temple ]  [Library] [house]     the head: the town's great buildings
+          ---------------------- the walk ---------------------
+             [Exotic wares] [Inn]  ||  [Smithy] [Arena]          by the way in
+          ===================== THE MARKET =====================
+               [stall][stall][stall] || [stall][stall]           the card vendors
+               quest board       fountain        the pitch
+          ====================== wall ===[gate]================
+  ```
+
+  - **One gate**, in the south wall: whichever road the player arrives by, they come in through it and stand in the
+    market with every stall and the inn in sight, and leave through it to the travel map beside the icon where they came
+    in. The avenue runs from the gate through the market and between the inn and the smithy to the temple's door.
+  - **The market** is the heart: every card vendor of the town at a stall (A5), the quest board by the inn's door, the
+    town's centrepiece (New Benalia's fountain, a statue, a well, a crystal, a great tree, a fire bowl), benches, lamps,
+    produce stalls, and the traveling traders' pitch where caravans come.
+  - **By the way in**: the **inn**, where you respawn and set your home, a spell table inside and the quest board
+    outside; the **smithy**, its armorer inside; the **exotic wares** in the two big towns; the **arena** (a PvP arena,
+    locked with a "coming soon" sign until Part B9).
+  - **The head**, across the walk: the **temple** (a village's **shrine**), whose priest or keeper is a healer (hearts,
+    A3b); the **guildhall** of mages, with a spell table; the **library** (the Academy's mage's tower).
+  - **Light exploration**: houses fill the rows' ends, and a few are the homes of townsfolk who will talk; townsfolk
+    walk the market; passages run between the buildings. Nothing is on terraces, and no way ends at nothing.
+  - **A village** is the plan small: its shrine at the head between cottages, its inn by the way in, a green with its
+    well and its one vendor's stall, if it has one, behind a hedge.
+  - **Each region builds in its own style**: Benalish stone and banners behind a wall in New Benalia and Capashen Hold, a
+    Benalish village's thatch, Tolarian domes, the Vess estate's black stone, the Morass's stilt-houses on boardwalks
+    over the bog, Keldon longhouses behind a palisade, Llanowar's tree-houses among great trees. Outside the wall lies
+    the country of the town's biome - fields, woods, the shore - seen from within, never walked.
+  - **The map shows the way.** In a town the minimap is the town's: the walk, the market, its buildings, the gate and its
+    places - the inn, the stalls, the guild, the temple, the smithy, the quest board - named on the whole map.
 - **Story:** after the Phyrexian invasion, Dominaria's five color-wells are held by guardians. The player is a mage who must earn each well's attunement. The tone is light, with the story text on quest boards and NPC barks. The owner can rewrite it; it is all data.
 - **Social:** you see the other players near you in the world (those in the chunks around you), with their gear and
   their identity pips, and those in the same interior. Dungeons are single-player. Clicking a player shows their
