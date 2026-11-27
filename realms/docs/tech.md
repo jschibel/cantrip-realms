@@ -990,7 +990,7 @@ afterwards. `finish.ts` places the run's contract:
 - The boss's index is `Encounters.length` (0 in the hall); `winsToOpen(n)` is how many of `n` challengers open a gate:
   all but one, at least one.
 - The spell table stands a few steps beside the arrival; a shrine (`dungeon-shrine`, its heart `dungeon-shrine-heart`
-  drawn by the page, lit or spent) at one side of the arena, by its west or east wall halfway down, with open floor before
+  drawn by the page, lit or spent) at one side of the arena, by its west wall halfway down, with open floor before
   it to pray from, cutting no way off.
 
 `assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room,

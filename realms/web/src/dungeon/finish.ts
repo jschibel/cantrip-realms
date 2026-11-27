@@ -186,12 +186,11 @@ export function finish(plan: Plan, arena: Arena, request: FloorRequest, theme: T
     npcs.push({ id: "spell-desk", x: table[0], z: table[1], kind: "spell-table", name: "Spell table" });
   }
 
-  // The run's shrine, on the floor that holds it (design.md A6): at one side of the arena, by its west or east wall halfway
-  // down, with open floor before it to pray from; it blocks no way.
+  // The run's shrine, on the floor that holds it (design.md A6): at one side of the arena, by its west wall halfway down
+  // (the HUD's panels stand over the east of the screen), with open floor before it to pray from; it blocks no way.
   let shrine: [number, number] | null = null;
   if (request.run.Shrine) {
-    const west = plan.random() < 0.5;
-    const edge = west ? x0 + 1 : x1 - 1;
+    const edge = x0 + 1;
     const options = plan.walkables().filter(ok);
     const score = ([x, z]: [number, number]) => Math.abs(x - edge) * 2 + Math.abs(z - Math.round(mid));
     options.sort((a, b) => score(a) - score(b) || a[1] - b[1] || a[0] - b[0]);
