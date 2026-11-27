@@ -61,11 +61,18 @@ public sealed class ContentTests
         Assert.All(towns, town => Assert.Contains(world.File.Inns, inn => inn.Town == town));
         Assert.Contains("new-benalia", towns);
 
-        // Every vendor's shop and every trader's town are the world's; the exotic wares shops are New Benalia's and Capashen Hold's.
+        // Every card vendor keeps a stall in its town's market and every exotic dealer a shop there; every trader's town is the
+        // world's; the exotic wares shops are New Benalia's and Capashen Hold's.
         foreach (Vendor vendor in content.Vendors.Values)
         {
             if (vendor.File.Trader is { } round) Assert.All(round.Towns, town => Assert.Contains(town, content.Towns.Keys));
-            else Assert.Equal(vendor.File.Town, Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id)).Town?.Id);
+            else if (vendor.Kind == Vendor.ExoticShop) Assert.Equal(vendor.File.Town, Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id)).Town?.Id);
+            else
+            {
+                Assert.DoesNotContain(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id));
+                Tile stall = content.StallOf(vendor) ?? throw new Xunit.Sdk.XunitException($"{vendor.Id} keeps no stall");
+                Assert.True(world.Walkable(stall), vendor.Id);
+            }
         }
 
         Assert.Equal(["capashen-hold-exotic-wares", "new-benalia-exotic-wares"], content.Vendors.Values.Where(vendor => vendor.Kind == Vendor.ExoticShop).Select(vendor => vendor.Id).Order(StringComparer.Ordinal));
@@ -116,10 +123,16 @@ public sealed class ContentTests
             Assert.True(inside.Walkable(inside.File.EntryAt!.Value), interior);
         }
 
+        // A vendor keeps a shop in its town, or a stall in its town's street or market: one or the other.
         foreach (Vendor vendor in content.Vendors.Values.Where(vendor => vendor.Kind != Vendor.Traveler))
         {
-            RealmInterior shop = Assert.Single(content.Interiors.Values, interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id));
-            Assert.Equal(vendor.File.Town, shop.Town?.Id);
+            RealmInterior[] shops = [.. content.Interiors.Values.Where(interior => interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))];
+            if (content.StallOf(vendor) is { } stall)
+            {
+                Assert.Empty(shops);
+                Assert.Equal(vendor.File.Town, content.TownAt(stall)?.Id);
+            }
+            else Assert.Equal(vendor.File.Town, Assert.Single(shops).Town?.Id);
         }
 
         foreach (InnEntry inn in world.File.Inns)

@@ -45,7 +45,7 @@
     {"id":"wall-lamp","x":8.4875,"z":0,"y":1.6}
   ],
   "npcs": [
-    {"id":"new-benalia-house-1-resident","x":4,"z":2,"kind":"townsfolk","name":"Benalish herald","text":["Every road in Aerona leads to New Benalia. Most of them come back."],"figure":"townsfolk-benalia","speed":1.2,"seed":646,"behaviour":{"wander":{"home":[4,2],"reach":2,"pause":[3,8]},"watch":3}}
+    {"id":"new-benalia-house-1-resident","x":4,"z":2,"kind":"townsfolk","name":"Merchant","text":["More vendors here than anywhere in the Domains, and a shop of wares from other planes."],"figure":"townsfolk-benalia","speed":1.2,"seed":646,"behaviour":{"wander":{"home":[4,2],"reach":2,"pause":[3,8]},"watch":3}}
   ],
   "lights": [
     {"kind":"point","at":[2,1,1.2],"color":[1,0.55,0.25],"intensity":9,"reach":7.5,"flicker":{"base":8,"steps":[0,1.6,0.7],"rate":8,"phase":0}},
@@ -55,5 +55,5 @@
     {"kind":"point","at":[8.4875,1.55,0.9],"color":[1,0.75,0.4],"intensity":1.4,"reach":3.2}
   ],
   "entry": [4,6],
-  "exit": [732,171]
+  "exit": [615,39]
 }

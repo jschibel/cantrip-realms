@@ -65,6 +65,26 @@ public sealed class VendorTests
     }
 
     [Fact]
+    public async Task A_vendor_at_a_stall_trades_beside_it_in_the_market()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1, "W", "Tester");
+        const string knights = "argive-knights";
+        Tile stall = RealmApp.Content.StallOf(RealmApp.Content.Vendors[knights]) ?? throw new InvalidOperationException("no stall");
+
+        // On the far side of its counter, two tiles off: it trades.
+        await browser.Put(RealmContent.WorldSpace, new Tile(stall.X, stall.Z + Vendors.AtStall));
+        VendorView view = await browser.Ok<VendorView>(HttpMethod.Get, Path(knights));
+        Assert.Equal(Vendors.SeededAtCreation, view.Stock.Sum(item => item.Count));
+
+        // A step further, or inside another shop of the town: it does not.
+        await browser.Put(RealmContent.WorldSpace, new Tile(stall.X, stall.Z + Vendors.AtStall + 1));
+        await browser.Refused(HttpMethod.Get, Path(knights), null, HttpStatusCode.Conflict, Codes.NotNear);
+        await browser.Inside(Whites + "-shop");
+        await browser.Refused(HttpMethod.Get, Path(knights), null, HttpStatusCode.Conflict, Codes.NotNear);
+    }
+
+    [Fact]
     public async Task Buying_moves_gold_to_the_purse_and_the_card_to_the_collection()
     {
         await using var app = new RealmApp();

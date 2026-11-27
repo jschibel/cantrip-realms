@@ -776,9 +776,24 @@ prop(
     D.barrel(b, p.x + 0.35, p.z + 0.45, 0.7);
   },
 );
+/** A rack of cards seen from the front, 16 by 10: four cards in a row, framed, their art in the five colors. */
+function cardRack(): Pixmap {
+  const p = new Pixmap(16, 10, C.WOOD[2]!);
+  const arts = [C.GOLD, C.BLUE, C.BLACK, C.RED, C.GREEN];
+  for (let k = 0; k < 4; k++) {
+    const x0 = k * 4;
+    const art = arts[(k * 3) % arts.length]!;
+    for (let y = 1; y < 10; y++) for (let x = x0; x < x0 + 3; x++) {
+      const edge = y === 1 || y === 9 || x === x0 || x === x0 + 2;
+      p.set(x, y, edge ? 0x1a1a1c : y < 6 ? art[3]! : y === 6 ? art[4]! : 0xe8e0c8);
+    }
+  }
+  return p;
+}
+
 prop(
   "canopy-stall",
-  "a market stall under a cloth canopy (its palette's cloth, striped) from x along args.width (3), its counter's line at z; args.goods what is laid out (apples, cabbages, carrots, bread, fish)",
+  "a market stall under a cloth canopy (its palette's cloth, striped) from x along args.width (3), its counter's line at z; args.goods what is laid out (apples, cabbages, carrots, bread, fish, or cards: a card vendor's racks of cards and binders)",
   { category: "street", biomes: ["town"], footprint: { rect: [0, -1.1, 3, 0.4], blocks: true }, sample: { tint: "red-cloth", args: { width: 3, goods: "fish" } } },
   (b, p, pal) => {
     const w = num(p, "width", 3);
@@ -788,8 +803,18 @@ prop(
     for (const x of [x0 + 0.05, x0 + w - 0.15]) for (const dz of [-1.0, 0.25]) b.box(x, 0, z + dz, x + 0.1, 2.2, z + dz + 0.1, sides(t));
     b.box(x0 + 0.1, 0.75, z - 0.4, x0 + w - 0.1, 0.85, z + 0.3, sides(t, tiled(planks(C.WOOD, true))));
     b.box(x0 + 0.2, 0, z - 0.35, x0 + w - 0.2, 0.75, z + 0.25, sides(fitted(cloth(pal.cloth!))));
-    const goods = str<"apples" | "cabbages" | "carrots" | "bread" | "fish">(p, "goods", "apples");
-    for (let i = 0; i < Math.floor(w / 0.8); i++) D.crate(b, x0 + 0.5 + i * 0.75, z - 0.05, 0.55, i % 2 ? goods : "bread", 0.85, (i % 2) * 0.1 - 0.05);
+    const goods = str<"apples" | "cabbages" | "carrots" | "bread" | "fish" | "cards">(p, "goods", "apples");
+    if (goods === "cards") {
+      // Racks of cards stood up along the counter, facing the market, a binder at each end.
+      const rack = fitted(material("card-rack", () => cardRack()));
+      const racks = Math.max(1, Math.floor((w - 0.9) / 0.8));
+      for (let i = 0; i < racks; i++) {
+        const rx = x0 + 0.45 + i * ((w - 0.9) / racks);
+        b.box(rx, 0.85, z - 0.12, rx + 0.66, 0.89, z + 0.02, sides(t));
+        b.card(rack, rx + 0.02, 0.88, rx + 0.64, 1.3, z + 0.02);
+      }
+      for (const bx of [x0 + 0.22, x0 + w - 0.42]) b.box(bx, 0.85, z - 0.2, bx + 0.2, 1.05, z + 0.1, sides(fitted(cloth(C.BLACK))));
+    } else for (let i = 0; i < Math.floor(w / 0.8); i++) D.crate(b, x0 + 0.5 + i * 0.75, z - 0.05, 0.55, i % 2 ? goods : "bread", 0.85, (i % 2) * 0.1 - 0.05);
     const canopy = cloth(pal.cloth!, "striped", pal.trim);
     b.quad({ mat: canopy }, [
       [x0 - 0.15, 2.2, z + 0.55],

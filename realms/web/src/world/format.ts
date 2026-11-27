@@ -635,6 +635,18 @@ export function sideStep(side: Side): XZ {
   return side === "north" ? [0, -1] : side === "south" ? [0, 1] : side === "east" ? [1, 0] : [-1, 0];
 }
 
+/**
+ * The step out of a town's grounds through one of its ways: from its `inside` toward its exit, along the axis the two lie
+ * apart on. A town's ways may share one gate whichever side of its icon each comes from, so this - not the way's side -
+ * is which way one faces walking out (and, turned round, walking in).
+ */
+export function outwardStep(way: Pick<TownWay, "inside" | "exit">): XZ {
+  const n = Math.max(1, way.exit.length);
+  const dx = way.exit.reduce((s, e) => s + e[0], 0) / n - way.inside[0];
+  const dz = way.exit.reduce((s, e) => s + e[1], 0) / n - way.inside[1];
+  return Math.abs(dx) >= Math.abs(dz) ? [Math.sign(dx), 0] : [0, Math.sign(dz)];
+}
+
 /** A town's icon's footprint on the travel map: the square `ICON_SIZE` of its kind across round its `site`; null with none. */
 export function siteRect(town: Pick<TownData, "site" | "kind">): Rect | null {
   if (!town.site) return null;

@@ -1,98 +1,33 @@
-// The eight town forms (layout.ts, `Form`) as the generator builds them: their sizes, their streets' and rows' measures,
-// their enclosure, their ground, and the styles and footprints of what they build.
+// The eight town forms (layout.ts, `Form`) as the town template builds them (hub.ts): what each is kept in, its ground,
+// and the styles and footprints of what it builds.
 
 import { S } from "../ids";
 import type { Form, TownLayout } from "../layout";
 
 export type Enclosure = "wall" | "palisade" | "hedge" | "none";
 
-/** How a form lays out its streets and rows (planner.ts; rows.ts). Tiles throughout. */
+/** What a form's town is kept in, and whether guards walk its gate. */
 export interface FormSpec {
   readonly enclosure: Enclosure;
-  /** An east-west street's width (the stages), and a north-south connector's. */
-  readonly street: number;
-  readonly lane: number;
-  /** A row's depth from the street behind it to the street before it: its yards and its buildings. Least, wanted, most. */
-  readonly row: readonly [number, number, number];
-  /** The north row's depth, when it is not a row's least: nothing stands north of it but the wall, so it may be shallow. */
-  readonly row0?: number;
-  /** A block's length along its street, least and most. */
-  readonly block: readonly [number, number];
-  /** The square: tiles across, and the depth of its row (the square is that row and the streets either side of it). */
-  readonly square: readonly [number, number];
-  readonly round: boolean;
-  /** Gardens between the southmost street and the south wall. */
-  readonly southBand: number;
-  /** How yards are kept: hedged gardens (closed), open ground (walked), or bog under stilts. */
-  readonly yards: "hedged" | "open" | "bog";
   readonly guards: boolean;
-  /** The town's shape: its rows' profile and how far a row's end may be pulled in (planner.ts; rows.ts). */
-  readonly shape: readonly ["oval" | "lozenge" | "blob" | "flat", number];
-  /** Whether a northern shore gets a quay behind the north row (a town's), or the gardens run down to the water. */
-  readonly northQuay?: boolean;
-}
-
-/** Tiles inside the walls (or the edge), x by z, by kind. */
-export const TOWN_SIZE: Readonly<Record<TownLayout["kind"], readonly [number, number]>> = {
-  capital: [108, 100],
-  town: [72, 72],
-  village: [44, 40],
-};
-
-/**
- * The ground a grown town (amphitheatre.ts) may grow over, x by z: whatever suits it - a town's size is its own, not the
- * travel map's (its grounds are a pocket of their own). The capital a city of quarters, a home town its rings and what
- * grows round them, a village its green and the cottages and farms about it.
- */
-const GROWN_SIZE: Readonly<Record<Form, { readonly town: readonly [number, number]; readonly village: readonly [number, number] }>> = {
-  capital: { town: [176, 164], village: [176, 164] },
-  city: { town: [116, 110], village: [84, 80] },
-  campus: { town: [112, 104], village: [72, 66] },
-  estate: { town: [108, 112], village: [80, 80] },
-  elfhame: { town: [120, 112], village: [74, 68] },
-  clan: { town: [104, 98], village: [74, 70] },
-  village: { town: [92, 86], village: [74, 68] },
-  stilts: { town: [92, 86], village: [72, 66] },
-};
-
-/** A grown town's ground, x by z (`GROWN_SIZE`). */
-export function grownSize(plan: TownLayout): readonly [number, number] {
-  const s = GROWN_SIZE[formOf(plan)];
-  return plan.kind === "village" ? s.village : s.town;
-}
-
-/** The country walked round a town, tiles past its edge each way: more round a bigger town. */
-export function walkedMargin(plan: TownLayout): number {
-  const [w, d] = grownSize(plan);
-  return 16 + Math.floor(Math.max(w, d) / 16);
 }
 
 const FORMS: Record<Form, FormSpec> = {
-  capital: { enclosure: "wall", street: 4, lane: 3, row: [10, 11, 15], block: [12, 34], square: [28, 9], round: false, southBand: 4, yards: "hedged", guards: true, shape: ["lozenge", 14] },
-  city: { enclosure: "wall", street: 3, lane: 3, row: [9, 10, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["lozenge", 10] },
-  village: { enclosure: "hedge", street: 3, lane: 3, row: [7, 10, 14], block: [10, 26], square: [12, 9], round: false, southBand: 2, yards: "hedged", guards: false, shape: ["blob", 7] },
-  elfhame: { enclosure: "none", street: 3, lane: 3, row: [13, 16, 19], row0: 10, block: [12, 32], square: [20, 10], round: true, southBand: 4, yards: "open", guards: false, shape: ["oval", 12] },
-  stilts: { enclosure: "none", street: 3, lane: 3, row: [8, 10, 13], block: [10, 26], square: [12, 7], round: false, southBand: 3, yards: "bog", guards: false, shape: ["blob", 8] },
-  clan: { enclosure: "palisade", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["oval", 12] },
-  campus: { enclosure: "none", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [22, 9], round: false, southBand: 4, yards: "open", guards: false, shape: ["blob", 8] },
-  estate: { enclosure: "wall", street: 3, lane: 3, row: [9, 11, 14], block: [11, 30], square: [18, 9], round: false, southBand: 3, yards: "hedged", guards: true, shape: ["lozenge", 10] },
-};
-
-/** A small town's measures: a village's rows and square, whatever its form. */
-const SMALL: Partial<Record<Form, Partial<FormSpec>>> = {
-  elfhame: { row: [10, 12, 16], row0: 9, square: [14, 9], southBand: 2 },
-  clan: { row: [7, 10, 14], square: [14, 9], southBand: 3, guards: false },
-  campus: { row: [7, 10, 14], square: [14, 9], southBand: 3 },
-  village: { row: [7, 10, 14] },
-  stilts: { row: [7, 10, 14] },
+  capital: { enclosure: "wall", guards: true },
+  city: { enclosure: "wall", guards: true },
+  village: { enclosure: "hedge", guards: false },
+  elfhame: { enclosure: "none", guards: false },
+  stilts: { enclosure: "none", guards: false },
+  clan: { enclosure: "palisade", guards: true },
+  campus: { enclosure: "none", guards: false },
+  estate: { enclosure: "wall", guards: true },
 };
 
 export const formOf = (plan: TownLayout): Form => plan.form ?? (plan.kind === "capital" ? "capital" : plan.kind === "village" ? "village" : "city");
 
 export function formSpec(plan: TownLayout): FormSpec {
-  const form = formOf(plan);
-  const base = FORMS[form];
-  return plan.kind === "village" ? { ...base, ...(SMALL[form] ?? {}), northQuay: false } : base;
+  const base = FORMS[formOf(plan)];
+  return plan.kind === "village" ? { ...base, guards: false } : base;
 }
 
 /** The ground of a town's streets, squares, yards and lots, by its style and form. */

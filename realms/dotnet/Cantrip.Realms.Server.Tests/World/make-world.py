@@ -9,7 +9,8 @@ interiors/*.json, dungeons/*.json}: five by four chunks of 32 tiles - x from -32
 chunks are -1_0 to -1_3) and z from 0 to 127 - open grass but for a wall of rock at x 26, z 2 to 12, and the buildings,
 whose footprints are blocked and bare. The Domains' towns (layout.json's ids, names and styles) the vendors keep shops
 in and the traders' caravans visit, each a street between two rows of buildings: an inn (its innkeeper and a spell table
-inside, a dais by the hearth), a shop for each of its vendors (an exotic one's kind exotic-wares), New Benalia and
+inside, a dais by the hearth), a shop for each of its vendors (an exotic one's kind exotic-wares; a vendor of STALLS
+keeps a stall in the street instead), New Benalia and
 Capashen Hold a smithy with an armorer and a temple with a healer too, a quest board, a spell table in New Benalia's street and a pitch in each
 traders' town. Spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
 Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage at the top and its waystone
@@ -44,6 +45,10 @@ BARE = 2
 
 # The Domains' five regions (design.md A6): their colors, names and ids.
 REGIONS = [("W", "Benalia", "benalia"), ("U", "Orvada", "orvada"), ("B", "Caligo", "caligo"), ("R", "Keld", "keld"), ("G", "Llanowar", "llanowar")]
+
+# The vendors who keep a stall in their town's street rather than a shop (design.md A5: every card vendor of the
+# generated world stands at a stall in its town's market).
+STALLS = {"argive-knights"}
 
 # The towns: the Domains' (realms/content/dominaria/layout.json, whose names, kinds and styles they take), each at a
 # center of the test world with the radius of its kind. New Benalia, the hub, is the capital, in chunk 0_0; the rest are
@@ -236,8 +241,13 @@ def build(two):
         if town in SMITHIES:
             door = building(f"{town}-smithy", town, style, "shop", next_slot(), (cx, cz), f"{town}-smithy", f"{name} Smithy")
             room(f"{town}-smithy", f"{name} Smithy", "smithy", town, style, door, [{"id": "armorer", "kind": "armorer", "x": 3, "z": 1}])
-        # A shop for each vendor of the town, an exotic wares shop's as any; a traveling trader keeps none.
+        # A shop for each vendor of the town, an exotic wares shop's as any; a traveling trader keeps none. A vendor of
+        # STALLS keeps a stall in the street instead, as every card vendor of the generated world does in its market.
         for vendor in (v for v in vendors if v.get("town") == town):
+            if vendor["id"] in STALLS:
+                take(cx + 4, cz, f"{vendor['id']}'s stall")
+                chunk_of(cx + 4, cz)["npcs"].append({"id": vendor["id"], "kind": "vendor", "vendor": vendor["id"], "x": cx + 4, "z": cz})
+                continue
             shop = f"{vendor['id']}-shop"
             door = building(shop, town, style, "shop", next_slot(), (cx, cz), shop, vendor["name"])
             room(shop, vendor["name"], "exotic-wares" if vendor.get("exotic") else "shop", town, style, door,

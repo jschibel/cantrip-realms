@@ -397,9 +397,13 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
         return new TradeView(row.Gold, await characters.Collection(player).ConfigureAwait(false));
     }
 
+    /// <summary>How near a vendor's stall a character stands to trade at it: on the far side of its counter is two tiles.</summary>
+    public const int AtStall = 2;
+
     /// <summary>
-    /// A vendor trades with a character inside its shop: an interior of its town where it keeps a vendor NPC. A trader trades
-    /// while its caravan is in the character's town: in the world within the town, or in a building of it.
+    /// A vendor trades with a character at its stall - in the world, within <see cref="AtStall"/> tiles of where it stands in its
+    /// town's market - or inside its shop: an interior of its town where it keeps a vendor NPC. A trader trades while its
+    /// caravan is in the character's town: in the world within the town, or in a building of it.
     /// </summary>
     private async Task Near(string player, Vendor vendor)
     {
@@ -415,9 +419,19 @@ public sealed class Vendors(RealmDb db, RealmContent content, Characters charact
             return;
         }
 
+        if (row.Space == RealmContent.WorldSpace && content.StallOf(vendor) is { } stall)
+        {
+            if (stall.DistanceTo(new Tile(row.X, row.Z)) > AtStall)
+            {
+                throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades at its stall in the market of {vendor.File.Town}.");
+            }
+
+            return;
+        }
+
         if (content.Interiors.GetValueOrDefault(row.Space) is not { } shop || !shop.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
         {
-            throw Refusal.Conflict(Codes.NotNear, $"{vendor.File.Name} trades in its shop in {vendor.File.Town}.");
+            throw Refusal.Conflict(Codes.NotNear, content.StallOf(vendor) is null ? $"{vendor.File.Name} trades in its shop in {vendor.File.Town}." : $"{vendor.File.Name} trades at its stall in the market of {vendor.File.Town}.");
         }
     }
 }

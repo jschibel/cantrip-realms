@@ -22,7 +22,7 @@ import type { Zoom } from "./render/camera";
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
-import { CHUNK, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type TownData, type TownWay, type WorldData, chunkKey, groundsAt, inTravel, isBlocked, sideStep, siteRect, townAt } from "./world/format";
+import { CHUNK, type DungeonData, type FerryData, type NpcData, OBJECT_KINDS, type SpawnData, type Side, type TownData, type TownWay, type WorldData, chunkKey, groundsAt, inTravel, isBlocked, outwardStep as outward, sideStep, siteRect, townAt } from "./world/format";
 import { type Grid, type Tile, flatGround } from "./world/grid";
 import type { WorldSource } from "./world/load";
 
@@ -188,6 +188,8 @@ export class Overworld {
   private taking = false;
   /** Seconds until the finds are asked again. */
   private findsTimer = 0;
+  /** The way the player last came into each town by (its side), so they leave by it: a town's ways may share a gate. */
+  private readonly cameBy = new Map<string, Side>();
   /** Something to do on reaching a tile (talk to someone, open a chest, engage a mob). */
   private pending: { readonly at: Tile; readonly then: () => void } | null = null;
   /** What the relay has refused of this page, its reasons (for tests: a walk told right is never refused). */
@@ -493,10 +495,16 @@ export class Overworld {
     for (const town of this.worldData.towns) {
       if (grounds) {
         if (town !== grounds) continue;
-        for (const way of town.ways ?? []) {
-          const [sx, sz] = sideStep(way.side);
+        // A town's ways may share one gate (every town of Dominaria has one): each exit tile leaves by the way the player
+        // came in by where that way goes out there, else by the first way that does.
+        const taken = new Set<string>();
+        const came = this.cameBy.get(town.id);
+        const ways = [...(town.ways ?? [])].sort((a, b) => (a.side === came ? -1 : b.side === came ? 1 : 0));
+        for (const way of ways) {
+          const [sx, sz] = outward(way);
           for (const [x, z] of way.exit) {
-            if (!builtAt(x, z)) continue;
+            if (!builtAt(x, z) || taken.has(`${x},${z}`)) continue;
+            taken.add(`${x},${z}`);
             out.push({ name: `exit:${town.id}:${way.side}`, tile: { x, z }, step: [sx, sz], to: `way:${town.id}:${way.side}:out`, at: new THREE.Vector3(x + 0.5 + sx, this.world.floorAt(x + 0.5, z + 0.5) + 0.6, z + 0.5 + sz), kind: "town-out" });
           }
         }
@@ -545,8 +553,10 @@ export class Overworld {
     }
     this.lastReported = `world:${x},${z}`;
     this.note(`${into ? "into" : "out of"} ${town.id} by its ${way.side} way, at ${x},${z}`);
+    if (into) this.cameBy.set(town.id, way.side);
+    const [ox, oz] = outward(way);
     const [sx, sz] = sideStep(way.side);
-    return { spot: this.world, tile, facing: into ? [-sx, -sz] : [sx, sz] };
+    return { spot: this.world, tile, facing: into ? [-ox, -oz] : [sx, sz] };
   }
 
   /** Ways the game resolves itself: a dungeon's entrance, a run's stairs and its way out. */

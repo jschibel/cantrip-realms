@@ -23,6 +23,7 @@ import {
   chunkKey,
   frontStep,
   groundChunks,
+  groundsAt,
   siteRect,
   isBlocked,
   parseChunkKey,
@@ -53,6 +54,8 @@ const interiors = readDir<InteriorData>("interiors");
 const dungeons = readDir<DungeonData>("dungeons");
 const roster = readDir<MobFile & { tier: number }>("mobs");
 const vendors = readDir<Vendor & { trader?: { towns: string[] } }>("vendors");
+/** A tile of the world as its chunk file has it. */
+const tileAt = (x: number, z: number) => chunkFiles.get(chunkKey(Math.floor(x / 32), Math.floor(z / 32)))?.tiles[(((z % 32) + 32) % 32) * 32 + (((x % 32) + 32) % 32)];
 const all = <K extends "props" | "buildings" | "npcs" | "spawns" | "entrances" | "waymarkers">(k: K): ChunkData[K][number][] =>
   chunks.flatMap((c) => [...c[k]] as ChunkData[K][number][]);
 
@@ -126,7 +129,8 @@ describe("Dominaria's files", () => {
   });
 
   it("is walked across chunk edges as one ground", () => {
-    // From the capital's inn door to a door two chunks away, with only the chunks round the inn loaded.
+    // From the capital's inn door to the door of its town furthest from it, a chunk or more away, with only the chunks
+    // round the inn loaded.
     const inn = world.inns.find((i) => i.town === "new-benalia")!;
     const cx = Math.floor(inn.x / 32);
     const cz = Math.floor(inn.z / 32);
@@ -134,11 +138,15 @@ describe("Dominaria's files", () => {
     expect(near.length).toBeGreaterThanOrEqual(9);
     const grid = gridOfChunks(world, near);
     expect(grid.width * grid.height).toBe(near.length * 32 * 32);
-    const goal = all("buildings").find((b) => b.door && Math.max(Math.abs(Math.floor(b.door[0] / 32) - cx), Math.abs(Math.floor(b.door[1] / 32) - cz)) === 2);
-    expect(goal, "a door two chunks away").toBeDefined();
+    const town = world.towns.find((t) => t.id === "new-benalia")!;
+    const chunksAway = (d: readonly [number, number]) => Math.max(Math.abs(Math.floor(d[0] / 32) - cx), Math.abs(Math.floor(d[1] / 32) - cz));
+    const goal = all("buildings")
+      .filter((b) => b.door && groundsAt(world, b.door[0], b.door[1]) === town && chunksAway(b.door) >= 1)
+      .sort((a, b) => Math.max(Math.abs(b.door![0] - inn.x), Math.abs(b.door![1] - inn.z)) - Math.max(Math.abs(a.door![0] - inn.x), Math.abs(a.door![1] - inn.z)))[0];
+    expect(goal, "a door a chunk or more away").toBeDefined();
     const path = grid.path({ x: inn.x, z: inn.z }, { x: goal!.door![0], z: goal!.door![1] });
     expect(path, `a way from ${inn.x},${inn.z} to ${goal!.door!.join(",")}`).not.toBeNull();
-    expect(new Set(path!.map((t) => chunkKey(Math.floor(t.x / 32), Math.floor(t.z / 32)))).size).toBeGreaterThanOrEqual(3);
+    expect(new Set(path!.map((t) => chunkKey(Math.floor(t.x / 32), Math.floor(t.z / 32)))).size).toBeGreaterThanOrEqual(2);
     for (let k = 1; k < path!.length; k++) {
       const a = path![k - 1]!;
       const b = path![k]!;
@@ -150,21 +158,33 @@ describe("Dominaria's files", () => {
     expect(grid.walkable(cx * 32 + 100, cz * 32)).toBe(false);
   });
 
-  it("give every town its people: vendors in their shops, the inn's keeper and spell table, the armorer in the smithy, the quest board outside", () => {
+  it("give every town its people: vendors at their stalls, the inn's keeper and spell table, the armorer in the smithy, the quest board outside", () => {
     const people = [...interiors.values()].flatMap((room) => room.npcs.map((n) => ({ ...n, room })));
+    const npcs = all("npcs");
+    const props = all("props");
     for (const v of vendors.values()) {
-      const at = people.find((n) => n.kind === "vendor" && n.vendor === v.id);
+      const inside = people.find((n) => n.kind === "vendor" && n.vendor === v.id);
+      const outside = npcs.find((n) => n.kind === "vendor" && n.vendor === v.id);
       if (v.trader) {
-        expect(at, `${v.id} keeps no shop`).toBeUndefined();
+        expect(inside ?? outside, `${v.id} keeps no shop nor stall`).toBeUndefined();
         for (const town of v.trader.towns) expect(world.pitches.some((p) => p.town === town), `${v.id}'s pitch in ${town}`).toBe(true);
         continue;
       }
-      expect(at, `${v.id}'s shop`).toBeDefined();
-      expect(at!.room.town).toBe(v.town);
-      expect(at!.room.kind).toBe(v.exotic ? "exotic-wares" : "shop");
-      expect(interiors.get(`${v.id}-shop`), `${v.id}-shop`).toBe(at!.room);
+      if (v.exotic) {
+        // The exotic wares are a shop of their own, indoors.
+        expect(inside, `${v.id}'s shop`).toBeDefined();
+        expect(inside!.room.town).toBe(v.town);
+        expect(inside!.room.kind).toBe("exotic-wares");
+        expect(interiors.get(`${v.id}-shop`), `${v.id}-shop`).toBe(inside!.room);
+        continue;
+      }
+      // A card vendor stands before its stall in its town's market, on an open tile, the stall's counter behind it.
+      expect(inside, `${v.id} keeps no shop indoors`).toBeUndefined();
+      expect(outside, `${v.id}'s stall`).toBeDefined();
+      expect(groundsAt(world, outside!.x, outside!.z)?.id, `${v.id}'s town`).toBe(v.town);
+      expect(isBlocked(tileAt(outside!.x, outside!.z)!), `${v.id} stands open`).toBe(false);
+      expect(props.some((p) => p.id === "canopy-stall" && p.args?.goods === "cards" && outside!.x >= p.x && outside!.x < p.x + 3 && Math.abs(p.z - (outside!.z - 1.2)) < 0.01), `${v.id}'s stall behind it`).toBe(true);
     }
-    const npcs = all("npcs");
     for (const town of world.towns) {
       const inn = world.inns.find((i) => i.town === town.id)!;
       const room = interiors.get(inn.interior)!;

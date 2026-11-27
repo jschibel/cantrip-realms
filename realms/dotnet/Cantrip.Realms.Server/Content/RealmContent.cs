@@ -643,9 +643,10 @@ public sealed partial class RealmContent
         {
             string where = $"vendor {vendor.Id}";
             if (!Towns.ContainsKey(vendor.File.Town)) problems.Add($"{where}: its town '{vendor.File.Town}' is no town of the world.");
-            else if (!Interiors.Values.Any(interior => interior.Town?.Id == vendor.File.Town && interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id)))
+            else if (!Interiors.Values.Any(interior => interior.Town?.Id == vendor.File.Town && interior.Npcs.Any(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id))
+                && StallOf(vendor) is null)
             {
-                problems.Add($"{where}: nobody keeps its shop in {vendor.File.Town}: no vendor NPC of an interior of that town names it.");
+                problems.Add($"{where}: nobody keeps its shop or its stall in {vendor.File.Town}: no vendor NPC of that town, indoors or in its market, names it.");
             }
         }
 
@@ -841,18 +842,31 @@ public sealed partial class RealmContent
     public TownEntry? TownAt(Tile at) =>
         World.File.Towns.Where(town => town.Center is [_, _] && town.At.DistanceTo(at) <= town.Radius).MinBy(town => town.At.DistanceTo(at));
 
+    /// <summary>
+    /// Where a vendor keeps its stall in its town's market (design.md A5): the tile its NPC stands on in the world, within its
+    /// town; null for a vendor that keeps a shop indoors, or a trader.
+    /// </summary>
+    public Tile? StallOf(Vendor vendor)
+    {
+        ArgumentNullException.ThrowIfNull(vendor);
+        MapNpc? npc = World.Npcs.FirstOrDefault(npc => npc.Kind == "vendor" && npc.Vendor == vendor.Id && TownAt(npc.At)?.Id == vendor.File.Town);
+        return npc?.At;
+    }
+
     private void CheckNpcs(RealmSpace space, string where, List<string> problems)
     {
         foreach (MapNpc npc in space.Npcs)
         {
             if (!space.Has(npc.At)) problems.Add($"{where}: {npc.Id} stands off it at {npc.At}.");
             if (!KebabCase().IsMatch(npc.Kind)) problems.Add($"{where}: {npc.Id} is a '{npc.Kind}', which is no kebab-case kind.");
-            if (npc.Kind is "vendor" or "armorer" && space is not RealmInterior)
+            if (npc.Kind is "armorer" && space is not RealmInterior)
             {
-                problems.Add($"{where}: {npc.Id} is a {npc.Kind}, who works inside a building (an interior), not in the world.");
+                problems.Add($"{where}: {npc.Id} is an armorer, who works inside a building (an interior), not in the world.");
             }
 
-            if (npc.Kind == "vendor" && (npc.Vendor is null || !Vendors.TryGetValue(npc.Vendor, out Vendor? vendor) || (space as RealmInterior)?.Town?.Id != vendor.File.Town))
+            // A vendor keeps a shop (an interior of its town) or a stall in its town's market (the world, within the town).
+            string? town = space is RealmInterior room ? room.Town?.Id : space is RealmWorld ? TownAt(npc.At)?.Id : null;
+            if (npc.Kind == "vendor" && (npc.Vendor is null || !Vendors.TryGetValue(npc.Vendor, out Vendor? vendor) || town != vendor.File.Town))
             {
                 problems.Add($"{where}: {npc.Id} is a vendor, but '{npc.Vendor}' is no vendor of this town.");
             }
