@@ -18,7 +18,7 @@ import type { Presence, ServerMessage } from "./net/presence";
 import { WalkRelay } from "./net/relay";
 import { Actor } from "./render/actor";
 import { HOP_STEEP, type Point, middle } from "./render/motion";
-import { HEADING_NAMES, type Heading, NAME_OF, type Zoom } from "./render/camera";
+import type { Zoom } from "./render/camera";
 import { LEAN, Stage, type Arrival, type Spot, type StageDoor } from "./render/stage";
 import { StreamedWorld, WorldPlaces } from "./render/spots";
 import { spawnEpoch, spawnMob } from "./spawn";
@@ -46,8 +46,7 @@ export interface Options {
   readonly now: () => number;
   /** The game's clock moves only when a test advances it (`advance`), and streaming builds in steps, not milliseconds. */
   readonly manual?: boolean;
-  /** The camera's heading and outdoor zoom to start at (else what was last used). */
-  readonly heading?: Heading;
+  /** The camera's outdoor zoom to start at (else what was last used). */
   readonly zoom?: Zoom;
   /** The townsfolk stand still (tests, screenshots). */
   readonly still?: boolean;
@@ -97,8 +96,7 @@ interface ActiveRun {
   shrineHeart: THREE.Group | null;
 }
 
-/** Where the heading and the zoom are kept between visits (shared with nothing else). Storage may be refused. */
-const HEADING_KEY = "cantrip-realms.heading";
+/** Where the zoom is kept between visits (shared with nothing else). Storage may be refused. */
 const ZOOM_KEY = "cantrip-realms.zoom";
 const stored = (key: string): string | null => {
   try {
@@ -292,10 +290,8 @@ export class Overworld {
     document.querySelector<HTMLButtonElement>("[data-test='hud:inventory']")?.addEventListener("click", () => void this.openInventory());
     // The gear screen's paper doll shows the character as the world draws them, wearing what it shows worn.
     layer.portrait = (slots) => (this.data ? renderPortrait(appearanceOf(this.data), slots) : null);
-    // The camera's buttons: a heading either way, a zoom step in or out (refused where the place does not allow it).
+    // The camera's buttons: a zoom step in or out (refused where the place does not allow it).
     const button = (name: string, act: () => void) => document.querySelector<HTMLButtonElement>(`[data-test='hud:${name}']`)?.addEventListener("click", act);
-    button("turn-left", () => this.turn(-1));
-    button("turn-right", () => this.turn(1));
     button("zoom-in", () => this.zoomBy(-1));
     button("zoom-out", () => this.zoomBy(1));
   }
@@ -382,10 +378,9 @@ export class Overworld {
         tile = where.tile && spot.grid.walkable(where.tile.x, where.tile.z) ? where.tile : spot.start;
       }
     }
-    const heading = this.options.heading ?? HEADING_NAMES[stored(HEADING_KEY) ?? ""] ?? 0;
     const zoomed = Number(stored(ZOOM_KEY) ?? "x");
     const zoom = this.options.zoom ?? (zoomed === 0 || zoomed === 1 || zoomed === 2 ? zoomed : 0);
-    this.stage = new Stage(this.canvas, { heading, zoom, spot, start: tile, player: playerFigure(appearanceOf(data)), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
+    this.stage = new Stage(this.canvas, { heading: 0, zoom, spot, start: tile, player: playerFigure(appearanceOf(data)), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
     this.stage.still = !!this.options.still;
     this.stage.onArrive = (s) => this.arrived(s);
     this.stage.onTile = (t) => this.stepped(t);
@@ -739,10 +734,9 @@ export class Overworld {
     };
   }
 
-  /** Walks toward a mob; it engages when you are beside it (or it reaches you). */
+  /** Walks toward a mob, which stands to watch the player come; the duel starts once beside it. */
   private approach(mob: Mob): void {
     if (chebyshev(this.player.tile, mob.actor.tile) <= 1) {
-      mob.rest = 0;
       void this.engage(mob);
       return;
     }
@@ -1132,7 +1126,7 @@ export class Overworld {
     if (f.wayOut) doors.push(way(f.wayOut, "way-out", "leave", "world"));
     this.roomNpcs.set(id, f.npcs);
     const title = r.floors > 1 ? `${r.dungeon.name}, floor ${r.floor + 1}` : r.dungeon.name;
-    const spot: Spot = { id, title, inside: true, turns: true, place: built.place, grid, doors, actors: [], start: tile(f.arrive), bounds: built.bounds };
+    const spot: Spot = { id, title, inside: true, turns: false, place: built.place, grid, doors, actors: [], start: tile(f.arrive), bounds: built.bounds };
     return { spot, arrive: tile(f.arrive), encounters: f.spots, up: tile(f.up), down: f.down ? tile(f.down) : null, wayOut: f.wayOut ? tile(f.wayOut) : null, shrine: f.shrine ? tile(f.shrine) : null };
   }
 
@@ -1829,13 +1823,13 @@ export class Overworld {
     this.watchJumps();
     if (!this.paused) {
       const free = (who: Actor) => this.free(who);
-      // The wanderers live on the travel map (a world of two scales): in a town's grounds nothing chases.
+      // The wanderers live on the travel map (a world of two scales): in a town's grounds nothing walks but townsfolk.
       const here = this.player.tile;
       const wild = !this.inWorld || (inTravel(this.worldData, here.x, here.z) && !groundsAt(this.worldData, here.x, here.z));
       for (const mob of wild ? this.mobsHere() : []) {
         // The world's grid is a window remade as chunks come and go: walk the one there is now.
         if (mob.actor.grid !== this.spot.grid) mob.actor.grid = this.spot.grid;
-        if (mob.think(dt, this.player, free(mob.actor), this.options.wander)) void this.engage(mob);
+        mob.think(dt, this.player, free(mob.actor), this.options.wander);
         mob.actor.update(dt);
       }
       for (const v of this.visitors.values()) {
@@ -1905,19 +1899,13 @@ export class Overworld {
     frame();
   }
 
-  /** Steps the camera's heading, kept for the next visit. */
-  turn(step: -1 | 1): void {
-    if (this.stage.turn(step)) store(HEADING_KEY, NAME_OF[this.stage.rig.heading]);
-    this.showCamera();
-  }
-
   /** Steps the outdoor zoom, kept for the next visit. */
   zoomBy(step: -1 | 1): void {
     if (this.stage.zoomBy(step)) store(ZOOM_KEY, String(this.stage.rig.zoom));
     this.showCamera();
   }
 
-  /** The camera's buttons, each disabled where its step is refused (past 45 degrees, a room that does not turn, indoors' zoom). */
+  /** The camera's zoom buttons, each disabled where its step is refused (indoors, past the last step). */
   private showCamera(): void {
     const set = (name: string, disabled: boolean) => {
       const b = document.querySelector<HTMLButtonElement>(`[data-test='hud:${name}']`);
@@ -1925,8 +1913,6 @@ export class Overworld {
     };
     const here = this.stage.current;
     const rig = this.stage.rig;
-    set("turn-left", !here.turns || rig.heading === -1);
-    set("turn-right", !here.turns || rig.heading === 1);
     set("zoom-in", here.inside || rig.zoom === 0);
     set("zoom-out", here.inside || rig.zoom === rig.maxZoom());
   }

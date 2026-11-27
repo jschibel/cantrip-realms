@@ -6,32 +6,31 @@ import type { Grid, Tile } from "./world/grid";
 
 // What walks the world besides the townsfolk (render/spots.ts stands those): the mobs of the spawn points and the
 // other players in the same place, each an Actor on the place's grid (render/actor.ts: squares, eight ways, never a cut
-// corner). Mobs think for themselves - wander near their spawn, chase the player within six tiles a little slower than
-// they walk, and engage once beside them; other players walk the paths the relay sends. A mob hops a ledge a level high
-// as its file says (MobInfo `hops`); one that does not goes round by the ramps, or gives up the chase at the brink.
+// corner). Every fight is the player's choice (design.md A3): a mob wanders near its spawn and, when a player comes
+// near, stops and watches them, waiting to be challenged - a click on it - but never comes after anyone. Other players
+// walk the paths the relay sends. A mob hops a ledge a level high as its file says (MobInfo `hops`).
 
 /** Tiles a second: at most 5, the fastest walk the server takes. */
 export const PLAYER_SPEED = 4.2;
-export const CHASE_RANGE = 6;
+/** How near a player comes before a wanderer stops and watches them. */
+export const NOTICE_RANGE = 5;
 const WANDER_SPEED = 1.4;
-const CHASE_SPEED = 2.6;
 
 /** Tiles apart, as the server measures nearness: the most of the two axes (a diagonal step is one). */
 export const chebyshev = (a: Tile, b: Tile): number => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
 
 /** A spawn point's mob, walking the world. */
 export class Mob {
-  /** Seconds until it next picks somewhere to wander, or may engage again. */
+  /** Seconds until it next picks somewhere to wander. */
   rest = 3 + Math.random() * 2;
   engaged = false;
-  private retarget = 0;
 
   constructor(
     readonly actor: Actor,
     readonly info: MobInfo,
     readonly spawn: SpawnData,
     readonly epoch: number,
-    /** A dungeon run's encounter: the floor and its index (the warden's and the boss's are past the encounters). */
+    /** A dungeon run's encounter: the floor and its index (the boss's is past the encounters). */
     readonly run?: { readonly floor: number; readonly index: number; readonly role: string },
   ) {}
 
@@ -49,36 +48,19 @@ export class Mob {
   }
 
   /**
-   * One frame of thought: true when the mob is beside the player, both standing, and a duel should start. `free(t)` is
-   * whether a tile can be stood on (open, nobody else there).
+   * One frame of thought: wandering near its spawn, or - the player within `NOTICE_RANGE` - standing to watch them.
+   * `free(t)` is whether a tile can be stood on (open, nobody else there). `wander` false keeps it where it stands.
    */
-  think(seconds: number, player: Actor, free: (t: Tile) => boolean, wander: boolean): boolean {
-    if (this.engaged) return false;
+  think(seconds: number, player: Actor, free: (t: Tile) => boolean, wander: boolean): void {
+    if (this.engaged) return;
     this.rest -= seconds;
-    const me = this.actor.tile;
-    const near = chebyshev(me, player.tile);
-    // Beside is a step away for it (world/grid.ts canStep): never across a cliff, nor a ledge it does not hop.
-    const grid = this.actor.grid;
-    const hops = this.actor.hops;
-    if (near <= 1 && (near === 0 || grid.canStep(me, player.tile, hops)) && this.rest <= 0 && !player.moving && !this.actor.moving) return true;
-    if (near <= CHASE_RANGE && this.rest <= 0) {
-      // Chasing: toward the free tile beside the player nearest it, re-aimed a few times a second.
-      this.actor.speed = CHASE_SPEED;
-      this.retarget -= seconds;
-      if (near > 1 && this.retarget <= 0) {
-        this.retarget = 0.4;
-        const p = player.tile;
-        const beside: Tile[] = [];
-        for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) beside.push({ x: p.x + dx, z: p.z + dz });
-        const stand = beside.filter((t) => (free(t) || (t.x === me.x && t.z === me.z)) && grid.canStep(t, p, hops)).sort((a, b) => chebyshev(a, me) - chebyshev(b, me) || a.x - b.x || a.z - b.z)[0];
-        // No way to the player's side (across a ledge it does not hop, the ramps round it out of reach): as near as it
-        // can go - the brink, where it gives up the chase.
-        if (!stand || !this.actor.retarget(stand)) {
-          const brink = this.nearestTo(p, free);
-          if (brink.x !== me.x || brink.z !== me.z) this.actor.retarget(brink);
-        }
-      }
-      return false;
+    if (chebyshev(this.actor.tile, player.tile) <= NOTICE_RANGE) {
+      if (this.actor.moving) this.actor.stopWalking();
+      const p = player.position;
+      const at = this.actor.position;
+      this.actor.figure.face(p.x - at.x, p.z - at.z);
+      this.rest = Math.max(this.rest, 1.5);
+      return;
     }
     this.actor.speed = WANDER_SPEED;
     if (wander && !this.actor.moving && this.rest <= 0) {
@@ -89,39 +71,6 @@ export class Mob {
       }
       this.rest = 2 + Math.random() * 3;
     }
-    return false;
-  }
-
-  /**
-   * The free tile nearest `to` it can walk to from where it stands (its own steps: a ledge hopped only if it hops), no
-   * further from it than the chase reaches past the player: where a mob that cannot get to the player stops - at the
-   * brink of the ledge between them. Its own tile when nothing it reaches is nearer.
-   */
-  private nearestTo(to: Tile, free: (t: Tile) => boolean): Tile {
-    const me = this.actor.tile;
-    const grid = this.actor.grid;
-    const reach = CHASE_RANGE + 2;
-    const closer = (a: Tile, b: Tile) => chebyshev(a, to) - chebyshev(b, to) || Math.hypot(a.x - to.x, a.z - to.z) - Math.hypot(b.x - to.x, b.z - to.z) || a.x - b.x || a.z - b.z;
-    const seen = new Set([`${me.x},${me.z}`]);
-    let best = me;
-    let ring: Tile[] = [me];
-    while (ring.length > 0) {
-      const next: Tile[] = [];
-      for (const t of ring) {
-        for (let dz = -1; dz <= 1; dz++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const n = { x: t.x + dx, z: t.z + dz };
-            const k = `${n.x},${n.z}`;
-            if ((!dx && !dz) || seen.has(k) || chebyshev(n, me) > reach || !free(n) || !grid.canStep(t, n, this.actor.hops)) continue;
-            seen.add(k);
-            next.push(n);
-            if (closer(n, best) < 0) best = n;
-          }
-        }
-      }
-      ring = next;
-    }
-    return best;
   }
 }
 

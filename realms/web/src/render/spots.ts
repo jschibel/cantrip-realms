@@ -48,7 +48,8 @@ function highest(c: ChunkData): number {
  */
 export class StreamedWorld implements Spot {
   readonly inside = false;
-  readonly turns = true;
+  // One heading, looking north, everywhere in the game (design.md A6): a place is learned as it always looks.
+  readonly turns = false;
   readonly place: Place;
   readonly streamer: ChunkStreamer;
   /** Where the player stands, as far as the framing goes: the tile they last arrived on. */
@@ -130,7 +131,7 @@ export function roomSpot(room: InteriorData, outTo: string): Spot {
   const actors = room.npcs.filter((n) => !OBJECT_KINDS.has(n.kind)).map((n) => npcActor(n, grid));
   for (const a of actors) built.place.addFigure(a.figure.root);
   const doors: StageDoor[] = [{ name: `door:${outTo}`, tile: { x: room.entry[0], z: room.entry[1] }, step: [0, 1], to: outTo, at: new THREE.Vector3(...built.doorway), kind: "leave" }];
-  return { id: room.id, title: room.name, inside: true, turns: true, place: built.place, grid, doors, actors, start: { x: room.entry[0], z: room.entry[1] - 1 }, bounds: built.bounds };
+  return { id: room.id, title: room.name, inside: true, turns: false, place: built.place, grid, doors, actors, start: { x: room.entry[0], z: room.entry[1] - 1 }, bounds: built.bounds };
 }
 
 const tileOf = ([x, z]: XZ): Tile => ({ x, z });

@@ -10,7 +10,7 @@ import { bindInput } from "./input";
 import { ApiError, type Character, HttpApi, type RealmApi } from "./net/api";
 import { MockApi } from "./net/mockApi";
 import { LocalPresence, type Presence, SocketPresence } from "./net/presence";
-import { HEADING_NAMES, type Zoom } from "./render/camera";
+import type { Zoom } from "./render/camera";
 import type { WalkInput } from "./render/pointer";
 import { createCharacter } from "./screens/create";
 import { bindReports } from "./reports";
@@ -38,7 +38,7 @@ import { DOMINARIA, DUNGEONS, besideEntrance } from "./world/realm";
 //                   ?still stands the townsfolk still, ?nohud hides the HUD (pictures).
 // and, for development and tests, forces a state rather than waiting on chance:
 //   ?at=world:x,z | <town> | <dungeon> | <interior>  start there (a town at its inn's door - in its grounds, in a world of
-//                   two scales - else its middle; a dungeon outside its entrance); ?heading=left|front|right, ?zoom=0..2;
+//                   two scales - else its middle; a dungeon outside its entrance); ?zoom=0..2;
 //   ?now=<unix seconds> pins the spawn clock; ?wander=0 keeps mobs at home, ?mobs=0 leaves them out;
 //   ?name=&color=&body=&palette= makes the offline character without the screen; ?attuned=<tower>,... starts the
 //   offline character with those mage towers' waystones attuned.
@@ -117,7 +117,6 @@ async function boot(): Promise<void> {
       mobs: query.get("mobs") !== "0",
       now,
       manual: query.has("manual"),
-      heading: HEADING_NAMES[query.get("heading") ?? ""],
       zoom: zoom === 0 || zoom === 1 || zoom === 2 ? (zoom as Zoom) : undefined,
       still: query.has("still"),
     },

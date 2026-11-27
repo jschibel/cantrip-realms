@@ -366,9 +366,6 @@ export function publishTestHooks(game: () => Overworld | null, layer: CardScreen
     zoomBy(step: -1 | 1) {
       game()?.zoomBy(step);
     },
-    turn(step: -1 | 1) {
-      game()?.turn(step);
-    },
     get transitioning() {
       return stage()?.transition !== null;
     },
