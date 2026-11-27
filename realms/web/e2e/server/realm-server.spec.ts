@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { doorOf, spawnNear } from "../places";
-import { advance, chebyshev, clickClear, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitGround, waitReady, waitSpace, walkTo, world } from "../realm";
+import { advance, chebyshev, clearWorld, clickClear, clickControl, clickEntity, entity, openNear, player, playerTile, realm, until, waitGround, waitReady, waitSpace, walkTo, world } from "../realm";
 import { type Me, api, character, query, requests, signIn, verdict } from "./server";
 
 // The overworld against the real realm server on the generated Domains (playwright.config.ts here): a player signs in by
@@ -123,7 +123,7 @@ test("players near each other see each other walk through the real relay, in the
 
   // Alice walks a few tiles; Bob sees her get there.
   const from = await playerTile(alice.page);
-  const goal = openNear(from, 3);
+  const goal = openNear(from, 3, clearWorld);
   await walkTo(alice.page, goal);
   const there = await playerTile(alice.page);
   expect(chebyshev(there, seen.tile)).toBeGreaterThan(0);

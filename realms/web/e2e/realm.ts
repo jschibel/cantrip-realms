@@ -377,6 +377,16 @@ export function openWorld(t: Tile): boolean {
   return !c.npcs.some((n) => n.x === t.x && n.z === t.z) && !c.spawns.some((s) => s.x === t.x && s.z === t.z);
 }
 
+/**
+ * Whether a world tile is open ground (openWorld) a click on which walks there and nowhere else: nobody and nothing used
+ * from beside it within a tile of it (a click there would pick them - a quest board over the tile north of it, a vendor).
+ */
+export function clearWorld(t: Tile): boolean {
+  if (!openWorld(t)) return false;
+  for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (chunkAt({ x: t.x + dx, z: t.z + dz })?.npcs.some((n) => n.x === t.x + dx && n.z === t.z + dz)) return false;
+  return true;
+}
+
 /** Whether a world tile can be stood on at all: ground, and nothing closing it (a door or a road's end is fine). */
 export function standable(t: Tile): boolean {
   const c = chunkAt(t);
