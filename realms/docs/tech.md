@@ -211,14 +211,14 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   one is built: the dev server serves the web client's built page on a port of its own (its port + 100, or
   `REALM_CARD_LAYER_PORT`; `vite.config.ts`) and says where in a `<meta name="card-layer">`; `?cards=stub` (or
   `REALM_CARD_LAYER=stub`, as the offline suites set) asks for the stand-in panels (`cardStub.ts`). `?at=` (`world:x,z`, a town, an interior or a dungeon),
-  `?now=`, `?wander=0`, `?mobs=0`, `?attuned=`, `?heading=`, `?zoom=`, `?still` and `?nohud` force a state for tests and
+  `?now=`, `?wander=0`, `?mobs=0`, `?attuned=`, `?zoom=`, `?still` and `?nohud` force a state for tests and
   development (src/main.ts): `?at=` a town is its inn's door (in its grounds, in a world of two scales), `world:x,z` a
   tile of either scale. `?world=slice|large|two` plays the art slice's street, the renderer's large synthetic world or
   the small world of two scales (`fixtures/two-world`: a travel map with Twoford's icon, its two ways, the caves and a
   spawn of each tier; Twoford's grounds three chunks east) instead of the Domains; offline, the MockApi plays the world
   shown (`MockApi.useWorld`). `e2e/travel-map.spec.ts` plays the two scales on it: the icon clicked and gone into behind
   the iris, an exit walked out of to stand beside the icon (and stay), a held walk into the icon, the camera in the
-  grounds showing no void at any heading or zoom (the frame's pixels counted, `TRAVEL_SHOTS=<dir>` keeping the
+  grounds showing no void at any zoom (the frame's pixels counted, `TRAVEL_SHOTS=<dir>` keeping the
   pictures), and the maps switching.
 - **Test hooks:** `?test` publishes `globalThis.realmTest`, the screen position of every entity and control by name,
   the way `cantripTest` does (and `sliceTest`, the stage's view for the renderer's suites). `?manual` holds the clock
@@ -231,18 +231,18 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   the exit and out beside the icon, along the road to Capashen Hold, in by a click on its icon (the hearts filled there,
   the travel map's wilds filling none) and through its streets into its inn - no jump, no walk refused.
   `grounds.spec.ts` opens each of the sixteen towns with `?at=<town>`: the player at the inn's door in its grounds, out
-  of any door a few seconds on, and no void's pixel in the frame at any heading or zoom the camera allows there
+  of any door a few seconds on, and no void's pixel in the frame at any zoom the camera allows there
   (`GROUNDS_SHOTS=<dir>` keeps the pictures). `walking.spec.ts` follows the player beside a shop frame by frame
   (`realmTest.track`), held and clicked: no jump, no turning back; `sweep.spec.ts` walks and steers the player about
   towns' grounds and, on the travel map, along a road, among a wood's groves, against a range's peaks, over a bridge and
   up and down a bank, every frame checked for a jump and the body for a closed tile or a ledge under it but mid-hop (and
   mid-hop no longer than a hop takes), and after each walk for a way back to where it began (never shut in a pocket);
-  and walks a ledge's brink and hops it, held and clicked, in a grounds and on the travel map; `hop.spec.ts` hops a
-  terrace of the large world with the real mouse at each heading, held down and clicked up, frame by frame and pictured;
+  and walks a ledge's brink and hops it, held and clicked, on the travel map (towns are flat); `hop.spec.ts` hops a
+  terrace of the large world with the real mouse, held down and clicked up, frame by frame and pictured;
   SWEEP_TOWNS, SWEEP_TRAVEL (road, wood, range, bridge, bank), SWEEP_WALKS sweep more, and `e2e/server/sweep.spec.ts`,
   with REALMS_SWEEP=1, sweeps on the real server, every refused walk noted too). `duel.spec.ts` has a wanderer of the
-  travel map engaged with a click, one that chases a player standing near into a duel itself, and one that does not hop
-  come as near as it can and stop at a bank's brink; `hearts.spec.ts` fills the hearts walking into a town's grounds
+  travel map engaged with a click, and one a player stands near for twenty seconds that stops to watch them, keeps its
+  distance and starts no duel until it is clicked; `hearts.spec.ts` fills the hearts walking into a town's grounds
   from its icon, and wakes the dead at their inn's door in its grounds; `dungeons.spec.ts` leaves a mage tower onto the
   travel map beside its way in and travels by its waystone to another; `travel.spec.ts` crosses the Rip on the Keldon
   ferry. `map.spec.ts` opens the whole map with M at 1280x800 and 1920x1080 - filling the window at 2:3, every town
@@ -252,7 +252,7 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   (`REALM_TOUR=1` writes `e2e/screenshots/tour`, `TOUR_ONLY=towns,regions,rooms,dungeons,rest` some of them): each town
   at its inn's door, each region of the travel map (geography.json's) from the furthest zoom, an interior of each kind,
   each dungeon's entrance on the travel map and a floor of it, and a walk out of New Benalia down its road and onto the
-  travel map as a GIF; `occlude.spec.ts` holds the occluder fade and the steady view in New Benalia at every heading;
+  travel map as a GIF; `occlude.spec.ts` holds the occluder fade and the steady view in New Benalia;
   `shadows.spec.ts` the sun's shadow meeting the foot of a terrace's face, on the large world's hills. `npm run
   e2e:server` runs `e2e/server/` against the real realm server on the generated world instead (the page on its own
   clock there, as the server times walks by its clock; its ports `REALMS_E2E_PORTS=web,realm,cards`, the card layer
@@ -1144,13 +1144,16 @@ geography.png`, the regions, and the map beside the reference; `--crop x0,z0,x1,
   paved street across the town, deeper by two than what the row south of it hides behind it (measured from the art at
   heading 0, `town/view.ts`), so the head's doors are always seen; **row B** - the inn just west of the avenue (the
   exotic wares beyond it in the two big towns), the smithy and the arena east, houses at its ends, a passage through
-  every gap between its buildings; **the market**, where every card vendor stands before a stall of cards on either side
-  of the avenue, the quest board by the inn's door, the centrepiece (a fountain in the capital; a statue, a well, a
-  crystal, a great tree or a fire bowl elsewhere) in the middle where it fits, else beside the avenue, benches, lamps,
-  produce stalls, the caravans' pitch, and a lane along the south wall; then the **south wall with the one gate** (a
-  gatehouse, or a hedge's gap between banners), and the road out. The avenue runs from the gate through the market and
-  row B to the temple's door. Every way of the town's icon (one per road on the travel map) shares the gate: the same
-  `inside` (three tiles in, on the market's south lane) and `exit` (the road's three tiles just outside); the overworld
+  every gap between its buildings; **the market**, 12 tiles deep: a lane before row B's doors with the quest board by the
+  inn's and the centrepiece (a fountain in the capital; a statue, a well, a crystal, a great tree or a fire bowl
+  elsewhere) in the avenue's mouth, then every card vendor before a stall of cards on either side of the avenue, the
+  row one arrives on, and a lane along the south wall with benches and the caravans' pitch at its east end; then the
+  **south side, kept low** - a low wall of stone, a low palisade or a hedge, so the market is seen over it and nothing
+  tall stands between the arrival and the stalls (the full wall and its corner towers run round the other three
+  sides) - with **the one gate**, a gap between two banners, and the road out. The avenue runs from the gate through the
+  market and row B to the temple's door. Every way of the town's icon (one per road on the travel map) shares the gate:
+  the same `inside` (on the avenue just south of the vendors: every stall and row B in sight at the middle zoom) and
+  `exit` (the road's three tiles just outside the gap); the overworld
   leaves a town by the way the player came in by. Nothing is on terraces. Outside the wall is scenery only, never
   walked: the biome's ground, its trees, fields in farming country, the sea on a sea side (`town/country.ts`). Grounds
   are whole chunks: 96 by 64 round a village, 96 by 96 round a home town, 128 by 96 round the capital - about 34 by 34,
@@ -1329,7 +1332,7 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
 - **Overworld:** vitest for the grid and its A* (the walk vectors the server checks too), spawn generation (the same golden vectors as the server), the world format, loader and lint (Dominaria's files lint clean and are what the generator writes), the art registries, rooms, dungeon floors, figures and the renderer's pieces, and the in-memory API.
 - **Browser end to end:** Playwright in `realms/web/e2e` (B5, "Test hooks"), driving `realmTest` and `cantripTest` with real clicks: `npm run e2e` offline against the in-memory API and the stand-in card layer, `npm run e2e:server` against the realm server, the native engine host and the real card layer.
   - The flow: create a character → walk → engage a mob → the duel → its gold → a vendor sale → spell table edits → a loss, a heart gone, the buyout or a rematch → the last heart lost returns you home, to your inn's door in its town's grounds.
-  - The two scales: a journey from one town's inn out onto the travel map and into the next town's by its icon, walked with real clicks; every town's grounds opened at its inn with no void at any heading or zoom; the travel map and towns' grounds swept by held and clicked walks for jumps and pockets; wanderers chasing on the travel map, and one that does not hop stopping at a bank's brink; a dungeon left onto the travel map beside its way in.
+  - The two scales: a journey from one town's inn out onto the travel map and into the next town's by its icon, walked with real clicks; every town's grounds opened at its inn with no void at any zoom; the travel map and towns' grounds swept by held and clicked walks for jumps and pockets; a wanderer engaged only by a click, one stood near watching and waiting; a dungeon left onto the travel map beside its way in.
   - The duel is forced with a `.cantrip` scenario, never a seed hunt.
   - Two browser contexts see each other move and change gear.
   - Screenshot checks of the world rendering: the void's pixels counted in towns' grounds, the occluder fade, the shadows at a terrace's foot; the tour's pictures for eyes.

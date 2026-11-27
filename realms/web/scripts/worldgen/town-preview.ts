@@ -1,7 +1,6 @@
 // The towns of layout.json at walking scale before the travel map exists (`npx vite-node
 // scripts/worldgen/town-preview.ts [town-id ...] [--no-world]`): each built by the town generator (town/) in a pocket of
-// its own on a setting made up from the canon (town/preview.ts, `TOWN_SETTINGS`), checked (town/check.ts throws on a rule
-// broken), drawn from above into e2e/screenshots/world2/town-<id>.png, and written as a standalone version-2 world -
+// its own on the setting the travel map gives it (town/preview.ts, `TOWN_SETTINGS`), drawn from above into e2e/screenshots/world2/town-<id>.png, and written as a standalone version-2 world -
 // world.json, the chunks where there is ground, the interiors - into realms/web/town-preview/ (gitignored), which the
 // game opens with `?world=towns&at=<town-id>`.
 

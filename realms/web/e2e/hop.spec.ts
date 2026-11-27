@@ -5,7 +5,7 @@ import { type Page, expect, test } from "@playwright/test";
 import { type Tile, advance, openRealm, realm } from "./realm";
 
 // Hopping a ledge a level high (world/format.ts HOP) on the large world's terraced hills (?world=large), with the real
-// mouse at each of the camera's three headings: held off the brink, the player hops down; a click on the terrace above
+// mouse (the camera looking north, as ever): held off the brink, the player hops down; a click on the terrace above
 // walks to the brink and hops up. Each is followed frame by frame (realmTest.track): every frame a walk's step, the
 // figure rising and falling on an arc over several frames and never popped, across the edge only mid-hop and no longer
 // than a hop takes, landing on the other level. Frames of each hop are pictured (REALM_SHOTS=1 writes
@@ -95,7 +95,7 @@ async function hopFrames(page: Page, name: string, seconds: number, aim?: () => 
 }
 
 test("hop: a walker that hops goes over the ledge tile to tile as a mob walks, one that does not goes round by a ramp or not at all", async ({ page }) => {
-  const errors = await openRealm(page, { at: `world:${HILLS.x},${HILLS.z}`, extra: "&world=large&mobs=0&heading=front&zoom=0" });
+  const errors = await openRealm(page, { at: `world:${HILLS.x},${HILLS.z}`, extra: "&world=large&mobs=0&zoom=0" });
   const { at: brink, below, low, top } = await brinkOf(page);
   // The page's own walker (an Actor, as every mob is: render/actor.ts), walked as a mob walks - tile middle to tile
   // middle at a chase's pace - hopping or not as a mob's file says (entities.ts sets `hops` from it).
@@ -138,9 +138,9 @@ test("hop: a walker that hops goes over the ledge tile to tile as a mob walks, o
   expect(errors).toEqual([]);
 });
 
-for (const heading of ["front", "left", "right"] as const) {
+for (const heading of ["front"] as const) {
   test(`hop: held off a ledge the player hops down, a click above hops it up - real mouse, the camera ${heading}`, async ({ page }) => {
-    const errors = await openRealm(page, { at: `world:${HILLS.x},${HILLS.z}`, extra: `&world=large&mobs=0&heading=${heading}&zoom=0` });
+    const errors = await openRealm(page, { at: `world:${HILLS.x},${HILLS.z}`, extra: `&world=large&mobs=0&zoom=0` });
     const { at: brink, below, top, low } = await brinkOf(page);
     // Stood on the top, two tiles in from the brink.
     await page.evaluate(([x, z]) => (globalThis as any).sliceStage.player.place({ x, z }), [brink.x + 2, brink.z] as const);

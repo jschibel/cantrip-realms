@@ -180,7 +180,7 @@ test("on the travel map a click on ground past the icon walks there round it, an
   expect(errors).toEqual([]);
 });
 
-test("in the grounds the camera never shows the void past them, at any heading or zoom", async ({ page }) => {
+test("in the grounds the camera never shows the void past them, at any zoom", async ({ page }) => {
   test.setTimeout(240_000);
   const errors = await open(page, { x: BASIN[0] + 1, z: BASIN[1] + 1 });
   // Two corners of the walked ground (the bank round them two terraces high: raised ground is seen further up the screen)
@@ -189,25 +189,19 @@ test("in the grounds the camera never shows the void past them, at any heading o
   const shares: string[] = [];
   for (const [i, at] of corners.entries()) {
     await page.evaluate(([x, z]) => (globalThis as any).realmTest.placePlayer(x, z), [at.x, at.z] as const);
-    for (const heading of [-1, 0, 1] as const) {
-      // Turn to the heading, then try every zoom out from the closest: those the grounds cannot hold are refused.
-      await page.evaluate((h) => {
-        const t = (globalThis as any).sliceTest;
-        const now = { left: -1, front: 0, right: 1 }[t.heading as "left" | "front" | "right"];
-        for (let k = now; k < h; k++) t.turn(1);
-        for (let k = now; k > h; k--) t.turn(-1);
-        for (let k = 0; k < 3; k++) t.zoomBy(-1);
-      }, heading);
-      for (let zoom = 0; zoom < 3; zoom++) {
-        if (zoom > 0) await page.evaluate(() => (globalThis as any).sliceTest.zoomBy(1));
-        await advance(page, 0.8);
-        await until(page, async () => (await realm<boolean>(page, "streamed")) === true, "the grounds built", 20);
-        const share = await voidShare(page);
-        const step = await realm<number>(page, "zoom.step");
-        shares.push(`${at.x},${at.z} heading ${heading} zoom ${step}: ${(share * 100).toFixed(3)}%`);
-        if (zoom === step) await shot(page, `5-void-${i}-${heading}-${step}`);
-        expect(share, shares.at(-1)).toBeLessThan(0.0005);
-      }
+    // Every zoom out from the closest: those the grounds cannot hold are refused.
+    await page.evaluate(() => {
+      for (let k = 0; k < 3; k++) (globalThis as any).sliceTest.zoomBy(-1);
+    });
+    for (let zoom = 0; zoom < 3; zoom++) {
+      if (zoom > 0) await page.evaluate(() => (globalThis as any).sliceTest.zoomBy(1));
+      await advance(page, 0.8);
+      await until(page, async () => (await realm<boolean>(page, "streamed")) === true, "the grounds built", 20);
+      const share = await voidShare(page);
+      const step = await realm<number>(page, "zoom.step");
+      shares.push(`${at.x},${at.z} zoom ${step}: ${(share * 100).toFixed(3)}%`);
+      if (zoom === step) await shot(page, `5-void-${i}-${step}`);
+      expect(share, shares.at(-1)).toBeLessThan(0.0005);
     }
   }
   expect(errors).toEqual([]);

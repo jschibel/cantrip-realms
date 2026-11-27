@@ -54,7 +54,8 @@ async function faded(page: Page, name: string): Promise<{ x: number; y: number }
   return changed;
 }
 
-for (const heading of ["left", "front", "right"] as const) {
+// The game looks north and never turns (one heading).
+for (const heading of ["front"] as const) {
   test(`occlude: under a shop's awning only what covers the player fades, never the shop's far side, at the ${heading} heading`, async ({ page }) => {
     const { at: tile, from } = underAwning();
     await standOn(page, from, tile, heading);

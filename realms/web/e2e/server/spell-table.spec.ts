@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Frame, type Page, expect, test } from "@playwright/test";
 import { spawnNear } from "../places";
-import { clickClear, entity, openNear, realm, waitReady } from "../realm";
+import { clickClear, entity, openNear, realm, waitReady, world } from "../realm";
 
 // The spell table and a card vendor in the real card layer against the real realm server (playwright.config.ts here): the
 // overworld frames the web client's ?realm page, and every edit, save, purchase and sale is a real mouse click (or drag)
@@ -290,9 +290,9 @@ test("the spell table builds a deck from the collection, refuses what the realm 
 
 test("a vendor sells at list price and buys at half from its purse, and the spell table has the card at once", async ({ page }) => {
   test.setTimeout(420_000);
-  // A white character inside Grizzlegom's goblin shop in New Benalia, at its door.
-  const shop = "argive-goblin-trader-shop";
-  await character(page.request, id(52), "Odo", {}, shop, { x: 5, z: 6 });
+  // A white character at Grizzlegom's goblin stall in New Benalia's market, before it.
+  const stall = world().towns.find((t) => t.id === "new-benalia")!.plan!.places.find((p) => p.kind === "shop" && p.name === "Grizzlegom's Goblins")!;
+  await character(page.request, id(52), "Odo", {}, "world", { x: stall.x, z: stall.z + 1 });
   await openAndClick(page, "vendor");
   await cardsUntil(page, (s) => s.realm?.screen === "vendor" && s.cards.some((c) => c.row === "stock"), "the vendor's shelves", 60_000);
   const before = await api<Vendor>(page.request, "vendor/argive-goblin-trader");

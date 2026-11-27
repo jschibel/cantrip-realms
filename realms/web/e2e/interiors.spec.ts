@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { doorOf } from "./places";
-import { at, chebyshev, clickControl, clickEntity, entity, openNear, openRealm, playerTile, realm, until, waitSpace, walkTo, world } from "./realm";
+import { at, chebyshev, clickControl, clickEntity, clickWalk, entity, openNear, openRealm, playerTile, realm, until, waitSpace, walkTo, world } from "./realm";
 
-// Interiors: through a door with no loading screen, the shop's vendor at their counter, the inn's keeper and spell
-// table, and out again to the street the door opens on.
+// Interiors: through a door with no loading screen, the exotic wares' dealer at their counter, the inn's keeper and spell
+// table, and out again to the market the door opens on; and the card vendors at their stalls in the market, outdoors.
 
 const open = (page: Parameters<typeof realm>[0]) => realm<string | null>(page, "layer.open");
 
-test("into a shop and out again: the vendor inside, and back on the street before the door", async ({ page }) => {
-  const shop = "argive-goblin-trader-shop";
+test("into a shop and out again: the dealer inside, and back in the market before the door", async ({ page }) => {
+  const shop = "new-benalia-exotic-wares-shop";
   const door = doorOf(shop);
   await openRealm(page, { at: at(openNear(door, 3)), extra: "&mobs=0" });
   const way = await entity(page, (e) => e.kind === "door" && e.to === shop, "the shop's door");
@@ -20,16 +20,36 @@ test("into a shop and out again: the vendor inside, and back on the street befor
   const calls = await realm<{ name: string; body?: unknown }[]>(page, "api");
   expect(calls.filter((c) => c.name === "position").at(-1)?.body).toMatchObject({ Space: shop });
 
-  await clickEntity(page, (e) => e.kind === "vendor" && e.id === "argive-goblin-trader", "the vendor");
-  await until(page, async () => (await open(page)) === "vendor", "the vendor's wares", 20);
+  await clickEntity(page, (e) => e.kind === "vendor" && e.id === "new-benalia-exotic-wares", "the dealer");
+  await until(page, async () => (await open(page)) === "vendor", "the dealer's wares", 20);
   const requests = await realm<{ screen: string; args: { id?: string } }[]>(page, "layer.requests");
-  expect(requests.at(-1)).toMatchObject({ screen: "vendor", args: { id: "argive-goblin-trader" } });
+  expect(requests.at(-1)).toMatchObject({ screen: "vendor", args: { id: "new-benalia-exotic-wares" } });
   await clickControl(page, "layer:close");
   await until(page, async () => (await realm<string>(page, "screen")) === "world", "back from the wares");
 
   await clickEntity(page, (e) => e.kind === "leave", "the door out");
   await waitSpace(page, "world");
   expect(chebyshev(await playerTile(page), door)).toBeLessThanOrEqual(1);
+});
+
+test("a card vendor at its stall in the market: clicked, the player walks up and its wares open", async ({ page }) => {
+  // In through the gate (where every way of the town lets one in), the market and its stalls before them.
+  const town = world().towns.find((t) => t.id === "new-benalia")!;
+  const inside = town.ways![0]!.inside;
+  await openRealm(page, { at: at({ x: inside[0], z: inside[1] }), extra: "&mobs=0" });
+  expect(await realm<string>(page, "space.id")).toBe("world");
+  const stall = town.plan!.places.find((p) => p.kind === "shop" && p.name === "Grizzlegom's Goblins")!;
+  // Along the vendors' row to the goblin trader's stall (at the market's west end, past the view's edge), then a click
+  // on the vendor.
+  await clickWalk(page, { x: stall.x + 2, z: stall.z + 1 }, 1);
+  await clickEntity(page, (e) => e.kind === "vendor" && e.id === "argive-goblin-trader", "the goblin trader at its stall");
+  await until(page, async () => (await open(page)) === "vendor", "the vendor's wares", 30);
+  const requests = await realm<{ screen: string; args: { id?: string } }[]>(page, "layer.requests");
+  expect(requests.at(-1)).toMatchObject({ screen: "vendor", args: { id: "argive-goblin-trader" } });
+  // Traded with standing at the stall, outdoors.
+  expect(await realm<string>(page, "space.id")).toBe("world");
+  expect(chebyshev(await playerTile(page), stall)).toBeLessThanOrEqual(2);
+  await clickControl(page, "layer:close");
 });
 
 test("the inn: its keeper lets you rest, and its spell table opens the spellbook", async ({ page }) => {

@@ -34,30 +34,25 @@ test("a player signs in, makes a character, walks, visits a vendor and starts an
   expect(await realm<string>(page, "character.name")).toBe("Ann");
   expect(await realm<string[]>(page, "character.identity")).toEqual(["G"]);
 
-  // Along New Benalia's streets to Grizzlegom's shop: the server takes every step of the walk, and hears where it stops.
-  const door = doorOf("argive-goblin-trader-shop");
-  await walkTo(page, door, 3);
+  // Across New Benalia's market to Grizzlegom's stall: the server takes every step of the walk, and hears where it stops.
+  const stall = capital.plan!.places.find((p) => p.kind === "shop" && p.name === "Grizzlegom's Goblins")!;
+  await walkTo(page, { x: stall.x, z: stall.z + 2 }, 1);
   const stopped = await playerTile(page);
   await until(page, async () => {
     const me = await api<Me>(page.request, "me");
     return `${me.Space}:${me.X},${me.Z}` === `world:${stopped.x},${stopped.z}`;
   }, "the server heard where the walk stopped", 60);
 
-  // Into the shop: the overworld asks the card layer for the vendor's screen, of a vendor the server keeps there.
-  await clickEntity(page, (e) => e.kind === "door" && e.to === "argive-goblin-trader-shop", "the shop's door");
-  await waitSpace(page, "argive-goblin-trader-shop");
-  await until(page, async () => (await api<Me>(page.request, "me")).Space === "argive-goblin-trader-shop", "the server has Ann in the shop", 60);
-  await clickEntity(page, (e) => e.kind === "vendor", "Grizzlegom");
+  // At the stall: the overworld asks the card layer for the vendor's screen, of a vendor the server has trade there.
+  await clickEntity(page, (e) => e.kind === "vendor" && e.id === "argive-goblin-trader", "Grizzlegom");
   await until(page, async () => (await realm<string | null>(page, "layer.open")) === "vendor", "the vendor's screen", 60);
   expect((await requests(page)).find((r) => r.screen === "vendor")?.args).toMatchObject({ id: "argive-goblin-trader" });
   const shop = await api<{ Vendor: { Id: string; Town: string; Kind: string }; Purse: number; Stock: unknown[] }>(page.request, "vendor/argive-goblin-trader");
   expect(shop.Vendor).toMatchObject({ Id: "argive-goblin-trader", Town: capital.id, Kind: "shop" });
   expect(shop.Stock.length).toBeGreaterThan(0);
   await clickControl(page, "layer:close");
-  await until(page, async () => (await realm<string>(page, "screen")) === "world", "back in the shop");
-  await clickEntity(page, (e) => e.kind === "leave", "the door out");
-  await waitSpace(page, "world");
-  await until(page, async () => (await api<Me>(page.request, "me")).Space === "world", "the server has Ann outside", 60);
+  await until(page, async () => (await realm<string>(page, "screen")) === "world", "back in the market");
+  expect((await api<Me>(page.request, "me")).Space).toBe("world");
 
   // Out by a road of its grounds onto the travel map, to a spawn of the wilds by the capital: the mob the page shows is the one the server holds
   // there, so the encounter starts, and the duel the card layer is asked for is the server's. (A mob that comes for Ann

@@ -38,7 +38,7 @@ async function open(page: Page, query: string): Promise<string[]> {
 }
 
 test("game: the street, into the shop, its vendor's wares, and back out", async ({ page }) => {
-  const errors = await open(page, "world=slice&at=world:13,13&mobs=0&heading=front&zoom=0");
+  const errors = await open(page, "world=slice&at=world:13,13&mobs=0&zoom=0");
   expect(await realm<{ kind: string }>(page, "space")).toMatchObject({ kind: "world" });
   expect((await realm<{ name: string }>(page, "area"))?.name).toBe("New Benalia");
   await page.screenshot({ path: join(out, "game-street.png") });
@@ -69,17 +69,14 @@ test("game: the street, into the shop, its vendor's wares, and back out", async 
   expect(errors).toEqual([]);
 });
 
-test("game: a goblin of the large world chases the player down and a duel opens over the world; won, it is gone", async ({ page }) => {
-  const errors = await open(page, "world=large&at=world:94,132&wander=0&heading=front&zoom=0");
+test("game: a goblin of the large world clicked is walked up to and a duel opens over the world; won, it is gone", async ({ page }) => {
+  const errors = await open(page, "world=large&at=world:94,132&wander=0&zoom=0");
   const mobs = () => entities(page).then((es) => es.filter((e) => e.kind === "mob"));
   expect((await mobs()).length).toBeGreaterThan(0);
-  // Walk toward the nearest; it comes the rest of the way.
+  // It waits to be challenged: a click on it walks the player up, and the duel opens beside it.
   const goblin = (await mobs()).sort((a, b) => a.tile.x - b.tile.x).at(-1)!;
-  await page.evaluate(([x, z]) => {
-    const o = (globalThis as any).realmTest.game;
-    o.stage.player.goTo(o.stage.reachableNear({ x: x + 3, z }, 3));
-  }, [goblin.tile.x, goblin.tile.z] as const);
-  for (let i = 0; i < 80 && (await realm<string>(page, "screen")) !== "duel"; i++) await advance(page, 0.1);
+  await page.mouse.click(goblin.x, goblin.y);
+  for (let i = 0; i < 120 && (await realm<string>(page, "screen")) !== "duel"; i++) await advance(page, 0.1);
   expect(await realm<string>(page, "screen")).toBe("duel");
   expect((await realm<{ screen: string }[]>(page, "layer.requests")).at(-1)?.screen).toBe("duel");
   await page.screenshot({ path: join(out, "game-duel.png") });

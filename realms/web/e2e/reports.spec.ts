@@ -17,6 +17,8 @@ test.skip(!serverDll(), "the realm server is not built, and its writer files off
 
 test("F8 files a playtest report with its screenshot, state and logs", async ({ page }) => {
   await openRealm(page, { at: "new-benalia", extra: "&mobs=0" });
+  // A line of the page's console, which the report keeps (console.log).
+  await page.evaluate(() => console.log("a line for the report's console log"));
   const box = page.locator("[data-test='report']");
 
   await page.keyboard.press("F8");

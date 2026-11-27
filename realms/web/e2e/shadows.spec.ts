@@ -70,7 +70,8 @@ function terraceFoot(page: Page): Promise<{ x: number; z0: number; z1: number; y
   }, [HILLS.x, HILLS.z] as const);
 }
 
-for (const heading of ["front", "right"] as const) {
+// The game looks north and never turns (one heading).
+for (const heading of ["front"] as const) {
   test(`shadows: a terrace's shadow meets the foot of its face with no gap, at the ${heading} heading`, async ({ page }) => {
     await openRealm(page, { at: `world:${HILLS.x},${HILLS.z}`, extra: "&world=large&mobs=0" });
     const foot = await terraceFoot(page);

@@ -5,7 +5,7 @@ import { type Page, expect, test } from "@playwright/test";
 
 // The renderer at world scale (src/render/), on the large synthetic world (fixtures/large-world, the game page ?world=large)
 // and on the manual clock: chunks streamed in and out as the player crosses their borders, the camera turned and zoomed
-// while walking, a door into a room and back out at every heading, the x-ray through what stands in front of the player,
+// while walking, a door into a room and back out, the x-ray through what stands in front of the player,
 // the furthest zoom's level of detail, and the way up a terrace's ramp. With RENDER_SHOTS=1 the pictures go to
 // e2e/screenshots/render; otherwise to test-results/render. The benchmark is its own (e2e/bench, npm run bench).
 
@@ -87,7 +87,7 @@ function colorCount(f: Frame): number {
 }
 
 test("render: chunks stream in ahead of the player and drop behind, across chunk borders, without a stop", async ({ page }) => {
-  const errors = await open(page, "still&at=128,137&heading=front&zoom=0");
+  const errors = await open(page, "still&at=128,137&zoom=0");
   await advance(page, 0.5);
   const start = await render(page);
   expect(start.built).toContain("4_4");
@@ -106,8 +106,8 @@ test("render: chunks stream in ahead of the player and drop behind, across chunk
   expect(errors).toEqual([]);
 });
 
-test("render: turning and zooming while walking keeps the walk going and settles snapped", async ({ page }) => {
-  const errors = await open(page, "still&at=128,137&heading=front&zoom=0");
+test("render: zooming while walking (and the old turn keys, which turn nothing) keeps the walk going and settles snapped", async ({ page }) => {
+  const errors = await open(page, "still&at=128,137&zoom=0");
   await advance(page, 0.3);
   expect(await page.evaluate(() => (globalThis as any).sliceTest.walkTo(155, 137))).toBe(true);
   const xs: number[] = [];
@@ -133,9 +133,9 @@ test("render: turning and zooming while walking keeps the walk going and settles
   expect(errors).toEqual([]);
 });
 
-for (const heading of ["left", "front", "right"] as const) {
+for (const heading of ["front"] as const) {
   test(`render: through a shop's door into its room and back out, at the ${heading} heading`, async ({ page }) => {
-    const errors = await open(page, `still&at=128,137&heading=${heading}&zoom=0`);
+    const errors = await open(page, `still&at=128,137&zoom=0`);
     await advance(page, 0.5);
     const door = await page.evaluate(() => {
       const t = (globalThis as any).sliceTest;
@@ -187,12 +187,10 @@ function differences(a: Frame, b: Frame, cx: number, cy: number): { count: numbe
 // where it was hidden, and nothing else of the frame changes but the occluders.
 for (const [place, at, heading] of [
   ["town", "134,133", "front"],
-  ["forest", "40,60", "left"],
   ["forest", "40,60", "front"],
-  ["forest", "40,60", "right"],
 ] as const) {
   test(`render: what stands in front of the player fades in the ${place}, at the ${heading} heading`, async ({ page }) => {
-    const errors = await open(page, `still&nohud&at=${at}&heading=${heading}&zoom=0`);
+    const errors = await open(page, `still&nohud&at=${at}&zoom=0`);
     await advance(page, 1);
     const faded = await frame(page);
     const chest = await page.evaluate(() => {
@@ -221,7 +219,7 @@ for (const [place, at, heading] of [
 }
 
 test("render: the furthest zoom leaves out the small props and the grass, and brings them back", async ({ page }) => {
-  const errors = await open(page, "still&nohud&at=128,137&heading=front&zoom=0");
+  const errors = await open(page, "still&nohud&at=128,137&zoom=0");
   await advance(page, 0.5);
   expect((await render(page)).detail).toBe(true);
   for (const z of [1, 2]) {
@@ -237,7 +235,7 @@ test("render: the furthest zoom leaves out the small props and the grass, and br
 });
 
 test("render: up the ramps onto the hills' terraces, the player climbing as the floor does", async ({ page }) => {
-  const errors = await open(page, "still&nohud&at=152,70&heading=right&zoom=0");
+  const errors = await open(page, "still&nohud&at=152,70&zoom=0");
   await advance(page, 0.5);
   const seen = await walk(page, 196, 70, 30);
   const heights = seen.map((p) => p.height);

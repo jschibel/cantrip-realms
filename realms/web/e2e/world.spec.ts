@@ -95,7 +95,9 @@ test("in a town the minimap is the town's: its streets and places round you; the
   const controls = await realm<{ name: string; text: string }[]>(page, "controls");
   for (const p of town.plan!.places) expect(controls.some((c) => c.name === `map:place:${p.kind}` && c.text === p.name), `${p.name} named`).toBe(true);
   const gates = controls.filter((c) => c.name === "map:gate").map((c) => c.text);
-  expect(gates.some((g) => g.includes("New Benalia")), JSON.stringify(gates)).toBe(true);
+  // The one gate, named for where its road leads, or (several roads coming in through it) for the travel map.
+  expect(gates.length, JSON.stringify(gates)).toBe(1);
+  expect(gates[0] === "To the travel map" || gates[0]!.includes("New Benalia"), JSON.stringify(gates)).toBe(true);
   if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/map-town.png` });
   // Turned to the world's map, and back.
   await clickControl(page, "map:switch");

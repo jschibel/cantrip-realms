@@ -14,7 +14,7 @@ import { type Me, api, character, place, query } from "./server";
 test("walking beside a shop: the relay refuses none of a held walk's or the clicks' walks, and the player never jumps", async ({ page }) => {
   test.setTimeout(180_000);
   await character(page.request, 71, "Wanda");
-  await place(page.request, openNear(doorOf("argive-goblin-trader-shop"), 2));
+  await place(page.request, openNear(doorOf("new-benalia-exotic-wares-shop"), 2));
   await page.goto(query("&mobs=0"));
   await waitReady(page);
   await waitSpace(page, "world");
@@ -101,7 +101,7 @@ test("a journey across the two scales on the real server: out of New Benalia ont
 test("a walk refused after the server lost track of the player is caught up, not snapped back: the figure never jumps", async ({ page }) => {
   test.setTimeout(180_000);
   await character(page.request, 72, "Wren");
-  const start = openNear(doorOf("argive-goblin-trader-shop"), 2);
+  const start = openNear(doorOf("new-benalia-exotic-wares-shop"), 2);
   await place(page.request, start);
   await page.goto(query("&mobs=0"));
   await waitReady(page);

@@ -103,38 +103,16 @@ async function settledHeading(page: Page): Promise<"left" | "front" | "right"> {
   return byYaw![1];
 }
 
-test("slice: the camera turns 45 degrees either way and no further, by key and by button, and is remembered", async ({ page }) => {
+test("slice: the camera looks north and stays there: Q and E turn nothing, and there are no turn buttons", async ({ page }) => {
   await open(page, "still");
   expect(await settledHeading(page)).toBe("front");
   await page.screenshot({ path: join(out, "street-front.png") });
-
-  // E: it eases round to the right - part-way through it is between headings - and settles at 45 degrees.
   await page.keyboard.press("e");
-  await advance(page, 0.1);
-  const mid = await slice<CameraView>(page, "view");
-  expect(mid.yaw > 0.05 && mid.yaw < Math.PI / 4 - 0.05, "mid-turn after a tenth of a second").toBe(true);
-  expect(mid.snapped, "gliding while it turns").toBe(false);
-  expect(await settledHeading(page)).toBe("right");
-  await page.screenshot({ path: join(out, "street-right45.png") });
-  // A third step the same way is refused: it never goes past 45 degrees.
-  await page.keyboard.press("e");
-  expect(await settledHeading(page)).toBe("right");
-  await expect(page.locator("[data-test='hud:turn-right']")).toBeDisabled();
-
-  // The heading outlasts the visit.
-  await open(page, "still");
-  expect(await settledHeading(page)).toBe("right");
-
-  // The buttons step it back to the front and on to the left; Q past the left is refused.
-  const left = page.locator("[data-test='hud:turn-left']");
-  await left.click();
   expect(await settledHeading(page)).toBe("front");
-  await left.click();
-  expect(await settledHeading(page)).toBe("left");
-  await page.screenshot({ path: join(out, "street-left45.png") });
   await page.keyboard.press("q");
-  expect(await settledHeading(page)).toBe("left");
-  await expect(left).toBeDisabled();
+  expect(await settledHeading(page)).toBe("front");
+  await expect(page.locator("[data-test='hud:turn-left']")).toHaveCount(0);
+  await expect(page.locator("[data-test='hud:turn-right']")).toHaveCount(0);
 });
 
 interface PlayerState {
@@ -239,15 +217,12 @@ test("slice: a held walk is steered at the cursor's point every frame, with no p
   await page.mouse.up();
 });
 
-test("slice: the rooms turn too, their near wall cut down", async ({ page }) => {
-  for (const [scene, heading] of [
-    ["shop", "right"],
-    ["crypt", "left"],
-  ] as const) {
-    await open(page, `scene=${scene}&still&heading=${heading}`);
-    expect(await settledHeading(page)).toBe(heading);
+test("slice: the rooms are seen looking north too", async ({ page }) => {
+  for (const scene of ["shop", "crypt"] as const) {
+    await open(page, `scene=${scene}&still`);
+    expect(await settledHeading(page)).toBe("front");
     expect(colorCount(await readFrame(page))).toBeGreaterThan(200);
-    await page.screenshot({ path: join(out, `${scene}-${heading}45.png`) });
+    await page.screenshot({ path: join(out, `${scene}-front.png`) });
   }
 });
 
@@ -268,7 +243,7 @@ test("slice: through the shop's door and back out, by clicking", async ({ page }
 });
 
 test("slice: down into the crypt from the churchyard and back up, by clicking", async ({ page }) => {
-  await open(page, "still&heading=right&at=34,11");
+  await open(page, "still&at=34,11");
   for (const [from, to] of [
     ["street", "crypt"],
     ["crypt", "street"],
@@ -280,8 +255,8 @@ test("slice: down into the crypt from the churchyard and back up, by clicking", 
     expect(await slice<string>(page, "scene")).toBe(to);
     expect(await slice<boolean>(page, "transitioning")).toBe(false);
   }
-  // Back on the street, at the heading it left at.
-  expect(await settledHeading(page)).toBe("right");
+  // Back on the street, looking north as ever.
+  expect(await settledHeading(page)).toBe("front");
 });
 
 interface ZoomState {
@@ -494,27 +469,6 @@ test("slice clip: street-zoom-gate", async ({ page }) => {
     await record(0.5);
   }
   writeFileSync(join(out, "street-zoom-gate.gif"), gifOf(frames, { w: 640, h: 400 }, 1, 5));
-});
-
-test("slice clip: street-rotate", async ({ page }) => {
-  test.skip(!shots, "pictures only with SLICE_SHOTS");
-  test.setTimeout(240_000);
-  // The camera stepping round about the player: right, back to the front, left, and back - at 20 frames a second.
-  await open(page, "nohud&heading=front&at=14,13");
-  await advance(page, 0.5);
-  const frames: Frame[] = [];
-  const record = async (seconds: number) => {
-    for (let t = 0; t < seconds - 1e-6; t += 0.05) {
-      await advance(page, 0.05);
-      frames.push(await readFrame(page));
-    }
-  };
-  await record(0.25);
-  for (const key of ["e", "q", "q", "e"]) {
-    await page.keyboard.press(key);
-    await record(0.7);
-  }
-  writeFileSync(join(out, "street-rotate.gif"), gifOf(frames, { w: 288, h: 180 }, 2, 5));
 });
 
 for (const c of clips) {

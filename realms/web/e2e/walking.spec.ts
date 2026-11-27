@@ -20,7 +20,7 @@ interface Frame {
 
 /** The most a figure walking at 4.2 tiles a second goes in a sixtieth, and a little over. */
 const STRIDE = (4.2 / 60) * 1.1;
-const SHOP = "argive-goblin-trader-shop";
+const SHOP = "new-benalia-exotic-wares-shop";
 
 const track = (page: Page, seconds: number) => page.evaluate((s) => (globalThis as any).realmTest.track(s) as Promise<Frame[]>, seconds);
 

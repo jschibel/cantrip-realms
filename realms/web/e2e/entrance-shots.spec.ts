@@ -20,7 +20,8 @@ const SPOTS: Record<string, readonly [number, number]> = Object.fromEntries([
   ["pass-dwarves-north", [190, 281]],
   ["ironclaw-road", [262, 362]],
 ]);
-const HEADINGS = ["left", "front", "right"];
+// The game looks north and never turns (one heading).
+const HEADINGS = ["front"];
 const ZOOMS = [0, 1, 2];
 
 for (const [name, [x, z]] of Object.entries(SPOTS)) {

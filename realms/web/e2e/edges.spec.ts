@@ -31,7 +31,8 @@ async function open(page: Page, at: readonly [number, number], heading: string, 
   return errors;
 }
 
-const HEADINGS = ["left", "front", "right"] as const;
+// The game looks north and never turns (one heading).
+const HEADINGS: readonly ("left" | "front" | "right")[] = ["front"];
 
 /** A texel in world units. */
 const T = 1 / 16;

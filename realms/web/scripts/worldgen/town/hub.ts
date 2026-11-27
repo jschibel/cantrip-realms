@@ -175,7 +175,9 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
   houses = 0;
   const dA = Math.max(...head.map((s) => s.d), ...homes.map((s) => s.d));
   const dB = Math.max(...rowB.map((s) => s.d));
-  const market = capital ? 18 : village ? 12 : 15;
+  // The market: a lane before row B's doors, the stalls, the vendors before them, the row where one arrives, and a lane
+  // along the south wall to the gate - every stall a step or two from the arrival, row B's doors in sight beyond.
+  const market = 12;
   const NORTH = 2;
   const TD = NORTH + dA + walk + dB + market;
   // Centred across the grounds, its south wall far enough up that the road out shows below it.
@@ -235,13 +237,9 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
   // The ring the wall stands on, closed, and the gate's passage through it.
   for (let x = x0 - 1; x <= x1; x++) for (const z of [z0 - 1, zS]) set(x, z, ground.yard, Use.Wall, false);
   for (let z = z0 - 1; z <= zS; z++) for (const x of [x0 - 1, x1]) set(x, z, ground.yard, Use.Wall, false);
-  const gate: XZ[] = [];
-  for (let x = cx - 1; x <= cx + 1; x++) {
-    set(x, zS, ground.street, Use.Street);
-    gate.push([x, zS]);
-  }
+  for (let x = cx - 1; x <= cx + 1; x++) set(x, zS, ground.street, Use.Street);
   // Outside the gate: the road, and the exit just past the gate - walking onto it leaves the town.
-  const exitZ = F.enclosure === "wall" || F.enclosure === "palisade" ? zS + 2 : zS + 1;
+  const exitZ = zS + 1;
   for (let z = zS + 1; z <= exitZ; z++) for (let x = cx - 1; x <= cx + 1; x++) set(x, z, ground.street, Use.Road);
   const exit: XZ[] = [-1, 0, 1].map((d) => [cx + d, exitZ] as XZ);
   for (const [x, z] of exit) land.town[I(x, z)] = 0;
@@ -394,9 +392,9 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
     places.push({ kind: "arena", name: "The arena", x: g[0], z: g[1] });
   }
 
-  // The market, north to south: a lane before row B's doors (the quest board on it), the stalls in a row either side of
-  // the avenue (what a stall hides falls on that lane's far rows, never on a door), the vendors before their stalls, the
-  // middle with its centrepiece, and a lane along the south wall where one arrives through the gate.
+  // The market, north to south: a lane before row B's doors (the quest board on it, the centrepiece in the avenue's
+  // mouth), the stalls in a row either side of the avenue (what a stall hides falls on that lane's far rows, never on a
+  // door), the vendors before their stalls, the row where one arrives, and a lane along the south wall to the gate.
   const stallZ = zB + 5;
   const vendorZ = stallZ + 2;
   const stallRandom = random("stalls");
@@ -411,13 +409,12 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
   };
   westVendors.forEach((v, k) => stall(v, ax0 - 2 - (k + 1) * 4 + 1, k));
   eastVendors.forEach((v, k) => stall(v, ax1 + 1 + k * 4 + 1, k + westVendors.length));
-  // The centrepiece: on the avenue's axis between the vendors and the south lane where there is room for it (a free row
-  // either side), else beside the avenue in line with the stalls, on the side with fewer of them.
+  // The centrepiece stands in the avenue's mouth, before the gap in row B the avenue runs on through: the first thing seen
+  // up the avenue from the gate, hiding nothing but the avenue behind it (no door stands in its columns).
   const kindOf = capital ? "fountain" : town.centrepiece;
   const half = kindOf === "fountain" || kindOf === "tree" ? 2 : 1;
-  const onAxis = vendorZ + 2 + half <= zS - 5 - half;
-  const midZ = onAxis ? vendorZ + 2 + half : stallZ;
-  const pieceX = onAxis ? cx : westVendors.length > eastVendors.length ? ax1 + 2 + eastVendors.length * 4 + half + 2 : ax0 - 3 - westVendors.length * 4 - half - 2;
+  const midZ = zB + 1 + half;
+  const pieceX = cx;
   const pieces: Record<string, PropData> = {
     statue: { id: "statue", x: pieceX + 0.5, z: midZ + 0.5, args: { size: 2 } },
     fountain: { id: "fountain", x: pieceX + 0.5, z: midZ + 0.5 },
@@ -437,7 +434,7 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
   // The caravans' pitch: open paving east of the middle, open all round.
   let pitch: XZ | null = null;
   if (town.caravan) {
-    pitch = [cx + 10, zS - 4];
+    pitch = [x1 - 5, zS - 3];
     places.push({ kind: "pitch", name: "The caravans' pitch", x: pitch[0], z: pitch[1] });
   }
   const kept = new Set<number>();
@@ -449,15 +446,15 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
     for (let x = x0 + 3; x < x1 - 3; x += 8) if (ok(x, zA + walk - 1)) fixture({ id: light, x: x + 0.5, z: zA + walk - 1 + 0.5 });
     for (const [x, z] of [[x0 + 2, zB + 1], [x1 - 3, zB + 1], [x0 + 2, zS - 2], [x1 - 3, zS - 2]] as const) if (ok(x, z)) fixture({ id: light, x: x + 0.5, z: z + 0.5 });
   }
-  for (const dx of [-half - 3, half + 3]) {
-    const x = pieceX + dx;
-    if (ok(x, midZ)) fixture({ id: "bench", x: x + 0.5, z: midZ + 0.5, rot: 1, args: { width: 1.2 } });
+  for (const dx of [-8, 8]) {
+    const x = cx + dx;
+    if (ok(x, zS - 2)) fixture({ id: "bench", x: x + 0.5, z: zS - 2 + 0.5, args: { width: 1.6 } });
   }
   if (!village) {
     const goods = ["apples", "cabbages", "carrots", "bread", "fish"];
     const tints = ["red-cloth", "teal-cloth"];
     for (const sx of [x0 + 3, x1 - 6]) {
-      const zz = zS - 7;
+      const zz = stallZ;
       const tiles = [0, 1, 2].flatMap((k) => [-1, 0, 1].map((d) => [sx + k, zz + d] as const));
       if (!tiles.every(([x, z]) => ok(x, z))) continue;
       fixture({ id: "canopy-stall", x: sx, z: zz + 0.8, args: { width: 3, goods: goods[Math.floor(stallRandom() * goods.length)]! }, tint: tints[Math.floor(stallRandom() * 2)]! });
@@ -497,29 +494,20 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
       s = e + 1;
     }
   };
-  // The wall stops at the gate's gap (a hedge's) or at the gatehouse's towers (two tiles either side of the passage).
-  const gapW = cx - 1 - (kind === "hedge" ? 0 : 2);
-  const gapE = cx + 1 + (kind === "hedge" ? 0 : 2);
+  // The south side, which the camera looks in over, is kept low - a low wall of stone, a low palisade, a hedge - so the
+  // market is seen from the road and nothing tall stands between the arrival and the stalls; the gate is a gap in it
+  // with a banner either side. The other three sides are the town's full wall, towers at its corners.
+  const low = (ax: number, bx2: number) => {
+    if (kind === "hedge") run(ax, zS, bx2, zS, "s");
+    else props.push({ id: kind === "palisade" ? "palisade" : "stone-wall", x: ax + 0.5, z: zS + 0.5, args: { to: [bx2 + 0.5, zS + 0.5], h: kind === "palisade" ? 1.3 : 1.1 } });
+  };
   cut(x0 - 1, x1, (a, b) => run(a, z0 - 1, b, z0 - 1, "n"));
-  cut(x0 - 1, gapW - 1, (a, b) => run(a, zS, b, zS, "s"));
-  cut(gapE + 1, x1, (a, b) => run(a, zS, b, zS, "s"));
+  cut(x0 - 1, cx - 2, (a, b) => low(a, b));
+  cut(cx + 2, x1, (a, b) => low(a, b));
   cut(z0, zS - 1, (a, b) => run(x0 - 1, a, x0 - 1, b, "w"));
   cut(z0, zS - 1, (a, b) => run(x1, a, x1, b, "e"));
-  if (kind !== "hedge") {
-    for (const [x, z] of [[x0 - 1, z0 - 1], [x1, z0 - 1], [x0 - 1, zS], [x1, zS]] as const) props.push({ id: "wall-tower", x: x + 0.5, z: z + 0.5, args: { style, kind, size: town.kind } });
-    const gh: PropData = { id: "gatehouse", x: cx + 0.5, z: zS + 0.5, rot: 0, args: { width: 3, style, kind, size: town.kind } };
-    fixture(gh, Use.Wall);
-    // The gatehouse's towers stand on the wall's ring and a row either side of it; its passage stays open.
-    for (const [x, z] of tilesOf(gh).tiles) {
-      const i = I(x, z);
-      land.flags[i] = BLOCKED | BARE;
-      land.use[i] = Use.Wall;
-    }
-    for (let z = zS - 1; z <= zS + 1; z++) for (let x = cx - 1; x <= cx + 1; x++) land.flags[I(x, z)] = 0;
-  } else {
-    // A hedge's gap: a post either side of it.
-    for (const x of [cx - 2, cx + 2]) props.push({ id: "banner-pole", x: x + 0.5, z: zS + 0.5, tint: BANNER[town.style] ?? "benalish" });
-  }
+  if (kind !== "hedge") for (const [x, z] of [[x0 - 1, z0 - 1], [x1, z0 - 1], [x0 - 1, zS], [x1, zS]] as const) props.push({ id: "wall-tower", x: x + 0.5, z: z + 0.5, args: { style, kind, size: town.kind } });
+  for (const x of [cx - 2, cx + 2]) props.push({ id: "banner-pole", x: x + 0.5, z: zS + 0.5, tint: BANNER[town.style] ?? "benalish" });
 
   // --- The scenery outside: the country of its biome, never walked -----------------------------------------------------
   const sceneryRandom = random("scenery");
@@ -555,15 +543,15 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
     return null;
   };
   const folkHere = town.folk.slice(0, village ? 1 : 2);
-  const spots: XZ[] = [[cx - 8, zS - 4], [cx + 6, vendorZ + 1], [cx - 3, zB + 2], [cx + 12, zB + 2]];
+  const spots: XZ[] = [[cx - 12, zS - 3], [cx + 6, vendorZ + 1], [cx - 6, zB + 2], [cx + 12, zB + 2]];
   folkHere.forEach((folk, n) => {
     const at = near(spots[n % spots.length]!);
     if (!at) return;
     npcs.push({ id: `${town.id}-folk-${n + 1}`, x: at[0], z: at[1], kind: "townsfolk", name: folk.name, text: folk.text, figure: `townsfolk-${region}`, speed: 1.6, seed: n + 1, behaviour: { wander: { home: at, reach: 4, pause: [2, 6] }, watch: 3 } });
   });
   if (F.guards && !village) {
-    const a = near([cx - 3, zS - 3]);
-    const b = near([cx - 3, zB + 3]);
+    const a = near([cx - 6, zS - 1]);
+    const b = near([cx + 6, zS - 1]);
     if (a && b) npcs.push({ id: `${town.id}-guard-1`, x: a[0], z: a[1], kind: "guard", name: `${town.name} guard`, text: ["Keep to the roads. The waymarkers say how bad it gets past them."], figure: `guard-${region}`, seed: 1, speed: 2.2, behaviour: { beat: { stops: [a, b], pause: 3.5 }, watch: 4 } });
   }
 
@@ -590,7 +578,9 @@ export function buildHub(target: Land, spec: TownSpec, seed: number): BuiltTown 
   ];
   const outline: XZ[] = [[x0 - 1, z0 - 1], [x1 + 1, z0 - 1], [x1 + 1, zS + 1], [x0 - 1, zS + 1]];
   const plan: TownPlan = { outline, enclosure: F.enclosure, nodes, ways, squares, gates: [0], places };
-  const inside: XZ = [cx, zS - 3];
+  // One arrives in the market's middle, on the avenue just south of the vendors: every stall and row B in sight, the
+  // gate a few steps behind.
+  const inside: XZ = [cx, vendorZ + 1];
   const townWays: TownWay[] = spec.setting.ways.map((w) => ({ side: w.side, inside, exit, to: w.to }));
   const radius = Math.ceil(Math.max(TW, TD) / 2) + 1;
   const centre: XZ = [cx, Math.floor((z0 + zS) / 2)];

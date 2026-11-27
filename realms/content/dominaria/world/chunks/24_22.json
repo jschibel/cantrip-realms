@@ -176,7 +176,7 @@
     {"id":"snowy-rock","x":788.625,"z":718.375,"seed":2,"scale":1.125},
     {"id":"pine","x":770.625,"z":718.4375,"seed":5,"scale":1.125},
     {"id":"pine","x":773.375,"z":718.4375,"seed":6,"scale":0.875},
-    {"id":"wall-run","x":798.5,"z":718.5,"args":{"to":[799.5,718.5],"face":"s","style":"keldon","kind":"palisade","size":"village"}},
+    {"id":"palisade","x":798.5,"z":718.5,"args":{"to":[799.5,718.5],"h":1.3}},
     {"id":"wall-tower","x":798.5,"z":718.5,"args":{"style":"keldon","kind":"palisade","size":"village"}},
     {"id":"pine","x":774.625,"z":718.625,"seed":1,"scale":0.875},
     {"id":"snowy-fir","x":795.375,"z":718.625,"seed":10,"scale":0.875},

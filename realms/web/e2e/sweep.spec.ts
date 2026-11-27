@@ -191,7 +191,8 @@ function hopsSmoothly(what: string, frames: readonly Frame[]): void {
   }
 }
 
-for (const travel of [false, true]) test(`sweep: a ledge a level high ${travel ? "on the travel map" : "in a town's grounds"} is walked up to and along, and hopped whole - held or clicked, flush to flush, on an arc`, async ({ page }) => {
+// Towns are flat (nothing in them is on terraces): the ledges are the travel map's.
+for (const travel of [true]) test(`sweep: a ledge a level high ${travel ? "on the travel map" : "in a town's grounds"} is walked up to and along, and hopped whole - held or clicked, flush to flush, on an arc`, async ({ page }) => {
   const { at: brink, below } = ledgeBrink("new-benalia", travel);
   await openRealm(page, { at: at({ x: brink.x + 2, z: brink.z }), extra: "&mobs=0" });
   const state = () =>

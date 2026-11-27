@@ -384,12 +384,12 @@ owner may extend.
           ====================== wall ===[gate]================
   ```
 
-  - **One gate**, in the south wall: whichever road the player arrives by, they come in through it and stand in the
-    market with every stall and the inn in sight, and leave through it to the travel map beside the icon where they came
-    in. The avenue runs from the gate through the market and between the inn and the smithy to the temple's door.
+  - **One gate**, a gap in the low south wall the town is seen over: whichever road the player arrives by, they come in
+    through it and stand in the middle of the market with every stall and the inn in sight, and leave through it to the
+    travel map beside the icon where they came in. The avenue runs from the gate through the market and between the inn and the smithy to the temple's door.
   - **The market** is the heart: every card vendor of the town at a stall (A5), the quest board by the inn's door, the
-    town's centrepiece (New Benalia's fountain, a statue, a well, a crystal, a great tree, a fire bowl), benches, lamps,
-    produce stalls, and the traveling traders' pitch where caravans come.
+    town's centrepiece at the head of the avenue (New Benalia's fountain, a statue, a well, a crystal, a great tree, a
+    fire bowl), benches, lamps, produce stalls, and the traveling traders' pitch where caravans come.
   - **By the way in**: the **inn**, where you respawn and set your home, a spell table inside and the quest board
     outside; the **smithy**, its armorer inside; the **exotic wares** in the two big towns; the **arena** (a PvP arena,
     locked with a "coming soon" sign until Part B9).

@@ -58,7 +58,7 @@ for (const region of part("regions") ? (geography.regions ?? []) : []) {
   test(`tour: region ${region.id} from afar`, async ({ page }) => {
     const away = (t: { x: number; z: number }) => openWorld(t) && !nearAWay(t, 8);
     const start = region.seeds.map(([x, z]) => openNear({ x, z }, 0, away)).find((t) => region.seeds.some(([x, z]) => chebyshev(t, { x, z }) <= 8)) ?? openNear({ x: region.seeds[0]![0], z: region.seeds[0]![1] }, 0, away);
-    await openRealm(page, { at: at(start), extra: "&mobs=0&heading=front&zoom=2" });
+    await openRealm(page, { at: at(start), extra: "&mobs=0&zoom=2" });
     await settle(page, 3);
     await shot(page, `region-${region.id}-far`);
   });
@@ -67,7 +67,6 @@ for (const region of part("regions") ? (geography.regions ?? []) : []) {
 // --- Interiors, one of each kind -------------------------------------------------------------------------------------------
 
 const ROOMS: Readonly<Record<string, string>> = {
-  shop: "argive-goblin-trader-shop",
   "exotic-wares": "new-benalia-exotic-wares-shop",
   inn: "new-benalia-inn",
   guildhall: "new-benalia-guildhall",
@@ -86,7 +85,7 @@ test("tour: an interior of each kind", async ({ page }) => {
     if (!id) continue;
     // Walked into through its door, as a player comes in.
     const door = doorOf(id);
-    await openRealm(page, { at: at(openNear(door, 2)), extra: "&mobs=0&heading=front&zoom=0" });
+    await openRealm(page, { at: at(openNear(door, 2)), extra: "&mobs=0&zoom=0" });
     // The stage's click on the door tile (from some headings a roof stands over it on the page).
     await page.evaluate(([x, z]) => (globalThis as any).realmTest.clickTile(x, z), [door.x, door.z] as const);
     await waitSpace(page, id);
@@ -110,7 +109,7 @@ const THEMES: readonly { id: string; color?: string }[] = [
 for (const t of part("dungeons") ? THEMES : []) {
   test(`tour: dungeon ${t.id}`, async ({ page }) => {
     const theme = (JSON.parse(readFileSync(join(here, "..", "..", "content", "dominaria", "dungeons", `${t.id}.json`), "utf8")) as { theme: string }).theme;
-    await openRealm(page, { at: t.id, color: t.color, extra: "&mobs=0&heading=front" });
+    await openRealm(page, { at: t.id, color: t.color, extra: "&mobs=0" });
     await settle(page, 1);
     await shot(page, `dungeon-${theme}-entrance`);
     await enter(page, t.id);
@@ -125,7 +124,7 @@ for (const t of part("dungeons") ? THEMES : []) {
 test("tour: a duel's splash", async ({ page }) => {
   test.skip(!part("rest"));
   const spawn = spawnNear("capashen-hold");
-  await openRealm(page, { at: at(openNear(spawn, 3)), extra: "&heading=front&zoom=0" });
+  await openRealm(page, { at: at(openNear(spawn, 3)), extra: "&zoom=0" });
   await clickEntity(page, (e) => e.kind === "mob" && e.spawn === spawn.id, "the spawn's mob");
   await until(page, async () => (await realm<string>(page, "screen")) === "duel", "the duel", 20);
   await shot(page, "duel");
@@ -133,9 +132,11 @@ test("tour: a duel's splash", async ({ page }) => {
 
 test("tour: a vendor's wares", async ({ page }) => {
   test.skip(!part("rest"));
-  const id = "argive-goblin-trader-shop";
-  await openRealm(page, { at: id, extra: "&mobs=0" });
-  await clickEntity(page, (e) => e.kind === "vendor", "the vendor");
+  // At the goblin trader's stall in New Benalia's market, in through the gate.
+  const inside = world().towns.find((t) => t.id === "new-benalia")!.ways![0]!.inside;
+  const stall = world().towns.find((t) => t.id === "new-benalia")!.plan!.places.find((p) => p.kind === "shop" && p.name === "Grizzlegom's Goblins")!;
+  await openRealm(page, { at: at({ x: stall.x + 2, z: stall.z + 1 }), extra: "&mobs=0" });
+  await clickEntity(page, (e) => e.kind === "vendor" && e.id === "argive-goblin-trader", "the vendor");
   await until(page, async () => (await realm<string>(page, "screen")) === "vendor", "the wares", 20);
   await advance(page, 0.5);
   await shot(page, "vendor");
@@ -144,7 +145,7 @@ test("tour: a vendor's wares", async ({ page }) => {
 test("tour: a traveling trader's caravan at the pitch", async ({ page }) => {
   test.skip(!part("rest"));
   const pitch = world().pitches.find((p) => p.town === "new-benalia")!;
-  await openRealm(page, { at: at(openNear(pitch, 3)), extra: "&mobs=0&heading=front&zoom=0", now: TRADERS_IN });
+  await openRealm(page, { at: at(openNear(pitch, 3)), extra: "&mobs=0&zoom=0", now: TRADERS_IN });
   await until(page, async () => (await realm<{ kind: string; tile: { x: number; z: number } }[]>(page, "entities")).some((e) => e.kind === "vendor" && e.tile.x === pitch.x && e.tile.z === pitch.z), "the trader");
   await settle(page, 1);
   await shot(page, "caravan");
@@ -205,7 +206,7 @@ test("tour: walking out of New Benalia's gate, down its road and onto the travel
   const road = world().roads.find((r) => r.from === town.id && r.tiles[0]![0] === way.outside[0] && r.tiles[0]![1] === way.outside[1]) ?? world().roads.find((r) => r.to === town.id)!;
   const tiles = road.from === town.id ? road.tiles : [...road.tiles].reverse();
   const beyond = { x: tiles[Math.min(12, tiles.length - 1)]![0], z: tiles[Math.min(12, tiles.length - 1)]![1] };
-  await openRealm(page, { at: at(from), extra: "&mobs=0&heading=front&zoom=0" });
+  await openRealm(page, { at: at(from), extra: "&mobs=0&zoom=0" });
   await settle(page, 1.5);
   const view = page.viewportSize()!;
   const clip = { x: view.width / 2 - 240, y: view.height / 2 - 190, width: 480, height: 320 };

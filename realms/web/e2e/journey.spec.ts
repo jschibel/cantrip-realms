@@ -15,8 +15,10 @@ test("a journey: New Benalia's inn, out of its gate onto the travel map, the roa
   test.setTimeout(300_000);
   const from = world().towns.find((t) => t.id === "new-benalia")!;
   const to = world().towns.find((t) => t.id === "capashen-hold")!;
-  // The way out of New Benalia whose road leads to Capashen Hold, and Capashen Hold's way in from New Benalia.
+  // The way out of New Benalia whose road leads to Capashen Hold, and Capashen Hold's way in from New Benalia. Leaving a
+  // town one did not come into by a way (waking at its inn), its gate leads out by its first way: New Benalia's is this.
   const out = from.ways!.find((w) => w.to === to.id)!;
+  expect(from.ways![0], "New Benalia's gate leads out first to Capashen Hold").toBe(out);
   const into = to.ways!.find((w) => w.to === from.id)!;
   expect(out, "New Benalia has a way to Capashen Hold").toBeDefined();
   expect(into, "Capashen Hold has a way to New Benalia").toBeDefined();
@@ -62,6 +64,26 @@ test("a journey: New Benalia's inn, out of its gate onto the travel map, the roa
   const told = (await realm<{ name: string; body?: { Space: string; X: number; Z: number } }[]>(page, "api")).filter((c) => c.name === "position" && c.body?.Space === "world").map((c) => ({ x: c.body!.X, z: c.body!.Z }));
   expect(told.filter((t) => !standable(t)), "places told the server that nobody can stand on").toEqual([]);
   expect(await jumps(page), "no jump all the way").toEqual([]);
+  expect(await realm<string[]>(page, "refused"), "no walk refused").toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test("in by any road's way and out through the gate by the same way: the player comes out where they went in", async ({ page }) => {
+  test.setTimeout(180_000);
+  const town = world().towns.find((t) => t.id === "new-benalia")!;
+  expect(town.ways!.length, "a town with more than one road").toBeGreaterThan(1);
+  // The last way, not the one the gate leads out by when nobody came in.
+  const way = town.ways!.at(-1)!;
+  const errors = await openRealm(page, { at: `world:${way.outside[0]},${way.outside[1]}`, extra: "&mobs=0" });
+  // In by the icon from where the player stands: that way's door of it (a click on another's walks round to that one).
+  await clickEntity(page, (e) => e.kind === "town" && e.to === `way:${town.id}:${way.side}:in`, `${town.id}'s icon from its ${way.side} road`);
+  await waitGround(page, town.id);
+  expect(chebyshev(await playerTile(page), tile(way.inside))).toBeLessThanOrEqual(1);
+  // Every way shares the gate; walking out through it leaves by the way taken in.
+  await clickEntity(page, (e) => e.kind === "town-out", "the gate out");
+  await waitGround(page, null);
+  expect(await playerTile(page)).toEqual(tile(way.outside));
+  expect(await jumps(page), "no jump").toEqual([]);
   expect(await realm<string[]>(page, "refused"), "no walk refused").toEqual([]);
   expect(errors).toEqual([]);
 });

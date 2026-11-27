@@ -65,7 +65,7 @@
     {"id":"pine","x":863.4375,"z":589.5,"seed":15,"scale":0.875},
     {"id":"pine","x":856.4375,"z":589.5625,"seed":13,"scale":1},
     {"id":"birch","x":858.4375,"z":589.5625,"seed":15,"scale":1.0625},
-    {"id":"wall-run","x":832.5,"z":590.5,"args":{"to":[833.5,590.5],"face":"s","style":"keldon","kind":"palisade","size":"village"}},
+    {"id":"palisade","x":832.5,"z":590.5,"args":{"to":[833.5,590.5],"h":1.3}},
     {"id":"wall-tower","x":833.5,"z":590.5,"args":{"style":"keldon","kind":"palisade","size":"village"}},
     {"id":"pine","x":837.4375,"z":590.5,"seed":6,"scale":1.0625},
     {"id":"birch","x":862.4375,"z":590.5625,"seed":8,"scale":0.9375},
