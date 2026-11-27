@@ -162,9 +162,11 @@ The server refuses to start if a pool lists one, a starter deck holds one, or an
   - **Mages**: a mage tower's id is `<region>-<tier>` (regions `benalia` W, `orvada` U, `caligo` B, `keld` R, `llanowar`
     G; tiers 1-4: `benalia-1` ... `llanowar-4`), and its boss is `mage-<tower>` (`mage-orvada-4`, Urza): a wizard,
     cleric, shaman, artificer or planeswalker of the region, of the tower's tier, `"boss": false`.
-  - **Wardens**: the region dungeons' and the Portal's (`sanctum-warden` Benalia's, `rift-warden` the academy's,
-    `tomb-warden` the Vess crypts', `foundry-warden` the Keldon fortress's, `heart-warden` the elfhames' hollow's,
-    `portal-warden`; tier 4), and `warden-1` ... `warden-4`, by tier, for mage towers and the smaller dungeons of the wilds.
+  - **Wardens**, champions that fight among a dungeon's challengers (a mob of its mob tables like any other): the region
+    dungeons' and the Portal's (`sanctum-warden` Benalia's, `rift-warden` the academy's, `tomb-warden` the Vess crypts',
+    `foundry-warden` the Keldon fortress's, `heart-warden` the elfhames' hollow's, `portal-warden`; tier 4, in the tables
+    of their dungeons' deeper rounds), and `warden-1` ... `warden-4`, by tier, among the challengers of the mage towers and
+    the smaller dungeons of the wilds.
   - **Bosses**, who unlock their color: `lyra-dawnbringer` (W), `teferi` (U, at the Walassa academy), `liliana` (B,
     Liliana of the Veil at the Vess estate in the Caligo Morass), `garna` (R, Garna, Bloodfist of Keld), `rofellos` (G,
     Rofellos, Llanowar Emissary, a mono-green deck); the Phyrexian Portal's tier 4 mobs (`phyrexian-ravager`, `phyrexian-negator`,
@@ -191,7 +193,7 @@ scales", below). No file holds a chest or a heartbloom: they come and go.
   `seed` and `relief` (how much the land rolls, 1 as designed, 0 flat); the `towns` (`{id, name, kind, style, radius,
   form, inn, innkeeper, board, folk, centrepiece, start, home, temple, guild, exotic, caravan}`, `radius` the town's size
   at walking scale, `exotic` the id of the town's exotic wares vendor, whose shop is `<vendor>-shop`); and the
-  `dungeons` (as `dungeons/<id>.json` below: their theme, floors, tier, mobs, warden and boss mob ids or asked of the
+  `dungeons` (as `dungeons/<id>.json` below: their theme, floors, tier, encounters, mobs and boss mob ids or asked of the
   roster - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2` - and the `region` whose color their mobs are
   drawn by). One source for each fact: layout.json names no place, `checkLayout` refuses one that does, and
   `checkGeography` proves the two name the same towns and dungeons. The server tests' world takes its towns' and
@@ -254,7 +256,7 @@ scales", below). No file holds a chest or a heartbloom: they come and go.
 
   A tile `(x, z)` is in chunk `(floor(x / 32), floor(z / 32))`: the chunk's file holds exactly its tiles, and is named
   for them. A spell table is a `spell-table` NPC (a `spell-table` prop only draws one); one stands beside each dungeon's
-  entrance (its antechamber's, design.md A6).
+  entrance (and another by the way into its first round, design.md A6).
 
   A chunk is loaded as the player nears it and dropped as they leave (`gridOfChunks` in load.ts walks the loaded chunks
   as one ground). Every file is written offline by the world generator (`realms/web/scripts/world.ts`, `npm run world`,
@@ -283,21 +285,23 @@ scales", below). No file holds a chest or a heartbloom: they come and go.
 - **Spawn tiers.** Each world spawn point carries `tier`, the tier of the zone it stands in (world.json's `zones`: the
   tier of its distance from the nearest starting area, and at least its region's `minTier`), and lists only mobs of that
   tier and of its region where the roster has them; every wanderer of the roster is listed by some spawn.
-- **Dungeons.** `dungeons/<id>.json` is `{id, name, theme: caves|castle|tower|crypt|hollow|foundry|portal, entrance:
-  [x, z], requires: "WUBRG" (optional), floors: [min, max], tier, encounters: [min, max] per floor, mobs: [[mob ids] per
-  floor (the last for the floors past it) or one list for all], warden, boss, region (a color, optional), waystone
+- **Dungeons.** A dungeon is a tournament (design.md A6, "Dungeon runs"). `dungeons/<id>.json` is `{id, name, theme:
+  caves|castle|tower|crypt|hollow|foundry|portal, entrance: [x, z], requires: "WUBRG" (optional), floors: [min, max] (the
+  boss's hall among them, at least 2), tier, encounters: [min, max] challengers a round (every dungeon's is [3, 3]), mobs:
+  [[mob ids] per floor (the last for the floors past it) or one list for all], boss, region (a color, optional), waystone
   (optional), standing (optional)}`. `standing` deals a color's dungeon by where its color stands to the character's
   (design.md A6): `{own|ally|enemy: {tier, mobTiers: [low, high], bossStats: {life, hand, maxHand} (optional)}}`. A
   region's color is `own` when the character's identity holds it, else `ally` when it is next to their starting color on
   the wheel (W U B R G) and `enemy` when across from it - by the starting color, so a dungeon's standing never shifts with
-  the order bosses are beaten in. A run dealt by a standing is of its `tier`; each floor's encounters are drawn from the
+  the order bosses are beaten in. A run dealt by a standing is of its `tier`; each round's challengers are drawn from the
   mobs of its table of tiers `low` to `high`, or, where its table holds none, from every floor's that are; and the boss
   gains `bossStats` over its own. A standing not given deals the dungeon as written. The five color dungeons give
-  `ally` (tier 3, T2-T3) and `enemy` (tier 4, T3-T4, the boss +6 life, +1 hand and maximum hand). The `warden` keeps the stair of every floor but the last (a dungeon that may have only one floor still
-  names one if it may have two); the `boss` waits on the last floor; neither is a floor's encounter. A run's layout is
-  the browser's (`realms/web/src/dungeon/generate.ts`, one generator per theme, on squares), made from the run's seed, and holds
-  exactly the encounters the run names, each with its mob. world.json's `dungeons` places each at its entrance, where a
-  chunk's `entrances` leads into it.
+  `ally` (tier 3, T2-T3) and `enemy` (tier 4, T3-T4, the boss +6 life, +1 hand and maximum hand). Every floor but the
+  last is a round: its challengers are its encounters, and its gate down opens once all of them but one are beaten (at
+  least one: two of three); the last floor is the boss's hall, the `boss` alone, no encounter. A run's layout is the
+  browser's (`realms/web/src/dungeon/generate.ts`: one arena room a floor in its theme's look, on squares), made from
+  the run's seed, and holds exactly the encounters the run names, each with its mob. world.json's `dungeons` places
+  each at its entrance, where a chunk's `entrances` leads into it.
 
 #### Town plans
 
@@ -469,9 +473,10 @@ The server keeps the last reported place (`POST /api/position`):
 - a dungeon run is entered by `/api/dungeon/enter` and left by `/api/dungeon/leave` or a lost duel; within a live run of
   theirs any tile is taken (the layout is the browser's), and no other space is reported until it ends (409 `NoWay`).
   The server puts the character in the run at tile 0, 0, a placeholder: the browser stands them on the floor's `arrive`
-  tile (each floor's, going down too) and reports it. Stepping onto the floor's `up` leaves the run (on floor 0 the way
-  in), onto `down` takes the stair (`/api/dungeon/floor`), and onto `wayOut`, beside the beaten boss, leaves it too
-  (realms/web/src/dungeon/types.ts). A waystone is travelled by `/api/waystone`;
+  tile (each floor's, going down too) and reports it. Stepping onto the floor's `up`, the way back out at the arena's
+  south, leaves the run from any floor; onto a round's `down`, its gate at the north, once the round is won, offers going
+  down (`/api/dungeon/floor`) or leaving with the winnings (`/api/dungeon/leave`); and onto `wayOut`, beside the beaten
+  boss, leaves it too (realms/web/src/dungeon/types.ts). A waystone is travelled by `/api/waystone`;
 - the tile of a dungeon's entrance is refused 409 `Locked` while the dungeon's `requires` is not all in the identity;
 - a character whose place the content no longer has (an old map's id, or a place from before squares: the database's
   move to tiles empties every place outside a run) may report any open tile.
@@ -585,7 +590,7 @@ and no other vendor deals in it:
 
 The server reads all of this at start and refuses to start on content that does not hold together: one plane has a world;
 every mob, interior, dungeon and vendor a place names is there (spawns' mobs of the spawn's tier and no boss, doors'
-interiors, entrances' dungeons as world.json places them, dungeons' mobs, wardens and bosses, vendor NPCs of the vendor's
+interiors, entrances' dungeons as world.json places them, dungeons' mobs and bosses, vendor NPCs of the vendor's
 town, inns' towns, traders' towns, an interior's `town` its doors' town); every tile a character is put on or meets
 something at is open (inns, doors, exits - each on or beside a door into its interior -, entries, entrances, spawns,
 pitches - each in its town -), and every ferry's lane is a walk from its `from` to its `to`; every chunk is its file's
@@ -620,9 +625,9 @@ player with no character is 404 `NoCharacter`.
 | `GET /api/armorer/{town}` | | `{Stock: [Gear]}`; 404 `NoArmorer` |
 | `POST /api/armorer/{town}/buy` / `sell` | `{GearId}` / `{InstanceId}` | `{Gold, Gear: [GearInstance]}`; 409 `NotInStock`, `CannotAfford` / `NotOwned`, `Worn` |
 | `POST /api/encounter/start` | `{Spawn, Mob}` in the world, or `{Run, Floor, Index, Mob}` in a dungeon | `{Token, Seed, Duel}` (below); 409 `NotNear`, `NotThere`, `TooSoon`, `Unfinished`, `Defeated` (a lost game still to answer); 404 `NotThere`; 422 `IllegalDeck` |
-| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Warden: mob or null, Boss: mob or null, Tier: tier or null, BossStats: {Life, Hand, MaxHand} or null}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null, Tier}`: the run (dealt by the character's standing to a color dungeon's color, Dungeons), its seed for the layout, and every encounter it holds - the last floor without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
+| `POST /api/dungeon/enter` | `{Dungeon}` | `{Run, Seed, Floors: [{Encounters: [{Index, Mob}], Boss: mob or null, Tier: tier or null, BossStats: {Life, Hand, MaxHand} or null, Shrine}], Dungeon, Floor: 0, Beaten: [], Resting: {Boss, Until} or null, Tier}`: the run (dealt by the character's standing to a color dungeon's color, Dungeons), its seed for the layout, and every encounter it holds - each floor but the last a round of challengers (`Encounters`, no `Boss`), the last the boss's hall (no `Encounters`, its `Boss`), without its boss while the boss rests (`Resting`: a boss beaten within the week, back at `Until`); the character is in it (`run:<Run>`, tile 0, 0 until the browser reports the floor's `arrive`), and a run of theirs still live ends; 409 `NotNear` away from its entrance (on it or beside it, in the world), `Locked`; 404 `NotThere` |
 | `GET /api/dungeon/run` | | the character's live run, as `/api/dungeon/enter` gives it with `Dungeon`, `Floor` (the floor reached) and `Beaten` (the encounters won, `<floor>:<index>`): what a reload resumes; 404 `NotThere` with none |
-| `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the stair to `Floor`, the next floor down, allowed once the warden of the floor they stand on is beaten; 409 `WardenStands`, `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
+| `POST /api/dungeon/floor` | `{Run, Floor}` | `{}`: the character took the gate to `Floor`, the next floor down, allowed once the round they stand in is won - all its challengers beaten but one, at least one (`Dungeons.WinsToOpen`: two of three); 409 `RoundOpen` before ("Beat 2 of the 3 challengers to open the gate."), `NoWay` for any floor but the next, `NotNear` out of the run, `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/dungeon/shrine` | `{Run}` | `{Hearts}`: a prayer at the run's shrine (design.md A3b, A6), on the floor that holds it, where the character stands (the server holds them to the floor, the layout being the browser's): one heart given back, once in the run; 409 `NotThere` for a floor with no shrine or a run over, `Empty` once it has blessed, `FullHearts` with the hearts full (the blessing kept for later), `NotNear` out of the run; 404 `NotThere` for no run of theirs |
 | `POST /api/dungeon/leave` | `{Run}` | `{}`: the run ends, and the character stands beside its entrance in the world (the first tile a step from it, in the order south, east, west, north, south-east, south-west, north-east, north-west, that is no door or entrance); 409 `NotThere` for a run over; 404 `NotThere` |
 | `POST /api/waystone` | `{Tower}` | `{Place: {Space, X, Z}}`: travel at once from an attuned tower's waystone (the character in the world on or beside one of its `waystone` NPCs' tiles, or its entrance) to another attuned tower's, beside its entrance as leaving a run puts them; 409 `NotNear` away from a waystone, `NotAttuned` for either tower; 404 `NotThere` for no tower with a waystone |
@@ -664,7 +669,7 @@ player with no character is 404 `NoCharacter`.
   A vendor sells at list price, the copy that would leave its shelf soonest first, and buys at half the list price
   rounded down.
 - A run's shrine (design.md A6): as a run begins, one run in eight (`Dungeons.ShrineChance`) holds one, on a floor drawn
-  at random, which says so (`Floors[n].Shrine`, true; the browser's layout stands it in a room on the way, a
+  at random, which says so (`Floors[n].Shrine`, true; the browser's layout stands it at one side of that floor's arena, a
   `heart-shrine` NPC on a blocked tile of its own, prayed at from beside it). The run says whether it has blessed
   (`ShrineUsed`, in `/api/dungeon/enter`'s and `/api/dungeon/run`'s reply); `/api/dungeon/shrine` is the prayer. A
   shrine's blessing is kept in the `chests` table (who, what, when; under the run's space, so it is once a run).
@@ -686,15 +691,16 @@ player with no character is 404 `NoCharacter`.
 - A dungeon encounter is the run's: the server checks that the run is the character's (404 `NotThere`) and live (409
   `NotThere`), that they stand in it (409 `NotNear`), that `Floor` is the one they stand on (0 the first; 409
   `NotThere`), that `Index` is an encounter of that floor (404 `NotThere`) not yet fought (409 `TooSoon`), and that `Mob`
-  is its mob (409 `NotThere`). A floor's encounters are indexed from 0; its warden's index is the count of its
-  encounters, its boss's one more. A game of a run lost with hearts left is fought again (its mob is never paid off);
+  is its mob (409 `NotThere`). A round's challengers are indexed from 0; the boss's index is past the encounters of its
+  floor (the hall has none, so 0). A challenger beyond the ones that open the gate still fights and pays, until the
+  character goes down through it. A game of a run lost with hearts left is fought again (its mob is never paid off);
   losing the last heart in a run ends it, and takes back what it won; leaving it ends it too, and a game of it lost and
   not yet answered with it. Beating the boss of a dungeon with a waystone attunes it. A boss (`"boss": true`) beaten rests for a week (`Dungeons.BossRest`, from the win): a run begun meanwhile
   has no boss on its last floor (so its boss's index is no encounter), and says so in `Resting`. A mage or a wanderer
   that ends a dungeon never rests. A run dealt by a standing (Dungeons, `standing`) keeps it as it began: each floor says
   its `Tier`, the last floor what its boss gains (`BossStats`, `{Life, Hand, MaxHand}`, added to the boss's seat), and
   the run its `Tier` (the dungeon's own for a run dealt as written).
-- A deck is saved (`PUT /api/deck`) beside a spell table of the world or an interior, or in a dungeon's antechamber: the
+- A deck is saved (`PUT /api/deck`) beside a spell table of the world or an interior, or in a dungeon's first round: the
   first floor of a live run of the character's, whose spell table is the layout's (the server takes any tile of a run).
 - `POST /api/encounter/start` in the world checks, in order: an unfinished duel (it counts as lost now - a heart gone, as
   any loss - and the call is refused 409 `Unfinished`); a lost game still to answer (409 `Defeated`); the spawn (404

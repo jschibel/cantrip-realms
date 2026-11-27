@@ -61,7 +61,7 @@ The owner's decisions:
   the character's identity as the deck's are, and the free basic lands of their colors may be in it. It is what a rematch
   swaps from (A3), and in a duel it is the cards the player owns outside the game (CR 100.4a), which a card that brings
   one in (a Wish) chooses among.
-- **The spell table** is where you edit your deck and your sideboard. Every town and some dungeon antechambers have one; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the sideboard. Each card shows its list price, a card outside your identity is shown dimmed and can be in neither, the free basic lands of your colors are added and taken out with a button each, and the deck's mana curve and colors are drawn beside it. The server judges the deck and the sideboard as they change, and Save keeps them only when it would deal them.
+- **The spell table** is where you edit your deck and your sideboard. Every town has one, and every dungeon by the way into its first round; everywhere else your deck is locked. It is the existing deck editor in a "realm" mode: search runs over your collection, and the counts left show copies not already used in the deck or the sideboard. Each card shows its list price, a card outside your identity is shown dimmed and can be in neither, the free basic lands of your colors are added and taken out with a button each, and the deck's mana curve and colors are drawn beside it. The server judges the deck and the sideboard as they change, and Save keeps them only when it would deal them.
 
 ### A3. Duels and rewards
 - **Starting a duel:**
@@ -80,7 +80,7 @@ The owner's decisions:
   - **Hearts left, a world mob:** it stands over you - its portrait, its name, a line of its own about the game - and
     offers to let you go for gold, or to fight again. Paid, the encounter is over and the mob is dealt with until its
     spawn's next epoch; the button is greyed when you can't pay.
-  - **Hearts left, a dungeon's mob** (wardens and bosses too): the only choice is to fight again. It can't be bought off.
+  - **Hearts left, a dungeon's mob** (a challenger or a boss): the only choice is to fight again. It can't be bought off.
   - **No hearts left:** you die (A3b).
   - What the mob says is one of its lines (its file's `lines`) for how the game went: **flawless** if it lost no life,
     **close** if it ended at a quarter of its full starting life or less, **solid** otherwise; a beast's is a narrated
@@ -254,27 +254,29 @@ owner may extend.
   dungeons with theirs. Waymarker stones stand where the tier changes on the land, and the HUD names the area you are in
   and its tier, and warns as you cross into a harder one.
 - **Fast travel through mage towers.** Mage towers stand across Dominaria, a few in each region and some far out in the
-  wilds. Each is a short dungeon (the mage-tower theme, one or two floors) with a mage boss at the top. Beating the mage
-  attunes that tower's waystone to you. From any attuned tower you can travel at once to any other you have attuned:
-  your fast-travel network, which grows as you go. Towers far from the starting areas hold harder mages, so the network
-  reaches the far wilds only as you can face them.
+  wilds. Each is a short tournament (the mage-tower theme): a round of challengers, then the mage's hall at the top.
+  Beating the mage attunes that tower's waystone to you. From any attuned tower you can travel at once to any other you
+  have attuned: your fast-travel network, which grows as you go. Towers far from the starting areas hold harder mages,
+  so the network reaches the far wilds only as you can face them.
 - **Interiors.** A building with a door has an interior: its own small scene, not part of the world map. Walking through
   the door is seamless. The door opens, the view eases into the room and the player is inside, with no loading screen and
   no jump cut, and leaving reverses it. Inns, guildhalls, temples and shrines, smithies, libraries and the mage's tower,
   the exotic wares shops and the houses of townsfolk have interiors.
-- **Dungeons** are not on the world map. A dungeon's entrance stands in the world (a cave mouth, a castle gate, a tower
-  door); stepping in starts a **single-player instance generated in the browser**, new each run, that no other player
-  sees. Each dungeon has a theme that fits the land it is in:
+- **Dungeons** are not on the world map, and each is a **tournament**, as a Magic event is: rounds of challengers, then
+  a boss for the big prizes. A dungeon's entrance stands in the world (a cave mouth, a castle gate, a tower door);
+  stepping onto it shows the tournament's board, and Enter starts a **single-player instance generated in the browser**,
+  new each run, that no other player sees. Each floor is one arena room - seen whole on one screen at the closest zoom,
+  level throughout - in a theme that fits the land the dungeon is in:
 
-  | Theme | Where | Layout |
+  | Theme | Where | A round's arena |
   |---|---|---|
-  | Caves | mountains and hills (Keld, the Hurloon and Ironclaw Mountains) | winding caverns, chasms, underground lakes |
-  | Castle | plains and farmland (Benalia) | keep, halls, courtyards, battlements |
-  | Mage tower | coasts, isles and lonely heights (Orvada's academy, and mage towers everywhere) | round floors climbing upward, libraries, time-rift rooms |
-  | Crypt | swamps and dark realms (the Caligo Morass, Amjad) | catacombs, ossuaries, flooded tombs |
-  | Root hollow | forests (Llanowar, the Durkwood, Verdura) | organic tunnels through living roots, glades under the canopy |
-  | Foundry | the orcs' delvings in the Ironclaw Mountains, and Keldon forges | forges, lava channels, gantries |
-  | Phyrexian Portal | the capstone | the praetor's realm |
+  | Caves | mountains and hills (Keld, the Hurloon and Ironclaw Mountains) | a cavern chamber, its rock wandering round it, a still pool, crystals and the raiders' braziers |
+  | Castle | plains and farmland (Benalia) | a hall of the keep, a red runner to the gate, pillars and the order's banners |
+  | Mage tower | coasts, isles and lonely heights (Orvada's academy, and mage towers everywhere) | a round tower floor, shelves of books, time-rifts at its sides |
+  | Crypt | swamps and dark realms (the Caligo Morass, Amjad) | a burial hall, pillars, coffins, niches of skulls, black water in a corner |
+  | Root hollow | forests (Llanowar, the Durkwood, Verdura) | a glade under the canopy among living roots, a spring, glowing mushrooms |
+  | Foundry | the orcs' delvings in the Ironclaw Mountains, and Keldon forges | a forge hall, lava channels down its sides, forges and anvils |
+  | Phyrexian Portal | the capstone | an island of plating over the void, pylons of ichor |
 
   A dungeon's content (its theme, its floors, its mobs by tier and its boss) is data. The layout is the generator's,
   from a seed the server hands out for the run (B4).
@@ -328,17 +330,28 @@ owner may extend.
     of Llanowar are the gentlest. The Hurloon passes, the Durkwood and Sursi are harder, and the hardest are the
     Ironclaw Mountains, Parma's ice, Stahaan, the depths of Amjad and the desolate waste.
   - The bosses are kept to cards that are implemented.
-- **Dungeon runs:**
-  - 3–5 floors each, generated anew each run. Each floor ends at a stair guarded by a floor warden. The boss waits on the
-    last floor.
-  - Within a run, beaten mobs stay beaten, and the run remembers the floor reached until it ends: closing the page and
-    coming back resumes it on that floor. A lost game costs a heart and the mob is fought again (A3: a dungeon's mob is
-    never bought off). Leaving, or dying (the last heart lost), ends the run; the next run is a new layout from the
-    first floor. Dying wakes you at your inn with your hearts full, and what the run won (gold, cards, gear) is lost
-    (A3b).
-  - The entrance has a spell table, outside in the world and inside on the first floor (the antechamber).
-  - Now and then a run holds a shrine of Serra on one of its floors (one run in eight), which gives back a heart once in
-    the run (A3b).
+- **Dungeon runs** - a tournament:
+  - **The board.** Before a run begins, the entrance shows the tournament: the dungeon and its tier, how many rounds,
+    the rule of a round, the boss by name, the prizes (what a challenger's win pays, the boss's purse, its gift and its
+    own item, the color it unlocks or the waystone it attunes), your hearts, and in one line what is at stake: leave
+    between rounds to keep your winnings; lose your last heart and this run's winnings are lost. Enter, or Not now.
+  - **Rounds.** 2-5 floors (a mage tower 2, the color dungeons 3-5), generated anew each run; each but the last is a
+    round. You arrive at the south of its arena, the way back out beside you; the gate down stands at its north, shut.
+    The round's **three challengers** wait on circles of their own spread across the floor, each by its standard,
+    watching you; none wanders. The pointer over one names it and its tier, and a click on it is a challenge.
+  - **Win two of three.** The gate opens once all the round's challengers but one are beaten (two of three). The third
+    is a bonus fight: it still stands, and still pays its rewards, until you go down.
+  - **Cash out or push on.** At the open gate you choose: descend to the next round, or leave with your winnings (or
+    stay, for the bonus fight). The way back out at the south leaves at any time.
+  - **The boss's hall.** The last floor is the boss's hall, a grander arena: the boss alone at its head before its
+    throne. Its way out opens beside it once it is beaten.
+  - Within a run, beaten mobs stay beaten, and the run remembers the round reached until it ends: closing the page and
+    coming back resumes it there. A lost game costs a heart and the mob is fought again (A3: a dungeon's mob is never
+    bought off). Leaving, or dying (the last heart lost), ends the run; the next run is a new layout from the first
+    round. Dying wakes you at your inn with your hearts full, and what the run won (gold, cards, gear) is lost (A3b).
+  - The entrance has a spell table, outside in the world and inside by the way in of the first round.
+  - Now and then a run holds a shrine of Serra at one side of one of its arenas (one run in eight), which gives back a
+    heart once in the run (A3b).
   - Ally-color dungeons are tier 3 with T2–T3 mobs. Enemy-color dungeons are tier 4 with T3–T4 mobs and stronger boss
     traits. Ally and enemy are by the character's starting color (W U B R G: the two beside it are allies, the two across
     from it enemies); a color the character holds, started with or unlocked, is their own, and its dungeon is as written.
@@ -357,7 +370,7 @@ owner may extend.
 - **The Phyrexian Portal** (the capstone dungeon):
   - Its gate stands in the desolate waste between Keld and the rest of the Domains, and belongs to no region.
   - It is **sealed until the character's identity holds all five colors**: their starting color and the four others unlocked by beating those bosses. Until then its gate stays shut, and the server refuses to start a run of it.
-  - Four floors. The entrance antechamber has a spell table. Every floor holds tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, below the first floor, the Gitaxian Mindcutter (U/B). The Portal Warden (U/B/R) keeps each floor.
+  - Four floors: three rounds, then the praetor's hall. The first round has a spell table by its way in. Every round's challengers are tier 4 Phyrexians: the Phyrexian Ravager (B/R), the Phyrexian Negator (B), the Phyrexian Gorger (B/G) and, past the first round, the Gitaxian Mindcutter (U/B) and the Portal Warden (U/B/R).
   - The last floor is the praetor's hall. The **Phyrexian Praetor** is five-color, with boss stats and the strongest gear a mob wears. Its deck is the strongest the Dominaria pool allows, so its stats are set so that it plays no easier than the other bosses (the balance lab's fit, `balance.md`: 32 life, a starting hand of 6 and a maximum hand of 7 with its gear, where 42, 9 and 10 made it unbeatable). It is built around Sheoldred, the Apocalypse, the pool's one implemented praetor, and runs on the ten original dual lands and five fetch lands.
   - Beating it unlocks no color, since every color is already yours. It pays a boss's gold and gift, and it is the boss the relics drop from (A3a). Its unique gear item comes with the gear catalogue's boss uniques.
 - **Mobs are Dominaria's own creatures.** Every wanderer is a real creature of the plane: a creature card the engine has,

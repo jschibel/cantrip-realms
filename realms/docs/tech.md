@@ -186,17 +186,24 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
 - **Interiors:** a door's interior is its own place, laid out by the room recipes (`art/rooms`). Entering is seamless:
   the camera eases in, an iris closes on the doorway and opens on the room around the player at its door, never a
   loading screen (the rooms near the player are built ahead). Leaving reverses it.
-- **Dungeons:** generated in the browser from the run's seed (`src/dungeon/`), one carver per theme on squares, exactly
-  the encounters the server's run names (interfaces.md). A run starts at the floor's `arrive`; stepping onto `up`
-  leaves, onto `down` descends once the warden is beaten, onto `wayOut` leaves after the boss (or at once, when the boss
-  rests this week and its hall is empty). Single-player, never replicated. A page opened on a character in a live run
-  resumes it (`GET /api/dungeon/run`) on the floor reached, its beaten mobs gone. A boss beaten opens its moment over the
+- **Dungeons** are tournaments (design.md A6): stepping onto an entrance opens its board first (`screens/tournament.ts`,
+  `showEntranceBoard`: the dungeon, its tier by the character's standing, its rounds and their rule, its boss and prizes
+  as the dungeon and mob files say, the hearts), and only Enter asks the server for the run. Each floor is generated in
+  the browser from the run's seed (`src/dungeon/`): one arena room in its theme's look, exactly the encounters the
+  server's run names (interfaces.md). A run starts at the floor's `arrive`, at the arena's south; stepping onto `up` (the
+  way back out beside it) leaves; a round's challengers stand on their circles watching the player (no run mob wanders)
+  and the gate (`down`) is shut - the page says what it takes - until all but one are beaten, when its portcullis is
+  drawn up; stepping onto it then opens its panel (`showGate`: descend, leave with the winnings, or stay); onto
+  `wayOut` leaves after the boss (or at once, when the boss rests this week and its hall is empty). The page asks before
+  a door is gone through (the stage's `askDoor`), so a board or a panel opens before the iris closes, and a refusal
+  never closes it. Single-player, never replicated. A page opened on a character in a live run resumes it
+  (`GET /api/dungeon/run`) on the round reached, its beaten mobs gone and its gate as it stands. A boss beaten opens its moment over the
   world (`screens/bossBeaten.ts`: the color unlocked, the five pips, the gift, the unique item), and the HUD's pip for
   the color lights.
 - **Figures:** the player is `playerFigure(appearance)` (body, palette, identity, the looks of what they wear), other
   players `lookFigure(Look, Identity)` from presence, mobs `mobFigure(model, id, creature)`, NPCs `figureSpec(id,
   palette, seed)`. Figures cast as a duel begins and reach out at vendors and doors.
-- **Play:** click-to-move over the grid; local mob AI (wander, chase); doors, entrances and stairs; the waystones of
+- **Play:** click-to-move over the grid; local mob AI (wander, watch); doors, entrances and a run's gates; the waystones of
   attuned mage towers; NPC interaction (spell tables, quest boards, the arena's gate and waystones are things used from
   beside their tile); the HUD and minimap; and other players near you walking the paths the relay sends.
 - **The HUD and menus that show no cards** are DOM and CSS built on **the client's Theme tokens and fonts**. A script
@@ -244,7 +251,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   travel map engaged with a click, and one a player stands near for twenty seconds that stops to watch them, keeps its
   distance and starts no duel until it is clicked; `hearts.spec.ts` fills the hearts walking into a town's grounds
   from its icon, and wakes the dead at their inn's door in its grounds; `dungeons.spec.ts` leaves a mage tower onto the
-  travel map beside its way in and travels by its waystone to another; `travel.spec.ts` crosses the Rip on the Keldon
+  travel map beside its way in and travels by its waystone to another, and plays a tournament - the board, a round's
+  gate shut at one win of three and open at two, the third challenger still paying, the gate's panel (stay, descend, leave
+  with the winnings), the boss alone in its hall; `travel.spec.ts` crosses the Rip on the Keldon
   ferry. `map.spec.ts` opens the whole map with M at 1280x800 and 1920x1080 - filling the window at 2:3, every town
   named, no two names over each other fitted and zoomed in on Benalia, Llanowar, North Aerona and Icehaven, a dungeon
   named on hover, the tiers tinted, dragged, closed with Escape - from a town's grounds too, and the minimap at a coast,
@@ -260,8 +269,9 @@ would like that the trunk lacks (a boss's namesake, say) is asked of the owner, 
   starts `Cantrip.Realms.Server` with the development sign-in on a fresh SQLite file and the overworld across origins
   (`?server=`), signs in, makes a character, walks New Benalia's streets (held and clicked beside a shop, the relay
   refusing none of the walks told: `walking.spec.ts`), goes into a shop and asks for its vendor's
-  screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run and
-  takes its stair once the warden is beaten, resumes a run after a reload, beats Rofellos (green unlocked, his hall empty
+  screen, starts a world encounter through the API (the card layer's stand-in records the duel), enters a dungeon run by
+  its board and goes down through a round's gate once two of its three challengers are beaten (the server refusing it
+  `RoundOpen` at one), resumes a run after a reload, beats Rofellos (green unlocked, his hall empty
   for the week after; `bosses.spec.ts`) and plays his duel in the real card layer (won from a forced position), attunes two mage towers by beating their mages and travels between their
   waystones, has two players see each other walk in the world and in an inn, and plays duels in the real card layer
   whose logs the server replays on the native host: one conceded, and the whole loop won and lost
@@ -468,7 +478,7 @@ What the renderer does with the interfaces above at the scale of the whole world
   remade as they come and go, so a path is a bounded search; `onGrid` / the stage hand it to every actor. A chunk's
   ground map carries a border of its neighbours' tiles, so it joins them without a seam. `WorldPlaces` gives the rooms:
   each read as soon as its chunk is built, built ahead while the player is within 14 tiles of its door (one a half
-  second), the last ten kept; `extra` resolves the page's own ways (a dungeon's entrance, a run's stairs).
+  second), the last ten kept; `extra` resolves the page's own ways (a dungeon's entrance, a run's gate and ways out).
 - **Terrain** (`render/terrain.ts`): each tile's floor at its height; where a tile's edge stands above its neighbour's,
   a face of rock down to it (a surface's look may name its own bank material as an optional `cliff`; else
   `bank-rock`); a **ramp** tile (flag `RAMP` = 4, the one format addition: `world/format.ts` and the lint accept it)
@@ -947,48 +957,67 @@ layoutRoom({
 
 ##### Dungeons on squares: `dungeon/`
 
-`generateDungeonFloor({theme, seed, floor, floors, run})` returns a `DungeonFloor` (`types.ts`):
-- `w` by `d` tiles from (0, 0), in version 2's tile format (`tiles`, row by row);
+A dungeon is a tournament (design.md A6): each floor one arena room in its theme's look, every floor but the last a
+round of challengers and the last the boss's hall. `generateDungeonFloor({theme, seed, floor, floors, run})` returns a
+`DungeonFloor` (`types.ts`):
+- `w` by `d` tiles from (0, 0), in version 2's tile format (`tiles`, row by row), every tile level (height 0);
 - `cells`, the plan the walls are drawn from: rows of `#` wall, `.` floor, `~` water, `=` lava, ` ` void;
 - `props`, `lights` (at most 16), the spell-table `npcs` on floor 0, and the run's shrine's (`heart-shrine`) on the
   floor whose `run.Shrine` says it holds one;
-- `arrive`, `up`, `down`, `wayOut`, `shrine` and `spots` (`{index, mob, role, x, z}`), all in tiles.
+- `arrive`, `up`, `down`, `wayOut`, `shrine` and `spots` (`{index, mob, role: encounter|boss, x, z}`), all in tiles.
 
-`realms/web/src/dungeon/` is the module (the hex generator is retired); `dungeon/index.ts` exports
-`generateDungeonFloor`, `THEME_DEFS`, `assembleFloor`, `gridOfFloor`, `AssembledFloor`, `MAX_LIGHTS`, `wardenIndex`,
-`bossIndex` and the types `DungeonFloor`, `FloorRequest`, `RunFloor` (net/api.ts's, the run as the server hands it out),
-`Role` and `Spot`. Each theme has its own carver in `themes/`, seeded by `${theme}:${seed}:${floor}`. `finish.ts` places
-the run's contract:
-- Walking is eight ways, never cutting a corner.
-- Every floor tile is reached from the arrival without crossing a stair or the way out. Those are walkable, but walked
-  onto only to be taken.
-- The warden's index is `Encounters.length` and the boss's is one more.
-- A shrine (`dungeon-shrine`, its heart `dungeon-shrine-heart` drawn by the page, lit or spent) stands on a blocked tile
-  in a room on the way, against a wall where it can, with open floor before it to pray from, cutting no way off.
+`realms/web/src/dungeon/` is the module; `dungeon/index.ts` exports `generateDungeonFloor`, `THEME_DEFS`,
+`assembleFloor`, `gridOfFloor`, `AssembledFloor`, `MAX_LIGHTS`, `bossIndex`, `winsToOpen` and the types
+`DungeonFloor`, `FloorRequest`, `RunFloor` (net/api.ts's, the run as the server hands it out), `Role` and `Spot`.
+`generate.ts` sizes the arena by the dice (a round 22-27 tiles of floor across, the hall up to 28, 13 deep - with its walls
+16.8 deep in the camera's bounds, `floorBounds`, so a 16:9 window sees it whole at the closest zoom, the 30 by 16.9
+`insideScale` gives there), seeded by `${theme}:${seed}:${floor}`; each theme in `themes/` opens its room in that rectangle
+(`hall` a rectangle, `round` an ellipse whose edge wanders in a little, `common.ts`) with its pools, and dresses it
+afterwards. `finish.ts` places the run's contract:
+- The way back out (`up`) is a notch in the arena's south wall, a flight climbing south (`dungeon-way-back`), and the
+  arrival the tile north of it, in the middle column.
+- A round's gate (`down`) stands at the head of the middle column under the back wall (`dungeon-gate`: a sill, an arch
+  whose posts block the tiles either side); its portcullis (`dungeon-portcullis`, `open` or not) is the page's to draw,
+  as the round stands.
+- A round's challengers stand on a shallow arc across the floor between, the middle ones nearer the gate, each at least
+  three tiles from the next, on a circle (`dungeon-ring`, in the theme's hue) with its standard behind it
+  (`dungeon-standard`).
+- The hall's boss stands two tiles before its throne (`dungeon-throne`) at the head of the middle column, on a wider
+  circle; the way out (`wayOut`, `dungeon-way-out`) under the back wall three or four tiles to one side - beside its
+  empty place when it rests.
+- Walking is eight ways, never cutting a corner. Every floor tile is reached from the arrival without crossing a way
+  (`up`, `down`, `wayOut`): those are walkable, but walked onto only to be taken.
+- The boss's index is `Encounters.length` (0 in the hall); `winsToOpen(n)` is how many of `n` challengers open a gate:
+  all but one, at least one.
+- The spell table stands a few steps beside the arrival; a shrine (`dungeon-shrine`, its heart `dungeon-shrine-heart`
+  drawn by the page, lit or spent) at one side of the arena, by its west or east wall halfway down, with open floor before
+  it to pray from, cutting no way off.
 
 `assembleFloor(floor)` returns `{place, bounds, doorway}`. It draws the floor the way `assembleInterior` draws a room,
 with the renderer's own `groundOf`, `underOf` and `propOf` (render/chunks.ts):
 - walls in the theme's stone; a cave's are crags of living rock instead of blocks (`rock.ts`): outlines that wander back
   from the open ground, tops that rise and fall, the floor run on under them, darker rock falling away into the dark
-  beyond them, and ragged lips over a chasm (`walls.test.ts`: no rock over a walked tile);
+  beyond them (`walls.test.ts`: no rock over a walked tile);
 - near walls low, and east and west walls as camera cut-aways;
 - skirts over the void;
 - the theme's fill and its own lights;
 - the `dungeon-*` surfaces and props.
 
-`gridOfFloor(floor)` is the floor's walkable Grid. The page frames a floor as `{inside: true, turns: true, bounds}`.
-A run's player arrives on `arrive` (each floor's, going down too) and reports it; the server took them into the run at
-tile 0, 0 and takes any tile within it. Leaving is stepping onto `up` (`/api/dungeon/leave`; on floor 0 it is the way
-in), going down is stepping onto `down` (`/api/dungeon/floor`, once the warden is beaten), and leaving after the boss is
-stepping onto `wayOut` (`/api/dungeon/leave`). The fights stand on `spots`: each `{index, mob, role}` is the run's
-`{Index, Mob}` (an encounter, the warden at `wardenIndex`, the boss at `bossIndex`), started by
-`/api/encounter/start` `{Run, Floor, Index, Mob}`. Importing `dungeon/` registers every id it names.
+`gridOfFloor(floor)` is the floor's walkable Grid. The page frames a floor as `{inside: true, turns: false, bounds}`.
+A run's player arrives on `arrive` (each floor's, going down too) facing north and reports it; the server took them into
+the run at tile 0, 0 and takes any tile within it. Leaving is stepping onto `up` (`/api/dungeon/leave`; its doorway is
+south of it), going down is stepping onto a won round's `down` and choosing to descend in its panel
+(`/api/dungeon/floor`; or to leave, `/api/dungeon/leave`), and leaving after the boss is stepping onto `wayOut`
+(`/api/dungeon/leave`). The fights stand on `spots`: each `{index, mob, role}` is the run's `{Index, Mob}` (a challenger,
+or the boss at `bossIndex`), started by `/api/encounter/start` `{Run, Floor, Index, Mob}`. Importing `dungeon/`
+registers every id it names.
 
 ##### Viewing them
 
 `rooms.html` (dev only) shows a room or a floor with the hero in it:
 - a room: `?room=<kind>&style=&seed=&specialty=&upstairs=0&heading=`;
-- a floor: `?dungeon=<theme>&seed=&floor=&floors=&heading=`;
+- a floor: `?dungeon=<theme>&seed=&floor=&floors=&open=1` (a made-up run: a round of three challengers standing on
+  their circles, the last floor the boss's hall; `open=1` draws a round's gate thrown open);
 - no query: an index of links.
 
 `e2e/rooms.spec.ts` renders every kind and theme at every heading. With `ROOMS_SHOTS=1` it writes them to
@@ -1290,7 +1319,7 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   browser's `DuelTable`, the player's seat by the tactical bot and the mob's by `RealmBot` on the duel's seed. Each game's
   seed comes from the run's seed, the player, the mob and the game's number, so a run is repeatable; the win rates are a
   deliberate statistical sample, reported with Wilson 95% intervals by tier (wanderers apart from the mages and
-  wardens), by boss, by deck and by mob. `--log` keeps every game as a JSON line and `--from` reports logs again.
+  wardens, the dungeons' champions), by boss, by deck and by mob. `--log` keeps every game as a JSON line and `--from` reports logs again.
   - **Reference players.** (a) Each color's starter deck with the starting kit. (b) An upgraded deck per color
     (`decks/realms/dominaria/reference/<color>.txt`): the starter with the pool's commons and uncommons a player could
     hold after about a dozen wins, wearing four uncommon items (Circlet of Foresight, Silver Pendant, Chain Hauberk,
@@ -1322,6 +1351,7 @@ The work runs through agents in worktrees of this fork, one per piece (the serve
   | Pricing | the price formula |
   | Hearts | the start, the migration, a town's refill, a heart given back, buying to five, death |
   | Hearts found | a heartbloom picked from on or beside it, gone for everyone, left standing with the hearts full; a run's shrine in one run in eight, on its floor alone, once a run |
+  | Dungeons | a run a tournament: rounds of three challengers of their tables and the boss alone in the hall; a round's gate shut at one win of three (and after a loss), open at two, the third still fought and paying; no warden in any run or dungeon file |
   | Finds | chests and heartblooms spawned a few to a zone on open ground of the wilds, never at a player's feet, crumbling in their time; a chest's tier gold, gone for everyone once opened (FindsTests) |
   | Losing | a heart and no reward; the buyout's measure, its payment and its refusal in a dungeon; the rematch's carried life and swapped deck; death taking back a run's winnings |
   | Vendors | buy and sell atomicity; a purse too small; a full stock; trickle and rotation on a fake `TimeProvider` |
