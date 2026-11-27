@@ -1,11 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { chebyshev, clickControl, clickEntity, dungeon, entities, entity, playerTile, realm, until, waitReady, waitSpace, winDuel } from "../realm";
-import { beat, enter, run, walkInside } from "../runs";
+import { beat, beatOne, descend, enter, run, toGate, walkInside } from "../runs";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
-// Dungeon runs against the real realm server on the generated Domains (playwright.config.ts here): the run the server
-// hands out at a dungeon's entrance, its warden beaten before the stair, the stair the server lets the character take;
-// and a mage tower attuned by beating its mage, then its waystone's fast travel to another attuned tower. A test starts
+// Dungeon runs against the real realm server on the generated Domains (playwright.config.ts here), each a tournament
+// (design.md A6): the run the server hands out at a dungeon's entrance, its first round's gate the server keeps shut
+// until two of three challengers are beaten, then lets the character through; and a mage tower attuned by beating its
+// mage in its hall, then its waystone's fast travel to another attuned tower. A test starts
 // its character beside the entrance (POST /dev/place, test-only) and has the server count the stand-in card layer's
 // wins (POST /dev/verdict, test-only): the real duel and its replay are card-layer.spec.ts's.
 
@@ -17,17 +18,13 @@ async function besideDungeon(page: Page, id: string): Promise<void> {
   await waitSpace(page, "world");
 }
 
-/** Beats the warden of the floor the run stands on and takes its stair down: the server lets the character by. */
-async function down(page: Page): Promise<void> {
-  const r = (await run(page))!;
-  await beat(page, "warden");
-  await walkInside(page, r.down!, 2);
-  await clickEntity(page, (e) => e.kind === "down", "the stairs down");
-  await until(page, async () => (await run(page))?.floor === r.floor + 1, "down the stair", 60);
-  await waitSpace(page, /^run:/);
+/** What the server says to the gate down from the floor the run stands on. */
+async function tryGate(page: Page, run: string, floor: number): Promise<{ status: number; error: string | null }> {
+  const r = await page.request.post(new URL("api/dungeon/floor", SERVER).toString(), { data: { Run: run, Floor: floor } });
+  return { status: r.status(), error: r.ok() ? null : ((await r.json()) as { Error: string }).Error };
 }
 
-test("a dungeon run on the real server: in at its entrance, the warden before the stair, and the stair down", async ({ page }) => {
+test("a dungeon run on the real server: in at its entrance by its board, the gate shut at one win of three, open at two, and down", async ({ page }) => {
   test.setTimeout(300_000);
   await character(page.request, 11, "Dara");
   await verdict(page.request, "won");
@@ -42,13 +39,17 @@ test("a dungeon run on the real server: in at its entrance, the warden before th
   expect((await api<Me>(page.request, "me")).Space).toBe(`run:${r.id}`);
   await entity(page, (e) => e.kind === "spell-table", "the entrance's spell table");
 
-  // The server bars the stair while the warden stands; once it is beaten, it takes the character down.
-  const barred = await page.request.post(new URL("api/dungeon/floor", SERVER).toString(), { data: { Run: r.id, Floor: 1 } });
-  expect(barred.status()).toBe(409);
-  expect(((await barred.json()) as { Error: string }).Error).toBe("WardenStands");
-  await down(page);
-  expect((await realm<string[]>(page, "messages")).some((m) => /Floor 2 of/.test(m))).toBe(true);
+  // The server keeps the gate shut until two of the round's three challengers are beaten; then it lets the character by.
+  expect(r.round).toEqual({ beaten: 0, of: 3, need: 2, open: false });
+  expect(await tryGate(page, r.id, 1)).toEqual({ status: 409, error: "RoundOpen" });
+  await beatOne(page, "encounter");
+  expect(await tryGate(page, r.id, 1)).toEqual({ status: 409, error: "RoundOpen" });
+  await toGate(page);
+  await until(page, async () => (await realm<string[]>(page, "messages")).includes("Beat 2 of the 3 challengers to open the gate."), "told the gate is shut", 20);
+  await descend(page);
+  expect((await realm<string[]>(page, "messages")).some((m) => /^Round 2 of/.test(m) || /^The boss's hall/.test(m))).toBe(true);
   expect((await api<Me>(page.request, "me")).Space).toBe(`run:${r.id}`);
+  expect((await api<{ Floor: number }>(page.request, "dungeon/run")).Floor).toBe(1);
 });
 
 test("mage towers attuned by beating their mages on the real server, then a waystone's travel between them", async ({ page }) => {
@@ -65,16 +66,14 @@ test("mage towers attuned by beating their mages on the real server, then a ways
     await enter(page, tower);
     await waitSpace(page, /^run:/, 60);
     const r = (await run(page))!;
-    for (let floor = 0; floor < r.floors - 1; floor++) await down(page);
-    // The mage's floor's other mobs first, one by one where they stand, so none comes for Edda after the mage's duel or
-    // on the way out.
-    for (let tries = 0; tries < 8 && (await entities(page)).some((e) => e.kind === "mob" && e.role === "encounter"); tries++) await beat(page, "encounter");
+    for (let floor = 0; floor < r.floors - 1; floor++) await descend(page);
+    // The mage alone in its hall.
+    expect((await entities(page)).filter((e) => e.kind === "mob").map((e) => e.role)).toEqual(["boss"]);
     await beat(page, "boss");
     await until(page, async () => (await api<Me>(page.request, "me")).Attuned.includes(tower), "attuned on the server", 60);
     expect(await realm<string[]>(page, "character.attuned")).toContain(tower);
 
     // Out by the way that opens beside the mage, to the entrance in the world.
-    // A mob of the floor that comes for Edda on the way is beaten by the stand-in; then the way out is clicked again.
     const inWorld = async () => (await realm<string | undefined>(page, "space.id")) === "world" && !(await realm<boolean>(page, "transitioning"));
     const inDuel = async () => (await realm<string | null>(page, "layer.open")) === "duel";
     for (let tries = 0; tries < 4 && !(await inWorld()); tries++) {

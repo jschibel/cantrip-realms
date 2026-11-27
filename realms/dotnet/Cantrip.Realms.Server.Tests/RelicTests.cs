@@ -235,10 +235,10 @@ public sealed class RelicTests
         await browser.Position(RealmContent.WorldSpace, gate);
         RunView run = await browser.Ok<RunView>(HttpMethod.Post, "/api/dungeon/enter", new { Dungeon = Portal });
 
-        // Four floors of the Portal's Phyrexians, its warden at every stair, the praetor on the last.
+        // Four floors: three rounds of the Portal's Phyrexians, then the praetor alone in its hall.
         Assert.Equal(4, run.Floors.Count);
-        Assert.All(run.Floors.SkipLast(1), floor => Assert.Equal(("portal-warden", (string?)null), (floor.Warden, floor.Boss)));
-        Assert.Equal(((string?)null, (string?)Praetor), (run.Floors[^1].Warden, run.Floors[^1].Boss));
+        Assert.All(run.Floors.SkipLast(1), floor => Assert.Equal((3, (string?)null), (floor.Encounters.Count, floor.Boss)));
+        Assert.Equal((0, (string?)Praetor), (run.Floors[^1].Encounters.Count, run.Floors[^1].Boss));
         Assert.All(run.Floors.SelectMany(floor => floor.Encounters), encounter => Assert.Equal(4, RealmApp.Content.Mobs[encounter.Mob].File.Tier));
         Assert.DoesNotContain(run.Floors[0].Encounters, encounter => encounter.Mob == "gitaxian-mindcutter");
     }

@@ -147,14 +147,14 @@ public sealed class BossTests
         Assert.Equal(run.Floors.Count, fresh.Floors.Count);
 
         RunEncounter one = run.Floors[0].Encounters[0];
+        RunEncounter two = run.Floors[0].Encounters[1];
         await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, one.Index, one.Mob)).Token);
-        int warden = run.Floors[0].Encounters.Count;
-        await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, warden, "sanctum-warden")).Token);
+        await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, two.Index, two.Mob)).Token);
         await browser.Ok<object>(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 });
 
         RunView resumed = await browser.Ok<RunView>(HttpMethod.Get, "/api/dungeon/run");
         Assert.Equal(1, resumed.Floor);
-        Assert.Equal([$"0:{one.Index}", $"0:{warden}"], resumed.Beaten!.Order(StringComparer.Ordinal));
+        Assert.Equal([$"0:{one.Index}", $"0:{two.Index}"], resumed.Beaten!.Order(StringComparer.Ordinal));
         Assert.Null(resumed.Resting);
 
         await browser.Ok<object>(HttpMethod.Post, "/api/dungeon/leave", new { run.Run });

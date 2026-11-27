@@ -1,1 +1,1 @@
-{"id":"llanowar-1","name":"The Llanowar Tower of the First Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":1,"encounters":[1,2],"mobs":["durkwood-boars","elvish-warrior","llanowar-elves"],"warden":"warden-1","boss":"mage-llanowar-1","region":"G","entrance":[100,100]}
+{"id":"llanowar-1","name":"The Llanowar Tower of the First Circle","theme":"tower","waystone":true,"floors":[2,2],"tier":1,"encounters":[3,3],"mobs":["durkwood-boars","elvish-warrior","llanowar-elves","warden-1"],"boss":"mage-llanowar-1","region":"G","entrance":[100,100]}

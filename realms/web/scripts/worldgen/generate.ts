@@ -364,7 +364,6 @@ export function generate(layout: Layout, roster: readonly MobFile[], vendors: re
   for (const s of placed.spawns) for (const m of s.mobs) mobs.add(m);
   for (const d of dungeons) {
     for (const list of Array.isArray(d.mobs[0]) ? (d.mobs as string[][]) : [d.mobs as string[]]) for (const m of list) mobs.add(m);
-    mobs.add(d.warden);
     mobs.add(d.boss);
   }
   let groves = 0;
@@ -409,7 +408,6 @@ function dungeonData(plan: DungeonLayout, color: Region | null, entrance: readon
     tier,
     encounters: plan.encounters,
     mobs: mobs as DungeonData["mobs"],
-    warden: ask(plan.warden)[0]!,
     boss: ask(plan.boss)[0]!,
     ...(color ? { region: color } : {}),
     ...(plan.waystone ? { waystone: true } : {}),

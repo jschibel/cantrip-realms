@@ -113,8 +113,11 @@ export class Stage {
   readonly extras: Figure[] = [];
   /** Whether the place's own figures move (the slice's ?still holds them). */
   still = false;
-  /** Called on arriving in a place (the HUD's name), and when the player's tile changes. */
-  onArrive: (spot: Spot) => void = () => {};
+  /**
+   * Called on arriving in a place (the HUD's name) - its spot, and the tile arrived on, which the figure may still be
+   * stepping onto out of the doorway - and when the player's tile changes.
+   */
+  onArrive: (spot: Spot, tile: Tile) => void = () => {};
   onTile: (tile: Tile) => void = () => {};
   /** A click on a tile, before the stage walks there: true if the page dealt with it (a person, a chest, a mob). */
   intercept: (tile: Tile) => boolean = () => false;
@@ -253,7 +256,7 @@ export class Stage {
    * True if the click was used on something (the page took it, or a door), not only walked.
    */
   clickTile(tile: Tile): boolean {
-    if (this.transition || this.paused) return false;
+    if (this.transition || this.paused || this.asking) return false;
     if (this.intercept(tile)) {
       this.pendingDoor = null;
       return true;
@@ -312,9 +315,33 @@ export class Stage {
     return null;
   }
 
-  /** Goes through a door: the player walks into the doorway, the camera eases and the iris closes on it. */
+  /**
+   * Goes through a door, once the page agrees (`askDoor`: a dungeon's board, a round's gate): the player walks into the
+   * doorway, the camera eases and the iris closes on it. Refused, the player stays where they stand.
+   */
   startDoor(door: StageDoor): void {
     this.pendingDoor = null;
+    const ok = this.askDoor(door);
+    if (ok === true) this.goThrough(door);
+    else if (ok !== false) {
+      this.asking = true;
+      void ok.then(
+        (go) => {
+          this.asking = false;
+          if (go && !this.transition) this.goThrough(door);
+        },
+        () => (this.asking = false),
+      );
+    }
+  }
+
+  /** The page's say before a door is gone through: true (or a promise of it) to go, false to stay. */
+  askDoor: (door: StageDoor) => boolean | Promise<boolean> = () => true;
+
+  /** Whether the page is asking about a door (its panel open): no click walks meanwhile. */
+  asking = false;
+
+  private goThrough(door: StageDoor): void {
     this.rig.halt();
     this.player.figure.act("interact");
     this.player.walkTo(centre(door.tile).add(new THREE.Vector3(door.step[0] * 0.9, 0, door.step[1] * 0.9)));
@@ -360,7 +387,7 @@ export class Stage {
     if (!fromDoor) this.renderer.setView(this.viewFor(arrival.spot));
     this.wanted = null;
     this.lastTile = "";
-    this.onArrive(arrival.spot);
+    this.onArrive(arrival.spot, arrival.tile);
   }
 
   private stepTransition(dt: number): void {

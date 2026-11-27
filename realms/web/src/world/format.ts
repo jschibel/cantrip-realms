@@ -501,17 +501,22 @@ export interface WorldData {
   readonly landmarks?: readonly MapLandmark[];
 }
 
+/**
+ * A dungeon (interfaces.md, "Dungeons"): a tournament of `floors` floors (design.md A6) - every floor but the last a round
+ * of `encounters` challengers drawn from its `mobs` table, all but one of whom open its gate, and the last the boss's hall.
+ */
 export interface DungeonData {
   readonly id: string;
   readonly name: string;
   readonly theme: Theme;
   readonly entrance: XZ;
   readonly requires?: string;
+  /** How many floors, the boss's hall among them: the fewest and the most (at least 2: a round and the hall). */
   readonly floors: readonly [number, number];
   readonly tier: number;
+  /** How many challengers stand in a round: the fewest and the most. */
   readonly encounters: readonly [number, number];
   readonly mobs: readonly string[] | readonly (readonly string[])[];
-  readonly warden: string;
   readonly boss: string;
   readonly region?: Region;
   readonly waystone?: boolean;

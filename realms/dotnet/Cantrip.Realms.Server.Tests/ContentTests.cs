@@ -141,14 +141,16 @@ public sealed class ContentTests
             Assert.Contains(inn.Town, content.Towns.Keys);
         }
 
-        // Dungeons stand where world.json says, an entrance of a chunk leading in; their mobs, wardens and bosses are mobs.
+        // Dungeons stand where world.json says, an entrance of a chunk leading in; their mobs and bosses are mobs; each is a
+        // tournament of a round or more and the boss's hall.
         foreach (RealmDungeon dungeon in content.Dungeons.Values)
         {
             Assert.Equal(dungeon.Id, world.Entrances[dungeon.File.At]);
             Assert.Contains(world.File.Dungeons, place => place.Id == dungeon.Id && place.At == dungeon.File.At);
             Assert.All(dungeon.Tables.SelectMany(table => table), mob => Assert.False(content.Mobs[mob].File.Boss, mob));
             Assert.Contains(dungeon.File.Boss, content.Mobs.Keys);
-            if (dungeon.File.Warden is { } warden) Assert.Contains(warden, content.Mobs.Keys);
+            Assert.True(dungeon.File.Floors[0] >= 2, dungeon.Id);
+            Assert.Equal([3, 3], dungeon.File.Encounters);
         }
 
         // No mob nobody meets.
@@ -157,7 +159,6 @@ public sealed class ContentTests
         {
             met.UnionWith(dungeon.Tables.SelectMany(table => table));
             met.Add(dungeon.File.Boss);
-            if (dungeon.File.Warden is { } warden) met.Add(warden);
         }
 
         Assert.Equal(content.Mobs.Keys.Order(StringComparer.Ordinal), met.Order(StringComparer.Ordinal));
@@ -235,10 +236,11 @@ public sealed class ContentTests
     {
         RealmContent content = RealmApp.Content;
 
-        // Six dungeon wardens of tier 4 and a warden for each tier; five bosses who unlock the five colors, and the
-        // capstone's praetor, who unlocks none.
+        // Six dungeon wardens of tier 4 and a warden for each tier, each among its dungeons' challengers; five bosses who
+        // unlock the five colors, and the capstone's praetor, who unlocks none.
         Assert.Equal(6, content.Mobs.Values.Count(mob => mob.Id.EndsWith("-warden", StringComparison.Ordinal) && mob.File.Tier == 4 && !mob.File.Boss));
         Assert.All(Enumerable.Range(1, 4), tier => Assert.Equal(tier, content.Mobs[$"warden-{tier}"].File.Tier));
+        Assert.All(content.Mobs.Keys.Where(id => id.Contains("warden", StringComparison.Ordinal)), id => Assert.Contains(content.Dungeons.Values, dungeon => dungeon.Tables.Any(table => table.Contains(id))));
         List<Mob> bosses = [.. content.Mobs.Values.Where(mob => mob.File.Boss)];
         Assert.Equal("BGRUW", string.Concat(bosses.Select(boss => boss.File.Unlocks).OfType<string>().Order(StringComparer.Ordinal)));
         Assert.Equal(["phyrexian-praetor"], bosses.Where(boss => boss.File.Unlocks is null).Select(boss => boss.Id));
@@ -287,7 +289,8 @@ public sealed class ContentTests
     {
         RealmContent content = RealmApp.Content;
         RealmDungeon portal = content.Dungeons["phyrexian-portal"];
-        Assert.Equal(("portal", "WUBRG", "phyrexian-praetor", "portal-warden"), (portal.File.Theme, portal.File.Requires, portal.File.Boss, portal.File.Warden));
+        Assert.Equal(("portal", "WUBRG", "phyrexian-praetor"), (portal.File.Theme, portal.File.Requires, portal.File.Boss));
+        Assert.Contains("portal-warden", portal.Tables[^1]);
         Assert.All(portal.Tables.SelectMany(table => table), mob => Assert.Equal(4, content.Mobs[mob].File.Tier));
         Assert.All(content.Dungeons.Values.Where(dungeon => dungeon.File.Requires is not null), dungeon => Assert.Same(portal, dungeon));
 

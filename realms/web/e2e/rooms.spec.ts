@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { type Page, expect, test } from "@playwright/test";
 
 // The rooms and dungeons gallery (rooms.html): every room kind and every dungeon theme renders at each of the camera's
-// three headings, and draws something - not a black frame. With ROOMS_SHOTS=1 the pictures are written to
+// three headings, and draws something - not a black frame; a theme's round with its challengers and its gate, shut or
+// thrown open, and its boss's hall. With ROOMS_SHOTS=1 the pictures are written to
 // e2e/screenshots/rooms for the owner to judge; otherwise to test-results/rooms. ROOMS_ONLY=<a query fragment> renders
 // only the pages whose query contains it (room=inn, dungeon=caves), for working on one; ROOMS_VIEWPORT=1920x1080 another
 // window size.
@@ -48,6 +49,8 @@ for (const [kind, specialty] of [["shop", "cards"], ["shop", "curios"], ["shop",
 pages.push({ query: "room=inn&style=benalish&seed=4&upstairs=0&heading=front", name: "tavern-front" });
 for (const theme of THEMES) for (const heading of HEADINGS) pages.push({ query: `dungeon=${theme}&seed=1&floor=0&floors=3&heading=${heading}`, name: `dungeon-${theme}-${heading}` });
 for (const theme of THEMES) pages.push({ query: `dungeon=${theme}&seed=2&floor=2&floors=3&heading=front`, name: `dungeon-${theme}-last` });
+// A round won: its gate's portcullis drawn up.
+for (const theme of ["castle", "caves", "crypt"] as const) pages.push({ query: `dungeon=${theme}&seed=1&floor=0&floors=3&open=1&heading=front`, name: `dungeon-${theme}-open` });
 
 test.describe("the rooms gallery", () => {
   // ROOMS_VIEWPORT=1920x1080 renders them at another window size.

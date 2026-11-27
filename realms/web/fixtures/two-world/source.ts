@@ -271,17 +271,16 @@ export const TWO_WORLD: WorldData = {
   ],
 };
 
-/** The caves south-west of Twoford: one or two floors of goblins' kin, as a dungeon's file holds it. */
+/** The caves south-west of Twoford: a round of Benalish challengers, then the commander's hall, as a dungeon's file holds it. */
 export const TWO_CAVES: DungeonData = {
   id: "two-caves",
   name: "The Twoford Caves",
   theme: "caves",
   entrance: ENTRANCE,
-  floors: [1, 2],
+  floors: [2, 2],
   tier: 1,
-  encounters: [1, 2],
-  mobs: ["benalish-hero"],
-  warden: "benalish-knight",
+  encounters: [3, 3],
+  mobs: ["benalish-hero", "benalish-knight"],
   boss: "commander-eesha",
 };
 

@@ -1,30 +1,39 @@
-// What the themes share: placing rooms apart, the wall-hung and floor-standing dressing, and the lights fires give.
+// What the themes share: the arena's outline (a hall's rectangle, a cave's or a glade's ragged round, a tower's round),
+// the wall-hung and floor-standing dressing, and the lights fires give.
 
 import type { LightData, PropData, RGB } from "../../world/format";
-import type { DressContext } from "../finish";
-import { FLOOR, type Plan, type Room, STEPS, WALL } from "../plan";
+import type { Arena, DressContext } from "../finish";
+import { FLOOR, type Plan, STEPS, WALL } from "../plan";
+
+/** Opens the whole arena: a hall's rectangle of floor. */
+export function hall(plan: Plan, arena: Arena, surface?: string): void {
+  plan.rect(arena.x0, arena.z0, arena.x1, arena.z1, surface);
+}
 
 /**
- * `count` room middles within the rectangle (x0, z0)-(x1, z1), at least `apart` tiles from each other, chained from the
- * one farthest west, each next the nearest not yet taken: rooms in a winding order.
+ * Opens a round arena within the rectangle: an ellipse filling it, its edge wandering in by up to `rough` of its reach
+ * (a cave's chamber, a glade), the dice choosing how; `square` rounds it only that much toward a rectangle's corners
+ * (0 an ellipse, 1 the rectangle).
  */
-export function spread(plan: Plan, count: number, apart: number, x0: number, z0: number, x1: number, z1: number): [number, number][] {
-  const found: [number, number][] = [];
-  for (let tries = 0; tries < 900 && found.length < count; tries++) {
-    const x = plan.int(x0, x1);
-    const z = plan.int(z0, z1);
-    if (found.some(([fx, fz]) => Math.hypot(fx - x, fz - z) < apart)) continue;
-    found.push([x, z]);
+export function round(plan: Plan, arena: Arena, rough: number, square = 0, surface?: string): void {
+  const { x0, z0, x1, z1 } = arena;
+  const mx = (x0 + x1) / 2;
+  const mz = (z0 + z1) / 2;
+  const a = (x1 - x0) / 2 + 0.5;
+  const b = (z1 - z0) / 2 + 0.5;
+  const waves = [1, 2, 3].map((k) => ({ k: k + 1, phase: plan.random() * Math.PI * 2, size: (0.5 + plan.random()) / k }));
+  const total = waves.reduce((sum, w) => sum + w.size, 0);
+  for (const w of waves) w.size *= rough / total;
+  const p = 2 + square * 6;
+  for (let z = z0; z <= z1; z++) {
+    for (let x = x0; x <= x1; x++) {
+      const u = (x - mx) / a;
+      const v = (z - mz) / b;
+      const angle = Math.atan2(v, u);
+      const reach = 1 - waves.reduce((s, w) => s + w.size * (0.5 + 0.5 * Math.sin(angle * w.k + w.phase)), 0);
+      if (Math.abs(u) ** p + Math.abs(v) ** p <= reach ** p) plan.carve(x, z, surface);
+    }
   }
-  found.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const chain = found.slice(0, 1);
-  const left = found.slice(1);
-  while (left.length > 0) {
-    const [lx, lz] = chain.at(-1)!;
-    left.sort((a, b) => Math.hypot(a[0] - lx, a[1] - lz) - Math.hypot(b[0] - lx, b[1] - lz) || a[0] - b[0] || a[1] - b[1]);
-    chain.push(left.shift()!);
-  }
-  return chain;
 }
 
 /** A fire's flickering light, in step with the flames (the slice's torches and braziers). */
@@ -100,9 +109,26 @@ export function strew(ctx: DressContext, chance: number, make: (x: number, z: nu
   }
 }
 
-/** The room a tile is in, if it is in one (within its size). */
-export function roomAt(rooms: readonly Room[], x: number, z: number): Room | undefined {
-  return rooms.find((r) => Math.max(Math.abs(r.x - x), Math.abs(r.z - z)) <= r.size);
+/**
+ * Stands a pair of things either side of the arena's middle column (pillars down a hall, statues to a throne) at each
+ * row from `from` to `to` every `every` rows, `apart` tiles out from the middle - where each may stand.
+ */
+export function flanking(ctx: DressContext, apart: number, from: number, to: number, every: number, make: (x: number, z: number) => PropData): [number, number][] {
+  const out: [number, number][] = [];
+  const { cx } = ctx.arena;
+  for (let z = from; z <= to; z += every) {
+    for (const x of [cx - apart, cx + apart]) {
+      if (ctx.free(x, z) && ctx.plan.block(x, z, make(x, z))) out.push([x, z]);
+    }
+  }
+  return out;
+}
+
+/** A brazier on a free tile, burning: its light offered at `weight`. */
+export function brazier(ctx: DressContext, x: number, z: number, weight = 45, strength = 8.5): boolean {
+  if (!ctx.free(x, z) || !ctx.plan.block(x, z, { id: "brazier", x: x + 0.5, z: z + 0.5 })) return false;
+  ctx.plan.light(fireLight([x + 0.5, 1.5, z + 0.8], strength, x + z), weight);
+  return true;
 }
 
 /** Fills a tile with water or lava (or the void) only where that cuts no way off. */

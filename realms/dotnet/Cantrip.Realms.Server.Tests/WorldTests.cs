@@ -2,6 +2,7 @@ using System.Net;
 using Cantrip.Realms.Server.Content;
 using Cantrip.Realms.Server.Data;
 using Cantrip.Realms.Server.Duels;
+using Cantrip.Realms.Server.Economy;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -274,15 +275,19 @@ public sealed class DungeonTests
             RealmDungeon dungeon = RealmApp.Content.Dungeons[Sanctum];
             Assert.InRange(run.Seed, 0, Duel.MaximumSeed);
             Assert.InRange(run.Floors.Count, dungeon.File.Floors[0], dungeon.File.Floors[1]);
-            for (int floor = 0; floor < run.Floors.Count; floor++)
+            // A tournament (design.md A6): every floor but the last a round of three challengers of its table, no boss; the
+            // last the boss's hall, the boss alone.
+            for (int floor = 0; floor < run.Floors.Count - 1; floor++)
             {
-                RunFloor at = run.Floors[floor];
-                Assert.InRange(at.Encounters.Count, dungeon.File.Encounters[0], dungeon.File.Encounters[1]);
-                Assert.Equal(Enumerable.Range(0, at.Encounters.Count), at.Encounters.Select(encounter => encounter.Index));
-                Assert.All(at.Encounters, encounter => Assert.Contains(encounter.Mob, dungeon.TableOf(floor)));
-                bool last = floor == run.Floors.Count - 1;
-                Assert.Equal((last ? null : "sanctum-warden", last ? "lyra-dawnbringer" : null), (at.Warden, at.Boss));
+                RunFloor round = run.Floors[floor];
+                Assert.Equal(3, round.Encounters.Count);
+                Assert.Equal(Enumerable.Range(0, 3), round.Encounters.Select(encounter => encounter.Index));
+                Assert.All(round.Encounters, encounter => Assert.Contains(encounter.Mob, dungeon.TableOf(floor)));
+                Assert.Null(round.Boss);
             }
+
+            Assert.Empty(run.Floors[^1].Encounters);
+            Assert.Equal("lyra-dawnbringer", run.Floors[^1].Boss);
 
             // Entering again ends the run before: one live run a character.
             Assert.Equal(1, await app.Store(db => db.Runs.CountAsync(row => row.PlayerId == browser.Player && row.State == RunRow.Live)));
@@ -304,7 +309,7 @@ public sealed class DungeonTests
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 1, one.Index, one.Mob }, HttpStatusCode.Conflict, Codes.NotThere);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = 99, one.Mob }, HttpStatusCode.NotFound, Codes.NotThere);
         await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, one.Index, Mob = notIt }, HttpStatusCode.Conflict, Codes.NotThere);
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = first.Encounters.Count + 1, Mob = "lyra-dawnbringer" }, HttpStatusCode.NotFound, Codes.NotThere);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = first.Encounters.Count, Mob = "lyra-dawnbringer" }, HttpStatusCode.NotFound, Codes.NotThere);
         await other.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, one.Index, one.Mob }, HttpStatusCode.NotFound, Codes.NotThere);
 
         EncounterView duel = await RealmApp.Fight(browser, run, 0, one.Index, one.Mob);
@@ -318,28 +323,70 @@ public sealed class DungeonTests
     }
 
     [Fact]
-    public async Task The_stair_opens_once_its_warden_is_beaten()
+    public async Task A_rounds_gate_opens_once_two_of_its_three_challengers_are_beaten_and_the_third_still_pays()
     {
         await using var app = new RealmApp();
         Browser browser = await app.Character(1);
         RunView run = await app.EnterRun(browser, Sanctum);
-        await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 }, HttpStatusCode.Conflict, Codes.WardenStands);
+        IReadOnlyList<RunEncounter> round = run.Floors[0].Encounters;
+        Assert.Equal(3, round.Count);
+        Assert.Equal(2, Dungeons.WinsToOpen(round.Count));
+
+        // None beaten: shut. A floor past the next: no way at all.
+        await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 }, HttpStatusCode.Conflict, Codes.RoundOpen);
         await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 2 }, HttpStatusCode.Conflict, Codes.NoWay);
 
-        // A lost duel would end the run; a won one against the warden opens the stair.
-        EncounterView warden = await RealmApp.Fight(browser, run, 0, run.Floors[0].Encounters.Count, "sanctum-warden");
-        await RealmApp.Finish(browser, warden.Token);
+        // One of three: still shut, and it says what it takes.
+        await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, round[1].Index, round[1].Mob)).Token);
+        HttpResponseMessage shut = await browser.Send(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 });
+        Assert.Equal(HttpStatusCode.Conflict, shut.StatusCode);
+        Assert.Contains("Beat 2 of the 3 challengers to open the gate.", await shut.Content.ReadAsStringAsync());
+
+        // A lost game is no win: a heart, and the gate stays shut; the challenger fought again and beaten, it opens.
+        Func<Duel, IReadOnlyList<string>, DuelVerdict> wins = app.Verifier.Answer;
+        app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
+        OutcomeView lost = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, round[0].Index, round[0].Mob)).Token);
+        Assert.Equal("lost", lost.Outcome);
+        await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 }, HttpStatusCode.Conflict, Codes.RoundOpen);
+        app.Verifier.Answer = wins;
+        EncounterView again = await browser.Ok<EncounterView>(HttpMethod.Post, "/api/encounter/rematch", new { lost.Defeat!.Token, lost.Defeat.Main, lost.Defeat.Sideboard, PlayFirst = true });
+        Assert.Equal("won", (await RealmApp.Finish(browser, again.Token)).Outcome);
+
+        // Two of three: the round is won; the third challenger still fights, and pays its gold, before the gate is taken.
+        long before = (await browser.Me()).Gold;
+        OutcomeView bonus = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, round[2].Index, round[2].Mob)).Token);
+        Assert.Equal("won", bonus.Outcome);
+        Assert.True(bonus.Gold > 0);
+        Assert.Equal(before + bonus.Gold, (await browser.Me()).Gold);
         await browser.Ok<object>(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 });
         await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 1 }, HttpStatusCode.Conflict, Codes.NoWay);
 
-        // The first floor's encounters are behind; the second's are the ones to fight.
-        RunEncounter below = run.Floors[1].Encounters.FirstOrDefault() ?? new RunEncounter(run.Floors[1].Encounters.Count, run.Floors[1].Warden ?? run.Floors[1].Boss!);
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, run.Floors[0].Encounters[0].Index, run.Floors[0].Encounters[0].Mob }, HttpStatusCode.Conflict, Codes.NotThere);
+        // The first round is behind; the second's challengers are the ones to fight, its gate shut again.
+        RunEncounter below = run.Floors[1].Encounters[0];
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, round[0].Index, round[0].Mob }, HttpStatusCode.Conflict, Codes.NotThere);
+        await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = 2 }, HttpStatusCode.Conflict, Codes.RoundOpen);
         await RealmApp.Fight(browser, run, 1, below.Index, below.Mob);
 
-        // From the last floor no stair leads on.
+        // From the boss's hall no gate leads on.
         await app.ToFloor(run, run.Floors.Count - 1);
         await browser.Refused(HttpMethod.Post, "/api/dungeon/floor", new { run.Run, Floor = run.Floors.Count }, HttpStatusCode.Conflict, Codes.NoWay);
+    }
+
+    [Fact]
+    public async Task A_run_names_no_warden_anywhere_and_no_dungeon_has_one()
+    {
+        await using var app = new RealmApp();
+        Browser browser = await app.Character(1);
+        await app.EnterRun(browser, Sanctum);
+        string run = await (await browser.Send(HttpMethod.Get, "/api/dungeon/run", null)).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("Warden", run, StringComparison.Ordinal);
+        Assert.Contains("\"Boss\"", run, StringComparison.Ordinal);
+        // Neither the test world's dungeons nor the generated world's.
+        foreach (string dir in new[] { Path.Combine(RealmApp.Places, "dominaria", "dungeons"), Path.Combine(RealmApp.Root, "realms", "content", "dominaria", "dungeons") })
+        {
+            Assert.NotEmpty(Directory.EnumerateFiles(dir, "*.json"));
+            foreach (string file in Directory.EnumerateFiles(dir, "*.json")) Assert.DoesNotContain("\"warden\"", await File.ReadAllTextAsync(file), StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -359,7 +406,7 @@ public sealed class DungeonTests
         Assert.Equal((World, RealmApp.Inn("new-benalia").At), (me.Space, new Tile(me.X, me.Z)));
         RunRow row = await app.Store(db => db.Runs.AsNoTracking().SingleAsync(stored => stored.Id == run.Run));
         Assert.Equal(RunRow.Ended, row.State);
-        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, Index = first.Encounters.Count, Mob = "warden-2" }, HttpStatusCode.Conflict, Codes.NotThere);
+        await browser.Refused(HttpMethod.Post, "/api/encounter/start", new { run.Run, Floor = 0, first.Encounters[^1].Index, first.Encounters[^1].Mob }, HttpStatusCode.Conflict, Codes.NotThere);
         await browser.Refused(HttpMethod.Post, "/api/dungeon/leave", new { run.Run }, HttpStatusCode.Conflict, Codes.NotThere);
     }
 

@@ -202,13 +202,14 @@ public sealed record DungeonEnter(string? Dungeon);
 public sealed record RunEncounter(int Index, string Mob);
 
 /// <summary>
-/// A floor of a run: its encounters, then the warden at its stair (every floor but the last; its index the count of the
-/// encounters) and on the last floor the boss (its index one past the encounters'). A run of a color's dungeon dealt by the
-/// character's standing to its color (design.md A6, <see cref="Content.DungeonStanding"/>) says the tier it deals each floor
-/// at and what its boss gains over its own stats; null for a run dealt as the dungeon is written. <see cref="Shrine"/>: the
-/// floor holds the run's shrine (design.md A6), which gives back a heart once in the run; a run has one at most.
+/// A floor of a run (design.md A6: a run is a tournament): a round's challengers, its encounters - every floor but the last -
+/// or on the last floor, the boss's hall, the boss alone (its index past the encounters', so 0; null while it rests). A run
+/// of a color's dungeon dealt by the character's standing to its color (<see cref="Content.DungeonStanding"/>) says the tier
+/// it deals each floor at and what its boss gains over its own stats; null for a run dealt as the dungeon is written.
+/// <see cref="Shrine"/>: the floor holds the run's shrine (design.md A6), which gives back a heart once in the run; a run has
+/// one at most.
 /// </summary>
-public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Warden, string? Boss, int? Tier = null, GearStats? BossStats = null, bool Shrine = false);
+public sealed record RunFloor(IReadOnlyList<RunEncounter> Encounters, string? Boss, int? Tier = null, GearStats? BossStats = null, bool Shrine = false);
 
 /// <summary>A boss resting after a win (design.md A6: refought weekly): who, and when it is back.</summary>
 public sealed record RestingView(string Boss, DateTimeOffset Until);

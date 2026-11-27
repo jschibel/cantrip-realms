@@ -8,12 +8,13 @@ namespace Cantrip.Realms.Server.Economy;
 
 /// <summary>
 /// Dungeon runs and waystones (design.md A6; interfaces.md, "Dungeons" and the <c>/api/dungeon</c> and <c>/api/waystone</c>
-/// calls). Entering a dungeon from beside its entrance begins a single-player run: a seed for the browser's layout, and
-/// every encounter of every floor drawn at once - each floor's count from the dungeon's range and each mob from its floor's
-/// table, the warden at every stair, the boss on the last floor - so the server checks each duel of the run against what
-/// it named. The stair down opens once its warden is beaten; leaving, or losing any duel of the run, ends it. A mage
-/// tower's waystone, attuned by beating its boss (<see cref="Encounters"/>), takes the character from one attuned tower to
-/// another at once. A boss beaten rests for a week (design.md A6: refought weekly): a run begun meanwhile finds its last
+/// calls). A dungeon is a tournament: entering it from beside its entrance begins a single-player run - a seed for the
+/// browser's layout, and every encounter of every floor drawn at once: each floor but the last a round, its challengers'
+/// count from the dungeon's range and each mob from its floor's table, and the last floor the boss's hall, the boss alone -
+/// so the server checks each duel of the run against what it named. A round's gate down opens once all its challengers but
+/// one are beaten (<see cref="WinsToOpen"/>); the rest still fight and pay. Leaving, or losing the last heart in any duel of
+/// the run, ends it. A mage tower's waystone, attuned by beating its boss (<see cref="Encounters"/>), takes the character
+/// from one attuned tower to another at once. A boss beaten rests for a week (design.md A6: refought weekly): a run begun meanwhile finds its last
 /// floor without it, and the run says when it is back. A live run is what a character resumes (<see cref="Current"/>):
 /// the floor reached and the fights won stay with it until it ends. Now and then a run holds a shrine on one of its floors
 /// (<see cref="ShrineChance"/>, rolled as it begins): praying at it gives back a heart, once in the run, which the
@@ -168,9 +169,9 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
     }
 
     /// <summary>
-    /// A run's encounters, drawn as it begins: so many floors, each with so many encounters of its table's mobs, the warden
-    /// at each floor's stair but the last's, and the boss on the last. A standing (design.md A6) deals every floor at its
-    /// tier, draws the floors' mobs from its tiers alone and gives the boss what it gains; none deals the dungeon as written.
+    /// A run's encounters, drawn as it begins: so many floors, each but the last a round of so many challengers of its
+    /// table's mobs, and the last the boss's hall, the boss alone. A standing (design.md A6) deals every floor at its tier,
+    /// draws the rounds' mobs from its tiers alone and gives the boss what it gains; none deals the dungeon as written.
     /// </summary>
     public List<RunFloor> Roll(RealmDungeon dungeon, DungeonStanding? standing = null)
     {
@@ -180,15 +181,14 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         List<RunFloor> floors = [];
         for (int floor = 0; floor < count; floor++)
         {
-            IReadOnlyList<string> table = dungeon.TableOf(floor, standing, content.Mobs);
-            int encounters = table.Count == 0 ? 0 : (int)dice.Between(file.Encounters[0], file.Encounters[1]);
-            bool last = floor == count - 1;
+            bool hall = floor == count - 1;
+            IReadOnlyList<string> table = hall ? [] : dungeon.TableOf(floor, standing, content.Mobs);
+            int challengers = table.Count == 0 ? 0 : (int)dice.Between(file.Encounters[0], file.Encounters[1]);
             floors.Add(new RunFloor(
-                [.. Enumerable.Range(0, encounters).Select(index => new RunEncounter(index, table[dice.Below(table.Count)]))],
-                last ? null : file.Warden,
-                last ? file.Boss : null,
+                [.. Enumerable.Range(0, challengers).Select(index => new RunEncounter(index, table[dice.Below(table.Count)]))],
+                hall ? file.Boss : null,
                 standing?.Tier,
-                last && standing is not null && standing.BossStats != GearStats.None ? standing.BossStats : null));
+                hall && standing is not null && standing.BossStats != GearStats.None ? standing.BossStats : null));
         }
 
         return floors;
@@ -211,7 +211,10 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         return gains is null || gains == GearStats.None ? null : gains;
     }
 
-    /// <summary>Takes the stair to the next floor, once the warden of the floor the character stands on is beaten.</summary>
+    /// <summary>
+    /// Takes the gate down to the next floor, once the round the character stands in is won: <see cref="WinsToOpen"/> of its
+    /// challengers beaten. 409 <c>RoundOpen</c> before.
+    /// </summary>
     public async Task Floor(string player, FloorTake request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -225,10 +228,13 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
             throw Refusal.Conflict(Codes.NoWay, $"From floor {run.Floor} the stair leads to floor {run.Floor + 1}{(run.Floor + 1 >= floors.Count ? ", and this is the last" : string.Empty)}.");
         }
 
-        string warden = EncounterId(run.Floor, WardenIndex(floors[run.Floor]));
-        if (!await db.Duels.AnyAsync(duel => duel.PlayerId == player && duel.Space == space && duel.Spawn == warden && (duel.State == DuelRow.Won || duel.State == DuelRow.Looted)).ConfigureAwait(false))
+        RunFloor round = floors[run.Floor];
+        int need = WinsToOpen(round.Encounters.Count);
+        List<string> challengers = [.. round.Encounters.Select(encounter => EncounterId(run.Floor, encounter.Index))];
+        int beaten = await db.Duels.CountAsync(duel => duel.PlayerId == player && duel.Space == space && challengers.Contains(duel.Spawn) && (duel.State == DuelRow.Won || duel.State == DuelRow.Looted)).ConfigureAwait(false);
+        if (beaten < need)
         {
-            throw Refusal.Conflict(Codes.WardenStands, $"{content.Mobs.GetValueOrDefault(floors[run.Floor].Warden ?? string.Empty)?.File.Name ?? "The warden"} keeps the stair.");
+            throw Refusal.Conflict(Codes.RoundOpen, $"Beat {need} of the {round.Encounters.Count} challengers to open the gate.");
         }
 
         if (await db.Runs.Where(stored => stored.Id == run.Id && stored.State == RunRow.Live && stored.Floor == run.Floor)
@@ -334,18 +340,20 @@ public sealed class Dungeons(RealmDb db, RealmContent content, Characters charac
         return JsonSerializer.Deserialize<List<RunFloor>>(run.Floors, Json) ?? [];
     }
 
-    /// <summary>The index of a floor's warden: the count of its encounters.</summary>
-    public static int WardenIndex(RunFloor floor) => floor?.Encounters.Count ?? throw new ArgumentNullException(nameof(floor));
+    /// <summary>
+    /// How many of a round's challengers open its gate (design.md A6): all but one, at least one - two of three. A floor with
+    /// none has its gate open.
+    /// </summary>
+    public static int WinsToOpen(int challengers) => challengers <= 0 ? 0 : Math.Max(1, challengers - 1);
 
-    /// <summary>The index of a floor's boss: one past its encounters'.</summary>
-    public static int BossIndex(RunFloor floor) => (floor?.Encounters.Count ?? throw new ArgumentNullException(nameof(floor))) + 1;
+    /// <summary>The index of a floor's boss: past its encounters' (the hall has none, so 0).</summary>
+    public static int BossIndex(RunFloor floor) => floor?.Encounters.Count ?? throw new ArgumentNullException(nameof(floor));
 
-    /// <summary>The mob of a floor's encounter, its warden or its boss, by index; null for none.</summary>
+    /// <summary>The mob of a floor's encounter or its boss, by index; null for none.</summary>
     public static string? MobAt(RunFloor floor, int index)
     {
         ArgumentNullException.ThrowIfNull(floor);
         return index >= 0 && index < floor.Encounters.Count ? floor.Encounters[index].Mob
-            : index == WardenIndex(floor) ? floor.Warden
             : index == BossIndex(floor) ? floor.Boss
             : null;
     }

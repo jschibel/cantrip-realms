@@ -7,20 +7,20 @@
     323
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 1,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "benalish-hero",
     "davenant-archer",
-    "mesa-pegasus"
+    "mesa-pegasus",
+    "warden-1"
   ],
-  "warden": "warden-1",
   "boss": "benalish-knight",
   "region": "W"
 }

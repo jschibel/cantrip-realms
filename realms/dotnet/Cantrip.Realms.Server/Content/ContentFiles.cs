@@ -531,7 +531,10 @@ public sealed class InteriorFile
     public Tile? ExitAt => Exit is [int x, int z] ? new Tile(x, z) : null;
 }
 
-/// <summary>A dungeon (<c>dungeons/&lt;id&gt;.json</c>): its theme, floors, mobs, warden and boss; the layout is the browser's.</summary>
+/// <summary>
+/// A dungeon (<c>dungeons/&lt;id&gt;.json</c>), a tournament (design.md A6): its theme, its floors - every one but the last a
+/// round of challengers drawn from its mobs, the last the boss's hall - and its boss; the layout is the browser's.
+/// </summary>
 public sealed class DungeonFile
 {
     public string Id { get; init; } = string.Empty;
@@ -547,21 +550,18 @@ public sealed class DungeonFile
     /// <summary>The colors, as letters, a character's identity must hold to enter; null for a dungeon open to everyone.</summary>
     public string? Requires { get; init; }
 
-    /// <summary>How many floors a run has: the fewest and the most.</summary>
+    /// <summary>How many floors a run has, the boss's hall among them: the fewest and the most, at least 2.</summary>
     public IReadOnlyList<int> Floors { get; init; } = [];
 
     public int Tier { get; init; }
 
-    /// <summary>How many encounters each floor holds besides its warden and boss: the fewest and the most.</summary>
+    /// <summary>How many challengers each round holds: the fewest and the most.</summary>
     public IReadOnlyList<int> Encounters { get; init; } = [];
 
-    /// <summary>The mobs a floor's encounters are drawn from: one list for every floor, or a list per floor (the last for the floors past it).</summary>
+    /// <summary>The mobs a round's challengers are drawn from: one list for every floor, or a list per floor (the last for the floors past it).</summary>
     public JsonElement Mobs { get; init; }
 
-    /// <summary>The mob that keeps each floor's stair (every floor but the last); none for a dungeon of one floor.</summary>
-    public string? Warden { get; init; }
-
-    /// <summary>The mob waiting on the last floor.</summary>
+    /// <summary>The mob waiting alone in the last floor's hall.</summary>
     public string Boss { get; init; } = string.Empty;
 
     /// <summary>The color of the region it belongs to, if any.</summary>

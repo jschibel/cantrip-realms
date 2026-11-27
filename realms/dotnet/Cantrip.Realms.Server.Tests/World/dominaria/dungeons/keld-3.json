@@ -1,1 +1,1 @@
-{"id":"keld-3","name":"The Keldon Tower of the Third Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":3,"encounters":[1,2],"mobs":["frost-giant","marton-stromgald","two-headed-giant-of-foriys"],"warden":"warden-3","boss":"mage-keld-3","region":"R","entrance":[76,116]}
+{"id":"keld-3","name":"The Keldon Tower of the Third Circle","theme":"tower","waystone":true,"floors":[2,2],"tier":3,"encounters":[3,3],"mobs":["frost-giant","marton-stromgald","two-headed-giant-of-foriys","warden-3"],"boss":"mage-keld-3","region":"R","entrance":[76,116]}

@@ -7,7 +7,8 @@ import type { Grid, Tile } from "./world/grid";
 // What walks the world besides the townsfolk (render/spots.ts stands those): the mobs of the spawn points and the
 // other players in the same place, each an Actor on the place's grid (render/actor.ts: squares, eight ways, never a cut
 // corner). Every fight is the player's choice (design.md A3): a mob wanders near its spawn and, when a player comes
-// near, stops and watches them, waiting to be challenged - a click on it - but never comes after anyone. Other players
+// near, stops and watches them, waiting to be challenged - a click on it - but never comes after anyone; a dungeon's
+// challengers stand on their circles and watch the player from the moment they arrive. Other players
 // walk the paths the relay sends. A mob hops a ledge a level high as its file says (MobInfo `hops`).
 
 /** Tiles a second: at most 5, the fastest walk the server takes. */
@@ -48,13 +49,14 @@ export class Mob {
   }
 
   /**
-   * One frame of thought: wandering near its spawn, or - the player within `NOTICE_RANGE` - standing to watch them.
+   * One frame of thought: wandering near its spawn, or - the player within `NOTICE_RANGE` - standing to watch them. A
+   * dungeon's challenger (and its boss) never wanders: it stands on its circle and watches the player across the arena.
    * `free(t)` is whether a tile can be stood on (open, nobody else there). `wander` false keeps it where it stands.
    */
   think(seconds: number, player: Actor, free: (t: Tile) => boolean, wander: boolean): void {
     if (this.engaged) return;
     this.rest -= seconds;
-    if (chebyshev(this.actor.tile, player.tile) <= NOTICE_RANGE) {
+    if (this.run || chebyshev(this.actor.tile, player.tile) <= NOTICE_RANGE) {
       if (this.actor.moving) this.actor.stopWalking();
       const p = player.position;
       const at = this.actor.position;

@@ -1,1 +1,1 @@
-{"id":"caligo-1","name":"The Caligo Tower of the First Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":1,"encounters":[1,2],"mobs":["bog-imp","bog-raiders","bog-rats"],"warden":"warden-1","boss":"mage-caligo-1","region":"B","entrance":[52,100]}
+{"id":"caligo-1","name":"The Caligo Tower of the First Circle","theme":"tower","waystone":true,"floors":[2,2],"tier":1,"encounters":[3,3],"mobs":["bog-imp","bog-raiders","bog-rats","warden-1"],"boss":"mage-caligo-1","region":"B","entrance":[52,100]}

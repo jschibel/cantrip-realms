@@ -12,15 +12,15 @@
   ],
   "tier": 4,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "serra-angel",
     "serra-paragon",
-    "torsten-founder-of-benalia"
+    "torsten-founder-of-benalia",
+    "warden-4"
   ],
-  "warden": "warden-4",
   "boss": "serra-angel",
   "region": "W"
 }

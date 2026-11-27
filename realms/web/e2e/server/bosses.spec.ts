@@ -1,12 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { chebyshev, clickControl, clickEntity, dungeon, entities, entity, playerTile, realm, until, waitReady, waitSpace, winDuel, world } from "../realm";
-import { beat, enter, run, walkInside } from "../runs";
+import { descend, enter, run, walkInside } from "../runs";
 import { CARDS, cardState, clickCardControl } from "./cardLayer";
 import { type ForcedSeat, forceDuel, playDuel } from "./duel";
 import { type Me, SERVER, api, besideEntrance, character, place, query, verdict } from "./server";
 
-// Dungeon runs and their bosses against the real realm server (playwright.config.ts here): a run resumed after a reload
-// on the floor it reached; Rofellos beaten - green unlocked, the deck taking green at the antechamber's spell table, his
+// Dungeon runs and their bosses against the real realm server (playwright.config.ts here), each a tournament (design.md
+// A6): a run resumed after a reload on the round it reached; Rofellos beaten - green unlocked, the deck taking green at the antechamber's spell table, his
 // hall empty for the week; and his duel in the real card layer, whose log the server replays - won from a forced position
 // (he begins at 0 life, POST /dev/duel), green unlocked with its moment; and lost by conceding, a heart gone and the boss
 // fought again (never bought off), then the last heart lost: the run over and the character at the inn. A test starts beside the dungeon (POST /dev/place) and has the server count the stand-in's wins
@@ -19,22 +19,7 @@ async function besideDungeon(page: Page, id: string, extra = "&mobs=0"): Promise
   await waitSpace(page, "world");
 }
 
-/** Beats the floor's warden and takes its stair down; the server lets the character by. */
-async function down(page: Page): Promise<void> {
-  const r = (await run(page))!;
-  await beat(page, "warden");
-  // A mob of the floor that comes for the player on the way is beaten, and the stair clicked again.
-  for (let tries = 0; tries < 4 && (await run(page))?.floor === r.floor; tries++) {
-    await walkInside(page, r.down!, 2);
-    await clickEntity(page, (e) => e.kind === "down", "the stairs down");
-    await until(page, async () => (await run(page))?.floor === r.floor + 1 || (await realm<string | null>(page, "layer.open")) !== null, "down the stair, or stopped by a mob", 60);
-    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
-  }
-  await until(page, async () => (await run(page))?.floor === r.floor + 1, "down the stair", 60);
-  await waitSpace(page, /^run:/);
-}
-
-test("a run resumed after a reload, on the floor it reached with its warden beaten", async ({ page }) => {
+test("a run resumed after a reload, on the round it reached, its first round's wins remembered", async ({ page }) => {
   test.setTimeout(300_000);
   await character(page.request, 31, "Fenna");
   await verdict(page.request, "won");
@@ -43,22 +28,22 @@ test("a run resumed after a reload, on the floor it reached with its warden beat
   await enter(page, id);
   await waitSpace(page, /^run:/, 60);
   const r = (await run(page))!;
-  await down(page);
+  await descend(page);
 
   // Closed and opened again: the overworld asks the server for the run and stands the character on its floor.
   await page.goto(query("&mobs=0"));
   await waitReady(page);
   await waitSpace(page, `run:${r.id}`, 60);
   expect((await run(page))?.floor).toBe(1);
-  expect((await realm<string[]>(page, "messages")).some((m) => m.startsWith(`You are back in ${dungeon(id).name}, on floor 2 of`))).toBe(true);
-  const resumed = await api<{ Run: string; Floor: number; Beaten: string[]; Floors: { Encounters: unknown[] }[] }>(page.request, "dungeon/run");
+  expect((await realm<string[]>(page, "messages")).some((m) => m.startsWith(`You are back in ${dungeon(id).name}, in round 2 of`) || m === `You are back in ${dungeon(id).name}, in the boss's hall.`)).toBe(true);
+  const resumed = await api<{ Run: string; Floor: number; Beaten: string[] }>(page.request, "dungeon/run");
   expect(resumed).toMatchObject({ Run: r.id, Floor: 1 });
-  expect(resumed.Beaten).toContain(`0:${resumed.Floors[0]!.Encounters.length}`);
+  expect(resumed.Beaten.filter((b) => b.startsWith("0:"))).toHaveLength(2);
 
-  // The way up from any floor leaves the run.
+  // The way back out at the arena's foot leaves the run from any floor.
   const up = (await run(page))!.up!;
-  await walkInside(page, { x: up.x, z: up.z + 1 }, 1);
-  await clickEntity(page, (e) => e.kind === "leave" && e.name === "way-up", "the way up");
+  await walkInside(page, { x: up.x, z: up.z - 1 }, 0);
+  await clickEntity(page, (e) => e.kind === "leave" && e.name === "way-up", "the way back out");
   await waitSpace(page, "world", 60);
   expect((await page.request.get(new URL("api/dungeon/run", SERVER).toString())).status()).toBe(404);
 });
@@ -78,7 +63,7 @@ test("Rofellos beaten on the real server: green unlocked, taken at the antechamb
   expect(refused.status()).toBe(422);
   expect(((await refused.json()) as { Problems: string[] }).Problems).toContain("Forest is outside the color identity W.");
 
-  for (let floor = 0; floor < (await run(page))!.floors - 1; floor++) await down(page);
+  for (let floor = 0; floor < (await run(page))!.floors - 1; floor++) await descend(page);
   for (let tries = 0; tries < 6 && (await realm<string>(page, "screen")) !== "boss"; tries++) {
     const boss = await entity(page, (e) => e.kind === "mob" && e.role === "boss", "Rofellos");
     await walkInside(page, boss.tile, 2);
@@ -139,9 +124,7 @@ async function toRofellosForReal(page: Page, id: number, name: string, mob?: For
   await enter(page, hollow);
   await waitSpace(page, /^run:/, 60);
   const r = (await run(page))!;
-  for (let floor = 0; floor < r.floors - 1; floor++) await down(page);
-  // The boss's floor's other mobs beaten too (they would come for the player on the way to him), so his is the duel played.
-  for (let tries = 0; tries < 8 && (await entities(page)).some((e) => e.kind === "mob" && e.role === "encounter"); tries++) await beat(page, "encounter");
+  for (let floor = 0; floor < r.floors - 1; floor++) await descend(page);
 
   await verdict(page.request, null);
   await page.goto(`/?server=${encodeURIComponent(SERVER)}&cards=${encodeURIComponent(`${CARDS}?test`)}&test&wander=0&encounters=never&mobs=0`);

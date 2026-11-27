@@ -7,20 +7,20 @@
     385
   ],
   "floors": [
-    1,
-    1
+    2,
+    2
   ],
   "tier": 1,
   "encounters": [
-    1,
-    2
+    3,
+    3
   ],
   "mobs": [
     "durkwood-boars",
     "elvish-warrior",
-    "llanowar-elves"
+    "llanowar-elves",
+    "warden-1"
   ],
-  "warden": "warden-1",
   "boss": "mage-llanowar-1",
   "region": "G",
   "waystone": true

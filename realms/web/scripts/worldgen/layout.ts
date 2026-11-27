@@ -1,7 +1,7 @@
 // What the world generator is told beyond the travel map's geography (realms/content/<plane>/layout.json): the seed,
 // how much the land rises and falls, each town as its people know it (its kind, form, style and size at walking scale,
 // its inn, temple, guild, folk and texts) and each dungeon's and mage tower's definition (its theme, floors, tier, mobs,
-// warden and boss). Where anything stands - the coast, the regions, the towns' and dungeons' sites, the roads, ferries
+// boss). Where anything stands - the coast, the regions, the towns' and dungeons' sites, the roads, ferries
 // and landmarks - is the geography's (geography.json, geography.ts): one source for each fact, `checkGeography` proving
 // the ids of the two agree.
 
@@ -64,10 +64,12 @@ export interface TownLayout {
 }
 
 /**
- * A dungeon or mage tower. Its mobs, warden and boss are mob ids, or asked of the roster so a new roster needs no
- * change here: `@wanderers:2` (every wanderer of tier 2 of the dungeon's region), `@wanderers:2-3`, `@wanderer:3` (one
- * of them), `@warden:2` (the roster's `warden-2`). Its `region` is the region whose color its mobs are drawn by (the
- * geography's region of its site is where it stands, which may be another).
+ * A dungeon or mage tower: a tournament (design.md A6) of `floors` floors, each but the last a round of `encounters`
+ * challengers drawn from `mobs`, the last the boss's hall. Its mobs and boss are mob ids, or asked of the roster so a new
+ * roster needs no change here: `@wanderers:2` (every wanderer of tier 2 of the dungeon's region), `@wanderers:2-3`,
+ * `@wanderer:3` (one of them), `@warden:2` (the roster's `warden-2`, a construct that fights among the challengers). Its
+ * `region` is the region whose color its mobs are drawn by (the geography's region of its site is where it stands, which
+ * may be another).
  */
 export interface DungeonLayout {
   readonly id: string;
@@ -80,7 +82,6 @@ export interface DungeonLayout {
   readonly tier: number;
   readonly encounters: readonly [number, number];
   readonly mobs: readonly string[] | readonly (readonly string[])[];
-  readonly warden: string;
   readonly boss: string;
   readonly waystone?: boolean;
   /** How a color's dungeon is dealt by the character's standing to its color (format.ts, design.md A6), as written. */

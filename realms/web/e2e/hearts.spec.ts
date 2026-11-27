@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnNear } from "./places";
 import { at, chebyshev, clickClear, clickControl, clickEntity, enterTown, entities, entity, groundsHere, openNear, openRealm, playerTile, realm, until, waitReady, walkTo, winDuel, world } from "./realm";
-import { engageInside, enter, run, toShrine, walkInside } from "./runs";
+import { descend, engageInside, enter, run, toShrine, walkInside } from "./runs";
 
 // Hearts (design.md A3, A3b), offline with the stand-in card layer: a lost duel costs a heart and pays nothing; a world
 // mob offers its buyout or a rematch, the rematch sideboarded and dealt with the mob at the life it kept; a dungeon's mob
@@ -223,14 +223,18 @@ test("a treasure chest of the wilds is opened walking onto it, its gold the char
 
 test("a dungeon run's shrine gives back a heart once in the run, prayed at from beside it", async ({ page }) => {
   test.setTimeout(180_000);
-  // A mage tower of one floor, its run made to hold a shrine (as the server's POST /dev/drop {Shrine} does).
+  // A mage tower (a round, then the mage's hall), its run made to hold a shrine (as the server's POST /dev/drop {Shrine}
+  // does), walked down to the floor that holds it.
   const id = "benalia-1";
   await openRealm(page, { at: id, extra: "&mobs=0" });
   await page.evaluate(() => (globalThis as any).realmTest.forceShrine(true));
   await enter(page, id);
   await until(page, async () => /^run:/.test((await realm<string>(page, "space.id")) ?? ""), "in the run", 20);
+  const held = (await run(page))!.shrineFloor!;
+  expect(held).not.toBeNull();
+  for (let floor = 0; floor < held; floor++) await descend(page);
   const r = (await run(page))!;
-  expect(r).toMatchObject({ shrineFloor: 0, shrineUsed: false });
+  expect(r).toMatchObject({ floor: held, shrineUsed: false });
   const shrine = await entity(page, (e) => e.kind === "heart-shrine", "the shrine");
   expect(shrine.tile).toEqual(r.shrine);
 
@@ -268,8 +272,7 @@ test("in a dungeon the mob can't be bought off: only fought again", async ({ pag
   await openRealm(page, { at: id, extra: "&mobs=0" });
   await enter(page, id);
   await until(page, async () => /^run:/.test((await realm<string>(page, "space.id")) ?? ""), "in the run", 20);
-  // An encounter engaged - by a click or by its coming for the player, whichever is first - and its duel lost: one
-  // encounter started, none finished before the loss.
+  // A challenger engaged with a click and its duel lost: one encounter started, none finished before the loss.
   const mob = await engageInside(page, "encounter");
   const started = (await realm<{ name: string; body?: { Floor?: number; Index?: number; Mob?: string } }[]>(page, "api")).filter((c) => c.name === "startEncounter");
   expect(started.map((c) => `${c.body?.Floor}:${c.body?.Index} ${c.body?.Mob}`)).toEqual([`${mob.spawn} ${mob.id}`]);

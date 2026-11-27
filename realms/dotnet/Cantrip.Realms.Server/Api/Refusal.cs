@@ -57,6 +57,6 @@ public static class Codes
     public const string Relic = "Relic";
     public const string Locked = "Locked";
     public const string NoWay = "NoWay";
-    public const string WardenStands = "WardenStands";
+    public const string RoundOpen = "RoundOpen";
     public const string NotAttuned = "NotAttuned";
 }

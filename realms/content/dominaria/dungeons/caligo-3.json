@@ -7,20 +7,20 @@
     237
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 3,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "abomination",
     "eater-of-the-dead",
-    "knight-of-malice"
+    "knight-of-malice",
+    "warden-3"
   ],
-  "warden": "warden-3",
   "boss": "mage-caligo-3",
   "region": "B",
   "waystone": true

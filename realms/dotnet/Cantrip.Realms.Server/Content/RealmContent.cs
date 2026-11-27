@@ -689,7 +689,6 @@ public sealed partial class RealmContent
         foreach (RealmDungeon dungeon in Dungeons.Values)
         {
             met.UnionWith(dungeon.Tables.SelectMany(table => table));
-            if (dungeon.File.Warden is { } warden) met.Add(warden);
             met.Add(dungeon.File.Boss);
         }
 
@@ -900,7 +899,7 @@ public sealed partial class RealmContent
         }
 
         if (file.Region is { } region && (region.Length != 1 || CardPool.Color(region[0]) is null)) problems.Add($"{where}: its region '{region}' is no color's letter.");
-        if (file.Floors is not [int fewest, int most] || fewest < 1 || most < fewest) problems.Add($"{where}: its floors are two counts, the fewer first, at least 1.");
+        if (file.Floors is not [int fewest, int most] || fewest < 2 || most < fewest) problems.Add($"{where}: its floors are two counts, the fewer first, at least 2: a round and the boss's hall.");
         if (file.Encounters is not [int least, int greatest] || least < 0 || greatest < least) problems.Add($"{where}: its encounters are two counts a floor, the fewer first.");
         if (file.Tier is < 1 or > 4) problems.Add($"{where}: tier {file.Tier} is not 1 to 4.");
         if (file.Waystone && file.Theme != "tower") problems.Add($"{where}: only a mage tower has a waystone.");
@@ -912,8 +911,6 @@ public sealed partial class RealmContent
         }
 
         if (file.Encounters is [_, > 0] && (dungeon.Tables.Count == 0 || dungeon.Tables.Any(table => table.Count == 0))) problems.Add($"{where}: a floor with encounters has mobs to draw them from.");
-        if (file.Warden is { } warden && !Mobs.ContainsKey(warden)) problems.Add($"{where}: its warden '{warden}' is no mob.");
-        if (file.Warden is null && file.Floors is [_, > 1]) problems.Add($"{where}: a dungeon of more than one floor has a warden at each stair.");
         if (!Mobs.ContainsKey(file.Boss)) problems.Add($"{where}: its boss '{file.Boss}' is no mob.");
 
         if (file.Standing.Count > 0 && file.Region is null) problems.Add($"{where}: only a dungeon of a region's color is dealt by standing.");

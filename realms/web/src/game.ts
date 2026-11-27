@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { type Appearance, type GearLook, figureSpec, lookFigure, playerFigure } from "./art/figures";
 import { meshesOf } from "./art/paint/builder";
-import { assembleFloor, generateDungeonFloor, gridOfFloor } from "./dungeon";
+import { assembleFloor, generateDungeonFloor, gridOfFloor, winsToOpen } from "./dungeon";
 import { besideEntrance } from "./world/realm";
-import { standingOf } from "./world/standing";
+import { standingOf, tableOf } from "./world/standing";
 import { PROPS } from "./art/props";
 import type { CardScreens, Closed } from "./cardLayer";
 import { Mob, PLAYER_SPEED, type Visitor, chebyshev } from "./entities";
@@ -62,15 +62,16 @@ export interface Start {
 }
 
 /**
- * A dungeon run's floor as the stage walks it: its place, where one arrives, its ways (up and out, down), and its
- * encounters. The floors are drawn by the dungeon generator on squares (`dungeon/`, the Interiors & dungeons work);
- * the game asks `Overworld.floors` for them.
+ * A dungeon run's floor as the stage walks it (design.md A6: a run is a tournament, each floor an arena): its place, where
+ * one arrives, its ways (back out, the round's gate down, out after the boss), and its fights - a round's challengers, or
+ * the boss. The floors are drawn by the dungeon generator on squares (`dungeon/`); the game asks `Overworld.floors` for
+ * them.
  */
 export interface FloorPlan {
   readonly spot: Spot;
   readonly arrive: Tile;
   readonly encounters: readonly { readonly x: number; readonly z: number; readonly mob: string; readonly index: number; readonly role: string }[];
-  /** The floor's ways: back up (out of the run, on the first floor), down the stair, out after the boss. */
+  /** The floor's ways: back out of the run (at the south), a round's gate down (at the north), out after the boss. */
   readonly up?: Tile | null;
   readonly down?: Tile | null;
   readonly wayOut?: Tile | null;
@@ -94,6 +95,16 @@ interface ActiveRun {
   shrineUsed: boolean;
   /** The heart over the shrine of the floor shown, drawn lit or spent. */
   shrineHeart: THREE.Group | null;
+  /** The portcullis of the round shown, let down or drawn up as the round stands; and whether it stands open. */
+  gate: THREE.Group | null;
+  gateOpen: boolean;
+}
+
+/** A round of a run as it stands: its challengers beaten, how many there are, and how many open its gate. */
+interface RoundState {
+  readonly beaten: number;
+  readonly of: number;
+  readonly need: number;
 }
 
 /** Where the zoom is kept between visits (shared with nothing else). Storage may be refused. */
@@ -118,6 +129,13 @@ export const tileOfCharacter = (c: CharacterData): Tile => ({ x: c.X, z: c.Z });
 
 /** A position for the API: `{Space, X, Z}`. */
 const placeOf = (space: string, t: Tile): ApiPlace => ({ Space: space, X: t.x, Z: t.z });
+
+/** The colors by name, as a boss's win unlocks one (design.md A6). */
+const COLOR_NAMES: Readonly<Record<string, string>> = { W: "white", U: "blue", B: "black", R: "red", G: "green" };
+
+/** The gear catalogue's names, by id: a boss's own item on a dungeon's board. */
+const GEAR_NAMES = new Map(Object.values(import.meta.glob<{ id: string; name: string }>("../../content/gear/*.json", { eager: true, import: "default" })).map((g) => [g.id, g.name]));
+const gearName = (id: string): string | null => GEAR_NAMES.get(id) ?? null;
 
 /** A move of the figure in one frame further than this (world units, a tile being one) is a jump: a walk covers about 0.07. */
 const JUMP = 0.6;
@@ -384,9 +402,10 @@ export class Overworld {
     const zoom = this.options.zoom ?? (zoomed === 0 || zoomed === 1 || zoomed === 2 ? zoomed : 0);
     this.stage = new Stage(this.canvas, { heading: 0, zoom, spot, start: tile, player: playerFigure(appearanceOf(data)), playerSpeed: PLAYER_SPEED, spots: this.places, manual: this.options.manual });
     this.stage.still = !!this.options.still;
-    this.stage.onArrive = (s) => this.arrived(s);
+    this.stage.onArrive = (s, t) => this.arrived(s, false, t);
     this.stage.onTile = (t) => this.stepped(t);
     this.stage.intercept = (t) => this.clickThing(t);
+    this.stage.askDoor = (door) => this.askDoor(door);
     this.stage.pickFigure = (x, y) => this.figureAt(x, y);
     await this.stage.settle();
     // A start on a closed tile (a door's, a wall's) moves to the nearest open one.
@@ -424,7 +443,8 @@ export class Overworld {
   // --- Places --------------------------------------------------------------------------------------------------------
 
   /** On arriving in a place: its name, the server and the relay told, the people there. */
-  private arrived(spot: Spot, first = false): void {
+  /** In a place: on the tile arrived on - not the doorway the figure is still stepping out of, which the server never had. */
+  private arrived(spot: Spot, first = false, tile: Tile = this.player.tile): void {
     this.pending = null;
     // Back in the world: which finds stand there is asked at once.
     this.findsTimer = 0;
@@ -435,10 +455,10 @@ export class Overworld {
     this.visitors.clear();
     if (spot !== this.world) this.hud.showPlace(spot.title);
     if (spot.inside && !this.roomNpcs.has(spot.id)) void this.places.read(spot.id).then((d) => this.roomNpcs.set(spot.id, d.npcs), () => {});
-    this.stepped(this.player.tile, true);
+    this.stepped(tile, true);
     if (spot.id.startsWith("run:")) return;
-    this.note(`arrived in ${this.spaceId} at ${this.player.tile.x},${this.player.tile.z}`);
-    void this.enter();
+    this.note(`arrived in ${this.spaceId} at ${tile.x},${tile.z}`);
+    void this.enter(tile);
     if (!first && spot.inside) this.say(`${spot.title}.`);
   }
 
@@ -447,9 +467,8 @@ export class Overworld {
    * checks it is no further than a walk could have come), then the relay - which enters them where the server last had
    * them reported - and that they stand there. Whether the server took the report.
    */
-  private async enter(): Promise<boolean> {
+  private async enter(at: Tile = this.player.tile): Promise<boolean> {
     const space = this.spaceId;
-    const at = this.player.tile;
     this.lastReported = `${space}:${at.x},${at.z}`;
     const took = await this.api.position(placeOf(space, at)).then(
       (r) => {
@@ -567,13 +586,41 @@ export class Overworld {
       return this.crossWay(found.town, found.way, door.kind === "town");
     }
     if (door.kind === "entrance") return this.enterRun(door.to.slice("dungeon:".length));
-    if (door.kind === "down" && this.run) return this.descend();
-    if (from.id.startsWith("run:") && door.name === "way-out" && this.run && !this.bossBeaten(this.run)) {
-      this.say("The way out opens once the boss is beaten.");
-      throw new Error("boss");
+    if (door.kind === "down" && this.run) {
+      // The open gate's panel said which: down to the next round, or out with the winnings.
+      const leaving = this.gateChoice === "leave";
+      this.gateChoice = null;
+      return leaving ? this.leaveRun(true, true) : this.descend();
     }
     if (from.id.startsWith("run:") && door.to === "world") return this.leaveRun(true);
     return null;
+  }
+
+  /** What the open gate's panel chose, for the gate's door to do: down, or out with the winnings. */
+  private gateChoice: "descend" | "leave" | null = null;
+
+  /**
+   * The page's say before a door is gone through (render/stage.ts, `askDoor`): a dungeon's entrance shows its tournament's
+   * board first (a sealed one is refused); a round's gate is shut until the round is won, and open asks whether to go down
+   * or leave with the winnings; the hall's way out opens once the boss is beaten.
+   */
+  private askDoor(door: StageDoor): boolean | Promise<boolean> {
+    if (door.kind === "entrance") return this.tournamentBoard(door.to.slice("dungeon:".length));
+    const run = this.run;
+    if (!run || !this.spot.id.startsWith("run:")) return true;
+    if (door.kind === "down") {
+      const round = this.roundOf(run);
+      if (round.beaten < round.need) {
+        this.say(`Beat ${round.need} of the ${round.of} challengers to open the gate.`);
+        return false;
+      }
+      return this.atGate(run, round);
+    }
+    if (door.name === "way-out" && !this.bossBeaten(run)) {
+      this.say("The way out opens once the boss is beaten.");
+      return false;
+    }
+    return true;
   }
 
   // --- Walking and what a click means ----------------------------------------------------------------------------------
@@ -658,7 +705,7 @@ export class Overworld {
   describe(t: Tile | null): string | null {
     if (!t) return null;
     const who = this.personAt(t);
-    if (who?.mob) return `${who.mob.info.name} - ${who.mob.info.boss ? "boss" : `tier ${who.mob.spawn.tier || who.mob.info.tier}`}`;
+    if (who?.mob) return `${who.mob.info.name} - ${who.mob.info.boss ? "boss" : `tier ${who.mob.run ? who.mob.info.tier : who.mob.spawn.tier || who.mob.info.tier}`}`;
     if (who?.npc) return who.npc.name ?? who.npc.kind;
     if (who?.visitor) return who.visitor.name;
     const thing = this.objectAt(t);
@@ -671,6 +718,10 @@ export class Overworld {
       const found = this.wayOf(door);
       if (!found) return null;
       return door.kind === "town" ? found.town.name : `Leave ${found.town.name}`;
+    }
+    if (door?.kind === "down" && this.run) {
+      const r = this.roundOf(this.run);
+      return r.beaten >= r.need ? "The gate: open" : `The gate: beat ${r.need} of the ${r.of} challengers to open it`;
     }
     if (door) return door.kind === "entrance" ? (this.dungeons.get(door.to.slice("dungeon:".length))?.name ?? "A way in") : door.kind === "leave" ? "Leave" : `Into ${door.to}`;
     return null;
@@ -973,16 +1024,62 @@ export class Overworld {
   /** The dungeons of the world, by id. */
   readonly dungeons: ReadonlyMap<string, DungeonData>;
 
-  private async enterRun(id: string): Promise<Arrival> {
+  /**
+   * The tournament's board at a dungeon's entrance (design.md A6), before the server deals the run: what the page knows of
+   * it - its rounds and their rule, its boss and its prizes, the character's hearts. Enter goes in; a sealed dungeon is
+   * refused here.
+   */
+  private async tournamentBoard(id: string): Promise<boolean> {
     const dungeon = this.dungeons.get(id);
     if (!dungeon) {
       this.say("The way in is shut.");
-      throw new Error("no floors");
+      return false;
     }
     if (dungeon.requires && ![...dungeon.requires].every((c) => this.data.Identity.includes(c))) {
       this.say(`The way in is sealed. It opens only to a mage whose identity holds all of ${dungeon.requires.split("").join(", ")}.`);
-      throw new Error("sealed");
+      return false;
     }
+    const standing = standingOf(dungeon.region, this.data);
+    const dealt = (standing && dungeon.standing?.[standing]) ?? null;
+    const tier = dealt?.tier ?? dungeon.tier;
+    const boss = mobInfo(dungeon.boss);
+    // A challenger's purse: the least and the most of the mobs its rounds are drawn from, as the run would be dealt.
+    const rounds = Math.max(1, dungeon.floors[1] - 1);
+    const pool = [...new Set(Array.from({ length: rounds }, (_, f) => tableOf(dungeon, f, dealt, (m) => mobInfo(m).tier)).flat())];
+    const purses = pool.map((m) => mobInfo(m).goldRange);
+    const challengers = dungeon.encounters[1];
+    const { showEntranceBoard } = await import("./screens/tournament");
+    this.paused = true;
+    this.screen = "board";
+    try {
+      return await showEntranceBoard({
+        dungeon: dungeon.name,
+        tier,
+        standing: standing === "ally" ? `An ally color's hold: tier ${tier}.` : standing === "enemy" ? `An enemy color's hold: tier ${tier}, its boss stronger for it.` : null,
+        rounds: [Math.max(0, dungeon.floors[0] - 1), Math.max(0, dungeon.floors[1] - 1)],
+        challengers,
+        toWin: winsToOpen(challengers),
+        gold: purses.length > 0 ? [Math.min(...purses.map((g) => g[0])), Math.max(...purses.map((g) => g[1]))] : null,
+        boss: {
+          name: boss.name,
+          gold: boss.goldRange,
+          gift: boss.boss,
+          unique: boss.unique ? gearName(boss.unique) : null,
+          waystone: !!dungeon.waystone,
+          unlocks: boss.unlocks && !this.data.Identity.includes(boss.unlocks) ? (COLOR_NAMES[boss.unlocks] ?? null) : null,
+        },
+        hearts: this.data.Hearts,
+        maxHearts: this.data.MaxHearts,
+      });
+    } finally {
+      this.screen = "world";
+      this.paused = false;
+    }
+  }
+
+  private async enterRun(id: string): Promise<Arrival> {
+    const dungeon = this.dungeons.get(id);
+    if (!dungeon) throw new Error("no floors");
     const started = await this.api.enterDungeon({ Dungeon: id }).catch((e: unknown) => {
       this.say(refusal(e));
       throw e;
@@ -991,7 +1088,8 @@ export class Overworld {
     this.run = run;
     const standing = standingOf(dungeon.region, this.data);
     const stands = standing === "ally" ? ` An ally color's hold: tier ${run.tier}.` : standing === "enemy" ? ` An enemy color's hold: tier ${run.tier}, its boss stronger for it.` : "";
-    this.say(`${dungeon.name}. The run begins.${stands}`);
+    this.say(`${dungeon.name}. The tournament begins.${stands}`);
+    this.sayRound(run);
     this.sayResting(run, true);
     return this.showFloor(run);
   }
@@ -1001,19 +1099,102 @@ export class Overworld {
     const plan = this.floors({ id: run.id, dungeon: run.dungeon, seed: run.seed, floor: run.floor, floors: run.floors.length, run: run.floors[run.floor]! });
     run.plan = plan;
     run.shrineHeart = null;
+    run.gate = null;
     if (plan.shrine) this.showShrineHeart(run);
+    // The round's challengers wait on their circles, the hall's boss before its throne: none of them wanders.
     for (const e of plan.encounters) {
       if (run.beaten.has(`${run.floor}:${e.index}`)) continue;
-      const spawn: SpawnData = { id: `${run.floor}:${e.index}`, x: e.x, z: e.z, mobs: [e.mob], radius: e.role === "encounter" ? 1 : 0, respawnSeconds: 86400, tier: run.tier };
-      this.addMob(e.mob, spawn, 0, plan.spot, { floor: run.floor, index: e.index, role: e.role });
+      const spawn: SpawnData = { id: `${run.floor}:${e.index}`, x: e.x, z: e.z, mobs: [e.mob], radius: 0, respawnSeconds: 86400, tier: run.tier };
+      const mob = this.addMob(e.mob, spawn, 0, plan.spot, { floor: run.floor, index: e.index, role: e.role });
+      mob.actor.figure.face(0, 1);
     }
-    return { spot: plan.spot, tile: plan.arrive, facing: [0, 1] };
+    const round = this.roundOf(run);
+    run.gateOpen = round.beaten >= round.need;
+    if (plan.down) this.showGate(run, false);
+    return { spot: plan.spot, tile: plan.arrive, facing: [0, -1] };
+  }
+
+  /** The round shown as it stands: its challengers beaten, of how many, and how many open its gate (all but one). */
+  private roundOf(run: ActiveRun): RoundState {
+    const floor = run.floors[run.floor]!;
+    const of = floor.Encounters.length;
+    const beaten = floor.Encounters.filter((e) => run.beaten.has(`${run.floor}:${e.Index}`)).length;
+    return { beaten, of, need: winsToOpen(of) };
+  }
+
+  /** Says what the floor is: a round and its rule, or the boss's hall. */
+  private sayRound(run: ActiveRun): void {
+    const rounds = run.floors.length - 1;
+    if (run.floor === rounds) {
+      const boss = run.floors[run.floor]!.Boss;
+      if (boss) this.say(`The boss's hall: ${mobInfo(boss).name} waits at its head.`);
+      return;
+    }
+    const r = this.roundOf(run);
+    this.say(`Round ${run.floor + 1} of ${rounds}: beat ${r.need} of the ${r.of} challengers to open the gate.`);
+  }
+
+  /** The round's portcullis over its gate: let down while the round is open, drawn up once it is won - risen as it opens. */
+  private showGate(run: ActiveRun, rising: boolean): void {
+    const at = run.plan?.down;
+    if (!at) return;
+    run.gate?.removeFromParent();
+    const group = meshesOf(PROPS.build("dungeon-portcullis", { id: "dungeon-portcullis", x: at.x, z: at.z, args: { open: run.gateOpen && !rising } }).model, "portcullis");
+    run.plan!.spot.place.addFigure(group);
+    run.gate = group;
+    if (!rising) return;
+    // Drawn up into the lintel over a second, then shown open.
+    let t = 0;
+    this.tweens.push((dt) => {
+      t += dt;
+      const k = Math.min(1, t / 1.2);
+      group.scale.y = 1 - 0.87 * k;
+      group.position.y = 2.3 * 0.87 * k;
+      if (k < 1) return false;
+      if (run.gate === group) this.showGate(run, false);
+      return true;
+    });
+  }
+
+  /** Small motions the game runs on its clock (a gate drawn up); each says when it is done. */
+  private readonly tweens: ((dt: number) => boolean)[] = [];
+
+  /** A round's challenger beaten: once the round is won, its gate opens. */
+  private roundWon(run: ActiveRun): void {
+    if (run.gateOpen || run.floor >= run.floors.length - 1) return;
+    const r = this.roundOf(run);
+    if (r.beaten < r.need) {
+      this.say(`${r.beaten} of the ${r.need} wins the round asks.`);
+      return;
+    }
+    run.gateOpen = true;
+    this.showGate(run, true);
+    const next = run.floor + 1 === run.floors.length - 1 ? "the boss's hall" : `round ${run.floor + 2}`;
+    this.say(`Round ${run.floor + 1} won: the gate to ${next} stands open.${r.beaten < r.of ? " The challengers left still pay, if you would face them." : ""}`);
+  }
+
+  /** The open gate's panel (design.md A6): down to the next round or the boss's hall, out with the winnings, or stay. */
+  private async atGate(run: ActiveRun, round: RoundState): Promise<boolean> {
+    const { showGate } = await import("./screens/tournament");
+    const rounds = run.floors.length - 1;
+    const hall = run.floors[rounds]!;
+    this.paused = true;
+    this.screen = "gate";
+    try {
+      const choice = await showGate({ round: run.floor + 1, rounds, beaten: round.beaten, of: round.of, boss: run.floor + 1 === rounds && hall.Boss ? mobInfo(hall.Boss).name : null });
+      this.gateChoice = choice;
+      return choice !== null;
+    } finally {
+      this.screen = "world";
+      this.paused = false;
+    }
   }
 
   /** Whether the way out stands open: the boss beaten, or resting this run (its hall empty). */
   private bossBeaten(run: ActiveRun): boolean {
     const last = run.floors.length - 1;
-    return !run.floors[last]!.Boss || run.beaten.has(`${last}:${run.floors[last]!.Encounters.length + 1}`);
+    const hall = run.floors[last]!;
+    return !hall.Boss || run.beaten.has(`${last}:${hall.Encounters.length}`);
   }
 
   /** The run the server has the character in, resumed on its floor at the floor's arrival; null with none. */
@@ -1024,13 +1205,14 @@ export class Overworld {
     const run = this.activeRun(live, dungeon);
     this.run = run;
     const arrival = this.showFloor(run);
-    this.say(`You are back in ${dungeon.name}${run.floors.length > 1 ? `, on floor ${run.floor + 1} of ${run.floors.length}` : ""}.`);
+    const rounds = run.floors.length - 1;
+    this.say(`You are back in ${dungeon.name}, ${run.floor < rounds ? `in round ${run.floor + 1} of ${rounds}` : "in the boss's hall"}.`);
     this.sayResting(run, true);
     return arrival;
   }
 
   private activeRun(r: Run, dungeon: DungeonData): ActiveRun {
-    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, tier: r.Tier ?? dungeon.tier, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null, shrineUsed: r.ShrineUsed ?? false, shrineHeart: null };
+    return { id: r.Run, dungeon, seed: r.Seed, floors: r.Floors, tier: r.Tier ?? dungeon.tier, floor: r.Floor ?? 0, beaten: new Set(r.Beaten ?? []), plan: null, resting: r.Resting ?? null, shrineUsed: r.ShrineUsed ?? false, shrineHeart: null, gate: null, gateOpen: false };
   }
 
   /** The heart over the shrine of the floor shown: lit until it has given its blessing, then cold stone. */
@@ -1090,27 +1272,28 @@ export class Overworld {
     this.say(run.floor === run.floors.length - 1 ? `The hall is empty: ${who} rests until ${when}. The way out is open.` : `${who} was beaten here this week and rests until ${when}: the hall below stands empty.`);
   }
 
+  /** Down through a won round's gate: the server's to allow (409 `RoundOpen` while the round is open). */
   private async descend(): Promise<Arrival> {
     const run = this.run!;
-    if (run.floors[run.floor]!.Warden && !run.beaten.has(`${run.floor}:${run.floors[run.floor]!.Encounters.length}`)) {
-      this.say("The warden of this floor bars the stair.");
-      throw new Error("warden");
-    }
-    await this.api.dungeonFloor({ Run: run.id, Floor: run.floor + 1 });
+    await this.api.dungeonFloor({ Run: run.id, Floor: run.floor + 1 }).catch((e: unknown) => {
+      this.say(refusal(e));
+      throw e;
+    });
     run.floor++;
-    this.say(`Floor ${run.floor + 1} of ${run.dungeon.name}.`);
+    this.sayRound(run);
     this.sayResting(run, false);
     return this.showFloor(run);
   }
 
-  private async leaveRun(told: boolean): Promise<Arrival> {
+  /** Out of the run (it ends): by the way back at any time, by a won round's gate, or past the beaten boss. */
+  private async leaveRun(told: boolean, cashing = false): Promise<Arrival> {
     const run = this.run!;
     if (told) await this.api.leaveDungeon({ Run: run.id }).catch(() => {});
     this.run = null;
     for (const m of [...this.mobs]) if (m.run) this.removeMob(m);
     // Out where the server puts one: the first open step from the entrance (realm.ts, besideEntrance).
     const [x, z] = await besideEntrance(run.dungeon.entrance, this.source);
-    this.say(`You leave ${run.dungeon.name}.`);
+    this.say(cashing ? `You leave ${run.dungeon.name} with your winnings.` : `You leave ${run.dungeon.name}.`);
     return this.toWorld({ x, z });
   }
 
@@ -1129,11 +1312,12 @@ export class Overworld {
       at: at ?? new THREE.Vector3(t[0] + 0.5, grid.heightAt(t[0], t[1]) + 0.6, t[1] + 0.2),
       kind,
     });
-    const doors: StageDoor[] = [way(f.up, "way-up", "leave", "world", new THREE.Vector3(...built.doorway))];
-    if (f.down) doors.push(way(f.down, "stairs-down", "down", "down"));
+    // The way back climbs out south through the arena's south wall; the gate and the way out open north.
+    const doors: StageDoor[] = [{ ...way(f.up, "way-up", "leave", "world", new THREE.Vector3(...built.doorway)), step: [0, 1] }];
+    if (f.down) doors.push(way(f.down, "gate", "down", "down", new THREE.Vector3(f.down[0] + 0.5, 1.1, f.down[1] + 0.2)));
     if (f.wayOut) doors.push(way(f.wayOut, "way-out", "leave", "world"));
     this.roomNpcs.set(id, f.npcs);
-    const title = r.floors > 1 ? `${r.dungeon.name}, floor ${r.floor + 1}` : r.dungeon.name;
+    const title = f.last ? `${r.dungeon.name}: the boss's hall` : `${r.dungeon.name}: round ${r.floor + 1} of ${r.floors - 1}`;
     const spot: Spot = { id, title, inside: true, turns: false, place: built.place, grid, doors, actors: [], start: tile(f.arrive), bounds: built.bounds };
     return { spot, arrive: tile(f.arrive), encounters: f.spots, up: tile(f.up), down: f.down ? tile(f.down) : null, wayOut: f.wayOut ? tile(f.wayOut) : null, shrine: f.shrine ? tile(f.shrine) : null };
   }
@@ -1364,7 +1548,7 @@ export class Overworld {
     return this.inWorld ? [] : (this.roomNpcs.get(this.spot.id) ?? []);
   }
 
-  /** A run under way, for tests: its id, floor and the floor's ways. */
+  /** A run under way, for tests: its id, floor and the floor's ways, and the round as it stands (null in the boss's hall). */
   get runState(): {
     readonly id: string;
     readonly floor: number;
@@ -1375,11 +1559,13 @@ export class Overworld {
     readonly shrine: Tile | null;
     readonly shrineFloor: number | null;
     readonly shrineUsed: boolean;
+    readonly round: { readonly beaten: number; readonly of: number; readonly need: number; readonly open: boolean } | null;
   } | null {
     const r = this.run;
     if (!r?.plan) return null;
     const shrineFloor = r.floors.findIndex((f) => f.Shrine === true);
-    return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null, shrine: r.plan.shrine ?? null, shrineFloor: shrineFloor < 0 ? null : shrineFloor, shrineUsed: r.shrineUsed };
+    const round = r.floor < r.floors.length - 1 ? { ...this.roundOf(r), open: r.gateOpen } : null;
+    return { id: r.id, floor: r.floor, floors: r.floors.length, up: r.plan.up ?? null, down: r.plan.down ?? null, wayOut: r.plan.wayOut ?? null, shrine: r.plan.shrine ?? null, shrineFloor: shrineFloor < 0 ? null : shrineFloor, shrineUsed: r.shrineUsed, round };
   }
 
   /** The finds of the wilds standing, for tests: each id, kind, tile and whether it is drawn. */
@@ -1522,6 +1708,7 @@ export class Overworld {
     if (this.run && at.role === "boss" && this.run.dungeon.waystone) this.say(`${this.run.dungeon.name}'s waystone is attuned to you: travel between it and any other you attune.`);
     if (at.actor) this.removeMob(at.actor);
     this.say(`You defeated ${theMob(info, false)}: ${gold(result.Gold)} gold.`);
+    if (this.run && at.role === "encounter") this.roundWon(this.run);
     for (const relic of result.Relics ?? []) this.say(`A relic falls from ${theMob(info, false)}: ${relic} is yours, and yours alone.`);
     if (result.Gear) {
       this.say(`${theMob(info)} dropped ${result.Gear.Gear.Name}: it is in your gear.`);
@@ -1829,6 +2016,7 @@ export class Overworld {
     const stage = this.stage;
     stage.tick(dt);
     this.watchJumps();
+    for (let i = this.tweens.length - 1; i >= 0; i--) if (this.tweens[i]!(dt)) this.tweens.splice(i, 1);
     if (!this.paused) {
       const free = (who: Actor) => this.free(who);
       // The wanderers live on the travel map (a world of two scales): in a town's grounds nothing walks but townsfolk.

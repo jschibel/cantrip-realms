@@ -554,13 +554,13 @@ export interface MobFile {
   readonly loot?: { readonly colors?: string };
 }
 
-/** The mobs that wander: no boss, no dungeon warden, no tower's mage, none of the Portal's. */
+/** The mobs that wander: no boss, no dungeon's champion (the wardens), no tower's mage, none of the Portal's. */
 export const wanderers = (roster: readonly MobFile[]) =>
   roster.filter((m) => !m.boss && !m.id.includes("warden") && !m.id.startsWith("mage-") && !m.id.startsWith("phyrexian-") && m.id !== "gitaxian-mindcutter");
 
 /**
- * A dungeon's mob list, warden or boss as the layout names it (layout.ts): ids as they are, and the roster asked for the
- * rest - `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`.
+ * A dungeon's mob list or boss as the layout names it (layout.ts): ids as they are, and the roster asked for the rest -
+ * `@wanderers:2`, `@wanderers:2-3`, `@wanderer:3`, `@warden:2`.
  */
 export function resolveMobs(roster: readonly MobFile[], region: Region | null, spec: string): string[] {
   const match = /^@(wanderers|wanderer|warden):(\d)(?:-(\d))?$/.exec(spec);

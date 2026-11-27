@@ -13,7 +13,7 @@
   "tier": 3,
   "encounters": [
     3,
-    4
+    3
   ],
   "mobs": [
     [
@@ -30,10 +30,10 @@
       "mahamoti-djinn",
       "river-merfolk",
       "sibilant-spirit",
-      "tempest-djinn"
+      "tempest-djinn",
+      "rift-warden"
     ]
   ],
-  "warden": "rift-warden",
   "boss": "teferi",
   "region": "U",
   "standing": {

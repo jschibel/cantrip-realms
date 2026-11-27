@@ -189,8 +189,37 @@ public sealed class RealmApp : WebApplicationFactory<Program>
     public Task ToFloor(RunView run, int floor) =>
         Store(db => db.Runs.Where(row => row.Id == run.Run).ExecuteUpdateAsync(set => set.SetProperty(row => row.Floor, floor)));
 
-    /// <summary>Where a run's boss waits: its last floor, and its index there.</summary>
-    public static (int Floor, int Index) BossOf(RunView run) => (run.Floors.Count - 1, run.Floors[^1].Encounters.Count + 1);
+    /// <summary>Where a run's boss waits: its last floor, the hall, and its index there (past the hall's encounters: 0).</summary>
+    public static (int Floor, int Index) BossOf(RunView run) => (run.Floors.Count - 1, run.Floors[^1].Encounters.Count);
+
+    /// <summary>
+    /// Stands a mob as one of a round's challengers, as a test arranges the fight it needs (the run's floors as stored, the
+    /// encounter at that index now that mob). The run as the server has it after.
+    /// </summary>
+    public async Task<RunView> SetChallenger(Browser browser, RunView run, int floor, int index, string mob)
+    {
+        await Store(async db =>
+        {
+            RunRow row = await db.Runs.SingleAsync(stored => stored.Id == run.Run);
+            List<RunFloor> floors = Dungeons.FloorsOf(row);
+            floors[floor] = floors[floor] with { Encounters = [.. floors[floor].Encounters.Select(encounter => encounter.Index == index ? encounter with { Mob = mob } : encounter)] };
+            row.Floors = System.Text.Json.JsonSerializer.Serialize(floors);
+            await db.SaveChangesAsync();
+        });
+        return await browser.Ok<RunView>(HttpMethod.Get, "/api/dungeon/run");
+    }
+
+    /// <summary>Wins a round of a run: all its challengers but one, in index order. The challenger left standing.</summary>
+    public static async Task<RunEncounter> WinRound(Browser browser, RunView run, int floor)
+    {
+        IReadOnlyList<RunEncounter> round = run.Floors[floor].Encounters;
+        foreach (RunEncounter encounter in round.Take(Dungeons.WinsToOpen(round.Count)))
+        {
+            Assert.Equal("won", (await Finish(browser, (await Fight(browser, run, floor, encounter.Index, encounter.Mob)).Token)).Outcome);
+        }
+
+        return round[^1];
+    }
 
     /// <summary>Starts the duel of a run's encounter.</summary>
     public static Task<EncounterView> Fight(Browser browser, RunView run, int floor, int index, string mob) =>

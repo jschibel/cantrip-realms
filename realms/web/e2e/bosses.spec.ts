@@ -1,27 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { clickControl, clickEntity, entities, entity, openRealm, player, realm, until, waitSpace, winDuel } from "./realm";
-import { beat, enter, run, walkInside } from "./runs";
+import { descend, enter, run, walkInside } from "./runs";
 
-// A color boss beaten in a run of its dungeon (design.md A6), offline with the stand-in card layer: every floor's warden
-// and stair to the last floor, then Rofellos in the elfhames' hollow - the moment it deserves (green unlocked, the five
-// pips with the new one lit, his gift and his own torc), the HUD's green pip lit after it, the regional map's ring round
-// his dungeon filled; out by the way that opens beside him, and in again: his hall stands empty for the week, its way out
-// open all the same.
-
-/** Takes the floor's stair once its warden is beaten. */
-async function down(page: Page): Promise<void> {
-  const r = (await run(page))!;
-  await beat(page, "warden");
-  // A mob of the floor that comes for the player on the way is beaten, and the stair clicked again.
-  for (let tries = 0; tries < 4 && (await run(page))?.floor === r.floor; tries++) {
-    await walkInside(page, r.down!, 2);
-    await clickEntity(page, (e) => e.kind === "down", "the stairs down");
-    await until(page, async () => (await run(page))?.floor === r.floor + 1 || (await realm<string | null>(page, "layer.open")) !== null, "down the stair, or stopped by a mob", 60);
-    if ((await realm<string | null>(page, "layer.open")) !== null) await winDuel(page);
-  }
-  await until(page, async () => (await run(page))?.floor === r.floor + 1, "down the stair", 30);
-  await waitSpace(page, /^run:/);
-}
+// A color boss beaten in a run of its dungeon (design.md A6), offline with the stand-in card layer: every round won (two
+// of its three challengers) and its gate taken down to the boss's hall, then Rofellos in the elfhames' hollow - alone at
+// its head - and the moment it deserves (green unlocked, the five pips with the new one lit, his gift and his own torc),
+// the HUD's green pip lit after it, the regional map's ring round his dungeon filled; out by the way that opens beside
+// him, and in again: his hall stands empty for the week, its way out open all the same.
 
 /** Beats the floor's boss with the stand-in, taking its loot, until its moment opens. */
 async function beatTheBoss(page: Page): Promise<void> {
@@ -31,7 +16,6 @@ async function beatTheBoss(page: Page): Promise<void> {
     if ((await realm<string>(page, "screen")) === "boss") break;
     if ((await realm<string | null>(page, "layer.open")) === null) await clickEntity(page, (e) => e.kind === "mob" && e.role === "boss", "the boss");
     await until(page, async () => (await realm<string | null>(page, "layer.open")) === "duel", "a duel", 20);
-    // A floor's mob that came for the player first is beaten on the way.
     const against = (await realm<{ screen: string; args: { mob: { id: string } } }[]>(page, "layer.requests")).at(-1)!.args.mob.id;
     if (against !== "rofellos") {
       await winDuel(page);
@@ -63,7 +47,11 @@ test("Rofellos beaten: green unlocked with its moment, his gift and his torc, th
   await enter(page, id);
   await waitSpace(page, /^run:/);
   const floors = (await run(page))!.floors;
-  for (let floor = 0; floor < floors - 1; floor++) await down(page);
+  for (let floor = 0; floor < floors - 1; floor++) await descend(page);
+  // The boss's hall: Rofellos alone at its head.
+  expect((await entities(page)).filter((e) => e.kind === "mob").map((e) => e.role)).toEqual(["boss"]);
+  expect((await realm<string[]>(page, "messages")).some((m) => /^The boss's hall: Rofellos, Llanowar Emissary waits at its head\./.test(m))).toBe(true);
+  if (process.env.REALMS_SHOTS) await page.screenshot({ path: `${process.env.REALMS_SHOTS}/dungeon-boss-hall.png` });
   await beatTheBoss(page);
 
   // The moment: green is the character's, the pips with green new, his gift and his own unique item.
@@ -95,7 +83,7 @@ test("Rofellos beaten: green unlocked with its moment, his gift and his torc, th
   await waitSpace(page, /^run:/);
   expect((await realm<string[]>(page, "messages")).some((m) => /Rofellos, Llanowar Emissary was beaten here this week and rests until/.test(m))).toBe(true);
   const again = (await run(page))!;
-  for (let floor = 0; floor < again.floors - 1; floor++) await down(page);
+  for (let floor = 0; floor < again.floors - 1; floor++) await descend(page);
   expect((await entities(page)).some((e) => e.kind === "mob" && e.role === "boss")).toBe(false);
   expect((await realm<string[]>(page, "messages")).some((m) => /The hall is empty/.test(m))).toBe(true);
   const wayOut = (await run(page))!.wayOut!;

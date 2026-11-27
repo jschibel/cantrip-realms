@@ -139,6 +139,16 @@ button.primary:hover { filter: brightness(1.08); }
 .boss-beaten .spoils b { color: var(--fg); }
 .boss-beaten .buttons { justify-content: center; }
 
+/* A dungeon's tournament (design.md A6): the entrance's board, and a round's open gate. */
+.tournament .panel-card { min-width: 420px; border-color: var(--accent); box-shadow: 0 0 50px -14px var(--accent), 0 12px 40px #0008; }
+.tournament .kicker { color: var(--fg-soft); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.tournament .panel-card h2 { font-size: 26px; margin: 4px 0 10px; }
+.tournament .facts { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 4px; }
+.tournament .facts li { display: flex; justify-content: space-between; gap: 16px; color: var(--fg-soft); }
+.tournament .facts b { color: var(--fg); text-align: right; }
+.tournament .rule { color: var(--fg); font-style: italic; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
+.tournament .buttons { justify-content: flex-end; flex-wrap: wrap; }
+
 /* Hearts (design.md A3b): a row of them, filled for those the character has, empty for the rest they hold. */
 .hearts { display: inline-flex; gap: 3px; vertical-align: middle; align-items: center; }
 .heart { width: 15px; height: 14px; }

@@ -13,9 +13,9 @@ export function bindInput(game: Overworld): WalkInput {
   const input = new WalkInput(stage, canvas);
   input.enabled = () => game.screen === "world" && !game.paused && !game.ferrying;
   const arrived = stage.onArrive;
-  stage.onArrive = (spot) => {
+  stage.onArrive = (spot, tile) => {
     input.cancel();
-    arrived(spot);
+    arrived(spot, tile);
   };
   canvas.addEventListener("pointermove", (e) => {
     if (game.screen !== "world") {

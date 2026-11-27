@@ -135,7 +135,7 @@ public sealed class StandingTests
         Browser browser = await app.Character(1, "B");
         RunView run = await app.EnterRun(browser, Keep);
         await app.Store(db => db.Runs.Where(row => row.Id == run.Run).ExecuteUpdateAsync(set => set.SetProperty(row => row.Floors,
-            System.Text.Json.JsonSerializer.Serialize(run.Floors.Select(floor => new { floor.Encounters, floor.Warden, floor.Boss }), (System.Text.Json.JsonSerializerOptions?)null))));
+            System.Text.Json.JsonSerializer.Serialize(run.Floors.Select(floor => new { floor.Encounters, floor.Boss }), (System.Text.Json.JsonSerializerOptions?)null))));
         RunView resumed = await browser.Ok<RunView>(HttpMethod.Get, "/api/dungeon/run");
         Assert.Equal(RealmApp.Content.Dungeons[Keep].File.Tier, resumed.Tier);
         Assert.Null(resumed.Floors[^1].BossStats);

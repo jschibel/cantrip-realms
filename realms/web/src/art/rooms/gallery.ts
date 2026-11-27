@@ -7,7 +7,10 @@ import type { Place } from "../../render/place";
 import { type InteriorKind, type NpcData, THEMES, type Theme } from "../../world/format";
 import type { Grid } from "../../world/grid";
 import { gridOfInterior } from "../../world/load";
-import { figureSpec } from "../figures";
+import { mobInfo } from "../../mobs";
+import { type Figure, figureSpec, mobFigure } from "../figures";
+import { meshesOf } from "../paint/builder";
+import { PROPS } from "../props";
 import { seeded } from "../paint/pixmap";
 import { ROOM_KINDS, ROOM_STYLES, type RoomKind, layoutRoom, roomTitle } from "./layout";
 
@@ -17,7 +20,8 @@ import { ROOM_KINDS, ROOM_STYLES, type RoomKind, layoutRoom, roomTitle } from ".
 //
 //   ?room=<kind>&style=<style>&seed=N   a room as layoutRoom lays it out; &w=&d= its floor (else from &bw=&bd=, the
 //                                       building's footprint), &specialty= a shop's wares, &upstairs=0 a tavern
-//   ?dungeon=<theme>&seed=N&floor=K&floors=M   a run's floor (a made-up run: three encounters, a warden or a boss)
+//   ?dungeon=<theme>&seed=N&floor=K&floors=M   a run's floor (a made-up run: a round of three challengers, the boss's hall
+//                                       last), its fights standing on their circles; &open=1 a round's gate thrown open
 //   ?heading=left|front|right           the camera's heading
 //   ?at=x,z                             where the hero stands and the camera looks (else the arrival)
 //   ?time=T                             the flames' clock, seconds (still: nothing moves but by it)
@@ -32,6 +36,8 @@ const num = (key: string, fallback: number): number => {
   return Number.isFinite(v) ? v : fallback;
 };
 const at = query.get("at")?.split(",").map(Number);
+/** Figures standing in the place besides the hero (a floor's fights). */
+const extras: Figure[] = [];
 
 interface Shown extends Framing {
   readonly title: string;
@@ -41,13 +47,22 @@ interface Shown extends Framing {
   readonly npcs: readonly NpcData[];
 }
 
-/** A made-up run's floor: three encounters, the warden on every floor but the last, the boss on the last. */
-export function sampleRun(floor: number, floors: number): RunFloor {
-  return {
-    Encounters: [0, 1, 2].map((i) => ({ Index: i, Mob: `mob-${i}` })),
-    Warden: floor < floors - 1 ? "warden" : null,
-    Boss: floor === floors - 1 ? "boss" : null,
-  };
+/** Mobs of each theme's dungeons, to stand in a made-up run's circles. */
+const SAMPLE_MOBS: Record<Theme, readonly string[]> = {
+  castle: ["benalish-knight", "serra-angel", "northern-paladin", "lyra-dawnbringer"],
+  caves: ["keldon-raider", "shivan-dragon", "keldon-warlord", "garna"],
+  crypt: ["skeletal-vampire", "zombie-master", "nightmare", "liliana"],
+  hollow: ["llanowar-elves", "craw-wurm", "elvish-archdruid", "rofellos"],
+  foundry: ["goblin-king", "keldon-raider", "shivan-dragon", "garna"],
+  tower: ["tolarian-scholar", "serra-angel", "prodigal-sorcerer", "teferi"],
+  portal: ["phyrexian-ravager", "phyrexian-negator", "phyrexian-gorger", "phyrexian-praetor"],
+};
+
+/** A made-up run's floor: a round of three challengers, the boss alone in the last floor's hall. */
+export function sampleRun(theme: Theme, floor: number, floors: number): RunFloor {
+  const mobs = SAMPLE_MOBS[theme];
+  if (floor === floors - 1) return { Encounters: [], Boss: mobs[3]! };
+  return { Encounters: [0, 1, 2].map((i) => ({ Index: i, Mob: mobs[i]! })), Boss: null };
 }
 
 function showRoom(kind: RoomKind): Shown {
@@ -71,10 +86,26 @@ function showRoom(kind: RoomKind): Shown {
 function showDungeon(theme: Theme): Shown {
   const floors = num("floors", 3);
   const floor = num("floor", 0);
-  const f = generateDungeonFloor({ theme, seed: num("seed", 1), floor, floors, run: sampleRun(floor, floors) });
+  const f = generateDungeonFloor({ theme, seed: num("seed", 1), floor, floors, run: sampleRun(theme, floor, floors) });
   const built = assembleFloor(f);
+  const grid = gridOfFloor(f);
   const start = at && at.length === 2 ? { x: at[0]!, z: at[1]! } : { x: f.arrive[0], z: f.arrive[1] };
-  return { title: `${theme}, floor ${floor + 1} of ${floors}`, inside: true, turns: true, bounds: built.bounds, place: built.place, grid: gridOfFloor(f), start, npcs: f.npcs };
+  // The fights on their circles, facing the way in; a round's gate shut, or thrown open.
+  for (const s of f.spots) {
+    const info = mobInfo(s.mob);
+    const mob = new Actor(mobFigure(info.model, info.id, info.creature), { x: s.x, z: s.z }, grid, {}, info.name);
+    mob.place({ x: s.x, z: s.z });
+    mob.figure.face(0, 1);
+    built.place.addFigure(mob.figure.root);
+    extras.push(mob.figure);
+  }
+  if (f.down) {
+    const gate = meshesOf(PROPS.build("dungeon-portcullis", { id: "dungeon-portcullis", x: f.down[0], z: f.down[1], args: { open: query.get("open") === "1" } }).model, "portcullis");
+    built.place.addFigure(gate);
+  }
+  const title = f.last ? `${theme}, the boss's hall` : `${theme}, round ${floor + 1} of ${floors - 1}`;
+  // Framed as a run frames its floors: one heading, never turned.
+  return { title, inside: true, turns: false, bounds: built.bounds, place: built.place, grid, start, npcs: f.npcs };
 }
 
 function index(): void {
@@ -123,7 +154,7 @@ function start(shown: Shown): void {
     renderer.setView(view);
     shown.place.update(time, view.yaw, view.yaw);
     renderer.focus.copy(rig.clampFocus(hero.position, shown));
-    for (const f of [hero.figure, ...actors.map((a) => a.figure)]) {
+    for (const f of [hero.figure, ...actors.map((a) => a.figure), ...extras]) {
       f.update(0, 0);
       f.setLean(LEAN, view.pitch, view.yaw);
     }

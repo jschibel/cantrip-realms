@@ -282,21 +282,22 @@ public sealed class HeartsTests
         IReadOnlyDictionary<string, int> cards = await browser.Collection();
         int gear = (await browser.Me()).Gear.Count;
 
-        // The boss beaten on the last floor - gold, its gift, its unique item - then an encounter of that floor lost with
-        // the last heart.
+        // A challenger of the first round beaten - gold, a gear drop - and the boss in its hall - gold, its gift, its unique
+        // item; then (the run set back on its first round, as a test arranges it) another challenger lost with the last heart.
         RunView run = await app.EnterRun(browser, "elfhame-hollow");
+        RunEncounter first = run.Floors[0].Encounters[0];
+        OutcomeView other = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, first.Index, first.Mob)).Token);
+        Assert.Equal("won", other.Outcome);
+        Assert.NotNull(other.Gear);
         (int floor, int index) = RealmApp.BossOf(run);
         await app.ToFloor(run, floor);
         OutcomeView boss = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, floor, index, "rofellos")).Token);
         Assert.Equal("won", boss.Outcome);
-        RunEncounter last = run.Floors[floor].Encounters[0];
-        OutcomeView other = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, floor, last.Index, last.Mob)).Token);
-        Assert.Equal("won", other.Outcome);
-        Assert.NotNull(other.Gear);
-        RunEncounter next = run.Floors[floor].Encounters[1];
+        await app.ToFloor(run, 0);
+        RunEncounter next = run.Floors[0].Encounters[1];
         await app.SetHearts(browser, 1);
         app.Verifier.Answer = (_, _) => FakeVerifier.MobWon;
-        OutcomeView died = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, floor, next.Index, next.Mob)).Token);
+        OutcomeView died = await RealmApp.Finish(browser, (await RealmApp.Fight(browser, run, 0, next.Index, next.Mob)).Token);
 
         Assert.True(died.Died);
         RunLoss forfeit = died.Forfeit!;

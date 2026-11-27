@@ -7,20 +7,20 @@
     120
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 2,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "keldon-warlord",
     "orcish-artillery",
-    "talruum-minotaur"
+    "talruum-minotaur",
+    "warden-2"
   ],
-  "warden": "warden-2",
   "boss": "mage-keld-2",
   "region": "R",
   "waystone": true

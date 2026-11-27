@@ -241,7 +241,7 @@ describe("Dominaria's files", () => {
     const portal = dungeons.get("phyrexian-portal")!;
     expect(tierAt(world, portal.entrance[0], portal.entrance[1])).toBe(4);
     expect(portal.requires).toBe("WUBRG");
-    const met = new Set([...spawns.flatMap((s) => s.mobs), ...[...dungeons.values()].flatMap((d) => [...(d.mobs as (string | string[])[]).flat(), d.warden, d.boss])]);
+    const met = new Set([...spawns.flatMap((s) => s.mobs), ...[...dungeons.values()].flatMap((d) => [...(d.mobs as (string | string[])[]).flat(), d.boss])]);
     expect([...roster.keys()].filter((id) => !met.has(id)), "mobs nobody meets").toEqual([]);
     for (const d of dungeons.values()) if (d.waystone) expect([d.boss, d.tier]).toEqual([`mage-${d.id}`, Number(d.id.slice(d.id.lastIndexOf("-") + 1))]);
   });

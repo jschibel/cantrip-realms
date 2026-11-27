@@ -297,7 +297,7 @@ public sealed class RunRow
     /// <summary>The seed the browser lays the run out from: below 2^53.</summary>
     public long Seed { get; set; }
 
-    /// <summary>Every floor's encounters, warden and boss, as JSON (the run's <c>Floors</c>).</summary>
+    /// <summary>Every floor's challengers or boss, as JSON (the run's <c>Floors</c>).</summary>
     public string Floors { get; set; } = string.Empty;
 
     /// <summary>The floor the character stands on, the first 0.</summary>

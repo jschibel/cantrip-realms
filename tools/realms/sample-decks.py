@@ -25,8 +25,9 @@ Durkwood and Verdura):
 - **Mage bosses** of the mage towers, `mage-<region>-<tier>` for the regions benalia, orvada, caligo, keld and llanowar
   and tiers 1-4: Dominaria's mages (wizards, clerics, druids, shamans and artificers), each a card of its own, with
   spell-heavy decks. They are paid as their tier and start with a warden's stats (of their tier) and gear.
-- **Wardens**: the five dungeons' and the Portal's `*-warden` keepers (tier 4 mini-bosses), and the generic `warden-1`
-  to `warden-4`, constructs keeping the mage towers and small wilderness dungeons at their tier.
+- **Wardens**: the five dungeons' and the Portal's `*-warden` champions (tier 4, among the challengers of their
+  dungeons' deeper rounds), and the generic `warden-1` to `warden-4`, constructs among the challengers of the mage towers
+  and small wilderness dungeons at their tier.
 - **Bosses**: the five that unlock a color, each a legend of its region, and the Phyrexian Portal's tier 4
   Phyrexians and its capstone, the five-color praetor, whose deck is written out card by card. Each boss's stats with
   its gear (`totals`) are the balance lab's fit (realms/docs/balance.md).
@@ -92,7 +93,7 @@ DECK_RARITIES = {
 }
 LOOT_RARITIES = {1: ["common"], 2: ["common", "uncommon"], 3: ["common", "uncommon", "rare"], 4: ["uncommon", "rare", "mythic"], "boss": ["rare", "mythic"]}
 # The setup values a mob starts from before its gear's, by tier: a wanderer's (and a Portal mob's), and a mage's or a
-# warden's (WARDEN_STATS), which keep a tower or a floor and start stronger. Each boss says its own with its gear
+# warden's (WARDEN_STATS), the dungeons' champions, which start stronger. Each boss says its own with its gear
 # (`totals`). They are fitted by the balance lab (tools/realms/balance.cmd, realms/docs/balance.md) to the player's win
 # rates realms/docs/tech.md C5 aims at, so they follow how strong each tier's decks play rather than a rule: tier 3's
 # decks play much weaker than tier 4's, so its mobs start with more.
@@ -296,7 +297,8 @@ MOBS = [
     mage("llanowar", 2, "Argothian Elder", lean=["Druid", "Elf"], themes=["ramp", "big"]),
     mage("llanowar", 3, "Verduran Enchantress", lean=[], themes=["enchantments", "pump"], shape=KEEPER_SHAPE_T3),
     mage("llanowar", 4, "Silverback Elder", lean=["Shaman", "Ape"], themes=["big", "ramp"]),
-    # The dungeons' floor wardens (tier 4 mini-bosses), and the generic wardens of the towers and wilderness dungeons.
+    # The dungeons' champions (tier 4, among their deeper rounds' challengers), and the generic wardens of the towers and
+    # wilderness dungeons.
     dict(kind="warden", id="sanctum-warden", name="Sanctum Warden", creature="Archangel", region="W", lean=["Angel", "Knight"], themes=["flyers", "vigilance"], gear=["benalish-plate", "silver-pendant"]),
     dict(kind="warden", id="rift-warden", name="Rift Warden", creature="Zephid", region="U", lean=["Illusion", "Wizard", "Drake", "Sphinx"], themes=["counters", "flyers"], gear=["tolarian-robe", "tolarian-circlet"]),
     dict(kind="warden", id="tomb-warden", name="Tomb Warden", creature="Zombie Master", region="B", lean=["Zombie", "Skeleton"], themes=["removal", "landwalk"], gear=["chain-hauberk", "thran-amulet"]),

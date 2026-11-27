@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnNear } from "../places";
 import { chebyshev, clickClear, clickControl, clickEntity, enterTown, entities, entity, interior, openNear, playerTile, realm, until, waitReady, waitSpace, walkTo, winDuel, world } from "../realm";
-import { enter, run, toShrine, walkInside } from "../runs";
+import { descend, enter, run, toShrine, walkInside } from "../runs";
 import { type FindView, type Me, SERVER, api, besideEntrance, character, drop, find, hearts, place, query, verdict } from "./server";
 
 const SHOTS = join(dirname(fileURLToPath(import.meta.url)), "..", "screenshots", "hearts");
@@ -83,7 +83,7 @@ test("a dungeon's mob on the real server is never bought off: the defeat offers 
   await enter(page, id);
   await waitSpace(page, /^run:/, 60);
   await verdict(page.request, "lost", 2);
-  // Toward an encounter step by step (it may come for the player itself), then at it: the walk never answers a duel itself.
+  // Toward a challenger step by step, then at it: the walk never answers a duel itself.
   for (let tries = 0; tries < 30 && (await open(page)) === null; tries++) {
     const mob = await entity(page, (e) => e.kind === "mob" && e.role === "encounter", "an encounter", 30);
     if (chebyshev(await playerTile(page), mob.tile) <= 2) {
@@ -175,7 +175,7 @@ test("a heartbloom on the real server gives back a heart, and is gone for everyo
 test("a run's shrine on the real server blesses once: a heart back, and the run remembers", async ({ page }) => {
   test.setTimeout(240_000);
   await character(page.request, 85, "Prayer");
-  // A mage tower of one floor, its run made to hold a shrine; any duel a mob of it starts counted won.
+  // A mage tower (a round, then the mage's hall), its run made to hold a shrine; any duel of it counted won.
   const id = "benalia-1";
   await drop(page.request, { Shrine: true });
   await verdict(page.request, "won");
@@ -187,10 +187,12 @@ test("a run's shrine on the real server blesses once: a heart back, and the run 
   await enter(page, id);
   await waitSpace(page, /^run:/, 60);
   const live = await api<{ Run: string; Floors: { Shrine?: boolean }[]; ShrineUsed: boolean }>(page.request, "dungeon/run");
-  expect(live.Floors.map((f) => f.Shrine ?? false)).toEqual([true]);
+  expect(live.Floors.filter((f) => f.Shrine === true)).toHaveLength(1);
   expect(live.ShrineUsed).toBe(false);
+  const held = live.Floors.findIndex((f) => f.Shrine === true);
+  expect((await run(page))!).toMatchObject({ shrineFloor: held, shrineUsed: false });
+  for (let floor = 0; floor < held; floor++) await descend(page);
   const r = (await run(page))!;
-  expect(r).toMatchObject({ shrineFloor: 0, shrineUsed: false });
 
   await walkInside(page, r.shrine!, 1);
   await toShrine(page);

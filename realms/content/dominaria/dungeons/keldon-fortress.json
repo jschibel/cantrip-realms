@@ -13,7 +13,7 @@
   "tier": 3,
   "encounters": [
     3,
-    4
+    3
   ],
   "mobs": [
     [
@@ -30,10 +30,10 @@
       "marton-stromgald",
       "rorix-bladewing",
       "shivan-dragon",
-      "two-headed-giant-of-foriys"
+      "two-headed-giant-of-foriys",
+      "foundry-warden"
     ]
   ],
-  "warden": "foundry-warden",
   "boss": "garna",
   "region": "R",
   "standing": {

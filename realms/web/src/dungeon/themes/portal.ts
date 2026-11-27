@@ -1,60 +1,48 @@
-// The Phyrexian Portal (the capstone): the praetor's realm - islands of plating hanging over the void, joined by
-// bridges of crystal, pylons of glowing ichor, altars and vats; on the last floor the praetor's hall, its sigil ringed
-// by pylons.
+// The Phyrexian Portal (the capstone): the praetor's realm - each round an island of plating hanging over the void, a
+// causeway of crystal down its middle, pylons of glowing ichor at its edge, altars and vats, violet ichor-glow welling up
+// from under its rim; the praetor's hall the greatest island, its sigil under the praetor.
 
 import type { ThemeDef } from "../finish";
-import type { FloorRequest } from "../types";
-import type { Plan, Room } from "../plan";
-import { alongWalls, glowLight, spread } from "./common";
+import { FLOOR } from "../plan";
+import { alongWalls, glowLight, round } from "./common";
 
 export const PORTAL: ThemeDef = {
   floor: "dungeon-plates",
   stone: "plate",
-  size: () => [46, 38],
-  carve(plan: Plan, request: FloorRequest): Room[] {
-    const last = request.floor === request.floors - 1;
-    const { w, d } = plan;
-    const spots = spread(plan, last ? 5 : 7, 11, 6, 6, w - 7, d - 7);
-    const islands: Room[] = spots.map(([x, z], i) => ({ x, z, size: last && i === spots.length - 1 ? 5 : 3, kind: last && i === spots.length - 1 ? "hall" : "island" }));
-    for (const isl of islands) plan.disc(isl.x, isl.z, isl.kind === "hall" ? 5.6 : 2.6 + plan.random() * 0.8);
-    // Bridges of crystal over the void, each island to the next.
-    for (let i = 1; i < islands.length; i++) plan.corridor(islands[i - 1]!.x, islands[i - 1]!.z, islands[i]!.x, islands[i]!.z, 2, "dungeon-crystal");
-    // The islands' own plating over the bridges' ends.
-    for (const isl of islands) plan.disc(isl.x, isl.z, isl.kind === "hall" ? 5.6 : 2.4);
-    return islands;
+  hue: "ichor",
+  size: (big, random) => (big ? [28, 13] : [25 + Math.floor(random() * 3), 13]),
+  carve(plan, arena) {
+    round(plan, arena, 0.08, 0.25);
+    // A causeway of crystal from the way in to the gate.
+    for (let z = arena.z0; z <= arena.z1; z++) for (let x = arena.cx - 1; x <= arena.cx + 1; x++) if (plan.cell(x, z) === FLOOR) plan.surface[plan.index(x, z)] = "dungeon-crystal";
   },
   dress(ctx) {
-    const { plan, rooms } = ctx;
-    for (const isl of rooms) {
-      if (isl.kind === "hall") {
-        plan.put({ id: "dungeon-sigil", x: isl.x + 0.5, z: isl.z + 0.5, args: { r: 2.5 } });
-        plan.light(glowLight([isl.x + 0.5, 1.5, isl.z + 0.5], [0.5, 1, 0.45], 10, 9), 60);
-        for (let k = 0; k < 8; k++) {
-          const a = (k / 8) * Math.PI * 2;
-          const x = Math.round(isl.x + Math.cos(a) * 4.3);
-          const z = Math.round(isl.z + Math.sin(a) * 4.3);
-          if (ctx.free(x, z) && plan.block(x, z, { id: "dungeon-pylon", x: x + 0.5, z: z + 0.5, args: { h: 2.6 } }) && k % 2 === 0) plan.light(glowLight([x + 0.5, 1.8, z + 0.8], [0.45, 1, 0.4], 5, 5), 40);
-        }
-        continue;
-      }
-      // The island's heart glows green; a pylon and an altar or a vat stand off its middle.
-      plan.light(glowLight([isl.x + 0.5, 2.2, isl.z + 0.5], [0.45, 1, 0.5], 6, 6.5), 30);
-      const options: [number, number][] = [[isl.x - 2, isl.z - 1], [isl.x + 2, isl.z - 1], [isl.x - 1, isl.z + 2], [isl.x + 1, isl.z - 2]];
-      let n = 0;
-      for (const [x, z] of options) {
-        if (n >= 2 || !ctx.free(x, z)) continue;
-        const pylon = n === 0;
-        const id = pylon ? "dungeon-pylon" : plan.random() < 0.5 ? "dungeon-vat" : "dungeon-altar";
-        if (!plan.block(x, z, { id, x: x + 0.5, z: z + 0.5 })) continue;
-        plan.light(glowLight([x + 0.5, pylon ? 1.8 : 1.2, z + 0.8], pylon ? [0.45, 1, 0.4] : [0.6, 1, 0.5], pylon ? 7 : 4, pylon ? 6 : 4), pylon ? 42 : 24);
-        n++;
-      }
+    const { plan, arena, last, spots } = ctx;
+    const { x0, x1, z0, z1 } = arena;
+    const mx = (x0 + x1) / 2;
+    const mz = (z0 + z1) / 2;
+    if (last) {
+      const boss = spots.find((s) => s.role === "boss");
+      const [bx, bz] = boss ? [boss.x, boss.z] : [arena.cx, z0 + 2];
+      plan.put({ id: "dungeon-sigil", x: bx + 0.5, z: bz + 0.5, args: { r: 3 } });
+      plan.light(glowLight([bx + 0.5, 1.5, bz + 0.5], [0.5, 1, 0.45], 10, 9), 70);
     }
-    // Violet ichor-glow from below the islands' edges, the void's only light.
-    alongWalls(ctx, 0.09, (x, z) => {
+    // Pylons round the island's edge, an altar or a vat between.
+    for (let k = 0; k < 10; k++) {
+      const a = (k / 10) * Math.PI * 2 + 0.3;
+      const x = Math.round(mx + Math.cos(a) * (x1 - x0) * 0.4);
+      const z = Math.round(mz + Math.sin(a) * (z1 - z0) * 0.4);
+      if (!ctx.free(x, z)) continue;
+      const pylon = k % 2 === 0;
+      const id = pylon ? "dungeon-pylon" : k % 4 === 1 ? "dungeon-vat" : "dungeon-altar";
+      if (!plan.block(x, z, { id, x: x + 0.5, z: z + 0.5, ...(pylon ? { args: { h: 2.6 } } : {}) })) continue;
+      plan.light(glowLight([x + 0.5, pylon ? 1.8 : 1.2, z + 0.8], pylon ? [0.45, 1, 0.4] : [0.6, 1, 0.5], pylon ? 7 : 4, pylon ? 6 : 4), pylon ? 42 : 24);
+    }
+    // Violet ichor-glow from below the island's edge, the void's only light.
+    alongWalls(ctx, 0.1, (x, z) => {
       const violet = (x + z) % 3 !== 0;
       plan.light(glowLight([x + 0.5, 0.7, z + 0.5], violet ? [0.8, 0.4, 1] : [0.45, 1, 0.5], 3.5, 4), 16);
       return { id: "dungeon-crystal", x: x + 0.5, z: z + 0.5, seed: x + z, args: { hue: violet ? "violet" : "green", size: 0.6 + ((x * 7 + z) % 4) * 0.12 } };
-    }, (x, z) => plan.surface[plan.index(x, z)] !== "dungeon-crystal");
+    });
   },
 };

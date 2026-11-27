@@ -7,20 +7,20 @@
     414
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 2,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "azure-drake",
     "merfolk-raiders",
-    "sandbar-serpent"
+    "sandbar-serpent",
+    "warden-2"
   ],
-  "warden": "warden-2",
   "boss": "mage-orvada-2",
   "region": "U",
   "waystone": true

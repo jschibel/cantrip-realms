@@ -13,8 +13,9 @@ inside, a dais by the hearth), a shop for each of its vendors (an exotic one's k
 keeps a stall in the street instead), New Benalia and
 Capashen Hold a smithy with an armorer and a temple with a healer too, a quest board, a spell table in New Benalia's street and a pitch in each
 traders' town. Spawns of every tier, each listing the roster's wanderers of that tier; the five region dungeons, the
-Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage at the top and its waystone
-(layout.json's ids, the roster's bosses, wardens and mages), each with a spell table beside its entrance; and a ferry (the finds
+Phyrexian Portal, the Hurloon caves, and a mage tower for each region and tier with its mage in its hall and its
+waystone (layout.json's ids, the roster's bosses and mages, the wardens among the challengers), each a tournament of three
+challengers a round (design.md A6) with a spell table beside its entrance; and a ferry (the finds
 of the wilds - chests, heartblooms - are the server's to spawn, in the zones, and none is kept here). Every mob of realms/content/dominaria/mobs is met somewhere, as the server's
 content check asks. The same roster gives the same files.
 
@@ -81,8 +82,8 @@ SLOTS = [(dx, dz, rot) for dz, rot in ((-2, 0), (2, 2), (-6, 0), (6, 2)) for dx 
 ROCK = {(26, z) for z in range(2, 13)}
 
 # The five regions' dungeons (design.md A6, "Geography: the Domains"), by layout.json's ids, names and themes, each
-# with its warden and the boss who unlocks its color: the boss is the mob of the region's color with "boss": true and
-# that "unlocks", as layout.json names it.
+# with the warden that fights among its deeper rounds' challengers and the boss who unlocks its color: the boss is the mob
+# of the region's color with "boss": true and that "unlocks", as layout.json names it.
 REGION_DUNGEONS = [
     ("benalish-keep", "W", "sanctum-warden", (40, 112)),
     ("academy-tower", "U", "rift-warden", (56, 112)),
@@ -310,11 +311,11 @@ def build(two):
         plan = dungeon_plans[id]
         name, theme = plan["name"], plan["theme"]
         boss = next(m["id"] for m in mobs.values() if m.get("boss") and m.get("unlocks") == color)
-        if (plan["boss"], plan["warden"]) != (boss, warden):
-            raise SystemExit(f"make-world: layout.json's {id} has {plan['warden']} and {plan['boss']}, the roster {warden} and {boss}")
-        tables = [wanderers(3, color) or wanderers(3), wanderers(4, color) or wanderers(4)]
-        data = {"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [2, 4], "mobs": tables,
-                "warden": warden, "boss": boss, "region": color}
+        if plan["boss"] != boss or warden not in plan["mobs"][-1]:
+            raise SystemExit(f"make-world: layout.json's {id} has {plan['boss']} and {plan['mobs'][-1]}, the roster {boss} and {warden}")
+        tables = [wanderers(3, color) or wanderers(3), (wanderers(4, color) or wanderers(4)) + [warden]]
+        data = {"id": id, "name": name, "theme": theme, "floors": [3, 5], "tier": 4, "encounters": [3, 3], "mobs": tables,
+                "boss": boss, "region": color}
         # How the real dungeon is dealt by the character's standing to its color (design.md A6), as written there.
         with open(os.path.join(CONTENT, "dungeons", f"{id}.json"), encoding="utf-8") as f:
             standing = json.load(f).get("standing")
@@ -323,23 +324,23 @@ def build(two):
         dungeon(data, at)
 
     dungeon({"id": "phyrexian-portal", "name": "The Phyrexian Portal", "theme": "portal", "requires": "WUBRG", "floors": [4, 4], "tier": 4,
-             "encounters": [2, 3], "mobs": [PORTAL[:3], PORTAL], "warden": "portal-warden", "boss": "phyrexian-praetor"}, (16, 30))
+             "encounters": [3, 3], "mobs": [PORTAL[:3], PORTAL + ["portal-warden"]], "boss": "phyrexian-praetor"}, (16, 30))
 
-    dungeon({"id": "hurloon-caves", "name": dungeon_plans["hurloon-caves"]["name"], "theme": "caves", "floors": [1, 2], "tier": 2, "encounters": [1, 3],
-             "mobs": wanderers(2), "warden": "warden-2", "boss": wanderers(2)[0]}, (24, 56))
+    dungeon({"id": "hurloon-caves", "name": dungeon_plans["hurloon-caves"]["name"], "theme": "caves", "floors": [2, 2], "tier": 2, "encounters": [3, 3],
+             "mobs": wanderers(2) + ["warden-2"], "boss": wanderers(2)[0]}, (24, 56))
 
-    # A mage tower for each region and tier: <region>-<tier>, its mage mage-<region>-<tier> at the top.
+    # A mage tower for each region and tier: <region>-<tier>, a round of challengers, then its mage mage-<region>-<tier> in its hall.
     for i, (color, region_name, region) in enumerate(REGIONS):
         for tier in range(1, 5):
             tower = f"{region}-{tier}"
-            dungeon({"id": tower, "name": dungeon_plans[tower]["name"], "theme": "tower", "waystone": True, "floors": [1, 2],
-                     "tier": tier, "encounters": [1, 2], "mobs": wanderers(tier, color) or wanderers(tier), "warden": f"warden-{tier}",
+            dungeon({"id": tower, "name": dungeon_plans[tower]["name"], "theme": "tower", "waystone": True, "floors": [2, 2],
+                     "tier": tier, "encounters": [3, 3], "mobs": (wanderers(tier, color) or wanderers(tier)) + [f"warden-{tier}"],
                      "boss": f"mage-{region}-{tier}", "region": color}, (4 + 24 * i, 92 + 8 * tier))
 
     for d in dungeons:
         tables = d["mobs"] if d["mobs"] and isinstance(d["mobs"][0], list) else [d["mobs"]]
         placed.update(m for t in tables for m in t)
-        placed.update([d["warden"], d["boss"]])
+        placed.add(d["boss"])
 
     # Spawns: two of each tier, the first in chunk 0_0 near New Benalia, each holding every wanderer of the tier.
     spawn_places = {1: [(10, 4), (44, 36)], 2: [(4, 22), (60, 40)], 3: [(22, 26), (100, 70)], 4: [(30, 6), (120, 120)]}

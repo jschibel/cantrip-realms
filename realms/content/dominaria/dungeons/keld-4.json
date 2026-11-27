@@ -7,20 +7,20 @@
     92
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 4,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "karplusan-yeti",
     "rorix-bladewing",
-    "shivan-dragon"
+    "shivan-dragon",
+    "warden-4"
   ],
-  "warden": "warden-4",
   "boss": "mage-keld-4",
   "region": "R",
   "waystone": true

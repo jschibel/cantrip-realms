@@ -36,10 +36,19 @@ export function assembleFloor(floor: DungeonFloor): AssembledFloor {
   for (const l of walls.lights ?? []) place.addLight(l);
   for (const l of floor.lights) place.addLight(l);
   const [ux, uz] = floor.up;
-  return { place, bounds: [0, -3, floor.w, floor.d], doorway: [ux + 0.5, 0.9, uz + 0.3] };
+  return { place, bounds: floorBounds(floor), doorway: [ux + 0.5, 0.8, uz + 0.9] };
 }
 
-/** A floor's walkable tiles: every tile whose ground is walked (the stairs and the way out are, to be taken). */
+/**
+ * The ground the camera keeps its view within: from the face of the back wall (its top a little past the floor's north
+ * edge, seen from the camera) to the south wall the way back climbs through - 16.8 tiles deep for an arena of 13 rows, so
+ * a 16:9 window sees it whole at the closest zoom (render/camera.ts, `insideScale`: about 30 tiles by 17 there).
+ */
+export function floorBounds(floor: DungeonFloor): [number, number, number, number] {
+  return [0, -1.8, floor.w, floor.d - 1];
+}
+
+/** A floor's walkable tiles: every tile whose ground is walked (the way back, the gate and the way out are, to be taken). */
 export function gridOfFloor(floor: DungeonFloor): Grid {
   const grid = new Grid(floor.w, floor.d, 0, 0);
   for (let z = 0; z < floor.d; z++) {

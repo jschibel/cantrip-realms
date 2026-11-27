@@ -7,20 +7,20 @@
     295
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 2,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "bog-wraith",
     "lost-soul",
-    "moor-fiend"
+    "moor-fiend",
+    "warden-2"
   ],
-  "warden": "warden-2",
   "boss": "mage-caligo-2",
   "region": "B",
   "waystone": true

@@ -7,20 +7,20 @@
     363
   ],
   "floors": [
-    1,
-    1
+    2,
+    2
   ],
   "tier": 1,
   "encounters": [
-    1,
-    2
+    3,
+    3
   ],
   "mobs": [
     "coral-merfolk",
     "soaring-drake",
-    "vodalian-soldiers"
+    "vodalian-soldiers",
+    "warden-1"
   ],
-  "warden": "warden-1",
   "boss": "mage-orvada-1",
   "region": "U",
   "waystone": true

@@ -12,15 +12,15 @@
   ],
   "tier": 4,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "karplusan-yeti",
     "rorix-bladewing",
-    "shivan-dragon"
+    "shivan-dragon",
+    "warden-4"
   ],
-  "warden": "warden-4",
   "boss": "karplusan-yeti",
   "region": "R"
 }

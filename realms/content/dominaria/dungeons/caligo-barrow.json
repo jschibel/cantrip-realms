@@ -7,20 +7,20 @@
     291
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 1,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "bog-imp",
     "bog-raiders",
-    "bog-rats"
+    "bog-rats",
+    "warden-1"
   ],
-  "warden": "warden-1",
   "boss": "bog-wraith",
   "region": "B"
 }

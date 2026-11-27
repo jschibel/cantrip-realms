@@ -1,6 +1,6 @@
-// The ground of a dungeon floor being carved, on squares: every tile starts solid, a theme's carver opens rooms and
-// ways between them, pools of water and lava, chasms and the void; then the run's contract (finish.ts) places what the
-// run holds on it, and the theme dresses it. Walking is eight-way, never cutting a corner past a tile one cannot stand
+// The ground of a dungeon floor being carved, on squares: every tile starts solid, a theme's carver opens its arena room
+// (generate.ts), pools of water and lava in it, the void round the portal's island; then the run's contract (finish.ts)
+// places what the run holds on it, and the theme dresses it. Walking is eight-way, never cutting a corner past a tile one cannot stand
 // on - as world/grid.ts walks - so everything here that asks "can one get there" asks it that way.
 
 import type { LightData, PropData } from "../world/format";
@@ -11,20 +11,11 @@ export const WALL = 0;
 export const FLOOR = 1;
 export const WATER = 2;
 export const LAVA = 3;
-/** Nothing at all: a chasm, the void round the portal's islands, the sky past the battlements. */
+/** Nothing at all: the void round the portal's island. */
 export const VOID = 4;
 export type Cell = typeof WALL | typeof FLOOR | typeof WATER | typeof LAVA | typeof VOID;
 
 export const CELL_CHARS = ["#", ".", "~", "=", " "] as const;
-
-/** A room the carver made: its middle tile and about how far it reaches. The first is the arrival's. */
-export interface Room {
-  readonly x: number;
-  readonly z: number;
-  readonly size: number;
-  /** What kind of room, for the theme's dressing (an ossuary, a library, a glade...). */
-  readonly kind?: string;
-}
 
 /** The eight steps, orthogonal first. */
 export const STEPS: readonly (readonly [number, number])[] = [
@@ -140,6 +131,11 @@ export class Plan {
   /** Opens the tiles from (x0, z0) to (x1, z1), both included. */
   rect(x0: number, z0: number, x1: number, z1: number, surface?: string): void {
     for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) this.carve(x, z, surface);
+  }
+
+  /** Opens what is not yet floor from (x0, z0) to (x1, z1), both included, keeping the floor's own surfaces. */
+  open(x0: number, z0: number, x1: number, z1: number): void {
+    for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) if (this.cell(x, z) !== FLOOR || !this.inside(x, z)) this.carve(x, z);
   }
 
   /** Opens a disc of tiles round (cx, cz). */

@@ -13,7 +13,7 @@
   "tier": 3,
   "encounters": [
     3,
-    4
+    3
   ],
   "mobs": [
     [
@@ -30,10 +30,10 @@
       "northern-paladin",
       "serra-angel",
       "serra-paragon",
-      "torsten-founder-of-benalia"
+      "torsten-founder-of-benalia",
+      "sanctum-warden"
     ]
   ],
-  "warden": "sanctum-warden",
   "boss": "lyra-dawnbringer",
   "region": "W",
   "standing": {

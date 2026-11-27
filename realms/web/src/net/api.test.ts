@@ -1,9 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, type Character, HttpApi, identityOf, travelerIn } from "./api";
+import { ApiError, type Character, HttpApi, type Run, identityOf, travelerIn } from "./api";
 import { DUNGEONS, VENDORS, WORLD, innOf } from "../world/realm";
 import { MockApi, travelersAt } from "./mockApi";
 import { buyout } from "../hearts";
 import { goldOf, zoneOf } from "../world/finds";
+
+/** Wins a run's round (all its challengers but one) and goes down through its gate. */
+async function winRound(api: MockApi, run: Run, floor: number): Promise<void> {
+  const round = run.Floors[floor]!.Encounters;
+  for (const e of round.slice(0, Math.max(1, round.length - 1))) {
+    const start = await api.startEncounter({ Run: run.Run, Floor: floor, Index: e.Index, Mob: e.Mob });
+    api.settle(start.Token, "won");
+    await api.finishEncounter({ Token: start.Token, Log: [] });
+  }
+  await api.dungeonFloor({ Run: run.Run, Floor: floor + 1 });
+}
 
 describe("HttpApi", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -206,14 +217,9 @@ describe("MockApi", () => {
     expect(floor).toBeGreaterThanOrEqual(0);
     // Off its floor, nothing; on it with the hearts full, it keeps.
     if (floor > 0) await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "NotThere" });
-    for (let f = 0; f < floor; f++) {
-      const warden = await api.startEncounter({ Run: run.Run, Floor: f, Index: run.Floors[f]!.Encounters.length, Mob: run.Floors[f]!.Warden! });
-      api.settle(warden.Token, "won");
-      await api.finishEncounter({ Token: warden.Token, Log: [] });
-      await api.dungeonFloor({ Run: run.Run, Floor: f + 1 });
-    }
+    for (let f = 0; f < floor; f++) await winRound(api, run, f);
     await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "FullHearts" });
-    const e = run.Floors[floor]!.Encounters[0] ?? { Index: run.Floors[floor]!.Encounters.length, Mob: run.Floors[floor]!.Warden ?? run.Floors[floor]!.Boss! };
+    const e = run.Floors[floor]!.Encounters[0] ?? { Index: run.Floors[floor]!.Encounters.length, Mob: run.Floors[floor]!.Boss! };
     const lost = await api.startEncounter({ Run: run.Run, Floor: floor, Index: e.Index, Mob: e.Mob });
     api.settle(lost.Token, "lost");
     await api.finishEncounter({ Token: lost.Token, Log: [] });
@@ -222,21 +228,29 @@ describe("MockApi", () => {
     await expect(api.prayAtShrine({ Run: run.Run })).rejects.toMatchObject({ code: "Empty" });
   });
 
-  it("runs a dungeon as the server does: its floors, the warden before each stair, the boss's index past it", async () => {
+  it("runs a dungeon as the server does: a tournament of rounds, each gate opened by all its challengers but one, the boss alone in its hall", async () => {
     const api = make();
-    const dungeon = [...DUNGEONS.values()].find((d) => !d.requires && d.floors[0] >= 2)!;
+    const dungeon = [...DUNGEONS.values()].find((d) => !d.requires && d.floors[0] >= 3)!;
     await expect(api.enterDungeon({ Dungeon: dungeon.id })).rejects.toMatchObject({ code: "NotNear" });
     await api.position({ Space: "world", X: dungeon.entrance[0], Z: dungeon.entrance[1] });
     const run = await api.enterDungeon({ Dungeon: dungeon.id });
     expect(run.Floors.length).toBeGreaterThanOrEqual(dungeon.floors[0]);
     expect((await api.me())!).toMatchObject({ Space: `run:${run.Run}`, X: 0, Z: 0 });
+    for (const round of run.Floors.slice(0, -1)) expect([round.Encounters.length, round.Boss]).toEqual([3, null]);
+    expect([run.Floors.at(-1)!.Encounters, run.Floors.at(-1)!.Boss]).toEqual([[], dungeon.boss]);
     const first = run.Floors[0]!;
-    expect(first.Warden).toBe(dungeon.warden);
-    expect(run.Floors.at(-1)!.Boss).toBe(dungeon.boss);
-    await expect(api.dungeonFloor({ Run: run.Run, Floor: 1 })).rejects.toMatchObject({ code: "WardenStands" });
-    const warden = await api.startEncounter({ Run: run.Run, Floor: 0, Index: first.Encounters.length, Mob: first.Warden! });
-    api.settle(warden.Token, "won");
-    await api.finishEncounter({ Token: warden.Token, Log: [] });
+    const win = async (index: number) => {
+      const e = await api.startEncounter({ Run: run.Run, Floor: 0, Index: index, Mob: first.Encounters[index]!.Mob });
+      api.settle(e.Token, "won");
+      return api.finishEncounter({ Token: e.Token, Log: [] });
+    };
+    await expect(api.dungeonFloor({ Run: run.Run, Floor: 1 })).rejects.toMatchObject({ code: "RoundOpen" });
+    await win(0);
+    // One of three: the gate stays shut.
+    await expect(api.dungeonFloor({ Run: run.Run, Floor: 1 })).rejects.toMatchObject({ code: "RoundOpen" });
+    await win(2);
+    // The third still fights, and pays.
+    expect((await win(1)).Outcome).toBe("won");
     await api.dungeonFloor({ Run: run.Run, Floor: 1 });
     await api.leaveDungeon({ Run: run.Run });
     const out = (await api.me())!;
@@ -245,14 +259,15 @@ describe("MockApi", () => {
   });
 
   it("attunes a mage tower when its mage is beaten, and travels between attuned waystones", async () => {
-    const towers = [...DUNGEONS.values()].filter((d) => d.waystone && d.floors[1] === 1);
+    const towers = [...DUNGEONS.values()].filter((d) => d.waystone && d.floors[1] === 2);
     const [tower, other] = [towers[0]!, [...DUNGEONS.values()].find((d) => d.waystone && d.id !== towers[0]!.id)!];
     const api = new MockApi(7, { name: "Tester", body: "lithe", palette: 0, color: "W" }, [other.id]);
     await api.position({ Space: "world", X: tower.entrance[0], Z: tower.entrance[1] });
     await expect(api.waystone({ Tower: other.id })).rejects.toMatchObject({ code: "NotAttuned" });
     const run = await api.enterDungeon({ Dungeon: tower.id });
-    const top = run.Floors[0]!;
-    const boss = await api.startEncounter({ Run: run.Run, Floor: 0, Index: top.Encounters.length + 1, Mob: tower.boss });
+    await winRound(api, run, 0);
+    const top = run.Floors[1]!;
+    const boss = await api.startEncounter({ Run: run.Run, Floor: 1, Index: top.Encounters.length, Mob: tower.boss });
     api.settle(boss.Token, "won");
     await api.finishEncounter({ Token: boss.Token, Log: [] });
     expect((await api.me())!.Attuned).toEqual(expect.arrayContaining([tower.id, other.id]));

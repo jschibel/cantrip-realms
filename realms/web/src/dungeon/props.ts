@@ -1,7 +1,8 @@
-// The dungeons' own props (art/props), each prefixed `dungeon-`: the stairs and the way out, and what dresses each
-// theme - stalagmites and crystals, glowing mushrooms and hanging roots, a keep's well, banners, statues and parapets,
-// a foundry's forges, anvils and crucibles, a time-rift, the Phyrexian pylons, altars and vats, and the shrine a run
-// now and then holds, with its heart. Things against a wall take its face's z and turn with `rot` (1 west, 2 north, 3
+// The dungeons' own props (art/props), each prefixed `dungeon-`: the way back out, a round's gate and its portcullis, the
+// way out of the boss's hall, the challengers' circles and standards, the boss's throne, and what dresses each theme -
+// stalagmites and crystals, glowing mushrooms and hanging roots, a keep's banners, columns and statues, a foundry's
+// forges, anvils and crucibles, a time-rift, the Phyrexian pylons, altars and vats, and the shrine a run now and then
+// holds, with its heart. Things against a wall take its face's z and turn with `rot` (1 west, 2 north, 3
 // east); the rest stand by their middle at x, z.
 
 import { MeshBuilder, fitted, sides, tiled } from "../art/paint/builder";
@@ -11,7 +12,7 @@ import type { Ramp } from "../art/paint/palette";
 import * as Pic from "../art/paint/pictures";
 import { Pixmap, hash2 } from "../art/paint/pixmap";
 import * as T from "../art/paint/textures";
-import { bool, drawn, num, point, str } from "../art/props/registry";
+import { bool, drawn, num, str } from "../art/props/registry";
 import type { Frames } from "../art/recipe";
 import type { PropData } from "../world/format";
 import * as P from "./paint";
@@ -65,47 +66,192 @@ function stoneRamp(stone: string): Ramp {
 }
 
 drawn(
-  "dungeon-stairs-up",
-  "the way up: a flight climbing north on the tile from x, z (its north-west corner) to an arch in the wall behind; args.stone the stone (crypt, keep, tower, cave, root, soot, plate)",
+  "dungeon-way-back",
+  "the way back out of a run: a flight climbing south on the tile from x, z (its north-west corner), a notch in the arena's south wall, posts either side with a cold lamp; args.stone the stone (crypt, keep, tower, cave, root, soot, plate)",
   (b, p) => {
     const stone = str(p, "stone", "crypt");
     const tread = treadOf(stone);
     const side = stoneOf(stone);
     const { x, z } = p;
     for (let i = 0; i < 4; i++) {
-      const z1 = z + 1 - i * 0.25;
-      b.box(x + 0.12, 0, z1 - 0.25, x + 0.88, (i + 1) * 0.1875, z1, { top: tread, south: side, east: side, west: side });
+      const z0 = z + i * 0.25;
+      b.box(x + 0.1, 0, z0, x + 0.9, (i + 1) * 0.1875, z0 + 0.25, { top: tread, north: side, east: side, west: side });
     }
-    // The arch: dark within, posts and a lintel of dressed stone.
-    b.card(fitted(material(`dungeon-arch-${stone}`, () => P.archway(stoneRamp(stone)), { cutout: true })), x, 0, x + 1, 1.5, z + 0.02);
-    b.box(x - 0.06, 0, z, x + 0.1, 1.6, z + 0.2, sides(side));
-    b.box(x + 0.9, 0, z, x + 1.06, 1.6, z + 0.2, sides(side));
-    b.box(x - 0.1, 1.6, z, x + 1.1, 1.78, z + 0.24, sides(side));
+    // The posts the flight climbs between, each with a lamp of cold light on top.
+    const lamp = fitted(glowFlat("dungeon-cold-lamp", 0xb8d4ff));
+    for (const [x0, x1] of [[x - 0.1, x + 0.12], [x + 0.88, x + 1.1]] as const) {
+      b.box(x0, 0, z + 0.1, x1, 1.05, z + 0.9, sides(side));
+      b.box(x0 + 0.04, 1.05, z + 0.42, x1 - 0.04, 1.2, z + 0.58, sides(lamp));
+    }
+  },
+);
+
+/** The bars of a gate's portcullis, 1.2 wide by `h` high from `y` up, in front of its opening at z. */
+function bars(b: MeshBuilder, x: number, z: number, y: number, h: number): void {
+  const iron = flat(C.IRON[1]!);
+  const lit = flat(C.IRON[3]!);
+  for (let k = 0; k < 7; k++) {
+    const bx = x - 0.04 + k * 0.18;
+    b.box(bx, y, z + 0.1, bx + 0.07, y + h, z + 0.17, { south: { mat: lit }, east: { mat: iron }, west: { mat: iron }, top: { mat: iron } });
+    // A spike at each bar's foot.
+    b.box(bx + 0.015, y - 0.12, z + 0.115, bx + 0.055, y, z + 0.155, sides({ mat: lit }));
+  }
+  for (const by of [0.55, 1.25, 1.95]) if (by < h) b.box(x - 0.08, y + by, z + 0.17, x + 1.08, y + by + 0.08, z + 0.22, { south: { mat: lit }, top: { mat: iron }, north: { mat: iron } });
+}
+
+/** The way down lit within a gate thrown open: a warm glow climbing the opening, fading toward its top. */
+function gateGlow(): Pixmap {
+  const p = new Pixmap(12, 26);
+  for (let y = 0; y < 26; y++) for (let x = 0; x < 12; x++) p.set(x, y, y > 18 ? 0xffd890 : y > 10 ? 0xd89a48 : y > 4 ? 0x7a4a20 : 0x2a1a10);
+  return p;
+}
+
+drawn(
+  "dungeon-gate",
+  "a round's gate down at the north of its arena, on the tile from x, z (its north-west corner): a sill under an arch in the wall behind, the dark of the way down within it, its posts on the tiles either side, a lamp on each; its portcullis is dungeon-portcullis; args.stone",
+  (b, p) => {
+    const stone = str(p, "stone", "crypt");
+    const tread = treadOf(stone);
+    const side = stoneOf(stone);
+    const { x, z } = p;
+    // The sill the gate stands on, worn by the feet of those who went down.
+    b.box(x - 0.1, 0, z, x + 1.1, 0.06, z + 0.9, sides(side, tread));
+    // The arch: dark within, its posts standing on the tiles either side, a lintel and a pediment over it.
+    b.card(fitted(material(`dungeon-gate-dark`, () => new Pixmap(4, 4, 0x07060c))), x - 0.1, -1.4, x + 1.1, 2.3, z + 0.04);
+    for (const [x0, x1] of [[x - 0.9, x - 0.1], [x + 1.1, x + 1.9]] as const) {
+      b.box(x0, 0, z, x1, 0.4, z + 0.8, sides(side, tread));
+      b.box(x0 + 0.08, 0.4, z, x1 - 0.08, 2.3, z + 0.7, sides(side));
+    }
+    b.box(x - 0.95, 2.3, z, x + 1.95, 2.7, z + 0.6, sides(side, tread));
+    b.box(x - 0.5, 2.7, z, x + 1.5, 2.95, z + 0.45, sides(side, tread));
+    const flame = fitted(glowFlat("dungeon-gate-lamp", 0xffc860));
+    for (const lx of [x - 0.5, x + 1.5]) b.box(lx - 0.12, 2.0, z + 0.7, lx + 0.12, 2.25, z + 0.9, sides(flame));
   },
 );
 
 drawn(
-  "dungeon-stairs-down",
-  "the stairs down: a flight going down north into the tile from x, z (its north-west corner), a hole in the floor; args.stone",
+  "dungeon-portcullis",
+  "a gate's portcullis over its opening on the tile from x, z: iron bars let down while the round is open; args.open drawn up into the lintel, the way down lit beyond (the page draws it, as the round stands)",
   (b, p) => {
-    const stone = str(p, "stone", "crypt");
-    const tread = treadOf(stone);
-    const side = stoneOf(stone);
     const { x, z } = p;
-    for (let i = 0; i < 4; i++) {
-      const z1 = z + 1 - i * 0.25;
-      const y = -(i + 1) * 0.25;
-      b.box(x + 0.06, y - 0.12, z1 - 0.25, x + 0.94, y, z1, { top: tread, south: side });
+    if (!bool(p, "open", false)) {
+      bars(b, x, z, 0, 2.3);
+      return;
     }
-    // The pit's walls and its dark bottom.
-    b.box(x, -1.4, z, x + 0.06, 0, z + 1, { east: side });
-    b.box(x + 0.94, -1.4, z, x + 1, 0, z + 1, { west: side });
-    b.box(x, -1.4, z, x + 1, 0, z + 0.04, { south: side });
-    b.box(x, -1.4, z, x + 1, -1.4, z + 1, { top: fitted(material("dungeon-dark", () => P.black(), { flat: true })) });
-    // A kerb round the mouth, open to the south.
-    for (const [x0, x1, z0, z1] of [[x - 0.06, x + 0.06, z, z + 1], [x + 0.94, x + 1.06, z, z + 1], [x - 0.06, x + 1.06, z - 0.06, z + 0.06]] as const) b.box(x0, 0, z0, x1, 0.12, z1, sides(side));
+    b.card(fitted(material("dungeon-gate-glow", () => gateGlow(), { glowing: true })), x - 0.08, 0, x + 1.08, 2.28, z + 0.06);
+    bars(b, x, z, 2.0, 0.3);
   },
 );
+
+/** A challenger's circle: a ring inlaid in the floor in a ramp's colours, marks round it, 32 by 32, cut out. */
+function ringPicture(r: Ramp): Pixmap {
+  const p = new Pixmap(32, 32);
+  p.fill(0, 0);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const d = Math.hypot(x - 15.5, y - 15.5);
+      const a = Math.atan2(y - 15.5, x - 15.5);
+      const mark = Math.abs(((a / (Math.PI / 4)) % 1 + 1) % 1 - 0.5) < 0.09;
+      if (d > 13.4 && d < 15.6) p.set(x, y, d < 14.2 ? r[6]! : r[4]!);
+      else if (d > 10.6 && d < 11.6) p.set(x, y, r[3]!);
+      else if (d >= 11.6 && d <= 13.4 && mark) p.set(x, y, r[5]!);
+    }
+  }
+  return p;
+}
+
+const HUES: Record<string, Ramp> = {
+  gold: C.GOLD,
+  red: [0x2a0808, 0x4e0e0e, 0x7a1810, 0xb02a18, 0xe0482a, 0xf88a5a, 0xffc8a0],
+  violet: RAMPS.violet!,
+  green: [0x08201a, 0x10382a, 0x1a5a3c, 0x2a8a52, 0x48c070, 0x8ae8a0, 0xd0ffd8],
+  fire: P.LAVA_RAMP,
+  blue: P.CRYSTAL,
+  ichor: P.ICHOR,
+};
+const hueOf = (p: PropData): Ramp => HUES[str(p, "hue", "gold")] ?? C.GOLD;
+
+drawn("dungeon-ring", "a challenger's circle inlaid in the floor round x, z, args.r across (1.25), glowing in args.hue (gold, red, violet, green, fire, blue, ichor)", (b, p) => {
+  const r = num(p, "r", 1.25);
+  const hue = str(p, "hue", "gold");
+  b.decal(fitted(material(`dungeon-ring-${hue}`, () => ringPicture(hueOf(p)), { glow: 0.7, cutout: true })), p.x - r, p.z - r, p.x + r, p.z + r, 0.007);
+});
+
+/** A challenger's banner in a ramp's colours: a field, a border and a lozenge, 10 by 22, its foot swallow-tailed. */
+function standardPicture(r: Ramp): Pixmap {
+  const p = new Pixmap(10, 22);
+  p.fill(0, 0);
+  for (let y = 0; y < 22; y++) {
+    for (let x = 0; x < 10; x++) {
+      if (y > 17 && Math.abs(x - 4.5) < y - 17.5) continue;
+      const edge = x === 0 || x === 9 || y === 0;
+      const lozenge = Math.abs(x - 4.5) + Math.abs(y - 9) * 0.7 < 3;
+      p.set(x, y, edge ? r[5]! : lozenge ? r[6]! : (y + x) % 7 === 0 ? r[2]! : r[3]!);
+    }
+  }
+  return p;
+}
+
+drawn("dungeon-standard", "a challenger's standard at x, z: a pole and its crossbar, a banner in args.hue hanging from it, facing south", (b, p) => {
+  const pole = tiled(stock.darkTimber());
+  const gilt = flat(C.GOLD[3]!);
+  const m = material(`dungeon-standard-${str(p, "hue", "gold")}`, () => standardPicture(hueOf(p)), { cutout: true, twoSided: true });
+  const { x, z } = p;
+  b.box(x - 0.2, 0, z - 0.2, x + 0.2, 0.12, z + 0.2, sides(pole));
+  b.box(x - 0.05, 0.12, z - 0.05, x + 0.05, 2.55, z + 0.05, sides(pole));
+  b.box(x - 0.42, 2.3, z - 0.03, x + 0.42, 2.37, z + 0.06, sides(pole));
+  b.box(x - 0.07, 2.55, z - 0.07, x + 0.07, 2.69, z + 0.07, sides({ mat: gilt }));
+  b.card(fitted(m), x - 0.36, 1.05, x + 0.36, 2.3, z + 0.08);
+});
+
+drawn("dungeon-column", "a column of dressed args.stone (keep) with a base and a capital, its middle at x, z, args.h high (2.8)", (b, p) => {
+  const stone = str(p, "stone", "keep");
+  const side = stoneOf(stone);
+  const shaft = tiled(stock.limestone(stoneRamp(stone)));
+  const tread = treadOf(stone);
+  const h = num(p, "h", 2.8);
+  b.box(p.x - 0.4, 0, p.z - 0.4, p.x + 0.4, 0.2, p.z + 0.4, sides(side, tread));
+  b.box(p.x - 0.32, 0.2, p.z - 0.32, p.x + 0.32, 0.36, p.z + 0.32, sides(shaft, tread));
+  b.cylinder(p.x, p.z, 0.36, h - 0.36, 0.24, 10, shaft);
+  b.box(p.x - 0.32, h - 0.36, p.z - 0.32, p.x + 0.32, h - 0.2, p.z + 0.32, sides(shaft, tread));
+  b.box(p.x - 0.4, h - 0.2, p.z - 0.4, p.x + 0.4, h, p.z + 0.4, sides(side, tread));
+});
+
+/** A runner's weave in a ramp's colours, 48 by 16 (three tiles across, one along): a field of lozenges between gilt borders. */
+function runnerPicture(r: Ramp): Pixmap {
+  const p = new Pixmap(48, 16);
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 48; x++) {
+      const edge = Math.min(x, 47 - x);
+      const lozenge = Math.abs(x - 23.5) / 2.2 + Math.abs(y - 7.5) < 6;
+      p.set(x, y, edge < 2 ? C.GOLD[3]! : edge < 3 ? r[1]! : edge < 5 ? r[2]! : lozenge ? ((x + y) % 4 < 2 ? r[4]! : r[3]!) : (x * 3 + y) % 11 === 0 ? r[1]! : r[2]!);
+    }
+  }
+  return p;
+}
+
+drawn("dungeon-runner", "a runner of carpet three tiles wide down the arena from x, z (its north-west corner) to x + 3, args.to (a z further south), woven in args.hue", (b, p) => {
+  const to = num(p, "to", p.z + 1);
+  const hue = str(p, "hue", "gold");
+  const face = fitted(material(`dungeon-runner-${hue}`, () => runnerPicture(hueOf(p))));
+  for (let z = p.z; z < to - 1e-6; z += 1) b.decal(face, p.x, z, p.x + 3, Math.min(to, z + 1), 0.004);
+});
+
+drawn("dungeon-throne", "the boss's throne against the wall at the head of its hall (its face at z), its middle at x: a high back, a seat on a step, args.hue its cushions and crest; args.stone", (b, p) => {
+  const side = stoneOf(str(p, "stone", "keep"));
+  const tread = treadOf(str(p, "stone", "keep"));
+  const r = hueOf(p);
+  const cloth = flat(r[3]!);
+  const crest = fitted(glowFlat(`dungeon-throne-crest-${str(p, "hue", "gold")}`, r[5]!));
+  const { x, z } = p;
+  b.box(x - 0.9, 0, z, x + 0.9, 0.2, z + 0.95, sides(side, tread));
+  b.box(x - 0.6, 0.2, z + 0.1, x + 0.6, 0.65, z + 0.8, sides(side, tread));
+  b.box(x - 0.5, 0.65, z + 0.25, x + 0.5, 0.72, z + 0.78, sides({ mat: cloth }));
+  b.box(x - 0.6, 0.2, z, x + 0.6, 2.4, z + 0.22, sides(side, tread));
+  b.box(x - 0.42, 0.75, z + 0.22, x + 0.42, 2.1, z + 0.25, sides({ mat: cloth }));
+  for (const dx of [-0.66, 0.5]) b.box(x + dx, 0.2, z + 0.1, x + dx + 0.16, 1.0, z + 0.8, sides(side, tread));
+  b.box(x - 0.2, 2.4, z, x + 0.2, 2.8, z + 0.2, sides(crest));
+});
 
 drawn("dungeon-way-out", "the way out past the boss: steps up into a doorway of daylight on the tile from x, z (its north-west corner)", (b, p) => {
   const { x, z } = p;
@@ -248,31 +394,6 @@ drawn("dungeon-statue", "a knight's statue on a plinth at x, z, facing its rot",
     b.box(0.3, 1.0, -0.12, 0.42, 1.55, 0.16, sides(dark));
   });
 });
-
-drawn("dungeon-well", "a stone well at x, z (two tiles across) under a little roof", (b, p) => {
-  const stone = tiled(stock.limestone(P.KEEP));
-  const { x, z } = p;
-  b.cylinder(x, z, 0, 0.7, 0.75, 10, stone, tiled(material("dungeon-water", () => P.darkWater(49), { flat: true })));
-  b.ring(x, z, 0.7, 0.55, 0.75, 10, stock.limestone(P.KEEP));
-  for (const dx of [-0.7, 0.62]) b.box(x + dx, 0.7, z - 0.05, x + dx + 0.08, 1.9, z + 0.05, sides(tiled(stock.timber())));
-  b.box(x - 0.75, 1.85, z - 0.05, x + 0.75, 1.92, z + 0.05, sides(tiled(stock.darkTimber())));
-  b.gableRoof(x - 0.85, z - 0.55, x + 0.85, z + 0.55, 1.95, 0.45, stock.roof(), tiled(stock.darkTimber()));
-  b.box(x - 0.12, 1.2, z - 0.12, x + 0.12, 1.45, z + 0.12, sides(tiled(stock.timber())));
-});
-
-drawn("dungeon-parapet", "a crenellated parapet along a battlement's edge, from x, z to args.to (its line along x or z)", (b, p) => {
-  const [x1, z1] = point(p, "to");
-  const stone = tiled(stock.limestone(P.KEEP));
-  const top = tiled(material("dungeon-keep-top", () => T.flagstones([P.KEEP[0]!, ...P.KEEP.slice(0, 6)], 59)));
-  const alongX = Math.abs(x1 - p.x) >= Math.abs(z1 - p.z);
-  const len = alongX ? x1 - p.x : z1 - p.z;
-  if (alongX) b.box(p.x, 0, p.z - 0.2, x1, 0.75, p.z + 0.2, sides(stone, top));
-  else b.box(p.x - 0.2, 0, p.z, p.x + 0.2, 0.75, z1, sides(stone, top));
-  for (let s = 0; s + 0.5 <= len + 1e-6; s += 1) {
-    if (alongX) b.box(p.x + s + 0.05, 0.75, p.z - 0.2, p.x + s + 0.5, 1.2, p.z + 0.2, sides(stone, top));
-    else b.box(p.x - 0.2, 0.75, p.z + s + 0.05, p.x + 0.2, 1.2, p.z + s + 0.5, sides(stone, top));
-  }
-}, {}, (p) => (Array.isArray(p.args?.to) ? [] : [`prop ${p.id} at ${p.x},${p.z}: args.to should be a point`]));
 
 // --- The foundry ---------------------------------------------------------------------------------------------------------
 

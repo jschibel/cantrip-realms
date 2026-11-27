@@ -14,7 +14,7 @@
   "tier": 4,
   "encounters": [
     3,
-    4
+    3
   ],
   "mobs": [
     [
@@ -26,9 +26,9 @@
       "phyrexian-ravager",
       "gitaxian-mindcutter",
       "phyrexian-negator",
-      "phyrexian-gorger"
+      "phyrexian-gorger",
+      "portal-warden"
     ]
   ],
-  "warden": "portal-warden",
   "boss": "phyrexian-praetor"
 }

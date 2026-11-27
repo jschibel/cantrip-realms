@@ -1,7 +1,8 @@
 import type { Page } from "@playwright/test";
-import { type Entity, type Tile, advance, clickEntity, entities, entity, realm, until, walkTo, winDuel } from "./realm";
+import { type Entity, type Tile, advance, clickControl, clickEntity, entities, entity, realm, until, walkTo, winDuel } from "./realm";
 
-// Dungeon runs, as the suites play them: walking a floor, beating a floor's mob with the stand-in duel, going in.
+// Dungeon runs, as the suites play them (design.md A6: a dungeon is a tournament): the entrance's board, walking an arena,
+// beating its challengers with the stand-in duel until its gate opens, the gate's panel and the way down.
 
 interface RunState {
   readonly id: string;
@@ -14,22 +15,28 @@ interface RunState {
   readonly shrine: Tile | null;
   readonly shrineFloor: number | null;
   readonly shrineUsed: boolean;
+  /** The round as it stands: its challengers beaten, of how many, how many open its gate, and whether it stands open. */
+  readonly round: { readonly beaten: number; readonly of: number; readonly need: number; readonly open: boolean } | null;
 }
 
 export const run = (page: Page) => realm<RunState | null>(page, "run");
 
+/** The tiles a click on would use a way of the floor: each way, and the doorway past it (south of the way back, north of the rest). */
+async function stopsOf(page: Page): Promise<Set<string>> {
+  const r = await run(page);
+  const ways: [Tile | null | undefined, number][] = [[r?.up, 1], [r?.down, -1], [r?.wayOut, -1]];
+  return new Set(ways.filter((w): w is [Tile, number] => !!w[0]).flatMap(([t, dz]) => [`${t.x},${t.z}`, `${t.x},${t.z + dz}`]));
+}
+
 /** Walks a floor toward a tile, never clicking its ways (a click on one, or its doorway, is using it). */
 export async function walkInside(page: Page, goal: Tile, near = 1): Promise<void> {
-  const r = await run(page);
-  // Each way, and the doorway past it (a step north: a click there goes through too).
-  const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).flatMap((t) => [`${t.x},${t.z}`, `${t.x},${t.z - 1}`]));
+  const stops = await stopsOf(page);
   await walkTo(page, goal, near, (t) => stops.has(`${t.x},${t.z}`));
 }
 
 /**
  * Engages a floor's mob of a role and leaves its duel open, unanswered, for the test to play as it means to (lose it,
- * say): toward it a few steps at a time, then a click on it - whichever comes first, its own coming for the player or the
- * click, the duel that opens is left as it is, never won on the way (walkInside wins any duel it meets). The duel's mob.
+ * say): toward it a few steps at a time, then a click on it. The duel's mob.
  */
 export async function engageInside(page: Page, role: string): Promise<{ id: string; spawn: string }> {
   const open = () => realm<string | null>(page, "layer.open");
@@ -42,8 +49,7 @@ export async function engageInside(page: Page, role: string): Promise<{ id: stri
       await until(page, async () => (await open()) !== null, "the duel", 20);
       break;
     }
-    const r = await run(page);
-    const stops = new Set([r?.up, r?.down, r?.wayOut].filter((t): t is Tile => !!t).flatMap((t) => [`${t.x},${t.z}`, `${t.x},${t.z - 1}`]));
+    const stops = await stopsOf(page);
     const path = ((await page.evaluate(([x, z]) => (globalThis as any).realmTest.pathTo(x, z), [mob.tile.x, mob.tile.z] as const)) ?? []) as Tile[];
     let k = Math.min(6, Math.max(1, path.length - 3));
     while (k > 1 && stops.has(`${path[k]?.x},${path[k]?.z}`)) k--;
@@ -58,22 +64,54 @@ export async function engageInside(page: Page, role: string): Promise<{ id: stri
   return duel.args.mob;
 }
 
-/** Beats a floor's mob of a role (walking near it first; another that comes for you is beaten on the way). */
-export async function beat(page: Page, role: string): Promise<void> {
-  for (let tries = 0; tries < 6 && (await entities(page)).some((e) => e.kind === "mob" && e.role === role); tries++) {
-    const mob = await entity(page, (e) => e.kind === "mob" && e.role === role, `the ${role}`);
+/** Beats one of the floor's mobs of a role: walked up to, clicked, its duel won with the stand-in. False with none left. */
+export async function beatOne(page: Page, role: string): Promise<boolean> {
+  for (let tries = 0; tries < 4; tries++) {
+    const all = (await entities(page)).filter((e) => e.kind === "mob" && e.role === role);
+    if (all.length === 0) return false;
+    const mob = all[0]!;
     await walkInside(page, mob.tile, 2);
     if ((await realm<string | null>(page, "layer.open")) === null) {
-      // The same mob walked to (another of the role may stand far off), if it still stands; else the next.
       const same = (e: Entity) => e.kind === "mob" && e.role === role && e.spawn === mob.spawn;
       if (!(await entities(page)).some(same)) continue;
       await clickEntity(page, same, `the ${role}`);
     }
     await winDuel(page);
+    return true;
   }
+  return false;
 }
 
-/** Clicks the floor's shrine until its dialog opens: a duel a mob of the floor starts meanwhile is won first. */
+/** Beats every one of the floor's mobs of a role (the boss, say). */
+export async function beat(page: Page, role: string): Promise<void> {
+  for (let tries = 0; tries < 8 && (await beatOne(page, role)); tries++);
+}
+
+/** Wins the round shown: its challengers beaten one by one until its gate opens. */
+export async function winRound(page: Page): Promise<void> {
+  for (let tries = 0; tries < 8 && !(await run(page))?.round?.open; tries++) await beatOne(page, "encounter");
+  await until(page, async () => (await run(page))?.round?.open === true, "the round won, its gate open", 30);
+}
+
+/** Walks to the round's gate and clicks it: its panel opens (the round won), or the page says it is shut. */
+export async function toGate(page: Page): Promise<void> {
+  const r = (await run(page))!;
+  await walkInside(page, { x: r.down!.x, z: r.down!.z + 1 }, 1);
+  await clickEntity(page, (e) => e.kind === "down", "the gate");
+}
+
+/** Wins the round shown and goes down through its gate, as its panel offers. */
+export async function descend(page: Page): Promise<void> {
+  const r = (await run(page))!;
+  await winRound(page);
+  await toGate(page);
+  await until(page, async () => (await realm<string>(page, "screen")) === "gate", "the gate's panel", 30);
+  await clickControl(page, "gate:descend");
+  await until(page, async () => (await run(page))?.floor === r.floor + 1, "down through the gate", 60);
+  await until(page, async () => !(await realm<boolean>(page, "transitioning")), "the iris open again", 30);
+}
+
+/** Clicks the floor's shrine until its dialog opens. */
 export async function toShrine(page: Page): Promise<void> {
   const open = () => realm<string | null>(page, "layer.open");
   for (let tries = 0; ; tries++) {
@@ -84,7 +122,14 @@ export async function toShrine(page: Page): Promise<void> {
   }
 }
 
-/** Clicks the way into a dungeon (an entrance of the world). */
-export async function enter(page: Page, id: string): Promise<void> {
+/** Clicks the way into a dungeon (an entrance of the world): its tournament's board opens, unless it is sealed. */
+export async function toBoard(page: Page, id: string): Promise<void> {
   await clickEntity(page, (e) => e.kind === "entrance" && e.to === `dungeon:${id}`, `the way into ${id}`);
+}
+
+/** Goes into a dungeon: its way clicked, and Enter on its board. */
+export async function enter(page: Page, id: string): Promise<void> {
+  await toBoard(page, id);
+  await until(page, async () => (await realm<string>(page, "screen")) === "board", "the tournament's board", 30);
+  await clickControl(page, "board:enter");
 }

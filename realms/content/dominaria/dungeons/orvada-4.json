@@ -7,20 +7,20 @@
     115
   ],
   "floors": [
-    1,
+    2,
     2
   ],
   "tier": 4,
   "encounters": [
-    2,
+    3,
     3
   ],
   "mobs": [
     "mahamoti-djinn",
     "sibilant-spirit",
-    "tempest-djinn"
+    "tempest-djinn",
+    "warden-4"
   ],
-  "warden": "warden-4",
   "boss": "mage-orvada-4",
   "region": "U",
   "waystone": true

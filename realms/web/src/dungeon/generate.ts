@@ -1,9 +1,11 @@
-// A run's floor, generated in the browser from the run's seed (interfaces.md, "Dungeons"): the theme's carver opens
-// the floor, the run's contract is placed on it (finish.ts), and the theme dresses it. The same request gives the same
-// floor, on every machine.
+// A run's floor, generated in the browser from the run's seed (interfaces.md, "Dungeons"): one arena room in the theme's
+// look - a round of the tournament, or the boss's hall on the last floor - its size by the dice, carved by the theme,
+// the run's contract placed on it (finish.ts), and dressed by the theme. The same request gives the same floor, on every
+// machine.
 
+import { fnv1a32, mulberry32 } from "../random";
 import type { Theme } from "../world/format";
-import { type ThemeDef, finish } from "./finish";
+import { type Arena, type ThemeDef, finish } from "./finish";
 import { Plan, VOID } from "./plan";
 import { CASTLE } from "./themes/castle";
 import { CAVES } from "./themes/caves";
@@ -26,11 +28,14 @@ export const THEME_DEFS: Record<Theme, ThemeDef> = {
 
 export function generateDungeonFloor(request: FloorRequest): DungeonFloor {
   const theme = THEME_DEFS[request.theme];
-  const [w, d] = theme.size(request);
-  const plan = new Plan(w, d, `${request.theme}:${request.seed}:${request.floor}`, theme.floor);
-  // The portal's islands hang in the void; everything else is dug out of rock.
+  const key = `${request.theme}:${request.seed}:${request.floor}`;
+  const hall = request.floor === request.floors - 1;
+  const [iw, id] = theme.size(hall, mulberry32(fnv1a32(`${key}:size`)));
+  // The arena's floor inside a ring of wall, a row more at the south: the notch the way back climbs out through.
+  const plan = new Plan(iw + 2, id + 3, key, theme.floor);
+  // The portal's island hangs in the void; everything else is dug out of rock.
   if (request.theme === "portal") plan.cells.fill(VOID);
-  const rooms = theme.carve(plan, request);
-  if (rooms.length === 0) throw new Error(`${request.theme}: no rooms`);
-  return finish(plan, rooms, request, theme);
+  const arena: Arena = { x0: 1, z0: 1, x1: iw, z1: id, cx: 1 + Math.floor((iw - 1) / 2), hall };
+  theme.carve(plan, arena, request);
+  return finish(plan, arena, request, theme);
 }

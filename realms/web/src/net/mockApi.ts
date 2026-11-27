@@ -430,12 +430,12 @@ export class MockApi implements RealmApi {
       if (live.floor !== body.Floor) throw new ApiError(409, "NotThere", "You are not on that floor.");
       const floor = live.run.Floors[body.Floor]!;
       const n = floor.Encounters.length;
-      const mob = body.Index === n ? floor.Warden : body.Index === n + 1 ? floor.Boss : floor.Encounters.find((e) => e.Index === body.Index)?.Mob;
+      const mob = body.Index === n ? floor.Boss : floor.Encounters.find((e) => e.Index === body.Index)?.Mob;
       if (!mob || mob !== body.Mob) throw new ApiError(409, "NotThere", "No such encounter on this floor.");
       if (live.fought.has(`${body.Floor}:${body.Index}`)) throw new ApiError(409, "TooSoon", "Already beaten in this run.");
       run = { id: body.Run, floor: body.Floor, index: body.Index };
       // A boss gains what its run's standing gives it (design.md A6).
-      if (body.Index === n + 1) gains = floor.BossStats ?? null;
+      if (body.Index === n) gains = floor.BossStats ?? null;
     }
     const mob = mobInfo(body.Mob);
     const token = `duel-${this.nextToken++}`;
@@ -510,7 +510,7 @@ export class MockApi implements RealmApi {
         live.fought.add(`${encounter.run.floor}:${encounter.run.index}`);
         // Beating a mage tower's boss attunes its waystone (design.md A6).
         const dungeon = DUNGEONS.get(live.dungeon);
-        if (encounter.run.index === live.run.Floors[encounter.run.floor]!.Encounters.length + 1 && dungeon?.waystone && !this.attuned.includes(dungeon.id)) {
+        if (encounter.run.floor === live.run.Floors.length - 1 && encounter.run.index === live.run.Floors[encounter.run.floor]!.Encounters.length && dungeon?.waystone && !this.attuned.includes(dungeon.id)) {
           this.attuned.push(dungeon.id);
           this.update({ Attuned: [...this.attuned] });
         }
@@ -700,12 +700,13 @@ export class MockApi implements RealmApi {
     // A color's dungeon is dealt by where its color stands to the character's (design.md A6), as the server deals it.
     const standing = dealtBy(dungeon, c);
     const gains = standing?.bossStats;
+    // A tournament (design.md A6): every floor but the last a round of challengers, the last the boss's hall.
     const floors: RunFloor[] = Array.from({ length: count }, (_, f) => {
+      const hall = f === count - 1;
       const list = tableOf(dungeon, f, standing, (m) => mobInfo(m).tier);
       return {
-        Encounters: Array.from({ length: between(dungeon.encounters[0], dungeon.encounters[1]) }, (_, i) => ({ Index: i, Mob: list[Math.floor(this.random() * list.length)]! })),
-        Warden: f < count - 1 ? dungeon.warden : null,
-        Boss: f === count - 1 ? dungeon.boss : null,
+        Encounters: hall || list.length === 0 ? [] : Array.from({ length: between(dungeon.encounters[0], dungeon.encounters[1]) }, (_, i) => ({ Index: i, Mob: list[Math.floor(this.random() * list.length)]! })),
+        Boss: hall ? dungeon.boss : null,
         Tier: standing?.tier ?? null,
         BossStats: f === count - 1 && gains ? { Life: gains.life, Hand: gains.hand, MaxHand: gains.maxHand } : null,
       };
@@ -756,7 +757,11 @@ export class MockApi implements RealmApi {
     const live = this.runs.get(body.Run);
     if (!live?.live) throw new ApiError(404, "NotThere", "No such run.");
     if (body.Floor !== live.floor + 1 || body.Floor >= live.run.Floors.length) throw new ApiError(409, "NotThere", "There is no stair there.");
-    if (live.run.Floors[live.floor]!.Warden && !live.fought.has(`${live.floor}:${live.run.Floors[live.floor]!.Encounters.length}`)) throw new ApiError(409, "WardenStands", "The warden of the floor bars the stair.");
+    // The gate opens once the round is won: all its challengers beaten but one, at least one (design.md A6).
+    const round = live.run.Floors[live.floor]!.Encounters;
+    const need = round.length === 0 ? 0 : Math.max(1, round.length - 1);
+    const beaten = round.filter((e) => live.fought.has(`${live.floor}:${e.Index}`)).length;
+    if (beaten < need) throw new ApiError(409, "RoundOpen", `Beat ${need} of the ${round.length} challengers to open the gate.`);
     live.floor = body.Floor;
   }
 

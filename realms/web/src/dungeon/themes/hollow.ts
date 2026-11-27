@@ -1,79 +1,53 @@
-// Root hollow (forests: Llanowar, the Durkwood, Verdura): tunnels worn through living roots, wandering, opening into
-// glades under the canopy where light falls through onto grass and a spring; roots hang down the walls, mushrooms glow
-// in the tunnels' dark.
+// Root hollow (forests: Llanowar, the Durkwood, Verdura): each round a glade under the canopy, opened among living roots -
+// grass at its heart where the light falls through, moss and leaf-litter round it, trees and bushes at its edge, roots
+// hanging down its back, mushrooms glowing in its corners, a spring at one side; the boss's hall a wider glade.
 
 import type { ThemeDef } from "../finish";
-import { type Plan, type Room, WATER } from "../plan";
-import { alongWalls, flood, glowLight, onBackWalls, roomAt, spread, strew } from "./common";
+import { FLOOR, WATER } from "../plan";
+import { alongWalls, flood, glowLight, onBackWalls, round, strew } from "./common";
 
 export const HOLLOW: ThemeDef = {
   floor: "dungeon-moss",
   stone: "root",
-  size: () => [44, 36],
-  carve(plan: Plan): Room[] {
-    const { w, d } = plan;
-    const glades: Room[] = spread(plan, 6, 11, 6, 6, w - 7, d - 7).map(([x, z]) => ({ x, z, size: 3, kind: "glade" }));
-    // Wandering tunnels between the glades, two tiles wide; then the glades opened round them.
-    for (let i = 1; i < glades.length; i++) plan.corridor(glades[i - 1]!.x, glades[i - 1]!.z, glades[i]!.x, glades[i]!.z, 2, "dungeon-moss", 0.35);
-    // Side roots: dead ends worn by something.
-    for (let k = 0; k < 6; k++) {
-      const g = glades[plan.int(0, glades.length - 1)]!;
-      let x = g.x;
-      let z = g.z;
-      for (let s = 0; s < 9; s++) {
-        const [dx, dz] = [[1, 0], [-1, 0], [0, 1], [0, -1]][plan.int(0, 3)]!;
-        x = Math.max(2, Math.min(w - 3, x + dx! * 2));
-        z = Math.max(2, Math.min(d - 3, z + dz! * 2));
-        plan.rect(x, z, x + 1, z + 1, "dungeon-moss");
-      }
+  hue: "green",
+  size: (big, random) => (big ? [28, 13] : [25 + Math.floor(random() * 3), 13]),
+  carve(plan, arena) {
+    round(plan, arena, 0.1, 0.3, "dungeon-moss");
+    const mx = (arena.x0 + arena.x1) / 2;
+    const mz = (arena.z0 + arena.z1) / 2;
+    for (let z = arena.z0; z <= arena.z1; z++) {
+      for (let x = arena.x0; x <= arena.x1; x++) if (plan.cell(x, z) === FLOOR && Math.hypot((x - mx) / 1.7, z - mz) < 4.6) plan.surface[plan.index(x, z)] = "grass";
     }
-    for (const g of glades) {
-      plan.disc(g.x, g.z, 3.6, "dungeon-moss");
-      plan.disc(g.x, g.z, 2.4, "grass");
-    }
-    // A spring in one glade.
-    const spring = glades[Math.floor(glades.length / 2)]!;
-    for (const [dx, dz] of [[2, 1], [3, 1], [2, 2], [3, 2], [3, 0]] as const) flood(plan, spring.x + dx, spring.z + dz, WATER, "dungeon-water");
-    return glades;
+    // A spring at one side of the glade.
+    const east = plan.random() < 0.5;
+    const sx = east ? arena.x1 - 3 : arena.x0 + 3;
+    const sz = arena.z1 - 3;
+    for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1], [-1, 0], [0, -1]] as const) if (plan.cell(sx + dx, sz + dz) === FLOOR) flood(plan, sx + dx, sz + dz, WATER, "dungeon-water");
   },
   dress(ctx) {
-    const { plan, rooms } = ctx;
-    for (const g of rooms) {
-      // A tree at the glade's heart (off its middle, where the way runs), the canopy's light falling on it.
-      for (const [dx, dz] of [[-2, -1], [2, -2], [-1, 2]] as const) {
-        const x = g.x + dx;
-        const z = g.z + dz;
-        if (ctx.free(x, z)) {
-          plan.block(x, z, { id: "tree", x: x + 0.5, z: z + 0.5, scale: 0.85, seed: (x * 3 + z) % 6 });
-          break;
-        }
+    const { plan, arena, last } = ctx;
+    const { x0, x1, z0, z1 } = arena;
+    const mx = Math.round((x0 + x1) / 2);
+    const mz = Math.round((z0 + z1) / 2);
+    // The canopy's light falling on the glade's heart.
+    plan.put({ id: "dungeon-sunpool", x: mx + 0.5, z: mz + 0.5, args: { r: 2.2 } });
+    plan.light({ kind: "point", at: [mx + 0.5, 6, mz + 0.5], color: [0.85, 1, 0.6], intensity: 14, reach: 12, decay: 1.1 }, 75);
+    // Trees and bushes at the glade's edge, where they shut nobody out.
+    alongWalls(ctx, 0.32, (x, z) => {
+      const r = plan.random();
+      if (r < 0.4) return { id: "tree", x: x + 0.5, z: z + 0.5, scale: 0.8, seed: (x * 3 + z) % 6 };
+      if (r < 0.7) return { id: "bush", x: x + 0.5, z: z + 0.5, args: { flowering: (x + z) % 2 === 0 } };
+      if (r < 0.88) {
+        const hue = (x + z) % 3 === 0 ? "blue" : "green";
+        plan.light(glowLight([x + 0.5, 0.6, z + 0.5], hue === "blue" ? [0.4, 0.7, 1] : [0.45, 1, 0.55], 2.6, 3.5), 18);
+        return { id: "dungeon-mushrooms", x: x + 0.5, z: z + 0.5, seed: x * 3 + z, args: { hue } };
       }
-      plan.put({ id: "dungeon-sunpool", x: g.x + 0.5, z: g.z + 0.5, args: { r: 2.2 } });
-      plan.light({ kind: "point", at: [g.x + 0.5, 5, g.z + 0.5], color: [0.85, 1, 0.6], intensity: 11, reach: 9, decay: 1.2 }, 50);
-      for (const [dx, dz] of [[2, -1], [-2, 1], [1, 2]] as const) {
-        const x = g.x + dx;
-        const z = g.z + dz;
-        if (ctx.free(x, z) && plan.random() < 0.6) plan.block(x, z, { id: "bush", x: x + 0.5, z: z + 0.5, args: { flowering: (x + z) % 2 === 0 } });
-      }
-    }
-    onBackWalls(ctx, 0.35, [], (x, z) => ({ id: "dungeon-roots", x, z, args: { w: 1 } }));
-    // Glowing mushrooms along the tunnels' walls, each giving a little light; logs and stones.
-    alongWalls(
-      ctx,
-      0.14,
-      (x, z) => {
-        const r = plan.random();
-        if (r < 0.55) {
-          const hue = (x + z) % 3 === 0 ? "blue" : "green";
-          plan.light(glowLight([x + 0.5, 0.6, z + 0.5], hue === "blue" ? [0.4, 0.7, 1] : [0.45, 1, 0.55], 2.6, 3.5), 18);
-          return { id: "dungeon-mushrooms", x: x + 0.5, z: z + 0.5, seed: x * 3 + z, args: { hue } };
-        }
-        if (r < 0.8) return { id: "boulder", x: x + 0.5, z: z + 0.5, seed: (x + z) % 7, args: { r: 0.35 } };
-        return { id: "bush", x: x + 0.5, z: z + 0.5 };
-      },
-      (x, z) => roomAt(rooms, x, z) === undefined,
-    );
-    strew(ctx, 0.04, (x, z) => (plan.surface[plan.index(x, z)] === "grass" ? null : { id: "dungeon-grime", x: x + 0.5, z: z + 0.5, seed: 4 + ((x + z) % 3) }));
-    strew(ctx, 0.012, (x, z) => ({ id: "bones", x: x + 0.5, z: z + 0.5, seed: 1 + ((x + z) % 5), y: 0.004 + ((x * 7 + z) % 5) * 0.0004 }));
+      return { id: "boulder", x: x + 0.5, z: z + 0.5, seed: (x + z) % 7, args: { r: 0.35 } };
+    });
+    onBackWalls(ctx, 0.45, [], (x, z) => ({ id: "dungeon-roots", x, z, args: { w: 1 } }));
+    // Fireflies of a sort: a few glows over the glade's edge.
+    for (const [x, z] of [[x0 + 3, z0 + 2], [x1 - 3, z0 + 2], [x0 + 2, mz], [x1 - 2, mz]] as const) plan.light(glowLight([x + 0.5, 1.6, z + 0.5], [0.6, 1, 0.5], 4, 6), 40);
+    strew(ctx, 0.05, (x, z) => (plan.surface[plan.index(x, z)] === "grass" ? null : { id: "dungeon-grime", x: x + 0.5, z: z + 0.5, seed: 4 + ((x + z) % 3) }));
+    strew(ctx, 0.01, (x, z) => ({ id: "bones", x: x + 0.5, z: z + 0.5, seed: 1 + ((x + z) % 5), y: 0.004 + ((x * 7 + z) % 5) * 0.0004 }));
   },
 };

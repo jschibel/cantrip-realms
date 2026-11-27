@@ -154,11 +154,10 @@ public sealed class NativeVerifierTests
         });
         CharacterView me = await browser.Ok<CharacterView>(HttpMethod.Put, "/api/loadout", new { Slots = new Dictionary<string, long?> { ["head"] = worn[0], ["body"] = worn[1] } });
 
-        // The warden of Serra's sanctum, who wears plate and a pendant of its own.
+        // The warden of Serra's sanctum, who wears plate and a pendant of its own, as the first round's first challenger.
         RunView run = await app.EnterRun(browser, "benalish-keep");
-        RunFloor first = run.Floors[0];
-        Assert.Equal("sanctum-warden", first.Warden);
-        EncounterView encounter = await RealmApp.Fight(browser, run, 0, first.Encounters.Count, first.Warden!);
+        run = await app.SetChallenger(browser, run, 0, 0, "sanctum-warden");
+        EncounterView encounter = await RealmApp.Fight(browser, run, 0, 0, "sanctum-warden");
         Duel duel = encounter.Duel;
         Assert.Equal((me.Stats.Life, me.Stats.Hand), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));
         Assert.NotEqual((20, 7), (duel.Seats[0].StartingLife, duel.Seats[0].StartingHandSize));

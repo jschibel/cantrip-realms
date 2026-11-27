@@ -13,7 +13,7 @@
   "tier": 3,
   "encounters": [
     3,
-    4
+    3
   ],
   "mobs": [
     [
@@ -30,10 +30,10 @@
       "fallen-angel",
       "knight-of-malice",
       "sengir-vampire",
-      "tombstalker"
+      "tombstalker",
+      "tomb-warden"
     ]
   ],
-  "warden": "tomb-warden",
   "boss": "liliana",
   "region": "B",
   "standing": {

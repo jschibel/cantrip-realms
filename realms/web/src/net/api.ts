@@ -224,12 +224,12 @@ export interface Place {
 }
 
 /**
- * A dungeon run's floor: its encounters, its warden and boss (null where it has none); in a run dealt by the character's
- * standing to the dungeon's color (design.md A6), the tier it is dealt at and what its boss gains.
+ * A dungeon run's floor (design.md A6: a run is a tournament): a round's challengers, its encounters, or on the last floor
+ * the boss (null where it has none, or it rests), fought by the index past the encounters; in a run dealt by the
+ * character's standing to the dungeon's color, the tier it is dealt at and what its boss gains.
  */
 export interface RunFloor {
   readonly Encounters: readonly { readonly Index: number; readonly Mob: string }[];
-  readonly Warden: string | null;
   readonly Boss: string | null;
   readonly Tier?: number | null;
   readonly BossStats?: { readonly Life: number; readonly Hand: number; readonly MaxHand: number } | null;

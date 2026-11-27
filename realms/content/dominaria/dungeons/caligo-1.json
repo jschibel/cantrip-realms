@@ -7,20 +7,20 @@
     307
   ],
   "floors": [
-    1,
-    1
+    2,
+    2
   ],
   "tier": 1,
   "encounters": [
-    1,
-    2
+    3,
+    3
   ],
   "mobs": [
     "bog-imp",
     "bog-raiders",
-    "bog-rats"
+    "bog-rats",
+    "warden-1"
   ],
-  "warden": "warden-1",
   "boss": "mage-caligo-1",
   "region": "B",
   "waystone": true

@@ -6,7 +6,7 @@ import { drawWalls } from "./walls";
 // A cave's crags (rock.ts) stand back from the walked ground, never over it: no facet of rock above the floor lies
 // inside a tile that is not wall, and every point of it is a number.
 
-const run = { Encounters: [0, 1, 2].map((i) => ({ Index: i, Mob: `mob-${i}` })), Warden: "warden", Boss: null };
+const run = { Encounters: [0, 1, 2].map((i) => ({ Index: i, Mob: `mob-${i}` })), Boss: null };
 
 function facets(model: Model, each: (x: number, y: number, z: number) => void): void {
   for (const part of model.parts) {
@@ -21,7 +21,7 @@ function facets(model: Model, each: (x: number, y: number, z: number) => void): 
 describe("a cave's walls", () => {
   for (const [seed, at] of [[1, 0], [2, 2], [3, 1], [4, 0], [5, 1], [6, 2], [7, 0], [8, 1]] as const) {
     it(`seed ${seed}, floor ${at}: rock only over rock`, () => {
-      const floor = generateDungeonFloor({ theme: "caves", seed, floor: at, floors: 3, run: { ...run, Warden: at < 2 ? "warden" : null, Boss: at === 2 ? "boss" : null } });
+      const floor = generateDungeonFloor({ theme: "caves", seed, floor: at, floors: 3, run: at === 2 ? { Encounters: [], Boss: "boss" } : run });
       const built = drawWalls(floor.cells, floor.theme);
       const models = [built.model, ...(built.cutaways ?? []).flatMap((c) => [c.full, c.low])];
       let count = 0;

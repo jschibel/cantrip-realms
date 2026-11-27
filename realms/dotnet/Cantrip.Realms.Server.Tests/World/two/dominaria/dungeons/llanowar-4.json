@@ -1,1 +1,1 @@
-{"id":"llanowar-4","name":"The Llanowar Tower of the Fourth Circle","theme":"tower","waystone":true,"floors":[1,2],"tier":4,"encounters":[1,2],"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf"],"warden":"warden-4","boss":"mage-llanowar-4","region":"G","entrance":[100,124]}
+{"id":"llanowar-4","name":"The Llanowar Tower of the Fourth Circle","theme":"tower","waystone":true,"floors":[2,2],"tier":4,"encounters":[3,3],"mobs":["enormous-baloth","marhault-elsdragon","tarmogoyf","warden-4"],"boss":"mage-llanowar-4","region":"G","entrance":[100,124]}
